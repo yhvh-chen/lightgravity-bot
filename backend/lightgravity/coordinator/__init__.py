@@ -13,11 +13,19 @@ This package is the first-version, minimal implementation of docs/08 §4.3 /
 * :class:`~lightgravity.coordinator.service.Coordinator` owns the single
   execution slot, Task/Run lifecycle and control/query handling.  All control
   state is written through the ``Store``; the executor never writes it.
+* :mod:`~lightgravity.coordinator.planner` (LG-008) proposes a Subtask graph and
+  validates it program-side; :mod:`~lightgravity.coordinator.recruiter` (LG-008)
+  selects a minimal temporary team from an explicit capability catalog;
+  :mod:`~lightgravity.coordinator.scheduler` (LG-008) validates the dependency
+  graph and owns Subtask claim/lease plus artifact handoff; and
+  :mod:`~lightgravity.coordinator.graph` (LG-008) composes them behind the
+  :class:`Dispatcher` seam as :class:`GraphDispatcher`.
 * :mod:`~lightgravity.coordinator.api` exposes an independent FastAPI router
   factory for LG-012 to mount (``api/app.py`` is intentionally untouched).
 
-Scope boundary: LG-007 does not implement the full planner/recruiter/scheduler
-graph (LG-008) or full pause/cancel/restore (LG-016).
+Scope boundary: LG-007 owns routing/queue/single-slot; LG-008 adds the planner,
+recruiter, scheduler and graph dispatcher.  Full pause/cancel/restore (LG-016)
+and artifact verification / human acceptance (LG-009) remain separate tasks.
 """
 
 from .api import build_router
@@ -35,6 +43,38 @@ from .dispatcher import (
     SingleSlotDispatcher,
     UnavailableExecutor,
 )
+from .graph import GraphDispatcher, NodeResult, build_graph_dispatcher
+from .planner import (
+    ModelPlanner,
+    ModelProposalError,
+    Plan,
+    PlanInvalid,
+    PlanProposal,
+    Planner,
+    PlanValidator,
+    RawSubtask,
+    RuleBasedPlanner,
+    SubtaskSpec,
+)
+from .recruiter import (
+    CandidateAgent,
+    MemberPlan,
+    RecruitError,
+    Recruiter,
+    RoleCatalog,
+    TeamPlan,
+    member_config_hash,
+)
+from .scheduler import (
+    ArtifactHandoff,
+    ClaimOutcome,
+    DependencyGraph,
+    GraphError,
+    GraphNode,
+    SubtaskClaimer,
+    encode_handoffs,
+    parse_handoff_ref,
+)
 from .service import Coordinator, CoordinatorResult
 
 __all__ = [
@@ -48,6 +88,34 @@ __all__ = [
     "RunController",
     "SingleSlotDispatcher",
     "UnavailableExecutor",
+    "GraphDispatcher",
+    "NodeResult",
+    "build_graph_dispatcher",
+    "ModelPlanner",
+    "ModelProposalError",
+    "Plan",
+    "PlanInvalid",
+    "PlanProposal",
+    "Planner",
+    "PlanValidator",
+    "RawSubtask",
+    "RuleBasedPlanner",
+    "SubtaskSpec",
+    "CandidateAgent",
+    "MemberPlan",
+    "RecruitError",
+    "Recruiter",
+    "RoleCatalog",
+    "TeamPlan",
+    "member_config_hash",
+    "ArtifactHandoff",
+    "ClaimOutcome",
+    "DependencyGraph",
+    "GraphError",
+    "GraphNode",
+    "SubtaskClaimer",
+    "encode_handoffs",
+    "parse_handoff_ref",
     "Coordinator",
     "CoordinatorResult",
     "build_router",

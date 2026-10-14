@@ -9,7 +9,7 @@ retries and emit the frozen contract events.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any
+from typing import Any, Protocol, cast
 
 from lightgravity.contracts import EventType, TaskPhase, TaskStatus
 from lightgravity.store import (
@@ -70,6 +70,21 @@ def status_for_phase(phase: str) -> str:
     return _STATUS_FOR_PHASE.get(phase, TaskStatus.IN_PROGRESS)
 
 
+class _BodyCreateStore(Protocol):
+    """Concrete store accepts Markdown prose; the frozen protocol does not."""
+
+    def create(
+        self,
+        kind: str,
+        entity_id: str,
+        content: dict[str, Any],
+        *,
+        actor: str,
+        request_id: str,
+        body: str | None = None,
+    ) -> Versioned: ...
+
+
 class StateWriter:
     """Read-modify-write helper for Task/Run entities and their event streams."""
 
@@ -128,6 +143,68 @@ class StateWriter:
                 return self._store.write(
                     "run",
                     run_id,
+                    updates,
+                    expected_revision=current.revision,
+                    actor=actor or self._actor,
+                )
+            except RevisionConflict as exc:
+                last = exc
+        assert last is not None
+        raise last
+
+    def create(
+        self,
+        kind: str,
+        entity_id: str,
+        content: dict[str, Any],
+        *,
+        body: str | None = None,
+        actor: str | None = None,
+        request_id: str | None = None,
+    ) -> Versioned:
+        """Create a state entity (RunController-owned Subtask/Member) via Store."""
+
+        return cast(_BodyCreateStore, self._store).create(
+            kind,
+            entity_id,
+            content,
+            actor=actor or self._actor,
+            request_id=request_id or f"{kind}:{entity_id}",
+            body=body,
+        )
+
+    def read_subtask(self, subtask_id: str) -> Versioned:
+        return self._store.read("subtask", subtask_id)
+
+    def write_subtask(
+        self, subtask_id: str, updates: dict[str, Any], *, actor: str | None = None
+    ) -> Versioned:
+        last: RevisionConflict | None = None
+        for _ in range(self._max_retries):
+            current = self._store.read("subtask", subtask_id)
+            try:
+                return self._store.write(
+                    "subtask",
+                    subtask_id,
+                    updates,
+                    expected_revision=current.revision,
+                    actor=actor or self._actor,
+                )
+            except RevisionConflict as exc:
+                last = exc
+        assert last is not None
+        raise last
+
+    def write_member(
+        self, member_id: str, updates: dict[str, Any], *, actor: str | None = None
+    ) -> Versioned:
+        last: RevisionConflict | None = None
+        for _ in range(self._max_retries):
+            current = self._store.read("member", member_id)
+            try:
+                return self._store.write(
+                    "member",
+                    member_id,
                     updates,
                     expected_revision=current.revision,
                     actor=actor or self._actor,
@@ -290,6 +367,93 @@ class RunController:
 
     def set_active_run(self, run_id: str | None) -> Versioned:
         return self._writer.set_active_run(self._task_id, run_id)
+
+    def update_run(self, updates: dict[str, Any]) -> Versioned:
+        """Write non-state Run fields (plan, team_refs, subtask_refs)."""
+
+        return self._writer.write_run(self._run_id, updates)
+
+    def create_subtask(
+        self, subtask_id: str, content: dict[str, Any], *, body: str | None = None
+    ) -> Versioned:
+        return self._writer.create("subtask", subtask_id, content, body=body)
+
+    def transition_subtask(
+        self,
+        subtask_id: str,
+        state: str,
+        *,
+        extra: dict[str, Any] | None = None,
+        acceptance: dict[str, Any] | None = None,
+        reason: str | None = None,
+    ) -> Versioned:
+        current = self._writer.read_subtask(subtask_id)
+        from_state = current.entity.get("state")
+        updates: dict[str, Any] = {"state": state}
+        if extra:
+            updates.update(extra)
+        if acceptance is not None:
+            updates["acceptance"] = acceptance
+        versioned = self._writer.write_subtask(subtask_id, updates)
+        if from_state != state:
+            payload: dict[str, Any] = {
+                "subtask_ref": subtask_id,
+                "from": from_state,
+                "to": state,
+            }
+            if reason:
+                payload["reason"] = reason
+            self.emit(EventType.SUBTASK_STATE_CHANGED, payload)
+        return versioned
+
+    def create_member(
+        self, member_id: str, content: dict[str, Any], *, body: str | None = None
+    ) -> Versioned:
+        return self._writer.create("member", member_id, content, body=body)
+
+    def transition_member(
+        self,
+        member_id: str,
+        state: str,
+        *,
+        extra: dict[str, Any] | None = None,
+        reason: str | None = None,
+    ) -> Versioned:
+        current = self._writer.store.read("member", member_id)
+        from_state = current.entity.get("state")
+        updates: dict[str, Any] = {"state": state}
+        if extra:
+            updates.update(extra)
+        versioned = self._writer.write_member(member_id, updates)
+        if from_state != state:
+            payload: dict[str, Any] = {
+                "member_ref": member_id,
+                "from": from_state,
+                "to": state,
+            }
+            if reason:
+                payload["reason"] = reason
+            self.emit(EventType.MEMBER_STATE_CHANGED, payload)
+        return versioned
+
+    def recruit_member(self, member_id: str, payload: dict[str, Any]) -> None:
+        self.emit(EventType.MEMBER_RECRUITED, {"member_ref": member_id, **payload})
+
+    def release_member(self, member_id: str, *, reason: str | None = None) -> Versioned:
+        versioned = self.transition_member(member_id, "released", reason=reason)
+        self.emit(
+            EventType.MEMBER_RELEASED,
+            {"member_ref": member_id, **({"reason": reason} if reason else {})},
+        )
+        return versioned
+
+    def record_artifact(
+        self, subtask_id: str, refs: tuple[str, ...], handoff: dict[str, Any]
+    ) -> None:
+        self.emit(
+            EventType.ARTIFACT_PRODUCED,
+            {"subtask_ref": subtask_id, "artifact_refs": list(refs), "handoff": handoff},
+        )
 
 
 __all__ = [
