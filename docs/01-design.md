@@ -2,7 +2,7 @@
 title: "LightGravity Bot 产品与架构设计"
 doc_type: design
 category: architecture
-updated: "2026-10-14"
+updated: "2026-10-15"
 ---
 
 # LightGravity Bot 产品与架构设计
@@ -230,7 +230,7 @@ Chat 接收问题、目标、补充证据、展示结果和请求必要决定；
 
 五个一级入口放在固定左侧窄图标栏，顶栏用于范围和面板控制。Agent 合并到 Team 的待招募/已招募，分别读取角色模板与临时成员实例；历史 Run 保留已释放名单。Resources 集中管理 Connections、Session Profiles、Hooks、MCP、Tools、Triggers、Skills，Conversation 实例在 Chat/成员详情中查看。完整布局、范围和交互见 [左侧导航、Team 与 Resources](05-navigation-and-team.md)。
 
-左导航底部另提供 Settings 接入模型和管理凭证，使用同一 Connection 权威文件；默认引用在 SETTINGS.md，敏感值只进后端秘密存储。设置页表单是普通资源对话修改规则的必要例外，不增加第二份配置库。首版先 Gemini，其他 SDK 后端待验证开放，见 [模型设置](07-settings-and-models.md)。
+左导航底部另提供 Settings 接入模型和管理凭证，使用同一 Connection 权威文件；默认引用在 SETTINGS.md，敏感值只进后端秘密存储。设置页表单是普通资源对话修改规则的必要例外，不增加第二份配置库。首版先接通已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）→ DeepSeek 路径；Gemini/Vertex 等未验收后端待各自探针通过后开放，见 [模型设置](07-settings-and-models.md) 与 [契约 §8.1](08-interface-contract.md)。
 
 参考 Olav OS 的文件管理器时先追踪组件依赖；独立实现必要交互也是候选方案，不预设整体移植。
 

@@ -2,7 +2,7 @@
 title: "Bot 行为与交互契约"
 doc_type: specification
 category: product
-updated: "2026-10-14"
+updated: "2026-10-15"
 ---
 
 # Bot 行为与交互契约
@@ -108,7 +108,7 @@ Planner 可以建议执行规模，程序落实预算与权限。不把“创建
 
 首版支持单用户本地网页使用。启动检查配置目录、文件权限、模型认证、平台 runtime、工具/隔离环境与必要资源 schema；区分致命故障与只影响可选能力的故障。模型或 worker 不可用时仍可浏览资料和历史，明确告知执行不可用，不假装开始运行。
 
-缺模型连接/默认时提供底部 Settings 的配置入口。模型接入与秘密输入不经过普通 Chat；Settings 与 Connections 共用配置，首版仍先 Gemini。详见 [模型设置](07-settings-and-models.md)。
+缺模型连接/默认时提供底部 Settings 的配置入口。模型接入与秘密输入不经过普通 Chat；Settings 与 Connections 共用配置，首版先接通已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）→ DeepSeek 路径。详见 [模型设置](07-settings-and-models.md)。
 
 常驻服务候选使用单 Python 进程承接 API/协调队列，独立子进程或已验证隔离环境运行 SDK worker；持久数据在明确配置目录。入口、队列与 worker 生命周期在浏览器请求之外。网页框架与进程管理方式待实现选择，先避免引入分布式调度。
 

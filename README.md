@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot
 
-> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.0.0）已冻结；LG-001～005 与 LG-011 共 6 项基础任务已完成并整合到 `main`（均为**待版本 QA**）：工程骨架可运行、SDK 探针、存储层、资源配置编译与左侧导航壳层。LG-011 壳层局部前端 19 个 vitest、23/23 无依赖 Chrome 浏览器检查、`tsc`/`vite build` 通过，但**未做真实后端联调**（无后端时显示真实的未接入/`network_error` 态）。SDK 核心能力经真实 DeepSeek 实测通过，但产品首版 Gemini 后端因缺凭证未认证，`search_web` 不可用；adapter 已将 `google-antigravity==0.1.22` 锁定为产品依赖，但真实 executor（LG-006，当前 `blocked_by` Gemini 认证）、协调器、查询 API 等业务接线尚未实现，未部署。
+> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.1.0）已冻结；用户已确认首版先用 DeepSeek，首版真实执行后端为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek，此前的 Gemini 认证阻塞已解除。LG-001～005 与 LG-011 共 6 项基础任务已完成并整合到 `main`（均为**待版本 QA**）：工程骨架可运行、SDK 探针、存储层、资源配置编译与左侧导航壳层。LG-011 壳层局部前端 19 个 vitest、23/23 无依赖 Chrome 浏览器检查、`tsc`/`vite build` 通过，但**未做真实后端联调**（无后端时显示真实的未接入/`network_error` 态）。SDK 核心能力经真实 DeepSeek 实测通过，`search_web` 不可用；adapter 已将 `google-antigravity==0.1.22` 锁定为产品依赖，但真实 executor（LG-006，`todo` 待派工）、协调器、查询 API 等业务接线尚未实现，未部署。
 
 **按需组队的 AI 任务助手。**
 
@@ -42,15 +42,15 @@ Task 是主要操作入口：一项任务一个目录、一份 TASK.md、一条�
 
 | 任务 | 状态 | 实际证据与限制 |
 |---|---|---|
-| LG-001 契约 | done | [docs/08](docs/08-interface-contract.md) 契约版本 1.0.0 已冻结 |
+| LG-001 契约 | done | [docs/08](docs/08-interface-contract.md) 首版契约已冻结（LG-001 为 1.0.0，2026-10-15 MINOR 升至 1.1.0，首版后端改为 DeepSeek） |
 | LG-002 工程骨架 | done | 后端 health/version、前端占位壳、check 入口可用 |
-| LG-003 SDK 探针 | done（带限制） | 固定 `google-antigravity==0.1.22`；文件工具、结构化输出、工具事件、预算停止、取消、会话保存/恢复、skills（文件与 inline）、`read_url_content` 经真实 DeepSeek 实测通过；**产品首版 Gemini Developer API／Vertex 因本环境无凭证未验收**；`search_web` 在非 Gemini 端点不可用。见 [LG-003 报告](probes/lg003-antigravity/reports/LG-003-report.md) |
+| LG-003 SDK 探针 | done（带限制） | 固定 `google-antigravity==0.1.22`；文件工具、结构化输出、工具事件、预算停止、取消、会话保存/恢复、skills（文件与 inline）、`read_url_content` 经真实 DeepSeek 实测通过；Gemini Developer API／Vertex 未验收（非首版路径，不作默认）；`search_web` 在非 Gemini 端点不可用。见 [LG-003 报告](probes/lg003-antigravity/reports/LG-003-report.md) |
 | LG-004 存储层 | done（待版本 QA） | `backend/lightgravity/store/` + `tests/store/`；整合后局部 69 passed、全量后端 82 passed、mypy 无问题 |
 | LG-005 资源编译 | done（待版本 QA） | `backend/lightgravity/adapter/` + `tests/adapter/`；refs/skills/tools/hooks/connection/session 解析、权限不扩大、秘密脱敏、unsupported 标记 unavailable、SDK 配置可编译；局部 51 passed、全量后端 133 passed、mypy 无问题 |
 | LG-011 前端壳层 | done（待版本 QA） | `frontend/src/app/` 壳层与路由、`components/` 共享组件、`api/` 客户端与 `/health` 探测、`views/` 入口与占位；局部 19 vitest、23/23 无依赖 Chrome 浏览器检查、`tsc`/`vite build` 通过；**未做真实后端联调**，业务端点显示未接入/空态 |
 
-- 上述 done 为执行者局部证据，**不是版本 QA 结论**；LG-003 的 DeepSeek 路径不改变 docs/08 冻结的“首版 Gemini 后端”产品契约。LG-001～005、011 均待 LG-010／LG-021／LG-022／LG-027 等版本 QA 门集中验证。
-- 下一步：LG-006 可基于 LG-005 的 `CompiledAgentConfig`/`build_sdk_config` 接口做不依赖凭证的静态实现，但真实 Gemini executor 验收被 **`blocked_by`：首版 Gemini 缺少认证**阻塞；等待配置 Gemini 凭证或用户确认产品改用 DeepSeek（env 已确认可用 DeepSeek），不擅自切换产品后端。**LG-010 最小真实闭环同样需具备 Gemini 凭证的环境。**
+- 上述 done 为执行者局部证据，**不是版本 QA 结论**；LG-003 已实测的 DeepSeek（OpenAI-compatible）路径是 docs/08 v1.1.0 确定的首版真实后端。LG-001～005、011 均待 LG-010／LG-021／LG-022／LG-027 等版本 QA 门集中验证。
+- 下一步：LG-006（`todo`，已移除 Gemini 认证阻塞）基于 LG-005 的 `CompiledAgentConfig`/`build_sdk_config` 接口实现 executor 与产品侧 loopback 认证代理接 DeepSeek；不再有强制 Gemini 认证门。LG-010 最小真实闭环在同一 DeepSeek 路径上验收。
 
 ## 本地运行与检查（工程骨架）
 
@@ -104,7 +104,7 @@ make frontend-build   # 前端生产构建
 - [开发看板](BACKLOG.md)：27 项首版开发任务，使用 `olav.tasks/v1` 管理。
 - [滚动排期](docs/06-roadmap.md)：阶段、依赖、验收门与当前未定的日历安排。
 - [模型设置](docs/07-settings-and-models.md)：Settings、Connection 事实源、凭证、分层测试和默认模型。
-- [首版接口与状态契约](docs/08-interface-contract.md)：冻结的最小技术栈、API/事件/实体状态、Store/Adapter 边界、错误语义、工作区授权与后续文件归属（契约版本 1.0.0）。
+- [首版接口与状态契约](docs/08-interface-contract.md)：冻结的最小技术栈、API/事件/实体状态、Store/Adapter 边界、错误语义、工作区授权与后续文件归属（契约版本 1.1.0）。
 - [项目手册](PROJECT.md)：目标、优先级、完成定义和已确认决策。
 - [产品与架构设计](docs/01-design.md)：调度器、executor、组队、文件事实源、状态与首版交付顺序。
 - [Task 与 SDK 资源契约](docs/02-task-and-sdk-resources.md)：任务目录、对话、frontmatter 渲染及 Agent／Connections／Conversation／Hooks／MCP／Tools／Triggers 的映射。
@@ -117,7 +117,7 @@ make frontend-build   # 前端生产构建
 - 一个占用执行槽的交付 Run，其他 Task 可以排队；最多三个 worker、两个并行子任务、一轮自动返修，待运行验证后调整。已停止的待用户或待验收 Run 不占槽。
 - 首个执行后端采用 Antigravity SDK，保留 adapter 边界，不同时实现多个 SDK。
 - agency-agents 作为候选角色内容来源，从少量开发角色开始。
-- 使用 SDK 原生 skills 加载与基础文件、命令、网页工具；按成员绑定角色、技能、工具权限与工作区，不重建通用技能执行层。LG-003 已用真实 DeepSeek 探针验证核心能力；产品首版 Gemini 路径与 `search_web` 仍待具备凭证的环境复验。
+- 使用 SDK 原生 skills 加载与基础文件、命令、网页工具；按成员绑定角色、技能、工具权限与工作区，不重建通用技能执行层。首版为 `google-antigravity==0.1.22` 的 OpenAI-compatible（`LocalOpenAIAgentConfig`）→ DeepSeek 路径（LG-003 已实测，LG-006 实现产品侧代理）；`search_web` 标记不可用；Gemini/Vertex 未验收，待各自探针通过后开放。
 - 临时角色实例随运行创建和释放，项目与产物长期保存。
 - 人工最终验收；worker 自报完成只能进入待验证。
 - 单用户本地网页入口，简单问答不组队；后台执行独立于浏览器连接，支持 Task 队列与网页未读通知。云端入口、外部聊天渠道和自主触发另行推进。

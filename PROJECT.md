@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot 项目手册
 
-> 更新：2026-10-15。阶段：LG-001 契约已冻结，LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；产品首版 Gemini 后端因本环境缺凭证未认证，`search_web` 不可用），LG-004 存储层与局部测试完成，LG-005 角色/SDK 资源配置编译完成（已将 `google-antigravity==0.1.22` 锁定为产品依赖），LG-011 前端壳层完成并整合到 `main`（6 项均**待版本 QA**）。产品真实 executor（LG-006）当前 **`blocked_by`：首版 Gemini 缺少认证**；协调器、查询 API 等业务接线尚未实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
+> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 升至 1.1.0，首版真实后端改为 DeepSeek），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层与局部测试完成，LG-005 角色/SDK 资源配置编译完成（已将 `google-antigravity==0.1.22` 锁定为产品依赖），LG-011 前端壳层完成并整合到 `main`（6 项均**待版本 QA**）。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek；LG-006 已移除 Gemini 认证阻塞并保持 `todo` 待派工；协调器、查询 API 等业务接线尚未实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
 
 ## 目标
 
@@ -40,6 +40,17 @@ updated: "2026-10-15"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-15：确认首版真实后端为 DeepSeek（覆盖此前 Gemini 待决）
+
+- 用户明确决定：产品首版先用 DeepSeek，解除此前“首版 Gemini 缺少认证”的阻塞，继续批量开发。本条决策覆盖 2026-10-15“整合 LG-011”条目中“用户选择仍未回复 / 不擅自切换产品后端”的待决状态；该历史条目按原文保留，不回写。
+- 首版唯一真实执行路径：已真实验证的 `google-antigravity==0.1.22` + `LocalOpenAIAgentConfig`（注册后端 `openai-compat`，只有 `base_url`、无 `api_key` 字段）+ loopback 认证代理接 DeepSeek。不新增 SDK，不保留强制 Gemini 认证门，不新增通用多厂商平台。
+- 产品认证代理由 LG-006 作为**产品代码**实现，不复制或依赖 LG-003 探针、参考仓库或开发机绝对路径；代理只监听 loopback，具启动/停止/失败生命周期与停止确认，残留进程必须清理；只从进程环境或受控 secret store 的 `credential_ref` 解析凭证，不读取/输出/记录完整秘密。LG-025 负责 Connection/SETTINGS 写入、凭证引用与分层测试接口。
+- 模型首选本环境实际使用的 `deepseek-v4-flash`（`PI_MODEL`）；不把未经该路径实测的版本串（如“4.1”）写成可用 API ID。LG-003 SDK 探针当时使用 `deepseek-chat`，LG-006 须记录并验证实际发送给 SDK 的 model ID 与 `base_url`。
+- `search_web` 维持不可用；Gemini/Vertex 及其它未验收后端不得作为默认可执行连接。**凭证事实更正**：派工/任务运行环境已注入 DeepSeek key（LG-003 探针与开发派工使用）；不保证项目 `.env` 内存在可直接使用的 key，也不在文档、日志、事件或响应中输出完整秘密。
+- 契约更新：docs/08 由 `1.0.0` MINOR 升至 `1.1.0`（§8.1 首版后端与本地认证代理、§13 变更记录）；HTTP 端点、错误码、事件类型、实体字段、枚举与状态迁移**均未变化**。同步 docs/07、docs/01、docs/03、docs/04、docs/06、README、agent.md 与相关任务（LG-006 移除 `blocked_by` 并保持 `todo`；LG-025/026/027 首版后端要求改为 DeepSeek）。
+- 代码不改（本轮只交契约与管理文档）：adapter 中把 Gemini 描述为“产品契约”的注册表/能力注释需由 LG-006 在实现时一并整合更新；当前代码已把 `openai-compat` 标为 `verified=True`、Gemini/Vertex 标为 `verified=False`，与本决策一致。
+- 本次提交前运行 `tasks validate` 与文档本地链接/一致性检查；仅本地文档提交，未推送、未部署、未启动产品服务。
 
 ### 2026-10-15：整合 LG-011 前端壳层并记录批次阻塞
 

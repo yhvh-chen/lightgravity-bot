@@ -33,7 +33,7 @@ updated: "2026-10-15"
 
 - 产品名 LightGravity Bot，目录/仓库名 `lightgravity-bot`。
 - 首版为单用户本地网页的 AI 任务助手，先用开发任务证明闭环；普通问答与有界只读工具请求不强制组队。
-- 首个执行后端是 Antigravity SDK，保留 adapter 边界。不提前实现多个后端、组织/岗位、长期员工、多租户、外部聊天渠道、自主触发或动态插件平台。
+- 首个执行后端是 Antigravity SDK，保留 adapter 边界；首版唯一真实路径为已验收的 `google-antigravity==0.1.22` + `LocalOpenAIAgentConfig`（`openai-compat`）+ loopback 认证代理接 DeepSeek，凭证只来自环境变量或受控 `credential_ref`，代理生命周期与停止确认规则见 [docs/08](docs/08-interface-contract.md) §8.1 与 [docs/07](docs/07-settings-and-models.md)。不提前实现多个后端、通用多厂商平台、组织/岗位、长期员工、多租户、外部聊天渠道、自主触发或动态插件平台。
 - 建议默认容量为一个占用执行槽的交付 Run、三个 worker、两个并行 Subtask、一轮自动返修。改变这些默认值需记录依据，不能把未验证容量写成产品能力。
 - 源码显示能力、配置可解析、runtime 可执行和真实业务验收是不同事实；发布说明与界面不得混写。
 
@@ -147,6 +147,6 @@ SDK 版本敏感问题以官方源码、文档与安装版本为准。docs/03 �
 - [Bot 行为](docs/04-bot-behavior.md)
 - [左侧导航与资源管理](docs/05-navigation-and-team.md)
 - [模型设置与凭证](docs/07-settings-and-models.md)
-- [首版接口与状态契约](docs/08-interface-contract.md)（契约版本 1.0.0，实现边界以它为准）
+- [首版接口与状态契约](docs/08-interface-contract.md)（契约版本 1.1.0，实现边界以它为准）
 
 本文件约束开发实施，不代表功能已实现，不保证参赛资格，也不覆盖用户后续明确调整的需求。

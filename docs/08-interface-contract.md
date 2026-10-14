@@ -2,7 +2,7 @@
 title: "首版接口与状态契约（v1）"
 doc_type: specification
 category: architecture
-contract_version: "1.0.0"
+contract_version: "1.1.0"
 updated: "2026-10-15"
 ---
 
@@ -10,7 +10,7 @@ updated: "2026-10-15"
 
 > 性质：LG-001 冻结的候选实现契约。它把 [产品与架构设计](01-design.md)、[Task 与 SDK 资源契约](02-task-and-sdk-resources.md)、[Bot 行为契约](04-bot-behavior.md)、[SDK 能力审计](03-sdk-capability-audit.md)、[导航设计](05-navigation-and-team.md)、[模型设置](07-settings-and-models.md) 收敛到可实现的接口与状态边界，不新增产品能力，也不代表功能已实现或经过运行时验证。
 >
-> 契约版本 `1.0.0`；实体 schema 命名空间 `lightgravity.bot/v1`；HTTP API 前缀 `/api/v1`。变更规则见第 13 节。实现与本文冲突时以本文为准；本文未定义的行为一律视为“不支持”，实现不得自行扩展语义。运行时未知字段按“保留但不赋予执行语义”处理。
+> 契约版本 `1.1.0`（2026-10-15 MINOR：明确首版唯一真实执行后端为已验收的 OpenAI-compatible `LocalOpenAIAgentConfig` → DeepSeek 路径，并补充本地认证代理与凭证边界，见 §8.1；**HTTP 端点、错误码、事件类型、实体字段、枚举与状态迁移均未变化**，变更记录见第 13 节）。实体 schema 命名空间 `lightgravity.bot/v1`；HTTP API 前缀 `/api/v1`。变更规则见第 13 节。实现与本文冲突时以本文为准；本文未定义的行为一律视为“不支持”，实现不得自行扩展语义。运行时未知字段按“保留但不赋予执行语义”处理。
 
 ## 1. 范围
 
@@ -500,6 +500,16 @@ class ExecutorAdapter(Protocol):
 - 沙箱：adapter 必须暴露实际 `sandbox_status`；不支持时如实报告，不静默降级后宣称隔离。
 - SDK 原生 session 只作恢复参考，恢复能力以 LG-003 探针结论为准。
 
+### 8.1 首版执行后端与本地认证代理（1.1.0）
+
+- 首版唯一真实执行路径固定为 `google-antigravity==0.1.22` + `LocalOpenAIAgentConfig`（注册后端 `openai-compat`，只有 `base_url`、没有 `api_key` 字段）+ loopback 认证代理接 DeepSeek；不新增 SDK，不引入第二个执行框架，不新增通用多厂商平台。
+- 本地认证代理由 LG-006 作为**产品代码**实现，是 executor adapter 的运行组件：只监听 loopback；只从进程环境或受控 secret store 的 `credential_ref` 解析凭证；不读取、不回显、不记录完整秘密；明确定义启动/停止/失败生命周期，停止需确认（stop confirmed）后才写终止状态，残留代理/worker 进程必须清理。
+- 产品不得复制或依赖 LG-003 探针、参考仓库或开发机绝对路径作为运行必需依赖；产品认证代理是独立实现，不是探针脚本。
+- 凭证来源只允许进程环境（如运行环境已注入的 DeepSeek key）或受控 secret store 的 `credential_ref`；不假设项目 `.env` 一定含可用 key。adapter 不把“config built”当作“已认证”；执行就绪以 `CompiledAgentConfig.executable`、实际 session 建立与认证结果共同判定。
+- 首版首选模型为 `deepseek-v4-flash`；LG-006 必须记录并验证实际发送给 SDK 的 model ID 与 `base_url`。LG-003 SDK 探针当时使用 `deepseek-chat`，未实测的版本串（例如“4.1”）不得写成可用 API ID。
+- `AdapterCapabilities` 首版声明 `probe_verified_backends=("openai_compat",)`、`unverified_backends=("gemini", "vertex")`、`search_web=false`；执行能力以 LG-003 实测为准。
+- Gemini Developer API 与 Vertex 在该路径下未验收，不得作为默认可执行连接；`search_web` 继续标记 `unavailable`；Vertex、LiteRT、`custom_endpoint` 等其它后端未验收，不得默认执行。
+
 ## 9. 关键错误与动作语义
 
 - **配置失败**：解析/校验失败时不写入任何状态，返回 `config_invalid`（附诊断列表）；Task/Run 保持不变。凭证值永不进入响应、日志、事件或错误详情。
@@ -547,7 +557,7 @@ class ExecutorAdapter(Protocol):
 
 LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与版本 QA）：
 
-- [ ] 契约版本 `1.0.0` 与 `/api/v1`、`lightgravity.bot/v1` 在本文一致声明。
+- [ ] 契约版本与 `/api/v1`、`lightgravity.bot/v1` 在本文一致声明（LG-001 冻结 `1.0.0`；当前 `1.1.0`，变更记录见第 13 节）。
 - [ ] ID 语法、时间格式、命名约定明确，且与 docs/02 资源示例的差异有说明。
 - [ ] API 端点表覆盖首版所需路径，错误码表覆盖配置失败、冲突、取消未确认、能力不可用、验收过期。
 - [ ] Task/Subtask/Run/Member 状态枚举、合法组合与迁移方向齐备，无 `done + executing` 类矛盾。
@@ -561,6 +571,13 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 ## 13. 变更控制与证据
 
 - 契约版本：新增向后兼容字段/事件类型为 MINOR；改字段语义、枚举、状态迁移或删除端点为 MAJOR，必须同步 README、agent.md、docs/06 与相关设计，并记录迁移影响。
+- 变更记录：
+
+| 版本 | 日期 | 级别 | 变更 | API/实体字段影响 |
+|---|---|---|---|---|
+| `1.1.0` | 2026-10-15 | MINOR | 首版真实后端由未验收的 Gemini 改为已验收的 `openai-compat`（`LocalOpenAIAgentConfig`）→ DeepSeek 路径；新增本地认证代理与凭证/生命周期边界（§8.1）；Gemini/Vertex 标为未验收、不作默认 | 无：端点、错误码、事件类型、实体字段、枚举与状态迁移均未变化 |
+| `1.0.0` | 2026-10-15 | — | LG-001 初始冻结 | — |
+
 - 变更必须先更新本文件与受影响设计文档，再进入实现；实现不得先于契约扩展语义。
 - 运行时行为、SDK 兼容性与界面验收分别记录实际证据；契约存在不等于功能已验证。LG-001 只交付契约文档与局部检查，不安装依赖、不写产品代码、不启动服务。
 - 实现证据与版本 QA 记录在对应任务正文；本契约层的“待版本 QA”项：

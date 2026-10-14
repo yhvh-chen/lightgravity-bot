@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # 首版滚动排期
 
-> 日期：2026-10-14，更新：2026-10-15。规划已落盘，开发已开始。阶段事实：LG-001～005 与 LG-011 共 6 项基础任务已完成并整合到 `main`（均**待版本 QA**）；LG-006 及其后的真实后端闭环受**首版 Gemini 未认证**阻塞（`blocked_by`）。采用 Olav Tasks 的开发任务格式与依赖图；日历开始/结束日期、人员和每日投入未确定，暂不填写 start_date/end_date、assignee 或 effort，也不把实现速度假定为已知。
+> 日期：2026-10-14，更新：2026-10-15。规划已落盘，开发已开始。阶段事实：LG-001～005 与 LG-011 共 6 项基础任务已完成并整合到 `main`（均**待版本 QA**）；用户已确认首版先用 DeepSeek，LG-006 的“首版 Gemini 认证”阻塞已解除并保持 `todo` 待主代理派工；首版唯一真实路径为已验收的 `google-antigravity==0.1.22` + OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek（契约见 [docs/08](08-interface-contract.md) §8.1）。采用 Olav Tasks 的开发任务格式与依赖图；日历开始/结束日期、人员和每日投入未确定，暂不填写 start_date/end_date、assignee 或 effort，也不把实现速度假定为已知。
 
 ## 1. 目标与假设
 
@@ -64,7 +64,7 @@ LG-010 是最小后端闭环验收，不代表已有完整网页或所有恢复�
 
 ## 4. 首个实施项与验证门
 
-首个就绪候选应为 LG-001。其产物至少确定最小技术栈、API/事件 schema、实体状态、Store/Executor 责任、测试入口与目录权限，不为架构讨论无限扩展范围。LG-001 的实际产物为 [首版接口与状态契约](08-interface-contract.md)（契约版本 1.0.0）；后续实现以该契约与各项 depends_on 为准，不在本排期重复状态。
+首个就绪候选应为 LG-001。其产物至少确定最小技术栈、API/事件 schema、实体状态、Store/Executor 责任、测试入口与目录权限，不为架构讨论无限扩展范围。LG-001 的实际产物为 [首版接口与状态契约](08-interface-contract.md)（LG-001 冻结契约版本 1.0.0；2026-10-15 因首版后端改为 DeepSeek 而 MINOR 升至 1.1.0，见该文档第 13 节）；后续实现以该契约与各项 depends_on 为准，不在本排期重复状态。
 
 SDK 安装/真实测试属于 LG-002/003 后续实施，不包含在此次写排期。LG-003 需要可用的测试模型认证与预算；缺少这些时可以继续无凭证的存储/壳层工作，但不能将 SDK 测试标 done，也不能用 stub 解锁需要真实能力的后续门。
 
@@ -75,7 +75,7 @@ SDK 安装/真实测试属于 LG-002/003 后续实施，不包含在此次写排
 - 真实 SDK runtime/模型认证、测试费用与平台支持，在探针前确认实际配置；规划时不把假设阻塞写成已经发生的 blocked_by。
 - Python 服务/API 框架、前端框架和组件基线已由 LG-001 在 [接口与状态契约](08-interface-contract.md) 冻结；本次规划未安装任何依赖。
 - 日历排期需要开始时间、每日投入和目标范围；当前 Gantt 会显示未排期，这是如实记录，不表示任务缺少依赖。
-- 云端部署、比赛提交与资格、外部 bot 渠道、多用户、自主触发和其他 SDK 不在这 27 项开发任务范围；Settings 首版先 Gemini，其他 SDK 后端只显示验证状态，实际开放另立探针与任务。
+- 云端部署、比赛提交与资格、外部 bot 渠道、多用户、自主触发和其他 SDK 不在这 27 项开发任务范围；Settings 首版先接入已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）→ DeepSeek，其他 SDK 后端（Gemini/Vertex/LiteRT 等）只显示验证状态，实际开放另立探针与任务。
 - 任务状态以单项 frontmatter 为准。开发验收遵 agent.md；产品用户的最终验收属于运行时契约，两者不能混同。
 
 入口：[BACKLOG](../BACKLOG.md)。任务与依赖可通过 `tasks validate/ready/digest` 检查，本地命令见 backlog。

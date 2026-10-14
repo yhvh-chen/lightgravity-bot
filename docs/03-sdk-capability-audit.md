@@ -2,7 +2,7 @@
 title: "Antigravity SDK 核心能力审计与 frontmatter 映射"
 doc_type: audit
 category: sdk
-updated: "2026-10-14"
+updated: "2026-10-15"
 ---
 
 # Antigravity SDK 核心能力审计与 frontmatter 映射
@@ -24,8 +24,8 @@ updated: "2026-10-14"
 | 核心能力 | 前版覆盖 | frontmatter 配置归属 | 运行/渲染方式 | 首版范围 |
 |---|---|---|---|---|
 | Agent 生命周期与指令 | 已有 | Agent：persona、指令模式、引用 | 程序创建/关闭实例，正文提供指令 | 接入 |
-| Connections 与认证 | 已有 | Connection：adapter、模型目标、认证引用、区域 | 凭证由环境解析，展示健康状态 | 首个 Gemini 后端 |
-| 本地模型／其他端点 | 未展开 | Connection：后端专属配置 | 每种后端单独验证兼容性 | 暂缓，不承诺任意模型 |
+| Connections 与认证 | 已有 | Connection：adapter、模型目标、认证引用、区域 | 凭证由环境解析，展示健康状态 | 首个 DeepSeek（OpenAI-compatible）后端；Gemini/Vertex 未验收 |
+| 本地模型／其他端点 | 未展开 | Connection：后端专属配置 | 每种后端单独验证兼容性 | 首版经 OpenAI-compatible 接 DeepSeek；其余不承诺 |
 | 模型推理与服务档位 | 补充 | Connection：thinking、service tier、输出上限 | 映射 ModelTarget/endpoint options，显示有效配置 | 基本模型选择，其余可选 |
 | Conversation 保存与恢复 | 已有 | Conversation：continuation、存储策略 | 原生 session 存储，显示可恢复/不可恢复 | 实测后支持 |
 | Skills 与依赖 | 已有，补充约束 | Agent：skill source、skill refs | 路径或 InlineSkill，保存版本与依赖 | 文件技能优先 |
