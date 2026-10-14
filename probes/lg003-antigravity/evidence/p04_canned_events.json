@@ -1,0 +1,30 @@
+{
+  "compiled_active_tools": [
+    "create_file",
+    "edit_file",
+    "run_command",
+    "view_file"
+  ],
+  "sandbox_status": {
+    "available": true,
+    "unavailable_reason": null
+  },
+  "text": "pong",
+  "stop_reason": "StopReason.UNSPECIFIED",
+  "usage": {
+    "prompt_token_count": 3,
+    "cached_content_token_count": 0,
+    "candidates_token_count": 1,
+    "thoughts_token_count": 0,
+    "total_token_count": 4,
+    "service_tier": null
+  },
+  "structured_output": null,
+  "step_types": [
+    "StepType.TEXT_RESPONSE",
+    "StepType.TEXT_RESPONSE",
+    "StepType.TEXT_RESPONSE",
+    "StepType.TEXT_RESPONSE"
+  ],
+  "ok": true
+}

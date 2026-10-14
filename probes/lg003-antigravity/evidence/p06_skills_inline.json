@@ -1,0 +1,10 @@
+{
+  "text": "I'll look up the relevant skill.`mango-31`",
+  "tool_calls": [
+    "skill_lookup"
+  ],
+  "stop_reason": "StopReason.UNSPECIFIED",
+  "marker": "mango-31",
+  "ok": true,
+  "scenario": "inline"
+}

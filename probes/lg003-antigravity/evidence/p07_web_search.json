@@ -1,0 +1,9 @@
+{
+  "tool_calls": [
+    "search_web"
+  ],
+  "text": "I'll search for that now.The search returned no usable results \u2014 the response contained only a note about redirects with no result titles or content.\n\n**Summary:** No results were returned for the query `Antigravity SDK python`, so there is no title to summarize.\n\nIf you'd like, I can retry with a broader query (e.g. `Antigravity Google SDK` or `Google Antigravity API`) to try to surface a result.",
+  "stop_reason": "StopReason.UNSPECIFIED",
+  "ok": true,
+  "scenario": "search_web"
+}

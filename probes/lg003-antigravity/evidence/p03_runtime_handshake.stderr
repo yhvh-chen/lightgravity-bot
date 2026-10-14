@@ -1,0 +1,28 @@
+ERROR:root:Failed to start Agent session, cleaning up...
+Traceback (most recent call last):
+  File "/tmp/lightgravity-worktrees/lg003/probes/lg003-antigravity/.venv/lib/python3.12/site-packages/google/antigravity/connections/local/local_connection.py", line 1460, in _validate_connection
+    m.endpoint.validate_endpoint()
+  File "/tmp/lightgravity-worktrees/lg003/probes/lg003-antigravity/.venv/lib/python3.12/site-packages/google/antigravity/models.py", line 123, in validate_endpoint
+    raise ValueError(
+ValueError: A Gemini API key is required. Set it via GEMINI_API_KEY environment variable or via LocalAgentConfig(api_key=...).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/tmp/lightgravity-worktrees/lg003/probes/lg003-antigravity/.venv/lib/python3.12/site-packages/google/antigravity/agent.py", line 202, in __aenter__
+    self._conversation = await self._exit_stack.enter_async_context(
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yhvh/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py", line 659, in enter_async_context
+    result = await _enter(cm)
+             ^^^^^^^^^^^^^^^^
+  File "/home/yhvh/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/lightgravity-worktrees/lg003/probes/lg003-antigravity/.venv/lib/python3.12/site-packages/google/antigravity/conversation/conversation.py", line 86, in create
+    async with strategy:
+               ^^^^^^^^
+  File "/tmp/lightgravity-worktrees/lg003/probes/lg003-antigravity/.venv/lib/python3.12/site-packages/google/antigravity/connections/local/local_connection.py", line 1555, in __aenter__
+    self._validate_connection()
+  File "/tmp/lightgravity-worktrees/lg003/probes/lg003-antigravity/.venv/lib/python3.12/site-packages/google/antigravity/connections/local/local_connection.py", line 1462, in _validate_connection
+    raise types.AntigravityValidationError(str(e)) from e
+google.antigravity.types.AntigravityValidationError: A Gemini API key is required. Set it via GEMINI_API_KEY environment variable or via LocalAgentConfig(api_key=...).

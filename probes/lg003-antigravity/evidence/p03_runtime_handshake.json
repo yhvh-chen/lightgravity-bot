@@ -1,0 +1,30 @@
+{
+  "handshake": {
+    "started": true,
+    "is_idle": true,
+    "conversation_id_before_first_turn": null,
+    "history_len": 0,
+    "sandbox_status": {
+      "available": true,
+      "unavailable_reason": null
+    },
+    "total_usage": {
+      "prompt_token_count": null,
+      "cached_content_token_count": null,
+      "candidates_token_count": null,
+      "thoughts_token_count": null,
+      "total_token_count": null,
+      "service_tier": null
+    }
+  },
+  "gemini_backend_without_credentials": {
+    "blocked": true,
+    "error_type": "AntigravityValidationError",
+    "message": "A Gemini API key is required. Set it via GEMINI_API_KEY environment variable or via LocalAgentConfig(api_key=...)."
+  },
+  "env": {
+    "GEMINI_API_KEY_present": false,
+    "GOOGLE_API_KEY_present": false,
+    "DEEPSEEK_API_KEY_present": true
+  }
+}

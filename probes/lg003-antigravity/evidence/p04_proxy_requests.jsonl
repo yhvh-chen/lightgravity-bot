@@ -1,0 +1,1 @@
+{"call": 1, "path": "/v1/chat/completions", "stream": true, "model": "canned", "message_count": 2, "has_tools": true, "tool_names": ["manage_task", "replace_file_content", "run_command", "view_file", "write_to_file", "echo_tool"], "has_response_format": false}

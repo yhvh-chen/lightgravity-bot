@@ -1,0 +1,11 @@
+{
+  "url": "http://127.0.0.1:33379/marker",
+  "tool_calls": [
+    "read_url_content",
+    "view_file"
+  ],
+  "text": "I'll fetch that URL.The endpoint returned a single line containing the marker:\n\n**`WEB-TOOL-MARKER-9f3`**\n\nDetails:\n- URL: `http://127.0.0.1:33379/marker`\n- Content: `probe-page marker=WEB-TOOL-MARKER-9f3`\n- Saved copy: [content.md](file:///home/yhvh/.gemini/antigravity/brain/f5a38313babcd696bce2fd791b217503/.system_generated/steps/2/content.md)",
+  "marker": "WEB-TOOL-MARKER-9f3",
+  "ok": true,
+  "scenario": "read_url"
+}

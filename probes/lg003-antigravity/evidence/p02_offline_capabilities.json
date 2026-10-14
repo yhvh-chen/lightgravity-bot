@@ -1,0 +1,203 @@
+{
+  "public_names": [
+    "Agent",
+    "AgentBehavior",
+    "AgentConfig",
+    "Audio",
+    "BuiltinTools",
+    "CapabilitiesConfig",
+    "CompactionConfig",
+    "Content",
+    "CustomSystemInstructions",
+    "Document",
+    "GeminiAPIEndpoint",
+    "GeminiModelOptions",
+    "Image",
+    "InlineSkill",
+    "LiteRTAgentConfig",
+    "LiteRTBackend",
+    "LocalAgentConfig",
+    "LocalOpenAIAgentConfig",
+    "ModelAPIRetryConfig",
+    "ModelEndpoint",
+    "ModelOutputRetryConfig",
+    "ModelTarget",
+    "ModelType",
+    "RetryConfig",
+    "SandboxStatus",
+    "ServiceTier",
+    "SystemInstructionSection",
+    "SystemInstructions",
+    "TemplatedSystemInstructions",
+    "ThinkingLevel",
+    "ToolContext",
+    "ToolExecutionError",
+    "ToolOutputTruncationConfig",
+    "UsageMetadata",
+    "VertexEndpoint",
+    "Video",
+    "agent",
+    "beta",
+    "connections",
+    "conversation",
+    "from_bytes",
+    "from_file",
+    "hooks",
+    "models",
+    "proto",
+    "tools",
+    "triggers",
+    "types",
+    "utils",
+    "workflows"
+  ],
+  "endpoint_classes": [
+    "GeminiAPIEndpoint",
+    "VertexEndpoint"
+  ],
+  "local_openai_config_present": true,
+  "builtin_tools": [
+    "list_directory",
+    "search_directory",
+    "find_file",
+    "view_file",
+    "create_file",
+    "edit_file",
+    "run_command",
+    "ask_question",
+    "invoke_subagent",
+    "run_workflow",
+    "generate_image",
+    "search_web",
+    "read_url_content",
+    "schedule",
+    "finish"
+  ],
+  "builtin_default": [
+    "view_file",
+    "create_file",
+    "edit_file",
+    "run_command",
+    "invoke_subagent",
+    "run_workflow",
+    "generate_image",
+    "search_web",
+    "read_url_content",
+    "schedule",
+    "finish"
+  ],
+  "builtin_read_only": [
+    "view_file",
+    "read_url_content",
+    "schedule",
+    "finish"
+  ],
+  "local_agent_default_policies": [
+    {
+      "tool": "run_command",
+      "decision": "Decision.DENY"
+    },
+    {
+      "tool": "*",
+      "decision": "Decision.APPROVE"
+    }
+  ],
+  "gemini_endpoint_no_key": {
+    "raised": "ValueError",
+    "message": "A Gemini API key is required. Set it via GEMINI_API_KEY environment variable or via LocalAgentConfig(api_key=...)."
+  },
+  "gemini_endpoint_with_key": {
+    "raised": null
+  },
+  "vertex_endpoint_no_auth": {
+    "raised": "ValueError",
+    "message": "For Vertex AI, either (project and location) or api_key must be set."
+  },
+  "vertex_endpoint_with_project": {
+    "raised": null
+  },
+  "openai_endpoint_requires_base_url": {
+    "raised": "AntigravityValidationError",
+    "message": "LocalOpenAIConnectionStrategy requires a non-empty 'base_url'."
+  },
+  "skills_paths_and_inline_conflict": {
+    "raised": "ValidationError",
+    "message": "1 validation error for LocalOpenAIAgentConfig\n  Value error, combining inline_skills and skills_paths is not supported by LocalHarness; provide either inline_skills or skills_paths, not both. [type=value_error, input_value={'model': 'm', 'base_url'...kills=[], metadata={})]}, input_type=dict]\n    Fo"
+  },
+  "skills_paths_only_ok": {
+    "raised": null
+  },
+  "inline_skills_only_ok": {
+    "raised": null
+  },
+  "enabled_and_disabled_conflict": {
+    "raised": "ValidationError",
+    "message": "1 validation error for CapabilitiesConfig\n  Value error, enabled_tools and disabled_tools should be mutually exclusive. [type=value_error, input_value={'enabled_tools': [<Built...OMMAND: 'run_command'>]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.14/v/value_err"
+  },
+  "subagent_depth_without_subagents": {
+    "raised": "ValidationError",
+    "message": "1 validation error for CapabilitiesConfig\n  Value error, max_subagent_depth cannot be configured when subagents are disabled (enable_subagents=False or INVOKE_SUBAGENT not enabled). [type=value_error, input_value={'enable_subagents': Fals...'max_subagent_depth': 2}, input_type=dict]\n    For further "
+  },
+  "budget_model_dump": {
+    "max_model_calls": 5,
+    "max_tool_calls": 10,
+    "max_input_tokens": null,
+    "max_output_tokens": null,
+    "max_total_tokens": 1000,
+    "scope": "FORWARD_LOOKING"
+  },
+  "stop_reasons": [
+    "UNSPECIFIED",
+    "MAX_MODEL_CALLS_EXCEEDED",
+    "MAX_TOOL_CALLS_EXCEEDED",
+    "MAX_INPUT_TOKENS_EXCEEDED",
+    "MAX_OUTPUT_TOKENS_EXCEEDED",
+    "MAX_TOTAL_TOKENS_EXCEEDED",
+    "QUOTA_EXHAUSTED"
+  ],
+  "retry_config": {
+    "api_retry": {
+      "max_retries": 2,
+      "initial_sleep_duration_ms": null,
+      "exponential_multiplier": null,
+      "jitter_range": null
+    },
+    "model_output_retry": {
+      "max_retries": 1
+    }
+  },
+  "session_continuation_modes": [
+    "resume",
+    "create_or_resume",
+    "create_only"
+  ],
+  "response_schema_injected_into_finish_tool": true,
+  "sandbox_status_fields": [
+    "available",
+    "unavailable_reason"
+  ],
+  "proto_gemma_endpoint_fields": [
+    "base_url"
+  ],
+  "proto_model_config_endpoints": [
+    "gemini_api_endpoint",
+    "vertex_endpoint",
+    "gemma_endpoint",
+    "custom_endpoint",
+    "name",
+    "types"
+  ],
+  "inline_skill_fields": [
+    "allowed_tools",
+    "content",
+    "dependent_skills",
+    "dependent_tools",
+    "description",
+    "metadata",
+    "name"
+  ],
+  "env": {
+    "GEMINI_API_KEY_present": false,
+    "DEEPSEEK_API_KEY_present": true
+  }
+}

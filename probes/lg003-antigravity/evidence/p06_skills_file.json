@@ -1,0 +1,10 @@
+{
+  "text": "I'll read the secret-word skill.`banana-77`",
+  "tool_calls": [
+    "view_file"
+  ],
+  "stop_reason": "StopReason.UNSPECIFIED",
+  "marker": "banana-77",
+  "ok": true,
+  "scenario": "file"
+}
