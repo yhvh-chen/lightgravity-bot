@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot
 
-> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.0.0）已冻结；LG-002 工程骨架可运行，LG-003 SDK 探针与 LG-004 存储层已完成。SDK 核心能力经真实 DeepSeek 实测通过，但产品首版 Gemini 后端因缺凭证未验收，`search_web` 不可用；adapter/协调器/查询 API 等业务接线尚未实现，Antigravity SDK 未成为产品依赖，未部署。
+> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.0.0）已冻结；LG-002 工程骨架可运行，LG-003 SDK 探针、LG-004 存储层与 LG-005 资源配置编译已完成。SDK 核心能力经真实 DeepSeek 实测通过，但产品首版 Gemini 后端因缺凭证未验收，`search_web` 不可用；adapter 已将 `google-antigravity==0.1.22` 锁定为产品依赖，但真实 executor（LG-006）、协调器、查询 API 等业务接线尚未实现，未部署。
 
 **按需组队的 AI 任务助手。**
 
@@ -46,14 +46,15 @@ Task 是主要操作入口：一项任务一个目录、一份 TASK.md、一条�
 | LG-002 工程骨架 | done | 后端 health/version、前端占位壳、check 入口可用 |
 | LG-003 SDK 探针 | done（带限制） | 固定 `google-antigravity==0.1.22`；文件工具、结构化输出、工具事件、预算停止、取消、会话保存/恢复、skills（文件与 inline）、`read_url_content` 经真实 DeepSeek 实测通过；**产品首版 Gemini Developer API／Vertex 因本环境无凭证未验收**；`search_web` 在非 Gemini 端点不可用。见 [LG-003 报告](probes/lg003-antigravity/reports/LG-003-report.md) |
 | LG-004 存储层 | done（待版本 QA） | `backend/lightgravity/store/` + `tests/store/`；整合后局部 69 passed、全量后端 82 passed、mypy 无问题 |
+| LG-005 资源编译 | done（待版本 QA） | `backend/lightgravity/adapter/` + `tests/adapter/`；refs/skills/tools/hooks/connection/session 解析、权限不扩大、秘密脱敏、unsupported 标记 unavailable、SDK 配置可编译；局部 51 passed、全量后端 133 passed、mypy 无问题 |
 | LG-011 前端壳层 | in-progress | 在独立 worktree 执行中，未并入本批 |
 
 - 上述 done 为执行者局部证据，**不是版本 QA 结论**；LG-003 的 DeepSeek 路径不改变 docs/08 冻结的“首版 Gemini 后端”产品契约。
-- 下一步：LG-005 可基于 LG-004 的 store 接口与 LG-003 探针结论进行角色/SDK 资源配置编译；**LG-006 真实 Gemini adapter 与 LG-010 最小真实闭环仍需具备 Gemini 凭证的环境完成认证后才能验收**。
+- 下一步：LG-006 可基于 LG-005 的 `CompiledAgentConfig`/`build_sdk_config` 接口实现真实 executor；**LG-006 真实 Gemini adapter 与 LG-010 最小真实闭环仍需具备 Gemini 凭证的环境完成认证后才能验收**。
 
 ## 本地运行与检查（工程骨架）
 
-工程骨架由 LG-002 建立，LG-004 已加入后端存储层；仍只提供后端 `GET /api/v1/health`、`GET /api/v1/version` 与前端占位壳，不含 HTTP 业务端点，也未把 Antigravity SDK 安装为产品依赖。
+工程骨架由 LG-002 建立，LG-004 已加入后端存储层，LG-005 已加入 adapter 资源配置编译并把 Antigravity SDK `0.1.22` 锁定为产品依赖；仍只提供后端 `GET /api/v1/health`、`GET /api/v1/version` 与前端占位壳，不含 HTTP 业务端点，也未实现真实 SDK 执行/会话。
 
 ### 版本要求
 

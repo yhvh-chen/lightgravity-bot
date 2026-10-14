@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot 项目手册
 
-> 更新：2026-10-15。阶段：LG-001 契约已冻结，LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；产品首版 Gemini 后端因本环境缺凭证未验收，`search_web` 不可用），LG-004 存储层与局部测试完成；LG-011 前端壳层仍在独立 worktree 执行。产品 adapter、协调器、查询 API 等业务接线尚未实现，Antigravity SDK 仅经探针验证、未成为产品依赖。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
+> 更新：2026-10-15。阶段：LG-001 契约已冻结，LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；产品首版 Gemini 后端因本环境缺凭证未验收，`search_web` 不可用），LG-004 存储层与局部测试完成，LG-005 角色/SDK 资源配置编译完成（已将 `google-antigravity==0.1.22` 锁定为产品依赖）；LG-011 前端壳层仍在独立 worktree 执行。产品真实 executor（LG-006）、协调器、查询 API 等业务接线尚未实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
 
 ## 目标
 
@@ -40,6 +40,15 @@ updated: "2026-10-15"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-15：实现 LG-005 角色与 SDK 资源配置编译
+
+- 按用户授权在 `backend/lightgravity/adapter/` 与 `tests/adapter/` 实现资源配置编译：解析 `skills.source/refs`、已注册 tools/hooks、connection/session profile；按 revision + content_hash 固定每个解析到的资源版本，并输出整体 `config_hash`。
+- 权限不扩大：有效工具 = agent `tool_refs` ∩ Task `allowed_tools`（约束只能删不能加），预算取最严格值；MCP、Triggers、`search_web` 与 SDK 内部委派一律标记 `unavailable` 且不挂载；未注册 handler/不存在引用按 `reference_invalid`/`config_invalid` 拒绝。
+- 秘密只引用：资源只允许 `credential_ref`，frontmatter 出现明文秘密字段即以 `secret_in_resource` 拒绝；编译输出经脱敏，凭证值从不落盘、日志或响应。
+- 固定 SDK 版本 `google-antigravity==0.1.22`（与 LG-003 一致）加入根 `pyproject.toml`/`uv.lock`；因该 wheel 无 `py.typed`，为 `google.*` 增加 mypy `ignore_missing_imports` 覆盖。`executable` 与能力声明明确区分“配置可编译”和“后端已验证/可执行”：Gemini/Vertex 仍标记未验收，缺凭证不阻塞静态编译。
+- 未改动 docs/08 冻结契约语义，未修改 `contracts`（仅 import 引用）；未实现 LG-006 executor 或 LG-007 coordinator。adapter 面向 LG-006 的编译结果接口记录在 `backend/lightgravity/adapter/README.md`。
+- 局部验证：`uv run pytest tests/adapter` 51 passed、全量后端 133 passed、`uv run mypy` 无问题（34 files）。成果标注“待版本 QA”；真实 Gemini adapter 与闭环仍待具备凭证环境。本地提交，未推送、未部署。
 
 ### 2026-10-15：整合 LG-003 SDK 探针与 LG-004 存储层
 
