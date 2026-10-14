@@ -2,12 +2,12 @@
 title: "LightGravity Bot"
 doc_type: overview
 category: project
-updated: "2026-10-14"
+updated: "2026-10-15"
 ---
 
 # LightGravity Bot
 
-> 更新：2026-10-14。设计与 27 项首版开发任务已落盘，尚未实现、部署或完成运行验证。
+> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.0.0）已冻结；尚未实现、部署或完成运行验证。
 
 **按需组队的 AI 任务助手。**
 
@@ -46,6 +46,7 @@ Task 是主要操作入口：一项任务一个目录、一份 TASK.md、一条�
 - [开发看板](BACKLOG.md)：27 项首版开发任务，使用 `olav.tasks/v1` 管理。
 - [滚动排期](docs/06-roadmap.md)：阶段、依赖、验收门与当前未定的日历安排。
 - [模型设置](docs/07-settings-and-models.md)：Settings、Connection 事实源、凭证、分层测试和默认模型。
+- [首版接口与状态契约](docs/08-interface-contract.md)：冻结的最小技术栈、API/事件/实体状态、Store/Adapter 边界、错误语义、工作区授权与后续文件归属（契约版本 1.0.0）。
 - [项目手册](PROJECT.md)：目标、优先级、完成定义和已确认决策。
 - [产品与架构设计](docs/01-design.md)：调度器、executor、组队、文件事实源、状态与首版交付顺序。
 - [Task 与 SDK 资源契约](docs/02-task-and-sdk-resources.md)：任务目录、对话、frontmatter 渲染及 Agent／Connections／Conversation／Hooks／MCP／Tools／Triggers 的映射。

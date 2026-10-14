@@ -2,7 +2,7 @@
 title: "LightGravity Bot 项目手册"
 doc_type: handbook
 category: project
-updated: "2026-10-14"
+updated: "2026-10-15"
 ---
 
 # LightGravity Bot 项目手册
@@ -40,6 +40,15 @@ updated: "2026-10-14"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-15：冻结首版接口与状态契约（LG-001）
+
+- 按用户授权完成 LG-001：产出 [首版接口与状态契约](docs/08-interface-contract.md)，契约版本 `1.0.0`、API 前缀 `/api/v1`、实体 schema `lightgravity.bot/v1`，冻结运行时 ID/时间约定、HTTP API 与错误语义、事件/消息契约、Task/Subtask/Run/Member 状态机与合法组合、Store 与 SDK Adapter 接口、工作区授权和后续文件归属。
+- 最小技术栈选定：后端 Python 3.12 + FastAPI/uvicorn/Pydantic/ruamel.yaml（uv 管理），前端 React 18 + TypeScript + Vite，事件用 SSE，测试用 pytest/vitest/Playwright；依赖来自 PyPI/npm，精确版本由 LG-002 锁定。本次未安装依赖、未写产品代码。
+- 源目录定为 `backend`、`frontend`、`probes`、`tests` 并明确所有权：LG-003 owner `probes` 与独立探针环境，LG-004 owner `backend/.../store` 与独立测试，LG-011 owner `frontend`；共享依赖/根工程文件由整合执行者（首任 LG-002）串行维护，`backend/lightgravity/contracts` 为共享只读模块。
+- 在 [docs/06](docs/06-roadmap.md) 区分产品运行时顺序验证与开发并行，并定义版本 QA 门：LG-010 为原型大版本 QA 门，LG-021／022／027 为首版版本集中 QA；基础任务只做局部检查，不追加逐任务独立 QA。
+- 同步 README、agent.md 的文档入口。契约与实现层的运行时验证标记为“待版本 QA”，不声称功能已验证。
+- 提交本任务精确范围文档（docs/08、README、agent.md、docs/06、PROJECT、LG-001），本地提交，未推送、未部署。
 
 ### 2026-10-14：初始化 Git 并推送文档与技能
 
