@@ -1,0 +1,26 @@
+{
+  "repository": "http://192.168.8.50:3000/admin/olav-tasks.git",
+  "commit": "ab252888bd9e6dc9185a71bcf02b241484e0d4f6",
+  "installed_on": "2026-10-14",
+  "skills": {
+    "docs-kb": {
+      "SKILL.md": "79e058135c2504937cfab581d286c9343e5d241576d08036559f26d85c847d89"
+    },
+    "olav-tasks-execute": {
+      "SKILL.md": "d4e01ddf7328f3bbfdea7a46eec216361b63fc063a584e474568b53204611549",
+      "references/work-package.md": "de4f17783df55d0b0131b7d0b686b961b16fb6d61d213d52c32ccab9ea0939c2"
+    },
+    "olav-tasks-organize-markdown": {
+      "SKILL.md": "b462aa58a1f6c2297c5c026d1ec9025600ef0b7da7d039f60df9bd8c4847d8bd"
+    },
+    "olav-tasks-plan": {
+      "SKILL.md": "195c739b5546e0e37f57addeae5904c15b179d64f85c39e087172fe000dccb79"
+    },
+    "olav-tasks-report": {
+      "SKILL.md": "c02ad543a92409f47596d9a762274e378250116f697e953c97fa5524ac5b29c5"
+    },
+    "olav-tasks-write-markdown": {
+      "SKILL.md": "3b8fc7b49134bc269bde52f461f21e69667fdfec3d8b3b09ad4c4f823af4488b"
+    }
+  }
+}

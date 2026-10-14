@@ -1,0 +1,19 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Credentials
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Editor swap/backup files
+*.swp
+*.swo
+*.tmp
+*~
+
+# Temporary logs
+*.log
