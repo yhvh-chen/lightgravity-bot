@@ -1,6 +1,18 @@
-"""FastAPI application factory.
+"""FastAPI application factory and LG-012 integration wiring.
 
-The factory keeps configuration injectable for tests. Run with:
+This factory is the single place that assembles the resident process:
+
+* builds the ``FileStore`` (LG-004) and wraps it so every persisted event is
+  republished to the SSE broker;
+* builds the ``ConnectionService``/``FileSecretStore`` (LG-025) on the same
+  Store and ``LIGHTGRAVITY_SECRET_STORE`` resolved by :class:`Settings`;
+* builds the ``Coordinator`` (LG-007) with an injectable ``Dispatcher`` seam so
+  LG-008 can supply the graph dispatcher and LG-006/LG-010 can supply the real
+  ``AntigravityExecutor`` without editing this file again;
+* starts/stops the coordinator in the lifespan (background worker independent of
+  any HTTP request) and mounts the frozen ``/api/v1`` routers.
+
+Run with::
 
     uv run uvicorn --factory lightgravity.api.app:create_app
 """
@@ -11,11 +23,12 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from ..adapter import ExecutorAdapter
 from ..config import Settings
 from ..contracts import (
     API_PREFIX,
@@ -24,7 +37,29 @@ from ..contracts import (
     ErrorCode,
     error_envelope,
 )
+from ..coordinator import Coordinator, build_router as build_coordinator_router
+from ..coordinator.dispatcher import (
+    Dispatcher,
+    SingleSlotDispatcher,
+    UnavailableExecutor,
+)
+from ..settings import (
+    ConnectionService,
+    ConnectionTester,
+    FileSecretStore,
+    build_settings_router,
+)
+from ..store import FileStore
+from ..store.protocol import Store
+
+from .access import AccessPolicy, LocalAccessPolicy, require_access
+from .context import ApiContext
+from .eventbus import BroadcastingStore, EventBroker
+from .events import build_events_router
+from .files import build_files_router
 from .health import router as health_router
+from .resources import build_resource_router
+from .tasks import build_task_router
 
 _STATUS_TO_CODE: dict[int, ErrorCode] = {
     400: ErrorCode.INVALID_REQUEST,
@@ -44,32 +79,91 @@ def _dump(envelope: Any) -> dict[str, Any]:
     return envelope.model_dump(mode="json")
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    *,
+    store: Store | None = None,
+    coordinator: Coordinator | None = None,
+    dispatcher: Dispatcher | None = None,
+    executor: ExecutorAdapter | None = None,
+    connection_service: ConnectionService | None = None,
+    access_policy: AccessPolicy | None = None,
+    tester: ConnectionTester | None = None,
+) -> FastAPI:
+    """Build the application; every heavy dependency is injectable for tests."""
+
     resolved = settings or Settings.from_env()
+    resolved.ensure_data_dir()
+
+    broker = EventBroker()
+    base_store: Store = store or FileStore(resolved.data_dir, resolved.workspace_root)
+    broadcasting = BroadcastingStore(base_store, broker)
+    secret_store = FileSecretStore(resolved.secret_store)
+    connections = connection_service or ConnectionService(
+        broadcasting, secret_store=secret_store
+    )
+
+    if dispatcher is None and coordinator is None:
+        dispatcher = SingleSlotDispatcher(executor or UnavailableExecutor())
+    resolved_coordinator = coordinator or Coordinator(broadcasting, dispatcher=dispatcher)
+
+    policy = access_policy or LocalAccessPolicy()
+
+    effective_executor: ExecutorAdapter | None = executor
+    if effective_executor is None and isinstance(dispatcher, SingleSlotDispatcher):
+        effective_executor = dispatcher.executor
+    real_executor = effective_executor is not None and not isinstance(
+        effective_executor, UnavailableExecutor
+    )
+
+    context = ApiContext(
+        settings=resolved,
+        store=broadcasting,
+        coordinator=resolved_coordinator,
+        connections=connections,
+        secret_store=secret_store,
+        broker=broker,
+        access=policy,
+        real_executor=real_executor,
+        tester=tester,
+    )
 
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
-        # Ensure the gitignored data root exists before serving; it stays
-        # separate from source (docs/08 §10).
         resolved.ensure_data_dir()
-        application.state.settings = resolved
-        yield
+        resolved_coordinator.start()
+        try:
+            yield
+        finally:
+            await resolved_coordinator.stop()
 
     app = FastAPI(
         title="LightGravity Bot API",
         version=CONTRACT_VERSION,
         lifespan=lifespan,
+        dependencies=[Depends(require_access)],
     )
 
+    # Services are available immediately (e.g. ``__main__`` reads settings
+    # before the lifespan runs); the lifespan only starts the background worker.
+    app.state.settings = resolved
+    app.state.context = context
+    app.state.access_policy = policy
+    app.state.store = broadcasting
+    app.state.coordinator = resolved_coordinator
+    app.state.connection_service = connections
+
     @app.exception_handler(AppError)
-    async def _app_error_handler(
-        request: Request, exc: AppError
-    ) -> JSONResponse:
+    async def _app_error_handler(request: Request, exc: AppError) -> JSONResponse:
         request_id = getattr(request.state, "request_id", None)
-        return JSONResponse(
+        response = JSONResponse(
             status_code=exc.http_status,
             content=_dump(exc.to_envelope(request_id=request_id)),
         )
+        etag = exc.details.get("etag") if isinstance(exc.details, dict) else None
+        if isinstance(etag, str) and etag:
+            response.headers["ETag"] = etag
+        return response
 
     @app.exception_handler(RequestValidationError)
     async def _validation_error_handler(
@@ -91,4 +185,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return JSONResponse(status_code=exc.status_code, content=_dump(envelope))
 
     app.include_router(health_router, prefix=API_PREFIX)
+    app.include_router(build_coordinator_router(resolved_coordinator), prefix=API_PREFIX)
+    app.include_router(build_task_router(), prefix=API_PREFIX)
+    app.include_router(build_resource_router(), prefix=API_PREFIX)
+    app.include_router(build_files_router(), prefix=API_PREFIX)
+    app.include_router(build_events_router(), prefix=API_PREFIX)
+    app.include_router(build_settings_router(connections, tester=tester), prefix=API_PREFIX)
     return app
+
+
+__all__ = ["create_app"]
