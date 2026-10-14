@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot 项目手册
 
-> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 当前 1.3.0：1.1.0 将首版真实后端定为 DeepSeek，1.2.0 登记 LG-008 加性控制字段，1.3.0 登记 LG-009 验收字段/端点与全局对话），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层、LG-005 角色/SDK 资源配置编译（已将 `google-antigravity==0.1.22` 锁定为产品依赖）、LG-006 正式 executor + 产品侧 loopback 认证代理（真实 DeepSeek 验证：文件/diff、结构化结果、用量、预算、会话恢复、确认取消；真实调用 12，进程无残留）、LG-007 消息路由与 Task 队列、LG-008 自动组队与依赖调度、LG-009 产物验证与人工验收、LG-011 前端壳层、LG-012 查询 API 与持久事件订阅、LG-025 模型设置与凭证后端均已完成并整合到 `main`（12 项均**待版本 QA**）。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek。集成后 `create_app` 已装配 Store/Coordinator/VerificationService 并挂载 `/api/v1` 路由；accept/reject 合并进 API actions，只读 `GET /tasks/{id}/acceptance` 独立挂载，新增单例全局对话 `GET/POST /api/v1/conversations/global/messages`；默认执行器仍是诚实的 `UnavailableExecutor`（未伪装可执行）。真实 SDK 端到端、浏览器验收与首次启动 token 握手分别留 LG-010、LG-021/022、LG-020。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
+> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 当前 1.3.0：1.1.0 将首版真实后端定为 DeepSeek，1.2.0 登记 LG-008 加性控制字段，1.3.0 登记 LG-009 验收字段/端点与全局对话），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层、LG-005 角色/SDK 资源配置编译（已将 `google-antigravity==0.1.22` 锁定为产品依赖）、LG-006 正式 executor + 产品侧 loopback 认证代理（真实 DeepSeek 验证：文件/diff、结构化结果、用量、预算、会话恢复、确认取消；真实调用 12，进程无残留）、LG-007 消息路由与 Task 队列、LG-008 自动组队与依赖调度、LG-009 产物验证与人工验收、LG-011 前端壳层、LG-012 查询 API 与持久事件订阅、LG-025 模型设置与凭证后端、LG-026 Settings 模型接入页面均已完成并整合到 `main`（13 项均**待版本 QA**）。主前端构建现已挂载 Settings 视图并接线 `/api/v1/settings*`；敏感写仍由 `LocalAccessPolicy` 默认拒绝，首次启动 token 握手未实现（LG-020），未就绪前该页只读，其余业务视图仍为占位，不宣称全部页面可用。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek。集成后 `create_app` 已装配 Store/Coordinator/VerificationService 并挂载 `/api/v1` 路由；accept/reject 合并进 API actions，只读 `GET /tasks/{id}/acceptance` 独立挂载，新增单例全局对话 `GET/POST /api/v1/conversations/global/messages`；默认执行器仍是诚实的 `UnavailableExecutor`（未伪装可执行）。真实 SDK 端到端、浏览器验收与首次启动 token 握手分别留 LG-010、LG-021/022、LG-020。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
 
 ## 目标
 
@@ -40,6 +40,15 @@ updated: "2026-10-15"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-15：整合 LG-026 Settings 页面并把 LG-015 领取到新基点
+
+- LG-026 在独立 worktree `dev/lg026` 完成 `b3db405`，worker 已退出；LG-010 QA（`dev/lg010`）与 LG-014 Files（`dev/lg014`）仍在各自 worktree，本轮未触碰。主工作区核对干净后精确 `git cherry-pick b3db405` → `5155d07`（无冲突、无内容丢失），新增 `frontend/src/views/settings/**`、`frontend/src/api/settings.ts`、`frontend/src/api/auth.ts`（运行时 token helper）与 `frontend/tests/settings*.tsx`，并把 LG-026 任务置 done。
+- 必要整合接线（`0fc66b8`，仅 registry）：`views/registry.tsx` 的 Settings `Main` 由占位 `./SettingsView` 改为 `./settings/SettingsView`（props 全可选，符合 `ComponentType`），删除不再可达的 `views/SettingsView.tsx`，并把 Settings 上下文栏空态改为“Models & Providers is shown in the main panel.”。未改壳层、Files 占位、其它页面、`api/types.ts`、`api/client.ts` 或根依赖。
+- 真实检查（本机 Node v22.23.2 / npm 10.9.8）：`make frontend-check` → `tsc --noEmit` 通过、vitest **32 passed**（5 files）；`make frontend-build` 成功，主构建**首次包含 Settings 视图**（CSS 20.29 kB / JS 193.02 kB，此前壳层基线 CSS 16.59 kB / JS 171.08 kB）；未做浏览器 QA（留 LG-021/027）。
+- 诚实限制：Settings 页面已挂载并接线 `/api/v1/settings*`，但敏感写仍由后端 `LocalAccessPolicy` 默认拒绝，**首次启动 token 握手未实现（LG-020）**，未就绪前该页只读、写入返回真实 `unauthorized`；`tool_probe`/`structured_output` 仍由后端标 `skipped`；其余业务视图（Chat/Board/Files/Team/Resources）仍为占位/未接入，**不宣称全部页面可用**。LG-026 成果为执行者局部证据，**待版本 QA**（LG-021/LG-022/LG-027）。
+- 就绪门：`tasks validate` → **OK: 27 tasks, no diagnostics**；`tasks ready` complete、无 diagnostics，就绪项 LG-015/LG-020。以 `tasks claim ... --as agent:pi-lg015` 精确领取 LG-015（`51d037c`，仅改任务 frontmatter `status`/`assignee`），并以该新 HEAD 建独立分支 `dev/lg015` → `/tmp/lightgravity-worktrees/lg015`（路径此前不存在、未覆盖；分支基点已含共享 `frontend/src/api/auth.ts`）。未 push、未 deploy、未复制 `.env`、未清理任何旧 worktree/分支。
+- 给 LG-015 的可用接口与接线限制：Resources 七类可经 `GET /api/v1/resources/{kind}`（`connection`/`conversation`/`hook`/`mcp`/`tool`/`trigger`/`skill`）与 `/{kind}/{id}` 读取，Team Available 用 `kind=agent`；Recruited 成员来自 `GET /api/v1/tasks/{task_id}` 详情 `members`（引用当前 `active_run.team_refs`），需按 `state` 过滤已释放并保留历史；Connections 编辑复用 `frontend/src/api/settings.ts` 同一 Connection 权威，token 只从 `frontend/src/api/auth.ts` 的运行时内存 helper 读取。尚无 `/members`、`/team` 专用端点，资源端点只读（写走 Chat/受控动作），`api/types.ts` 仅含壳层类型，LG-015 应自带端点类型而不复制契约；资源详情 `body` 需按 schema/kind 渲染。
 
 ### 2026-10-15：整合 LG-009/LG-012、接线验收与全局对话并把契约升至 1.3.0
 
