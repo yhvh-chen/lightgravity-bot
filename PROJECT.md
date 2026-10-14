@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot 项目手册
 
-> 更新：2026-10-15。阶段：LG-001 契约已冻结，LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；产品首版 Gemini 后端因本环境缺凭证未验收，`search_web` 不可用），LG-004 存储层与局部测试完成，LG-005 角色/SDK 资源配置编译完成（已将 `google-antigravity==0.1.22` 锁定为产品依赖）；LG-011 前端壳层仍在独立 worktree 执行。产品真实 executor（LG-006）、协调器、查询 API 等业务接线尚未实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
+> 更新：2026-10-15。阶段：LG-001 契约已冻结，LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；产品首版 Gemini 后端因本环境缺凭证未认证，`search_web` 不可用），LG-004 存储层与局部测试完成，LG-005 角色/SDK 资源配置编译完成（已将 `google-antigravity==0.1.22` 锁定为产品依赖），LG-011 前端壳层完成并整合到 `main`（6 项均**待版本 QA**）。产品真实 executor（LG-006）当前 **`blocked_by`：首版 Gemini 缺少认证**；协调器、查询 API 等业务接线尚未实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
 
 ## 目标
 
@@ -40,6 +40,16 @@ updated: "2026-10-15"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-15：整合 LG-011 前端壳层并记录批次阻塞
+
+- 通过 pi 在独立 worktree 完成 LG-011（左侧导航与统一前端壳层），提交 `75107f0` 已完成且 worker 退出。主工作区核对干净后以 `cherry-pick` 精确带回 `main`（`1987874`），无冲突、无内容丢失、未清理任何 worktree/分支，只整合该任务成果。本批未新增镜像测试、未做独立 QA（遵 [agent.md](agent.md) 第 1 节与 [docs/06](docs/06-roadmap.md) 版本 QA 门约定）。
+- LG-011 交付 `frontend/src/app/`（`AppShell`/`TopBar`/`NavigationRail`/`ShellProvider`/`uiState`/`tokens.css`/`shell.css` 等）、`frontend/src/components/` 共享组件层、`frontend/src/api/`（`types` 对齐 docs/08、`client`、`/health` 探测）与 `frontend/src/views/` 入口/占位；五工作入口靠左、底部 Settings、顶栏无一级 tabs。
+- 整合检查证据：`cherry-pick` 干净；`make check-all` 通过（后端 `mypy` 无问题、pytest **133 passed**；前端 `tsc --noEmit` 无错、vitest **19 passed**）；`make frontend-build` 成功（`dist/index.html` 0.40 kB、CSS 16.59 kB、JS 171.08 kB）；`olav-tasks tasks validate` 退出码 0（**27 tasks, no diagnostics**）；任务计数 done **6**（LG-001～005、011）/ todo **21**。
+- LG-011 执行者局部证据：19 个 vitest、**23/23** 无依赖真实 Chrome 浏览器检查（1440／1024／390px 抽屉，含焦点/键盘/窄屏/空错态）、`tsc`/`vite build` 通过；**未做真实后端联调**（无后端时显示真实 `Backend not connected`/`network_error`，业务端点为空态/未接入）。截图保留在 `/tmp/lg011-evidence/`（临时目录，不提交二进制）。本批活动进程核查：LG-011 预览（Vite preview `127.0.0.1:4173`）已不在运行，无本批预览服务需清理；未杀其它进程、未清理 worktree/分支。
+- **阻塞与待决（不改产品契约）**：本环境 `.env` 已确认可用 DeepSeek 凭证（开发/探针用），但产品首版 Gemini Developer API／Vertex 无凭证**未认证**；用户关于“保持产品 Gemini 或把产品也改为 DeepSeek”的选择**仍未回复**。不擅自切换产品后端。LG-006 保持 `todo` 并写入 `blocked_by`（首版 Gemini 缺少认证）；未派发 LG-006，不代表不可做不依赖凭证的静态代码。
+- 未知成本/耗时：pi worker 的 token/成本在本批次不可得，记录为未知；批次墙钟耗时未由执行器上报，不推算。
+- 同步 README 顶部阶段事实与进展表、[docs/06](docs/06-roadmap.md) 顶部阶段、`frontend/README.md` 壳层目录与真实未接入状态；未修改 docs/08 冻结契约、未新增共享依赖、未推送、未部署。LG-011 成果标注“待版本 QA”，不代表版本验收通过。
 
 ### 2026-10-15：实现 LG-005 角色与 SDK 资源配置编译
 

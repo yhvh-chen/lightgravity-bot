@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot
 
-> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.0.0）已冻结；LG-002 工程骨架可运行，LG-003 SDK 探针、LG-004 存储层与 LG-005 资源配置编译已完成。SDK 核心能力经真实 DeepSeek 实测通过，但产品首版 Gemini 后端因缺凭证未验收，`search_web` 不可用；adapter 已将 `google-antigravity==0.1.22` 锁定为产品依赖，但真实 executor（LG-006）、协调器、查询 API 等业务接线尚未实现，未部署。
+> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.0.0）已冻结；LG-001～005 与 LG-011 共 6 项基础任务已完成并整合到 `main`（均为**待版本 QA**）：工程骨架可运行、SDK 探针、存储层、资源配置编译与左侧导航壳层。LG-011 壳层局部前端 19 个 vitest、23/23 无依赖 Chrome 浏览器检查、`tsc`/`vite build` 通过，但**未做真实后端联调**（无后端时显示真实的未接入/`network_error` 态）。SDK 核心能力经真实 DeepSeek 实测通过，但产品首版 Gemini 后端因缺凭证未认证，`search_web` 不可用；adapter 已将 `google-antigravity==0.1.22` 锁定为产品依赖，但真实 executor（LG-006，当前 `blocked_by` Gemini 认证）、协调器、查询 API 等业务接线尚未实现，未部署。
 
 **按需组队的 AI 任务助手。**
 
@@ -47,10 +47,10 @@ Task 是主要操作入口：一项任务一个目录、一份 TASK.md、一条�
 | LG-003 SDK 探针 | done（带限制） | 固定 `google-antigravity==0.1.22`；文件工具、结构化输出、工具事件、预算停止、取消、会话保存/恢复、skills（文件与 inline）、`read_url_content` 经真实 DeepSeek 实测通过；**产品首版 Gemini Developer API／Vertex 因本环境无凭证未验收**；`search_web` 在非 Gemini 端点不可用。见 [LG-003 报告](probes/lg003-antigravity/reports/LG-003-report.md) |
 | LG-004 存储层 | done（待版本 QA） | `backend/lightgravity/store/` + `tests/store/`；整合后局部 69 passed、全量后端 82 passed、mypy 无问题 |
 | LG-005 资源编译 | done（待版本 QA） | `backend/lightgravity/adapter/` + `tests/adapter/`；refs/skills/tools/hooks/connection/session 解析、权限不扩大、秘密脱敏、unsupported 标记 unavailable、SDK 配置可编译；局部 51 passed、全量后端 133 passed、mypy 无问题 |
-| LG-011 前端壳层 | in-progress | 在独立 worktree 执行中，未并入本批 |
+| LG-011 前端壳层 | done（待版本 QA） | `frontend/src/app/` 壳层与路由、`components/` 共享组件、`api/` 客户端与 `/health` 探测、`views/` 入口与占位；局部 19 vitest、23/23 无依赖 Chrome 浏览器检查、`tsc`/`vite build` 通过；**未做真实后端联调**，业务端点显示未接入/空态 |
 
-- 上述 done 为执行者局部证据，**不是版本 QA 结论**；LG-003 的 DeepSeek 路径不改变 docs/08 冻结的“首版 Gemini 后端”产品契约。
-- 下一步：LG-006 可基于 LG-005 的 `CompiledAgentConfig`/`build_sdk_config` 接口实现真实 executor；**LG-006 真实 Gemini adapter 与 LG-010 最小真实闭环仍需具备 Gemini 凭证的环境完成认证后才能验收**。
+- 上述 done 为执行者局部证据，**不是版本 QA 结论**；LG-003 的 DeepSeek 路径不改变 docs/08 冻结的“首版 Gemini 后端”产品契约。LG-001～005、011 均待 LG-010／LG-021／LG-022／LG-027 等版本 QA 门集中验证。
+- 下一步：LG-006 可基于 LG-005 的 `CompiledAgentConfig`/`build_sdk_config` 接口做不依赖凭证的静态实现，但真实 Gemini executor 验收被 **`blocked_by`：首版 Gemini 缺少认证**阻塞；等待配置 Gemini 凭证或用户确认产品改用 DeepSeek（env 已确认可用 DeepSeek），不擅自切换产品后端。**LG-010 最小真实闭环同样需具备 Gemini 凭证的环境。**
 
 ## 本地运行与检查（工程骨架）
 
