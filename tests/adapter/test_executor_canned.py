@@ -13,6 +13,7 @@ import json
 import threading
 import time
 from collections.abc import Iterator
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -63,8 +64,14 @@ class _CannedUpstream(http.server.BaseHTTPRequestHandler):
         self.close_connection = True
 
 
-class _SlowCannedUpstream(http.server.BaseHTTPRequestHandler):
-    """Streams one text chunk, then stalls, so a cancel lands mid-flight."""
+class _GatedCannedUpstream(http.server.BaseHTTPRequestHandler):
+    """Streams one text chunk, then holds the stream open on a test-owned gate.
+
+    The deterministic gate replaces the old ``time.sleep`` stall: the handler
+    signals ``opened`` once a partial SSE frame is on the wire and then blocks
+    on ``release``, so the test can issue a cancel that is *always* mid-stream
+    instead of racing a turn that already finished.
+    """
 
     def log_message(self, *args: object) -> None:  # noqa: D102
         return
@@ -83,9 +90,11 @@ class _SlowCannedUpstream(http.server.BaseHTTPRequestHandler):
             self.wfile.write(f"{len(data):X}\r\n".encode("ascii") + data + b"\r\n")
             self.wfile.flush()
 
+        gate = self.server.gate  # type: ignore[attr-defined]
         try:
             send_chunk(_ROLE_CHUNK.encode("utf-8"))
-            time.sleep(5)
+            gate.opened.set()
+            gate.release.wait(timeout=30)
             send_chunk(_STOP_CHUNK.encode("utf-8"))
             self.wfile.write(b"0\r\n\r\n")
             self.wfile.flush()
@@ -93,9 +102,22 @@ class _SlowCannedUpstream(http.server.BaseHTTPRequestHandler):
             return
 
 
-def _serve(handler: type[http.server.BaseHTTPRequestHandler]) -> Iterator[str]:
+@dataclass
+class _StreamGate:
+    """Test-owned barrier between the canned upstream and the cancel call."""
+
+    opened: threading.Event
+    release: threading.Event
+
+
+def _serve(
+    handler: type[http.server.BaseHTTPRequestHandler],
+    gate: _StreamGate | None = None,
+) -> Iterator[str]:
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
     server.daemon_threads = True
+    if gate is not None:
+        server.gate = gate
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     host, port = server.server_address[0], server.server_address[1]
@@ -113,8 +135,15 @@ def canned_upstream() -> Iterator[str]:
 
 
 @pytest.fixture
-def slow_canned_upstream() -> Iterator[str]:
-    yield from _serve(_SlowCannedUpstream)
+def gated_canned_upstream() -> Iterator[tuple[str, _StreamGate]]:
+    gate = _StreamGate(opened=threading.Event(), release=threading.Event())
+    server_gen = _serve(_GatedCannedUpstream, gate)
+    url = next(server_gen)
+    try:
+        yield url, gate
+    finally:
+        gate.release.set()
+        next(server_gen, None)
 
 
 def _prepare(store: FileStore, tmp_path: Path, upstream: str) -> tuple[AntigravityExecutor, Path]:
@@ -185,9 +214,10 @@ async def test_executor_runs_canned_session_and_stops_proxy(
 
 
 async def test_executor_confirms_cancel_mid_stream(
-    store: FileStore, tmp_path: Path, slow_canned_upstream: str
+    store: FileStore, tmp_path: Path, gated_canned_upstream: tuple[str, _StreamGate]
 ) -> None:
-    executor, workspace = _prepare(store, tmp_path, slow_canned_upstream)
+    upstream, gate = gated_canned_upstream
+    executor, workspace = _prepare(store, tmp_path, upstream)
     events: list[dict[str, Any]] = []
     execution_id: dict[str, str] = {}
 
@@ -212,13 +242,18 @@ async def test_executor_confirms_cancel_mid_stream(
     deadline = time.monotonic() + 10
     while "value" not in execution_id and time.monotonic() < deadline:
         await asyncio.sleep(0.02)
-    while time.monotonic() < deadline and not any(
-        event.get("type") == "adapter.text" for event in events
-    ):
-        await asyncio.sleep(0.02)
+
+    # Deterministic mid-stream barrier: the upstream has written a partial SSE
+    # frame and is holding the connection open, so the turn cannot complete
+    # before we cancel.  No timing sleep or text-buffering race is involved.
+    assert await asyncio.to_thread(gate.opened.wait, 10), "upstream never streamed"
+    assert not any(
+        event.get("type") == "adapter.execution_finished" for event in events
+    ), "execution completed before the mid-stream cancel"
 
     cancel_result = await executor.cancel(ExecutionRef(execution_id=execution_id["value"]))
-    result = await task
+    gate.release.set()
+    result = await asyncio.wait_for(task, timeout=10)
 
     assert cancel_result.confirmed is True
     assert cancel_result.state == "cancelled"
