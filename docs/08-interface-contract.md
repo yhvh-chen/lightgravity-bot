@@ -2,7 +2,7 @@
 title: "首版接口与状态契约（v1）"
 doc_type: specification
 category: architecture
-contract_version: "1.1.0"
+contract_version: "1.2.0"
 updated: "2026-10-15"
 ---
 
@@ -10,7 +10,7 @@ updated: "2026-10-15"
 
 > 性质：LG-001 冻结的候选实现契约。它把 [产品与架构设计](01-design.md)、[Task 与 SDK 资源契约](02-task-and-sdk-resources.md)、[Bot 行为契约](04-bot-behavior.md)、[SDK 能力审计](03-sdk-capability-audit.md)、[导航设计](05-navigation-and-team.md)、[模型设置](07-settings-and-models.md) 收敛到可实现的接口与状态边界，不新增产品能力，也不代表功能已实现或经过运行时验证。
 >
-> 契约版本 `1.1.0`（2026-10-15 MINOR：明确首版唯一真实执行后端为已验收的 OpenAI-compatible `LocalOpenAIAgentConfig` → DeepSeek 路径，并补充本地认证代理与凭证边界，见 §8.1；**HTTP 端点、错误码、事件类型、实体字段、枚举与状态迁移均未变化**，变更记录见第 13 节）。实体 schema 命名空间 `lightgravity.bot/v1`；HTTP API 前缀 `/api/v1`。变更规则见第 13 节。实现与本文冲突时以本文为准；本文未定义的行为一律视为“不支持”，实现不得自行扩展语义。运行时未知字段按“保留但不赋予执行语义”处理。
+> 契约版本 `1.2.0`（2026-10-15 MINOR：登记 LG-008 自动组队与依赖调度使用的**加性**实体字段——Run `plan`/`plan_hash`/`plan_source`，Subtask `objective`/`capability`/`key`/`write`/`config_hash`/`owner`/`lease_expires_at`/`fail_reason`/`blocked_by`，见 §6.2、§6.3；**HTTP 端点、错误码、事件类型、枚举与状态迁移均未变化**，向后兼容。此前 `1.1.0` 明确首版唯一真实执行后端为已验收的 OpenAI-compatible `LocalOpenAIAgentConfig` → DeepSeek 路径并补充本地认证代理与凭证边界，见 §8.1；变更记录见第 13 节）。实体 schema 命名空间 `lightgravity.bot/v1`；HTTP API 前缀 `/api/v1`。变更规则见第 13 节。实现与本文冲突时以本文为准；本文未定义的行为一律视为“不支持”，实现不得自行扩展语义。运行时未知字段按“保留但不赋予执行语义”处理。
 
 ## 1. 范围
 
@@ -369,6 +369,9 @@ attempt: 1
 state: planning
 revision: 0
 plan_ref: PLAN.md
+plan: null               # 校验后的计划（source/notes/subtasks），dispatcher 写入
+plan_hash: null          # plan 规范化 JSON 的 SHA-256，冻结派发时的计划版本
+plan_source: null        # 计划来源标记（如 rules / model）
 team_refs: []
 subtask_refs: []
 session_refs: []
@@ -379,6 +382,7 @@ fail_reason: null
 ```
 
 - 一个 Task 同时最多一个非终止 Run（`active_run`）。
+- `plan`/`plan_hash`/`plan_source` 为加性可选字段：计划先经程序校验，校验通过的完整计划（含每个子任务的 `key`/`objective`/`capability`/`acceptance`/`depends_on`/`write`/`order`）才写入 `plan`，`plan_hash` 为该内容的规范化 SHA-256，`plan_source` 只记录来源、不赋予额外权限；未通过校验的提议不落盘。既有 `plan_ref`（计划文件引用）语义不变。
 - `completed` 与 `cancelled`/`failed` 是不同终态；team cleanup 状态独立记录，清理失败不得掩盖交付成功。
 - `cancelling` → `cancelled` 仅在 adapter 确认停止后。
 
@@ -396,6 +400,15 @@ revision: 0
 depends_on: []
 assignee_member_ref: null
 upstream_artifact_refs: []
+objective: null          # 该 Subtask 的目标（来自已校验计划）
+capability: null         # 所需能力；RoleCatalog 据此选择最小团队
+key: null                # 计划内局部 slug（唯一），不是运行时 ID
+write: false             # 是否写工作区；同一工作区 write 节点串行
+config_hash: null        # 节点运行配置冻结哈希（节点定义 + 成员 config_hash）
+owner: null              # 当前执行租约持有者
+lease_expires_at: null   # 执行租约到期时间
+fail_reason: null        # 失败/阻塞原因
+blocked_by: []           # 阻塞它的上游失败 Subtask 运行时 ID
 acceptance:
   status: pending          # pending | passed | failed | blocked
   criteria: []
@@ -403,6 +416,12 @@ acceptance:
 ```
 
 `passed` 只表示子任务验证通过，不等于 Task 验收；依赖放行必须传递上游产物引用与版本/哈希。
+
+- `objective`/`capability`/`key`/`write` 为加性可选字段，来自已校验计划；`key` 仅在计划内唯一，不是运行时 ID；`write=true` 的节点写工作区，同一工作区 write 节点串行（§7 单 writer）。
+- `config_hash` 冻结节点运行配置（节点定义与 `member_config_hash` 的组合）；派发前重编译并比对，漂移按 `config_invalid` 失败，不静默换配置。
+- `owner`/`lease_expires_at` 是 Subtask 执行租约，与 Task `queue` 租约是不同层面的租约：领取幂等、按 `owner` 互斥、过期可回收、终态拒绝领取。
+- `fail_reason` 记录失败原因；`blocked_by` 列出使其阻塞的上游失败 Subtask 运行时 ID，被阻塞节点 `acceptance.status=blocked`，不得伪造 `passed`。
+- 上述字段均为加性可选字段，不改变本节既有 `state`、`acceptance.status` 枚举与迁移语义。
 
 ### 6.4 Member
 
@@ -557,7 +576,7 @@ class ExecutorAdapter(Protocol):
 
 LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与版本 QA）：
 
-- [ ] 契约版本与 `/api/v1`、`lightgravity.bot/v1` 在本文一致声明（LG-001 冻结 `1.0.0`；当前 `1.1.0`，变更记录见第 13 节）。
+- [ ] 契约版本与 `/api/v1`、`lightgravity.bot/v1` 在本文一致声明（LG-001 冻结 `1.0.0`；当前 `1.2.0`，变更记录见第 13 节）。
 - [ ] ID 语法、时间格式、命名约定明确，且与 docs/02 资源示例的差异有说明。
 - [ ] API 端点表覆盖首版所需路径，错误码表覆盖配置失败、冲突、取消未确认、能力不可用、验收过期。
 - [ ] Task/Subtask/Run/Member 状态枚举、合法组合与迁移方向齐备，无 `done + executing` 类矛盾。
@@ -575,6 +594,7 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 
 | 版本 | 日期 | 级别 | 变更 | API/实体字段影响 |
 |---|---|---|---|---|
+| `1.2.0` | 2026-10-15 | MINOR | 登记 LG-008 自动组队与依赖调度使用的加性控制字段：Run `plan`/`plan_hash`/`plan_source`；Subtask `objective`/`capability`/`key`/`write`/`config_hash`/`owner`/`lease_expires_at`/`fail_reason`/`blocked_by`（§6.2、§6.3） | 仅新增可选实体字段；端点、错误码、事件类型、枚举与状态迁移未变化 |
 | `1.1.0` | 2026-10-15 | MINOR | 首版真实后端由未验收的 Gemini 改为已验收的 `openai-compat`（`LocalOpenAIAgentConfig`）→ DeepSeek 路径；新增本地认证代理与凭证/生命周期边界（§8.1）；Gemini/Vertex 标为未验收、不作默认 | 无：端点、错误码、事件类型、实体字段、枚举与状态迁移均未变化 |
 | `1.0.0` | 2026-10-15 | — | LG-001 初始冻结 | — |
 
