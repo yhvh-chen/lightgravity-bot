@@ -18,6 +18,10 @@ dependencies = [
 # Intentionally empty: the Antigravity SDK is a first-class dependency above
 # because LG-005 compiles against its concrete config types.
 
+[project.scripts]
+lightgravity = "lightgravity.cli:main"
+lg = "lightgravity.cli:main"
+
 [dependency-groups]
 dev = [
     "pytest>=8,<9",

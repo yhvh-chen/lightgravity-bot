@@ -1,0 +1,305 @@
+"""Runtime assembly for local startup/distribution (LG-020).
+
+This is the **new, independent** startup module.  It does not edit the frozen
+``api/app.py`` factory: it only calls the public :func:`create_app` with
+injected dependencies and then adds the parts the factory explicitly leaves to
+LG-020 (runtime token policy, Host guard, static frontend, process reporting).
+
+What it wires, reusing the formal product components:
+
+* the LG-004 ``FileStore`` (``LIGHTGRAVITY_DATA_DIR``/workspace isolation);
+* the LG-025 ``FileSecretStore`` + ``ConnectionService`` + ``ConnectionTester``
+  (no second SDK and no second model list are created);
+* the LG-006 ``AntigravityExecutor`` (real DeepSeek loopback auth proxy) with
+  the settings-layer credential resolver, so a missing credential becomes an
+  honest ``capability_unavailable`` block instead of a crash or a fake run;
+* the LG-008 ``GraphDispatcher`` over that executor, so the process is
+  executable once an explicit connection/agent/credential exists (no permanent
+  ``UnavailableExecutor`` is left in place);
+* a per-process :class:`~lightgravity.runtime.token.RuntimeToken`, the
+  :class:`~lightgravity.runtime.hostguard.HostGuardMiddleware` and the static
+  frontend mount.
+
+It never reads a full ``.env`` file, never prints a credential or the token, and
+never copies a secret value into Markdown.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from fastapi import FastAPI
+
+from ..adapter import AntigravityExecutor, DirectoryArtifactSink
+from ..config import Settings
+from ..coordinator import GraphDispatcher
+from ..coordinator.graph import DEFAULT_CAPABILITIES
+from ..coordinator.recruiter import RoleCatalog
+from ..settings import (
+    ConnectionService,
+    ConnectionTestLog,
+    ConnectionTester,
+    FileSecretStore,
+)
+from ..store import ConfigInvalid, EntityNotFound, FileStore, Store
+from ..store.entities import RESOURCE_DIRS
+from .access import AccessPolicy, LocalAccessPolicy
+from .app import create_app
+from ..runtime.frontend import mount_frontend
+from ..runtime.hostguard import HostGuardMiddleware
+from ..runtime.token import RuntimeToken, resolve_runtime_token
+
+#: Optional JSON ``{capability: [agent_ref, ...]}`` role catalog override.
+ROLE_CATALOG_ENV = "LIGHTGRAVITY_ROLE_CATALOG"
+#: Optional frontend dist override for the one-process static service.
+FRONTEND_DIST_ENV = "LIGHTGRAVITY_FRONTEND_DIST"
+#: Optional comma-separated extra Hosts (e.g. a stable ``.localhost`` name).
+ALLOWED_HOSTS_ENV = "LIGHTGRAVITY_ALLOWED_HOSTS"
+
+LogSink = Callable[[str], None]
+
+
+def _noop(_message: str) -> None:  # pragma: no cover - default sink
+    return None
+
+
+def repo_root() -> Path:
+    """Repository root inferred from this file (``backend/lightgravity/api/...``)."""
+
+    return Path(__file__).resolve().parents[3]
+
+
+def default_frontend_dist() -> Path:
+    return repo_root() / "frontend" / "dist"
+
+
+@dataclass(frozen=True, slots=True)
+class StartupOptions:
+    """Everything the operator can choose at start time."""
+
+    settings: Settings
+    token: RuntimeToken | None = None
+    frontend_dist: Path | None = None
+    serve_frontend: bool = True
+    allowed_hosts: tuple[str, ...] = ()
+    wire_real_executor: bool = True
+    role_catalog: Mapping[str, Sequence[str]] | None = None
+    tester: bool = True
+    log: LogSink = _noop
+
+
+@dataclass(slots=True)
+class RuntimeState:
+    """Resolved runtime facts for the CLI/status output (never a token value)."""
+
+    app: FastAPI
+    settings: Settings
+    token: RuntimeToken
+    store: Store
+    connections: ConnectionService
+    executor_wired: bool
+    frontend_served: bool
+    frontend_dist: Path
+    warnings: list[str] = field(default_factory=list)
+
+    def execution_report(self) -> dict[str, object]:
+        """Honest readiness report: what is configured, what is missing."""
+
+        reasons: list[str] = []
+        agents = _enabled_agents(self.store, self.settings.data_dir)
+        settings_view = self.connections.get_settings()
+        worker_ref = settings_view.get("default_worker_connection_ref")
+        if not self.executor_wired:
+            reasons.append("executor adapter is not wired")
+        if not agents:
+            reasons.append("no enabled agent resource (execution has no team candidate)")
+        if not worker_ref:
+            reasons.append("no default worker connection configured")
+        credential_configured = False
+        if isinstance(worker_ref, str) and worker_ref:
+            try:
+                status = self.connections.credential_status(_connection_credential_ref(self, worker_ref))
+            except Exception:  # noqa: BLE001 - status must never crash startup
+                status = None
+            credential_configured = bool(status and status.configured)
+            if not credential_configured:
+                reasons.append("default worker credential is not configured/resolvable")
+        return {
+            "execution_ready": not reasons,
+            "reasons": reasons,
+            "default_worker_connection_ref": worker_ref,
+            "credential_configured": credential_configured,
+            "agent_refs": list(agents),
+            "token_source": self.token.source,
+            "frontend_served": self.frontend_served,
+            "frontend_dist": str(self.frontend_dist),
+            "warnings": list(self.warnings),
+        }
+
+
+def _connection_credential_ref(state: RuntimeState, connection_id: str) -> str | None:
+    try:
+        return state.connections.get_connection(connection_id).get("credential_ref")
+    except Exception:  # noqa: BLE001 - missing/invalid connection is a readiness gap
+        return None
+
+
+def _enabled_agents(store: Store, data_dir: Path) -> tuple[str, ...]:
+    directory = data_dir / "resources" / RESOURCE_DIRS["agent"]
+    if not directory.is_dir():
+        return ()
+    ids: list[str] = []
+    for path in sorted(directory.glob("*.md")):
+        try:
+            versioned = store.read("agent", path.stem)
+        except (EntityNotFound, ConfigInvalid):
+            continue
+        if bool(versioned.entity.get("enabled", True)):
+            ids.append(path.stem)
+    return tuple(ids)
+
+
+def load_role_catalog(
+    store: Store, data_dir: Path, env: Mapping[str, str] | None = None
+) -> RoleCatalog | None:
+    """Resolve a minimal capability catalog: explicit JSON, else one agent."""
+
+    source = os.environ if env is None else env
+    raw = source.get(ROLE_CATALOG_ENV)
+    if isinstance(raw, str) and raw.strip():
+        try:
+            parsed = json.loads(raw)
+        except ValueError as exc:
+            raise ConfigInvalid(f"{ROLE_CATALOG_ENV} is not valid JSON: {exc}") from exc
+        if not isinstance(parsed, dict):
+            raise ConfigInvalid(f"{ROLE_CATALOG_ENV} must be a JSON object")
+        mapping: dict[str, list[str]] = {}
+        for capability, refs in parsed.items():
+            if not isinstance(refs, list) or not all(isinstance(ref, str) for ref in refs):
+                raise ConfigInvalid(
+                    f"{ROLE_CATALOG_ENV}.{capability} must be a list of agent refs"
+                )
+            mapping[str(capability)] = refs
+        return RoleCatalog(mapping)
+    agents = _enabled_agents(store, data_dir)
+    if not agents:
+        return None
+    return RoleCatalog({capability: list(agents) for capability in DEFAULT_CAPABILITIES})
+
+
+def build_runtime(options: StartupOptions) -> RuntimeState:
+    """Build the resident app plus its real dependencies; never prints secrets."""
+
+    log: LogSink = options.log if options.log is not None else _noop
+    settings = options.settings
+    settings.ensure_data_dir()
+
+    store = FileStore(settings.data_dir, settings.workspace_root)
+    secret_store = FileSecretStore(settings.secret_store)
+    connections = ConnectionService(store, secret_store=secret_store)
+
+    tester = None
+    if options.tester:
+        tester = ConnectionTester(
+            connections,
+            diagnostics=ConnectionTestLog(settings.data_dir / "diagnostics"),
+            allow_network=False,
+            max_network_calls=1,
+        )
+
+    warnings: list[str] = []
+    executor = None
+    dispatcher = None
+    if options.wire_real_executor:
+        try:
+            executor = AntigravityExecutor(
+                store,
+                credential_resolver=connections.credential_resolver,
+                artifacts=DirectoryArtifactSink(settings.data_dir / "artifacts"),
+                workspace_root=settings.workspace_root,
+            )
+            catalog: RoleCatalog | None = None
+            if options.role_catalog is not None:
+                catalog = RoleCatalog(dict(options.role_catalog))
+            else:
+                catalog = load_role_catalog(store, settings.data_dir)
+            dispatcher = GraphDispatcher(store, executor, catalog=catalog)
+            log(
+                "executor wired: antigravity/openai-compat via loopback auth proxy"
+                + ("; capability catalog present" if catalog else "; no catalog")
+            )
+        except Exception as exc:  # noqa: BLE001 - start degraded, report honestly
+            executor = None
+            dispatcher = None
+            warnings.append(f"real executor could not be wired: {type(exc).__name__}: {exc}")
+            log(warnings[-1])
+    else:
+        warnings.append("real executor disabled by option; execution will be unavailable")
+        log(warnings[-1])
+
+    token = options.token or resolve_runtime_token(os.environ)
+    access: AccessPolicy = LocalAccessPolicy(token=token.value)
+
+    app = create_app(
+        settings,
+        store=store,
+        dispatcher=dispatcher,
+        executor=executor,
+        connection_service=connections,
+        access_policy=access,
+        tester=tester,
+    )
+    allowed_hosts = options.allowed_hosts
+    env_hosts = os.environ.get(ALLOWED_HOSTS_ENV, "")
+    if env_hosts.strip():
+        allowed_hosts = tuple(allowed_hosts) + tuple(
+            item.strip() for item in env_hosts.split(",") if item.strip()
+        )
+    app.add_middleware(HostGuardMiddleware, allowed_hosts=allowed_hosts)  # type: ignore[arg-type]
+
+    dist = options.frontend_dist or Path(
+        os.environ.get(FRONTEND_DIST_ENV) or default_frontend_dist()
+    )
+    frontend_served = False
+    if options.serve_frontend:
+        frontend_served = mount_frontend(app, dist, token.value, log=log)
+        if not frontend_served:
+            warnings.append(
+                f"frontend build not found at {dist}; serving minimal bootstrap page"
+            )
+
+    agents = _enabled_agents(store, settings.data_dir)
+    state = RuntimeState(
+        app=app,
+        settings=settings,
+        token=token,
+        store=store,
+        connections=connections,
+        executor_wired=executor is not None,
+        frontend_served=frontend_served,
+        frontend_dist=Path(dist),
+        warnings=warnings,
+    )
+    if agents:
+        log(f"executable agent candidates: {', '.join(agents)}")
+    else:
+        log("no enabled agent resource; execution has no team candidate yet")
+    log(f"runtime token resolved from {token.source} (value never logged)")
+    return state
+
+
+__all__ = [
+    "ALLOWED_HOSTS_ENV",
+    "FRONTEND_DIST_ENV",
+    "ROLE_CATALOG_ENV",
+    "RuntimeState",
+    "StartupOptions",
+    "build_runtime",
+    "default_frontend_dist",
+    "load_role_catalog",
+    "repo_root",
+]
