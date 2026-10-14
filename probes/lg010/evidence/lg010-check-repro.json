@@ -1,0 +1,50 @@
+{
+  "artifact_path_absolute_diff_ref": "/tmp/lg010-repro-0o70x4pn/artifacts/run_repro/lg006-diff.patch",
+  "artifact_path_relative": "demo_target.txt",
+  "with_absolute_diff_ref": {
+    "results": [
+      {
+        "check_id": "evidence-present",
+        "status": "passed",
+        "detail": "2 evidence ref(s) recorded"
+      },
+      {
+        "check_id": "artifacts-in-workspace",
+        "status": "failed",
+        "detail": "outside workspace: /tmp/lg010-repro-0o70x4pn/artifacts/run_repro/lg006-diff.patch"
+      }
+    ],
+    "authorized": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "registered": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "satisfied": false
+  },
+  "without_absolute_diff_ref": {
+    "results": [
+      {
+        "check_id": "evidence-present",
+        "status": "passed",
+        "detail": "1 evidence ref(s) recorded"
+      },
+      {
+        "check_id": "artifacts-in-workspace",
+        "status": "passed",
+        "detail": "1 artifact path(s) verified"
+      }
+    ],
+    "authorized": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "registered": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "satisfied": true
+  }
+}
