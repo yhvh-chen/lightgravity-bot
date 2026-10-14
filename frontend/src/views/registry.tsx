@@ -12,7 +12,7 @@ import { BoardView } from './BoardView'
 import { ChatView } from './ChatView'
 import { FilesView } from './FilesView'
 import { ResourcesView } from './ResourcesView'
-import { SettingsView } from './SettingsView'
+import { SettingsView } from './settings/SettingsView'
 import { TeamView } from './TeamView'
 
 export interface ViewDefinition {
@@ -152,7 +152,7 @@ export const VIEW_DEFINITIONS: Record<ViewId, ViewDefinition> = {
         id: 'models-providers',
         title: 'Models & Providers',
         items: [],
-        empty: 'Connection list is implemented by LG-026.',
+        empty: 'Models & Providers is shown in the main panel.',
       },
     ],
   },
