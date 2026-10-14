@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot
 
-> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.3.1）已冻结；用户已确认首版先用 DeepSeek，首版真实执行后端为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek，此前的 Gemini 认证阻塞已解除。LG-001～009、LG-011、LG-012、LG-014、LG-025、LG-026 共 14 项已完成并整合到 `main`（均为**待版本 QA**）：工程骨架可运行、SDK 探针、存储层、资源配置编译、左侧导航壳层、正式 executor + loopback 认证代理、常驻消息路由与 Task 队列、自动组队与依赖调度、模型设置与凭证后端、产物验证与人工验收、查询 API 与持久事件订阅、Settings 模型接入页面。集成后已把验证服务与资源停止接口注入 `create_app`，accept/reject 合并进 API actions，并新增只读 `GET /tasks/{id}/acceptance` 与单例全局对话 `GET/POST /api/v1/conversations/global/messages`。主前端构建现已挂载 Settings 与 Files 视图，分别接线 `/api/v1/settings*` 与 `/api/v1/files*`；Files 上传复用 LG-026 运行时 token helper 注入 `X-LG-Token`，无 token 时上传如实返回 `unauthorized`。敏感写仍由后端 `LocalAccessPolicy` 默认拒绝，首次启动 token 握手归 LG-020，未实现前该页只读、写入返回真实 `unauthorized`，其余业务视图仍为占位/未接入，不宣称全部页面可用。LG-006 以真实 DeepSeek（实际发送 `deepseek-v4-flash`，上游返回 `deepseek-flash`）在临时授权工作区跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消，真实模型调用总数 12（硬上限 12），进程无残留；证据见 [tests/adapter/evidence](tests/adapter/evidence/README.md)。LG-009/LG-012 的真实 SDK 端到端与浏览器验收仍未完成，分别留 LG-010 与 LG-021/LG-022。LG-010 首轮独立 QA 报告两项阻断（executor 绝对 `diff_ref` 被机器检查误判为 workspace 相对路径；交付完成后未自动触发验证），本轮已按两项返修、新增回归并集成 LG-014，但尚未经独立 QA 复验，LG-010 保持 in-progress/blocked；未部署。
+> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.4.0）已冻结；用户已确认首版先用 DeepSeek，首版真实执行后端为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek，此前的 Gemini 认证阻塞已解除。LG-001～009、LG-011、LG-012、LG-014、LG-015、LG-025、LG-026 共 15 项已完成并整合到 `main`（均为**待版本 QA**）：工程骨架可运行、SDK 探针、存储层、资源配置编译、左侧导航壳层、正式 executor + loopback 认证代理、常驻消息路由与 Task 队列、自动组队与依赖调度、模型设置与凭证后端、产物验证与人工验收、查询 API 与持久事件订阅、Settings 模型接入页面、Team/Resources 管理视图与受控资源写入。集成后已把验证服务与资源停止接口注入 `create_app`，accept/reject 合并进 API actions，并新增只读 `GET /tasks/{id}/acceptance` 与单例全局对话 `GET/POST /api/v1/conversations/global/messages`。主前端构建现已挂载 Settings、Files、Team 与 Resources 视图，分别接线 `/api/v1/settings*`、`/api/v1/files*`、`/api/v1/team/*` 与 `/api/v1/resources/*`；Files 上传复用 LG-026 运行时 token helper 注入 `X-LG-Token`，无 token 时上传如实返回 `unauthorized`。Team/Resources 受控修改经 Task 对话提议：`POST /api/v1/tasks/{id}/messages` 携带 `resource_proposal` 时执行 sensitive 授权，`message_id` 幂等、`expected_revision` 版本检查，实际结果写回同一 Task 对话；该路径不创建 Run、不等待代码 worker，也不热替换活跃 Member 配置（docs/08 1.4.0 登记 `PATCH /resources/{kind}/{id}`、`GET /team/available`、`GET /team/members`）。敏感写仍由后端 `LocalAccessPolicy` 默认拒绝，首次启动 token 握手归 LG-020，未实现前该页只读、写入返回真实 `unauthorized`，Chat/Board 仍为占位/未接入，不宣称全部页面可用。LG-006 以真实 DeepSeek（实际发送 `deepseek-v4-flash`，上游返回 `deepseek-flash`）在临时授权工作区跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消，真实模型调用总数 12（硬上限 12），进程无残留；证据见 [tests/adapter/evidence](tests/adapter/evidence/README.md)。LG-009/LG-012 的真实 SDK 端到端与浏览器验收仍未完成，分别留 LG-010 与 LG-021/LG-022。LG-010 首轮独立 QA 报告两项阻断（executor 绝对 `diff_ref` 被机器检查误判为 workspace 相对路径；交付完成后未自动触发验证），本轮已按两项返修、新增回归并集成 LG-014，但尚未经独立 QA 复验，LG-010 保持 in-progress/blocked；未部署。
 
 **按需组队的 AI 任务助手。**
 
@@ -55,13 +55,15 @@ Task 是主要操作入口：一项任务一个目录、一份 TASK.md、一条�
 | LG-026 Settings 模型接入页面 | done（待版本 QA，已挂载） | `frontend/src/views/settings/**`、`frontend/src/api/settings.ts`、`frontend/src/api/auth.ts`（运行时 token helper）；已由整合 owner 挂到 `views/registry.tsx` 既有 Settings 入口并删除旧占位；局部 `tsc` 通过、vitest 32 passed、`vite build` 成功（主构建含 Settings：CSS 20.29 kB / JS 193.02 kB）；真实接口证据为执行者临时 server + 1 次 DeepSeek 调用；敏感写默认拒绝、首次启动 token 握手未实现（LG-020），浏览器 QA 留 LG-021/027 |
 | LG-009 验证与人工验收 | done（待版本 QA） | `backend/lightgravity/verify/`；局部 26 passed、全后端 273 passed、mypy 无问题（64 files）；机器检查只跑程序已注册且 Task `checks` 授权的项，停止门未确认不释放，accept/reject 绑定 requirements/候选版本并按 `request_id` 幂等；真实 SDK 端到端留 LG-010 |
 | LG-012 查询 API 与事件订阅 | done（待版本 QA） | `backend/lightgravity/api/`；局部 30 passed、全后端 246 passed、mypy 无问题（61 files）；tasks/resources/files/SSE/settings 路由真实装配，事件先落盘再广播、游标重放去重、断线不取消 Run；SSE 用进程内 ASGI 驱动验证，真实 uvicorn/浏览器留 LG-021/022 |
+| LG-014 Files 上传/下载与证据预览 | done（待版本 QA，已挂载） | `backend/lightgravity/api/files.py`（有界上传/下载、`expected_revision`、原子替换、越界/secret 拒绝，docs/08 §4.3 自 1.3.1 标为实现）、`frontend/src/views/files/**`；已由整合 owner 挂到 `views/registry.tsx` 并删除旧占位；上传默认复用 LG-026 运行时 token helper，无 token 时只读可用、上传如实 `unauthorized`；上传 token 首次启动握手归 LG-020，浏览器 QA 留 LG-021 |
+| LG-015 Team 与 Resources 管理视图 | done（待版本 QA，已挂载） | `backend/lightgravity/resources/**`（目录/诊断/引用/受控写入）、`api/resources.py` 的 `PATCH /resources/{kind}/{id}` 与 `GET /team/available`/`GET /team/members`、`coordinator/resource_commands.py` 与 `service.py` 的消息级 `resource_proposal` 分支；`frontend/src/views/{team,resources}/**` 与数据驱动 `Context` 资源栏；整合后前端类型/测试/构建通过；契约 1.4.0 登记 3 个新端点与消息加性字段；无 Task 时只引导不假写，资源健康如实 unknown，浏览器/E2E 留 LG-021/022 |
 
-- 上述 done 为执行者局部证据，**不是版本 QA 结论**；LG-003 已实测的 DeepSeek（OpenAI-compatible）路径是 docs/08 v1.3.1 确定的首版真实后端，LG-006 已在该路径上实现正式 executor + 产品侧 loopback 认证代理。LG-001～009、011、012、014、025、026 均待 LG-010／LG-021／LG-022／LG-027 等版本 QA 门集中验证。
-- 下一步：LG-010 在同一 DeepSeek 路径上验收最小真实闭环（真实验证服务接线与停止确认）；LG-014 补 Files 上传/下载（已在 docs/08 登记为 planned）；LG-015 已领取（Team 与 Resources 管理视图，待独立 worktree 实施），以控制本批并行。
+- 上述 done 为执行者局部证据，**不是版本 QA 结论**；LG-003 已实测的 DeepSeek（OpenAI-compatible）路径是 docs/08 v1.4.0 确定的首版真实后端，LG-006 已在该路径上实现正式 executor + 产品侧 loopback 认证代理。LG-001～009、011、012、014、015、025、026 均待 LG-010／LG-021／LG-022／LG-027 等版本 QA 门集中验证。
+- 下一步：LG-010 在同一 DeepSeek 路径上验收最小真实闭环（真实验证服务接线与停止确认），已返修两项阻断、**待独立 QA 复验**；LG-015 已整合，其受控资源写入为敏感授权、版本检查、不等 worker 的程序化路径，前端/浏览器与真实资源健康检查留 LG-021/LG-022；LG-020 首次启动 token 握手未实现，未就绪前敏感写只读可用。
 
 ## 本地运行与检查（工程骨架）
 
-工程骨架由 LG-002 建立，LG-004 已加入后端存储层，LG-005 已加入 adapter 资源配置编译并把 Antigravity SDK `0.1.22` 锁定为产品依赖，LG-006 已实现正式 executor + loopback 认证代理（真实 DeepSeek 路径，见 [tests/adapter/evidence](tests/adapter/evidence/README.md)），LG-007/LG-008 已实现 coordinator 消息路由、队列与自动组队调度，LG-009/LG-012 已实现验证/验收与查询 API，并由 `create_app` 装配 `FileStore`→`BroadcastingStore`→`Coordinator`、挂载 `/api/v1` 全部路由、lifespan 启停常驻 Coordinator。默认执行器仍是诚实的 `UnavailableExecutor`（不伪装可执行）；真实 SDK executor 由 LG-010 注入。前端壳已存在；Settings 视图已挂载并接入 `/api/v1/settings*`（敏感写在 LG-020 握手前默认拒绝，只读可用），其余业务视图尚未接入真实端点。
+工程骨架由 LG-002 建立，LG-004 已加入后端存储层，LG-005 已加入 adapter 资源配置编译并把 Antigravity SDK `0.1.22` 锁定为产品依赖，LG-006 已实现正式 executor + loopback 认证代理（真实 DeepSeek 路径，见 [tests/adapter/evidence](tests/adapter/evidence/README.md)），LG-007/LG-008 已实现 coordinator 消息路由、队列与自动组队调度，LG-009/LG-012 已实现验证/验收与查询 API，并由 `create_app` 装配 `FileStore`→`BroadcastingStore`→`Coordinator`、挂载 `/api/v1` 全部路由、lifespan 启停常驻 Coordinator。默认执行器仍是诚实的 `UnavailableExecutor`（不伪装可执行）；真实 SDK executor 由 LG-010 注入。前端壳已存在；Settings、Files、Team 与 Resources 视图已挂载并分别接入 `/api/v1/settings*`、`/api/v1/files*`、`/api/v1/team/*`、`/api/v1/resources/*`（敏感写与受控资源提议在 LG-020 握手前默认拒绝，只读可用），Chat/Board 仍为占位。
 
 ### 版本要求
 
@@ -111,7 +113,7 @@ make frontend-build   # 前端生产构建
 - [开发看板](BACKLOG.md)：27 项首版开发任务，使用 `olav.tasks/v1` 管理。
 - [滚动排期](docs/06-roadmap.md)：阶段、依赖、验收门与当前未定的日历安排。
 - [模型设置](docs/07-settings-and-models.md)：Settings、Connection 事实源、凭证、分层测试和默认模型。
-- [首版接口与状态契约](docs/08-interface-contract.md)：冻结的最小技术栈、API/事件/实体状态、Store/Adapter 边界、错误语义、工作区授权与后续文件归属（契约版本 1.3.1）。
+- [首版接口与状态契约](docs/08-interface-contract.md)：冻结的最小技术栈、API/事件/实体状态、Store/Adapter 边界、错误语义、工作区授权与后续文件归属（契约版本 1.4.0）。
 - [项目手册](PROJECT.md)：目标、优先级、完成定义和已确认决策。
 - [产品与架构设计](docs/01-design.md)：调度器、executor、组队、文件事实源、状态与首版交付顺序。
 - [Task 与 SDK 资源契约](docs/02-task-and-sdk-resources.md)：任务目录、对话、frontmatter 渲染及 Agent／Connections／Conversation／Hooks／MCP／Tools／Triggers 的映射。
