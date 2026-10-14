@@ -75,7 +75,7 @@ from .scheduler import (
     encode_handoffs,
     parse_handoff_ref,
 )
-from .service import Coordinator, CoordinatorResult
+from .service import CandidateVerifier, Coordinator, CoordinatorResult
 
 __all__ = [
     "READ_ONLY_TOOL_CEILING",
@@ -118,5 +118,6 @@ __all__ = [
     "parse_handoff_ref",
     "Coordinator",
     "CoordinatorResult",
+    "CandidateVerifier",
     "build_router",
 ]

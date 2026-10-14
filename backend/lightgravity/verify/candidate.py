@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from lightgravity.contracts import AppError, ErrorCode
+from lightgravity.evidence import EVIDENCE_SCHEME, EvidenceRefError, parse_evidence_ref
 from lightgravity.store import EntityNotFound, Store
 
 #: Suffixes that let a recorded artifact ref be reported as the candidate diff.
@@ -83,6 +84,25 @@ def _str_tuple(value: Any) -> tuple[str, ...]:
     return tuple(item for item in value if isinstance(item, str) and item)
 
 
+def _is_diff_ref(ref: str) -> bool:
+    """Whether a recorded ref names a diff/patch artifact.
+
+    Canonical evidence refs append a digest after the name
+    (``evidence:<run>/<name>@sha256:<hex>``), so the suffix check must look at
+    the parsed artifact name rather than the raw string tail.
+    """
+
+    if ref.startswith(EVIDENCE_SCHEME):
+        try:
+            parsed = parse_evidence_ref(ref)
+        except EvidenceRefError:
+            return False
+        if parsed is None:
+            return False
+        return parsed.name.lower().endswith(_DIFF_SUFFIXES)
+    return ref.lower().endswith(_DIFF_SUFFIXES)
+
+
 def load_candidate(store: Store, task_id: str) -> Candidate:
     """Load the active Run's candidate, or raise ``not_ready``."""
 
@@ -121,7 +141,7 @@ def load_candidate(store: Store, task_id: str) -> Candidate:
                 records.append(dict(record))
 
     diff_ref = next(
-        (ref for ref in artifacts if ref.lower().endswith(_DIFF_SUFFIXES)), None
+        (ref for ref in artifacts if _is_diff_ref(ref)), None
     )
     workspace_ref_raw = task.entity.get("workspace_ref")
     workspace_ref = (

@@ -19,6 +19,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from lightgravity.evidence import (
+    EVIDENCE_SCHEME,
+    EvidenceRefError,
+    resolve_evidence_ref,
+)
 from lightgravity.store import Store
 
 from .candidate import Candidate
@@ -120,20 +125,75 @@ class CheckReport:
         }
 
 
-def artifact_path(ref: str) -> str | None:
-    """Return the workspace-relative path of an artifact ref, else ``None``.
+#: Reference classes understood by the machine checks (docs/08 §6.2/§6.3).
+WORKSPACE_REF = "workspace"
+EVIDENCE_REF = "evidence"
+ABSOLUTE_REF = "absolute"
+OPAQUE_REF = "opaque"
 
-    Handoff refs are encoded as ``<subtask>@<hash>:<artifact>`` (scheduler.py);
-    non-path artifacts (opaque ids, URLs) are ignored rather than guessed at.
+
+def artifact_payload(ref: str) -> str | None:
+    """Extract the artifact payload from a handoff or evidence reference.
+
+    Handoff refs are encoded as ``<subtask>@<hash>:<artifact>`` (scheduler.py).
+    A canonical evidence ref (``evidence:<run>/<name>@sha256:<hex>``) is kept
+    whole; a bare absolute path is kept so callers can classify (and reject) it
+    instead of silently treating it as workspace-relative.  URLs/opaque ids are
+    ignored rather than guessed at.
     """
 
-    _, _, rest = ref.partition("@")
-    artifact = rest.partition(":")[2] if "@" in ref else ref
-    if not artifact or "://" in artifact:
+    if not isinstance(ref, str) or not ref:
+        return None
+    if ref.startswith(EVIDENCE_SCHEME):
+        return ref
+    if os.path.isabs(ref):
+        return ref
+    if "://" in ref:
+        return None
+    if "@" in ref:
+        _, _, rest = ref.partition("@")
+        if ":" not in rest:
+            return None
+        artifact = rest.partition(":")[2]
+        return artifact or None
+    return ref
+
+
+def artifact_path(ref: str) -> str | None:
+    """Return the path-like payload of an artifact ref, else ``None``.
+
+    Non-path artifacts (opaque ids, URLs) are ignored rather than guessed at.
+    Use :func:`classify_artifact_ref` to tell workspace-relative, canonical
+    evidence and unauthorized absolute refs apart.
+    """
+
+    artifact = artifact_payload(ref)
+    if artifact is None:
         return None
     if "/" in artifact or "." in artifact:
         return artifact
     return None
+
+
+def classify_artifact_ref(ref: str) -> tuple[str, str | None]:
+    """Classify an evidence ref into an explicit resolution namespace.
+
+    Returns ``(kind, payload)`` where ``kind`` is one of ``workspace`` (resolve
+    under the authorized workspace root), ``evidence`` (resolve under the
+    Task/Run-owned evidence root), ``absolute`` (a raw absolute path with no
+    authorized root: rejected), or ``opaque`` (not a path; ignored).
+    """
+
+    artifact = artifact_payload(ref)
+    if artifact is None:
+        return OPAQUE_REF, None
+    if artifact.startswith(EVIDENCE_SCHEME):
+        return EVIDENCE_REF, artifact
+    if os.path.isabs(artifact):
+        return ABSOLUTE_REF, artifact
+    if "/" in artifact or "." in artifact:
+        return WORKSPACE_REF, artifact
+    return OPAQUE_REF, None
 
 
 def _evidence_present(context: CheckContext) -> CheckOutcome:
@@ -149,25 +209,16 @@ def _evidence_present(context: CheckContext) -> CheckOutcome:
     )
 
 
-def _artifacts_in_workspace(context: CheckContext) -> CheckOutcome:
-    candidate = context.candidate
-    raw_refs = [ref for ref in candidate.artifact_refs]
-    paths = [path for path in (artifact_path(ref) for ref in raw_refs) if path]
-    if not paths:
-        return CheckOutcome(
-            passed=True,
-            detail="no workspace-relative artifact paths declared",
-            skipped=True,
-        )
+def _workspace_problems(context: CheckContext, refs: Sequence[str]) -> list[str]:
+    """Validate workspace-relative refs against the authorized workspace root."""
+
+    problems: list[str] = []
     if not context.workspace_path:
-        return CheckOutcome(
-            passed=False,
-            detail="candidate declares workspace artifacts but has no authorized workspace",
-        )
+        return ["candidate declares workspace artifacts but has no authorized workspace"]
     base = Path(context.workspace_path).resolve()
     missing: list[str] = []
     escaped: list[str] = []
-    for relative in paths:
+    for relative in refs:
         try:
             target = (base / relative).resolve()
         except OSError:
@@ -178,14 +229,62 @@ def _artifacts_in_workspace(context: CheckContext) -> CheckOutcome:
             continue
         if not target.exists():
             missing.append(relative)
-    problems: list[str] = []
     if missing:
         problems.append("missing: " + ", ".join(sorted(set(missing))))
     if escaped:
         problems.append("outside workspace: " + ", ".join(sorted(set(escaped))))
+    return problems
+
+
+def _evidence_problems(context: CheckContext, refs: Sequence[str]) -> list[str]:
+    """Validate canonical evidence refs against the Task/Run evidence root."""
+
+    data_dir = getattr(context.store, "data_dir", None) if context.store is not None else None
+    problems: list[str] = []
+    for ref in refs:
+        try:
+            resolve_evidence_ref(
+                ref,
+                data_dir=data_dir,
+                task_id=context.task_id,
+                run_id=context.run_id,
+            )
+        except EvidenceRefError as exc:
+            problems.append(str(exc))
+    return problems
+
+
+def _artifacts_in_workspace(context: CheckContext) -> CheckOutcome:
+    candidate = context.candidate
+    workspace_refs: list[str] = []
+    evidence_refs: list[str] = []
+    problems: list[str] = []
+    for ref in candidate.artifact_refs:
+        kind, payload = classify_artifact_ref(ref)
+        if kind == WORKSPACE_REF and payload:
+            workspace_refs.append(payload)
+        elif kind == EVIDENCE_REF and payload:
+            evidence_refs.append(payload)
+        elif kind == ABSOLUTE_REF:
+            # A raw absolute path has no authorized root; never resolve it.
+            problems.append(f"unauthorized absolute artifact ref: {ref}")
+        # Opaque refs (ids, URLs) are not paths and are not checked here.
+    if not workspace_refs and not evidence_refs:
+        if problems:
+            return CheckOutcome(passed=False, detail="; ".join(sorted(set(problems))))
+        return CheckOutcome(
+            passed=True,
+            detail="no workspace or evidence artifact paths declared",
+            skipped=True,
+        )
+    if workspace_refs:
+        problems.extend(_workspace_problems(context, workspace_refs))
+    if evidence_refs:
+        problems.extend(_evidence_problems(context, evidence_refs))
     if problems:
-        return CheckOutcome(passed=False, detail="; ".join(problems))
-    return CheckOutcome(passed=True, detail=f"{len(paths)} artifact path(s) verified")
+        return CheckOutcome(passed=False, detail="; ".join(sorted(set(problems))))
+    total = len(workspace_refs) + len(evidence_refs)
+    return CheckOutcome(passed=True, detail=f"{total} artifact ref(s) verified")
 
 
 def default_check_registry() -> CheckRegistry:
@@ -203,7 +302,11 @@ def default_check_registry() -> CheckRegistry:
         CheckRegistration(
             check_id="artifacts-in-workspace",
             handler=_artifacts_in_workspace,
-            description="Workspace-relative artifact refs must exist inside the task workspace.",
+            description=(
+                "Artifact refs must resolve inside the authorized workspace root "
+                "(relative refs) or the Task/Run-owned evidence root (canonical "
+                "evidence refs); raw absolute paths are rejected."
+            ),
         )
     )
     return registry
@@ -278,8 +381,14 @@ __all__ = [
     "CheckRegistry",
     "CheckReport",
     "CheckResult",
+    "ABSOLUTE_REF",
+    "EVIDENCE_REF",
+    "OPAQUE_REF",
+    "WORKSPACE_REF",
     "artifact_path",
+    "artifact_payload",
     "authorized_checks",
+    "classify_artifact_ref",
     "default_check_registry",
     "run_checks",
 ]

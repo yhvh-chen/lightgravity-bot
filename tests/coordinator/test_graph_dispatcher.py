@@ -7,9 +7,16 @@ is LG-010.  All state lives under pytest ``tmp_path``.
 from __future__ import annotations
 
 import asyncio
+import os
 from collections.abc import Callable
+from pathlib import Path
 
-from lightgravity.adapter import ExecuteRequest, ExecutorResult, FailureInfo
+from lightgravity.adapter import (
+    ExecuteRequest,
+    ExecutionRef,
+    ExecutorResult,
+    FailureInfo,
+)
 from lightgravity.coordinator import (
     DispatchContext,
     GraphDispatcher,
@@ -21,6 +28,12 @@ from lightgravity.coordinator.scheduler import parse_handoff_ref
 from lightgravity.coordinator.service import Coordinator
 from lightgravity.contracts import EventType
 from lightgravity.store import FileStore
+from lightgravity.verify import (
+    CheckContext,
+    default_check_registry,
+    load_candidate,
+    run_checks,
+)
 
 from coordinator_helpers import wait_for_phase
 from graph_helpers import (
@@ -100,6 +113,83 @@ async def test_two_node_graph_hands_off_artifacts(store: FileStore) -> None:
     assert len(run["team_refs"]) == 2
     assert task_phase(store, task_id) == "executing"  # Coordinator writes verifying
     assert member_states(store) == ["released", "released"]
+
+
+async def test_executor_diff_ref_is_canonicalized_into_task_evidence(store: FileStore) -> None:
+    """A trusted executor's absolute diff path becomes a canonical evidence ref.
+
+    Regression for the LG-010 blocker: the recorded evidence must never be a
+    raw absolute path, and the ``artifacts-in-workspace`` check must validate
+    it inside the Task/Run evidence root instead of rejecting it.
+    """
+
+    build_environment(store)
+    sink = Path(store.data_dir).parent / "artifact-sink"
+    sink.mkdir(parents=True, exist_ok=True)
+    diff_file = sink / "lg006-diff.patch"
+    diff_file.write_text("--- a/x\n+++ b/x\n", encoding="utf-8")
+
+    def responder(request: ExecuteRequest) -> ExecutorResult:
+        return ExecutorResult(
+            state="succeeded",
+            summary="ok",
+            artifact_refs=(),
+            diff_ref=str(diff_file),
+            execution_ref=ExecutionRef(
+                execution_id=f"exec_{request.subtask_id}",
+                task_id=request.task_id,
+                run_id=request.run_id,
+                subtask_id=request.subtask_id,
+            ),
+            stop_confirmed=True,
+        )
+
+    executor = FakeGraphExecutor(responder)
+    dispatcher = GraphDispatcher(store, executor, catalog=ONE_AGENT)
+    task_id, run_id, controller, context = make_dispatch_setup(store)
+
+    outcome = await dispatcher.dispatch(context, controller, no_sink)
+    assert outcome.state == "succeeded"
+
+    candidate = load_candidate(store, task_id)
+    assert candidate.diff_ref is not None
+    assert candidate.diff_ref.startswith("evidence:")
+    assert all(not os.path.isabs(ref) for ref in candidate.artifact_refs)
+    assert candidate.diff_ref in candidate.artifact_refs
+
+    report = run_checks(
+        default_check_registry(),
+        ["artifacts-in-workspace"],
+        CheckContext(
+            task_id=task_id,
+            run_id=run_id,
+            candidate=candidate,
+            store=store,
+            workspace_path=candidate.workspace_path,
+        ),
+    )
+    assert report.satisfied is True, report.to_dict()
+
+    # Post-hoc tampering with the imported artifact is detected by digest.
+    from lightgravity.evidence import evidence_root, parse_evidence_ref
+
+    parsed = parse_evidence_ref(candidate.diff_ref)
+    assert parsed is not None and parsed.digest
+    canonical = evidence_root(store.data_dir, task_id) / run_id / parsed.name
+    assert canonical.is_file()
+    canonical.write_text("tampered\n", encoding="utf-8")
+    tampered = run_checks(
+        default_check_registry(),
+        ["artifacts-in-workspace"],
+        CheckContext(
+            task_id=task_id,
+            run_id=run_id,
+            candidate=candidate,
+            store=store,
+            workspace_path=candidate.workspace_path,
+        ),
+    )
+    assert tampered.satisfied is False
 
 
 async def test_minimal_team_reuses_single_agent(store: FileStore) -> None:

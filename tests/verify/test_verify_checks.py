@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from lightgravity.evidence import import_evidence
 from lightgravity.store import FileStore
 from lightgravity.verify import (
     CheckContext,
@@ -124,3 +125,56 @@ def test_artifacts_in_workspace_checks_real_files(store: FileStore, tmp_path: Pa
         ),
     )
     assert escaping.satisfied is False
+
+
+def test_artifacts_check_resolves_canonical_evidence(store: FileStore, tmp_path: Path) -> None:
+    """Canonical evidence refs resolve under the Task/Run root; raw absolute
+    paths and cross-run refs are rejected (LG-010 rework)."""
+
+    registry = default_check_registry()
+    source = tmp_path / "lg006-diff.patch"
+    source.write_text("--- a/x\n+++ b/x\n", encoding="utf-8")
+    run_id = "run_evidence"
+    ref = import_evidence(
+        store.data_dir, "task_evidence", run_id, source, name="subtask-1-diff.patch"
+    )
+    assert ref.startswith("evidence:")
+
+    def context(**overrides: object) -> CheckContext:
+        values: dict[str, object] = {
+            "task_id": "task_evidence",
+            "run_id": run_id,
+            "candidate": make_candidate(artifact_refs=(ref,), workspace_path=None),
+            "store": store,
+            "workspace_path": None,
+        }
+        values.update(overrides)
+        return CheckContext(**values)  # type: ignore[arg-type]
+
+    present = run_checks(registry, ["artifacts-in-workspace"], context())
+    assert present.satisfied is True, present.to_dict()
+
+    # A ref owned by a different Run must not resolve.
+    cross_run = run_checks(
+        registry, ["artifacts-in-workspace"], context(run_id="run_somewhere_else")
+    )
+    assert cross_run.satisfied is False
+
+    # A raw absolute path is never treated as workspace-relative or resolved.
+    raw = run_checks(
+        registry,
+        ["artifacts-in-workspace"],
+        context(candidate=make_candidate(artifact_refs=(str(source),), workspace_path=None)),
+    )
+    assert raw.satisfied is False
+
+    # A digest mismatch (post-hoc replacement) is detected.
+    from lightgravity.evidence import evidence_root, parse_evidence_ref
+
+    parsed = parse_evidence_ref(ref)
+    assert parsed is not None
+    (evidence_root(store.data_dir, "task_evidence") / run_id / parsed.name).write_text(
+        "tampered\n", encoding="utf-8"
+    )
+    tampered = run_checks(registry, ["artifacts-in-workspace"], context())
+    assert tampered.satisfied is False

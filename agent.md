@@ -147,6 +147,6 @@ SDK 版本敏感问题以官方源码、文档与安装版本为准。docs/03 �
 - [Bot 行为](docs/04-bot-behavior.md)
 - [左侧导航与资源管理](docs/05-navigation-and-team.md)
 - [模型设置与凭证](docs/07-settings-and-models.md)
-- [首版接口与状态契约](docs/08-interface-contract.md)（契约版本 1.3.0，实现边界以它为准）
+- [首版接口与状态契约](docs/08-interface-contract.md)（契约版本 1.3.1，实现边界以它为准）
 
 本文件约束开发实施，不代表功能已实现，不保证参赛资格，也不覆盖用户后续明确调整的需求。

@@ -128,6 +128,45 @@ async def test_verification_is_injected_and_wired(app: FastAPI) -> None:
     assert app.state.context.verification is app.state.verification
 
 
+async def test_injected_coordinator_auto_verifies(settings: Settings) -> None:
+    """An explicitly injected coordinator shares the app verification service.
+
+    Regression for the LG-010 blocker: the normal ``POST /tasks`` delivery must
+    reach ``awaiting_acceptance`` automatically, including the create_app branch
+    that receives a caller-built coordinator/dispatcher/executor.
+    """
+
+    from lightgravity.api.access import LocalAccessPolicy
+    from lightgravity.api.app import create_app
+    from lightgravity.coordinator import Coordinator, SingleSlotDispatcher
+    from lightgravity.store import FileStore
+
+    from api_helpers import FakeExecutor, create_task, wait_for_phase
+
+    base = FileStore(settings.data_dir, settings.workspace_root)
+    fake = FakeExecutor()
+    coordinator = Coordinator(base, dispatcher=SingleSlotDispatcher(fake))
+    app = create_app(
+        settings,
+        store=base,
+        coordinator=coordinator,
+        executor=fake,
+        access_policy=LocalAccessPolicy(allow_sensitive_without_token=True),
+    )
+    async with app.router.lifespan_context(app):
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            task_id = await create_task(client)
+            detail = await wait_for_phase(client, task_id, {"awaiting_acceptance"})
+            assert detail["phase"] == "awaiting_acceptance"
+            assert detail["acceptance"]["status"] == "awaiting"
+            snapshot = await client.get(f"/api/v1/tasks/{task_id}/acceptance")
+            assert snapshot.status_code == 200
+            assert snapshot.json()["candidate"]["run_id"] == detail["run"]["id"]
+
+
 class _RefusingStopper:
     """ResourceStopper double that never confirms a stop."""
 

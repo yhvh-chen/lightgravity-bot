@@ -26,7 +26,7 @@ import os
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Protocol, cast
+from typing import Any, Protocol, cast, runtime_checkable
 
 from lightgravity.contracts import AppError, ErrorCode, EventType, TaskPhase, TaskStatus
 from lightgravity.store import (
@@ -60,6 +60,25 @@ def _now_iso() -> str:
         .isoformat(timespec="milliseconds")
         .replace("+00:00", "Z")
     )
+
+
+@runtime_checkable
+class CandidateVerifier(Protocol):
+    """Structural port for the LG-009 verification service.
+
+    Declared here (instead of importing ``VerificationService``) so the
+    coordinator and verify packages do not form an import cycle.  The
+    coordinator calls :meth:`verify_and_prepare` automatically once a
+    successful Run reaches ``verifying`` (docs/08 §6.1/§9).
+    """
+
+    def verify_and_prepare(
+        self,
+        task_id: str,
+        *,
+        request_id: str | None = None,
+        expected_revision: int | None = None,
+    ) -> Any: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -186,6 +205,7 @@ class Coordinator:
         data_dir: Any = None,
         classifier: Callable[[str], Classification] | None = None,
         responder: Callable[[str, Classification], str] | None = None,
+        verification: CandidateVerifier | None = None,
     ) -> None:
         self._store = store
         self._owner = owner or f"coordinator:{os.getpid()}"
@@ -210,6 +230,7 @@ class Coordinator:
         self._budget: dict[str, int] = dict(budget or {})
         self._classifier = classifier or classify_message
         self._responder = responder or _default_responder
+        self._verification = verification
         self._loop_task: asyncio.Task[None] | None = None
         self._stopping = False
         #: Set while a dispatcher call is in flight (exposed for tests/monitoring).
@@ -231,6 +252,12 @@ class Coordinator:
     @property
     def active_run_id(self) -> str | None:
         return self._active_run_id
+
+    def set_verification(self, verification: CandidateVerifier | None) -> None:
+        """Attach/replace the verification port (used by ``create_app`` so an
+        injected coordinator shares the app's verification service)."""
+
+        self._verification = verification
 
     def start(self) -> None:
         """Start the background queue worker (idempotent)."""
@@ -857,6 +884,35 @@ class Coordinator:
                     "mode": "worker",
                     "code": outcome.failure_code,
                     "message": outcome.failure_message,
+                },
+                task_ref=task_id,
+                run_ref=run_id,
+            )
+        if run_state == "verifying":
+            self._auto_verify(task_id, run_id)
+
+    def _auto_verify(self, task_id: str, run_id: str) -> None:
+        """Run machine verification automatically after a successful delivery.
+
+        The candidate is moved ``verifying -> awaiting_acceptance`` only through
+        :meth:`VerificationService.verify_and_prepare`, which enforces the real
+        stop/release gate.  A failure is recorded and leaves the Task in
+        ``verifying`` rather than faking acceptance.
+        """
+
+        verifier = self._verification
+        if verifier is None:
+            return
+        try:
+            verifier.verify_and_prepare(task_id, request_id=f"auto-verify:{run_id}")
+        except Exception as exc:  # noqa: BLE001 - never let verification crash the loop
+            self._writer.emit(
+                task_id,
+                EventType.ERROR_RECORDED,
+                {
+                    "mode": "verify",
+                    "code": "internal_error",
+                    "message": f"automatic verification failed: {type(exc).__name__}: {exc}",
                 },
                 task_ref=task_id,
                 run_ref=run_id,

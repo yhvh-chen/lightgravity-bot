@@ -20,6 +20,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { getRuntimeToken } from '../../api/auth'
 import { ApiError } from '../../api/client'
 import {
   createFilesApi,
@@ -88,7 +89,7 @@ export function FilesView(props: FilesViewProps = {}) {
   const taskRef = props.taskRef === undefined ? state.taskRef : props.taskRef
   const runRef = props.runRef === undefined ? state.runRef : props.runRef
   const api = useMemo(
-    () => props.api ?? createFilesApi(props.runtime ?? {}),
+    () => props.api ?? createFilesApi(props.runtime ?? { getApiToken: getRuntimeToken }),
     [props.api, props.runtime],
   )
   return (

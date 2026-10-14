@@ -112,15 +112,21 @@ def create_app(
         broadcasting, secret_store=secret_store
     )
 
-    if dispatcher is None and coordinator is None:
-        dispatcher = SingleSlotDispatcher(executor or UnavailableExecutor())
-    resolved_coordinator = coordinator or Coordinator(broadcasting, dispatcher=dispatcher)
-
     policy = access_policy or LocalAccessPolicy()
 
     verification_service = verification or VerificationService(
         broadcasting, stopper=resource_stopper
     )
+
+    if dispatcher is None and coordinator is None:
+        dispatcher = SingleSlotDispatcher(executor or UnavailableExecutor())
+    resolved_coordinator = coordinator or Coordinator(
+        broadcasting, dispatcher=dispatcher, verification=verification_service
+    )
+    # An injected coordinator must share this app's verification service so the
+    # normal POST /tasks delivery path auto-verifies there too, not only in the
+    # default construction branch.
+    resolved_coordinator.set_verification(verification_service)
 
     effective_executor: ExecutorAdapter | None = executor
     if effective_executor is None and isinstance(dispatcher, SingleSlotDispatcher):

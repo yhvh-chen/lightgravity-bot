@@ -70,11 +70,14 @@ async def test_sse_live_broadcast_and_disconnect_keeps_run_alive(
     await stream.close()
     assert run_app.state.context.broker.subscriber_count == 0
 
-    # The browser disconnected; the worker must still finish the Run.
+    # The browser disconnected; the worker must still finish the Run and the
+    # coordinator must run verification automatically (no hidden service call).
     fake_executor.gate.set()
-    detail = await wait_for_phase(run_api, task_id, {"verifying"})
-    assert detail["phase"] == "verifying"
-    assert detail["run"]["state"] == "verifying"
+    detail = await wait_for_phase(run_api, task_id, {"awaiting_acceptance"})
+    assert detail["phase"] == "awaiting_acceptance"
+    assert detail["run"]["state"] == "awaiting_acceptance"
+    assert detail["acceptance"]["status"] == "awaiting"
+    assert detail["acceptance"]["candidate_ref"] == detail["run"]["id"]
 
 
 async def test_sse_invalid_cursor_errors(api: httpx.AsyncClient) -> None:

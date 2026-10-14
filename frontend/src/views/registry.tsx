@@ -10,7 +10,7 @@ import type { ShellState } from '../app/uiState'
 import type { ContextItem, ContextSection } from '../components/ContextList'
 import { BoardView } from './BoardView'
 import { ChatView } from './ChatView'
-import { FilesView } from './FilesView'
+import { FilesView } from './files/FilesView'
 import { ResourcesView } from './ResourcesView'
 import { SettingsView } from './settings/SettingsView'
 import { TeamView } from './TeamView'
@@ -87,7 +87,7 @@ export const VIEW_DEFINITIONS: Record<ViewId, ViewDefinition> = {
         title: state.taskRef ? `Task ${state.taskRef}` : 'Workspace',
         items: [],
         empty: state.taskRef
-          ? 'File tree is not loaded (LG-014).'
+          ? 'File tree is loaded in the main panel for this Task scope.'
           : 'Select a Task scope to browse its files.',
       },
     ],

@@ -25,6 +25,48 @@ def prepare(store: FileStore, task_id: str, request_id: str = "prep") -> None:
     assert result.confirmed is True
 
 
+def test_verify_prepares_candidate_with_canonical_evidence(
+    store: FileStore, tmp_path
+) -> None:
+    """A canonical executor artifact resolves through the service's store.
+
+    Regression for the LG-010 blocker: the verification service (wrapped in the
+    app's broadcasting store, which only exposes ``data_dir``) must resolve an
+    imported ``evidence:`` ref under the Task/Run evidence root, not reject it
+    as an out-of-workspace path.
+    """
+
+    from lightgravity.api.eventbus import BroadcastingStore, EventBroker
+    from lightgravity.coordinator.state import StateWriter
+    from lightgravity.evidence import import_evidence
+
+    task_id, run_id, _members, subtasks = make_verifying_task(
+        store, checks=("artifacts-in-workspace",), evidence=("placeholder.txt",)
+    )
+    source = tmp_path / "lg006-diff.patch"
+    source.write_text("--- a/x\n+++ b/x\n", encoding="utf-8")
+    ref = import_evidence(
+        store.data_dir, task_id, run_id, source, name="subtask-1-diff.patch"
+    )
+    StateWriter(store, actor="test").write_subtask(
+        subtasks[0],
+        {
+            "acceptance": {
+                "status": "passed",
+                "criteria": ["it works"],
+                "evidence_refs": [ref],
+            }
+        },
+    )
+
+    service = VerificationService(BroadcastingStore(store, EventBroker()))
+    result = service.verify_and_prepare(task_id, request_id="canonical-evidence")
+
+    assert result.confirmed is True, result.to_dict()
+    assert result.phase == "awaiting_acceptance"
+    assert store.read("task", task_id).entity["acceptance"]["evidence_refs"] == [ref]
+
+
 def test_verify_prepares_candidate_and_binds_versions(store: FileStore) -> None:
     task_id, run_id, _members, _subtasks = make_verifying_task(
         store, evidence=("out/result.txt",)

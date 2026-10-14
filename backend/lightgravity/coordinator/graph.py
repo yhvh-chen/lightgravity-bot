@@ -29,6 +29,7 @@ import asyncio
 import os
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from lightgravity.adapter import (
@@ -42,6 +43,7 @@ from lightgravity.adapter import (
     ResourceCompiler,
 )
 from lightgravity.contracts import AppError, EventType, TaskPhase
+from lightgravity.evidence import EvidenceRefError, import_evidence
 from lightgravity.store import Store, new_id
 
 from .dispatcher import DispatchContext, DispatchOutcome
@@ -571,8 +573,19 @@ class GraphDispatcher:
             return self._fail_node(node, controller, code=code, message=message, result=result)
 
         evidence = tuple(result.artifact_refs)
-        if result.diff_ref and result.diff_ref not in evidence:
-            evidence = (*evidence, result.diff_ref)
+        if result.diff_ref:
+            try:
+                canonical_diff = self._record_evidence(controller, node, result.diff_ref)
+            except EvidenceRefError as exc:
+                return self._fail_node(
+                    node,
+                    controller,
+                    code="evidence_unreadable",
+                    message=f"executor diff evidence could not be imported: {exc}",
+                    result=result,
+                )
+            if canonical_diff not in evidence:
+                evidence = (*evidence, canonical_diff)
         if not evidence and not result.summary.strip():
             return self._fail_node(
                 node,
@@ -605,6 +618,28 @@ class GraphDispatcher:
             state="passed",
             handoff=handoff,
             result=result,
+        )
+
+    def _record_evidence(self, controller: RunController, node: _Node, ref: str) -> str:
+        """Import a trusted executor artifact into the Task/Run evidence root.
+
+        A local path is copied and recorded as a canonical ``evidence:`` ref so
+        machine checks never resolve a raw absolute path.  A non-path evidence
+        ref (for example an opaque URL) is recorded as-is and left opaque.
+        """
+
+        if not isinstance(ref, str) or not ref or "://" in ref or not os.path.isabs(ref):
+            return ref
+        data_dir = getattr(self._store, "data_dir", None)
+        if data_dir is None:
+            raise EvidenceRefError("store does not expose a data directory for evidence import")
+        name = f"{node.subtask_id}-{Path(ref).name}"
+        return import_evidence(
+            data_dir,
+            controller.task_id,
+            controller.run_id,
+            ref,
+            name=name,
         )
 
     def _fail_node(

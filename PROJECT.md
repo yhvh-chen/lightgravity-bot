@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot 项目手册
 
-> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 当前 1.3.0：1.1.0 将首版真实后端定为 DeepSeek，1.2.0 登记 LG-008 加性控制字段，1.3.0 登记 LG-009 验收字段/端点与全局对话），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层、LG-005 角色/SDK 资源配置编译（已将 `google-antigravity==0.1.22` 锁定为产品依赖）、LG-006 正式 executor + 产品侧 loopback 认证代理（真实 DeepSeek 验证：文件/diff、结构化结果、用量、预算、会话恢复、确认取消；真实调用 12，进程无残留）、LG-007 消息路由与 Task 队列、LG-008 自动组队与依赖调度、LG-009 产物验证与人工验收、LG-011 前端壳层、LG-012 查询 API 与持久事件订阅、LG-025 模型设置与凭证后端、LG-026 Settings 模型接入页面均已完成并整合到 `main`（13 项均**待版本 QA**）。主前端构建现已挂载 Settings 视图并接线 `/api/v1/settings*`；敏感写仍由 `LocalAccessPolicy` 默认拒绝，首次启动 token 握手未实现（LG-020），未就绪前该页只读，其余业务视图仍为占位，不宣称全部页面可用。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek。集成后 `create_app` 已装配 Store/Coordinator/VerificationService 并挂载 `/api/v1` 路由；accept/reject 合并进 API actions，只读 `GET /tasks/{id}/acceptance` 独立挂载，新增单例全局对话 `GET/POST /api/v1/conversations/global/messages`；默认执行器仍是诚实的 `UnavailableExecutor`（未伪装可执行）。真实 SDK 端到端、浏览器验收与首次启动 token 握手分别留 LG-010、LG-021/022、LG-020。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
+> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 当前 1.3.1：1.1.0 将首版真实后端定为 DeepSeek，1.2.0 登记 LG-008 加性控制字段，1.3.0 登记 LG-009 验收字段/端点与全局对话，1.3.1 将 LG-014 文件上传/下载标为已实现并澄清证据引用语义），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层、LG-005 角色/SDK 资源配置编译（已将 `google-antigravity==0.1.22` 锁定为产品依赖）、LG-006 正式 executor + 产品侧 loopback 认证代理（真实 DeepSeek 验证：文件/diff、结构化结果、用量、预算、会话恢复、确认取消；真实调用 12，进程无残留）、LG-007 消息路由与 Task 队列、LG-008 自动组队与依赖调度、LG-009 产物验证与人工验收、LG-011 前端壳层、LG-012 查询 API 与持久事件订阅、LG-025 模型设置与凭证后端、LG-026 Settings 模型接入页面、LG-014 Files 上传/下载与任务证据预览均已完成并整合到 `main`（14 项均**待版本 QA**）。主前端构建现已挂载 Settings 与 Files 视图，分别接线 `/api/v1/settings*` 与 `/api/v1/files*`；Files 上传复用 LG-026 运行时 token helper 注入 `X-LG-Token`，无 token 时上传如实返回 `unauthorized`。敏感写仍由 `LocalAccessPolicy` 默认拒绝，首次启动 token 握手未实现（LG-020），未就绪前该页只读，Chat/Board/Team/Resources 仍为占位，不宣称全部页面可用。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek。集成后 `create_app` 已装配 Store/Coordinator/VerificationService 并挂载 `/api/v1` 路由；accept/reject 合并进 API actions，只读 `GET /tasks/{id}/acceptance` 独立挂载，新增单例全局对话 `GET/POST /api/v1/conversations/global/messages`；默认执行器仍是诚实的 `UnavailableExecutor`（未伪装可执行）。真实 SDK 端到端、浏览器验收与首次启动 token 握手分别留 LG-010、LG-021/022、LG-020；LG-010 首轮独立 QA 报告两项阻断（executor 绝对 `diff_ref` 被机器检查误判、交付完成后未自动触发验证），本轮已返修并新增回归，但尚未经独立 QA 复验，LG-010 保持 in-progress/blocked。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
 
 ## 目标
 
@@ -40,6 +40,17 @@ updated: "2026-10-15"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-15：LG-010 首轮 QA 返修（两项阻断）并整合 LG-014 Files
+
+- 基点：上一整合结束于 `25312d1`，主工作区清洁。本轮精确 `git cherry-pick 8f8266e`（LG-010 独立 QA 报告，仅 `probes/lg010/**` 与 `backlog/tasks/LG-010.md`；QA 失败事实与 `blocked_by` 原样保留）→ `fba9a23`；再 `git cherry-pick b1b93cd`（LG-014 Files 上传/下载与任务证据预览）→ `d3d3f48`；两者均无冲突。未触碰其它独立 worktree，未 push/deploy、未复制 `.env`、未清理任何 worktree。
+- 复现：基点用 `uv run python probes/lg010/lg010_check_repro.py` 确认 `artifacts-in-workspace` 把 executor 的绝对 `diff_ref` 当作 workspace 相对路径而 `failed: outside workspace`；返修后同一脚本如实把它判为 `unauthorized absolute artifact ref`（原始绝对路径不再被解析）。
+- 返修 1（证据引用语义）：新增 `backend/lightgravity/evidence.py`，把可信 executor 产物导入 Store 拥有的 `<data_dir>/tasks/<task_id>/artifacts/<run_id>/`，记录为 `evidence:<run_id>/<name>@sha256:<hex>`；`verify/checks.py` 只解析授权 workspace 根（相对引用）与 Task/Run evidence 根（canonical 引用），校验归属、路径/符号链接包含与内容摘要，**原始绝对路径一律拒绝**；`coordinator/graph.py` 在记录 Subtask 证据前完成导入（失败按 `evidence_unreadable` 诚实失败），`verify/candidate.py` 按解析后的名字识别 diff。未删除 `diff_ref`、未跳过检查。
+- 返修 2（自动验证）：`coordinator/service.py` 新增结构化 `CandidateVerifier` 端口；成功 Run 进入 `verifying` 后自动调用 `VerificationService.verify_and_prepare`，经真实 `ResourceStopper`（Store 停止/释放门）从 `verifying` 到 `awaiting_acceptance`；`api/app.py` 先构建 `VerificationService` 再构建/回挂 `Coordinator`，因此**显式注入 coordinator/dispatcher/executor** 的 `create_app` 分支也共享同一验证服务，不依赖 QA 手动调用或隐藏 HTTP 端点。
+- Files 整合：`frontend/src/views/registry.tsx` 的 Files `Main` 由占位 `./FilesView` 改为 `./files/FilesView`，删除旧占位；`FilesView` 默认复用 LG-026 运行时 token helper（`getRuntimeToken`→`createFilesApi({ getApiToken })`）注入上传 `X-LG-Token`，无 token 时只读可用、上传如实 `unauthorized`。未改资源视图与壳层语义。
+- 契约与文档：docs/08 由 `1.3.0` PATCH 升至 `1.3.1`（将 planned 的 `POST /files/upload`/`GET /files/download` 标为已实现，声明 `revision` 为 `size-mtime_ns` 变更令牌与跨进程复核属尽力而为，并明确 workspace/evidence 引用语义与拒绝原始绝对路径），同步 `contracts/constants.py`、`tests/contracts` 与 README/PROJECT/agent/docs06 当前事实；历史 1.0.0–1.3.0 条目按原文保留。
+- 真实检查（本机 Python 3.12.13 / uv 0.12.1 / Node v22.23.2）：`uv run pytest -q` → **314 passed, 1 warning**（新增证据 canonical 化、canonical evidence 解析、经广播 store 的完整 `verify_and_prepare` 与注入 coordinator 自动验证等回归）；`uv run mypy` → **Success: no issues found in 73 source files**；`npm --prefix frontend run typecheck` 通过、`test:run` **43 passed**、`build` 成功且**首次打包 Files 视图**（CSS 24.67 kB / JS 205.40 kB）。
+- 限制：未新增真实模型调用（独立 QA 复测负责）；LG-010 报告两项阻断已返修但**未经独立 QA 复验**，任务保持 `in-progress` 且不删除 `blocked_by`；未做浏览器 QA（LG-021/022）；上传首次启动 token 握手仍归 LG-020；未 push/deploy。
 
 ### 2026-10-15：整合 LG-026 Settings 页面并把 LG-015 领取到新基点
 
