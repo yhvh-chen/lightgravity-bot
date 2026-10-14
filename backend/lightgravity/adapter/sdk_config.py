@@ -88,8 +88,16 @@ def build_sdk_config(
     compiled: CompiledAgentConfig,
     *,
     workspaces: list[str] | None = None,
+    base_url: str | None = None,
+    save_dir: str | None = None,
+    response_schema: Any | None = None,
 ) -> SdkConfigResult:
     """Construct an SDK ``AgentConfig`` for ``compiled`` without executing it.
+
+    ``base_url`` overrides the connection endpoint (the executor points the SDK
+    at its loopback auth proxy instead of the real upstream); ``save_dir`` and
+    ``response_schema`` are passed through when provided.  A built config is
+    still *not* an authenticated run.
 
     Raises :class:`CapabilityUnavailable` when the SDK is missing or the plan
     has no resolvable connection backend.  Missing credentials remain a
@@ -115,6 +123,10 @@ def build_sdk_config(
         "system_instructions": compiled.instructions or None,
         "workspaces": workspaces,
     }
+    if save_dir is not None:
+        kwargs["save_dir"] = save_dir
+    if response_schema is not None:
+        kwargs["response_schema"] = response_schema
     kwargs.update(_skill_kwargs(compiled, types_mod))
     hooks = _hook_objects(compiled)
     if hooks:
@@ -145,7 +157,7 @@ def build_sdk_config(
         config = ag.LocalAgentConfig(model=compiled.connection.model, **kwargs)
     elif kind == "openai":
         config = ag.LocalOpenAIAgentConfig(
-            base_url=compiled.connection.base_url,
+            base_url=base_url or compiled.connection.base_url,
             model=compiled.connection.model,
             **kwargs,
         )

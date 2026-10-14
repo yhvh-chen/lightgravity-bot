@@ -204,9 +204,9 @@ _BUILTIN_TOOL_HANDLERS: tuple[ToolRegistration, ...] = (
     ),
 )
 
-#: Registered connection backends.  ``verified`` reflects the LG-003 probe:
-#: only the non-Gemini OpenAI-compatible path was exercised; the product's
-#: Gemini/Vertex contract remains unverified in this environment.
+#: Registered connection backends.  ``verified`` reflects the LG-003 probe and
+#: the docs/08 v1.1.0 decision: the OpenAI-compatible path is the first-version
+#: real backend; Gemini/Vertex remain unverified in this environment.
 _CONNECTION_BACKENDS: tuple[ConnectionBackend, ...] = (
     ConnectionBackend(
         backend_id="gemini",
@@ -214,7 +214,7 @@ _CONNECTION_BACKENDS: tuple[ConnectionBackend, ...] = (
         requires_credential=True,
         supports_api_key_field=True,
         verified=False,
-        description="Gemini Developer API; product contract, not yet verified here.",
+        description="Gemini Developer API; unverified here, not a default executable backend.",
     ),
     ConnectionBackend(
         backend_id="vertex",
@@ -222,7 +222,7 @@ _CONNECTION_BACKENDS: tuple[ConnectionBackend, ...] = (
         requires_credential=True,
         supports_api_key_field=True,
         verified=False,
-        description="Vertex AI; product contract, not yet verified here.",
+        description="Vertex AI; unverified here, not a default executable backend.",
     ),
     ConnectionBackend(
         backend_id="openai-compat",
@@ -231,7 +231,7 @@ _CONNECTION_BACKENDS: tuple[ConnectionBackend, ...] = (
         supports_api_key_field=False,
         verified=True,
         endpoint_field="base_url",
-        description="OpenAI-compatible endpoint; probe-verified (DeepSeek).",
+        description="OpenAI-compatible endpoint; first-version real backend, probe-verified (DeepSeek).",
     ),
 )
 

@@ -1,0 +1,228 @@
+{
+  "task": "LG-006",
+  "kind": "real-model-cancel-evidence",
+  "at": "2026-10-14T21:45:14Z",
+  "model_requested": "deepseek-v4-flash",
+  "upstream": "https://api.deepseek.com/v1",
+  "credential_present": true,
+  "real_model_calls": 1,
+  "execution_id": "exec_e92c5f3c2476465ea5a43edfe633c388",
+  "result": {
+    "state": "cancelled",
+    "summary": "cancelled: turn cancelled and stop confirmed",
+    "artifact_refs": [],
+    "diff_ref": null,
+    "check_records": [
+      {
+        "name": "sandbox",
+        "status": "passed",
+        "detail": ""
+      },
+      {
+        "name": "auth_proxy_stopped",
+        "status": "passed",
+        "detail": "loopback proxy socket closed"
+      },
+      {
+        "name": "model_identity",
+        "status": "passed",
+        "detail": "deepseek-v4-flash"
+      },
+      {
+        "name": "diff",
+        "status": "unknown",
+        "detail": "0 chars"
+      }
+    ],
+    "session_ref": {
+      "session_id": "sess_380d72daf070405fb5fb9822ec15bd22",
+      "conversation_id": "55c4a2f578420cc4a3ffce7ae916b3ef",
+      "state": "created",
+      "save_dir": null
+    },
+    "failure": {
+      "code": "cancelled",
+      "message": "turn cancelled and stop confirmed"
+    },
+    "usage": {
+      "prompt_tokens": null,
+      "candidates_tokens": null,
+      "total_tokens": null,
+      "thought_tokens": null,
+      "cached_tokens": null,
+      "unknown": [
+        "prompt_tokens",
+        "candidates_tokens",
+        "total_tokens"
+      ]
+    },
+    "stop_reason": "StopReason.UNSPECIFIED",
+    "stop_confirmed": true,
+    "execution_ref": {
+      "execution_id": "exec_e92c5f3c2476465ea5a43edfe633c388",
+      "task_id": "task_lg006",
+      "run_id": "run_lg006_cancel_dedicated",
+      "subtask_id": "sub_lg006_cancel_dedicated"
+    },
+    "model": "deepseek-v4-flash",
+    "upstream_model": "deepseek-flash",
+    "diff": null
+  },
+  "cancel_result": {
+    "confirmed": true,
+    "state": "cancelled",
+    "reason": "conversation idle after cancel"
+  },
+  "events": [
+    {
+      "type": "adapter.execution_started",
+      "execution": {
+        "execution_id": "exec_e92c5f3c2476465ea5a43edfe633c388",
+        "task_id": "task_lg006",
+        "run_id": "run_lg006_cancel_dedicated",
+        "subtask_id": "sub_lg006_cancel_dedicated"
+      },
+      "objective": "Write a very long numbered list from 1 to 300, one number per line, as your reply.",
+      "at": "2026-10-14T21:45:14Z"
+    },
+    {
+      "type": "adapter.session_requested",
+      "backend": "openai-compat",
+      "model": "deepseek-v4-flash",
+      "upstream_host": "api.deepseek.com",
+      "connection_ref": "primary",
+      "proxy_base_url": "http://127.0.0.1:42399/Pe2AGrK1Ju0wdFLga20bnm5ZTGy-mJf2/v1",
+      "workspace": "/tmp/lg006-cancel-25s8og4f/data/workspaces/lg006-ws",
+      "at": "2026-10-14T21:45:14Z"
+    },
+    {
+      "type": "adapter.session_started",
+      "session": {
+        "session_id": "sess_380d72daf070405fb5fb9822ec15bd22",
+        "conversation_id": null,
+        "state": "created",
+        "save_dir": null
+      },
+      "sandbox": {
+        "available": true,
+        "reason": null
+      },
+      "at": "2026-10-14T21:45:14Z"
+    },
+    {
+      "type": "adapter.text",
+      "text": "1",
+      "at": "2026-10-14T21:45:16Z"
+    },
+    {
+      "type": "adapter.text",
+      "text": "\n",
+      "at": "2026-10-14T21:45:16Z"
+    },
+    {
+      "type": "adapter.text",
+      "text": "2",
+      "at": "2026-10-14T21:45:16Z"
+    },
+    {
+      "type": "adapter.text",
+      "text": "\n",
+      "at": "2026-10-14T21:45:16Z"
+    },
+    {
+      "type": "adapter.text",
+      "text": "3",
+      "at": "2026-10-14T21:45:16Z"
+    },
+    {
+      "type": "adapter.text",
+      "text": "\n",
+      "at": "2026-10-14T21:45:16Z"
+    },
+    {
+      "type": "adapter.text",
+      "text": "4",
+      "at": "2026-10-14T21:45:16Z"
+    },
+    {
+      "type": "adapter.text",
+      "text": "\n",
+      "at": "2026-10-14T21:45:16Z"
+    },
+    {
+      "type": "adapter.text",
+      "text": "5",
+      "at": "2026-10-14T21:45:16Z"
+    },
+    {
+      "type": "adapter.text",
+      "text": "\n",
+      "at": "2026-10-14T21:45:16Z"
+    },
+    {
+      "type": "adapter.execution_finished",
+      "execution": {
+        "execution_id": "exec_e92c5f3c2476465ea5a43edfe633c388",
+        "task_id": "task_lg006",
+        "run_id": "run_lg006_cancel_dedicated",
+        "subtask_id": "sub_lg006_cancel_dedicated"
+      },
+      "removed": [],
+      "upstream_calls": [
+        {
+          "call": 1,
+          "path": "/Pe2AGrK1Ju0wdFLga20bnm5ZTGy-mJf2/v1/chat/completions",
+          "model": "deepseek-v4-flash",
+          "stream": true,
+          "message_count": 2,
+          "has_tools": true,
+          "tool_names": [
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "has_response_format": false,
+          "forwarded": true,
+          "status": 499
+        }
+      ],
+      "at": "2026-10-14T21:45:16Z"
+    },
+    {
+      "type": "adapter.cancel_result",
+      "confirmed": true,
+      "state": "cancelled",
+      "reason": "conversation idle after cancel"
+    }
+  ],
+  "proxy_calls": [
+    {
+      "call": 1,
+      "path": "/Pe2AGrK1Ju0wdFLga20bnm5ZTGy-mJf2/v1/chat/completions",
+      "model": "deepseek-v4-flash",
+      "stream": true,
+      "message_count": 2,
+      "has_tools": true,
+      "tool_names": [
+        "replace_file_content",
+        "view_file",
+        "write_to_file",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ],
+      "has_response_format": false,
+      "forwarded": true,
+      "status": 499
+    }
+  ],
+  "proxy_stop_confirmed": true,
+  "process_check": {
+    "before": [],
+    "after": [],
+    "leaked": []
+  }
+}

@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot 项目手册
 
-> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 升至 1.1.0，首版真实后端改为 DeepSeek），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层与局部测试完成，LG-005 角色/SDK 资源配置编译完成（已将 `google-antigravity==0.1.22` 锁定为产品依赖），LG-011 前端壳层完成并整合到 `main`（6 项均**待版本 QA**）。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek；LG-006 已移除 Gemini 认证阻塞并保持 `todo` 待派工；协调器、查询 API 等业务接线尚未实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
+> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 升至 1.1.0，首版真实后端改为 DeepSeek），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层与局部测试完成，LG-005 角色/SDK 资源配置编译完成（已将 `google-antigravity==0.1.22` 锁定为产品依赖），LG-006 正式 executor + 产品侧 loopback 认证代理完成并以真实 DeepSeek 验证（文件/diff、结构化结果、用量、预算、会话恢复、确认取消；真实调用 12，进程无残留），LG-011 前端壳层完成并整合到 `main`（7 项均**待版本 QA**）。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek；协调器、查询 API 等业务接线尚未实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
 
 ## 目标
 
@@ -40,6 +40,14 @@ updated: "2026-10-15"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-15：实现 LG-006 正式 executor 与产品侧 loopback 认证代理（真实 DeepSeek 验证）
+
+- 在 `backend/lightgravity/adapter/` 与 `tests/adapter/` 实现正式产品执行器 `AntigravityExecutor` 与 `LocalAuthProxy`，并把稳定执行边界（`ExecuteRequest`/`ExecutorResult`/`CancelResult`/`SessionRef`/`ExecutionRef`）固化。执行器调用 LG-005 的 `CompiledAgentConfig`/`build_sdk_config`，拒绝 `executable=False`，解析 `credential_ref` 后启动只监听 loopback、固定 DeepSeek 上游、每会话 token 隔离的产品代理，再把 SDK `base_url` 指向该代理。真实凭证只来自进程环境（`DEEPSEEK_API_KEY`）或 LG-025 受控 store 的 `CredentialResolver`，值不落盘、不回显、不进日志/事件/结果（`Secret.__repr__` 恒为 `<redacted>`，`mask_values` 再做一层防护）。
+- 真实路径实测：SDK `0.1.22` + `LocalOpenAIAgentConfig` → `LocalAuthProxy` → `https://api.deepseek.com/v1/chat/completions`；实际发送 model ID `deepseek-v4-flash`，上游返回规范 `deepseek-flash`（两者均记录，不把“4.1”之类版本串当 API ID，不静默 fallback）。临时授权工作区跑通：真实文件写入与 unified diff、结构化 finish 结果、用量、`MAX_MODEL_CALLS_EXCEEDED` 预算停止、跨 `save_dir`+`conversation_id` 的会话恢复、以及**确认的流式中断取消**（`cancel confirmed=true`、`stop_confirmed=true`）。进程前后 `/proc` 扫描无 `localharness` 残留，代理 `stop()` 返回确认。证据见 [tests/adapter/evidence](tests/adapter/evidence/README.md)。
+- 有界调用：真实模型调用共 **12**（硬上限 12）——3 次最小模型 ID 发现 + 9 次 LG-006 harness（主链 7、取消链 1、一次竞态失败的取消尝试 1）。未使用 stub/mock 替代真实证据；canned/单元测试仅补失败分支。
+- 边界与诚实性：适配器不写任何控制状态（Task/Run/Member），只 `emit(dict)` 事件；`cancel` 只有观察到 SDK 会话 idle 才返回 `confirmed=true`，未确认不写终止状态；MCP/Triggers/`search_web`/SDK 内部委派仍关闭；Gemini/Vertex 仍标未验收、非默认可执行。真实 Gemini/Vertex 与独立版本 QA（LG-010/LG-022）仍未进行。
+- 契约与范围：本轮兼任共享后端整合 owner，将 `contracts/constants.py` 的 `CONTRACT_VERSION` 由 `1.0.0` 升至 `1.1.0` 并同步 `tests/contracts`（HTTP 端点/错误码/事件类型/实体字段/枚举/状态迁移均未变）；未新增根依赖，未改 `pyproject.toml`/`uv.lock`；未实现 LG-007 或 LG-025。局部检查：`uv run mypy` 无问题（38 files）、`uv run pytest -q` **157 passed**（adapter 75）、`tasks validate` 退出码 0（27 tasks, no diagnostics），done 7 / todo 20。成果标注“待版本 QA”；本地提交，未推送、未部署。
 
 ### 2026-10-15：确认首版真实后端为 DeepSeek（覆盖此前 Gemini 待决）
 

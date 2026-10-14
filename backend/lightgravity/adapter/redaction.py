@@ -100,9 +100,35 @@ def redact(value: Any) -> Any:
     return value
 
 
+def mask_values(value: Any, secrets: Sequence[str]) -> Any:
+    """Replace occurrences of known secret values inside ``value``.
+
+    Defense-in-depth for adapter output: even if a secret somehow reaches an
+    event, result summary or diagnostic, it is masked before leaving the
+    adapter.  Non-string leaves are returned unchanged and container structure
+    is preserved.
+    """
+
+    real = [item for item in secrets if isinstance(item, str) and item]
+    if not real:
+        return value
+
+    if isinstance(value, str):
+        masked = value
+        for secret in real:
+            masked = masked.replace(secret, REDACTED)
+        return masked
+    if isinstance(value, Mapping):
+        return {str(key): mask_values(child, real) for key, child in value.items()}
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        return [mask_values(item, real) for item in value]
+    return value
+
+
 __all__ = [
     "REDACTED",
     "is_sensitive_key",
     "redact",
     "sensitive_paths",
+    "mask_values",
 ]

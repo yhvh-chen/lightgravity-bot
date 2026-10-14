@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot
 
-> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.1.0）已冻结；用户已确认首版先用 DeepSeek，首版真实执行后端为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek，此前的 Gemini 认证阻塞已解除。LG-001～005 与 LG-011 共 6 项基础任务已完成并整合到 `main`（均为**待版本 QA**）：工程骨架可运行、SDK 探针、存储层、资源配置编译与左侧导航壳层。LG-011 壳层局部前端 19 个 vitest、23/23 无依赖 Chrome 浏览器检查、`tsc`/`vite build` 通过，但**未做真实后端联调**（无后端时显示真实的未接入/`network_error` 态）。SDK 核心能力经真实 DeepSeek 实测通过，`search_web` 不可用；adapter 已将 `google-antigravity==0.1.22` 锁定为产品依赖，但真实 executor（LG-006，`todo` 待派工）、协调器、查询 API 等业务接线尚未实现，未部署。
+> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.1.0）已冻结；用户已确认首版先用 DeepSeek，首版真实执行后端为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek，此前的 Gemini 认证阻塞已解除。LG-001～006 与 LG-011 共 7 项基础任务已完成并整合到 `main`（均为**待版本 QA**）：工程骨架可运行、SDK 探针、存储层、资源配置编译、左侧导航壳层，以及 LG-006 正式 executor + loopback 认证代理。LG-006 以真实 DeepSeek（实际发送 `deepseek-v4-flash`，上游返回 `deepseek-flash`）在临时授权工作区跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消，真实模型调用总数 12（硬上限 12），进程无残留；证据见 [tests/adapter/evidence](tests/adapter/evidence/README.md)。协调器、查询 API 等业务接线尚未实现，未部署。
 
 **按需组队的 AI 任务助手。**
 
@@ -48,13 +48,14 @@ Task 是主要操作入口：一项任务一个目录、一份 TASK.md、一条�
 | LG-004 存储层 | done（待版本 QA） | `backend/lightgravity/store/` + `tests/store/`；整合后局部 69 passed、全量后端 82 passed、mypy 无问题 |
 | LG-005 资源编译 | done（待版本 QA） | `backend/lightgravity/adapter/` + `tests/adapter/`；refs/skills/tools/hooks/connection/session 解析、权限不扩大、秘密脱敏、unsupported 标记 unavailable、SDK 配置可编译；局部 51 passed、全量后端 133 passed、mypy 无问题 |
 | LG-011 前端壳层 | done（待版本 QA） | `frontend/src/app/` 壳层与路由、`components/` 共享组件、`api/` 客户端与 `/health` 探测、`views/` 入口与占位；局部 19 vitest、23/23 无依赖 Chrome 浏览器检查、`tsc`/`vite build` 通过；**未做真实后端联调**，业务端点显示未接入/空态 |
+| LG-006 Executor Adapter | done（待版本 QA） | `backend/lightgravity/adapter/` 正式 executor + loopback 认证代理 + 稳定边界类型；真实 DeepSeek 跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复、确认取消，真实调用 12（上限 12），进程无残留；证据 [tests/adapter/evidence](tests/adapter/evidence/README.md) |
 
-- 上述 done 为执行者局部证据，**不是版本 QA 结论**；LG-003 已实测的 DeepSeek（OpenAI-compatible）路径是 docs/08 v1.1.0 确定的首版真实后端。LG-001～005、011 均待 LG-010／LG-021／LG-022／LG-027 等版本 QA 门集中验证。
-- 下一步：LG-006（`todo`，已移除 Gemini 认证阻塞）基于 LG-005 的 `CompiledAgentConfig`/`build_sdk_config` 接口实现 executor 与产品侧 loopback 认证代理接 DeepSeek；不再有强制 Gemini 认证门。LG-010 最小真实闭环在同一 DeepSeek 路径上验收。
+- 上述 done 为执行者局部证据，**不是版本 QA 结论**；LG-003 已实测的 DeepSeek（OpenAI-compatible）路径是 docs/08 v1.1.0 确定的首版真实后端，LG-006 已在该路径上实现正式 executor + 产品侧 loopback 认证代理。LG-001～006、011 均待 LG-010／LG-021／LG-022／LG-027 等版本 QA 门集中验证。
+- 下一步：LG-007 协调器基于 LG-006 的 `ExecutorAdapter`/`ExecutorResult` 边界接线并维护控制状态；LG-025 提供 `CredentialResolver` 受控 secret store。LG-010 最小真实闭环在同一 DeepSeek 路径上验收。
 
 ## 本地运行与检查（工程骨架）
 
-工程骨架由 LG-002 建立，LG-004 已加入后端存储层，LG-005 已加入 adapter 资源配置编译并把 Antigravity SDK `0.1.22` 锁定为产品依赖；仍只提供后端 `GET /api/v1/health`、`GET /api/v1/version` 与前端占位壳，不含 HTTP 业务端点，也未实现真实 SDK 执行/会话。
+工程骨架由 LG-002 建立，LG-004 已加入后端存储层，LG-005 已加入 adapter 资源配置编译并把 Antigravity SDK `0.1.22` 锁定为产品依赖，LG-006 已实现正式 executor + loopback 认证代理（真实 DeepSeek 路径，见 [tests/adapter/evidence](tests/adapter/evidence/README.md)）；HTTP 层仍只提供后端 `GET /api/v1/health`、`GET /api/v1/version` 与前端占位壳，不含 HTTP 业务端点，executor 尚未通过协调器/API 接线。
 
 ### 版本要求
 

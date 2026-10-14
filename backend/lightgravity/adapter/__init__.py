@@ -27,13 +27,47 @@ from .compiler import (
     ResourceVersion,
     UnavailableResource,
 )
+from .credentials import (
+    CredentialResolver,
+    EnvCredentialResolver,
+    InMemoryCredentialResolver,
+    Secret,
+    default_env_var_name,
+)
 from .errors import (
     AdapterConfigInvalid,
     AdapterError,
     CapabilityUnavailable,
     ReferenceInvalid,
 )
-from .redaction import REDACTED, is_sensitive_key, redact, sensitive_paths
+from .execution import (
+    CancelResult,
+    CheckRecord,
+    EventSink,
+    ExecuteRequest,
+    ExecutionRef,
+    ExecutorAdapter,
+    ExecutorResult,
+    FailureInfo,
+    SessionRef,
+    Usage,
+)
+from .executor import (
+    AntigravityExecutor,
+    ArtifactSink,
+    DirectoryArtifactSink,
+    classify_outcome,
+    diff_snapshots,
+    snapshot_tree,
+)
+from .proxy import (
+    AUTHORIZED_UPSTREAM_HOSTS,
+    DEEPSEEK_UPSTREAM_URL,
+    LocalAuthProxy,
+    ProxyCallRecord,
+    upstream_chat_completions,
+)
+from .redaction import REDACTED, is_sensitive_key, mask_values, redact, sensitive_paths
 from .registry import (
     ConnectionBackend,
     HookRegistration,
@@ -61,6 +95,36 @@ __all__ = [
     "ResourceCompiler",
     "ResourceVersion",
     "UnavailableResource",
+    # credentials
+    "Secret",
+    "CredentialResolver",
+    "EnvCredentialResolver",
+    "InMemoryCredentialResolver",
+    "default_env_var_name",
+    # execution boundary
+    "CancelResult",
+    "CheckRecord",
+    "EventSink",
+    "ExecuteRequest",
+    "ExecutionRef",
+    "ExecutorAdapter",
+    "ExecutorResult",
+    "FailureInfo",
+    "SessionRef",
+    "Usage",
+    # executor
+    "AntigravityExecutor",
+    "ArtifactSink",
+    "DirectoryArtifactSink",
+    "classify_outcome",
+    "diff_snapshots",
+    "snapshot_tree",
+    # proxy
+    "AUTHORIZED_UPSTREAM_HOSTS",
+    "DEEPSEEK_UPSTREAM_URL",
+    "LocalAuthProxy",
+    "ProxyCallRecord",
+    "upstream_chat_completions",
     # errors
     "AdapterConfigInvalid",
     "AdapterError",
@@ -69,6 +133,7 @@ __all__ = [
     # redaction
     "REDACTED",
     "is_sensitive_key",
+    "mask_values",
     "redact",
     "sensitive_paths",
     # registry

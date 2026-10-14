@@ -40,6 +40,8 @@ class AdapterCapabilities:
     sdk_version: str
     sdk_installed: bool
     compile: bool
+    executor: bool
+    local_auth_proxy: bool
     cancel: bool
     resume: bool
     usage: bool
@@ -60,6 +62,8 @@ class AdapterCapabilities:
             "sdk_version": self.sdk_version,
             "sdk_installed": self.sdk_installed,
             "compile": self.compile,
+            "executor": self.executor,
+            "local_auth_proxy": self.local_auth_proxy,
             "cancel": self.cancel,
             "resume": self.resume,
             "usage": self.usage,
@@ -82,13 +86,15 @@ def adapter_capabilities() -> AdapterCapabilities:
 
     installed = installed_sdk_version()
     notes = [
-        "Static resource/config compilation is implemented; execution is LG-006.",
+        "Static resource/config compilation is implemented; the real executor "
+        "runs the compiled plan through the loopback auth proxy (LG-006).",
+        "The first-version real backend is OpenAI-compatible (DeepSeek); "
         "Gemini Developer API / Vertex remain unverified in this environment "
-        "(no credential); they must not be displayed as validated.",
+        "(no credential) and must not be displayed as validated.",
         "search_web is unavailable on the probe's non-Gemini endpoint; MCP, "
         "Triggers and SDK-internal delegation are off in the first version.",
-        "sandbox_reporting reflects the probe's reported SandboxStatus, not an "
-        "escape/isolation guarantee.",
+        "sandbox_reporting reflects the SDK's reported SandboxStatus per run, "
+        "not an escape/isolation guarantee.",
     ]
     if installed is not None and installed != SDK_PINNED_VERSION:
         notes.append(
@@ -99,6 +105,8 @@ def adapter_capabilities() -> AdapterCapabilities:
         sdk_version=SDK_PINNED_VERSION,
         sdk_installed=installed is not None,
         compile=True,
+        executor=True,
+        local_auth_proxy=True,
         cancel=True,
         resume=True,
         usage=True,

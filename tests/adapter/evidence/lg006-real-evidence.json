@@ -1,0 +1,4611 @@
+{
+  "task": "LG-006",
+  "kind": "real-model-evidence",
+  "at": "2026-10-14T21:40:47Z",
+  "python": "3.12.13",
+  "platform": "linux-x86_64",
+  "sdk_version": "0.1.22",
+  "model_requested": "deepseek-v4-flash",
+  "upstream": "https://api.deepseek.com/v1",
+  "credential": {
+    "source": "env:DEEPSEEK_API_KEY",
+    "present": true
+  },
+  "max_real_model_calls": 9,
+  "discovery_calls_outside_harness": 3,
+  "total_real_model_calls": 7,
+  "scenarios": [
+    {
+      "name": "file_write_diff_structured",
+      "wall_seconds": 4.48,
+      "request": {
+        "task_id": "task_lg006",
+        "run_id": "run_lg006_file",
+        "subtask_id": "sub_lg006_file",
+        "objective": "Create a file named lg006_evidence.txt in the workspace whose entire content is exactly the line: hello-lg006. Then call finish with summary 'file written' and risk_level 1.",
+        "acceptance_criteria": [
+          "file contains hello-lg006"
+        ],
+        "workspace_path": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws",
+        "budget": {
+          "max_model_calls": 4,
+          "max_tool_calls": 6
+        },
+        "timeout_seconds": 120,
+        "agent_ref": "developer"
+      },
+      "result": {
+        "state": "succeeded",
+        "summary": "succeeded: {'summary': 'file written', 'risk_level': 1}",
+        "artifact_refs": [
+          "lg006_evidence.txt"
+        ],
+        "diff_ref": "/tmp/lg006-evidence-bly11ciq/artifacts/run_lg006_file/lg006-diff.patch",
+        "check_records": [
+          {
+            "name": "sandbox",
+            "status": "passed",
+            "detail": ""
+          },
+          {
+            "name": "auth_proxy_stopped",
+            "status": "passed",
+            "detail": "loopback proxy socket closed"
+          },
+          {
+            "name": "model_identity",
+            "status": "passed",
+            "detail": "deepseek-v4-flash"
+          },
+          {
+            "name": "diff",
+            "status": "passed",
+            "detail": "77 chars"
+          },
+          {
+            "name": "structured_output",
+            "status": "passed",
+            "detail": "{'summary': 'file written', 'risk_level': 1}"
+          }
+        ],
+        "session_ref": {
+          "session_id": "sess_43a2caf7e27f4c2db51ecf0c45d9f047",
+          "conversation_id": "9044417d3af96bf0f341bb159cdfa659",
+          "state": "created",
+          "save_dir": null
+        },
+        "failure": null,
+        "usage": {
+          "prompt_tokens": 15303,
+          "candidates_tokens": 374,
+          "total_tokens": 15706,
+          "thought_tokens": 29,
+          "cached_tokens": 9984,
+          "unknown": []
+        },
+        "stop_reason": "StopReason.UNSPECIFIED",
+        "stop_confirmed": null,
+        "execution_ref": {
+          "execution_id": "exec_47f4247538984e6b857147030c3d99e4",
+          "task_id": "task_lg006",
+          "run_id": "run_lg006_file",
+          "subtask_id": "sub_lg006_file"
+        },
+        "model": "deepseek-v4-flash",
+        "upstream_model": "deepseek-flash",
+        "diff": "--- a/lg006_evidence.txt\n+++ b/lg006_evidence.txt\n@@ -0,0 +1 @@\n+hello-lg006\n"
+      },
+      "events": [
+        {
+          "type": "adapter.execution_started",
+          "execution": {
+            "execution_id": "exec_47f4247538984e6b857147030c3d99e4",
+            "task_id": "task_lg006",
+            "run_id": "run_lg006_file",
+            "subtask_id": "sub_lg006_file"
+          },
+          "objective": "Create a file named lg006_evidence.txt in the workspace whose entire content is exactly the line: hello-lg006. Then call finish with summary 'file written' and risk_level 1.",
+          "at": "2026-10-14T21:40:47Z"
+        },
+        {
+          "type": "adapter.session_requested",
+          "backend": "openai-compat",
+          "model": "deepseek-v4-flash",
+          "upstream_host": "api.deepseek.com",
+          "connection_ref": "primary",
+          "proxy_base_url": "http://127.0.0.1:38699/aVnLD8ia-Gry5X0Q7f-pKIoRq45nWiwN/v1",
+          "workspace": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws",
+          "at": "2026-10-14T21:40:48Z"
+        },
+        {
+          "type": "adapter.session_started",
+          "session": {
+            "session_id": "sess_43a2caf7e27f4c2db51ecf0c45d9f047",
+            "conversation_id": null,
+            "state": "created",
+            "save_dir": null
+          },
+          "sandbox": {
+            "available": true,
+            "reason": null
+          },
+          "at": "2026-10-14T21:40:48Z"
+        },
+        {
+          "type": "adapter.tool_call",
+          "name": "edit_file",
+          "args": {
+            "file_path": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws/lg006_evidence.txt"
+          },
+          "at": "2026-10-14T21:40:49Z"
+        },
+        {
+          "type": "adapter.tool_call",
+          "name": "view_file",
+          "args": {
+            "file_path": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws/lg006_evidence.txt",
+            "start_line": 0,
+            "end_line": 799
+          },
+          "at": "2026-10-14T21:40:51Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "The",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " file",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " [",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "lg",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "006",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "_",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "evidence",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": ".txt",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "](",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "file",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "://",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "/",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "tmp",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "/l",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "g",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "006",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "-ev",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "idence",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "-b",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "ly",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "11",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "ci",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "q",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "/data",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "/",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "works",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "paces",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "/l",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "g",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "006",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "-w",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "s",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "/l",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "g",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "006",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "_",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "evidence",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": ".txt",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": ")",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " now",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " exists",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " with",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " the",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " content",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " `",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "hello",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "-lg",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "006",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "`.",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "Finished",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.tool_call",
+          "name": "finish",
+          "args": {
+            "output_string": "{\"summary\": \"file written\", \"risk_level\": 1}"
+          },
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.execution_finished",
+          "execution": {
+            "execution_id": "exec_47f4247538984e6b857147030c3d99e4",
+            "task_id": "task_lg006",
+            "run_id": "run_lg006_file",
+            "subtask_id": "sub_lg006_file"
+          },
+          "result": {
+            "state": "succeeded",
+            "summary": "succeeded: {'summary': 'file written', 'risk_level': 1}",
+            "artifact_refs": [
+              "lg006_evidence.txt"
+            ],
+            "diff_ref": "/tmp/lg006-evidence-bly11ciq/artifacts/run_lg006_file/lg006-diff.patch",
+            "check_records": [
+              {
+                "name": "sandbox",
+                "status": "passed",
+                "detail": ""
+              },
+              {
+                "name": "auth_proxy_stopped",
+                "status": "passed",
+                "detail": "loopback proxy socket closed"
+              },
+              {
+                "name": "model_identity",
+                "status": "passed",
+                "detail": "deepseek-v4-flash"
+              },
+              {
+                "name": "diff",
+                "status": "passed",
+                "detail": "77 chars"
+              },
+              {
+                "name": "structured_output",
+                "status": "passed",
+                "detail": "{'summary': 'file written', 'risk_level': 1}"
+              }
+            ],
+            "session_ref": {
+              "session_id": "sess_43a2caf7e27f4c2db51ecf0c45d9f047",
+              "conversation_id": "9044417d3af96bf0f341bb159cdfa659",
+              "state": "created",
+              "save_dir": null
+            },
+            "failure": null,
+            "usage": {
+              "prompt_tokens": 15303,
+              "candidates_tokens": 374,
+              "total_tokens": 15706,
+              "thought_tokens": 29,
+              "cached_tokens": 9984,
+              "unknown": []
+            },
+            "stop_reason": "StopReason.UNSPECIFIED",
+            "stop_confirmed": null,
+            "execution_ref": {
+              "execution_id": "exec_47f4247538984e6b857147030c3d99e4",
+              "task_id": "task_lg006",
+              "run_id": "run_lg006_file",
+              "subtask_id": "sub_lg006_file"
+            },
+            "model": "deepseek-v4-flash",
+            "upstream_model": "deepseek-flash",
+            "diff": "--- a/lg006_evidence.txt\n+++ b/lg006_evidence.txt\n@@ -0,0 +1 @@\n+hello-lg006\n"
+          },
+          "removed": [],
+          "upstream_calls": [
+            {
+              "call": 1,
+              "path": "/aVnLD8ia-Gry5X0Q7f-pKIoRq45nWiwN/v1/chat/completions",
+              "model": "deepseek-v4-flash",
+              "stream": true,
+              "message_count": 2,
+              "has_tools": true,
+              "tool_names": [
+                "finish",
+                "replace_file_content",
+                "view_file",
+                "write_to_file",
+                "list_skills",
+                "lookup_skill",
+                "lookup_skills"
+              ],
+              "has_response_format": false,
+              "forwarded": true,
+              "status": 200
+            },
+            {
+              "call": 2,
+              "path": "/aVnLD8ia-Gry5X0Q7f-pKIoRq45nWiwN/v1/chat/completions",
+              "model": "deepseek-v4-flash",
+              "stream": true,
+              "message_count": 4,
+              "has_tools": true,
+              "tool_names": [
+                "finish",
+                "replace_file_content",
+                "view_file",
+                "write_to_file",
+                "list_skills",
+                "lookup_skill",
+                "lookup_skills"
+              ],
+              "has_response_format": false,
+              "forwarded": true,
+              "status": 200
+            },
+            {
+              "call": 3,
+              "path": "/aVnLD8ia-Gry5X0Q7f-pKIoRq45nWiwN/v1/chat/completions",
+              "model": "deepseek-v4-flash",
+              "stream": true,
+              "message_count": 6,
+              "has_tools": true,
+              "tool_names": [
+                "finish",
+                "replace_file_content",
+                "view_file",
+                "write_to_file",
+                "list_skills",
+                "lookup_skill",
+                "lookup_skills"
+              ],
+              "has_response_format": false,
+              "forwarded": true,
+              "status": 200
+            }
+          ],
+          "at": "2026-10-14T21:40:52Z"
+        }
+      ],
+      "proxy_calls": [
+        {
+          "call": 1,
+          "path": "/aVnLD8ia-Gry5X0Q7f-pKIoRq45nWiwN/v1/chat/completions",
+          "model": "deepseek-v4-flash",
+          "stream": true,
+          "message_count": 2,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "has_response_format": false,
+          "forwarded": true,
+          "status": 200
+        },
+        {
+          "call": 2,
+          "path": "/aVnLD8ia-Gry5X0Q7f-pKIoRq45nWiwN/v1/chat/completions",
+          "model": "deepseek-v4-flash",
+          "stream": true,
+          "message_count": 4,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "has_response_format": false,
+          "forwarded": true,
+          "status": 200
+        },
+        {
+          "call": 3,
+          "path": "/aVnLD8ia-Gry5X0Q7f-pKIoRq45nWiwN/v1/chat/completions",
+          "model": "deepseek-v4-flash",
+          "stream": true,
+          "message_count": 6,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "has_response_format": false,
+          "forwarded": true,
+          "status": 200
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "budget_exhausted",
+      "wall_seconds": 2.05,
+      "request": {
+        "task_id": "task_lg006",
+        "run_id": "run_lg006_budget",
+        "subtask_id": "sub_lg006_budget",
+        "objective": "Create three separate files one at a time: budget_a.txt, budget_b.txt, budget_c.txt.",
+        "acceptance_criteria": [],
+        "workspace_path": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws",
+        "budget": {
+          "max_model_calls": 1,
+          "max_tool_calls": 3
+        },
+        "timeout_seconds": 120,
+        "agent_ref": "developer"
+      },
+      "result": {
+        "state": "budget_exhausted",
+        "summary": "budget_exhausted: StopReason.MAX_MODEL_CALLS_EXCEEDED",
+        "artifact_refs": [
+          "budget_a.txt"
+        ],
+        "diff_ref": "/tmp/lg006-evidence-bly11ciq/artifacts/run_lg006_budget/lg006-diff.patch",
+        "check_records": [
+          {
+            "name": "sandbox",
+            "status": "passed",
+            "detail": ""
+          },
+          {
+            "name": "auth_proxy_stopped",
+            "status": "passed",
+            "detail": "loopback proxy socket closed"
+          },
+          {
+            "name": "model_identity",
+            "status": "passed",
+            "detail": "deepseek-v4-flash"
+          },
+          {
+            "name": "diff",
+            "status": "passed",
+            "detail": "62 chars"
+          }
+        ],
+        "session_ref": {
+          "session_id": "sess_d5f2d3e8d34e4b30bfae2343229ee58a",
+          "conversation_id": "2f8d8d98cc6f90240201df3e07ce8e1a",
+          "state": "created",
+          "save_dir": null
+        },
+        "failure": {
+          "code": "budget_exhausted",
+          "message": "StopReason.MAX_MODEL_CALLS_EXCEEDED"
+        },
+        "usage": {
+          "prompt_tokens": 4666,
+          "candidates_tokens": 174,
+          "total_tokens": 4919,
+          "thought_tokens": 79,
+          "cached_tokens": 128,
+          "unknown": []
+        },
+        "stop_reason": "StopReason.MAX_MODEL_CALLS_EXCEEDED",
+        "stop_confirmed": null,
+        "execution_ref": {
+          "execution_id": "exec_456954972a48469e9c8bde8a7d6dd599",
+          "task_id": "task_lg006",
+          "run_id": "run_lg006_budget",
+          "subtask_id": "sub_lg006_budget"
+        },
+        "model": "deepseek-v4-flash",
+        "upstream_model": "deepseek-flash",
+        "diff": "--- a/budget_a.txt\n+++ b/budget_a.txt\n@@ -0,0 +1 @@\n+Budget A\n"
+      },
+      "events": [
+        {
+          "type": "adapter.execution_started",
+          "execution": {
+            "execution_id": "exec_456954972a48469e9c8bde8a7d6dd599",
+            "task_id": "task_lg006",
+            "run_id": "run_lg006_budget",
+            "subtask_id": "sub_lg006_budget"
+          },
+          "objective": "Create three separate files one at a time: budget_a.txt, budget_b.txt, budget_c.txt.",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.session_requested",
+          "backend": "openai-compat",
+          "model": "deepseek-v4-flash",
+          "upstream_host": "api.deepseek.com",
+          "connection_ref": "primary",
+          "proxy_base_url": "http://127.0.0.1:39477/aHBEeROtoqFP8dnHY9ajR7UakYj7r63j/v1",
+          "workspace": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws",
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.session_started",
+          "session": {
+            "session_id": "sess_d5f2d3e8d34e4b30bfae2343229ee58a",
+            "conversation_id": null,
+            "state": "created",
+            "save_dir": null
+          },
+          "sandbox": {
+            "available": true,
+            "reason": null
+          },
+          "at": "2026-10-14T21:40:52Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "I",
+          "at": "2026-10-14T21:40:53Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "'ll",
+          "at": "2026-10-14T21:40:53Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " create",
+          "at": "2026-10-14T21:40:53Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " the",
+          "at": "2026-10-14T21:40:53Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " three",
+          "at": "2026-10-14T21:40:53Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " files",
+          "at": "2026-10-14T21:40:53Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " one",
+          "at": "2026-10-14T21:40:53Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " at",
+          "at": "2026-10-14T21:40:53Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " a",
+          "at": "2026-10-14T21:40:53Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": " time.",
+          "at": "2026-10-14T21:40:53Z"
+        },
+        {
+          "type": "adapter.tool_call",
+          "name": "edit_file",
+          "args": {
+            "file_path": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws/budget_a.txt"
+          },
+          "at": "2026-10-14T21:40:54Z"
+        },
+        {
+          "type": "adapter.execution_finished",
+          "execution": {
+            "execution_id": "exec_456954972a48469e9c8bde8a7d6dd599",
+            "task_id": "task_lg006",
+            "run_id": "run_lg006_budget",
+            "subtask_id": "sub_lg006_budget"
+          },
+          "result": {
+            "state": "budget_exhausted",
+            "summary": "budget_exhausted: StopReason.MAX_MODEL_CALLS_EXCEEDED",
+            "artifact_refs": [
+              "budget_a.txt"
+            ],
+            "diff_ref": "/tmp/lg006-evidence-bly11ciq/artifacts/run_lg006_budget/lg006-diff.patch",
+            "check_records": [
+              {
+                "name": "sandbox",
+                "status": "passed",
+                "detail": ""
+              },
+              {
+                "name": "auth_proxy_stopped",
+                "status": "passed",
+                "detail": "loopback proxy socket closed"
+              },
+              {
+                "name": "model_identity",
+                "status": "passed",
+                "detail": "deepseek-v4-flash"
+              },
+              {
+                "name": "diff",
+                "status": "passed",
+                "detail": "62 chars"
+              }
+            ],
+            "session_ref": {
+              "session_id": "sess_d5f2d3e8d34e4b30bfae2343229ee58a",
+              "conversation_id": "2f8d8d98cc6f90240201df3e07ce8e1a",
+              "state": "created",
+              "save_dir": null
+            },
+            "failure": {
+              "code": "budget_exhausted",
+              "message": "StopReason.MAX_MODEL_CALLS_EXCEEDED"
+            },
+            "usage": {
+              "prompt_tokens": 4666,
+              "candidates_tokens": 174,
+              "total_tokens": 4919,
+              "thought_tokens": 79,
+              "cached_tokens": 128,
+              "unknown": []
+            },
+            "stop_reason": "StopReason.MAX_MODEL_CALLS_EXCEEDED",
+            "stop_confirmed": null,
+            "execution_ref": {
+              "execution_id": "exec_456954972a48469e9c8bde8a7d6dd599",
+              "task_id": "task_lg006",
+              "run_id": "run_lg006_budget",
+              "subtask_id": "sub_lg006_budget"
+            },
+            "model": "deepseek-v4-flash",
+            "upstream_model": "deepseek-flash",
+            "diff": "--- a/budget_a.txt\n+++ b/budget_a.txt\n@@ -0,0 +1 @@\n+Budget A\n"
+          },
+          "removed": [],
+          "upstream_calls": [
+            {
+              "call": 1,
+              "path": "/aHBEeROtoqFP8dnHY9ajR7UakYj7r63j/v1/chat/completions",
+              "model": "deepseek-v4-flash",
+              "stream": true,
+              "message_count": 2,
+              "has_tools": true,
+              "tool_names": [
+                "replace_file_content",
+                "view_file",
+                "write_to_file",
+                "list_skills",
+                "lookup_skill",
+                "lookup_skills"
+              ],
+              "has_response_format": false,
+              "forwarded": true,
+              "status": 200
+            }
+          ],
+          "at": "2026-10-14T21:40:54Z"
+        }
+      ],
+      "proxy_calls": [
+        {
+          "call": 1,
+          "path": "/aHBEeROtoqFP8dnHY9ajR7UakYj7r63j/v1/chat/completions",
+          "model": "deepseek-v4-flash",
+          "stream": true,
+          "message_count": 2,
+          "has_tools": true,
+          "tool_names": [
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "has_response_format": false,
+          "forwarded": true,
+          "status": 200
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "cancel_confirmed",
+      "wall_seconds": 3.16,
+      "request": {
+        "task_id": "task_lg006",
+        "run_id": "run_lg006_cancel",
+        "subtask_id": "sub_lg006_cancel",
+        "objective": "Write a very long numbered list from 1 to 300, one number per line, as your reply.",
+        "acceptance_criteria": [],
+        "workspace_path": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws",
+        "budget": {
+          "max_model_calls": 4,
+          "max_tool_calls": 4
+        },
+        "timeout_seconds": 60,
+        "agent_ref": "developer"
+      },
+      "result": {
+        "state": "succeeded",
+        "summary": "succeeded: 1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47\n48\n49\n50\n51\n52\n53\n54\n55\n56\n57\n58\n59\n60\n61\n62\n63\n64\n65\n66\n67\n68\n69\n70\n71\n72\n73\n74\n75\n76\n77\n78\n79\n80\n81\n82\n83\n84\n85\n86\n87\n88\n89\n90\n91\n92\n93\n94\n95\n96\n97\n98\n99\n100\n101\n102\n103\n104\n105\n106\n107\n108\n109\n110\n111\n112\n113\n114\n115\n116\n117\n118\n119\n120\n121\n122\n123\n124\n125\n126\n127\n128\n129\n130\n131\n132\n133\n134\n135\n136\n137\n138\n139\n140\n141\n142\n143\n144\n145\n146\n147\n148\n149\n150\n151\n152\n153\n154\n155\n156\n157\n158\n159\n160\n161\n162\n163\n164\n165\n166\n167\n168\n169\n170\n171\n172\n173\n174\n175\n176\n177\n178\n179\n180\n181\n182\n183\n184\n185\n186\n187\n188\n189\n190\n191\n192\n193\n194\n195\n196\n197\n198\n199\n200\n201\n202\n203\n204\n205\n206\n207\n208\n209\n210\n211\n212\n213\n214\n215\n216\n217\n218\n219\n220\n221\n222\n223\n224\n225\n226\n227\n228\n229\n230\n231\n232\n233\n234\n235\n236\n237\n238\n239\n240\n241\n242\n243\n244\n245\n246\n247\n248\n249\n250\n251\n252\n253\n254\n255\n256\n257\n258\n259\n260\n261\n262\n263\n264\n265\n266\n267\n268\n269\n270\n271\n272\n273\n274\n275\n276\n277\n",
+        "artifact_refs": [],
+        "diff_ref": null,
+        "check_records": [
+          {
+            "name": "sandbox",
+            "status": "passed",
+            "detail": ""
+          },
+          {
+            "name": "auth_proxy_stopped",
+            "status": "passed",
+            "detail": "loopback proxy socket closed"
+          },
+          {
+            "name": "model_identity",
+            "status": "passed",
+            "detail": "deepseek-v4-flash"
+          },
+          {
+            "name": "diff",
+            "status": "unknown",
+            "detail": "0 chars"
+          }
+        ],
+        "session_ref": {
+          "session_id": "sess_bd11e8fa40ad487396649a1a8be9e12b",
+          "conversation_id": "9e37572e821c1a2adfe5b3c902f642d0",
+          "state": "created",
+          "save_dir": null
+        },
+        "failure": null,
+        "usage": {
+          "prompt_tokens": 4666,
+          "candidates_tokens": 600,
+          "total_tokens": 5388,
+          "thought_tokens": 122,
+          "cached_tokens": 128,
+          "unknown": []
+        },
+        "stop_reason": "StopReason.UNSPECIFIED",
+        "stop_confirmed": null,
+        "execution_ref": {
+          "execution_id": "exec_96f29768ec524a46a9a58795b9f7ea47",
+          "task_id": "task_lg006",
+          "run_id": "run_lg006_cancel",
+          "subtask_id": "sub_lg006_cancel"
+        },
+        "model": "deepseek-v4-flash",
+        "upstream_model": "deepseek-flash",
+        "diff": null
+      },
+      "events": [
+        {
+          "type": "adapter.execution_started",
+          "execution": {
+            "execution_id": "exec_96f29768ec524a46a9a58795b9f7ea47",
+            "task_id": "task_lg006",
+            "run_id": "run_lg006_cancel",
+            "subtask_id": "sub_lg006_cancel"
+          },
+          "objective": "Write a very long numbered list from 1 to 300, one number per line, as your reply.",
+          "at": "2026-10-14T21:40:54Z"
+        },
+        {
+          "type": "adapter.session_requested",
+          "backend": "openai-compat",
+          "model": "deepseek-v4-flash",
+          "upstream_host": "api.deepseek.com",
+          "connection_ref": "primary",
+          "proxy_base_url": "http://127.0.0.1:41001/Jj8_8YNAt9BbYuHUs_Pv-n9gwkA4lwgJ/v1",
+          "workspace": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws",
+          "at": "2026-10-14T21:40:54Z"
+        },
+        {
+          "type": "adapter.session_started",
+          "session": {
+            "session_id": "sess_bd11e8fa40ad487396649a1a8be9e12b",
+            "conversation_id": null,
+            "state": "created",
+            "save_dir": null
+          },
+          "sandbox": {
+            "available": true,
+            "reason": null
+          },
+          "at": "2026-10-14T21:40:54Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "1",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "2",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "3",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "4",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "5",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "6",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "7",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "8",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "9",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "10",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "11",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "12",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "13",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "14",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "15",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "16",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "17",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "18",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "19",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "20",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "21",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "22",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "23",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "24",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "25",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "26",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "27",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "28",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "29",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "30",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "31",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "32",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "33",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "34",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "35",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "36",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "37",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "38",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "39",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "40",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "41",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "42",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "43",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "44",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "45",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "46",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "47",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "48",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "49",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "50",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "51",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "52",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "53",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "54",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "55",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "56",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "57",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "58",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "59",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "60",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "61",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "62",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "63",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "64",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "65",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "66",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "67",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "68",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "69",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "70",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "71",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "72",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "73",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "74",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "75",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "76",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "77",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "78",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "79",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "80",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "81",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "82",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "83",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "84",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "85",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "86",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "87",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "88",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "89",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "90",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "91",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "92",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "93",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "94",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "95",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "96",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "97",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "98",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "99",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "100",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "101",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "102",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "103",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "104",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "105",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "106",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "107",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "108",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "109",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "110",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "111",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "112",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "113",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "114",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "115",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "116",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "117",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "118",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "119",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "120",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "121",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "122",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "123",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "124",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "125",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "126",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "127",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "128",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "129",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "130",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "131",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "132",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "133",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "134",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "135",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "136",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "137",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "138",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "139",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "140",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "141",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "142",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "143",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "144",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "145",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "146",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "147",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "148",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "149",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "150",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "151",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "152",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "153",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "154",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "155",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "156",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "157",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "158",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n159",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "160",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "161",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "162",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "163",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "164",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "165",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "166",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "167",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "168",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "169",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "170",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "171",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "172",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "173",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "174",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "175",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "176",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "177",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "178",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "179",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "180",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "181",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "182",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "183",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "184",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "185",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "186",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "187",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "188",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "189",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "190",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "191",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "192",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "193",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "194",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "195",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "196",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "197",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "198",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "199",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "200",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "201",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "202",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "203",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "204",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "205",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:56Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "206",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "207",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "208",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "209",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "210",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "211",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "212",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "213",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "214",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "215",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "216",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "217",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "218",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "219",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "220",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "221",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "222",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "223",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "224",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "225",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "226",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "227",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "228",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "229",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "230",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "231",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "232",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "233",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "234",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "235",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "236",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "237",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "238",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "239",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "240",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "241",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "242",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "243",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "244",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "245",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "246",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "247",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "248",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "249",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "250",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "251",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "252",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "253",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "254",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "255",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "256",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "257",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "258",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "259",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "260",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "261",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "262",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "263",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "264",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "265",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "266",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "267",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "268",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "269",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "270",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "271",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "272",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "273",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "274",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "275",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "276",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "277",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "278",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "279",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "280",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "281",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "282",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "283",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "284",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "285",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "286",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "287",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "288",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "289",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "290",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "291",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "292",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "293",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "294",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "295",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "296",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "297",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "298",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "299",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "\n",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "300",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.execution_finished",
+          "execution": {
+            "execution_id": "exec_96f29768ec524a46a9a58795b9f7ea47",
+            "task_id": "task_lg006",
+            "run_id": "run_lg006_cancel",
+            "subtask_id": "sub_lg006_cancel"
+          },
+          "result": {
+            "state": "succeeded",
+            "summary": "succeeded: 1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47\n48\n49\n50\n51\n52\n53\n54\n55\n56\n57\n58\n59\n60\n61\n62\n63\n64\n65\n66\n67\n68\n69\n70\n71\n72\n73\n74\n75\n76\n77\n78\n79\n80\n81\n82\n83\n84\n85\n86\n87\n88\n89\n90\n91\n92\n93\n94\n95\n96\n97\n98\n99\n100\n101\n102\n103\n104\n105\n106\n107\n108\n109\n110\n111\n112\n113\n114\n115\n116\n117\n118\n119\n120\n121\n122\n123\n124\n125\n126\n127\n128\n129\n130\n131\n132\n133\n134\n135\n136\n137\n138\n139\n140\n141\n142\n143\n144\n145\n146\n147\n148\n149\n150\n151\n152\n153\n154\n155\n156\n157\n158\n159\n160\n161\n162\n163\n164\n165\n166\n167\n168\n169\n170\n171\n172\n173\n174\n175\n176\n177\n178\n179\n180\n181\n182\n183\n184\n185\n186\n187\n188\n189\n190\n191\n192\n193\n194\n195\n196\n197\n198\n199\n200\n201\n202\n203\n204\n205\n206\n207\n208\n209\n210\n211\n212\n213\n214\n215\n216\n217\n218\n219\n220\n221\n222\n223\n224\n225\n226\n227\n228\n229\n230\n231\n232\n233\n234\n235\n236\n237\n238\n239\n240\n241\n242\n243\n244\n245\n246\n247\n248\n249\n250\n251\n252\n253\n254\n255\n256\n257\n258\n259\n260\n261\n262\n263\n264\n265\n266\n267\n268\n269\n270\n271\n272\n273\n274\n275\n276\n277\n",
+            "artifact_refs": [],
+            "diff_ref": null,
+            "check_records": [
+              {
+                "name": "sandbox",
+                "status": "passed",
+                "detail": ""
+              },
+              {
+                "name": "auth_proxy_stopped",
+                "status": "passed",
+                "detail": "loopback proxy socket closed"
+              },
+              {
+                "name": "model_identity",
+                "status": "passed",
+                "detail": "deepseek-v4-flash"
+              },
+              {
+                "name": "diff",
+                "status": "unknown",
+                "detail": "0 chars"
+              }
+            ],
+            "session_ref": {
+              "session_id": "sess_bd11e8fa40ad487396649a1a8be9e12b",
+              "conversation_id": "9e37572e821c1a2adfe5b3c902f642d0",
+              "state": "created",
+              "save_dir": null
+            },
+            "failure": null,
+            "usage": {
+              "prompt_tokens": 4666,
+              "candidates_tokens": 600,
+              "total_tokens": 5388,
+              "thought_tokens": 122,
+              "cached_tokens": 128,
+              "unknown": []
+            },
+            "stop_reason": "StopReason.UNSPECIFIED",
+            "stop_confirmed": null,
+            "execution_ref": {
+              "execution_id": "exec_96f29768ec524a46a9a58795b9f7ea47",
+              "task_id": "task_lg006",
+              "run_id": "run_lg006_cancel",
+              "subtask_id": "sub_lg006_cancel"
+            },
+            "model": "deepseek-v4-flash",
+            "upstream_model": "deepseek-flash",
+            "diff": null
+          },
+          "removed": [],
+          "upstream_calls": [
+            {
+              "call": 1,
+              "path": "/Jj8_8YNAt9BbYuHUs_Pv-n9gwkA4lwgJ/v1/chat/completions",
+              "model": "deepseek-v4-flash",
+              "stream": true,
+              "message_count": 2,
+              "has_tools": true,
+              "tool_names": [
+                "replace_file_content",
+                "view_file",
+                "write_to_file",
+                "list_skills",
+                "lookup_skill",
+                "lookup_skills"
+              ],
+              "has_response_format": false,
+              "forwarded": true,
+              "status": 200
+            }
+          ],
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.cancel_result",
+          "confirmed": false,
+          "state": "not_found",
+          "reason": "no active execution 'exec_96f29768ec524a46a9a58795b9f7ea47'"
+        }
+      ],
+      "proxy_calls": [
+        {
+          "call": 1,
+          "path": "/Jj8_8YNAt9BbYuHUs_Pv-n9gwkA4lwgJ/v1/chat/completions",
+          "model": "deepseek-v4-flash",
+          "stream": true,
+          "message_count": 2,
+          "has_tools": true,
+          "tool_names": [
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "has_response_format": false,
+          "forwarded": true,
+          "status": 200
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "resume_seed",
+      "wall_seconds": 1.74,
+      "request": {
+        "task_id": "task_lg006",
+        "run_id": "run_lg006_resume_a",
+        "subtask_id": "sub_lg006_resume_a",
+        "objective": "Remember this code for later: zebra-lg006-4271. Reply with OK.",
+        "acceptance_criteria": [],
+        "workspace_path": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws",
+        "budget": {
+          "max_model_calls": 2,
+          "max_tool_calls": 2
+        },
+        "timeout_seconds": 120,
+        "agent_ref": "developer"
+      },
+      "result": {
+        "state": "succeeded",
+        "summary": "succeeded: OK",
+        "artifact_refs": [],
+        "diff_ref": null,
+        "check_records": [
+          {
+            "name": "sandbox",
+            "status": "passed",
+            "detail": ""
+          },
+          {
+            "name": "auth_proxy_stopped",
+            "status": "passed",
+            "detail": "loopback proxy socket closed"
+          },
+          {
+            "name": "model_identity",
+            "status": "passed",
+            "detail": "deepseek-v4-flash"
+          },
+          {
+            "name": "diff",
+            "status": "unknown",
+            "detail": "0 chars"
+          }
+        ],
+        "session_ref": {
+          "session_id": "sess_221fd6346a0b4a5eb601bfec5344bdc8",
+          "conversation_id": "78f17a42ff6472c88fcae5bd6816ff34",
+          "state": "created",
+          "save_dir": "/tmp/lg006-evidence-bly11ciq/sessions/resume"
+        },
+        "failure": null,
+        "usage": {
+          "prompt_tokens": 4659,
+          "candidates_tokens": 2,
+          "total_tokens": 4806,
+          "thought_tokens": 145,
+          "cached_tokens": 128,
+          "unknown": []
+        },
+        "stop_reason": "StopReason.UNSPECIFIED",
+        "stop_confirmed": null,
+        "execution_ref": {
+          "execution_id": "exec_31c22ffdc4234ef68ba9ff27ffd1a878",
+          "task_id": "task_lg006",
+          "run_id": "run_lg006_resume_a",
+          "subtask_id": "sub_lg006_resume_a"
+        },
+        "model": "deepseek-v4-flash",
+        "upstream_model": "deepseek-flash",
+        "diff": null
+      },
+      "events": [
+        {
+          "type": "adapter.execution_started",
+          "execution": {
+            "execution_id": "exec_31c22ffdc4234ef68ba9ff27ffd1a878",
+            "task_id": "task_lg006",
+            "run_id": "run_lg006_resume_a",
+            "subtask_id": "sub_lg006_resume_a"
+          },
+          "objective": "Remember this code for later: zebra-lg006-4271. Reply with OK.",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.session_requested",
+          "backend": "openai-compat",
+          "model": "deepseek-v4-flash",
+          "upstream_host": "api.deepseek.com",
+          "connection_ref": "primary",
+          "proxy_base_url": "http://127.0.0.1:33741/KvrXncqkbegNRUN6VPtEn4usJcZK_46x/v1",
+          "workspace": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws",
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.session_started",
+          "session": {
+            "session_id": "sess_221fd6346a0b4a5eb601bfec5344bdc8",
+            "conversation_id": null,
+            "state": "created",
+            "save_dir": "/tmp/lg006-evidence-bly11ciq/sessions/resume"
+          },
+          "sandbox": {
+            "available": true,
+            "reason": null
+          },
+          "at": "2026-10-14T21:40:57Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "OK",
+          "at": "2026-10-14T21:40:59Z"
+        },
+        {
+          "type": "adapter.execution_finished",
+          "execution": {
+            "execution_id": "exec_31c22ffdc4234ef68ba9ff27ffd1a878",
+            "task_id": "task_lg006",
+            "run_id": "run_lg006_resume_a",
+            "subtask_id": "sub_lg006_resume_a"
+          },
+          "result": {
+            "state": "succeeded",
+            "summary": "succeeded: OK",
+            "artifact_refs": [],
+            "diff_ref": null,
+            "check_records": [
+              {
+                "name": "sandbox",
+                "status": "passed",
+                "detail": ""
+              },
+              {
+                "name": "auth_proxy_stopped",
+                "status": "passed",
+                "detail": "loopback proxy socket closed"
+              },
+              {
+                "name": "model_identity",
+                "status": "passed",
+                "detail": "deepseek-v4-flash"
+              },
+              {
+                "name": "diff",
+                "status": "unknown",
+                "detail": "0 chars"
+              }
+            ],
+            "session_ref": {
+              "session_id": "sess_221fd6346a0b4a5eb601bfec5344bdc8",
+              "conversation_id": "78f17a42ff6472c88fcae5bd6816ff34",
+              "state": "created",
+              "save_dir": "/tmp/lg006-evidence-bly11ciq/sessions/resume"
+            },
+            "failure": null,
+            "usage": {
+              "prompt_tokens": 4659,
+              "candidates_tokens": 2,
+              "total_tokens": 4806,
+              "thought_tokens": 145,
+              "cached_tokens": 128,
+              "unknown": []
+            },
+            "stop_reason": "StopReason.UNSPECIFIED",
+            "stop_confirmed": null,
+            "execution_ref": {
+              "execution_id": "exec_31c22ffdc4234ef68ba9ff27ffd1a878",
+              "task_id": "task_lg006",
+              "run_id": "run_lg006_resume_a",
+              "subtask_id": "sub_lg006_resume_a"
+            },
+            "model": "deepseek-v4-flash",
+            "upstream_model": "deepseek-flash",
+            "diff": null
+          },
+          "removed": [],
+          "upstream_calls": [
+            {
+              "call": 1,
+              "path": "/KvrXncqkbegNRUN6VPtEn4usJcZK_46x/v1/chat/completions",
+              "model": "deepseek-v4-flash",
+              "stream": true,
+              "message_count": 2,
+              "has_tools": true,
+              "tool_names": [
+                "replace_file_content",
+                "view_file",
+                "write_to_file",
+                "list_skills",
+                "lookup_skill",
+                "lookup_skills"
+              ],
+              "has_response_format": false,
+              "forwarded": true,
+              "status": 200
+            }
+          ],
+          "at": "2026-10-14T21:40:59Z"
+        }
+      ],
+      "proxy_calls": [
+        {
+          "call": 1,
+          "path": "/KvrXncqkbegNRUN6VPtEn4usJcZK_46x/v1/chat/completions",
+          "model": "deepseek-v4-flash",
+          "stream": true,
+          "message_count": 2,
+          "has_tools": true,
+          "tool_names": [
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "has_response_format": false,
+          "forwarded": true,
+          "status": 200
+        }
+      ],
+      "error": null
+    },
+    {
+      "name": "resume_recall",
+      "wall_seconds": 1.11,
+      "request": {
+        "task_id": "task_lg006",
+        "run_id": "run_lg006_resume_b",
+        "subtask_id": "sub_lg006_resume_b",
+        "objective": "What code did I ask you to remember? Reply with the code.",
+        "acceptance_criteria": [],
+        "workspace_path": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws",
+        "budget": {
+          "max_model_calls": 2,
+          "max_tool_calls": 2
+        },
+        "timeout_seconds": 120,
+        "agent_ref": "developer"
+      },
+      "result": {
+        "state": "budget_exhausted",
+        "summary": "budget_exhausted: StopReason.MAX_MODEL_CALLS_EXCEEDED",
+        "artifact_refs": [],
+        "diff_ref": null,
+        "check_records": [
+          {
+            "name": "sandbox",
+            "status": "passed",
+            "detail": ""
+          },
+          {
+            "name": "auth_proxy_stopped",
+            "status": "passed",
+            "detail": "loopback proxy socket closed"
+          },
+          {
+            "name": "model_identity",
+            "status": "passed",
+            "detail": "deepseek-v4-flash"
+          },
+          {
+            "name": "diff",
+            "status": "unknown",
+            "detail": "0 chars"
+          }
+        ],
+        "session_ref": {
+          "session_id": "sess_e9c7542284174433a00c611c61c8ff49",
+          "conversation_id": "78f17a42ff6472c88fcae5bd6816ff34",
+          "state": "resumed",
+          "save_dir": "/tmp/lg006-evidence-bly11ciq/sessions/resume"
+        },
+        "failure": {
+          "code": "budget_exhausted",
+          "message": "StopReason.MAX_MODEL_CALLS_EXCEEDED"
+        },
+        "usage": {
+          "prompt_tokens": 4729,
+          "candidates_tokens": 8,
+          "total_tokens": 4737,
+          "thought_tokens": 0,
+          "cached_tokens": 4480,
+          "unknown": []
+        },
+        "stop_reason": "StopReason.MAX_MODEL_CALLS_EXCEEDED",
+        "stop_confirmed": null,
+        "execution_ref": {
+          "execution_id": "exec_f7657dcaf94142dbb9d14f574bc57512",
+          "task_id": "task_lg006",
+          "run_id": "run_lg006_resume_b",
+          "subtask_id": "sub_lg006_resume_b"
+        },
+        "model": "deepseek-v4-flash",
+        "upstream_model": "deepseek-flash",
+        "diff": null
+      },
+      "events": [
+        {
+          "type": "adapter.execution_started",
+          "execution": {
+            "execution_id": "exec_f7657dcaf94142dbb9d14f574bc57512",
+            "task_id": "task_lg006",
+            "run_id": "run_lg006_resume_b",
+            "subtask_id": "sub_lg006_resume_b"
+          },
+          "objective": "What code did I ask you to remember? Reply with the code.",
+          "at": "2026-10-14T21:40:59Z"
+        },
+        {
+          "type": "adapter.session_requested",
+          "backend": "openai-compat",
+          "model": "deepseek-v4-flash",
+          "upstream_host": "api.deepseek.com",
+          "connection_ref": "primary",
+          "proxy_base_url": "http://127.0.0.1:44399/mq8Fm9N4uvedZ9vcThuHiR8HHx7PqHvk/v1",
+          "workspace": "/tmp/lg006-evidence-bly11ciq/data/workspaces/lg006-ws",
+          "at": "2026-10-14T21:40:59Z"
+        },
+        {
+          "type": "adapter.session_started",
+          "session": {
+            "session_id": "sess_e9c7542284174433a00c611c61c8ff49",
+            "conversation_id": null,
+            "state": "resumed",
+            "save_dir": "/tmp/lg006-evidence-bly11ciq/sessions/resume"
+          },
+          "sandbox": {
+            "available": true,
+            "reason": null
+          },
+          "at": "2026-10-14T21:40:59Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "z",
+          "at": "2026-10-14T21:41:00Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "ebra",
+          "at": "2026-10-14T21:41:00Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "-lg",
+          "at": "2026-10-14T21:41:00Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "006",
+          "at": "2026-10-14T21:41:00Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "-",
+          "at": "2026-10-14T21:41:00Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "427",
+          "at": "2026-10-14T21:41:00Z"
+        },
+        {
+          "type": "adapter.text",
+          "text": "1",
+          "at": "2026-10-14T21:41:00Z"
+        },
+        {
+          "type": "adapter.execution_finished",
+          "execution": {
+            "execution_id": "exec_f7657dcaf94142dbb9d14f574bc57512",
+            "task_id": "task_lg006",
+            "run_id": "run_lg006_resume_b",
+            "subtask_id": "sub_lg006_resume_b"
+          },
+          "result": {
+            "state": "budget_exhausted",
+            "summary": "budget_exhausted: StopReason.MAX_MODEL_CALLS_EXCEEDED",
+            "artifact_refs": [],
+            "diff_ref": null,
+            "check_records": [
+              {
+                "name": "sandbox",
+                "status": "passed",
+                "detail": ""
+              },
+              {
+                "name": "auth_proxy_stopped",
+                "status": "passed",
+                "detail": "loopback proxy socket closed"
+              },
+              {
+                "name": "model_identity",
+                "status": "passed",
+                "detail": "deepseek-v4-flash"
+              },
+              {
+                "name": "diff",
+                "status": "unknown",
+                "detail": "0 chars"
+              }
+            ],
+            "session_ref": {
+              "session_id": "sess_e9c7542284174433a00c611c61c8ff49",
+              "conversation_id": "78f17a42ff6472c88fcae5bd6816ff34",
+              "state": "resumed",
+              "save_dir": "/tmp/lg006-evidence-bly11ciq/sessions/resume"
+            },
+            "failure": {
+              "code": "budget_exhausted",
+              "message": "StopReason.MAX_MODEL_CALLS_EXCEEDED"
+            },
+            "usage": {
+              "prompt_tokens": 4729,
+              "candidates_tokens": 8,
+              "total_tokens": 4737,
+              "thought_tokens": 0,
+              "cached_tokens": 4480,
+              "unknown": []
+            },
+            "stop_reason": "StopReason.MAX_MODEL_CALLS_EXCEEDED",
+            "stop_confirmed": null,
+            "execution_ref": {
+              "execution_id": "exec_f7657dcaf94142dbb9d14f574bc57512",
+              "task_id": "task_lg006",
+              "run_id": "run_lg006_resume_b",
+              "subtask_id": "sub_lg006_resume_b"
+            },
+            "model": "deepseek-v4-flash",
+            "upstream_model": "deepseek-flash",
+            "diff": null
+          },
+          "removed": [],
+          "upstream_calls": [
+            {
+              "call": 1,
+              "path": "/mq8Fm9N4uvedZ9vcThuHiR8HHx7PqHvk/v1/chat/completions",
+              "model": "deepseek-v4-flash",
+              "stream": true,
+              "message_count": 4,
+              "has_tools": true,
+              "tool_names": [
+                "replace_file_content",
+                "view_file",
+                "write_to_file",
+                "list_skills",
+                "lookup_skill",
+                "lookup_skills"
+              ],
+              "has_response_format": false,
+              "forwarded": true,
+              "status": 200
+            }
+          ],
+          "at": "2026-10-14T21:41:00Z"
+        }
+      ],
+      "proxy_calls": [
+        {
+          "call": 1,
+          "path": "/mq8Fm9N4uvedZ9vcThuHiR8HHx7PqHvk/v1/chat/completions",
+          "model": "deepseek-v4-flash",
+          "stream": true,
+          "message_count": 4,
+          "has_tools": true,
+          "tool_names": [
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "has_response_format": false,
+          "forwarded": true,
+          "status": 200
+        }
+      ],
+      "error": null,
+      "recalled_secret": true,
+      "recalled_text": "zebra-lg006-4271",
+      "classification_note": "state=budget_exhausted reflects the session lifetime budget being consumed by the seed turn; the recalled code is present in the raw text events."
+    }
+  ],
+  "process_check": {
+    "localharness_pids_before": [],
+    "localharness_pids_after": [],
+    "leaked": []
+  },
+  "limitations": [
+    "Execution evidence only; independent version QA remains LG-010/LG-022.",
+    "Only the openai-compat (DeepSeek) backend was exercised; Gemini/Vertex remain unverified and are not default executable connections.",
+    "search_web stays unavailable; MCP/Triggers/internal delegation stay off.",
+    "Sandbox isolation was not escape-tested; only the SDK-reported status is recorded."
+  ],
+  "grand_total_real_model_calls": 10,
+  "notes": {
+    "cancel": "The cancel_confirmed scenario in this file lost a race to a fast completion; the confirmed mid-flight cancel is recorded in lg006-cancel-evidence.json.",
+    "resume": "resume_recall classification is budget_exhausted, but the raw adapter.text events contain the seeded code, evidencing session recovery.",
+    "derived_fields_corrected": [
+      "resume_recall.recalled_secret"
+    ],
+    "grand_total_real_model_calls": 12
+  }
+}

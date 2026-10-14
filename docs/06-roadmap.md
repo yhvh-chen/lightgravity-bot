@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # 首版滚动排期
 
-> 日期：2026-10-14，更新：2026-10-15。规划已落盘，开发已开始。阶段事实：LG-001～005 与 LG-011 共 6 项基础任务已完成并整合到 `main`（均**待版本 QA**）；用户已确认首版先用 DeepSeek，LG-006 的“首版 Gemini 认证”阻塞已解除并保持 `todo` 待主代理派工；首版唯一真实路径为已验收的 `google-antigravity==0.1.22` + OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek（契约见 [docs/08](08-interface-contract.md) §8.1）。采用 Olav Tasks 的开发任务格式与依赖图；日历开始/结束日期、人员和每日投入未确定，暂不填写 start_date/end_date、assignee 或 effort，也不把实现速度假定为已知。
+> 日期：2026-10-14，更新：2026-10-15。规划已落盘，开发已开始。阶段事实：LG-001～006 与 LG-011 共 7 项基础任务已完成并整合到 `main`（均**待版本 QA**）；用户已确认首版先用 DeepSeek，LG-006 正式 executor + loopback 认证代理已在真实 DeepSeek 上跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消（真实调用 12，进程无残留，证据见 [tests/adapter/evidence](../tests/adapter/evidence/README.md)）；首版唯一真实路径为已验收的 `google-antigravity==0.1.22` + OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek（契约见 [docs/08](08-interface-contract.md) §8.1）。采用 Olav Tasks 的开发任务格式与依赖图；日历开始/结束日期、人员和每日投入未确定，暂不填写 start_date/end_date、assignee 或 effort，也不把实现速度假定为已知。
 
 ## 1. 目标与假设
 
