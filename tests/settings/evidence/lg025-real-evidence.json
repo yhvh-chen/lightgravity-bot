@@ -1,0 +1,60 @@
+{
+  "backend": "openai-compat",
+  "base_url_host": "api.deepseek.com",
+  "connection_revision_at_test": 0,
+  "credential_version_at_test": "cred_e4f1f9aab6da",
+  "credential_version_rotated": true,
+  "diagnostics_latest_test_id": "ctest_51a481f70bc64788",
+  "layers": [
+    {
+      "detail": "backend=openai-compat model=deepseek-v4-flash",
+      "duration_ms": null,
+      "name": "config_parse",
+      "status": "passed"
+    },
+    {
+      "detail": "source=secret_store version=cred_e4f1f9aab6da",
+      "duration_ms": null,
+      "name": "credential",
+      "status": "passed"
+    },
+    {
+      "detail": "sdk=0.1.22 installed=True probe_verified=openai_compat unverified=gemini,vertex",
+      "duration_ms": null,
+      "name": "capability",
+      "status": "declared"
+    },
+    {
+      "detail": "model=deepseek-v4-flash upstream_model=deepseek-flash proxy_calls=1 stop_confirmed=True",
+      "duration_ms": 907.2280000000001,
+      "name": "runtime_network",
+      "status": "passed"
+    },
+    {
+      "detail": "not requested",
+      "duration_ms": null,
+      "name": "tool_probe",
+      "status": "skipped"
+    },
+    {
+      "detail": "not requested",
+      "duration_ms": null,
+      "name": "structured_output",
+      "status": "skipped"
+    }
+  ],
+  "model": "deepseek-v4-flash",
+  "network": {
+    "detail": "model=deepseek-v4-flash upstream_model=deepseek-flash proxy_calls=1 stop_confirmed=True",
+    "status": "passed"
+  },
+  "overall": "verified",
+  "real_call_cap": 3,
+  "real_model_calls": 1,
+  "resolver_satisfies_protocol": true,
+  "secret_store_outside_repo": true,
+  "secret_store_permission_issues": [],
+  "stale_after_connection_edit": true,
+  "stale_after_credential_update": true,
+  "status": "ok"
+}
