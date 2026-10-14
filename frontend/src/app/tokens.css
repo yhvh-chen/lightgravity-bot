@@ -1,0 +1,141 @@
+/*
+ * LG-011 design tokens (design.md §3).
+ *
+ * Single source for color, spacing, radius, typography and layout sizes.
+ * Components must reference these variables instead of hard-coded values so
+ * the restrained light theme stays consistent. Default is light only; dark
+ * mode is a later extension over the same token names.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --lg-color-bg: #f8fafc;
+  --lg-color-panel: #ffffff;
+  --lg-color-surface-2: #f1f5f9;
+  --lg-color-surface-3: #e2e8f0;
+
+  /* Text */
+  --lg-color-text: #0f172a;
+  --lg-color-text-muted: #475569;
+  --lg-color-text-subtle: #64748b;
+
+  /* Borders */
+  --lg-color-border: #e2e8f0;
+  --lg-color-border-strong: #cbd5e1;
+
+  /* Accent (selection / links / primary action) */
+  --lg-color-accent: #2563eb;
+  --lg-color-accent-soft: #eff6ff;
+  --lg-color-accent-strong: #1d4ed8;
+
+  /* Status */
+  --lg-color-success: #15803d;
+  --lg-color-success-soft: #f0fdf4;
+  --lg-color-warning: #b45309;
+  --lg-color-warning-soft: #fffbeb;
+  --lg-color-error: #b91c1c;
+  --lg-color-error-soft: #fef2f2;
+  --lg-color-neutral: #475569;
+  --lg-color-neutral-soft: #f1f5f9;
+
+  /* Spacing scale: 4 8 12 16 24 32 */
+  --lg-space-1: 4px;
+  --lg-space-2: 8px;
+  --lg-space-3: 12px;
+  --lg-space-4: 16px;
+  --lg-space-5: 24px;
+  --lg-space-6: 32px;
+
+  /* Radius */
+  --lg-radius-control: 6px;
+  --lg-radius-panel: 8px;
+  --lg-radius-pill: 999px;
+
+  /* Typography */
+  --lg-font-sans: system-ui, -apple-system, 'Segoe UI', 'Noto Sans SC',
+    'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --lg-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas,
+    'Liberation Mono', monospace;
+  --lg-font-size-xs: 12px;
+  --lg-font-size-sm: 13px;
+  --lg-font-size-body: 14px;
+  --lg-font-size-lg: 16px;
+  --lg-font-size-title: 18px;
+  --lg-line-height: 1.5;
+
+  /* Layout */
+  --lg-rail-width: 56px;
+  --lg-topbar-height: 48px;
+  --lg-context-width: 240px;
+  --lg-context-min: 200px;
+  --lg-context-max: 320px;
+  --lg-chat-width: 360px;
+  --lg-chat-min: 320px;
+  --lg-chat-max: 480px;
+  --lg-main-min: 480px;
+
+  /* Effects */
+  --lg-shadow-overlay: 0 8px 24px rgba(15, 23, 42, 0.14);
+  --lg-focus-ring: 2px solid var(--lg-color-accent);
+  --lg-focus-offset: 2px;
+  --lg-transition-fast: 140ms ease;
+
+  /* Breakpoints (informational; media queries repeat the literals) */
+  --lg-breakpoint-compact: 1024px;
+  --lg-breakpoint-mobile: 700px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --lg-transition-fast: 0ms;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--lg-color-bg);
+  color: var(--lg-color-text);
+  font-family: var(--lg-font-sans);
+  font-size: var(--lg-font-size-body);
+  line-height: var(--lg-line-height);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: var(--lg-focus-ring);
+  outline-offset: var(--lg-focus-offset);
+}
+
+.lg-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

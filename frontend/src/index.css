@@ -1,8 +1,6 @@
-:root {
-  color-scheme: light;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-}
-
-body {
-  margin: 0;
-}
+/*
+ * Global stylesheet entry (LG-011).
+ * Tokens first, then shell/component rules.
+ */
+@import './app/tokens.css';
+@import './app/shell.css';

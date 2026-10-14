@@ -1,16 +1,16 @@
+import { AppShell } from './app/AppShell'
+import { ShellProvider } from './app/ShellProvider'
+
 /**
- * LG-002 scaffolding placeholder.
+ * Application entry (LG-011).
  *
- * This proves the Vite/React/TypeScript shell boots, builds and tests. The
- * real application shell — navigation rail, layout, tokens, views and API
- * client — is owned by LG-011 and later view tasks (docs/08 §11). LG-011 may
- * refactor or replace this file freely.
+ * The shell owns navigation, layout and UI state; each business view is
+ * mounted by `src/views/registry.tsx` and implemented by its own task.
  */
 export function App() {
   return (
-    <main style={{ fontFamily: 'system-ui, sans-serif', padding: '1.5rem' }}>
-      <h1>LightGravity Bot</h1>
-      <p>Frontend engineering skeleton (LG-002).</p>
-    </main>
+    <ShellProvider>
+      <AppShell />
+    </ShellProvider>
   )
 }
