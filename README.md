@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot
 
-> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.0.0）已冻结；尚未实现、部署或完成运行验证。
+> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.0.0）已冻结；LG-002 已建立可运行工程骨架（后端 health/version 与前端壳、测试/类型/构建入口可用）。业务功能尚未实现，未接入 Antigravity SDK，未部署。
 
 **按需组队的 AI 任务助手。**
 
@@ -37,6 +37,50 @@ LightGravity Bot 从 Olav OS 的使用经验中重新设计更小的产品。保
 Task 是主要操作入口：一项任务一个目录、一份 TASK.md、一条用户对话历史。工作视图围绕同一任务展示，Resources 提供共享配置与任务实际引用；Project 是可选的共享背景，Run 是内部执行尝试。
 
 任务、角色及 SDK 资源采用 Markdown＋YAML frontmatter 描述与渲染，程序校验后编译为 SDK 配置。日志与 SDK 会话保持各自格式，不重复保存当前业务状态。
+
+## 本地运行与检查（工程骨架）
+
+工程骨架由 LG-002 建立，仅含后端 `GET /api/v1/health`、`GET /api/v1/version` 和前端占位壳，不含业务功能，也未安装 Antigravity SDK。
+
+### 版本要求
+
+| 组件 | 要求 | LG-002 已验证版本 |
+|---|---|---|
+| Python | `>=3.12,<3.13`（`.python-version` 为 `3.12`） | 3.12.13 |
+| uv | `0.12.x` | 0.12.1 |
+| Node.js | 22 LTS | v22.23.2 |
+| npm | 10.x | 10.9.8 |
+| GNU make | 统一入口 | `/usr/bin/make` |
+
+### 启动后端
+
+```bash
+uv sync                # 创建 .venv 并按 uv.lock 安装
+make run               # 默认 127.0.0.1:8000，仅监听 loopback
+curl http://127.0.0.1:8000/api/v1/health
+```
+
+### 启动前端壳
+
+```bash
+npm --prefix frontend ci      # 按 package-lock.json 精确安装
+make frontend-dev             # http://127.0.0.1:5173，/api 代理到后端
+```
+
+### 测试、类型与构建入口
+
+```bash
+make check            # 后端 mypy + pytest
+make frontend-check   # 前端 tsc --noEmit + vitest run
+make check-all        # 二者合并
+make frontend-build   # 前端生产构建
+```
+
+### 配置与数据
+
+- 复制 `.env.example` 为 `.env` 并按需修改；示例文件不含真实凭证，仓库不保存秘密。
+- 运行数据根 `LIGHTGRAVITY_DATA_DIR`（默认 `./bot-data`）与源码分离并已 gitignore；工作区根与秘密存储边界见 docs/08 §10。
+- 路径默认相对进程工作目录，克隆后无需开发机绝对路径即可运行。
 
 ## 文档入口
 

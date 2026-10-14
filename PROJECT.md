@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot 项目手册
 
-> 更新：2026-10-14。阶段：首版规划已落盘，尚未开始实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于同日初始化 Git 并推送 `main` 到内部 Gitea。
+> 更新：2026-10-15。阶段：LG-001 契约已冻结，LG-002 已建立可运行工程骨架（后端 health/version 与前端壳、测试/类型/构建入口可用）。业务功能与 Antigravity SDK 尚未实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
 
 ## 目标
 
@@ -40,6 +40,15 @@ updated: "2026-10-15"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-15：建立可运行工程骨架（LG-002）
+
+- 按用户授权完成 LG-002：建立后端 Python 3.12 + FastAPI/uvicorn/Pydantic/ruamel.yaml、前端 React 18 + TypeScript + Vite 的最小工程；依赖精确锁定在 `uv.lock` 与 `frontend/package-lock.json`。
+- 新增 `backend/lightgravity/contracts`：契约常量、状态枚举、错误码与 HTTP/重试映射、错误信封、health/version DTO；作为共享只读模块供后续任务引用，不各自复制。
+- 真实端点 `GET /api/v1/health`、`GET /api/v1/version` 与统一错误信封经 uvicorn 实际启动并 curl 验证；前端占位壳经 Vite dev server 启动验证。未安装 Antigravity SDK，未实现 store/adapter/coordinator/verify/settings 业务。
+- 统一入口 `Makefile`：`make check`（mypy + pytest）、`make frontend-check`（tsc + vitest）、`make check-all`、`make frontend-build`。数据根 `LIGHTGRAVITY_DATA_DIR`（默认 `./bot-data`）与源码分离并 gitignore；`.env.example` 无真实凭证；路径默认相对工作目录，可分发。
+- 局部实测：后端 pytest 13 passed、mypy 无问题；前端 tsc 通过、vitest 1 passed、vite build 成功。已知限制：前端 dev 依赖在 vitest 2/vite 5 范围内有 npm audit 告警，修复需升级到契约未冻结的大版本，故保留并记录。
+- 为 `probes/`（LG-003）、`backend/lightgravity/store` 与 `tests/store`（LG-004）、`frontend/src` 业务子目录（LG-011 及后续）保留明确边界，未写入他人 owner 路径。成果标注“待版本 QA”。本地提交，未推送、未部署。
 
 ### 2026-10-15：冻结首版接口与状态契约（LG-001）
 
