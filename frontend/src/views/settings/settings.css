@@ -1,0 +1,271 @@
+/*
+ * LG-026 Settings styles (design.md §3 tokens, §5 Settings, §7 responsive).
+ *
+ * Only Settings-specific structure lives here; colors, spacing and radii come
+ * from the shared tokens so the page stays consistent with the shell.
+ */
+
+.lg-settings-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-4);
+  min-width: 0;
+}
+
+.lg-settings-view__intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  min-width: 0;
+}
+
+.lg-settings {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--lg-space-4);
+  min-width: 0;
+}
+
+.lg-settings__list {
+  flex: 0 0 280px;
+  min-width: 0;
+}
+
+.lg-settings__list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lg-space-2);
+  margin-bottom: var(--lg-space-2);
+  flex-wrap: wrap;
+}
+
+.lg-settings__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+}
+
+.lg-settings__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  width: 100%;
+  padding: var(--lg-space-3);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+  background: var(--lg-color-panel);
+  text-align: left;
+  cursor: pointer;
+}
+
+.lg-settings__item:hover {
+  border-color: var(--lg-color-border-strong);
+}
+
+.lg-settings__item.is-selected {
+  border-color: var(--lg-color-accent);
+  box-shadow: 0 0 0 1px var(--lg-color-accent-soft);
+}
+
+.lg-settings__item-title {
+  font-weight: 600;
+}
+
+.lg-settings__item-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-1);
+}
+
+.lg-settings__editor {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 720px;
+}
+
+/* ------------------------------------------------------------ forms/cards */
+
+.lg-connection-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-4);
+  min-width: 0;
+}
+
+.lg-connection-form__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--lg-space-2);
+  flex-wrap: wrap;
+}
+
+.lg-section-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+  padding: var(--lg-space-4);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+  background: var(--lg-color-panel);
+  min-width: 0;
+}
+
+.lg-section-card__title {
+  margin: 0;
+  font-size: var(--lg-font-size-body);
+  font-weight: 650;
+}
+
+.lg-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  min-width: 0;
+}
+
+.lg-field--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--lg-space-2);
+}
+
+.lg-field__label {
+  font-size: var(--lg-font-size-sm);
+  font-weight: 600;
+  color: var(--lg-color-text);
+}
+
+.lg-field__input {
+  width: 100%;
+  min-height: 36px;
+  padding: var(--lg-space-1) var(--lg-space-2);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-panel);
+  word-break: break-all;
+}
+
+.lg-field__input:disabled {
+  background: var(--lg-color-surface-2);
+  color: var(--lg-color-text-subtle);
+}
+
+.lg-field__static {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--lg-space-1);
+  font-size: var(--lg-font-size-sm);
+  color: var(--lg-color-text-muted);
+  min-width: 0;
+}
+
+.lg-field__hint {
+  margin: 0;
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-subtle);
+}
+
+.lg-connection-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-2);
+}
+
+.lg-defaults-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+  max-width: 420px;
+}
+
+/* --------------------------------------------------------------- test panel */
+
+.lg-test {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+  min-width: 0;
+}
+
+.lg-test__result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+  min-width: 0;
+}
+
+.lg-test__overall {
+  display: flex;
+  gap: var(--lg-space-2);
+  align-items: center;
+}
+
+.lg-test__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--lg-space-2);
+  margin: 0;
+}
+
+.lg-test__meta div {
+  min-width: 0;
+}
+
+.lg-test__meta dt {
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-subtle);
+}
+
+.lg-test__meta dd {
+  margin: 0;
+  font-family: var(--lg-font-mono);
+  font-size: var(--lg-font-size-xs);
+  word-break: break-all;
+}
+
+.lg-test__layers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+}
+
+.lg-test__layer {
+  display: flex;
+  align-items: baseline;
+  gap: var(--lg-space-2);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.lg-test__layer-name {
+  font-family: var(--lg-font-mono);
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text);
+}
+
+/* ------------------------------------------------------------- responsive */
+
+@media (max-width: 1023px) {
+  .lg-settings {
+    flex-direction: column;
+  }
+
+  .lg-settings__list {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  .lg-settings__editor {
+    max-width: none;
+    width: 100%;
+  }
+}
