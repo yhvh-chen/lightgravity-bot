@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from .service import Coordinator
@@ -43,6 +43,9 @@ class AppendMessageRequest(BaseModel):
     attachments: list[dict[str, Any]] = Field(default_factory=list)
     correlation_id: str | None = None
     task_ref: str | None = None
+    #: Additive structured resource-change proposal (docs/08 §5.2 / LG-015).
+    #: Validated and applied by the coordinator through ``ResourceService``.
+    resource_proposal: dict[str, Any] | None = None
 
 
 def build_router(coordinator: Coordinator) -> APIRouter:
@@ -63,7 +66,9 @@ def build_router(coordinator: Coordinator) -> APIRouter:
         return result.to_dict()
 
     @router.post("/tasks/{task_id}/messages")
-    async def append_message(task_id: str, payload: AppendMessageRequest) -> dict[str, Any]:
+    async def append_message(
+        task_id: str, payload: AppendMessageRequest, request: Request
+    ) -> dict[str, Any]:
         message: dict[str, Any] = {
             "message_id": payload.message_id,
             "role": payload.role,
@@ -74,6 +79,14 @@ def build_router(coordinator: Coordinator) -> APIRouter:
             message["correlation_id"] = payload.correlation_id
         if payload.task_ref:
             message["task_ref"] = payload.task_ref
+        if payload.resource_proposal is not None:
+            # A resource proposal is a control change: require the same
+            # injected authorization as the direct controlled PATCH, so the
+            # conversation path cannot become an unauthenticated back door.
+            policy = getattr(request.app.state, "access_policy", None)
+            if policy is not None:
+                policy.authorize(request, sensitive=True)
+            message["resource_proposal"] = payload.resource_proposal
         result = await coordinator.submit_task_message(task_id, message)
         return result.to_dict()
 

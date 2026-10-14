@@ -9,12 +9,14 @@ import {
   RESOURCE_CATEGORIES,
   type ResourceDetail,
   type ResourceKind,
+  type ResourceChangeResult,
   type ResourceReference,
   type ResourceSummary,
   type ResourcesApi,
 } from '../../api/resources'
 import type { ViewId } from '../../app/navigation'
 import { useShell } from '../../app/ShellProvider'
+import { settingsConnectionRef } from '../../app/uiState'
 import { DetailHeader } from '../../components/DetailHeader'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
@@ -268,12 +270,18 @@ export function ResourcesView(props: ResourcesViewProps = {}) {
               key={`${detail.kind}:${detail.id}:${detail.revision}`}
               detail={detail}
               api={api}
+              taskRef={shell.state.taskRef}
               onEdited={() => {
                 setDetailKey((key) => key + 1)
                 setListKey((key) => key + 1)
               }}
               onNavigateCategory={(kind, ref) => selectItem(`resources:${kind}:${ref}`)}
-              onOpenSettings={() => navigate('settings')}
+              onOpenSettings={(connectionId) => {
+                // Carry the concrete Connection id so Settings selects the same
+                // record; the Task scope is preserved by the shell.
+                selectItem(settingsConnectionRef(connectionId))
+                navigate('settings')
+              }}
               onOpenChat={() => navigate('chat')}
             />
           ) : (
@@ -308,6 +316,7 @@ export function ResourcesView(props: ResourcesViewProps = {}) {
 function ResourceDetailPanel({
   detail,
   api,
+  taskRef,
   onEdited,
   onNavigateCategory,
   onOpenSettings,
@@ -315,9 +324,10 @@ function ResourceDetailPanel({
 }: {
   detail: ResourceDetail
   api: ResourcesApi
+  taskRef: string | null
   onEdited: () => void
   onNavigateCategory: (kind: string, ref: string) => void
-  onOpenSettings: () => void
+  onOpenSettings: (connectionId: string) => void
   onOpenChat: () => void
 }) {
   const badge = availabilityBadge(detail.availability)
@@ -345,7 +355,11 @@ function ResourceDetailPanel({
         ]}
         actions={
           detail.kind === 'connection' ? (
-            <button type="button" className="lg-button lg-button--primary" onClick={onOpenSettings}>
+            <button
+              type="button"
+              className="lg-button lg-button--primary"
+              onClick={() => onOpenSettings(detail.id)}
+            >
               Edit in Settings
             </button>
           ) : detail.kind === 'conversation' ? (
@@ -425,7 +439,7 @@ function ResourceDetailPanel({
       {detail.diagnostics.length > 0 ? <Diagnostics diagnostics={detail.diagnostics} /> : null}
 
       {detail.kind !== 'connection' ? (
-        <ControlledChange detail={detail} api={api} onEdited={onEdited} />
+        <ControlledChange detail={detail} api={api} taskRef={taskRef} onEdited={onEdited} />
       ) : (
         <section className="lg-resource-block" aria-label="Model connection">
           <h4 className="lg-section__title">Model &amp; credential</h4>
@@ -487,48 +501,76 @@ function ReferenceRow({
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'conflict'
 
+/**
+ * Controlled change (docs/05 §6.2).
+ *
+ * The change is sent as a *structured proposal* attached to an authenticated
+ * Task message; the coordinator validates it and calls `ResourceService.update`,
+ * then records the actual result/conflict back into the Task conversation.  The
+ * form never writes the resource file itself, and without a Task scope it only
+ * guides the user instead of faking a shared-template edit.
+ */
 function ControlledChange({
   detail,
   api,
+  taskRef,
   onEdited,
 }: {
   detail: ResourceDetail
   api: ResourcesApi
+  taskRef: string | null
   onEdited: () => void
 }) {
   const [title, setTitle] = useState(detail.title)
   const [enabled, setEnabled] = useState(detail.enabled)
   const [body, setBody] = useState(detail.body)
   const [state, setState] = useState<SaveState>('idle')
+  const [savedRevision, setSavedRevision] = useState<number | null>(null)
   const [error, setError] = useState<ApiError | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const supportsEnabled = detail.kind !== 'skill'
 
   async function handleSubmit(event: FormEvent): Promise<void> {
     event.preventDefault()
     if (detail.revision === null) return
+    if (!taskRef) {
+      setNotice(
+        'Select a Task before changing a shared resource: the change is proposed in ' +
+          'that Task chat and program-validated there. No change was written here.',
+      )
+      return
+    }
     setState('saving')
     setError(null)
+    setNotice(null)
     const patch: Record<string, unknown> = { title: title.trim() }
     if (supportsEnabled) patch.enabled = enabled
     try {
-      const updated = await api.updateResource(detail.kind, detail.id, {
+      const result = await api.proposeResourceChange(taskRef, {
+        kind: detail.kind,
+        id: detail.id,
         expected_revision: detail.revision,
         patch,
         body,
       })
-      setState('saved')
-      setTitle(updated.title)
-      setBody(updated.body)
-      onEdited()
-    } catch (cause) {
-      const apiError = toApiError(cause)
-      if (apiError.code === 'revision_conflict') {
+      const status = result.data.status
+      if (status === 'applied') {
+        setState('saved')
+        setSavedRevision(
+          typeof result.data.revision === 'number' ? result.data.revision : detail.revision + 1,
+        )
+        onEdited()
+      } else if (status === 'conflict') {
         setState('conflict')
+        setError(proposalError(result))
         onEdited()
       } else {
         setState('idle')
+        setError(proposalError(result))
       }
-      setError(apiError)
+    } catch (cause) {
+      setState('idle')
+      setError(toApiError(cause))
     }
   }
 
@@ -536,10 +578,16 @@ function ControlledChange({
     <section className="lg-resource-block" aria-label="Controlled change">
       <h4 className="lg-section__title">Controlled change</h4>
       <p className="lg-field__hint">
-        Only title, enablement and the Markdown body can be changed here; the change is validated
-        (schema + references) and written atomically with the revision. It affects future
-        recruitment only — running members keep their pinned configuration.
+        Only title, enablement and the Markdown body can be changed here. The change is
+        sent as a structured proposal in the current Task chat, program-validated (schema +
+        references + revision) and written atomically. It affects future recruitment only —
+        running members keep their pinned configuration and are never hot-swapped.
       </p>
+      {notice ? (
+        <p className="lg-notice" role="status">
+          {notice}
+        </p>
+      ) : null}
       {error ? (
         <ErrorState
           title={state === 'conflict' ? 'Revision conflict' : 'Change rejected'}
@@ -556,7 +604,7 @@ function ControlledChange({
       ) : null}
       {state === 'saved' ? (
         <p className="lg-notice" role="status">
-          Saved revision {Number(detail.revision) + 1}.
+          Applied through Task chat at revision {savedRevision ?? (detail.revision ?? 0) + 1}.
         </p>
       ) : null}
       <form className="lg-resource-form" onSubmit={handleSubmit}>
@@ -601,6 +649,17 @@ function ControlledChange({
       </form>
     </section>
   )
+}
+
+function proposalError(result: ResourceChangeResult): ApiError {
+  const code =
+    typeof result.data.error_code === 'string' ? result.data.error_code : 'invalid_request'
+  return new ApiError({
+    message: result.reply || 'Resource change was rejected',
+    code,
+    httpStatus: null,
+    retryable: code === 'lock_conflict',
+  })
 }
 
 function toApiError(cause: unknown): ApiError {

@@ -1,19 +1,24 @@
 import type { ComponentType } from 'react'
 
-import {
-  MOCK_AVAILABLE_ROLES,
-  MOCK_RECRUITED_MEMBERS,
-  MOCK_TASKS,
-} from '../app/layoutMock'
+import { MOCK_TASKS } from '../app/layoutMock'
 import type { ViewId } from '../app/navigation'
+import { useShell } from '../app/ShellProvider'
+import { parseSettingsConnectionRef } from '../app/uiState'
 import type { ShellState } from '../app/uiState'
 import type { ContextItem, ContextSection } from '../components/ContextList'
 import { BoardView } from './BoardView'
 import { ChatView } from './ChatView'
 import { FilesView } from './files/FilesView'
 import { ResourcesView } from './ResourcesView'
+import { ResourcesContextRail } from './resources/contextRail'
 import { SettingsView } from './settings/SettingsView'
 import { TeamView } from './TeamView'
+import { TeamContextRail } from './team/contextRail'
+
+export interface ViewContextProps {
+  selectedId: string | null
+  onSelect: (item: ContextItem) => void
+}
 
 export interface ViewDefinition {
   id: ViewId
@@ -23,6 +28,12 @@ export interface ViewDefinition {
   Main: ComponentType
   /** Context rail content. Sections explain their own empty state. */
   buildContext: (state: ShellState) => ContextSection[]
+  /**
+   * Optional data-driven context rail.  When present it replaces the static
+   * `buildContext` sections, so the shell can show real backend data instead of
+   * a labelled mock.
+   */
+  Context?: ComponentType<ViewContextProps>
 }
 
 /** Frozen Resources categories (docs/05 §6.1) — shell navigation, not data. */
@@ -45,6 +56,17 @@ function mockTaskItems(): ContextItem[] {
     mock: true,
     taskRef: task.id,
   }))
+}
+
+/** Settings main panel with the selected Connection record located by id. */
+function SettingsRoute() {
+  const { state } = useShell()
+  return (
+    <SettingsView
+      connectionId={parseSettingsConnectionRef(state.selectedItemRef)}
+      taskRef={state.taskRef}
+    />
+  )
 }
 
 export const VIEW_DEFINITIONS: Record<ViewId, ViewDefinition> = {
@@ -97,34 +119,19 @@ export const VIEW_DEFINITIONS: Record<ViewId, ViewDefinition> = {
     contextTitle: 'Team',
     contextAriaLabel: 'Team recruitment',
     Main: TeamView,
-    buildContext: (state) => [
+    Context: TeamContextRail,
+    buildContext: () => [
       {
         id: 'team-available',
         title: 'Available',
-        items: state.showLayoutMock
-          ? MOCK_AVAILABLE_ROLES.map((role) => ({
-              id: role.id,
-              label: role.label,
-              meta: role.meta,
-              mock: true,
-            }))
-          : [],
-        empty: 'No role templates loaded (LG-015).',
+        items: [],
+        empty: 'Available role templates load from the backend rail.',
       },
       {
         id: 'team-recruited',
         title: 'Recruited',
-        items: state.showLayoutMock
-          ? MOCK_RECRUITED_MEMBERS.map((member) => ({
-              id: member.id,
-              label: member.label,
-              meta: member.meta,
-              mock: true,
-            }))
-          : [],
-        empty: state.taskRef
-          ? 'No members recruited for this Task.'
-          : 'Select a Task to see its current team.',
+        items: [],
+        empty: 'Recruited members load from the backend rail.',
       },
     ],
   },
@@ -133,6 +140,7 @@ export const VIEW_DEFINITIONS: Record<ViewId, ViewDefinition> = {
     contextTitle: 'Resources',
     contextAriaLabel: 'Resource categories',
     Main: ResourcesView,
+    Context: ResourcesContextRail,
     buildContext: () => [
       {
         id: 'resources-categories',
@@ -146,7 +154,7 @@ export const VIEW_DEFINITIONS: Record<ViewId, ViewDefinition> = {
     id: 'settings',
     contextTitle: 'Settings',
     contextAriaLabel: 'Settings sections',
-    Main: SettingsView,
+    Main: SettingsRoute,
     buildContext: () => [
       {
         id: 'models-providers',

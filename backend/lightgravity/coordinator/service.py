@@ -29,6 +29,7 @@ from datetime import datetime, timezone
 from typing import Any, Protocol, cast, runtime_checkable
 
 from lightgravity.contracts import AppError, ErrorCode, EventType, TaskPhase, TaskStatus
+from lightgravity.resources import ResourceService
 from lightgravity.store import (
     EntityNotFound,
     LockConflict,
@@ -39,6 +40,11 @@ from lightgravity.store import (
 from lightgravity.store.locking import LockManager
 
 from .classification import Classification, MessageIntent, classify_message
+from .resource_commands import (
+    PROPOSAL_AUTHOR_ROLES,
+    parse_resource_proposal,
+    proposal_author_role,
+)
 from .dispatcher import (
     DispatchContext,
     Dispatcher,
@@ -206,6 +212,7 @@ class Coordinator:
         classifier: Callable[[str], Classification] | None = None,
         responder: Callable[[str, Classification], str] | None = None,
         verification: CandidateVerifier | None = None,
+        resource_service: ResourceService | None = None,
     ) -> None:
         self._store = store
         self._owner = owner or f"coordinator:{os.getpid()}"
@@ -231,6 +238,8 @@ class Coordinator:
         self._classifier = classifier or classify_message
         self._responder = responder or _default_responder
         self._verification = verification
+        self._resource_service = resource_service
+        self._resource_dir = resolved_data_dir
         self._loop_task: asyncio.Task[None] | None = None
         self._stopping = False
         #: Set while a dispatcher call is in flight (exposed for tests/monitoring).
@@ -248,6 +257,16 @@ class Coordinator:
     @property
     def dispatcher(self) -> Dispatcher:
         return self._dispatcher
+
+    @property
+    def resources(self) -> ResourceService:
+        """Controlled resource writer shared with the API layer (lazy default)."""
+
+        if self._resource_service is None:
+            self._resource_service = ResourceService(
+                self._store, data_dir=self._resource_dir
+            )
+        return self._resource_service
 
     @property
     def active_run_id(self) -> str | None:
@@ -479,6 +498,13 @@ class Coordinator:
             return self._result_from(existing)
         # Persist first; this is itself idempotent on message_id.
         self._store.append_message(task_id, message)
+        if message.get("resource_proposal") is not None:
+            # A controlled resource-change proposal is validated and applied
+            # synchronously: it must not queue behind a code Run, and a model/
+            # worker reply can never write control state (docs/05 §6.2).
+            result = self._route_resource_proposal(task_id, message)
+            self._idempotency.record(key, result.to_dict())
+            return result
         content = str(message.get("content", ""))
         classification = self._classifier(content)
         if classification.next_action == "query":
@@ -517,6 +543,135 @@ class Coordinator:
             )
         self._idempotency.record(key, result.to_dict())
         return result
+
+    # ------------------------------------------------- controlled resources
+    def _route_resource_proposal(
+        self, task_id: str, message: dict[str, Any]
+    ) -> CoordinatorResult:
+        """Validate and apply one message-attached resource proposal.
+
+        The message was already persisted (so the request is auditable and
+        idempotent on ``message_id``); this method records the *actual* outcome
+        back into the same Task conversation.  It never enqueues work, never
+        waits for a code Run and never lets a non-user author change a resource.
+        """
+
+        submitted_id = str(message.get("message_id"))
+        role = proposal_author_role(message)
+        if role not in PROPOSAL_AUTHOR_ROLES:
+            return self._record_resource_result(
+                task_id,
+                submitted_id,
+                status="unauthorized_source",
+                reply=(
+                    "Resource changes are only accepted from an authenticated user "
+                    f"Task message; a {role!r} message cannot modify control "
+                    "resources. No change was written."
+                ),
+                data={"role": role},
+            )
+
+        try:
+            proposal = parse_resource_proposal(message.get("resource_proposal"))
+        except AppError as exc:
+            return self._record_resource_result(
+                task_id,
+                submitted_id,
+                status="invalid_proposal",
+                reply=f"资源修改提议不合法：{exc.message}",
+                data={"error_code": exc.code.value, "details": exc.details},
+            )
+
+        # A valid Task must exist; append_message already enforces this, but read
+        # it explicitly so the reply can name the preserved Task scope.
+        task = self._store.read("task", task_id)
+        task_title = str(task.entity.get("title") or task_id)
+        try:
+            detail = self.resources.update(
+                proposal.kind,
+                proposal.resource_id,
+                patch=proposal.patch,
+                expected_revision=proposal.expected_revision,
+                actor=f"coordinator:{self._owner}",
+                body=proposal.body,
+            )
+        except AppError as exc:
+            status = (
+                "conflict"
+                if exc.code == ErrorCode.REVISION_CONFLICT
+                else "rejected"
+            )
+            detail_payload: dict[str, Any] = {
+                "kind": proposal.kind,
+                "id": proposal.resource_id,
+                "expected_revision": proposal.expected_revision,
+                "error_code": exc.code.value,
+            }
+            if exc.code == ErrorCode.REVISION_CONFLICT:
+                detail_payload.update(exc.details)
+                reply = (
+                    f"{proposal.ref} 修改冲突：期望 revision "
+                    f"{proposal.expected_revision}，实际 "
+                    f"{exc.details.get('actual_revision')}。未写入；请重读后再提交。"
+                )
+            else:
+                reply = f"{proposal.ref} 修改被拒绝（{exc.code.value}）：{exc.message}"
+            return self._record_resource_result(
+                task_id,
+                submitted_id,
+                status=status,
+                reply=reply,
+                data=detail_payload,
+            )
+
+        return self._record_resource_result(
+            task_id,
+            submitted_id,
+            status="applied",
+            reply=(
+                f"已按程序校验写入 {proposal.kind}:{proposal.resource_id}，"
+                f"revision -> {detail['revision']}。模板修改只影响后续招募；"
+                f"正在运行的成员保持其固定配置（Task {task_title} 上下文保留）。"
+            ),
+            data={
+                "kind": proposal.kind,
+                "id": proposal.resource_id,
+                "revision": detail["revision"],
+                "etag": detail.get("etag"),
+                "task_ref": task_id,
+            },
+        )
+
+    def _record_resource_result(
+        self,
+        task_id: str,
+        submitted_id: str,
+        *,
+        status: str,
+        reply: str,
+        data: dict[str, Any],
+    ) -> CoordinatorResult:
+        """Persist the actual resource-proposal result into the Task log."""
+
+        # Deterministic reply id: appending is idempotent, so a retried
+        # proposal never duplicates the recorded outcome.
+        self._store.append_message(
+            task_id,
+            {
+                "message_id": f"resource-result:{submitted_id}",
+                "role": "assistant",
+                "content": reply,
+                "in_reply_to": submitted_id,
+                "correlation_id": submitted_id,
+                "resource_result": {"status": status, **data},
+            },
+        )
+        return CoordinatorResult(
+            kind="resource_change",
+            reply=reply,
+            task_id=task_id,
+            data={"status": status, **data, "recorded_in_conversation": True},
+        )
 
     # --------------------------------------------------------------- control
     async def request_control(

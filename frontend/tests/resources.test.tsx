@@ -4,8 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ApiError } from '../src/api/client'
 import type {
+  ResourceChangeResult,
   ResourceDetail,
   ResourceKind,
+  ResourceProposalInput,
   ResourceSummary,
   ResourcesApi,
 } from '../src/api/resources'
@@ -47,6 +49,9 @@ interface FakeState {
   updateError: ApiError | null
   updateCalls: Array<{ kind: ResourceKind; id: string; input: unknown }>
   listCalls: ResourceKind[]
+  proposalError: ApiError | null
+  proposalCalls: Array<{ taskId: string; proposal: ResourceProposalInput }>
+  proposalResult: ResourceChangeResult
 }
 
 function makeApi(initial: Partial<FakeState> = {}): { api: ResourcesApi; state: FakeState } {
@@ -56,6 +61,14 @@ function makeApi(initial: Partial<FakeState> = {}): { api: ResourcesApi; state: 
     updateError: null,
     updateCalls: [],
     listCalls: [],
+    proposalError: null,
+    proposalCalls: [],
+    proposalResult: {
+      kind: 'resource_change',
+      reply: '已按程序校验写入',
+      task_id: 'task_01TASK',
+      data: { status: 'applied', revision: 5, recorded_in_conversation: true },
+    },
     ...initial,
   }
   const api: ResourcesApi = {
@@ -94,6 +107,15 @@ function makeApi(initial: Partial<FakeState> = {}): { api: ResourcesApi; state: 
       state.details[`${kind}:${id}`] = updated
       return updated
     },
+    async proposeResourceChange(taskId, proposal) {
+      state.proposalCalls.push({ taskId, proposal })
+      if (state.proposalError) {
+        const error = state.proposalError
+        state.proposalError = null
+        throw error
+      }
+      return state.proposalResult
+    },
   }
   return { api, state }
 }
@@ -103,10 +125,12 @@ function ViewWithState({
   api,
   initialRef,
   onNavigate,
+  onSelectItem,
 }: {
   api: ResourcesApi
   initialRef: string | null
   onNavigate: (view: string) => void
+  onSelectItem?: (ref: string | null) => void
 }) {
   const [ref, setRef] = useState<string | null>(initialRef)
   return (
@@ -114,7 +138,10 @@ function ViewWithState({
       <ResourcesView
         api={api}
         selectedItemRef={ref}
-        selectItem={setRef}
+        selectItem={(next) => {
+          setRef(next)
+          onSelectItem?.(next)
+        }}
         navigate={(view) => onNavigate(view)}
       />
     </ShellProvider>
@@ -123,10 +150,25 @@ function ViewWithState({
 
 function renderResources(
   api: ResourcesApi,
-  { initialRef = null, onNavigate = vi.fn() }: { initialRef?: string | null; onNavigate?: (view: string) => void } = {},
+  {
+    initialRef = null,
+    onNavigate = vi.fn(),
+    onSelectItem = vi.fn(),
+  }: {
+    initialRef?: string | null
+    onNavigate?: (view: string) => void
+    onSelectItem?: (ref: string | null) => void
+  } = {},
 ) {
-  render(<ViewWithState api={api} initialRef={initialRef} onNavigate={onNavigate} />)
-  return { onNavigate }
+  render(
+    <ViewWithState
+      api={api}
+      initialRef={initialRef}
+      onNavigate={onNavigate}
+      onSelectItem={onSelectItem}
+    />,
+  )
+  return { onNavigate, onSelectItem }
 }
 
 beforeEach(() => {
@@ -189,14 +231,18 @@ describe('LG-015 Resources: connection ownership', () => {
         }),
       },
     })
-    const { onNavigate } = renderResources(api)
+    const { onNavigate, onSelectItem } = renderResources(api)
     fireEvent.click(await screen.findByRole('button', { name: /DeepSeek/ }))
+    // The connection-only detail explains Settings owns the same record.
+    expect(await screen.findByText(/same record Settings edits/)).toBeInTheDocument()
     const edit = await screen.findByRole('button', { name: 'Edit in Settings' })
     fireEvent.click(edit)
     expect(onNavigate).toHaveBeenCalledWith('settings')
+    // The concrete Connection id travels with the navigation so Settings can
+    // select the same record (no second model list).
+    expect(onSelectItem).toHaveBeenCalledWith('settings:connection:deepseek')
     // No controlled-change form and no duplicated model editor is rendered.
     expect(screen.queryByRole('button', { name: 'Save controlled change' })).toBeNull()
-    expect(screen.getByText(/same record Settings edits/)).toBeInTheDocument()
   })
 })
 
@@ -244,9 +290,9 @@ describe('LG-015 Resources: diagnostics', () => {
   })
 })
 
-describe('LG-015 Resources: controlled change', () => {
-  it('submits an allow-listed change with the expected revision', async () => {
-    const { api, state } = makeApi({
+describe('LG-015 Resources: controlled change via Task conversation', () => {
+  function hookResource() {
+    return makeApi({
       summaries: { hook: [makeSummary({ id: 'task-policy', kind: 'hook', title: 'Task policy' })] },
       details: {
         'hook:task-policy': makeDetail({
@@ -259,39 +305,51 @@ describe('LG-015 Resources: controlled change', () => {
         }),
       },
     })
+  }
+
+  it('sends a structured proposal in the current Task conversation', async () => {
+    window.history.replaceState(null, '', '/?task=task_01TASK')
+    const { api, state } = hookResource()
     renderResources(api, { initialRef: 'hooks' })
     fireEvent.click(await screen.findByRole('button', { name: /Task policy/ }))
 
     fireEvent.change(await screen.findByLabelText('Title'), { target: { value: 'Policy v2' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save controlled change' }))
 
-    await waitFor(() => expect(state.updateCalls).toHaveLength(1))
-    expect(state.updateCalls[0]).toMatchObject({
-      kind: 'hook',
-      id: 'task-policy',
-      input: { expected_revision: 4, patch: { title: 'Policy v2', enabled: true } },
-    })
-  })
-
-  it('surfaces a revision conflict as a real error', async () => {
-    const { api, state } = makeApi({
-      summaries: { hook: [makeSummary({ id: 'task-policy', kind: 'hook', title: 'Task policy' })] },
-      details: {
-        'hook:task-policy': makeDetail({
-          id: 'task-policy',
-          kind: 'hook',
-          title: 'Task policy',
-          revision: 4,
-          entity: { handler: 'task-policy' },
-        }),
+    await waitFor(() => expect(state.proposalCalls).toHaveLength(1))
+    expect(state.proposalCalls[0]).toMatchObject({
+      taskId: 'task_01TASK',
+      proposal: {
+        kind: 'hook',
+        id: 'task-policy',
+        expected_revision: 4,
+        patch: { title: 'Policy v2', enabled: true },
       },
     })
-    state.updateError = new ApiError({
-      message: 'stale write',
-      code: 'revision_conflict',
-      httpStatus: 409,
-      retryable: false,
-    })
+    expect(await screen.findByText(/Applied through Task chat at revision 5/)).toBeInTheDocument()
+  })
+
+  it('guides instead of faking a shared-template edit without a Task scope', async () => {
+    const { api, state } = hookResource()
+    renderResources(api, { initialRef: 'hooks' })
+    fireEvent.click(await screen.findByRole('button', { name: /Task policy/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Save controlled change' }))
+
+    expect(state.proposalCalls).toHaveLength(0)
+    expect(
+      await screen.findByText(/Select a Task before changing a shared resource/),
+    ).toBeInTheDocument()
+  })
+
+  it('surfaces the coordinator-recorded revision conflict', async () => {
+    window.history.replaceState(null, '', '/?task=task_01TASK')
+    const { api, state } = hookResource()
+    state.proposalResult = {
+      kind: 'resource_change',
+      reply: 'task-policy 修改冲突：期望 revision 4，实际 6。未写入；请重读后再提交。',
+      task_id: 'task_01TASK',
+      data: { status: 'conflict', error_code: 'revision_conflict', actual_revision: 6 },
+    }
     renderResources(api, { initialRef: 'hooks' })
     fireEvent.click(await screen.findByRole('button', { name: /Task policy/ }))
     fireEvent.click(await screen.findByRole('button', { name: 'Save controlled change' }))
@@ -300,27 +358,18 @@ describe('LG-015 Resources: controlled change', () => {
   })
 
   it('surfaces a rejected reference change instead of pretending success', async () => {
-    const { api, state } = makeApi({
-      summaries: { hook: [makeSummary({ id: 'task-policy', kind: 'hook', title: 'Task policy' })] },
-      details: {
-        'hook:task-policy': makeDetail({
-          id: 'task-policy',
-          kind: 'hook',
-          title: 'Task policy',
-          entity: { handler: 'task-policy' },
-        }),
-      },
-    })
-    state.updateError = new ApiError({
-      message: 'references resources that do not resolve',
-      code: 'reference_invalid',
-      httpStatus: 422,
-      retryable: false,
-    })
+    window.history.replaceState(null, '', '/?task=task_01TASK')
+    const { api, state } = hookResource()
+    state.proposalResult = {
+      kind: 'resource_change',
+      reply: 'hook:task-policy 修改被拒绝（reference_invalid）：references do not resolve',
+      task_id: 'task_01TASK',
+      data: { status: 'rejected', error_code: 'reference_invalid' },
+    }
     renderResources(api, { initialRef: 'hooks' })
     fireEvent.click(await screen.findByRole('button', { name: /Task policy/ }))
     fireEvent.click(await screen.findByRole('button', { name: 'Save controlled change' }))
     expect(await screen.findByText('Change rejected')).toBeInTheDocument()
-    expect(screen.getByText(/reference_invalid/)).toBeInTheDocument()
+    expect(screen.getAllByText(/reference_invalid/).length).toBeGreaterThan(0)
   })
 })

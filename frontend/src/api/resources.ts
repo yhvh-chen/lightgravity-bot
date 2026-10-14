@@ -91,6 +91,35 @@ export interface ResourceUpdateInput {
   body?: string | null
 }
 
+/**
+ * Structured, bounded resource-change proposal (docs/08 §5.2 / LG-015).
+ *
+ * It is *not* natural language: the coordinator program-validates the shape,
+ * allow-listed fields, references and `expected_revision` before calling
+ * `ResourceService.update`, and records the actual result back into the Task
+ * conversation.  There is no second model list and no worker write path.
+ */
+export interface ResourceProposalInput {
+  kind: ResourceKind
+  id: string
+  expected_revision: number
+  patch: Record<string, unknown>
+  body?: string | null
+}
+
+export interface ResourceChangeResult {
+  kind: string
+  reply: string
+  task_id: string | null
+  data: {
+    status?: string
+    revision?: number | null
+    error_code?: string
+    recorded_in_conversation?: boolean
+    [key: string]: unknown
+  }
+}
+
 export interface ResourceList {
   items: ResourceSummary[]
   next_cursor: string | null
@@ -109,6 +138,16 @@ export interface ResourcesApi {
     input: ResourceUpdateInput,
     signal?: AbortSignal,
   ): Promise<ResourceDetail>
+  /**
+   * Attach a controlled-change proposal to an authenticated Task message.
+   * The coordinator validates and applies it; the returned `data.status`
+   * reports the *actual* outcome (`applied`/`conflict`/`rejected`).
+   */
+  proposeResourceChange(
+    taskId: string,
+    proposal: ResourceProposalInput,
+    signal?: AbortSignal,
+  ): Promise<ResourceChangeResult>
 }
 
 export interface ResourceCategory {
@@ -200,5 +239,34 @@ export function createResourcesApi(
         },
       )
     },
+    proposeResourceChange(taskId, proposal, signal) {
+      return apiRequest<ResourceChangeResult>(
+        `/tasks/${encodeURIComponent(taskId)}/messages`,
+        {
+          method: 'POST',
+          headers: headers(true),
+          body: JSON.stringify({
+            message_id: newMessageId(),
+            content: `Controlled resource change: ${proposal.kind}:${proposal.id} ` +
+              `(expected revision ${proposal.expected_revision})`,
+            role: 'user',
+            resource_proposal: proposal,
+          }),
+          signal,
+        },
+      )
+    },
   }
+}
+
+/**
+ * Client-generated idempotency id for a Task message.  The store only requires
+ * a non-empty string; a ULID is not required for the message envelope.
+ */
+export function newMessageId(): string {
+  const cryptoObj = globalThis.crypto
+  if (cryptoObj && typeof cryptoObj.randomUUID === 'function') {
+    return `msg_${cryptoObj.randomUUID().replace(/-/g, '')}`
+  }
+  return `msg_${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`
 }

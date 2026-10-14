@@ -232,6 +232,24 @@ describe('LG-026 Settings: load and list', () => {
     expect(screen.getByLabelText('Default coordinator connection')).toBeInTheDocument()
   })
 
+  it('selects the Connection record located by id from Resources', async () => {
+    const { api } = makeFakeApi({
+      connections: [
+        makeConnection({ id: 'deepseek-primary', title: 'DeepSeek (primary)' }),
+        makeConnection({ id: 'deepseek-backup', title: 'DeepSeek (backup)' }),
+      ],
+    })
+    render(<SettingsView api={api} connectionId="deepseek-backup" taskRef="task_01TASK" />)
+    const selected = await screen.findByRole('button', { name: /DeepSeek \(backup\)/ })
+    expect(selected).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /DeepSeek \(primary\)/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    // The Task scope is preserved while Settings is open.
+    expect(screen.getByText('task_01TASK')).toBeInTheDocument()
+  })
+
   it('marks a planned backend as unavailable and disables executable actions', async () => {
     const { api } = makeFakeApi({
       connections: [

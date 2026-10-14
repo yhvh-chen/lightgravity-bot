@@ -107,12 +107,19 @@ export function AppShell() {
           <Icon name="close" />
         </button>
       </div>
-      <ContextList
-        sections={contextSections}
-        selectedId={state.selectedItemRef}
-        onSelect={handleContextSelect}
-        ariaLabel={definition.contextAriaLabel}
-      />
+      {definition.Context ? (
+        <definition.Context
+          selectedId={state.selectedItemRef}
+          onSelect={handleContextSelect}
+        />
+      ) : (
+        <ContextList
+          sections={contextSections}
+          selectedId={state.selectedItemRef}
+          onSelect={handleContextSelect}
+          ariaLabel={definition.contextAriaLabel}
+        />
+      )}
     </aside>
   )
 

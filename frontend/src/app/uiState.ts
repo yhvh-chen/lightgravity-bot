@@ -48,6 +48,18 @@ export function draftKey(taskRef: string | null): string {
   return `chat:${taskRef ?? 'global'}`
 }
 
+/** In-app reference to one Connection record opened inside Settings. */
+export function settingsConnectionRef(connectionId: string): string {
+  return `settings:connection:${connectionId}`
+}
+
+/** Parse a Settings Connection reference, or `null` when not one. */
+export function parseSettingsConnectionRef(ref: string | null | undefined): string | null {
+  if (!ref || !ref.startsWith('settings:connection:')) return null
+  const id = ref.slice('settings:connection:'.length)
+  return id || null
+}
+
 export type ShellAction =
   | { type: 'setView'; view: ViewId }
   | { type: 'selectTask'; taskRef: string | null }

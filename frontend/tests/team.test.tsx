@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AvailableAgent, TeamApi, TeamMember } from '../src/api/team'
 import type { ViewId } from '../src/app/navigation'
 import { ShellProvider } from '../src/app/ShellProvider'
+import { TeamContextRail } from '../src/views/team/contextRail'
 import { TeamView } from '../src/views/team/TeamView'
 
 function makeAgent(overrides: Partial<AvailableAgent> = {}): AvailableAgent {
@@ -205,5 +206,29 @@ describe('LG-015 Team: recruited members', () => {
     expect(await screen.findByText('Pinned configuration')).toBeInTheDocument()
     expect(screen.getByText('hash-abc')).toBeInTheDocument()
     expect(screen.getByText(/do not hot-swap/)).toBeInTheDocument()
+  })
+})
+
+describe('LG-015 Team: data-driven secondary rail', () => {
+  it('shows real Available templates and Recruited history with no mock data', async () => {
+    window.history.replaceState(null, '', '/?task=task_01TASK')
+    const { api, calls } = makeApi(
+      [makeAgent()],
+      [
+        makeMember(),
+        makeMember({ id: 'member_02REL', role_ref: 'reviewer', state: 'released', released: true }),
+      ],
+    )
+    const onSelect = vi.fn()
+    render(
+      <ShellProvider>
+        <TeamContextRail api={api} selectedId="team:agent:developer" onSelect={onSelect} />
+      </ShellProvider>,
+    )
+    const available = await screen.findByRole('button', { name: /Developer/ })
+    expect(available).toHaveAttribute('aria-pressed', 'true')
+    expect(await screen.findByRole('button', { name: /reviewer · member_02REL/ })).toBeInTheDocument()
+    expect(screen.queryByText('MOCK LAYOUT DATA — not from backend')).toBeNull()
+    expect(calls.members[0]).toMatchObject({ taskRef: 'task_01TASK' })
   })
 })

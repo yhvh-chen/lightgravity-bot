@@ -65,6 +65,11 @@ from .recruiter import (
     TeamPlan,
     member_config_hash,
 )
+from .resource_commands import (
+    ResourceProposal,
+    parse_resource_proposal,
+    proposal_author_role,
+)
 from .scheduler import (
     ArtifactHandoff,
     ClaimOutcome,
@@ -108,6 +113,9 @@ __all__ = [
     "RoleCatalog",
     "TeamPlan",
     "member_config_hash",
+    "ResourceProposal",
+    "parse_resource_proposal",
+    "proposal_author_role",
     "ArtifactHandoff",
     "ClaimOutcome",
     "DependencyGraph",

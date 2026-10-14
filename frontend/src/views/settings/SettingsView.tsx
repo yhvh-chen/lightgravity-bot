@@ -22,6 +22,13 @@ export interface SettingsViewProps {
   token?: string | null
   /** Full API override for embedding/tests; defaults to the real endpoints. */
   api?: SettingsApi
+  /**
+   * Connection record to select on load (e.g. from Resources → Connections
+   * "Edit in Settings").  Purely a UI locator; it does not change the entity.
+   */
+  connectionId?: string | null
+  /** Current Task scope, kept only for display while Settings is open. */
+  taskRef?: string | null
 }
 
 /**
@@ -36,7 +43,7 @@ export interface SettingsViewProps {
  * only ever changes global configuration, never the selected Task.
  */
 export function SettingsView(props: SettingsViewProps = {}) {
-  const { token, api: injectedApi } = props
+  const { token, api: injectedApi, connectionId, taskRef } = props
   const defaultApi = useMemo(() => {
     if (token === undefined) return createSettingsApi()
     const fixed = token
@@ -66,11 +73,14 @@ export function SettingsView(props: SettingsViewProps = {}) {
         if (cancelled) return
         setConnections(list)
         setSettings(loadedSettings)
-        setSelectedId((previous) =>
-          previous && list.some((connection) => connection.id === previous)
+        setSelectedId((previous) => {
+          if (connectionId && list.some((connection) => connection.id === connectionId)) {
+            return connectionId
+          }
+          return previous && list.some((connection) => connection.id === previous)
             ? previous
-            : (list[0]?.id ?? null),
-        )
+            : (list[0]?.id ?? null)
+        })
       })
       .catch((cause: unknown) => {
         if (cancelled || controller.signal.aborted) return
@@ -83,7 +93,7 @@ export function SettingsView(props: SettingsViewProps = {}) {
       cancelled = true
       controller.abort()
     }
-  }, [api, refreshKey])
+  }, [api, refreshKey, connectionId])
 
   const reload = useCallback(() => setRefreshKey((key) => key + 1), [])
 
@@ -143,6 +153,7 @@ export function SettingsView(props: SettingsViewProps = {}) {
         badges={<StatusBadge kind="accent">Models &amp; Providers</StatusBadge>}
         meta={[
           { label: 'section', value: 'Models & Providers' },
+          { label: 'task', value: taskRef ?? 'global' },
           { label: 'source', value: 'GET /api/v1/settings' },
         ]}
       />
