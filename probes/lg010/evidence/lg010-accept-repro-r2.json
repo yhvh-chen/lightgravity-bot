@@ -1,0 +1,70 @@
+{
+  "task_a": "task_01M4YBJKYJ2Z1AD24VJATCEP5Z",
+  "run_a": "run_01M4YBJKYPRDBN6DVYK5HSAAKY",
+  "prep_a": {
+    "prepared_phase": "awaiting_acceptance",
+    "candidate_ref": "run_01M4YBJKYPRDBN6DVYK5HSAAKY"
+  },
+  "first_accept": {
+    "http": 200,
+    "etag": "\"3\""
+  },
+  "dup_with_target": {
+    "http": 200,
+    "etag": "\"3\""
+  },
+  "dup_no_target": {
+    "http": 200,
+    "etag": "\"3\""
+  },
+  "same_request_other_action": {
+    "http": 409,
+    "code": "illegal_transition"
+  },
+  "prep_b": {
+    "prepared_phase": "awaiting_acceptance",
+    "candidate_ref": "run_01M4YBJM5F2N4WVWDSVHEGA66E"
+  },
+  "task_b_accept": {
+    "http": 200
+  },
+  "cross_task_replay_attempt": {
+    "http": 409,
+    "code": "illegal_transition"
+  },
+  "prep_s": {
+    "prepared_phase": "awaiting_acceptance",
+    "candidate_ref": "run_01M4YBJM91HBEG58V9V9P10S4T"
+  },
+  "stale": {
+    "http": 409,
+    "code": "acceptance_stale"
+  },
+  "wrong_target": {
+    "http": 409,
+    "code": "illegal_transition"
+  },
+  "legacy_key_request": {
+    "http": 200,
+    "phase": "completed"
+  },
+  "auth": {
+    "denied": 401,
+    "allowed": 200,
+    "replay": 200
+  },
+  "outcomes": {
+    "duplicate_with_target_identical": true,
+    "duplicate_no_target_identical": true,
+    "replay_etag_matches_first": true,
+    "same_request_other_action_not_replay": true,
+    "task_b_own_candidate": true,
+    "cross_task_replay_rejected": true,
+    "stale_rejected": true,
+    "wrong_target_rejected": true,
+    "legacy_key_not_replayed_verbatim": true,
+    "non_loopback_denied": true,
+    "authed_replay_identical": true
+  },
+  "all_pass": true
+}
