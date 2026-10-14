@@ -1,0 +1,145 @@
+{
+  "task_id": "task_01M4YB1348JJBB90V0ENZHNB2S",
+  "run_id": "run_01M4YB134G8PWKBFHGN7JSVDHW",
+  "prepared_phase": "awaiting_acceptance",
+  "prepared_checks": {
+    "results": [
+      {
+        "check_id": "evidence-present",
+        "status": "passed",
+        "detail": "1 evidence ref(s) recorded"
+      }
+    ],
+    "authorized": [
+      "evidence-present"
+    ],
+    "registered": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "satisfied": true
+  },
+  "candidate_ref": "run_01M4YB134G8PWKBFHGN7JSVDHW",
+  "stale_accept": {
+    "http": 409,
+    "body": {
+      "error": {
+        "code": "acceptance_stale",
+        "message": "decision targets a stale deliverable revision",
+        "details": {
+          "task_id": "task_01M4YB1348JJBB90V0ENZHNB2S",
+          "expected_deliverable_revision": 999,
+          "actual_deliverable_revision": 1
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "cross_run_accept": {
+    "http": 409,
+    "body": {
+      "error": {
+        "code": "illegal_transition",
+        "message": "target_run_id does not match the Task's active Run",
+        "details": {
+          "active_run": "run_01M4YB134G8PWKBFHGN7JSVDHW",
+          "target_run_id": "run_other"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "first_accept": {
+    "http": 200,
+    "body": {
+      "action": "accept",
+      "state": "confirmed",
+      "confirmed": true,
+      "task_id": "task_01M4YB1348JJBB90V0ENZHNB2S",
+      "phase": "completed",
+      "acceptance": {
+        "status": "accepted",
+        "requirements_revision": 1,
+        "deliverable_revision": 1,
+        "evidence_refs": [
+          "out/result.txt"
+        ],
+        "decided_at": "2026-10-14T23:12:46.214Z",
+        "decision_ref": "dup-accept",
+        "candidate_ref": "run_01M4YB134G8PWKBFHGN7JSVDHW",
+        "candidate_plan_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "check_records": [
+          {
+            "check_id": "evidence-present",
+            "status": "passed",
+            "detail": "1 evidence ref(s) recorded"
+          }
+        ]
+      },
+      "request_id": "dup-accept",
+      "candidate_ref": "run_01M4YB134G8PWKBFHGN7JSVDHW",
+      "messages": [
+        "decision 'accept' recorded; no merge/push/deploy performed"
+      ],
+      "candidate": null,
+      "checks": null,
+      "stop": null
+    }
+  },
+  "duplicate_accept_same_request": {
+    "http": 409,
+    "body": {
+      "error": {
+        "code": "illegal_transition",
+        "message": "target_run_id does not match the Task's active Run",
+        "details": {
+          "active_run": null,
+          "target_run_id": "run_01M4YB134G8PWKBFHGN7JSVDHW"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "duplicate_accept_idempotent": false,
+  "duplicate_accept_no_target": {
+    "http": 200,
+    "body": {
+      "action": "accept",
+      "state": "confirmed",
+      "confirmed": true,
+      "task_id": "task_01M4YB1348JJBB90V0ENZHNB2S",
+      "phase": "completed",
+      "acceptance": {
+        "status": "accepted",
+        "requirements_revision": 1,
+        "deliverable_revision": 1,
+        "evidence_refs": [
+          "out/result.txt"
+        ],
+        "decided_at": "2026-10-14T23:12:46.214Z",
+        "decision_ref": "dup-accept",
+        "candidate_ref": "run_01M4YB134G8PWKBFHGN7JSVDHW",
+        "candidate_plan_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "check_records": [
+          {
+            "check_id": "evidence-present",
+            "status": "passed",
+            "detail": "1 evidence ref(s) recorded"
+          }
+        ]
+      },
+      "request_id": "dup-accept",
+      "candidate_ref": "run_01M4YB134G8PWKBFHGN7JSVDHW",
+      "messages": [
+        "decision 'accept' recorded; no merge/push/deploy performed"
+      ],
+      "candidate": null,
+      "checks": null,
+      "stop": null
+    }
+  },
+  "final_phase": "completed"
+}

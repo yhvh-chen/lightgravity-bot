@@ -1,0 +1,1535 @@
+{
+  "task": "LG-010",
+  "kind": "prototype-v0-minimal-backend-closed-loop-r1-reverify",
+  "at": "2026-10-14T23:11:49Z",
+  "python": "3.12.13",
+  "platform": "linux-x86_64",
+  "head": "ffe7a63700657c170b979bfc5d77b7973150c9a8",
+  "model_requested": "deepseek-v4-flash",
+  "upstream": "https://api.deepseek.com/v1",
+  "credential": {
+    "source": "env:DEEPSEEK_API_KEY",
+    "present": true
+  },
+  "hard_caps": {
+    "max_proxy_calls_per_execution": 4,
+    "model_calls_cap_total": 4
+  },
+  "findings": [
+    {
+      "severity": "info",
+      "issue": "coordinator auto-triggers verification (round-1 blocker 2 resolved)",
+      "location": "backend/lightgravity/coordinator/service.py:_apply_outcome -> _auto_verify",
+      "evidence": {
+        "phase_after_execution": "awaiting_acceptance",
+        "auto_verified_without_manual_verify": true,
+        "acceptance_check_records": [
+          {
+            "check_id": "evidence-present",
+            "status": "passed",
+            "detail": "2 evidence ref(s) recorded"
+          },
+          {
+            "check_id": "artifacts-in-workspace",
+            "status": "passed",
+            "detail": "2 artifact ref(s) verified"
+          }
+        ],
+        "stop_release_gate": {
+          "run_state": "awaiting_acceptance",
+          "run_stopped": true,
+          "members": [
+            {
+              "id": "member_01M4YAZC5F1ZKF8MBE2QAGN4KT",
+              "state": "released",
+              "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J"
+            }
+          ],
+          "all_members_released": true,
+          "no_member_running": true
+        }
+      },
+      "qa_handling": "waited for awaiting_acceptance through the normal POST/tasks entry; no manual verify call"
+    }
+  ],
+  "limitations": [
+    "Minimal backend loop only: no browser/UI, no full crash-recovery suite (LG-021/LG-022).",
+    "Only the openai-compat (DeepSeek) backend was exercised; Gemini/Vertex remain unverified.",
+    "The delivery Run was driven to awaiting_acceptance by the coordinator's own automatic verify call; the harness never invoked verify_and_prepare itself.",
+    "Task `checks:` authorization is frontmatter-only in this version; the harness writes it directly to the Store before the Run executes (no HTTP setter).",
+    "sandbox isolation was not escape-tested; only the SDK-reported status is recorded."
+  ],
+  "process_check": {
+    "localharness_pids_before": [],
+    "localharness_pids_after": [],
+    "leaked": []
+  },
+  "planner": "rules-single",
+  "real_executor_wired": true,
+  "health": {
+    "status": "ok",
+    "package_version": "0.1.0",
+    "contract_version": "1.3.1",
+    "schema_version": "lightgravity.bot/v1",
+    "capabilities": {
+      "health": true,
+      "version": true,
+      "store": true,
+      "coordinator": true,
+      "events_sse": true,
+      "settings": true,
+      "files": true,
+      "resources": true,
+      "verification": true,
+      "global_chat": true,
+      "sdk_adapter": true
+    }
+  },
+  "primary": {
+    "checks_authorized": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "checks_authorized_phase": "queued",
+    "checks_authorized_before_execution": true,
+    "task_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+    "run_id": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+    "create_status": 200,
+    "create_idempotent": true,
+    "waited_seconds": 5.91,
+    "phase_after_execution": "awaiting_acceptance",
+    "task_detail_after_execution": {
+      "title": "LG-010 real closure",
+      "objective": "Create a file named demo_target.txt in the repository whose entire content is exactly the line: LG010_REAL_CLOSURE. Use the create_file tool. Do not modify any other file. Then call finish.",
+      "acceptance_criteria": [
+        "demo_target.txt exists in the workspace and contains LG010_REAL_CLOSURE"
+      ],
+      "status": "in-progress",
+      "phase": "awaiting_acceptance",
+      "requirements_revision": 1,
+      "project_ref": null,
+      "repository_ref": null,
+      "workspace_ref": "demo-repo",
+      "agent_ref": "coordinator",
+      "depends_on": [],
+      "active_run": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+      "deliverable_revision": 1,
+      "queue": {
+        "state": "not_queued",
+        "order": 1,
+        "queued_at": "2026-10-14T23:11:49.314Z",
+        "owner": null,
+        "lease_expires_at": null
+      },
+      "acceptance": {
+        "status": "awaiting",
+        "requirements_revision": 1,
+        "deliverable_revision": 1,
+        "evidence_refs": [
+          "demo_target.txt",
+          "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3"
+        ],
+        "decided_at": null,
+        "decision_ref": null,
+        "candidate_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+        "candidate_plan_hash": "82f52feca93cfff15deef96deb618a6832a232f8aba0c14ae8ec555a8cfc9a4e",
+        "check_records": [
+          {
+            "check_id": "evidence-present",
+            "status": "passed",
+            "detail": "2 evidence ref(s) recorded"
+          },
+          {
+            "check_id": "artifacts-in-workspace",
+            "status": "passed",
+            "detail": "2 artifact ref(s) verified"
+          }
+        ]
+      },
+      "budget": {
+        "max_workers": 3,
+        "max_parallel": 2,
+        "max_repair_rounds": 1
+      },
+      "archived": false,
+      "schema": "lightgravity.bot/v1",
+      "kind": "task",
+      "id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+      "revision": 9,
+      "checks": [
+        "evidence-present",
+        "artifacts-in-workspace"
+      ],
+      "etag": "\"9\"",
+      "body": "# Task\n\n## \u76ee\u6807\n\nCreate a file named demo_target.txt in the repository whose entire content is exactly the line: LG010_REAL_CLOSURE. Use the create_file tool. Do not modify any other file. Then call finish.\n\n## \u9a8c\u6536\u6761\u4ef6\n\n- demo_target.txt exists in the workspace and contains LG010_REAL_CLOSURE\n",
+      "task_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+      "run": {
+        "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+        "attempt": 1,
+        "state": "awaiting_acceptance",
+        "plan_ref": "PLAN.md",
+        "team_refs": [
+          "member_01M4YAZC5F1ZKF8MBE2QAGN4KT"
+        ],
+        "subtask_refs": [
+          "subtask_01M4YAZC5FK9MP2TDVSHD22AV5"
+        ],
+        "session_refs": [],
+        "cleanup": {
+          "status": "pending"
+        },
+        "ended_at": null,
+        "fail_reason": "all 1 subtask(s) passed; candidate handed to verification",
+        "schema": "lightgravity.bot/v1",
+        "kind": "run",
+        "id": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+        "revision": 6,
+        "plan": {
+          "source": "rules-single",
+          "notes": [
+            "QA-budget single-node rule plan"
+          ],
+          "subtasks": [
+            {
+              "key": "deliver",
+              "objective": "Create a file named demo_target.txt in the repository whose entire content is exactly the line: LG010_REAL_CLOSURE. Use the create_file tool. Do not modify any other file. Then call finish.",
+              "capability": "implementation",
+              "acceptance": [
+                "demo_target.txt exists in the workspace and contains LG010_REAL_CLOSURE"
+              ],
+              "depends_on": [],
+              "write": true,
+              "order": 0
+            }
+          ]
+        },
+        "plan_hash": "82f52feca93cfff15deef96deb618a6832a232f8aba0c14ae8ec555a8cfc9a4e",
+        "plan_source": "rules-single",
+        "etag": "\"6\"",
+        "body": "# Run run_01M4YAZC3NA8E7QHWZ15AWCJ9J\n\nTask: task_01M4YAZC1KZS5A0Z1ZPAAFSDDT\n"
+      },
+      "members": [
+        {
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "role_ref": "developer",
+          "state": "released",
+          "template_version": "0",
+          "connection_ref": "primary",
+          "skill_refs": [
+            "implementation"
+          ],
+          "session_ref": null,
+          "tool_policy": {
+            "allowed_tools": [
+              "view-file",
+              "create-file",
+              "edit-file"
+            ]
+          },
+          "workspace_ref": "/tmp/lg010-e2e-f41a1_ny/bot-data/workspaces/demo-repo",
+          "assigned_subtask_refs": [
+            "subtask_01M4YAZC5FK9MP2TDVSHD22AV5"
+          ],
+          "budget": {
+            "max_workers": 3,
+            "max_parallel": 2,
+            "max_repair_rounds": 1
+          },
+          "config_hash": "6e8c428912ad872938aafdaf51ac64ef81369a282f6c97cd27a3e2228a59301c",
+          "capabilities": [
+            "implementation"
+          ],
+          "schema": "lightgravity.bot/v1",
+          "kind": "member",
+          "id": "member_01M4YAZC5F1ZKF8MBE2QAGN4KT",
+          "revision": 1,
+          "etag": "\"1\"",
+          "body": "# Member developer\n\nRole: developer\n"
+        }
+      ],
+      "subtasks": [
+        {
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "state": "passed",
+          "depends_on": [],
+          "assignee_member_ref": "member_01M4YAZC5F1ZKF8MBE2QAGN4KT",
+          "upstream_artifact_refs": [],
+          "objective": "Create a file named demo_target.txt in the repository whose entire content is exactly the line: LG010_REAL_CLOSURE. Use the create_file tool. Do not modify any other file. Then call finish.",
+          "capability": "implementation",
+          "key": "deliver",
+          "write": true,
+          "config_hash": "855779e66d03f2762e4d8e79d437a24d1a91b93b86e6a42909f2fedf7529f76c",
+          "acceptance": {
+            "status": "passed",
+            "criteria": [
+              "demo_target.txt exists in the workspace and contains LG010_REAL_CLOSURE"
+            ],
+            "evidence_refs": [
+              "demo_target.txt",
+              "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3"
+            ]
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "subtask",
+          "id": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+          "revision": 5,
+          "owner": null,
+          "lease_expires_at": null,
+          "etag": "\"5\"",
+          "body": "# Subtask deliver\n\nCreate a file named demo_target.txt in the repository whose entire content is exactly the line: LG010_REAL_CLOSURE. Use the create_file tool. Do not modify any other file. Then call finish.\n"
+        }
+      ]
+    },
+    "auto_verified_without_manual_verify": true,
+    "workspace": {
+      "target_exists": true,
+      "target_content": "LG010_REAL_CLOSURE\n",
+      "target_sha256": "e37aa11234f900dbc79a2d14cddabbeb635d7f0abc60bc6d960e1c95aaebfbb4",
+      "git_status_porcelain": [
+        "?? demo_target.txt"
+      ],
+      "git_diff": "",
+      "git_diff_stat": ""
+    },
+    "executor_results": [
+      {
+        "state": "succeeded",
+        "summary": "succeeded: Created [demo_target.txt](file:///tmp/lg010-e2e-f41a1_ny/bot-data/workspaces/demo-repo/demo_target.txt) containing exactly the line `LG010_REAL_CLOSURE`. No other files were modified.\n\nTask complete.",
+        "model": "deepseek-v4-flash",
+        "upstream_model": "deepseek-flash",
+        "usage": {
+          "prompt_tokens": 15190,
+          "candidates_tokens": 311,
+          "total_tokens": 15616,
+          "thought_tokens": 115,
+          "cached_tokens": 9984,
+          "unknown": []
+        },
+        "artifact_refs": [
+          "demo_target.txt"
+        ],
+        "diff_ref": "/tmp/lg010-e2e-f41a1_ny/artifacts/run_01M4YAZC3NA8E7QHWZ15AWCJ9J/lg006-diff.patch",
+        "stop_reason": "StopReason.UNSPECIFIED",
+        "stop_confirmed": null,
+        "session_ref": {
+          "session_id": "sess_bace8b91d0cd4e99a29abd22765caaa7",
+          "conversation_id": "298ea63b9fae298e76a55eba732a692b",
+          "state": "created",
+          "save_dir": null
+        },
+        "failure": null,
+        "check_records": [
+          {
+            "name": "sandbox",
+            "status": "passed",
+            "detail": ""
+          },
+          {
+            "name": "auth_proxy_stopped",
+            "status": "passed",
+            "detail": "loopback proxy socket closed"
+          },
+          {
+            "name": "model_identity",
+            "status": "passed",
+            "detail": "deepseek-v4-flash"
+          },
+          {
+            "name": "diff",
+            "status": "passed",
+            "detail": "78 chars"
+          }
+        ]
+      }
+    ],
+    "adapter_upstream_calls": [
+      [
+        {
+          "call": 1,
+          "path": "/_XXhjcNTDHrGzID3pFBC9JsmJy43QrWO/v1/chat/completions",
+          "model": "deepseek-v4-flash",
+          "stream": true,
+          "message_count": 2,
+          "has_tools": true,
+          "tool_names": [
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "has_response_format": false,
+          "forwarded": true,
+          "status": 200
+        },
+        {
+          "call": 2,
+          "path": "/_XXhjcNTDHrGzID3pFBC9JsmJy43QrWO/v1/chat/completions",
+          "model": "deepseek-v4-flash",
+          "stream": true,
+          "message_count": 4,
+          "has_tools": true,
+          "tool_names": [
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "has_response_format": false,
+          "forwarded": true,
+          "status": 200
+        },
+        {
+          "call": 3,
+          "path": "/_XXhjcNTDHrGzID3pFBC9JsmJy43QrWO/v1/chat/completions",
+          "model": "deepseek-v4-flash",
+          "stream": true,
+          "message_count": 6,
+          "has_tools": true,
+          "tool_names": [
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "has_response_format": false,
+          "forwarded": true,
+          "status": 200
+        }
+      ]
+    ],
+    "adapter_event_types": [
+      "adapter.execution_finished",
+      "adapter.execution_started",
+      "adapter.session_requested",
+      "adapter.session_started",
+      "adapter.text",
+      "adapter.tool_call"
+    ],
+    "adapter_trace": [
+      {
+        "type": "adapter.tool_call",
+        "name": "skill_lookup"
+      },
+      {
+        "type": "adapter.tool_call",
+        "name": "edit_file"
+      }
+    ],
+    "model_calls_made_after_primary": 3,
+    "task_events": {
+      "items": [
+        {
+          "type": "task.created",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": null,
+          "payload": {
+            "title": "LG-010 real closure",
+            "request_id": "lg010-primary-create"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC1QHS8W6HTAW4QWYGG1",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 1,
+          "at": "2026-10-14T23:11:49.303Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": null,
+          "payload": {
+            "from": "intake",
+            "to": "queued"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC2FD31YBZXD5F60HMMV",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 2,
+          "at": "2026-10-14T23:11:49.327Z"
+        },
+        {
+          "type": "queue.enqueued",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": null,
+          "payload": {
+            "order": 1,
+            "revision": 1
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC2GRBM3165JM8YCY4ZK",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 3,
+          "at": "2026-10-14T23:11:49.328Z"
+        },
+        {
+          "type": "run.created",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "run_id": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+            "attempt": 1
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC3PD3WJEPKNG5BBNNX6",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 4,
+          "at": "2026-10-14T23:11:49.366Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "queued",
+            "to": "planning"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC4536HPM9V1PNFB9NM6",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 5,
+          "at": "2026-10-14T23:11:49.381Z"
+        },
+        {
+          "type": "task.status_changed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "todo",
+            "to": "in-progress"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC452KHV4S7MA6H9W4RB",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 6,
+          "at": "2026-10-14T23:11:49.381Z"
+        },
+        {
+          "type": "queue.claimed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "owner": "coordinator:106796",
+            "run_id": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC45K8AKP5CEWBNZR0DY",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 7,
+          "at": "2026-10-14T23:11:49.381Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "planning",
+            "to": "recruiting",
+            "reason": "recruit minimal team"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC4T8Q0WMCQG08HTQQ24",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 8,
+          "at": "2026-10-14T23:11:49.402Z"
+        },
+        {
+          "type": "member.recruited",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "member_ref": "member_01M4YAZC5F1ZKF8MBE2QAGN4KT",
+            "role_ref": "developer",
+            "config_hash": "6e8c428912ad872938aafdaf51ac64ef81369a282f6c97cd27a3e2228a59301c",
+            "template_version": "0",
+            "capabilities": [
+              "implementation"
+            ]
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC5H559F0FQ7FWDBN14F",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 9,
+          "at": "2026-10-14T23:11:49.425Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "recruiting",
+            "to": "executing",
+            "reason": "execute subtask graph"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC60XCN7YKM02WF93RV7",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 10,
+          "at": "2026-10-14T23:11:49.440Z"
+        },
+        {
+          "type": "subtask.state_changed",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "subtask_ref": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+            "from": "pending",
+            "to": "ready",
+            "reason": "dependencies satisfied"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC70NE6WM9DJF0T4DKXV",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 11,
+          "at": "2026-10-14T23:11:49.472Z"
+        },
+        {
+          "type": "subtask.state_changed",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "subtask_ref": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+            "from": "ready",
+            "to": "running",
+            "owner": "graph-dispatcher:106796",
+            "lease_expires_at": "2026-10-14T23:16:49.475Z"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC7921BY6NVSVKE0GZ8F",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 12,
+          "at": "2026-10-14T23:11:49.481Z"
+        },
+        {
+          "type": "subtask.state_changed",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "subtask_ref": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+            "from": "running",
+            "to": "verifying",
+            "reason": "worker returned success"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZH9GEVSXMFJYNZJCM6D1",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 13,
+          "at": "2026-10-14T23:11:54.672Z"
+        },
+        {
+          "type": "subtask.state_changed",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "subtask_ref": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+            "from": "verifying",
+            "to": "passed",
+            "reason": "minimal machine check passed"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZH9TPDQZY9QCEGFE2MXS",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 14,
+          "at": "2026-10-14T23:11:54.682Z"
+        },
+        {
+          "type": "artifact.produced",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "subtask_ref": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+            "artifact_refs": [
+              "demo_target.txt",
+              "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3"
+            ],
+            "handoff": {
+              "subtask_ref": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+              "revision": 5,
+              "content_hash": "d467070a109fba90d43dcdf8f9d0742bb27191b095d7de10aa9cb7daca99555e",
+              "artifacts": [
+                "demo_target.txt",
+                "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3"
+              ]
+            }
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZH9V76Z2JJD8K0MWPNAD",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 15,
+          "at": "2026-10-14T23:11:54.683Z"
+        },
+        {
+          "type": "member.state_changed",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "member_ref": "member_01M4YAZC5F1ZKF8MBE2QAGN4KT",
+            "from": "ready",
+            "to": "released",
+            "reason": "run scheduling finished"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZHA557KHV49R2V58RVXA",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 16,
+          "at": "2026-10-14T23:11:54.693Z"
+        },
+        {
+          "type": "member.released",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "member_ref": "member_01M4YAZC5F1ZKF8MBE2QAGN4KT",
+            "reason": "run scheduling finished"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZHA5CGH8C6AXQ87YYGGS",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 17,
+          "at": "2026-10-14T23:11:54.693Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "executing",
+            "to": "verifying"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZHB45G2XMAJ9KWN6FCW2",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 18,
+          "at": "2026-10-14T23:11:54.724Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "verify",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "verifying",
+            "to": "awaiting_acceptance",
+            "reason": "machine checks passed and resources confirmed stopped"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZHCN4MTD7GVPT1MR7EK8",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 19,
+          "at": "2026-10-14T23:11:54.773Z"
+        },
+        {
+          "type": "decision.requested",
+          "actor": "verify",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "candidate_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+            "requirements_revision": 1,
+            "deliverable_revision": 1,
+            "evidence_refs": [
+              "demo_target.txt",
+              "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3"
+            ],
+            "checks": [
+              {
+                "check_id": "evidence-present",
+                "status": "passed",
+                "detail": "2 evidence ref(s) recorded"
+              },
+              {
+                "check_id": "artifacts-in-workspace",
+                "status": "passed",
+                "detail": "2 artifact ref(s) verified"
+              }
+            ]
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZHD26W3ZT54BN29P4Y02",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 20,
+          "at": "2026-10-14T23:11:54.786Z"
+        }
+      ],
+      "next_cursor": null
+    },
+    "auto_verify_error_events": [],
+    "status_message": {
+      "status": 200,
+      "kind": "query"
+    },
+    "status_message_idempotent": true,
+    "messages": {
+      "items": [
+        {
+          "message_id": "lg010-msg-status",
+          "seq": 1,
+          "message": {
+            "message_id": "lg010-msg-status",
+            "role": "user",
+            "content": "\u72b6\u6001",
+            "attachments": [],
+            "schema": "lightgravity.bot/v1",
+            "kind": "message",
+            "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+            "at": "2026-10-14T23:11:55.269Z",
+            "seq": 1
+          }
+        }
+      ],
+      "next_cursor": "v1:task_01M4YAZC1KZS5A0Z1ZPAAFSDDT:1"
+    },
+    "acceptance_view": {
+      "task_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+      "phase": "awaiting_acceptance",
+      "status": "in-progress",
+      "revision": 9,
+      "requirements_revision": 1,
+      "deliverable_revision": 1,
+      "acceptance": {
+        "status": "awaiting",
+        "requirements_revision": 1,
+        "deliverable_revision": 1,
+        "evidence_refs": [
+          "demo_target.txt",
+          "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3"
+        ],
+        "decided_at": null,
+        "decision_ref": null,
+        "candidate_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+        "candidate_plan_hash": "82f52feca93cfff15deef96deb618a6832a232f8aba0c14ae8ec555a8cfc9a4e",
+        "check_records": [
+          {
+            "check_id": "evidence-present",
+            "status": "passed",
+            "detail": "2 evidence ref(s) recorded"
+          },
+          {
+            "check_id": "artifacts-in-workspace",
+            "status": "passed",
+            "detail": "2 artifact ref(s) verified"
+          }
+        ]
+      },
+      "candidate": {
+        "task_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+        "candidate_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+        "run_id": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+        "run_state": "awaiting_acceptance",
+        "attempt": 1,
+        "plan_hash": "82f52feca93cfff15deef96deb618a6832a232f8aba0c14ae8ec555a8cfc9a4e",
+        "requirements_revision": 1,
+        "deliverable_revision": 1,
+        "workspace_ref": "demo-repo",
+        "workspace_path": "/tmp/lg010-e2e-f41a1_ny/bot-data/workspaces/demo-repo",
+        "member_refs": [
+          "member_01M4YAZC5F1ZKF8MBE2QAGN4KT"
+        ],
+        "subtask_refs": [
+          "subtask_01M4YAZC5FK9MP2TDVSHD22AV5"
+        ],
+        "artifact_refs": [
+          "demo_target.txt",
+          "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3"
+        ],
+        "diff_ref": "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3",
+        "session_refs": [],
+        "check_records": []
+      },
+      "checks": {
+        "results": [
+          {
+            "check_id": "evidence-present",
+            "status": "passed",
+            "detail": "2 evidence ref(s) recorded"
+          },
+          {
+            "check_id": "artifacts-in-workspace",
+            "status": "passed",
+            "detail": "2 artifact ref(s) verified"
+          }
+        ],
+        "authorized": [
+          "evidence-present",
+          "artifacts-in-workspace"
+        ],
+        "registered": [
+          "evidence-present",
+          "artifacts-in-workspace"
+        ],
+        "satisfied": true
+      }
+    },
+    "acceptance_check_records": [
+      {
+        "check_id": "evidence-present",
+        "status": "passed",
+        "detail": "2 evidence ref(s) recorded"
+      },
+      {
+        "check_id": "artifacts-in-workspace",
+        "status": "passed",
+        "detail": "2 artifact ref(s) verified"
+      }
+    ],
+    "phase_awaiting": "awaiting_acceptance",
+    "members_after_stop": [
+      {
+        "id": "member_01M4YAZC5F1ZKF8MBE2QAGN4KT",
+        "state": "released",
+        "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J"
+      }
+    ],
+    "subtasks": [
+      {
+        "id": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+        "state": "passed",
+        "acceptance": {
+          "status": "passed",
+          "criteria": [
+            "demo_target.txt exists in the workspace and contains LG010_REAL_CLOSURE"
+          ],
+          "evidence_refs": [
+            "demo_target.txt",
+            "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3"
+          ]
+        },
+        "upstream_artifact_refs": []
+      }
+    ],
+    "run_after_stop": {
+      "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+      "attempt": 1,
+      "state": "awaiting_acceptance",
+      "plan_ref": "PLAN.md",
+      "team_refs": [
+        "member_01M4YAZC5F1ZKF8MBE2QAGN4KT"
+      ],
+      "subtask_refs": [
+        "subtask_01M4YAZC5FK9MP2TDVSHD22AV5"
+      ],
+      "session_refs": [],
+      "cleanup": {
+        "status": "pending"
+      },
+      "ended_at": null,
+      "fail_reason": "all 1 subtask(s) passed; candidate handed to verification",
+      "schema": "lightgravity.bot/v1",
+      "kind": "run",
+      "id": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+      "revision": 6,
+      "plan": {
+        "source": "rules-single",
+        "notes": [
+          "QA-budget single-node rule plan"
+        ],
+        "subtasks": [
+          {
+            "key": "deliver",
+            "objective": "Create a file named demo_target.txt in the repository whose entire content is exactly the line: LG010_REAL_CLOSURE. Use the create_file tool. Do not modify any other file. Then call finish.",
+            "capability": "implementation",
+            "acceptance": [
+              "demo_target.txt exists in the workspace and contains LG010_REAL_CLOSURE"
+            ],
+            "depends_on": [],
+            "write": true,
+            "order": 0
+          }
+        ]
+      },
+      "plan_hash": "82f52feca93cfff15deef96deb618a6832a232f8aba0c14ae8ec555a8cfc9a4e",
+      "plan_source": "rules-single",
+      "etag": "\"6\"",
+      "body": "# Run run_01M4YAZC3NA8E7QHWZ15AWCJ9J\n\nTask: task_01M4YAZC1KZS5A0Z1ZPAAFSDDT\n"
+    },
+    "stop_release_gate": {
+      "run_state": "awaiting_acceptance",
+      "run_stopped": true,
+      "members": [
+        {
+          "id": "member_01M4YAZC5F1ZKF8MBE2QAGN4KT",
+          "state": "released",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J"
+        }
+      ],
+      "all_members_released": true,
+      "no_member_running": true
+    },
+    "stale_accept": {
+      "http": 409,
+      "code": "acceptance_stale"
+    },
+    "stale_reject": {
+      "http": 409,
+      "code": "acceptance_stale"
+    },
+    "accept": {
+      "http": 200,
+      "body": {
+        "action": "accept",
+        "state": "confirmed",
+        "confirmed": true,
+        "task_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+        "phase": "completed",
+        "acceptance": {
+          "status": "accepted",
+          "requirements_revision": 1,
+          "deliverable_revision": 1,
+          "evidence_refs": [
+            "demo_target.txt",
+            "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3"
+          ],
+          "decided_at": "2026-10-14T23:11:55.361Z",
+          "decision_ref": "lg010-accept",
+          "candidate_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "candidate_plan_hash": "82f52feca93cfff15deef96deb618a6832a232f8aba0c14ae8ec555a8cfc9a4e",
+          "check_records": [
+            {
+              "check_id": "evidence-present",
+              "status": "passed",
+              "detail": "2 evidence ref(s) recorded"
+            },
+            {
+              "check_id": "artifacts-in-workspace",
+              "status": "passed",
+              "detail": "2 artifact ref(s) verified"
+            }
+          ],
+          "note": "LG-010 QA acceptance"
+        },
+        "request_id": "lg010-accept",
+        "candidate_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+        "messages": [
+          "decision 'accept' recorded; no merge/push/deploy performed"
+        ],
+        "candidate": null,
+        "checks": null,
+        "stop": null
+      }
+    },
+    "accept_idempotent": false,
+    "phase_final": "completed",
+    "status_final": "done",
+    "run_final_state": null,
+    "events": {
+      "items": [
+        {
+          "type": "task.created",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": null,
+          "payload": {
+            "title": "LG-010 real closure",
+            "request_id": "lg010-primary-create"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC1QHS8W6HTAW4QWYGG1",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 1,
+          "at": "2026-10-14T23:11:49.303Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": null,
+          "payload": {
+            "from": "intake",
+            "to": "queued"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC2FD31YBZXD5F60HMMV",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 2,
+          "at": "2026-10-14T23:11:49.327Z"
+        },
+        {
+          "type": "queue.enqueued",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": null,
+          "payload": {
+            "order": 1,
+            "revision": 1
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC2GRBM3165JM8YCY4ZK",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 3,
+          "at": "2026-10-14T23:11:49.328Z"
+        },
+        {
+          "type": "run.created",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "run_id": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+            "attempt": 1
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC3PD3WJEPKNG5BBNNX6",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 4,
+          "at": "2026-10-14T23:11:49.366Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "queued",
+            "to": "planning"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC4536HPM9V1PNFB9NM6",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 5,
+          "at": "2026-10-14T23:11:49.381Z"
+        },
+        {
+          "type": "task.status_changed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "todo",
+            "to": "in-progress"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC452KHV4S7MA6H9W4RB",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 6,
+          "at": "2026-10-14T23:11:49.381Z"
+        },
+        {
+          "type": "queue.claimed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "owner": "coordinator:106796",
+            "run_id": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC45K8AKP5CEWBNZR0DY",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 7,
+          "at": "2026-10-14T23:11:49.381Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "planning",
+            "to": "recruiting",
+            "reason": "recruit minimal team"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC4T8Q0WMCQG08HTQQ24",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 8,
+          "at": "2026-10-14T23:11:49.402Z"
+        },
+        {
+          "type": "member.recruited",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "member_ref": "member_01M4YAZC5F1ZKF8MBE2QAGN4KT",
+            "role_ref": "developer",
+            "config_hash": "6e8c428912ad872938aafdaf51ac64ef81369a282f6c97cd27a3e2228a59301c",
+            "template_version": "0",
+            "capabilities": [
+              "implementation"
+            ]
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC5H559F0FQ7FWDBN14F",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 9,
+          "at": "2026-10-14T23:11:49.425Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "recruiting",
+            "to": "executing",
+            "reason": "execute subtask graph"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC60XCN7YKM02WF93RV7",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 10,
+          "at": "2026-10-14T23:11:49.440Z"
+        },
+        {
+          "type": "subtask.state_changed",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "subtask_ref": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+            "from": "pending",
+            "to": "ready",
+            "reason": "dependencies satisfied"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC70NE6WM9DJF0T4DKXV",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 11,
+          "at": "2026-10-14T23:11:49.472Z"
+        },
+        {
+          "type": "subtask.state_changed",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "subtask_ref": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+            "from": "ready",
+            "to": "running",
+            "owner": "graph-dispatcher:106796",
+            "lease_expires_at": "2026-10-14T23:16:49.475Z"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZC7921BY6NVSVKE0GZ8F",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 12,
+          "at": "2026-10-14T23:11:49.481Z"
+        },
+        {
+          "type": "subtask.state_changed",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "subtask_ref": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+            "from": "running",
+            "to": "verifying",
+            "reason": "worker returned success"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZH9GEVSXMFJYNZJCM6D1",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 13,
+          "at": "2026-10-14T23:11:54.672Z"
+        },
+        {
+          "type": "subtask.state_changed",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "subtask_ref": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+            "from": "verifying",
+            "to": "passed",
+            "reason": "minimal machine check passed"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZH9TPDQZY9QCEGFE2MXS",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 14,
+          "at": "2026-10-14T23:11:54.682Z"
+        },
+        {
+          "type": "artifact.produced",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "subtask_ref": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+            "artifact_refs": [
+              "demo_target.txt",
+              "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3"
+            ],
+            "handoff": {
+              "subtask_ref": "subtask_01M4YAZC5FK9MP2TDVSHD22AV5",
+              "revision": 5,
+              "content_hash": "d467070a109fba90d43dcdf8f9d0742bb27191b095d7de10aa9cb7daca99555e",
+              "artifacts": [
+                "demo_target.txt",
+                "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3"
+              ]
+            }
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZH9V76Z2JJD8K0MWPNAD",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 15,
+          "at": "2026-10-14T23:11:54.683Z"
+        },
+        {
+          "type": "member.state_changed",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "member_ref": "member_01M4YAZC5F1ZKF8MBE2QAGN4KT",
+            "from": "ready",
+            "to": "released",
+            "reason": "run scheduling finished"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZHA557KHV49R2V58RVXA",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 16,
+          "at": "2026-10-14T23:11:54.693Z"
+        },
+        {
+          "type": "member.released",
+          "actor": "coordinator",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "member_ref": "member_01M4YAZC5F1ZKF8MBE2QAGN4KT",
+            "reason": "run scheduling finished"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZHA5CGH8C6AXQ87YYGGS",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 17,
+          "at": "2026-10-14T23:11:54.693Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "coordinator:106796",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "executing",
+            "to": "verifying"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZHB45G2XMAJ9KWN6FCW2",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 18,
+          "at": "2026-10-14T23:11:54.724Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "verify",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "verifying",
+            "to": "awaiting_acceptance",
+            "reason": "machine checks passed and resources confirmed stopped"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZHCN4MTD7GVPT1MR7EK8",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 19,
+          "at": "2026-10-14T23:11:54.773Z"
+        },
+        {
+          "type": "decision.requested",
+          "actor": "verify",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "candidate_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+            "requirements_revision": 1,
+            "deliverable_revision": 1,
+            "evidence_refs": [
+              "demo_target.txt",
+              "evidence:run_01M4YAZC3NA8E7QHWZ15AWCJ9J/subtask_01M4YAZC5FK9MP2TDVSHD22AV5-lg006-diff.patch@sha256:2fe9b77e7ab9a26e9646ec6fe42235e85739e8678f8f4b5a58f3b41c1bf7e0c3"
+            ],
+            "checks": [
+              {
+                "check_id": "evidence-present",
+                "status": "passed",
+                "detail": "2 evidence ref(s) recorded"
+              },
+              {
+                "check_id": "artifacts-in-workspace",
+                "status": "passed",
+                "detail": "2 artifact ref(s) verified"
+              }
+            ]
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZHD26W3ZT54BN29P4Y02",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 20,
+          "at": "2026-10-14T23:11:54.786Z"
+        },
+        {
+          "type": "task.phase_changed",
+          "actor": "verify",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "awaiting_acceptance",
+            "to": "completed",
+            "reason": "human accepted the candidate"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZHZMBCBHEC81MGCHM4JF",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 21,
+          "at": "2026-10-14T23:11:55.380Z"
+        },
+        {
+          "type": "task.status_changed",
+          "actor": "verify",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "from": "in-progress",
+            "to": "done"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZHZNSYDDTY1KMP9M9ZWE",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 22,
+          "at": "2026-10-14T23:11:55.381Z"
+        },
+        {
+          "type": "decision.resolved",
+          "actor": "verify",
+          "task_ref": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "run_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+          "payload": {
+            "action": "accept",
+            "candidate_ref": "run_01M4YAZC3NA8E7QHWZ15AWCJ9J",
+            "requirements_revision": 1,
+            "deliverable_revision": 1,
+            "decision_ref": "lg010-accept"
+          },
+          "schema": "lightgravity.bot/v1",
+          "kind": "event",
+          "event_id": "evt_01M4YAZJ02P6RWWVG9K6AB333P",
+          "stream_id": "task_01M4YAZC1KZS5A0Z1ZPAAFSDDT",
+          "seq": 23,
+          "at": "2026-10-14T23:11:55.394Z"
+        }
+      ],
+      "next_cursor": null
+    },
+    "total_seconds": 6.13
+  },
+  "failure_case": {
+    "task_id": "task_01M4YAZJ13K3579TTBTAXEP83Y",
+    "create_status": 200,
+    "phase": "failed",
+    "status": "in-progress",
+    "waited_seconds": 0.65,
+    "run": null,
+    "error_events": [
+      {
+        "type": "error.recorded",
+        "actor": "coordinator",
+        "task_ref": "task_01M4YAZJ13K3579TTBTAXEP83Y",
+        "run_ref": "run_01M4YAZJ2JZ4KMD24V82CSE5HE",
+        "payload": {
+          "mode": "subtask",
+          "code": "config_invalid",
+          "message": "workspace '/tmp/lg010-e2e-f41a1_ny/bot-data/workspaces/lg010-missing-workspace' is not an existing directory",
+          "subtask_ref": "subtask_01M4YAZJ497KSBPJG210WYNY1P"
+        },
+        "schema": "lightgravity.bot/v1",
+        "kind": "event",
+        "event_id": "evt_01M4YAZJ76FR902K5VEYQBNHRH",
+        "stream_id": "task_01M4YAZJ13K3579TTBTAXEP83Y",
+        "seq": 14,
+        "at": "2026-10-14T23:11:55.622Z"
+      },
+      {
+        "type": "error.recorded",
+        "actor": "coordinator:106796",
+        "task_ref": "task_01M4YAZJ13K3579TTBTAXEP83Y",
+        "run_ref": "run_01M4YAZJ2JZ4KMD24V82CSE5HE",
+        "payload": {
+          "mode": "worker",
+          "code": "config_invalid",
+          "message": "workspace '/tmp/lg010-e2e-f41a1_ny/bot-data/workspaces/lg010-missing-workspace' is not an existing directory"
+        },
+        "schema": "lightgravity.bot/v1",
+        "kind": "event",
+        "event_id": "evt_01M4YAZJ8XEXAVV8A5X23328A6",
+        "stream_id": "task_01M4YAZJ13K3579TTBTAXEP83Y",
+        "seq": 18,
+        "at": "2026-10-14T23:11:55.677Z"
+      }
+    ],
+    "subtasks": [],
+    "total_seconds": 0.71
+  },
+  "model_calls_this_run": 3,
+  "model_calls_previous_attempts": 9,
+  "model_calls_total": 12,
+  "cumulative_cap": 14,
+  "within_cumulative_cap_14": true
+}

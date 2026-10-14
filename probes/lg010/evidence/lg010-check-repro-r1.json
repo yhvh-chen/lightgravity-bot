@@ -1,0 +1,120 @@
+{
+  "canonical_ref": "evidence:run_repro/subtask_1-deliver-diff.patch@sha256:dcfdf8dc952e259aec082714ef464655b4d8473e5b1015076a951be74d72c229",
+  "raw_absolute_ref": "/tmp/lg010-repro-r1-9dd0rk39/artifacts/run_repro/deliver-diff.patch",
+  "canonical_check": {
+    "results": [
+      {
+        "check_id": "evidence-present",
+        "status": "passed",
+        "detail": "1 evidence ref(s) recorded"
+      },
+      {
+        "check_id": "artifacts-in-workspace",
+        "status": "passed",
+        "detail": "1 artifact ref(s) verified"
+      }
+    ],
+    "authorized": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "registered": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "satisfied": true
+  },
+  "raw_absolute_check": {
+    "results": [
+      {
+        "check_id": "evidence-present",
+        "status": "passed",
+        "detail": "1 evidence ref(s) recorded"
+      },
+      {
+        "check_id": "artifacts-in-workspace",
+        "status": "failed",
+        "detail": "unauthorized absolute artifact ref: /tmp/lg010-repro-r1-9dd0rk39/artifacts/run_repro/deliver-diff.patch"
+      }
+    ],
+    "authorized": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "registered": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "satisfied": false
+  },
+  "workspace_relative_check": {
+    "results": [
+      {
+        "check_id": "evidence-present",
+        "status": "passed",
+        "detail": "1 evidence ref(s) recorded"
+      },
+      {
+        "check_id": "artifacts-in-workspace",
+        "status": "passed",
+        "detail": "1 artifact ref(s) verified"
+      }
+    ],
+    "authorized": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "registered": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "satisfied": true
+  },
+  "cross_task": {
+    "rejected": true,
+    "error": "evidence ref 'evidence:run_repro/subtask_1-deliver-diff.patch@sha256:dcfdf8dc952e259aec082714ef464655b4d8473e5b1015076a951be74d72c229' has no readable file"
+  },
+  "cross_run": {
+    "rejected": true,
+    "error": "evidence ref 'evidence:run_repro/subtask_1-deliver-diff.patch@sha256:dcfdf8dc952e259aec082714ef464655b4d8473e5b1015076a951be74d72c229' belongs to run 'run_repro', not 'run_other'"
+  },
+  "escape_traversal": {
+    "rejected": true,
+    "error": "evidence ref 'evidence:run_repro/..' has an unsafe artifact name"
+  },
+  "no_data_dir": {
+    "rejected": true,
+    "error": "evidence refs require a store with a data directory"
+  },
+  "symlink_escape": {
+    "rejected": true,
+    "error": "evidence ref 'evidence:run_repro/escape.link' escapes the task evidence root"
+  },
+  "digest_tamper": {
+    "rejected": true,
+    "error": "evidence ref 'evidence:run_repro/subtask_1-deliver-diff.patch@sha256:dcfdf8dc952e259aec082714ef464655b4d8473e5b1015076a951be74d72c229' digest mismatch"
+  },
+  "tampered_check": {
+    "results": [
+      {
+        "check_id": "evidence-present",
+        "status": "passed",
+        "detail": "1 evidence ref(s) recorded"
+      },
+      {
+        "check_id": "artifacts-in-workspace",
+        "status": "failed",
+        "detail": "evidence ref 'evidence:run_repro/subtask_1-deliver-diff.patch@sha256:dcfdf8dc952e259aec082714ef464655b4d8473e5b1015076a951be74d72c229' digest mismatch"
+      }
+    ],
+    "authorized": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "registered": [
+      "evidence-present",
+      "artifacts-in-workspace"
+    ],
+    "satisfied": false
+  }
+}
