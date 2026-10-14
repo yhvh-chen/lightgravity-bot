@@ -19,7 +19,7 @@ from lightgravity.contracts import (
 
 
 def test_frozen_constants() -> None:
-    assert CONTRACT_VERSION == "1.2.0"
+    assert CONTRACT_VERSION == "1.3.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 

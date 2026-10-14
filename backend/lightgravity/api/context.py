@@ -16,6 +16,7 @@ from ..config import Settings
 from ..coordinator import Coordinator
 from ..settings import ConnectionService, ConnectionTester, FileSecretStore
 from ..store.protocol import Store
+from ..verify import VerificationService
 
 from .access import AccessPolicy
 from .eventbus import EventBroker
@@ -34,6 +35,7 @@ class ApiContext:
     access: AccessPolicy
     real_executor: bool = False
     tester: ConnectionTester | None = None
+    verification: VerificationService | None = None
 
     @property
     def data_dir(self) -> Path:

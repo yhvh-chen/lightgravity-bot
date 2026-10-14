@@ -38,6 +38,8 @@ async def health(request: Request) -> HealthResponse:
         "settings": wired,
         "files": wired,
         "resources": wired,
+        "verification": bool(getattr(context, "verification", None)),
+        "global_chat": wired,
         # The real SDK adapter is only advertised once LG-006/LG-010 inject it.
         "sdk_adapter": bool(getattr(context, "real_executor", False)),
     }

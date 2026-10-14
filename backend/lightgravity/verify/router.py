@@ -51,8 +51,13 @@ def _error_response(exc: AppError) -> JSONResponse:
     )
 
 
-def build_router(service: VerificationService) -> APIRouter:
-    """Build the verification router bound to ``service``."""
+def build_acceptance_router(service: VerificationService) -> APIRouter:
+    """Build a router exposing only the read-only acceptance snapshot.
+
+    The integration owner mounts this under ``/api/v1`` next to the API
+    ``POST /tasks/{task_id}/actions`` handler, so the accept/reject branch lives
+    in exactly one place (no duplicate route can shadow it).
+    """
 
     router = APIRouter(tags=["verify"])
 
@@ -63,6 +68,19 @@ def build_router(service: VerificationService) -> APIRouter:
         except AppError as exc:
             return _error_response(exc)
         return view.to_dict()
+
+    return router
+
+
+def build_router(service: VerificationService) -> APIRouter:
+    """Build the verification router bound to ``service``.
+
+    Kept for standalone use/tests; the application mounts only
+    :func:`build_acceptance_router` and routes accept/reject through
+    ``api/tasks.py`` to avoid two handlers for the same path.
+    """
+
+    router = build_acceptance_router(service)
 
     @router.post("/tasks/{task_id}/actions")
     def post_action(task_id: str, payload: ActionRequest) -> Any:
@@ -90,4 +108,4 @@ def build_router(service: VerificationService) -> APIRouter:
     return router
 
 
-__all__ = ["ActionRequest", "build_router"]
+__all__ = ["ActionRequest", "build_acceptance_router", "build_router"]

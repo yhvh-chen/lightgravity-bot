@@ -63,6 +63,9 @@ class TaskActionRequest(BaseModel):
     target_run_id: str | None = None
     decision: str | None = None
     note: str | None = None
+    # Additive accept/reject binding fields (docs/08 §4.3, §6.1).
+    expected_requirements_revision: int | None = None
+    expected_deliverable_revision: int | None = None
 
 
 #: Actions not implemented here; the honest response names the owning task.
@@ -319,6 +322,11 @@ def build_task_router() -> APIRouter:
                 "evidence_refs": evidence_refs,
                 "decided_at": None,
                 "decision_ref": None,
+                # Additive candidate binding is invalidated on a requirements change.
+                "candidate_ref": None,
+                "candidate_plan_hash": None,
+                "check_records": [],
+                "note": None,
             }
         if not updates:
             detail = _task_detail(ctx, task_id)
@@ -424,6 +432,30 @@ def build_task_router() -> APIRouter:
                     "request_id": payload.request_id,
                 },
             )
+        if action in {ActionName.ACCEPT, ActionName.REJECT}:
+            verification = ctx.verification
+            if verification is None:
+                raise AppError(
+                    ErrorCode.NOT_READY,
+                    f"verification service is not wired for {action.value!r}",
+                    details={
+                        "action": action.value,
+                        "owner": "LG-009",
+                        "request_id": payload.request_id,
+                    },
+                )
+            decision = verification.decide(
+                task_id,
+                action.value,
+                request_id=payload.request_id,
+                expected_revision=payload.expected_revision,
+                expected_requirements_revision=payload.expected_requirements_revision,
+                expected_deliverable_revision=payload.expected_deliverable_revision,
+                target_run_id=payload.target_run_id,
+                note=payload.note,
+            )
+            response.headers["ETag"] = f'"{ctx.store.read("task", task_id).revision}"'
+            return decision.to_dict()
         owner = _ACTION_OWNER.get(action.value, "LG-016")
         raise AppError(
             ErrorCode.NOT_READY,

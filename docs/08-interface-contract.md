@@ -136,7 +136,7 @@ ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间�
 - 错误统一返回错误信封（见 4.2），HTTP 状态码与 `code` 对应。
 - 修改型请求必须携带 `expected_revision`（乐观并发）；响应携带 `ETag: "<revision>"`。
 - 幂等：客户端生成 `message_id`/`request_id`；服务端对相同键返回首次结果，不重复产生副作用。
-- 本地认证：默认只监听 loopback；非 loopback 必须携带本地访问令牌（请求头 `X-LG-Token`），令牌来源由 LG-020 定义。凭证管理接口额外要求同源/受保护来源，不接受网页预览或普通聊天调用。
+- 本地认证：默认只监听 loopback；非 loopback 必须携带本地访问令牌（请求头 `X-LG-Token`），令牌来源由 LG-020 定义。凭证管理接口额外要求同源/受保护来源，不接受网页预览或普通聊天调用。令牌只由**运行时注入**（进程环境/启动注入，或服务启动时生成并只交给本机前端握手）；不写入仓库、文档、日志、URL、localStorage/IndexedDB 或 Markdown 正文。页面需要的只是运行时可用性（是否已配置、请求头名），不是令牌值。设置类写接口在未注入令牌时**默认拒绝**（`unauthorized`），前端不得通过开放该默认值来“打通”设置页。首次启动的前端握手与令牌交接**尚未实现**，归 LG-020；当前不得把“默认拒绝”或“本地可用”当作已完成启动接入。
 
 ### 4.2 错误信封与错误码
 
@@ -581,7 +581,7 @@ class ExecutorAdapter(Protocol):
 | `backend/lightgravity/adapter/**`、`tests/adapter/**` | LG-005、LG-006 | 配置编译与 Antigravity adapter |
 | `backend/lightgravity/coordinator/**` | LG-007、LG-008 | 消息路由、队列、调度 |
 | `backend/lightgravity/verify/**` | LG-009、LG-017 | 验证与返修编排 |
-| `backend/lightgravity/api/**`、`tests/api/**` | LG-012；LG-002 仅 health/version；LG-025 加 settings | 查询/事件/行动接口 |
+| `backend/lightgravity/api/**`、`tests/api/**` | LG-012；LG-002 仅 health/version；LG-025 加 settings；LG-014 计划加 `api/files.py` 上传/下载 | 查询/事件/行动接口；`api/files.py` 的上传/下载扩展由 LG-014 在 LG-012 之后串行修改 |
 | `backend/lightgravity/settings/**` | LG-025 | 连接与凭证后端 |
 | `frontend/**` | LG-011 | 壳层、组件、API 客户端；视图由 LG-013/014/015/026 在 `src/views/` 内扩展 |
 | `probes/**` | LG-003 | 独立探针环境，不进入主包 import 路径 |

@@ -36,7 +36,7 @@ from .checks import (
     default_check_registry,
     run_checks,
 )
-from .router import ActionRequest, build_router
+from .router import ActionRequest, build_acceptance_router, build_router
 from .service import ActionResult, AcceptanceView, VerificationService
 from .stopgate import (
     ACTIVE_RUN_STATES,
@@ -71,6 +71,7 @@ __all__ = [
     "VerificationService",
     "artifact_path",
     "authorized_checks",
+    "build_acceptance_router",
     "build_router",
     "default_check_registry",
     "load_candidate",

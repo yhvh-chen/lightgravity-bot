@@ -9,6 +9,11 @@ This factory is the single place that assembles the resident process:
 * builds the ``Coordinator`` (LG-007) with an injectable ``Dispatcher`` seam so
   LG-008 can supply the graph dispatcher and LG-006/LG-010 can supply the real
   ``AntigravityExecutor`` without editing this file again;
+* builds the ``VerificationService`` (LG-009) with an injectable
+  ``ResourceStopper`` port so LG-010/LG-016 can supply a stronger
+  session-stop confirmation without editing this file again, and mounts the
+  read-only acceptance router while accept/reject live in ``api/tasks.py``;
+* mounts the singleton global-conversation messages router (docs/08 §5.2);
 * starts/stops the coordinator in the lifespan (background worker independent of
   any HTTP request) and mounts the frozen ``/api/v1`` routers.
 
@@ -51,9 +56,11 @@ from ..settings import (
 )
 from ..store import FileStore
 from ..store.protocol import Store
+from ..verify import ResourceStopper, VerificationService, build_acceptance_router
 
 from .access import AccessPolicy, LocalAccessPolicy, require_access
 from .context import ApiContext
+from .conversations import build_conversations_router
 from .eventbus import BroadcastingStore, EventBroker
 from .events import build_events_router
 from .files import build_files_router
@@ -89,6 +96,8 @@ def create_app(
     connection_service: ConnectionService | None = None,
     access_policy: AccessPolicy | None = None,
     tester: ConnectionTester | None = None,
+    verification: VerificationService | None = None,
+    resource_stopper: ResourceStopper | None = None,
 ) -> FastAPI:
     """Build the application; every heavy dependency is injectable for tests."""
 
@@ -109,6 +118,10 @@ def create_app(
 
     policy = access_policy or LocalAccessPolicy()
 
+    verification_service = verification or VerificationService(
+        broadcasting, stopper=resource_stopper
+    )
+
     effective_executor: ExecutorAdapter | None = executor
     if effective_executor is None and isinstance(dispatcher, SingleSlotDispatcher):
         effective_executor = dispatcher.executor
@@ -126,6 +139,7 @@ def create_app(
         access=policy,
         real_executor=real_executor,
         tester=tester,
+        verification=verification_service,
     )
 
     @asynccontextmanager
@@ -152,6 +166,7 @@ def create_app(
     app.state.store = broadcasting
     app.state.coordinator = resolved_coordinator
     app.state.connection_service = connections
+    app.state.verification = verification_service
 
     @app.exception_handler(AppError)
     async def _app_error_handler(request: Request, exc: AppError) -> JSONResponse:
@@ -190,6 +205,8 @@ def create_app(
     app.include_router(build_resource_router(), prefix=API_PREFIX)
     app.include_router(build_files_router(), prefix=API_PREFIX)
     app.include_router(build_events_router(), prefix=API_PREFIX)
+    app.include_router(build_conversations_router(), prefix=API_PREFIX)
+    app.include_router(build_acceptance_router(verification_service), prefix=API_PREFIX)
     app.include_router(build_settings_router(connections, tester=tester), prefix=API_PREFIX)
     return app
 

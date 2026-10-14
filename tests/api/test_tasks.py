@@ -192,15 +192,25 @@ async def test_action_cancel_unconfirmed(settings: Settings) -> None:
             assert detail["phase"] == "cancelling"
 
 
-async def test_action_not_ready_and_unknown(api: httpx.AsyncClient) -> None:
+async def test_action_verify_owned_and_not_implemented(api: httpx.AsyncClient) -> None:
     task_id = await create_task(api)
+    await settle_task(api, task_id)
+    # accept/reject are now handled by the verification service; a Task with no
+    # pending acceptance returns a real illegal_transition, not not_ready.
     accept = await api.post(
         f"/api/v1/tasks/{task_id}/actions",
         json={"action": "accept", "request_id": "req-accept"},
     )
     assert accept.status_code == 409
-    assert accept.json()["error"]["code"] == "not_ready"
-    assert accept.json()["error"]["details"]["owner"] == "LG-009"
+    assert accept.json()["error"]["code"] == "illegal_transition"
+
+    resume = await api.post(
+        f"/api/v1/tasks/{task_id}/actions",
+        json={"action": "resume", "request_id": "req-resume"},
+    )
+    assert resume.status_code == 409
+    assert resume.json()["error"]["code"] == "not_ready"
+    assert resume.json()["error"]["details"]["owner"] == "LG-016"
 
     unknown = await api.post(
         f"/api/v1/tasks/{task_id}/actions",

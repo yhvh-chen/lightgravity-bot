@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot
 
-> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.2.0）已冻结；用户已确认首版先用 DeepSeek，首版真实执行后端为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek，此前的 Gemini 认证阻塞已解除。LG-001～008、LG-011、LG-025 共 10 项已完成并整合到 `main`（均为**待版本 QA**）：工程骨架可运行、SDK 探针、存储层、资源配置编译、左侧导航壳层、正式 executor + loopback 认证代理、常驻消息路由与 Task 队列、自动组队与依赖调度、模型设置与凭证后端。LG-006 以真实 DeepSeek（实际发送 `deepseek-v4-flash`，上游返回 `deepseek-flash`）在临时授权工作区跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消，真实模型调用总数 12（硬上限 12），进程无残留；证据见 [tests/adapter/evidence](tests/adapter/evidence/README.md)。协调器（LG-007/LG-008）已实现并以局部测试验证；查询 API（LG-012 进行中）、验证与人工验收（LG-009）等业务接线尚未实现，未部署。
+> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.3.0）已冻结；用户已确认首版先用 DeepSeek，首版真实执行后端为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek，此前的 Gemini 认证阻塞已解除。LG-001～009、LG-011、LG-012、LG-025 共 12 项已完成并整合到 `main`（均为**待版本 QA**）：工程骨架可运行、SDK 探针、存储层、资源配置编译、左侧导航壳层、正式 executor + loopback 认证代理、常驻消息路由与 Task 队列、自动组队与依赖调度、模型设置与凭证后端、产物验证与人工验收、查询 API 与持久事件订阅。集成后已把验证服务与资源停止接口注入 `create_app`，accept/reject 合并进 API actions，并新增只读 `GET /tasks/{id}/acceptance` 与单例全局对话 `GET/POST /api/v1/conversations/global/messages`。LG-006 以真实 DeepSeek（实际发送 `deepseek-v4-flash`，上游返回 `deepseek-flash`）在临时授权工作区跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消，真实模型调用总数 12（硬上限 12），进程无残留；证据见 [tests/adapter/evidence](tests/adapter/evidence/README.md)。LG-009/LG-012 的真实 SDK 端到端与浏览器验收仍未完成，分别留 LG-010 与 LG-021/LG-022；未部署。
 
 **按需组队的 AI 任务助手。**
 
@@ -52,13 +52,15 @@ Task 是主要操作入口：一项任务一个目录、一份 TASK.md、一条�
 | LG-007 消息路由与队列 | done（待版本 QA） | `backend/lightgravity/coordinator/`（classification/logs/queue/state/dispatcher/service/api）；局部 30 passed、全后端 187 passed、mypy 无问题；执行证据用 in-process `FakeExecutor`（mock），真实 SDK 端到端留 LG-010 |
 | LG-008 自动组队与依赖调度 | done（待版本 QA） | `backend/lightgravity/coordinator/`（planner/recruiter/scheduler/graph）；局部 coordinator 57 passed、全后端 247 passed、mypy 无问题（58 files）；默认 `max_parallel=1`，真实并行写代码留 LG-018 |
 | LG-025 模型设置与凭证后端 | done（待版本 QA） | `backend/lightgravity/settings/`；局部 33 passed、全后端 189 passed、mypy 无问题（46 files）；分层连接测试 `overall=verified`（`tool_probe`/`structured_output`=skipped） |
+| LG-009 验证与人工验收 | done（待版本 QA） | `backend/lightgravity/verify/`；局部 26 passed、全后端 273 passed、mypy 无问题（64 files）；机器检查只跑程序已注册且 Task `checks` 授权的项，停止门未确认不释放，accept/reject 绑定 requirements/候选版本并按 `request_id` 幂等；真实 SDK 端到端留 LG-010 |
+| LG-012 查询 API 与事件订阅 | done（待版本 QA） | `backend/lightgravity/api/`；局部 30 passed、全后端 246 passed、mypy 无问题（61 files）；tasks/resources/files/SSE/settings 路由真实装配，事件先落盘再广播、游标重放去重、断线不取消 Run；SSE 用进程内 ASGI 驱动验证，真实 uvicorn/浏览器留 LG-021/022 |
 
-- 上述 done 为执行者局部证据，**不是版本 QA 结论**；LG-003 已实测的 DeepSeek（OpenAI-compatible）路径是 docs/08 v1.2.0 确定的首版真实后端，LG-006 已在该路径上实现正式 executor + 产品侧 loopback 认证代理。LG-001～008、011、025 均待 LG-010／LG-021／LG-022／LG-027 等版本 QA 门集中验证。
-- 下一步：LG-009 基于 LG-008 的 `GraphDispatcher` 候选证据接续机器验证与人工验收；LG-012（进行中）提供查询 API 与持久事件订阅；LG-010 在同一 DeepSeek 路径上验收最小真实闭环。
+- 上述 done 为执行者局部证据，**不是版本 QA 结论**；LG-003 已实测的 DeepSeek（OpenAI-compatible）路径是 docs/08 v1.3.0 确定的首版真实后端，LG-006 已在该路径上实现正式 executor + 产品侧 loopback 认证代理。LG-001～009、011、012、025 均待 LG-010／LG-021／LG-022／LG-027 等版本 QA 门集中验证。
+- 下一步：LG-010 在同一 DeepSeek 路径上验收最小真实闭环（真实验证服务接线与停止确认）；LG-014 补 Files 上传/下载（已在 docs/08 登记为 planned）；LG-026 接通 Settings 页面；LG-015 未领取以控制并行。
 
 ## 本地运行与检查（工程骨架）
 
-工程骨架由 LG-002 建立，LG-004 已加入后端存储层，LG-005 已加入 adapter 资源配置编译并把 Antigravity SDK `0.1.22` 锁定为产品依赖，LG-006 已实现正式 executor + loopback 认证代理（真实 DeepSeek 路径，见 [tests/adapter/evidence](tests/adapter/evidence/README.md)），LG-007/LG-008 已实现 coordinator 消息路由、队列与自动组队调度；HTTP 层仍只提供后端 `GET /api/v1/health`、`GET /api/v1/version` 与前端占位壳，coordinator 尚未由 LG-012 挂入 `api/app.py` lifespan，executor 尚未通过 HTTP 业务端点接线。
+工程骨架由 LG-002 建立，LG-004 已加入后端存储层，LG-005 已加入 adapter 资源配置编译并把 Antigravity SDK `0.1.22` 锁定为产品依赖，LG-006 已实现正式 executor + loopback 认证代理（真实 DeepSeek 路径，见 [tests/adapter/evidence](tests/adapter/evidence/README.md)），LG-007/LG-008 已实现 coordinator 消息路由、队列与自动组队调度，LG-009/LG-012 已实现验证/验收与查询 API，并由 `create_app` 装配 `FileStore`→`BroadcastingStore`→`Coordinator`、挂载 `/api/v1` 全部路由、lifespan 启停常驻 Coordinator。默认执行器仍是诚实的 `UnavailableExecutor`（不伪装可执行）；真实 SDK executor 由 LG-010 注入。前端壳已存在但业务视图尚未接入真实端点。
 
 ### 版本要求
 
@@ -108,7 +110,7 @@ make frontend-build   # 前端生产构建
 - [开发看板](BACKLOG.md)：27 项首版开发任务，使用 `olav.tasks/v1` 管理。
 - [滚动排期](docs/06-roadmap.md)：阶段、依赖、验收门与当前未定的日历安排。
 - [模型设置](docs/07-settings-and-models.md)：Settings、Connection 事实源、凭证、分层测试和默认模型。
-- [首版接口与状态契约](docs/08-interface-contract.md)：冻结的最小技术栈、API/事件/实体状态、Store/Adapter 边界、错误语义、工作区授权与后续文件归属（契约版本 1.2.0）。
+- [首版接口与状态契约](docs/08-interface-contract.md)：冻结的最小技术栈、API/事件/实体状态、Store/Adapter 边界、错误语义、工作区授权与后续文件归属（契约版本 1.3.0）。
 - [项目手册](PROJECT.md)：目标、优先级、完成定义和已确认决策。
 - [产品与架构设计](docs/01-design.md)：调度器、executor、组队、文件事实源、状态与首版交付顺序。
 - [Task 与 SDK 资源契约](docs/02-task-and-sdk-resources.md)：任务目录、对话、frontmatter 渲染及 Agent／Connections／Conversation／Hooks／MCP／Tools／Triggers 的映射。
