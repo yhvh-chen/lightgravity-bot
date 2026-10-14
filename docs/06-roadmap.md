@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # 首版滚动排期
 
-> 日期：2026-10-14，更新：2026-10-15。规划已落盘，开发已开始。阶段事实：LG-001～006 与 LG-011 共 7 项基础任务已完成并整合到 `main`（均**待版本 QA**）；用户已确认首版先用 DeepSeek，LG-006 正式 executor + loopback 认证代理已在真实 DeepSeek 上跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消（真实调用 12，进程无残留，证据见 [tests/adapter/evidence](../tests/adapter/evidence/README.md)）；首版唯一真实路径为已验收的 `google-antigravity==0.1.22` + OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek（契约见 [docs/08](08-interface-contract.md) §8.1）。采用 Olav Tasks 的开发任务格式与依赖图；日历开始/结束日期、人员和每日投入未确定，暂不填写 start_date/end_date、assignee 或 effort，也不把实现速度假定为已知。
+> 日期：2026-10-14，更新：2026-10-15。规划已落盘，开发已开始。阶段事实：LG-001～008、LG-011 与 LG-025 共 10 项已完成并整合到 `main`（均**待版本 QA**；其中协调器 LG-007/LG-008、设置后端 LG-025 已实现，成果以局部测试与证据为准）；首版接口契约当前为 `1.2.0`（LG-008 加性控制字段登记，见 [docs/08](08-interface-contract.md) §6.2/§6.3/§13）。用户已确认首版先用 DeepSeek，LG-006 正式 executor + loopback 认证代理已在真实 DeepSeek 上跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消（真实调用 12，进程无残留，证据见 [tests/adapter/evidence](../tests/adapter/evidence/README.md)）；首版唯一真实路径为已验收的 `google-antigravity==0.1.22` + OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek（契约见 [docs/08](08-interface-contract.md) §8.1）。采用 Olav Tasks 的开发任务格式与依赖图；日历开始/结束日期、人员和每日投入未确定，暂不填写 start_date/end_date、assignee 或 effort，也不把实现速度假定为已知。
 
 ## 1. 目标与假设
 
@@ -64,7 +64,7 @@ LG-010 是最小后端闭环验收，不代表已有完整网页或所有恢复�
 
 ## 4. 首个实施项与验证门
 
-首个就绪候选应为 LG-001。其产物至少确定最小技术栈、API/事件 schema、实体状态、Store/Executor 责任、测试入口与目录权限，不为架构讨论无限扩展范围。LG-001 的实际产物为 [首版接口与状态契约](08-interface-contract.md)（LG-001 冻结契约版本 1.0.0；2026-10-15 因首版后端改为 DeepSeek 而 MINOR 升至 1.1.0，见该文档第 13 节）；后续实现以该契约与各项 depends_on 为准，不在本排期重复状态。
+首个就绪候选应为 LG-001。其产物至少确定最小技术栈、API/事件 schema、实体状态、Store/Executor 责任、测试入口与目录权限，不为架构讨论无限扩展范围。LG-001 的实际产物为 [首版接口与状态契约](08-interface-contract.md)（LG-001 冻结契约版本 1.0.0；2026-10-15 因首版后端改为 DeepSeek 而 MINOR 升至 1.1.0，同期 LG-008 加性控制字段登记为 1.2.0，见该文档第 13 节）；后续实现以该契约与各项 depends_on 为准，不在本排期重复状态。
 
 SDK 安装/真实测试属于 LG-002/003 后续实施，不包含在此次写排期。LG-003 需要可用的测试模型认证与预算；缺少这些时可以继续无凭证的存储/壳层工作，但不能将 SDK 测试标 done，也不能用 stub 解锁需要真实能力的后续门。
 

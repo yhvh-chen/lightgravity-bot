@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot 项目手册
 
-> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 升至 1.1.0，首版真实后端改为 DeepSeek），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层与局部测试完成，LG-005 角色/SDK 资源配置编译完成（已将 `google-antigravity==0.1.22` 锁定为产品依赖），LG-006 正式 executor + 产品侧 loopback 认证代理完成并以真实 DeepSeek 验证（文件/diff、结构化结果、用量、预算、会话恢复、确认取消；真实调用 12，进程无残留），LG-011 前端壳层完成并整合到 `main`（7 项均**待版本 QA**）。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek；协调器、查询 API 等业务接线尚未实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
+> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 当前 1.2.0：1.1.0 将首版真实后端定为 DeepSeek，1.2.0 登记 LG-008 加性控制字段），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层、LG-005 角色/SDK 资源配置编译（已将 `google-antigravity==0.1.22` 锁定为产品依赖）、LG-006 正式 executor + 产品侧 loopback 认证代理（真实 DeepSeek 验证：文件/diff、结构化结果、用量、预算、会话恢复、确认取消；真实调用 12，进程无残留）、LG-007 消息路由与 Task 队列、LG-008 自动组队与依赖调度、LG-025 模型设置与凭证后端、LG-011 前端壳层均已完成并整合到 `main`（10 项均**待版本 QA**）。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek；查询 API（LG-012 进行中）、验证与人工验收（LG-009）等业务接线尚未实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
 
 ## 目标
 
@@ -40,6 +40,15 @@ updated: "2026-10-15"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-15：整合 LG-008 自动组队与依赖调度并把契约升至 1.2.0
+
+- LG-008 在独立 worktree `dev/lg008` 完成，提交 `44170f0`，worker 已退出。主工作区核对干净后先提交契约登记 `852c4bc`（docs/08 §6.2/§6.3 登记加性字段并升 `1.2.0`），再精确 `git cherry-pick 44170f0`（`5d99a85`），无冲突、无内容丢失，未清理任何 worktree/分支，未触碰 LG-012 的 worktree/分支。
+- 契约登记（加性、MINOR）：Run `plan`/`plan_hash`/`plan_source`；Subtask `objective`/`capability`/`key`/`write`/`config_hash`/`owner`/`lease_expires_at`/`fail_reason`/`blocked_by`。语义：`plan` 为校验通过并冻结的完整计划（`source`/`notes`/`subtasks`），`plan_hash` 为其规范化 JSON 的 SHA-256，`plan_source` 只记录来源（如 rules/model），模型提议仍走同一 validator；Subtask `key` 为计划内局部 slug、非运行时 ID，`write=true` 的同工作区写节点串行，`config_hash` 冻结节点运行配置（节点定义 + 成员 `member_config_hash`）、派发前比对、漂移即 `config_invalid`，`owner`/`lease_expires_at` 为 Subtask 执行租约（与 Task `queue` 租约为不同层面，过期可回收、终态拒绝），`fail_reason` 记录失败/阻塞原因，`blocked_by` 指向致其阻塞的上游失败 Subtask 且 `acceptance.status=blocked`。HTTP 端点、错误码、事件类型、枚举与状态迁移均未变化。
+- 版本同步：`contracts/constants.py` 的 `CONTRACT_VERSION` 由 `1.1.0` 升至 `1.2.0`，同步 `tests/contracts` 期望、README、PROJECT、docs/06 的当前版本与阶段事实；历史记录（1.1.0 决策条目、§8.1 标题等）按原文保留，不回写。
+- 局部检查：`uv run pytest tests/coordinator tests/contracts -q` → **64 passed**；`uv run mypy` → **Success: no issues found in 58 source files**；`olav-tasks tasks validate` 退出码 0（27 tasks, no diagnostics）；`tasks ready` complete、无 diagnostics，唯一就绪项 LG-009。本次仅为加性字段与版本常量，未重复全量后端测试。
+- LG-008 成果标注“待版本 QA”；默认 `max_parallel=1`，真实并行写代码与真实 SDK 端到端分别留 LG-018/LG-010。本轮未 push、未 deploy、未启动产品服务。
+- 随后以 `agent:pi-lg009` 精确 claim LG-009（`status: in-progress` + `assignee`），并在新 HEAD 建独立 worktree `dev/lg009` → `/tmp/lightgravity-worktrees/lg009`（已有路径不覆盖，不复制 `.env`，不清理旧 worktree）。
 
 ### 2026-10-15：实现 LG-006 正式 executor 与产品侧 loopback 认证代理（真实 DeepSeek 验证）
 
