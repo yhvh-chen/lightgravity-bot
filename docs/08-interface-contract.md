@@ -462,6 +462,7 @@ state: recruiting
 revision: 0
 template_version: "1"
 connection_ref: null
+connection_pin: null   # 加性、非秘密：选中连接的 ref/revision/content_hash/不透明凭证版本
 skill_refs: []
 session_ref: null
 tool_policy: {}
@@ -471,6 +472,7 @@ budget: {}
 ```
 
 - 模板修改只影响后续招募；已招募 Member 固定解析后的 `connection_ref`、`skill_refs`、配置版本/哈希与 `tool_policy`。
+- 加性字段 `connection_pin` 记录 Run 招募时选定的默认连接与不透明 `credential_version`（永不包含秘密）；活跃 Run 内默认连接或凭证轮换不得在下一 Subtask 静默换用，检测到漂移按 `config_invalid` 失败，新 Run 重新解析。
 - `released` 为正常终止；`failed` 需保留 `fail_reason`。恢复时创建新 Member，并记录来源。
 
 ### 6.5 资源与设置

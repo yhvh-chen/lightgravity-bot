@@ -719,6 +719,10 @@ class AntigravityExecutor:
             timeout_seconds=request.timeout_seconds,
             workspace_path=request.workspace_path,
             conversation_id=request.conversation_id,
+            # A coordinator-supplied ref (the Run's frozen selection) selects the
+            # connection for agents without an explicit ``connection_ref``; an
+            # explicit template ref still wins inside the compiler.
+            connection_ref_override=request.connection_ref,
         )
         compiled = self._compiler.compile_agent(request.agent_ref, constraints=constraints)
         connection = compiled.connection

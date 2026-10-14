@@ -31,10 +31,12 @@ import os
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from fastapi import FastAPI
 
-from ..adapter import AntigravityExecutor, DirectoryArtifactSink
+from ..adapter import AntigravityExecutor, DirectoryArtifactSink, ResourceCompiler
+from ..adapter.compiler import ConnectionPin
 from ..config import Settings
 from ..coordinator import GraphDispatcher
 from ..coordinator.graph import DEFAULT_CAPABILITIES
@@ -51,6 +53,7 @@ from .access import AccessPolicy, LocalAccessPolicy
 from .app import create_app
 from ..runtime.frontend import mount_frontend
 from ..runtime.hostguard import HostGuardMiddleware
+from ..runtime.minimal import DEFAULT_AGENT_ID, seed_default_agent
 from ..runtime.token import RuntimeToken, resolve_runtime_token
 
 #: Optional JSON ``{capability: [agent_ref, ...]}`` role catalog override.
@@ -88,7 +91,12 @@ class StartupOptions:
     allowed_hosts: tuple[str, ...] = ()
     wire_real_executor: bool = True
     role_catalog: Mapping[str, Sequence[str]] | None = None
+    seed_minimal_agent: bool = True
     tester: bool = True
+    #: Hard caps forwarded to the real executor (used by the gated real-model
+    #: verification; ``None`` keeps the adapter default).
+    max_proxy_calls: int = 8
+    model_calls_cap: int | None = None
     log: LogSink = _noop
 
 
@@ -104,6 +112,8 @@ class RuntimeState:
     executor_wired: bool
     frontend_served: bool
     frontend_dist: Path
+    #: The wired executor when real execution is enabled (for honest reporting).
+    executor: Any | None = None
     warnings: list[str] = field(default_factory=list)
 
     def execution_report(self) -> dict[str, object]:
@@ -148,6 +158,46 @@ def _connection_credential_ref(state: RuntimeState, connection_id: str) -> str |
         return None
 
 
+class _ServiceConnectionPins:
+    """Adapt :class:`ConnectionService` to the adapter connection-pin protocol.
+
+    This is the only place the two layers meet; the adapter never imports the
+    settings package and no secret value crosses the boundary (only the opaque
+    credential version token).
+    """
+
+    def __init__(self, service: ConnectionService) -> None:
+        self._service = service
+
+    def resolve_default(self, role: str) -> ConnectionPin | None:
+        pinned = self._service.resolve_default(role)
+        if pinned is None:
+            return None
+        return ConnectionPin(
+            connection_id=pinned.connection_id,
+            role=pinned.role,
+            revision=pinned.revision,
+            content_hash=pinned.content_hash,
+            backend=pinned.backend,
+            model=pinned.model,
+            base_url=pinned.base_url,
+            credential_ref=pinned.credential_ref,
+            credential_version=pinned.credential_version,
+            config_hash=pinned.config_hash,
+        )
+
+    def pinned_is_current(self, pinned: ConnectionPin) -> bool:
+        connection = self._service.repository.get_connection_or_none(pinned.connection_id)
+        if connection is None:
+            return False
+        status = self._service.credential_status(connection.credential_ref)
+        return (
+            connection.revision == pinned.revision
+            and connection.content_hash == pinned.content_hash
+            and (status.version or None) == (pinned.credential_version or None)
+        )
+
+
 def _enabled_agents(store: Store, data_dir: Path) -> tuple[str, ...]:
     directory = data_dir / "resources" / RESOURCE_DIRS["agent"]
     if not directory.is_dir():
@@ -188,7 +238,10 @@ def load_role_catalog(
     agents = _enabled_agents(store, data_dir)
     if not agents:
         return None
-    return RoleCatalog({capability: list(agents) for capability in DEFAULT_CAPABILITIES})
+    # Prefer operator templates over the built-in seeded worker so the seed is a
+    # fallback, never a shadow over a user's own agent.
+    ordered = sorted(agents, key=lambda agent_id: (agent_id == DEFAULT_AGENT_ID, agent_id))
+    return RoleCatalog({capability: list(ordered) for capability in DEFAULT_CAPABILITIES})
 
 
 def build_runtime(options: StartupOptions) -> RuntimeState:
@@ -201,6 +254,22 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
     store = FileStore(settings.data_dir, settings.workspace_root)
     secret_store = FileSecretStore(settings.secret_store)
     connections = ConnectionService(store, secret_store=secret_store)
+    connection_pins = _ServiceConnectionPins(connections)
+
+    if options.seed_minimal_agent:
+        try:
+            seeded = seed_default_agent(store)
+        except Exception as exc:  # noqa: BLE001 - seeding must never block startup
+            seeded = None
+            warnings_seed = f"default agent seed skipped: {type(exc).__name__}: {exc}"
+            log(warnings_seed)
+        else:
+            warnings_seed = ""
+            if seeded:
+                log(f"seeded built-in worker agent {seeded!r} (no agent template existed)")
+    else:
+        seeded = None
+        warnings_seed = ""
 
     tester = None
     if options.tester:
@@ -212,22 +281,34 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         )
 
     warnings: list[str] = []
+    if warnings_seed:
+        warnings.append(warnings_seed)
     executor = None
     dispatcher = None
     if options.wire_real_executor:
         try:
+            compiler = ResourceCompiler(store, default_connections=connection_pins)
             executor = AntigravityExecutor(
                 store,
+                compiler,
                 credential_resolver=connections.credential_resolver,
                 artifacts=DirectoryArtifactSink(settings.data_dir / "artifacts"),
                 workspace_root=settings.workspace_root,
+                max_proxy_calls=options.max_proxy_calls,
+                model_calls_cap=options.model_calls_cap,
             )
             catalog: RoleCatalog | None = None
             if options.role_catalog is not None:
                 catalog = RoleCatalog(dict(options.role_catalog))
             else:
                 catalog = load_role_catalog(store, settings.data_dir)
-            dispatcher = GraphDispatcher(store, executor, catalog=catalog)
+            dispatcher = GraphDispatcher(
+                store,
+                executor,
+                catalog=catalog,
+                compiler=compiler,
+                connections=connection_pins,
+            )
             log(
                 "executor wired: antigravity/openai-compat via loopback auth proxy"
                 + ("; capability catalog present" if catalog else "; no catalog")
@@ -282,6 +363,7 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         executor_wired=executor is not None,
         frontend_served=frontend_served,
         frontend_dist=Path(dist),
+        executor=executor,
         warnings=warnings,
     )
     if agents:

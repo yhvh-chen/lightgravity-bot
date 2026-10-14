@@ -19,9 +19,24 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Protocol, cast
 
 from lightgravity.store import ConfigInvalid, EntityNotFound, Store, Versioned
+from lightgravity.store.entities import RESOURCE_DIRS
+
+#: Stable id of the built-in worker seeded when no agent template exists.
+DEFAULT_AGENT_ID = "lg-default-worker"
+
+#: Body of the built-in worker; it grants no tools and pins no connection.
+DEFAULT_AGENT_BODY = (
+    "# Built-in worker\n\n"
+    "Seeded by the runtime because no agent template existed. It carries no tool\n"
+    "grants or workspace authorization and has no explicit connection_ref: it runs\n"
+    "on the current default worker connection configured in Settings. Extend or\n"
+    "replace it from Team/Resources; deleting it and creating your own template is\n"
+    "also supported.\n"
+)
 
 
 class _BodyCreateStore(Protocol):
@@ -237,9 +252,63 @@ def initialize_minimal(
     return report
 
 
+def _agent_template_exists(store: Store) -> bool:
+    """Return whether *any* agent resource exists (enabled or not)."""
+
+    data_dir = getattr(store, "data_dir", None)
+    if data_dir is None:
+        return False
+    directory = Path(data_dir) / "resources" / RESOURCE_DIRS["agent"]
+    if not directory.is_dir():
+        return False
+    return any(path.is_file() for path in directory.glob("*.md"))
+
+
+def seed_default_agent(
+    store: Store,
+    *,
+    actor: str = "lg-runtime",
+    request_id: str = "lg-seed-default-agent",
+) -> str | None:
+    """Idempotently seed the built-in worker only when no agent template exists.
+
+    Unlike :func:`initialize_minimal` this needs no operator input, so a fresh
+    install can become executable purely through Settings (create connection,
+    store credential, set default).  It never overwrites an existing template
+    (including a disabled one) and grants no tools or workspace access.
+    """
+
+    if _agent_template_exists(store):
+        return None
+    cast(_BodyCreateStore, store).create(
+        "agent",
+        DEFAULT_AGENT_ID,
+        {
+            "title": "Built-in default worker",
+            "enabled": True,
+            "connection_ref": None,
+            "conversation_ref": None,
+            "skills": {"source": "inline", "refs": []},
+            "tool_refs": [],
+            "hook_refs": [],
+            "mcp_refs": [],
+            "trigger_refs": [],
+            "subagents": [],
+            "budget": {},
+        },
+        actor=actor,
+        request_id=request_id,
+        body=DEFAULT_AGENT_BODY,
+    )
+    return DEFAULT_AGENT_ID
+
+
 __all__ = [
+    "DEFAULT_AGENT_BODY",
+    "DEFAULT_AGENT_ID",
     "AgentInit",
     "ConnectionInit",
     "InitReport",
     "initialize_minimal",
+    "seed_default_agent",
 ]

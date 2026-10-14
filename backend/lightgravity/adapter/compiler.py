@@ -14,7 +14,7 @@ import hashlib
 import json
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any, Callable, Protocol, runtime_checkable
 
 from lightgravity.store import EntityNotFound, Store, Versioned
 from lightgravity.store.models import Diagnostic
@@ -58,12 +58,67 @@ def _hash_payload(value: Any) -> str:
 
 
 @dataclass(frozen=True, slots=True)
+class ConnectionPin:
+    """A resolved, non-secret snapshot of the connection chosen for a Run/member.
+
+    It carries no credential value: only the opaque ``credential_version`` token
+    (docs/07 §3).  A pin is fixed at recruitment and reused for every subtask of
+    that Run so a later default/credential edit cannot silently hot-swap an
+    active member; :meth:`DefaultConnectionResolver.pinned_is_current` detects
+    drift so the coordinator can fail honestly instead of swapping.
+    """
+
+    connection_id: str
+    role: str
+    revision: int
+    content_hash: str
+    backend: str
+    model: str | None
+    base_url: str | None
+    credential_ref: str | None
+    credential_version: str | None
+    config_hash: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "connection_id": self.connection_id,
+            "role": self.role,
+            "revision": self.revision,
+            "content_hash": self.content_hash,
+            "backend": self.backend,
+            "model": self.model,
+            "base_url": self.base_url,
+            "credential_ref": self.credential_ref,
+            "credential_version": self.credential_version,
+            "config_hash": self.config_hash,
+        }
+
+
+@runtime_checkable
+class DefaultConnectionResolver(Protocol):
+    """Resolve a role's current default connection without exposing secrets.
+
+    Implemented by the settings layer's :class:`ConnectionService` and adapted
+    in the runtime bootstrap; the adapter only depends on this narrow protocol.
+    """
+
+    def resolve_default(self, role: str) -> ConnectionPin | None: ...
+
+    def pinned_is_current(self, pinned: ConnectionPin) -> bool: ...
+
+
+@dataclass(frozen=True, slots=True)
 class CompileConstraints:
     """Task/run authorization passed in by the coordinator (LG-007).
 
     ``allowed_tools`` is an upper bound over application tool-ref slugs.  When
     ``None`` the agent template's own requests apply; a provided set can only
     remove tools, never add them.  Budget values are likewise ceilings.
+
+    Connection selection precedence: an explicit ``agent.connection_ref`` always
+    wins.  Otherwise ``connection_pin`` (the Run's frozen selection) is used,
+    then ``connection_ref_override`` (a caller-supplied ref such as the
+    ``ExecuteRequest``), then the role default via the injected resolver.
     """
 
     allowed_tools: frozenset[str] | None = None
@@ -73,6 +128,9 @@ class CompileConstraints:
     timeout_seconds: float | None = None
     workspace_path: str | None = None
     conversation_id: str | None = None
+    connection_pin: ConnectionPin | None = None
+    connection_ref_override: str | None = None
+    connection_role: str = "worker"
 
 
 @dataclass(frozen=True, slots=True)
@@ -162,6 +220,12 @@ class CompiledConnection:
     sdk_config_kind: str
     supports_api_key_field: bool
     verified: bool
+    #: How the connection was chosen (``explicit`` | ``pinned`` | ``override``
+    #: | ``default`` | ``missing``); informational and hash-relevant only.
+    connection_source: str = "explicit"
+    #: Opaque credential version token when a default/pinned selection carried
+    #: one; it is never a secret value.
+    credential_version: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -173,6 +237,8 @@ class CompiledConnection:
             "sdk_config_kind": self.sdk_config_kind,
             "supports_api_key_field": self.supports_api_key_field,
             "verified": self.verified,
+            "connection_source": self.connection_source,
+            "credential_version": self.credential_version,
         }
 
 
@@ -246,10 +312,12 @@ class ResourceCompiler:
         *,
         registry: ImplementationRegistry | None = None,
         capabilities: AdapterCapabilities | None = None,
+        default_connections: DefaultConnectionResolver | None = None,
     ) -> None:
         self._store = store
         self._registry = registry or default_registry()
         self._capabilities = capabilities or adapter_capabilities()
+        self._default_connections = default_connections
 
     @property
     def registry(self) -> ImplementationRegistry:
@@ -315,7 +383,9 @@ class ResourceCompiler:
             )
             executable_reasons.append("agent_disabled")
 
-        connection = self._compile_connection(agent, versions, unavailable, executable_reasons)
+        connection = self._compile_connection(
+            agent, constraints, versions, unavailable, executable_reasons
+        )
         session_profile = self._compile_session(agent, constraints, versions, unavailable)
         skills = self._compile_skills(agent, versions)
         tools = self._compile_tools(agent, constraints, versions, diagnostics, unavailable)
@@ -381,17 +451,62 @@ class ResourceCompiler:
     def _compile_connection(
         self,
         agent: AgentResource,
+        constraints: CompileConstraints,
         versions: list[ResourceVersion],
         unavailable: list[UnavailableResource],
         executable_reasons: list[str],
     ) -> CompiledConnection | None:
-        if agent.connection_ref is None:
+        pin: ConnectionPin | None = None
+        connection_source = "explicit"
+        if agent.connection_ref is not None:
+            # A template's own connection_ref is authoritative.  An invalid or
+            # missing ref raises in ``_read`` - never a silent default fallback.
+            ref = agent.connection_ref
+        elif constraints.connection_pin is not None:
+            pin = constraints.connection_pin
+            ref = pin.connection_id
+            connection_source = "pinned"
+        elif constraints.connection_ref_override:
+            ref = constraints.connection_ref_override
+            connection_source = "override"
+        elif self._default_connections is not None:
+            pin = self._default_connections.resolve_default(constraints.connection_role)
+            if pin is None:
+                unavailable.append(
+                    UnavailableResource(
+                        agent.id,
+                        "agent",
+                        "connection_missing",
+                        "no explicit connection_ref and no default "
+                        f"{constraints.connection_role} connection configured",
+                    )
+                )
+                executable_reasons.append("connection_missing")
+                return None
+            ref = pin.connection_id
+            connection_source = "default"
+        else:
             unavailable.append(
                 UnavailableResource(agent.id, "agent", "connection_missing", "no connection_ref")
             )
             executable_reasons.append("connection_missing")
             return None
-        connection = parse_connection(self._read("connection", agent.connection_ref, versions))
+        connection = parse_connection(self._read("connection", ref, versions))
+        if pin is not None and (
+            pin.revision != connection.revision or pin.content_hash != connection.content_hash
+        ):
+            raise AdapterConfigInvalid(
+                f"pinned connection {ref!r} changed after it was selected; refusing to "
+                "silently swap an active member",
+                diagnostics=[
+                    {
+                        "code": "connection_pin_stale",
+                        "message": "pinned connection revision/content hash changed",
+                        "location": "connection.ref",
+                        "detail": {"connection_ref": ref},
+                    }
+                ],
+            )
         backend = self._registry.backend(connection.backend)
         if backend is None:
             raise AdapterConfigInvalid(
@@ -414,6 +529,8 @@ class ResourceCompiler:
             sdk_config_kind=backend.sdk_config_kind,
             supports_api_key_field=backend.supports_api_key_field,
             verified=backend.verified,
+            connection_source=connection_source,
+            credential_version=pin.credential_version if pin else None,
         )
         if not connection.enabled:
             unavailable.append(
@@ -646,6 +763,8 @@ class ResourceCompiler:
 
 __all__ = [
     "CompileConstraints",
+    "ConnectionPin",
+    "DefaultConnectionResolver",
     "ResourceVersion",
     "UnavailableResource",
     "CompiledTool",

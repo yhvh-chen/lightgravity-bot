@@ -36,6 +36,8 @@ from lightgravity.adapter import (
     CancelResult,
     CompileConstraints,
     CompiledAgentConfig,
+    ConnectionPin,
+    DefaultConnectionResolver,
     ExecuteRequest,
     ExecutorAdapter,
     ExecutorResult,
@@ -129,6 +131,7 @@ class GraphDispatcher:
         owner: str | None = None,
         cancel_timeout: float = 15.0,
         compiler: ResourceCompiler | None = None,
+        connections: DefaultConnectionResolver | None = None,
     ) -> None:
         if max_parallel < 1:
             raise ValueError("max_parallel must be >= 1")
@@ -145,6 +148,8 @@ class GraphDispatcher:
         self._owner = owner or f"graph-dispatcher:{os.getpid()}"
         self._cancel_timeout = cancel_timeout
         self._compiler = compiler or ResourceCompiler(store)
+        self._default_connections = connections
+        self._run_pins: dict[str, ConnectionPin | None] = {}
         self._inflight: dict[str, set[asyncio.Task[ExecutorResult]]] = {}
         self._active_refs: dict[str, list[ExecutionRef]] = {}
         self._explicit_cancel: set[str] = set()
@@ -162,11 +167,13 @@ class GraphDispatcher:
     ) -> DispatchOutcome:
         run_id = context.run_id
         self._explicit_cancel.discard(run_id)
+        self._run_pins[run_id] = None
         self._inflight[run_id] = set()
         self._active_refs[run_id] = []
         try:
             return await self._dispatch_graph(context, controller, emit)
         finally:
+            self._run_pins.pop(run_id, None)
             self._inflight.pop(run_id, None)
             self._active_refs.pop(run_id, None)
 
@@ -196,7 +203,18 @@ class GraphDispatcher:
             }
         )
 
-        # 2. Recruit the minimal team.
+        # 2. Freeze the worker default connection for this Run (docs/07 §3).  The
+        #    pin is non-secret (ref + revision + opaque credential version) and is
+        #    reused for every subtask so a later default/credential edit cannot
+        #    silently hot-swap an active member; a new Run re-resolves.
+        try:
+            run_pin = self._resolve_run_pin()
+        except AppError as exc:
+            return self._plan_failure(controller, "default_connection", exc)
+        self._run_pins[context.run_id] = run_pin
+        controller.update_run({"connection_pin": run_pin.to_dict() if run_pin else None})
+
+        # 3. Recruit the minimal team.
         controller.set_task_phase(TaskPhase.RECRUITING, reason="recruit minimal team")
         controller.set_run_state("recruiting")
         try:
@@ -207,7 +225,7 @@ class GraphDispatcher:
         except AppError as exc:
             return self._plan_failure(controller, "recruit", exc)
 
-        # 3. Freeze member entities (current members), then execute.
+        # 4. Freeze member entities (current members), then execute.
         key_to_subtask = {spec.key: new_id("subtask") for spec in plan.subtasks}
         member_ids: dict[str, str] = {}
         member_subtasks: dict[str, list[str]] = {}
@@ -241,6 +259,13 @@ class GraphDispatcher:
         return outcome
 
     # ----------------------------------------------------------- materialize
+    def _resolve_run_pin(self) -> ConnectionPin | None:
+        """Resolve the current default worker connection once per Run."""
+
+        if self._default_connections is None:
+            return None
+        return self._default_connections.resolve_default("worker")
+
     def _build_recruiter(self, context: DispatchContext) -> Recruiter:
         catalog = self._catalog
         if catalog is None:
@@ -265,6 +290,7 @@ class GraphDispatcher:
             ),
             workspace_path=context.workspace_path or None,
             conversation_id=context.conversation_id,
+            connection_pin=self._run_pins.get(context.run_id),
         )
         return lambda agent_ref: self._compiler.compile_agent(agent_ref, constraints=constraints)
 
@@ -277,8 +303,14 @@ class GraphDispatcher:
         controller: RunController,
     ) -> list[str]:
         created: list[str] = []
+        pin = self._run_pins.get(context.run_id)
         for member in team.members:
             member_id = member_ids[member.role_ref]
+            member_pin = (
+                pin.to_dict()
+                if pin is not None and member.candidate.connection_ref == pin.connection_id
+                else None
+            )
             controller.create_member(
                 member_id,
                 {
@@ -287,6 +319,7 @@ class GraphDispatcher:
                     "state": "ready",
                     "template_version": member.candidate.template_version,
                     "connection_ref": member.candidate.connection_ref,
+                    "connection_pin": member_pin,
                     "skill_refs": list(member.candidate.skill_refs),
                     "session_ref": None,
                     "tool_policy": {"allowed_tools": list(member.candidate.tool_refs)},
@@ -734,10 +767,12 @@ class GraphDispatcher:
         )
 
     def _config_drift(self, node: _Node, context: DispatchContext) -> str | None:
+        pin = self._run_pins.get(context.run_id)
         constraints = CompileConstraints(
             allowed_tools=frozenset(node.member.candidate.tool_refs),
             workspace_path=context.workspace_path or None,
             conversation_id=context.conversation_id,
+            connection_pin=pin,
         )
         try:
             compiled = self._compiler.compile_agent(node.member.role_ref, constraints=constraints)
@@ -748,6 +783,23 @@ class GraphDispatcher:
                 f"member agent {node.member.role_ref!r} configuration changed after "
                 "recruitment; run configuration is fixed"
             )
+        if (
+            pin is not None
+            and self._default_connections is not None
+            and compiled.connection is not None
+            and compiled.connection.connection_source == "pinned"
+        ):
+            # Credential/default edits after recruitment must not be silently
+            # picked up by the next subtask of an active Run.
+            try:
+                current = self._default_connections.pinned_is_current(pin)
+            except Exception as exc:  # noqa: BLE001 - report, never hot-swap
+                return f"could not verify pinned connection {pin.connection_id!r}: {exc}"
+            if not current:
+                return (
+                    f"pinned worker connection {pin.connection_id!r} or its credential "
+                    "changed after recruitment; run configuration is fixed"
+                )
         return None
 
     # ---------------------------------------------------------------- helpers

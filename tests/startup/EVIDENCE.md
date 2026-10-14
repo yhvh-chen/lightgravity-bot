@@ -1,9 +1,12 @@
 # LG-020 启动/分发实测证据
 
+> 本文件保留首次交付记录（§1–§6）。**返修补充见文末 §7**：默认连接解析、新成员
+> Run pin、运行时种子 agent、真实 `frontend/dist` 与一次真实 DeepSeek 调用。
+
 - 日期：2026-10-14（UTC）
 - worktree：`/tmp/lightgravity-worktrees/lg020`，agent `pi-lg020`
 - 基线 commit：`25312d1`
-- 环境：Python 3.12.13、uv 0.12.1；临时目录 `/tmp`；**未调用真实模型**
+- 环境：Python 3.12.13、uv 0.12.1；临时目录 `/tmp`；**首次交付未调用真实模型**
 
 ## 1. 局部检查
 
@@ -75,10 +78,49 @@ uv run lightgravity stop --data-dir /tmp/lg020-daemon/data
 - 前端 Settings 客户端 `createSettingsApi` 默认 `getRuntimeToken`，调用时读取该
   全局，自动带 `X-LG-Token`；未构建 dist 时提供最小引导页做同样握手。
 
-## 6. 未实测 / 限制
+## 6. 未实测 / 限制（首次交付，返修已补）
 
 - 未执行 `npm ci`/`npm run build`（无 `node_modules`），静态托管用合成 dist 验证；
   真实 `frontend/dist` 需先 `make frontend-build`。
 - 未调用 DeepSeek（按要求至多 1 次且非必要，本次不需要）。
 - 默认连接注入 compiler/新 Task 用默认等跨模块行为见 runtime README「已知缺口」，
   属共享文件，需要整合接线，本次未实现。
+
+## 7. 返修补充（默认连接 + 成员 pin + 真实 dist/模型）
+
+- 日期：2026-10-15（UTC）；agent `pi-lg020`；基线 `05e6b0e`。
+- 本地检查：`uv run mypy` → Success (81 files)；`uv run pytest -q` →
+  **349 passed, 1 skipped**（gated 真实模型用例默认跳过）。
+- 真实前端：`cd frontend && npm ci && npm run build`（177 packages，未改源码/锁；
+  `frontend/dist/` 为 gitignored 产物）。新增 `tests/startup/test_real_frontend_dist.py`
+  用真实 dist 验证 ASGI 挂载 + 真实子进程 `lightgravity start`（默认 dist）→
+  `GET /` 注入 `__LG_RUNTIME_TOKEN__` 且 `no-store`、真实 hashed asset 200、
+  `PATCH /api/v1/settings` 带 token 200、`stop` 清理 pid 记录。
+- 默认连接/新成员 pin（`tests/adapter/test_default_connection.py`、
+  `tests/coordinator/test_default_connection_pin.py`）：显式 `agent.connection_ref`
+  优先且非法不静默回退；缺省用当前默认 worker 连接；Run 招募时固定
+  `connection_pin`（ref + revision + content_hash + 不透明 `credential_version`，
+  非秘密）；活跃 Run 忽略后续默认切换，凭证轮换在下一 Subtask 报 `config_invalid`
+  而非静默换用；新 Run 才使用新默认。
+- 运行时种子 agent（`tests/startup/test_seed_agent.py`）：无 agent 模板时幂等创建
+  `lg-default-worker`（`connection_ref: null`、`tool_refs: []`），不覆盖用户模板、
+  不扩权限；`lg init`/Settings 两种入口并存。
+- Settings-only 集成（`tests/startup/test_settings_to_task.py`）：首次启动 →
+  经 Settings API 建连接/存凭证/静态测试/设 worker 默认 → 新 Task 经种子 agent
+  到达 executor，Member 固定 `connection_ref`/`connection_pin`，无秘密落盘；
+  上游故意不可达以快速、真实地失败（无网络、无真实模型），仅证明入口可用。
+- 真实 DeepSeek（gated `tests/startup/test_real_deepseek_settings_path.py`，
+  `LG020_REAL_DEEPSEEK=1` + env `DEEPSEEK_API_KEY`，硬上限 `model_calls_cap=1`、
+  `max_proxy_calls=1`）：实测输出
+  `{'model_calls_made': 1, 'subtask_states': ['pending', 'passed'],
+  'connection_pin': {'connection_id': 'deepseek-live', 'model': 'deepseek-v4-flash',
+  'credential_ref': 'deepseek-api-key', ...}, 'run_state': 'executing'}`；
+  凭证只来自 env，未读 `.env`、未打印/写入密钥。
+- 冲突接线文件（与 root 另一路 artifactrefs/自动 verify 返修重叠，需安全整合）：
+  `backend/lightgravity/coordinator/graph.py`（本包只改默认连接 pin 相关：
+  `__init__`、`dispatch`、`_dispatch_graph`、`_member_compiler`、`_materialize_members`、
+  `_config_drift`）、`backend/lightgravity/adapter/executor.py`（仅 `_compile` 传
+  `connection_ref_override`）、`backend/lightgravity/api/bootstrap.py`、
+  `backend/lightgravity/verify/checks.py` / `backend/lightgravity/api/app.py`（root 范围，本包未改）。
+- 未做独立版本 QA；LG-010 的真实验收阻断（绝对 diff_ref + 自动 verify 接线）仍由
+  其它任务处理，本包不宣称闭环通过。

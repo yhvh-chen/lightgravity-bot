@@ -23,6 +23,8 @@ from .compiler import (
     CompiledSessionProfile,
     CompiledSkills,
     CompiledTool,
+    ConnectionPin,
+    DefaultConnectionResolver,
     ResourceCompiler,
     ResourceVersion,
     UnavailableResource,
@@ -86,6 +88,8 @@ __all__ = [
     "installed_sdk_version",
     # compiler
     "CompileConstraints",
+    "ConnectionPin",
+    "DefaultConnectionResolver",
     "CompiledAgentConfig",
     "CompiledConnection",
     "CompiledHook",

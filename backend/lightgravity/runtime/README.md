@@ -74,32 +74,46 @@ uv run lightgravity init --connection-id primary --credential-ref worker-key \
 - 前端：`--frontend-dist`（默认 `./frontend/dist`），`--no-frontend` 只起 API。
 - 其它环境变量示例见根 `.env.example`（不读取/不回显真实 `.env`）。
 
+## 默认连接、种子 agent 与成员 pin（返修已接线）
+
+- **默认连接解析**：`adapter/compiler.py` 按优先级选择连接——显式
+  `agent.connection_ref`（非法/缺失直接报错，不静默回退）→ Run 的
+  `connection_pin` → `connection_ref_override` → 注入的 `DefaultConnectionResolver`
+  当前默认（按职责，首版 worker）。缺省且无默认时才 `connection_missing`。
+- **成员/Run pin**：`GraphDispatcher` 在每次 Run 招募前解析一次默认连接，写入
+  Run 的 `connection_pin` 与 Member 的 `connection_pin`（ref + revision +
+  content_hash + 不透明 `credential_version`，**不含秘密**），并对每个 Subtask
+  复用该 pin。活跃 Run 内默认切换被忽略；连接内容或凭证版本变化会在下一
+  Subtask 以 `config_invalid` 失败而不是静默换用；新 Task/Run 才用新默认。
+- **运行时种子 agent**：`runtime/minimal.py::seed_default_agent` 仅当不存在任何
+  agent 模板时幂等创建 `lg-default-worker`（`connection_ref: null`、无工具、无
+  workspace 授权），不覆盖用户模板、不借机扩权。这样“首次启动 → Settings
+  建连接/存凭证/设默认 → 新 Task”无需用户理解 `lg init` 即可执行；`lg init` 仍可用。
+- 缺 key 时历史与 Settings 仍可读，真实执行保持清晰的 `capability_unavailable`。
+
 ## 已知缺口 / 需要整合的共享接线
 
-以下不属于 LG-020 文件归属，本次**未实现**，列出以免误认为已齐备：
-
-1. **默认连接自动注入 compiler**：`ConnectionService.resolve_default` /
-   `pin_connection` 已存在，但 `adapter/compiler.py` 仍在 agent 缺少
-   `connection_ref` 时直接 `connection_missing`，`coordinator` 也尚未把
-   `default_worker_connection_ref` 固定到成员。要满足“新 Task 用默认、活跃成员
-   保持旧配置”，需在 compiler/GraphDispatcher 侧接线（共享文件，需整合）。
-2. **仅通过 Settings 创建连接后仍无 agent**：首版 Settings 只创建/编辑
-   connection；`lg init` 才会写最小 agent。若产品希望“配好模型即可执行”，需要
-   由整合决定是在 Settings 保存后生成默认 agent，还是保留显式 `lg init`。
-3. **`frontend/dist` 未构建**：本包只做托管与 token 注入；仓库当前无
-   `node_modules`/`dist`，未在本次执行 `npm ci`。真实前端一体验证需先
-   `make frontend-build`。
-4. Files/资源视图等大组件是否齐备由各自任务负责，本包不做“假齐备”声明。
-5. `store/protocol.py` 的 `Store.create` 增补可选 `body` 参数（与 `FileStore`
+1. **与 root 另一路返修的冲突文件**：`coordinator/graph.py`（本包改默认连接 pin）、
+   `adapter/executor.py`（仅 `_compile` 传 `connection_ref_override`）、
+   `api/bootstrap.py` 与 root 的 artifactrefs/自动 verify 返修重叠；`verify/checks.py`、
+   `api/app.py` 属 root 范围，本包未改。整合时按上方最小改动点核对即可。
+2. **LG-010 真实验收阻断仍在**（绝对 `diff_ref` 检查 + 成功后的自动 verify 接线），
+   由对应任务处理；本包只保证执行入口与默认连接/pin，不宣称闭环通过。
+3. Files/资源视图等大组件是否齐备由各自任务负责，本包不做“假齐备”声明。
+4. `store/protocol.py` 的 `Store.create` 增补可选 `body` 参数（与 `FileStore`
    实际签名对齐的加性共享变更），需整合确认。
 
 ## 测试
 
-`tests/startup/`：token 不落盘、Host/Origin 守卫、SPA 托管与 token 注入、默认
-拒绝敏感写、缺凭证/缺 executor 的就绪报告、幂等 init、真实子进程
-start→status→stop 往返。运行：
+`tests/startup/`：token 不落盘、Host/Origin 守卫、SPA 托管与 token 注入（含真实
+`frontend/dist` 的 ASGI 与真实子进程 start→handshake→stop）、默认拒绝敏感写、
+缺凭证/缺 executor 的就绪报告、幂等 init、运行时种子 agent、Settings-only
+首次启动到新 Task 执行入口、真实子进程 start→status→stop 往返。真实 DeepSeek
+用例默认跳过，设 `LG020_REAL_DEEPSEEK=1` 且环境有 `DEEPSEEK_API_KEY` 时运行
+（硬上限 1 次模型调用、1 次代理调用）。运行：
 
 ```bash
 uv run pytest tests/startup -q
+uv run pytest -q
 uv run mypy
 ```
