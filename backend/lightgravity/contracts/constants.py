@@ -3,7 +3,16 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
-#: docs/08 §13: 1.4.0 (2026-10-15) registers LG-015's additive
+#: docs/08 §13: 1.5.0 (2026-10-15) registers LG-020's additive, non-secret
+#: ``connection_pin`` field on Run and Member entities.  It records the default
+#: worker connection (ref + revision + content_hash + opaque
+#: ``credential_version``) resolved when a Run recruits its team, so a later
+#: default/credential edit cannot silently hot-swap an active member's connection;
+#: drift fails the next subtask as ``config_invalid`` and a new Run re-resolves.
+#: No secret is ever stored.  Existing endpoint semantics, error codes, event
+#: types, enums and state transitions are unchanged.
+#:
+#: 1.4.0 (2026-10-15) registers LG-015's additive
 #: ``PATCH /resources/{kind}/{id}`` controlled write, the ``GET /team/available``
 #: and ``GET /team/members`` read endpoints, and the additive Task-message
 #: ``resource_proposal`` field that routes a bounded resource change through the
@@ -23,7 +32,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.4.0"
+CONTRACT_VERSION = "1.5.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

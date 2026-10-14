@@ -24,7 +24,15 @@ here):
 * ``GET /tasks/{task_id}/artifacts`` — task-scoped inputs/candidates/deliverables/
   evidence association from the Task ``workspace_ref`` plus the acceptance
   binding fields.  No workspace or no files yields an honest empty result with a
-  note, never fabricated data.
+  note, never fabricated data.  Canonical evidence artifacts (which live in the
+  Store-owned Task/Run evidence root, *not* under the workspace root) are listed
+  independently with their own authorized ref.
+* ``GET /tasks/{task_id}/artifacts/content`` and
+  ``GET /tasks/{task_id}/artifacts/download`` — preview/download of one canonical
+  evidence artifact.  They accept only ``evidence:<run_id>/<name>@sha256:<hex>``
+  and resolve it through the Task/Run evidence resolver, so a raw absolute path,
+  another Task's artifact or a digest mismatch is refused; preview and download
+  share one stat-based ``revision``.
 
 Files/preview is read-only: no execution, no MCP, no Trigger.  HTML/scripts are
 never rendered, only offered for download.
@@ -33,8 +41,10 @@ never rendered, only offered for download.
 from __future__ import annotations
 
 import base64
+import hashlib
 import mimetypes
 import os
+import re
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -44,6 +54,13 @@ from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import StreamingResponse
 
 from ..contracts import AppError, ErrorCode
+from ..evidence import (
+    EvidenceRefError,
+    canonical_evidence_ref,
+    evidence_root,
+    parse_evidence_ref,
+    resolve_evidence_ref,
+)
 from ..store import EntityNotFound
 from ..store.atomic import TEMP_PREFIX
 from ..store.locking import LockManager
@@ -58,6 +75,8 @@ MAX_DOWNLOAD_BYTES = 50_000_000
 _BINARY_SNIFF_BYTES = 1024
 _STREAM_CHUNK = 256 * 1024
 _ARTIFACT_SCAN_LIMIT = 2000
+#: Evidence run-directory names are single, separator-free components.
+_SAFE_RUN_NAME = re.compile(r"^[A-Za-z0-9._-]+$")
 
 #: Top-level task-directory convention (docs/01 §9, docs/02 §4) -> category.
 _ARTIFACT_CATEGORIES: dict[str, str] = {
@@ -223,6 +242,93 @@ def _scan_artifacts(root: Path, root_real: str) -> dict[str, list[dict[str, Any]
             scanned += 1
             categories[_classify(str(described["path"]))].append(described)
     return categories
+
+
+def _scan_evidence_root(
+    data_dir: Path, task_id: str, run_id: str | None = None
+) -> list[dict[str, Any]]:
+    """List canonical evidence artifacts under the Task's evidence root.
+
+    Only the Store-owned evidence root is read, never the raw data directory, so
+    this cannot become a general filesystem listing.  Each entry carries its own
+    canonical ``evidence:<run_id>/<name>@sha256:<hex>`` ref (the digest is the
+    recorded content hash) so the preview/download endpoints can re-authorize it.
+    """
+
+    root = evidence_root(data_dir, task_id)
+    if not root.is_dir():
+        return []
+    root_real = os.path.realpath(str(root))
+    items: list[dict[str, Any]] = []
+    for run_dir in sorted(root.iterdir()):
+        if run_id is not None and run_dir.name != run_id:
+            continue
+        if not run_dir.is_dir() or not _SAFE_RUN_NAME.match(run_dir.name):
+            continue
+        for child in sorted(run_dir.iterdir()):
+            if len(items) >= _ARTIFACT_SCAN_LIMIT:
+                return items
+            described = _describe(str(child), root_real)
+            if described is None or described["type"] != "file":
+                continue
+            digest = _sha256_of(child)
+            described["run_id"] = run_dir.name
+            described["artifact_name"] = child.name
+            described["evidence_ref"] = canonical_evidence_ref(
+                run_dir.name, child.name, digest
+            )
+            items.append(described)
+    return items
+
+
+def _sha256_of(path: Path) -> str | None:
+    try:
+        digest = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(65536), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+    except OSError:  # pragma: no cover - unreadable file
+        return None
+
+
+def _resolve_task_evidence(
+    ctx: ApiContext, task_id: str, ref: str
+) -> tuple[Path, str, str]:
+    """Authorize a canonical evidence ref for a specific Task.
+
+    The ref pins the owning Run and (when present) the content digest; the
+    resolver enforces Task ownership of the evidence root and rejects any ref
+    that is not an ``evidence:`` reference, so a raw absolute path or a ref from
+    another Task cannot be read through this endpoint.
+    """
+
+    try:
+        parsed = parse_evidence_ref(ref)
+    except EvidenceRefError as exc:
+        raise AppError(
+            ErrorCode.INVALID_REQUEST,
+            "evidence reference is malformed",
+            details={"evidence_ref": ref, "detail": str(exc)},
+        ) from None
+    if parsed is None:
+        raise AppError(
+            ErrorCode.INVALID_REQUEST,
+            "only canonical 'evidence:<run_id>/<name>@sha256:<hex>' references "
+            "can be resolved here; raw paths are not accepted",
+            details={"evidence_ref": ref},
+        )
+    try:
+        target = resolve_evidence_ref(
+            ref, data_dir=ctx.data_dir, task_id=task_id, run_id=parsed.run_id
+        )
+    except EvidenceRefError as exc:
+        raise AppError(
+            ErrorCode.NOT_FOUND,
+            "evidence reference is not readable for this task/run",
+            details={"evidence_ref": ref, "detail": str(exc)},
+        ) from None
+    return target, parsed.run_id, parsed.name
 
 
 def build_files_router() -> APIRouter:
@@ -504,10 +610,23 @@ def build_files_router() -> APIRouter:
                 "other": [],
             },
             "note": None,
+            "evidence": [],
         }
+        # Canonical evidence artifacts live in the Store-owned Task/Run evidence
+        # root, which is *not* under the workspace root, so they are listed
+        # independently of ``workspace_ref`` and carry their own authorized ref.
+        evidence_entries: list[dict[str, Any]] = []
+        for entry in _scan_evidence_root(ctx.data_dir, task_id):
+            evidence_entries.append(entry)
+        result["evidence"] = evidence_entries
+        result["categories"]["evidence"] = list(evidence_entries)
         workspace_ref = entity.get("workspace_ref")
         if not isinstance(workspace_ref, str) or not workspace_ref.strip():
-            result["note"] = "Task has no workspace_ref; no files to associate."
+            result["note"] = (
+                "Task has no workspace_ref; no workspace files to associate."
+                if not result["evidence"]
+                else "Task has no workspace_ref; only canonical evidence artifacts are listed."
+            )
             return result
         try:
             root = ctx.store.resolve_path(workspace_ref, write=False)
@@ -519,7 +638,99 @@ def build_files_router() -> APIRouter:
             return result
         root_real = os.path.realpath(str(root))
         result["categories"] = _scan_artifacts(root, root_real)
+        # Keep both: workspace-classified evidence files plus canonical evidence-root refs.
+        result["categories"]["evidence"] = [
+            *result["categories"]["evidence"],
+            *evidence_entries,
+        ]
         return result
+
+    @router.get("/tasks/{task_id}/artifacts/content")
+    def task_artifact_content(
+        ctx: Annotated[ApiContext, Depends(get_context)],
+        task_id: str,
+        evidence_ref: Annotated[str, Query()],
+    ) -> dict[str, Any]:
+        """Preview a canonical evidence artifact for its owning Task.
+
+        The reference must be ``evidence:<run_id>/<name>@sha256:<hex>``; it is
+        resolved through the Task/Run evidence resolver, so a raw absolute path,
+        another Task's artifact or a digest mismatch is refused rather than read.
+        """
+
+        target, run_id, name = _resolve_task_evidence(ctx, task_id, evidence_ref)
+        size = target.stat().st_size
+        with target.open("rb") as handle:
+            data = handle.read(MAX_CONTENT_BYTES)
+        truncated = size > MAX_CONTENT_BYTES
+        binary = b"\x00" in data[:_BINARY_SNIFF_BYTES]
+        media_type = mimetypes.guess_type(name)[0] or (
+            "application/octet-stream" if binary else "text/plain"
+        )
+        payload: dict[str, Any] = {
+            "task_id": task_id,
+            "run_id": run_id,
+            "name": name,
+            "evidence_ref": evidence_ref,
+            "size": size,
+            "truncated": truncated,
+            "media_type": media_type,
+            "encoding": "base64" if binary else "utf-8",
+            "revision": _revision(target),
+        }
+        if binary:
+            payload["content"] = base64.b64encode(data).decode("ascii")
+        else:
+            payload["content"] = data.decode("utf-8", "replace")
+        return payload
+
+    @router.get("/tasks/{task_id}/artifacts/download")
+    def task_artifact_download(
+        ctx: Annotated[ApiContext, Depends(get_context)],
+        task_id: str,
+        evidence_ref: Annotated[str, Query()],
+        revision: Annotated[str | None, Query()] = None,
+    ) -> StreamingResponse:
+        """Download the same evidence bytes that the preview reads."""
+
+        target, _run_id, _name = _resolve_task_evidence(ctx, task_id, evidence_ref)
+        info = target.stat()
+        if info.st_size > MAX_DOWNLOAD_BYTES:
+            raise AppError(
+                ErrorCode.INVALID_REQUEST,
+                "artifact exceeds the download size limit",
+                details={"evidence_ref": evidence_ref, "max_bytes": MAX_DOWNLOAD_BYTES},
+            )
+        current = _revision(target)
+        expected = _normalize_revision(revision)
+        if expected is not None and expected != current:
+            raise AppError(
+                ErrorCode.REVISION_CONFLICT,
+                "artifact changed since the requested revision",
+                details={
+                    "evidence_ref": evidence_ref,
+                    "expected_revision": expected,
+                    "actual_revision": current,
+                },
+            )
+        media_type = mimetypes.guess_type(target.name)[0] or "application/octet-stream"
+
+        def stream() -> Any:
+            with target.open("rb") as handle:
+                while True:
+                    chunk = handle.read(_STREAM_CHUNK)
+                    if not chunk:
+                        break
+                    yield chunk
+
+        headers = {
+            "Content-Disposition": _content_disposition(target.name),
+            "ETag": f'"{current}"',
+            "X-LG-Revision": current or "",
+            "X-Content-Type-Options": "nosniff",
+            "Cache-Control": "no-store",
+        }
+        return StreamingResponse(stream(), media_type=media_type, headers=headers)
 
     return router
 

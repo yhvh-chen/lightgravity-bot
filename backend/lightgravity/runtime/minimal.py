@@ -28,14 +28,27 @@ from lightgravity.store.entities import RESOURCE_DIRS
 #: Stable id of the built-in worker seeded when no agent template exists.
 DEFAULT_AGENT_ID = "lg-default-worker"
 
-#: Body of the built-in worker; it grants no tools and pins no connection.
+#: Bounded, workspace-scoped file tools the built-in worker may use.  They are
+#: all file.read/file.write handlers backed by the SDK workspace sandbox; the
+#: broader command.execute (``run-command``) and web tools are deliberately
+#: excluded so the seed never opens an unbounded capability.  The task/run
+#: constraint ceiling can further narrow this set, and a task with no authorized
+#: workspace simply cannot attach them.
+DEFAULT_WORKER_TOOL_REFS: tuple[str, ...] = (
+    "view-file",
+    "create-file",
+    "edit-file",
+)
+
+#: Body of the built-in worker; it pins no connection.
 DEFAULT_AGENT_BODY = (
     "# Built-in worker\n\n"
-    "Seeded by the runtime because no agent template existed. It carries no tool\n"
-    "grants or workspace authorization and has no explicit connection_ref: it runs\n"
-    "on the current default worker connection configured in Settings. Extend or\n"
-    "replace it from Team/Resources; deleting it and creating your own template is\n"
-    "also supported.\n"
+    "Seeded by the runtime because no agent template existed. It carries only the\n"
+    "bounded, workspace-scoped file tools (view/create/edit); it has no\n"
+    "command-execution or web grants and no explicit connection_ref: it runs on the\n"
+    "current default worker connection configured in Settings. Extend or replace it\n"
+    "from Team/Resources; deleting it and creating your own template is also\n"
+    "supported.\n"
 )
 
 
@@ -275,11 +288,24 @@ def seed_default_agent(
     Unlike :func:`initialize_minimal` this needs no operator input, so a fresh
     install can become executable purely through Settings (create connection,
     store credential, set default).  It never overwrites an existing template
-    (including a disabled one) and grants no tools or workspace access.
+    (including a disabled one) and grants only the bounded, workspace-scoped file
+    tools; a Task still needs an authorized workspace for them to attach.
     """
 
     if _agent_template_exists(store):
         return None
+    tool_report = InitReport()
+    for tool_ref in DEFAULT_WORKER_TOOL_REFS:
+        _ensure(
+            store,
+            tool_report,
+            "tool",
+            tool_ref,
+            {"title": tool_ref, "enabled": True, "implementation": tool_ref},
+            body="",
+            actor=actor,
+            request_id=f"{request_id}-tool-{tool_ref}",
+        )
     cast(_BodyCreateStore, store).create(
         "agent",
         DEFAULT_AGENT_ID,
@@ -289,7 +315,7 @@ def seed_default_agent(
             "connection_ref": None,
             "conversation_ref": None,
             "skills": {"source": "inline", "refs": []},
-            "tool_refs": [],
+            "tool_refs": list(DEFAULT_WORKER_TOOL_REFS),
             "hook_refs": [],
             "mcp_refs": [],
             "trigger_refs": [],
@@ -306,6 +332,7 @@ def seed_default_agent(
 __all__ = [
     "DEFAULT_AGENT_BODY",
     "DEFAULT_AGENT_ID",
+    "DEFAULT_WORKER_TOOL_REFS",
     "AgentInit",
     "ConnectionInit",
     "InitReport",
