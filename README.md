@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot
 
-> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.0.0）已冻结；LG-002 已建立可运行工程骨架（后端 health/version 与前端壳、测试/类型/构建入口可用）。业务功能尚未实现，未接入 Antigravity SDK，未部署。
+> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.0.0）已冻结；LG-002 工程骨架可运行，LG-003 SDK 探针与 LG-004 存储层已完成。SDK 核心能力经真实 DeepSeek 实测通过，但产品首版 Gemini 后端因缺凭证未验收，`search_web` 不可用；adapter/协调器/查询 API 等业务接线尚未实现，Antigravity SDK 未成为产品依赖，未部署。
 
 **按需组队的 AI 任务助手。**
 
@@ -38,9 +38,22 @@ Task 是主要操作入口：一项任务一个目录、一份 TASK.md、一条�
 
 任务、角色及 SDK 资源采用 Markdown＋YAML frontmatter 描述与渲染，程序校验后编译为 SDK 配置。日志与 SDK 会话保持各自格式，不重复保存当前业务状态。
 
+## 当前进展（截至 2026-10-15）
+
+| 任务 | 状态 | 实际证据与限制 |
+|---|---|---|
+| LG-001 契约 | done | [docs/08](docs/08-interface-contract.md) 契约版本 1.0.0 已冻结 |
+| LG-002 工程骨架 | done | 后端 health/version、前端占位壳、check 入口可用 |
+| LG-003 SDK 探针 | done（带限制） | 固定 `google-antigravity==0.1.22`；文件工具、结构化输出、工具事件、预算停止、取消、会话保存/恢复、skills（文件与 inline）、`read_url_content` 经真实 DeepSeek 实测通过；**产品首版 Gemini Developer API／Vertex 因本环境无凭证未验收**；`search_web` 在非 Gemini 端点不可用。见 [LG-003 报告](probes/lg003-antigravity/reports/LG-003-report.md) |
+| LG-004 存储层 | done（待版本 QA） | `backend/lightgravity/store/` + `tests/store/`；整合后局部 69 passed、全量后端 82 passed、mypy 无问题 |
+| LG-011 前端壳层 | in-progress | 在独立 worktree 执行中，未并入本批 |
+
+- 上述 done 为执行者局部证据，**不是版本 QA 结论**；LG-003 的 DeepSeek 路径不改变 docs/08 冻结的“首版 Gemini 后端”产品契约。
+- 下一步：LG-005 可基于 LG-004 的 store 接口与 LG-003 探针结论进行角色/SDK 资源配置编译；**LG-006 真实 Gemini adapter 与 LG-010 最小真实闭环仍需具备 Gemini 凭证的环境完成认证后才能验收**。
+
 ## 本地运行与检查（工程骨架）
 
-工程骨架由 LG-002 建立，仅含后端 `GET /api/v1/health`、`GET /api/v1/version` 和前端占位壳，不含业务功能，也未安装 Antigravity SDK。
+工程骨架由 LG-002 建立，LG-004 已加入后端存储层；仍只提供后端 `GET /api/v1/health`、`GET /api/v1/version` 与前端占位壳，不含 HTTP 业务端点，也未把 Antigravity SDK 安装为产品依赖。
 
 ### 版本要求
 
@@ -103,7 +116,7 @@ make frontend-build   # 前端生产构建
 - 一个占用执行槽的交付 Run，其他 Task 可以排队；最多三个 worker、两个并行子任务、一轮自动返修，待运行验证后调整。已停止的待用户或待验收 Run 不占槽。
 - 首个执行后端采用 Antigravity SDK，保留 adapter 边界，不同时实现多个 SDK。
 - agency-agents 作为候选角色内容来源，从少量开发角色开始。
-- 使用 SDK 原生 skills 加载与基础文件、命令、网页工具；按成员绑定角色、技能、工具权限与工作区，不重建通用技能执行层。源码能力已核对，真实运行待验证。
+- 使用 SDK 原生 skills 加载与基础文件、命令、网页工具；按成员绑定角色、技能、工具权限与工作区，不重建通用技能执行层。LG-003 已用真实 DeepSeek 探针验证核心能力；产品首版 Gemini 路径与 `search_web` 仍待具备凭证的环境复验。
 - 临时角色实例随运行创建和释放，项目与产物长期保存。
 - 人工最终验收；worker 自报完成只能进入待验证。
 - 单用户本地网页入口，简单问答不组队；后台执行独立于浏览器连接，支持 Task 队列与网页未读通知。云端入口、外部聊天渠道和自主触发另行推进。

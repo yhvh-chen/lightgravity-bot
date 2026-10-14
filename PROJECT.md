@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot 项目手册
 
-> 更新：2026-10-15。阶段：LG-001 契约已冻结，LG-002 已建立可运行工程骨架（后端 health/version 与前端壳、测试/类型/构建入口可用）。业务功能与 Antigravity SDK 尚未实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
+> 更新：2026-10-15。阶段：LG-001 契约已冻结，LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；产品首版 Gemini 后端因本环境缺凭证未验收，`search_web` 不可用），LG-004 存储层与局部测试完成；LG-011 前端壳层仍在独立 worktree 执行。产品 adapter、协调器、查询 API 等业务接线尚未实现，Antigravity SDK 仅经探针验证、未成为产品依赖。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
 
 ## 目标
 
@@ -40,6 +40,15 @@ updated: "2026-10-15"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-15：整合 LG-003 SDK 探针与 LG-004 存储层
+
+- 通过 pi 并行工作包完成 LG-003、LG-004（LG-011 仍在独立 worktree 执行，本批未触碰）。两份成果提交在各自 worktree 干净；主工作区核对干净后以 `cherry-pick` 精确带回 `main`，无冲突、无内容丢失、未清理任何 worktree/分支，只整合这两个任务成果。
+- LG-003：固定 `google-antigravity==0.1.22`（x86_64 Linux wheel，原生 runtime 握手成功）。核心能力以真实 DeepSeek（OpenAI-compatible 本地代理注入 bearer）有界实测通过：文件工具、结构化输出、工具事件、预算停止、取消、会话保存/恢复、skills（文件与 inline）、`read_url_content`，并记录真实沙箱状态 `SandboxStatus(available=true)`；证据与限制见 [LG-003 探针报告](probes/lg003-antigravity/reports/LG-003-report.md)。产品首版 Gemini（Developer API / Vertex）后端因本环境无 `GEMINI_API_KEY`/Vertex 凭证**未验收**；`search_web` 在非 Gemini 端点被调用但无可结果，实际不可用。DeepSeek 只是探针可达路径，**不改变 docs/08 冻结的首版 Gemini 产品契约**。
+- LG-004：交付 `backend/lightgravity/store/` 与 `tests/store/`，覆盖 frontmatter 保留/重复键拒绝、Task/Run/Subtask/Member 校验与状态迁移、路径越界与符号链接逃逸、`flock` 锁/租约、原子替换与 JSONL 尾部恢复、事件 `seq` 单调与消息幂等、可重建索引。整合后局部 `pytest tests/store` 69 passed、全量后端 82 passed、`mypy` 无问题。
+- 两项成果均标注“待版本 QA”，不代表版本验收通过；本次整合为执行与证据核对，主代理未做代码审查。
+- 后续：LG-005 可基于 LG-004 的 `Store` 接口与 LG-003 探针结论进行角色/SDK 资源配置编译；LG-006 真实 Gemini adapter 与 LG-010 最小真实闭环仍需具备 Gemini 凭证的环境完成认证后才能验收。
+- 同步 README 阶段事实；未修改产品契约、未新增共享依赖、未推送、未部署。
 
 ### 2026-10-15：建立可运行工程骨架（LG-002）
 
