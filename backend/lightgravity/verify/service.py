@@ -230,7 +230,7 @@ class VerificationService:
     ) -> ActionResult:
         """Run machine checks and, when safe, open the candidate for acceptance."""
 
-        key = self._key("verify", request_id)
+        key = self._key("verify", request_id, task_id)
         if key is not None:
             existing = self._idempotency.lookup(key)
             if existing is not None:
@@ -397,7 +397,7 @@ class VerificationService:
                 "request_id is required for a decision",
                 details={"field": "request_id"},
             )
-        key = self._key("decision", request_id)
+        key = self._key("decision", request_id, task_id)
         assert key is not None
         existing = self._idempotency.lookup(key)
         if existing is not None:
@@ -514,6 +514,54 @@ class VerificationService:
         )
         self._idempotency.record(key, result.to_dict())
         return result
+
+    def replay_decision(
+        self,
+        task_id: str,
+        action: str,
+        request_id: str,
+        *,
+        target_run_id: str | None = None,
+    ) -> ActionResult | None:
+        """Bounded read-only replay lookup for an already-applied decision.
+
+        Returns the first recorded result for ``request_id`` only when it is the
+        *same* Task and the *same* action, and --- when the caller supplies a
+        ``target_run_id`` --- only when that target matches the originally bound
+        candidate.  This lets a duplicate ``accept``/``reject`` acknowledgement
+        replay the first result even after acceptance cleared ``active_run``,
+        without ever honouring a cross-Task, cross-action or different-target
+        request merely because it reused a ``request_id``.  No control or
+        acceptance state is written here; the caller only reads the outcome.
+        """
+
+        if action not in _DECISION_ACTIONS:
+            return None
+        key = self._key("decision", request_id, task_id)
+        if key is None:
+            return None
+        existing = self._idempotency.lookup(key)
+        if not isinstance(existing, dict):
+            return None
+        recorded = ActionResult.from_dict(existing)
+        if recorded.task_id != task_id or recorded.action != action:
+            return None
+        if target_run_id is not None and target_run_id != recorded.candidate_ref:
+            return None
+        return ActionResult(
+            action=recorded.action,
+            state=recorded.state,
+            confirmed=recorded.confirmed,
+            task_id=recorded.task_id,
+            phase=recorded.phase,
+            acceptance=dict(recorded.acceptance),
+            request_id=recorded.request_id or request_id,
+            candidate_ref=recorded.candidate_ref,
+            messages=tuple(recorded.messages),
+            candidate=recorded.candidate,
+            checks=recorded.checks,
+            stop=recorded.stop,
+        )
 
     def _replay_result(
         self,
@@ -642,7 +690,7 @@ class VerificationService:
         whether a new Run is warranted from real state.
         """
 
-        key = self._key("repair", request_id)
+        key = self._key("repair", request_id, task_id)
         if key is not None:
             existing = self._idempotency.lookup(key)
             if existing is not None:
@@ -708,10 +756,14 @@ class VerificationService:
         active = task.entity.get("active_run")
         return active if isinstance(active, str) and active else None
 
-    def _key(self, kind: str, request_id: str | None) -> str | None:
+    def _key(self, kind: str, request_id: str | None, task_id: str | None = None) -> str | None:
         if not isinstance(request_id, str) or not request_id.strip():
             return None
-        return f"verify:{kind}:{request_id}"
+        if not isinstance(task_id, str) or not task_id.strip():
+            return None
+        # Scope idempotency by Task: a reused ``request_id`` on another Task must
+        # never replay the first Task's control result.
+        return f"verify:{kind}:{task_id}:{request_id}"
 
     @staticmethod
     def _revision_conflict(task_id: str, expected: int, actual: int) -> RevisionConflict:

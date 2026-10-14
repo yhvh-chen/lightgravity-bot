@@ -376,6 +376,23 @@ def build_task_router() -> APIRouter:
     ) -> dict[str, Any]:
         action = _coerce_action(payload.action)
         current = ctx.store.read("task", task_id)
+        # Idempotent replay is checked before the revision/target guards so a
+        # duplicate accept/reject acknowledgement returns the first full result
+        # even though acceptance cleared ``active_run`` and bumped the revision.
+        # ``replay_decision`` only matches the same Task, same action and the
+        # originally bound candidate, so a new request or a different target
+        # still falls through to the strict guards below.
+        verification = ctx.verification
+        if verification is not None and action in {ActionName.ACCEPT, ActionName.REJECT}:
+            replayed = verification.replay_decision(
+                task_id,
+                action.value,
+                payload.request_id,
+                target_run_id=payload.target_run_id,
+            )
+            if replayed is not None:
+                response.headers["ETag"] = f'"{ctx.store.read("task", task_id).revision}"'
+                return replayed.to_dict()
         if (
             payload.expected_revision is not None
             and payload.expected_revision != current.revision
@@ -433,7 +450,6 @@ def build_task_router() -> APIRouter:
                 },
             )
         if action in {ActionName.ACCEPT, ActionName.REJECT}:
-            verification = ctx.verification
             if verification is None:
                 raise AppError(
                     ErrorCode.NOT_READY,
