@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # LightGravity Bot 项目手册
 
-> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 当前 1.2.0：1.1.0 将首版真实后端定为 DeepSeek，1.2.0 登记 LG-008 加性控制字段），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层、LG-005 角色/SDK 资源配置编译（已将 `google-antigravity==0.1.22` 锁定为产品依赖）、LG-006 正式 executor + 产品侧 loopback 认证代理（真实 DeepSeek 验证：文件/diff、结构化结果、用量、预算、会话恢复、确认取消；真实调用 12，进程无残留）、LG-007 消息路由与 Task 队列、LG-008 自动组队与依赖调度、LG-025 模型设置与凭证后端、LG-011 前端壳层均已完成并整合到 `main`（10 项均**待版本 QA**）。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek；查询 API（LG-012 进行中）、验证与人工验收（LG-009）等业务接线尚未实现。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
+> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 当前 1.3.0：1.1.0 将首版真实后端定为 DeepSeek，1.2.0 登记 LG-008 加性控制字段，1.3.0 登记 LG-009 验收字段/端点与全局对话），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层、LG-005 角色/SDK 资源配置编译（已将 `google-antigravity==0.1.22` 锁定为产品依赖）、LG-006 正式 executor + 产品侧 loopback 认证代理（真实 DeepSeek 验证：文件/diff、结构化结果、用量、预算、会话恢复、确认取消；真实调用 12，进程无残留）、LG-007 消息路由与 Task 队列、LG-008 自动组队与依赖调度、LG-009 产物验证与人工验收、LG-011 前端壳层、LG-012 查询 API 与持久事件订阅、LG-025 模型设置与凭证后端均已完成并整合到 `main`（12 项均**待版本 QA**）。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek。集成后 `create_app` 已装配 Store/Coordinator/VerificationService 并挂载 `/api/v1` 路由；accept/reject 合并进 API actions，只读 `GET /tasks/{id}/acceptance` 独立挂载，新增单例全局对话 `GET/POST /api/v1/conversations/global/messages`；默认执行器仍是诚实的 `UnavailableExecutor`（未伪装可执行）。真实 SDK 端到端、浏览器验收与首次启动 token 握手分别留 LG-010、LG-021/022、LG-020。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
 
 ## 目标
 
@@ -40,6 +40,18 @@ updated: "2026-10-15"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-15：整合 LG-009/LG-012、接线验收与全局对话并把契约升至 1.3.0
+
+- 本轮由整合执行者完成必要整合与接线（不做独立 QA）。LG-009 在 `dev/lg009` 完成 `cce2a59`、LG-012 在 `dev/lg012` 完成 `3759a77`，两 worker 已退出。主工作区核对干净后先提交契约登记 `9d70f01`（docs/08 §4.3/§5.2/§6.1/§13 登记加性字段与端点并升 `1.3.0`），再精确 `git cherry-pick`：`dd8a03e`（009）、`d9aa69f`（012），均无冲突、无内容丢失；未清理任何既有 worktree/分支，未触碰或复制 `.env`。
+- 契约登记（加性、MINOR）：Task 可选 `checks` 授权列表；`acceptance` 加性 `candidate_ref`/`candidate_plan_hash`/`check_records`/`note`；只读 `GET /tasks/{task_id}/acceptance`；LG-025 既有 `GET /settings/connections/{id}` 与 `PATCH /settings`；单例全局对话 `GET/POST /conversations/global/messages`；LG-014 **planned、本轮未实现** 的 `POST /files/upload` 与 `GET /files/download`。既有端点语义、错误码、事件类型、枚举与状态迁移均未变化。
+- 必要整合与接线（提交 `8ee0c09`）：`verify` 的 accept/reject 分支合入 `api/tasks.py` 既有 `POST /tasks/{id}/actions`（含加性 `expected_requirements_revision`/`expected_deliverable_revision`），只挂载独立只读 `build_acceptance_router`，避免同一路径两个处理器抢占；`create_app` 注入 `VerificationService` + `ResourceStopper` 稳定接口（未注入时用默认 Store 停止门）；`GraphDispatcher`/`executor` 保持可注入，默认仍是诚实的 `UnavailableExecutor`，health 只在注入真实 executor 时报告 `sdk_adapter=true`。新增 `api/conversations.py` 把字面 `global` 映射到固定 `conv_000…` 单例会话，`message_id` 幂等、`request_id` 作二次幂等，`workspace_ref`/`agent_ref` 仅接受授权来源（越界→`path_outside_workspace`，未知 agent→`reference_invalid`），不新建会话平台。
+- 版本同步：`contracts/constants.py` 的 `CONTRACT_VERSION` 由 `1.2.0` 升至 `1.3.0`，同步 `tests/contracts` 期望与 README/PROJECT/agent/docs06 当前事实；历史记录（1.1.0/1.2.0 条目、§8.1 标题等）按原文保留，不回写。
+- 设置 token 边界：保持 `LocalAccessPolicy` 对敏感写默认拒绝，不放开；docs/08 §4.1 明确令牌只由运行时注入，不写仓库/文档/日志/URL/localStorage/IndexedDB/Markdown；前端与 LG-020 用进程级运行时注入 + 启动握手取得，首次启动握手**尚未实现**，不宣称就绪。
+- 真实检查（本机 Python 3.12.13 / uv 0.12.1）：`uv run mypy` → **Success: no issues found in 72 source files**；`uv run pytest -q` → **304 passed, 1 warning**（含新增 `tests/api/test_integration_wiring.py` 的验收接线、stopper 注入与全局对话用例）；`olav-tasks tasks validate .` → **OK: 27 tasks, no diagnostics**。UI 未改，未重复 browser；无真实 SDK/DeepSeek 调用（留 LG-010）。
+- 限制：LG-009/LG-012 成果仍为执行者局部证据，**待版本 QA**（LG-010、LG-021/022）；SSE 回放/断线用进程内 ASGI 驱动验证，未经真实 uvicorn/浏览器；files 上传/下载仅登记未实现；首次启动 token 握手未实现；未 push/deploy/启动产品服务。
+- 就绪门通过（`tasks ready` complete、validate 无 diagnostics）后以 `tasks claim` 精确领取 LG-010/LG-014/LG-026（不领 LG-015，控制本批三条并行），提交 `6f20971`；从新基点 `6f20971` 建独立分支/worktree：`dev/lg010`→`/tmp/lightgravity-worktrees/lg010`、`dev/lg014`→`/tmp/lightgravity-worktrees/lg014`、`dev/lg026`→`/tmp/lightgravity-worktrees/lg026`；已有路径不覆盖、不复制 `.env`、不删旧分支/worktree。
+- 给后续任务接口：LG-010 在 coordinator `_apply_outcome` 成功进入 `verifying` 后调用 `VerificationService.verify_and_prepare`，并向 `create_app` 注入真实 executor 与更强的 `ResourceStopper`；LG-014 owner 拥有 `backend/lightgravity/api/files.py` 的后续写权限，实现 docs/08 已登记的 planned 上传/下载；LG-026 走既有 `/api/v1/settings*` 与运行时 token 注入，秘密不进前端持久化。
 
 ### 2026-10-15：整合 LG-008 自动组队与依赖调度并把契约升至 1.2.0
 
