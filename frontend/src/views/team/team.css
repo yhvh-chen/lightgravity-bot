@@ -1,0 +1,49 @@
+/*
+ * Team view styles (LG-015).  Layout only; colours/radii come from the LG-011
+ * tokens and shared classes.  Shared detail blocks live in
+ * `views/resources/resources.css`, loaded by the Diagnostics component.
+ */
+
+.lg-team-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-4);
+}
+
+.lg-team-tabs {
+  display: flex;
+  gap: var(--lg-space-2);
+}
+
+.lg-team {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: var(--lg-space-4);
+  align-items: start;
+}
+
+.lg-team__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+  padding: var(--lg-space-3);
+  background: var(--lg-color-panel);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+}
+
+.lg-team__list-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+}
+
+.lg-team__detail {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .lg-team {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

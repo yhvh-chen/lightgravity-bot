@@ -1,21 +1,6 @@
-import { PlaceholderView } from './PlaceholderView'
-
 /**
- * Resources view (owner: LG-015). Seven vertical categories are fixed by
- * docs/05 §6.1; the shell only renders the category navigation.
+ * Resources view mount point (shell import). The implementation is owned by
+ * LG-015 and lives in `views/resources/`; the shell only depends on this entry.
  */
-export function ResourcesView() {
-  return (
-    <PlaceholderView
-      viewId="resources"
-      ownerTask="LG-015"
-      title="Resources"
-      summary="Connections, Session Profiles, Hooks, MCP, Tools, Triggers and Skills detail is not implemented in the shell."
-      planned={[
-        'Category detail with frontmatter fields, body, references and diagnostics',
-        'Declared / parsed / dependency / runtime availability kept separate',
-        'Navigation to the referencing template or member',
-      ]}
-    />
-  )
-}
+export { ResourcesView } from './resources/ResourcesView'
+export type { ResourcesViewProps } from './resources/ResourcesView'

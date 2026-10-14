@@ -1,0 +1,207 @@
+/*
+ * Resources view styles (LG-015).  Uses only design.md tokens and the shared
+ * shell classes; no new colour/radius system and no UI dependency.
+ */
+
+.lg-resources-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-4);
+}
+
+.lg-resources {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: var(--lg-space-4);
+  align-items: start;
+}
+
+.lg-resources__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+  padding: var(--lg-space-3);
+  background: var(--lg-color-panel);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+}
+
+.lg-resources__list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lg-space-2);
+}
+
+.lg-resources__items,
+.lg-team__items,
+.lg-resources__category-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-resources__detail {
+  min-width: 0;
+}
+
+.lg-resources__categories {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  padding-top: var(--lg-space-3);
+  border-top: 1px solid var(--lg-color-border);
+}
+
+.lg-resources__category-list {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.lg-resources__category {
+  padding: var(--lg-space-1) var(--lg-space-3);
+  min-height: 36px;
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-panel);
+  color: var(--lg-color-text);
+  cursor: pointer;
+}
+
+.lg-resources__category.is-selected {
+  border-color: var(--lg-color-accent);
+  background: var(--lg-color-accent-soft);
+  color: var(--lg-color-accent-strong);
+}
+
+/* ---- Shared detail blocks (Resources + Team) ---- */
+
+.lg-resource-block,
+.lg-team__block {
+  margin-top: var(--lg-space-4);
+}
+
+.lg-resource-reasons,
+.lg-team__reasons,
+.lg-diagnostics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  margin: 0;
+  padding-left: var(--lg-space-5);
+}
+
+.lg-kv {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  margin: 0;
+}
+
+.lg-kv__row,
+.lg-kv > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 220px) minmax(0, 1fr);
+  gap: var(--lg-space-2);
+}
+
+.lg-kv dt {
+  color: var(--lg-color-text-muted);
+}
+
+.lg-kv dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.lg-refs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-refs__link,
+.lg-refs__static {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-2);
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lg-refs__static {
+  cursor: default;
+}
+
+.lg-refs__field {
+  color: var(--lg-color-text-subtle);
+  font-size: var(--lg-font-size-xs);
+}
+
+/* ---- Minimal form field primitives (same names/tokens as Settings) ---- */
+
+.lg-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  margin-bottom: var(--lg-space-2);
+}
+
+.lg-field--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--lg-space-2);
+}
+
+.lg-field__label {
+  color: var(--lg-color-text-muted);
+  font-size: var(--lg-font-size-sm);
+}
+
+.lg-field__hint {
+  color: var(--lg-color-text-subtle);
+  font-size: var(--lg-font-size-xs);
+  line-height: var(--lg-line-height);
+}
+
+.lg-field__input {
+  padding: var(--lg-space-2);
+  border: 1px solid var(--lg-color-border-strong);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-panel);
+  color: var(--lg-color-text);
+}
+
+.lg-resource-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  max-width: 640px;
+}
+
+.lg-resource-form__body {
+  font-family: var(--lg-font-mono);
+  resize: vertical;
+}
+
+.lg-resource-form__actions {
+  display: flex;
+  gap: var(--lg-space-2);
+}
+
+@media (max-width: 900px) {
+  .lg-resources {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

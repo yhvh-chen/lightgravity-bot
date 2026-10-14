@@ -1,52 +1,53 @@
-"""Read-only resource metadata endpoints (LG-012, docs/08 §4.3/§6.5).
+"""Resource and Team read endpoints plus controlled resource writes (LG-015).
 
 ``GET /resources/{kind}`` and ``GET /resources/{kind}/{id}`` expose the seven
-Resources navigation categories plus Connections.  Reads go through the LG-004
-``Store`` (Markdown is the single authority); the listing scans the same
-``resources/<dir>`` layout the Store owns and skips files that fail validation
-instead of hiding the valid ones.  Secrets are never present: Connections carry
-a ``credential_ref`` only.
+Resources navigation categories plus agent templates.  Reads go through the
+LG-004 ``Store`` (Markdown is the single authority) and the LG-015
+``ResourceService``, which keeps declared/parsed/dependency/runtime availability
+separate and never fakes a live health check.
+
+``PATCH /resources/{kind}/{id}`` is the *controlled* modification path for
+non-connection resources: an allow-listed field patch is re-parsed with the
+adapter schema, every reference is resolved, and the change is written through
+``Store.write`` with ``expected_revision`` (atomic + optimistic concurrency).
+Connections are rejected here and must be edited through the Settings endpoints,
+which own the same Connection entity.  Sensitive writes re-use the frozen
+``AccessPolicy``/runtime token rather than opening an unauthenticated path.
+
+``GET /team/available`` and ``GET /team/members`` back the Team view: available
+agent templates with compiled availability, and Member instances (current plus
+released history).  These are additive read endpoints; the frozen docs/08 §4.3
+table does not yet list them, so integration must register them.
 """
 
 from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, Depends, Query, Request, Response
+from pydantic import BaseModel, ConfigDict, Field
 
 from ..contracts import AppError, ErrorCode
-from ..store import ConfigInvalid, EntityNotFound, Versioned
-from ..store.entities import RESOURCE_DIRS
+from ..resources import ResourceService
 from .context import ApiContext, get_context
 
 
-def _resource_ids(ctx: ApiContext, kind: str) -> list[str]:
-    directory = ctx.data_dir / "resources" / RESOURCE_DIRS[kind]
-    if not directory.is_dir():
-        return []
-    if kind == "skill":
-        return sorted(path.parent.name for path in directory.glob("*/SKILL.md"))
-    return sorted(path.stem for path in directory.glob("*.md"))
+class ResourceUpdateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    expected_revision: int
+    #: Allow-listed top-level frontmatter fields for this kind.
+    patch: dict[str, Any] = Field(default_factory=dict)
+    #: Optional replacement Markdown body (never executed).
+    body: str | None = None
 
 
-def _item(versioned: Versioned) -> dict[str, Any]:
-    entity = versioned.entity
-    return {
-        "id": versioned.entity_id,
-        "kind": versioned.kind,
-        "title": entity.get("title") or versioned.entity_id,
-        "enabled": bool(entity.get("enabled", True)),
-        "revision": versioned.revision,
-        "etag": versioned.etag,
-    }
-
-
-def _detail(versioned: Versioned) -> dict[str, Any]:
-    payload = dict(versioned.entity)
-    payload["revision"] = versioned.revision
-    payload["etag"] = versioned.etag
-    payload["body"] = versioned.body
-    return payload
+def _service(ctx: ApiContext) -> ResourceService:
+    return ResourceService(
+        ctx.store,
+        data_dir=ctx.data_dir,
+        connections=ctx.connections,
+    )
 
 
 def build_resource_router() -> APIRouter:
@@ -59,26 +60,7 @@ def build_resource_router() -> APIRouter:
         limit: Annotated[int, Query(ge=1, le=500)] = 100,
         cursor: Annotated[str | None, Query()] = None,
     ) -> dict[str, Any]:
-        if kind not in RESOURCE_DIRS:
-            raise AppError(
-                ErrorCode.INVALID_REQUEST,
-                f"unknown resource kind {kind!r}",
-                details={"kind": kind, "allowed": sorted(RESOURCE_DIRS)},
-            )
-        ids = _resource_ids(ctx, kind)
-        if cursor:
-            ids = [item for item in ids if item > cursor]
-        page = ids[:limit]
-        items: list[dict[str, Any]] = []
-        for resource_id in page:
-            try:
-                items.append(_item(ctx.store.read(kind, resource_id)))
-            except (EntityNotFound, ConfigInvalid):
-                # Invalid resources are surfaced by the Store index diagnostics,
-                # not by hiding the rest of the category.
-                continue
-        next_cursor = page[-1] if len(ids) > limit and page else None
-        return {"items": items, "next_cursor": next_cursor}
+        return _service(ctx).list_resources(kind, limit=limit, cursor=cursor)
 
     @router.get("/resources/{kind}/{resource_id}")
     def get_resource(
@@ -87,17 +69,67 @@ def build_resource_router() -> APIRouter:
         response: Response,
         ctx: Annotated[ApiContext, Depends(get_context)],
     ) -> dict[str, Any]:
-        if kind not in RESOURCE_DIRS:
+        detail = _service(ctx).detail(kind, resource_id)
+        response.headers["ETag"] = str(detail["etag"])
+        return detail
+
+    @router.patch("/resources/{kind}/{resource_id}")
+    def update_resource(
+        kind: str,
+        resource_id: str,
+        payload: ResourceUpdateRequest,
+        request: Request,
+        response: Response,
+        ctx: Annotated[ApiContext, Depends(get_context)],
+    ) -> dict[str, Any]:
+        # The global dependency already applied the non-sensitive policy; a
+        # resource write is a control change, so require the injected local
+        # token as well.  This re-uses the LG-012 AccessPolicy; it does not
+        # bypass the default-deny behaviour.
+        ctx.access.authorize(request, sensitive=True)
+        if kind == "connection":
             raise AppError(
                 ErrorCode.INVALID_REQUEST,
-                f"unknown resource kind {kind!r}",
-                details={"kind": kind, "allowed": sorted(RESOURCE_DIRS)},
+                "connections are edited through the Settings endpoints; there is one "
+                "Connection authority and no second model list",
+                details={
+                    "kind": kind,
+                    "id": resource_id,
+                    "use": f"/api/v1/settings/connections/{resource_id}",
+                },
             )
-        versioned = ctx.store.read(kind, resource_id)
-        response.headers["ETag"] = versioned.etag
-        return _detail(versioned)
+        detail = _service(ctx).update(
+            kind,
+            resource_id,
+            patch=payload.patch,
+            expected_revision=payload.expected_revision,
+            actor="api",
+            body=payload.body,
+        )
+        response.headers["ETag"] = str(detail["etag"])
+        return detail
+
+    @router.get("/team/available")
+    def list_available_agents(
+        ctx: Annotated[ApiContext, Depends(get_context)],
+    ) -> dict[str, Any]:
+        return {"items": _service(ctx).available_agents(), "next_cursor": None}
+
+    @router.get("/team/members")
+    def list_members(
+        ctx: Annotated[ApiContext, Depends(get_context)],
+        task_ref: Annotated[str | None, Query()] = None,
+        run_ref: Annotated[str | None, Query()] = None,
+        include_released: Annotated[bool, Query()] = True,
+    ) -> dict[str, Any]:
+        items = _service(ctx).members(
+            task_ref=task_ref,
+            run_ref=run_ref,
+            include_released=include_released,
+        )
+        return {"items": items, "next_cursor": None}
 
     return router
 
 
-__all__ = ["build_resource_router"]
+__all__ = ["build_resource_router", "ResourceUpdateRequest"]
