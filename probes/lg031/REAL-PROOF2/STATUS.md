@@ -27,9 +27,9 @@ updated: "2026-10-16"
 | 3 | 0 真实生成 forensics：旧 24 归因（selection/execute/verify）→ 根因共享 cap 24 | DONE |
 | 4 | PM 预注册 proof2：PLAN 冻结（fixture/计划/requirements/提示模板/工具/caps 48/initialcommit/同门） | DONE |
 | 5 | 预检（实际 `build_runtime`+SDK+localfake 三节点、startup 后物理 ledger、fakeRoot/formalRoot 隔离、stage count） | DONE（PASS） |
-| 6 | 正式真实 DeepSeek **一次**运行（`fixtures/formal`） | IN-PROGRESS |
-| 7 | 真实机器门 + 真实独立 ModelReviewer + 真实 stopgate + 绑定 accept | TODO |
-| 8 | REPORT + 私有原件 + 精准本地 commit | TODO |
+| 6 | 正式真实 DeepSeek **一次**运行（`fixtures/formal`） | DONE（真实生成 27/48） |
+| 7 | 真实机器门 + 真实独立 ModelReviewer + 真实 stopgate + 绑定 accept | 门 1–6 PASS；门 7 **未达**（harness 装配缺口，非 runtime 缺陷） |
+| 8 | REPORT + 私有原件 + 精准本地 commit | DONE |
 
 ## 预注册（首请求前冻结，`2026-10-16`）
 
@@ -57,4 +57,28 @@ updated: "2026-10-16"
 
 ## 终态
 
-- 待更新（预检/正式运行后）。
+- **结论：PARTIAL**。单次正式真实 DeepSeek 运行（Run `run_01M50GARZGSWF8KVJM2PVRZWWC`）真实生成 **27/48**：
+  门 1–6 真实 PASS（双 worker 自主多候选领取 / 隔离精确产物 / 4 条版本化交接 / 真实独立 ModelReviewer `validated_outcome=passed` /
+  stop 门 6/6 confirmed/proxy stopped），机器门 `pass=true`，`adapter.error=0`；
+  **门 7「绑定 accept」未达**（harness 未驱动产品 `verify_and_prepare`/accept；run 仍 `executing`、task `verifying`）。
+- **性质**：**harness 装配缺口**，**非 runtime 缺陷**（产品 `verify_and_prepare` 对未停止 Run 返回 `unconfirmed` 是正确保守行为）；
+  按预注册「harness 错误 ⇒ STOP」，本包**停止**、**不就地修补重跑**、**不新账本/不加额**。
+- **observability 差异**：旧「无 SDK DB，`save_dir` 没设」准确保留；本包经既有公开 `context.save_dir` 真实生成 **6 个 SQLite trajectory DB**。
+- **LG-031 保持 `in-progress`**；**LG-029 `done`**；**LG-032 `in-progress`**（阶段 B 暂停）。
+- 旧 LG031 34 + 上次 24 = **58 不归零**；旧 phase 剩 6 不消费；本包 +27 ⇒ 已知整体约 **85**（预注册上限 106）。
+- 本包**不合入 main**；**无 push/deploy/publish/upload**。
+
+## 关键 hash / 锚
+
+- PLAN：`37c339da…`｜formal harness：`fce51ced…`｜预检 harness：`b37b28d7…`｜fake 上游：`5de0631e…`（与旧逐字节同）。
+- validated plan hash：`37e5c771a7e1c9c41543180e71b79e08de79205fa687cfcca3385a00137b8e8e`（与旧正式一致）。
+- 初始 commit：`6cf81ea38456b7a0c3c2536b48985d7af3a55f11`。
+- 脱敏 evidence：`evidence/formal-real2.redacted.json`（sha256 `7caa3d88…`）。
+- 私有原件根：`fixtures/formal/**`、`fixtures/raw-evidence/formal-real2.raw.json`（600，不提交）。
+
+## 未测 / 边界
+
+- 门 7（绑定 accept）**未达**；`awaiting_acceptance`/human accept、`reviewer_cleanup` 具体字段、返修复验**在本包未真实跑**。
+- 正式 harness 直接使用 `GraphDispatcher`（非 `CoordinatorService`）；run→verifying 状态机过渡与 auto-verify 队列未由本 harness 驱动。
+- 真实 Git worktree 不是 OS 安全沙箱（既有真实限制）。
+- 若正式运行出现 harness/计量/重要 source 错误 → 停止 proof（本包已因门 7 缺口停止）；只最小 repro 报告 PM，不自修。

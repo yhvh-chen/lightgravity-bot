@@ -1,0 +1,7994 @@
+{
+  "active_grants": [],
+  "artifacts": {
+    "alpha": {
+      "content": "alpha",
+      "exists": true,
+      "in_own_worktree": true,
+      "other_present": false,
+      "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof2/probes/lg031/REAL-PROOF2/fixtures/formal/workspaces/.lg-worktrees/run_01M50GARZGSWF8KVJM2PVRZWWC/alpha/out/alpha.txt",
+      "sha256": "b6a98d9ce9a2d9149288fa3df42d377c3e42737afdcdaf714e33c0a100b51060"
+    },
+    "beta": {
+      "content": "beta",
+      "exists": true,
+      "in_own_worktree": true,
+      "other_present": false,
+      "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof2/probes/lg031/REAL-PROOF2/fixtures/formal/workspaces/.lg-worktrees/run_01M50GARZGSWF8KVJM2PVRZWWC/beta/out/beta.txt",
+      "sha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad"
+    }
+  },
+  "dry_fake": false,
+  "elapsed_seconds": 91.267,
+  "events": [
+    {
+      "at": "2026-10-15T19:23:54Z",
+      "execution": {
+        "execution_id": "exec_270ace7b7e0148c6b947f2440f03c863",
+        "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+        "subtask_id": "slot_run_01M50GARZGSWF8KVJM2PVRZWWC_0",
+        "task_id": "task_01M50GARZ7FDBC1YR46TCFMM18"
+      },
+      "objective": "PHASE 1 (selection only): choose exactly one node from the authorized candidate pool by calling discover_and_request_claim(node_ref=...). You have NO write permission and NO product workspace in this phase; do not produce artifacts. The program authorizes the node you select and then runs a separate execution session bound to it.",
+      "type": "adapter.execution_started"
+    },
+    {
+      "at": "2026-10-15T19:23:55Z",
+      "type": "adapter.session_requested"
+    },
+    {
+      "at": "2026-10-15T19:23:55Z",
+      "session_id": "sess_71642b2e0f464386b2d728d0a5eb4fd0",
+      "type": "adapter.session_started"
+    },
+    {
+      "at": "2026-10-15T19:23:56Z",
+      "name": "discover_and_request_claim",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:23:58Z",
+      "name": "discover_and_request_claim",
+      "type": "adapter.tool_call"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "at": "2026-10-15T19:24:00Z",
+      "execution": {
+        "execution_id": "exec_270ace7b7e0148c6b947f2440f03c863",
+        "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+        "subtask_id": "slot_run_01M50GARZGSWF8KVJM2PVRZWWC_0",
+        "task_id": "task_01M50GARZ7FDBC1YR46TCFMM18"
+      },
+      "type": "adapter.execution_finished"
+    },
+    {
+      "at": "2026-10-15T19:24:00Z",
+      "execution": {
+        "execution_id": "exec_2bb1578f07d84730abf9bbc26f88ba01",
+        "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+        "subtask_id": "subtask_01M50GAS2WDXS97C3XCF25VA2M",
+        "task_id": "task_01M50GARZ7FDBC1YR46TCFMM18"
+      },
+      "objective": "Create the file out/alpha.txt in your workspace containing exactly the single word alpha (lowercase, no other text).",
+      "type": "adapter.execution_started"
+    },
+    {
+      "at": "2026-10-15T19:24:00Z",
+      "type": "adapter.session_requested"
+    },
+    {
+      "at": "2026-10-15T19:24:00Z",
+      "session_id": "sess_70d2218f15984a44abe197e03f729cfd",
+      "type": "adapter.session_started"
+    },
+    {
+      "at": "2026-10-15T19:24:03Z",
+      "name": "edit_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:04Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:09Z",
+      "name": "edit_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:12Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "at": "2026-10-15T19:24:15Z",
+      "execution": {
+        "execution_id": "exec_2bb1578f07d84730abf9bbc26f88ba01",
+        "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+        "subtask_id": "subtask_01M50GAS2WDXS97C3XCF25VA2M",
+        "task_id": "task_01M50GARZ7FDBC1YR46TCFMM18"
+      },
+      "type": "adapter.execution_finished"
+    },
+    {
+      "at": "2026-10-15T19:24:15Z",
+      "execution": {
+        "execution_id": "exec_f87632fb50634b7ebd83799487c6b544",
+        "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+        "subtask_id": "slot_run_01M50GARZGSWF8KVJM2PVRZWWC_1",
+        "task_id": "task_01M50GARZ7FDBC1YR46TCFMM18"
+      },
+      "objective": "PHASE 1 (selection only): choose exactly one node from the authorized candidate pool by calling discover_and_request_claim(node_ref=...). You have NO write permission and NO product workspace in this phase; do not produce artifacts. The program authorizes the node you select and then runs a separate execution session bound to it.",
+      "type": "adapter.execution_started"
+    },
+    {
+      "at": "2026-10-15T19:24:15Z",
+      "type": "adapter.session_requested"
+    },
+    {
+      "at": "2026-10-15T19:24:15Z",
+      "session_id": "sess_30a2f91b30104e67ba0d3f953d8190f2",
+      "type": "adapter.session_started"
+    },
+    {
+      "at": "2026-10-15T19:24:16Z",
+      "name": "discover_and_request_claim",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:18Z",
+      "name": "discover_and_request_claim",
+      "type": "adapter.tool_call"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "at": "2026-10-15T19:24:20Z",
+      "execution": {
+        "execution_id": "exec_f87632fb50634b7ebd83799487c6b544",
+        "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+        "subtask_id": "slot_run_01M50GARZGSWF8KVJM2PVRZWWC_1",
+        "task_id": "task_01M50GARZ7FDBC1YR46TCFMM18"
+      },
+      "type": "adapter.execution_finished"
+    },
+    {
+      "at": "2026-10-15T19:24:20Z",
+      "execution": {
+        "execution_id": "exec_d1cce2e639a4490eaf65377e58981099",
+        "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+        "subtask_id": "subtask_01M50GAS2WDVT8C09BD0TZ7ZKN",
+        "task_id": "task_01M50GARZ7FDBC1YR46TCFMM18"
+      },
+      "objective": "Create the file out/beta.txt in your workspace containing exactly the single word beta (lowercase, no other text).",
+      "type": "adapter.execution_started"
+    },
+    {
+      "at": "2026-10-15T19:24:20Z",
+      "type": "adapter.session_requested"
+    },
+    {
+      "at": "2026-10-15T19:24:20Z",
+      "session_id": "sess_3ece31f8e8bf4b8389f17444408a2f23",
+      "type": "adapter.session_started"
+    },
+    {
+      "at": "2026-10-15T19:24:21Z",
+      "name": "edit_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:23Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "at": "2026-10-15T19:24:24Z",
+      "execution": {
+        "execution_id": "exec_d1cce2e639a4490eaf65377e58981099",
+        "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+        "subtask_id": "subtask_01M50GAS2WDVT8C09BD0TZ7ZKN",
+        "task_id": "task_01M50GARZ7FDBC1YR46TCFMM18"
+      },
+      "type": "adapter.execution_finished"
+    },
+    {
+      "at": "2026-10-15T19:24:24Z",
+      "execution": {
+        "execution_id": "exec_4292e86307194d5594e97fcaaa8ede92",
+        "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+        "subtask_id": "slot_run_01M50GARZGSWF8KVJM2PVRZWWC_2",
+        "task_id": "task_01M50GARZ7FDBC1YR46TCFMM18"
+      },
+      "objective": "PHASE 1 (selection only): choose exactly one node from the authorized candidate pool by calling discover_and_request_claim(node_ref=...). You have NO write permission and NO product workspace in this phase; do not produce artifacts. The program authorizes the node you select and then runs a separate execution session bound to it.",
+      "type": "adapter.execution_started"
+    },
+    {
+      "at": "2026-10-15T19:24:24Z",
+      "type": "adapter.session_requested"
+    },
+    {
+      "at": "2026-10-15T19:24:24Z",
+      "session_id": "sess_ee17a17e02e74a0f8f399b14615b2831",
+      "type": "adapter.session_started"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "at": "2026-10-15T19:24:26Z",
+      "name": "discover_and_request_claim",
+      "type": "adapter.tool_call"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "at": "2026-10-15T19:24:28Z",
+      "name": "discover_and_request_claim",
+      "type": "adapter.tool_call"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "at": "2026-10-15T19:24:31Z",
+      "execution": {
+        "execution_id": "exec_4292e86307194d5594e97fcaaa8ede92",
+        "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+        "subtask_id": "slot_run_01M50GARZGSWF8KVJM2PVRZWWC_2",
+        "task_id": "task_01M50GARZ7FDBC1YR46TCFMM18"
+      },
+      "type": "adapter.execution_finished"
+    },
+    {
+      "at": "2026-10-15T19:24:31Z",
+      "execution": {
+        "execution_id": "exec_0703173d1c5e4850885c299306407c11",
+        "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+        "subtask_id": "subtask_01M50GAS2WVP0PB9WFDDVHTD44",
+        "task_id": "task_01M50GARZ7FDBC1YR46TCFMM18"
+      },
+      "objective": "Read the two upstream artifacts handed to you (out/alpha.txt and out/beta.txt) and report their exact contents and the upstream hash references. Do not write any file.",
+      "type": "adapter.execution_started"
+    },
+    {
+      "at": "2026-10-15T19:24:31Z",
+      "type": "adapter.session_requested"
+    },
+    {
+      "at": "2026-10-15T19:24:31Z",
+      "session_id": "sess_c2fff92a2e4d42ec94cb5ad98b81865d",
+      "type": "adapter.session_started"
+    },
+    {
+      "at": "2026-10-15T19:24:35Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:36Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:39Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:39Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:43Z",
+      "name": "request_peer",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:43Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:48Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:49Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:24:53Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:00Z",
+      "name": "request_peer",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:00Z",
+      "name": "request_peer",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:01Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:01Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:07Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:07Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:07Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:08Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:08Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:08Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:15Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:15Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:16Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:25:16Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "type": "adapter.text"
+    },
+    {
+      "at": "2026-10-15T19:25:25Z",
+      "execution": {
+        "execution_id": "exec_0703173d1c5e4850885c299306407c11",
+        "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+        "subtask_id": "subtask_01M50GAS2WVP0PB9WFDDVHTD44",
+        "task_id": "task_01M50GARZ7FDBC1YR46TCFMM18"
+      },
+      "type": "adapter.execution_finished"
+    }
+  ],
+  "events_note": "redacted: model text/prompt/tool-args stripped; raw private copy retained on disk",
+  "finished_at": 1792092329.3071263,
+  "frozen_plan_keys": [
+    "alpha",
+    "beta",
+    "verify"
+  ],
+  "initial_commit": "6cf81ea38456b7a0c3c2536b48985d7af3a55f11",
+  "ledger_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof2/probes/lg031/REAL-PROOF2/fixtures/formal/data/generation/generation.jsonl",
+  "ledger_snapshot": {
+    "corrupt": false,
+    "count": 27,
+    "limit": 48,
+    "persistent": true,
+    "remaining": 21
+  },
+  "ledger_stages": [
+    {
+      "corrupt": false,
+      "count": 0,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 48,
+      "stage": "before_dispatch"
+    },
+    {
+      "corrupt": false,
+      "count": 0,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 48,
+      "stage": "execution_started"
+    },
+    {
+      "corrupt": false,
+      "count": 3,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 45,
+      "stage": "execution_finished"
+    },
+    {
+      "corrupt": false,
+      "count": 3,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 45,
+      "stage": "execution_started"
+    },
+    {
+      "corrupt": false,
+      "count": 8,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 40,
+      "stage": "execution_finished"
+    },
+    {
+      "corrupt": false,
+      "count": 8,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 40,
+      "stage": "execution_started"
+    },
+    {
+      "corrupt": false,
+      "count": 11,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 37,
+      "stage": "execution_finished"
+    },
+    {
+      "corrupt": false,
+      "count": 11,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 37,
+      "stage": "execution_started"
+    },
+    {
+      "corrupt": false,
+      "count": 14,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 34,
+      "stage": "execution_finished"
+    },
+    {
+      "corrupt": false,
+      "count": 14,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 34,
+      "stage": "execution_started"
+    },
+    {
+      "corrupt": false,
+      "count": 17,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 31,
+      "stage": "execution_finished"
+    },
+    {
+      "corrupt": false,
+      "count": 17,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 31,
+      "stage": "execution_started"
+    },
+    {
+      "corrupt": false,
+      "count": 27,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 21,
+      "stage": "execution_finished"
+    },
+    {
+      "corrupt": false,
+      "count": 27,
+      "limit": 48,
+      "persistent": true,
+      "remaining": 21,
+      "stage": "after_dispatch"
+    }
+  ],
+  "machine_gate": {
+    "all_nodes_passed": true,
+    "alpha_exact": true,
+    "beta_exact": true,
+    "no_cross_contamination": true,
+    "pass": true,
+    "verify_has_two_handoffs": true,
+    "verify_no_write": true
+  },
+  "max_real_calls": 48,
+  "nodes": {
+    "alpha": {
+      "assignee_member_ref": "member_01M50GAS2WTSF55CX9RBG3GWQC",
+      "capability": "implementation",
+      "fence": 1,
+      "owner": null,
+      "state": "passed",
+      "subtask_ref": "subtask_01M50GAS2WDXS97C3XCF25VA2M",
+      "upstream_artifact_refs": [],
+      "write": true
+    },
+    "beta": {
+      "assignee_member_ref": "member_01M50GAS2WTSF55CX9RBG3GWQC",
+      "capability": "implementation",
+      "fence": 1,
+      "owner": null,
+      "state": "passed",
+      "subtask_ref": "subtask_01M50GAS2WDVT8C09BD0TZ7ZKN",
+      "upstream_artifact_refs": [],
+      "write": true
+    },
+    "verify": {
+      "assignee_member_ref": "member_01M50GAS2W80M0EJPQ575F9E4B",
+      "capability": "verification",
+      "fence": 1,
+      "owner": null,
+      "state": "passed",
+      "subtask_ref": "subtask_01M50GAS2WVP0PB9WFDDVHTD44",
+      "upstream_artifact_refs": [
+        "subtask_01M50GAS2WDXS97C3XCF25VA2M@cd9f89a806277df69d118344e21625afc36013652aa5317a0457a599e6b03211:out/alpha.txt",
+        "subtask_01M50GAS2WDXS97C3XCF25VA2M@cd9f89a806277df69d118344e21625afc36013652aa5317a0457a599e6b03211:evidence:run_01M50GARZGSWF8KVJM2PVRZWWC/subtask_01M50GAS2WDXS97C3XCF25VA2M-lg006-diff.patch@sha256:6f94ea5f7a5dbd1f78261475c4703398d39aed468a3e5edcce87e2b92ac5bf25",
+        "subtask_01M50GAS2WDVT8C09BD0TZ7ZKN@43b02e90dff9a79e67742e5424dd0c1d954b1936bec14c74733bd8a4397ccb85:out/beta.txt",
+        "subtask_01M50GAS2WDVT8C09BD0TZ7ZKN@43b02e90dff9a79e67742e5424dd0c1d954b1936bec14c74733bd8a4397ccb85:evidence:run_01M50GARZGSWF8KVJM2PVRZWWC/subtask_01M50GAS2WDVT8C09BD0TZ7ZKN-lg006-diff.patch@sha256:a975a8c5c4fd38766f3532d6f971c643db1e43b2d36252fe2b1ed96bca3f4e2b"
+      ],
+      "write": false
+    }
+  },
+  "outcome_reason": null,
+  "outcome_state": "succeeded",
+  "output_limit": 12000,
+  "plan_source": "rules",
+  "probe": "lg031-real-proof/formal",
+  "product_real_generation": true,
+  "provider": "deepseek",
+  "provider_substitute": false,
+  "real_base_url": "https://api.deepseek.com/v1",
+  "real_model": "deepseek-v4-flash",
+  "review": {
+    "findings": [],
+    "model_calls": 1,
+    "outcome": "passed",
+    "reason": "Both acceptance criteria are satisfied by the provided evidence: one diff creates out/alpha.txt as a new file (hunk @@ -0,0 +1 @@) containing the line 'alpha', and a second diff creates out/beta.txt as a new file (hunk @@ -0,0 +1 @@) containing the line 'beta'. No blocking problem found.",
+    "requested_model": "deepseek-v4-flash",
+    "resolved_evidence": [
+      "evidence:run_01M50GARZGSWF8KVJM2PVRZWWC/subtask_01M50GAS2WDVT8C09BD0TZ7ZKN-lg006-diff.patch@sha256:a975a8c5c4fd38766f3532d6f971c643db1e43b2d36252fe2b1ed96bca3f4e2b",
+      "evidence:run_01M50GARZGSWF8KVJM2PVRZWWC/subtask_01M50GAS2WDXS97C3XCF25VA2M-lg006-diff.patch@sha256:6f94ea5f7a5dbd1f78261475c4703398d39aed468a3e5edcce87e2b92ac5bf25"
+    ],
+    "reviewer_kind": "model",
+    "status": "ran",
+    "unsubstantiated": [
+      "F1"
+    ],
+    "usage": {
+      "unknown": [
+        "usage"
+      ]
+    },
+    "validated_outcome": "passed"
+  },
+  "run_session_refs_count": 6,
+  "sdk_save_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof2/probes/lg031/REAL-PROOF2/fixtures/formal/workspaces/.lg-sdk-sessions",
+  "sdk_save_dir_entries": [
+    ".lg-pool-selection",
+    ".lg-pool-selection/run_01M50GARZGSWF8KVJM2PVRZWWC",
+    ".lg-pool-selection/run_01M50GARZGSWF8KVJM2PVRZWWC/slot_run_01M50GARZGSWF8KVJM2PVRZWWC_0",
+    ".lg-pool-selection/run_01M50GARZGSWF8KVJM2PVRZWWC/slot_run_01M50GARZGSWF8KVJM2PVRZWWC_1",
+    ".lg-pool-selection/run_01M50GARZGSWF8KVJM2PVRZWWC/slot_run_01M50GARZGSWF8KVJM2PVRZWWC_2",
+    "0376ce972fe102a5cb27cfe063f836b7.db",
+    "516f6db8c2900327ccc349f9824fc1f7.db",
+    "52320c645392048e96b424471f0e9c97.db",
+    "c536218dafc3c95c3433dea0ec56a926.db",
+    "d9341812bfd44053561f4a51cb8dc7f5.db",
+    "deca70abb39963fb94a7d0eaafc59cd5.db"
+  ],
+  "sdk_session_count": 6,
+  "sessions_in_run_refs": true,
+  "started_at": 1792092234.6149983,
+  "stop_confirmation": {
+    "confirmed": true,
+    "problems": [],
+    "proxy_stopped": true,
+    "run_id": "run_01M50GARZGSWF8KVJM2PVRZWWC",
+    "sessions_stopped": 6,
+    "sessions_total": 6,
+    "unknown_sessions": []
+  },
+  "validated_plan_hash": "37e5c771a7e1c9c41543180e71b79e08de79205fa687cfcca3385a00137b8e8e",
+  "validated_plan_keys": [
+    "alpha",
+    "beta",
+    "verify"
+  ],
+  "verify_upstream_handoffs": [
+    "subtask_01M50GAS2WDXS97C3XCF25VA2M@cd9f89a806277df69d118344e21625afc36013652aa5317a0457a599e6b03211:out/alpha.txt",
+    "subtask_01M50GAS2WDXS97C3XCF25VA2M@cd9f89a806277df69d118344e21625afc36013652aa5317a0457a599e6b03211:evidence:run_01M50GARZGSWF8KVJM2PVRZWWC/subtask_01M50GAS2WDXS97C3XCF25VA2M-lg006-diff.patch@sha256:6f94ea5f7a5dbd1f78261475c4703398d39aed468a3e5edcce87e2b92ac5bf25",
+    "subtask_01M50GAS2WDVT8C09BD0TZ7ZKN@43b02e90dff9a79e67742e5424dd0c1d954b1936bec14c74733bd8a4397ccb85:out/beta.txt",
+    "subtask_01M50GAS2WDVT8C09BD0TZ7ZKN@43b02e90dff9a79e67742e5424dd0c1d954b1936bec14c74733bd8a4397ccb85:evidence:run_01M50GARZGSWF8KVJM2PVRZWWC/subtask_01M50GAS2WDVT8C09BD0TZ7ZKN-lg006-diff.patch@sha256:a975a8c5c4fd38766f3532d6f971c643db1e43b2d36252fe2b1ed96bca3f4e2b"
+  ],
+  "work_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof2/probes/lg031/REAL-PROOF2/fixtures/formal"
+}
