@@ -368,3 +368,12 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
   **LG-023 `in-progress`（partial，新方法审计 0 真实生成、不解锁 024）**；**LG-024 `todo`**；**LG-035/037 `in-progress`**、
   **LG-036/038 `done` 待 040**、**LG-040/041 `todo` 不解锁**。本包产品生成 **0**，未推送/部署/发布。
   handoff 报告落 `probes/batch-20261016/LG032-QUALITY-HANDOFF.md` 后精准 commit。
+
+## 2026-10-16 检查点：首版核心门闭合，023 方法返修 / 032 独立机制门并行
+
+- `main@62e96ed`（本段为主代理 PM 新增 dirty，续接集成须保留）；产品树仍 `e0a8cec` / 契约1.10.0 / SDK0.1.22，自主模式默认off。LG022已据独立 `qa/lg022-stream@49c95f5` 正式门内证据done：真实主链5/10单账本到绑定accept，真SDK+本地SSE的流式pause/cancel约0.21/0.22s确认，pytest791/5skip与mypy137；未验证场景明确保留，不宣称全产品通过。见 CORE-QA-CLOSE。
+- LG031 done待032，真实单次工程链10请求；原SDK资料只读恢复hash交接，工程累计34/40不归零。临时SoT部分字节丢失如实记录；幸存3SDKDB/stdout已在私有持久 `checkpoints/2026-10-16-batch/lg031-phase4-survivors/20261016T040115+1100/` 保全且hash/cmp一致，原件未删。
+- **LG023首评估未完成**：`dev/lg023@fa9401d` clean，实际45/48请求，采样中提示/工具变更、重复S1/A、旧输出覆盖、逐attempt count=0及停止门装配未闭合，不能称冻结合规对照或推断收益。任务保持in-progress；主代理已拒绝以该混淆结果解锁024。新独立pi方法审计在持久 `lg023-method` / `fix/lg023-method`，预算wall1200/round220/noncache300k、**真实生成0**，先恢复/保全原件、修harness停止接线/计量/协议守卫；产品只读，不重跑未知写入。旧45与所有失败都必须保留，不能补造历史硬限或洗成0。
+- **LG032已原子claim** `agent:pi-lg032`，依赖仅031/022，不机械等待023。新持久worktree `lg032` / `qa/lg032@62e96ed`，独立机制/语义质量阶段A，预算wall1200/round220/noncache300k、**真实生成0**；检查竞争领取、租约/fence、身份权限、重启反重放、受控hash交接、返修验收、默认回退及“自主发现”真实边界。只读产品，有重要缺陷由PM另派返修；本阶段不能代表成本实验已完成。成本阶段B尚未启动，必须先验证harness后另行冻结样本与总额，不复用023混淆数据。
+- LG024仍todo等待023完成；035/037质量仍in-progress，040/041不解锁。最后资料GET复查服务未连通，POST0；用户尚未提供恢复端点/真实质量样本信息。继续独立核心任务，普通实现选择不需用户确认。
+- 下一步：核两个在途pi owner实际退出/HEAD/审计REPORT，先解决方法守卫与032质量缺陷；023只在同等最终条件的4个真实样本和可复现门证据齐后done。禁止派工脚本自动重放旧真实写入；未来实验runtime/原始Task/Run/Subtask/worktree必须持久保存，新增attempt输出不可覆盖。所有执行仍pi+现有DeepSeek，不使用宿主原生子代理；未push/deploy/publish。
