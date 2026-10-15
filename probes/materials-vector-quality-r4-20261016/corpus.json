@@ -1,0 +1,61 @@
+{
+  "package": "materials-vector-quality-r4-20261016",
+  "frozen_before_any_post": true,
+  "corpus_kind": "real licensed media candidates (image/audio) + real Chinese text distractors; NO synthetic media",
+  "labels_authorship": "executor-authored relevance judgements derived from each media file's OWN recorded truth (NOT independent or human review of this run)",
+  "network_note": "media fixtures are pre-existing in-repo / preserved worktrees; NO downloads",
+  "provenance": {
+    "M_IMG_ZH": {
+      "kind": "image",
+      "media_type": "image/jpeg",
+      "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg035-truth-prep/probes/lg035/TRUTH-PREP/samples/private/lg035_truth_zh_laojielao_p10.jpg",
+      "sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+      "bytes": 333996,
+      "license": "Public domain (Wikimedia Commons PD book scan render) + CC BY-SA 4.0 (Wikisource human transcription)",
+      "truth_file": "lg035-truth-prep .../TRUTH-PREP/truth/LG035-ZH-Z1.p10.txt",
+      "truth_kind": "HUMAN proofread transcription (Wikisource ProofreadPage level 3)",
+      "truth_sha256": "9043c2b76ff8c26215b99d99c4a86eb6801207691ac5cd8d15ecf4f304147ea1"
+    },
+    "M_IMG_EN": {
+      "kind": "image",
+      "media_type": "image/png",
+      "path": "probes/lg035/fixtures/phototest-rotated-L.png",
+      "sha256": "f9c80afb481abc07fdc6ff013df3048ef31141e7b1b90ec90ccbee8c3eddbea7",
+      "license": "Apache-2.0 (tesseract-ocr/test)",
+      "truth_file": "probes/lg035/fixtures/phototest.gold.txt",
+      "truth_kind": "human gold text for the source page (rotated render of phototest)",
+      "truth_sha256": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed"
+    },
+    "M_AUD_ZH": {
+      "kind": "audio",
+      "media_type_original": "audio/ogg",
+      "path": "probes/lg039/evidence/real_voice_chinese_language-1.ogg",
+      "sha256": "1a8df6fbd1cff0ce6c192932cb6d1d5a8e20e551ba915896685544abb0528e9f",
+      "license": "CC BY-SA 3.0 (Wikimedia Commons File:Chinese language-1.ogg; author Audioman at English Wikipedia)",
+      "truth_kind": "real human speech reading the English-Wikipedia 'Chinese language' article opening; TOPIC-level truth = Chinese language / 中文; NO verbatim transcript",
+      "transcode_rule": "if PCM WAV is required by the endpoint, only a lossless container/PCM conversion (16 kHz mono) is permitted; no synthesis, no ASR; record the converted sha256"
+    }
+  },
+  "text_distractors": {
+    "note": "real Chinese human-transcribed fragments (CC BY-SA 4.0, PD scan) reused from R3 corpus.json as DISTRACTORS ONLY, not the truth for any media query",
+    "documents": [
+      {"id": "D1", "text": "其功也予生平篤信老氏之學說如此年來因更覃思舊業萃古今注老數十百家而遍肄之將以窮其賾而會其通乃讀註愈多而理解愈晦在作者非不各竭其"},
+      {"id": "D2", "text": "聰明才力以鑽硏淬礪於老氏一言一字之中其實支離曼衍去玄之又玄之真際不知幾千萬里然後歎猶"},
+      {"id": "D3", "text": "龍之妙不可方物而絕詣之未易以淺見求也遂乃盡棄舊註專致力於經文而有串珠之編由是批郤導竅以求之於經如人三萬六千毛孔孔孔疏達三百六十骨節節節靈通雖不加一字詮釋而篇中之八百有四"},
+      {"id": "D4", "text": "語助詞北風跟太陽 國、有一囘，北風跟太陽兩個人在那兒爭論誰的本事大。 蘇、有一轉，北風搭太陽两家頭勒浪爭啥人格本事大。 廣、有一句，北風同𤍠頭兩個人喺處爭論邊個嘅本事大。"},
+      {"id": "D5", "text": "北風說，我的本事大極了。 北風說，我格本事大極哉。 北風話，我嘅本事至大嘅喇。"},
+      {"id": "D6", "text": "世界上的東西沒有不怕我的。 世界浪格末事嘸不勿怕我格。 世界上嘅野冇唔怕我嘅。"},
+      {"id": "D7", "text": "船碰見了我就會翻，房子碰見了我就會坍，樹碰見了我就會倒，什 船碰着仔我就會翻，房子碰着仔我就會坍，樹碰着仔我就會倒，啥 船見親我就噲沈，屋見親我我就會 冧，樹見親我就會倒，個 末貓阿，狗阿，花阿，草阿，他們見了我，更是怕得不得了了。 格貓阿，狗阿，花阿，草阿，俚篤見仔我，加二嚇得勿知那亨哉。 的貓阿，狗阿，花阿，草阿，佢哋見親我，越發怕到交關喇。"}
+    ]
+  },
+  "queries": [
+    {"q": "Q_IMG_ZH", "text": "老子 道德經 註解 學說", "type": "positive_crossmodal_image", "relevant": ["M_IMG_ZH"]},
+    {"q": "Q_IMG_EN", "text": "quick brown dog jumped over the lazy fox", "type": "positive_crossmodal_image", "relevant": ["M_IMG_EN"]},
+    {"q": "Q_AUD_ZH", "text": "Chinese language 中文 spoken language", "type": "positive_crossmodal_audio", "relevant": ["M_AUD_ZH"]},
+    {"q": "Q_NEG_ZH", "text": "量子色動力學 膠子 強相互作用", "type": "negative_control", "relevant": []},
+    {"q": "Q_NEG_EN", "text": "2024 annual financial statement net profit", "type": "negative_control", "relevant": []}
+  ],
+  "k_values": [1, 3, 5],
+  "recall_definition": "recall@k(q) = |relevant(q) INTERSECT topk(q)| / |relevant(q)| over positive cross-modal queries",
+  "negative_handling": "product has no threshold/abstention; returned top-k are reported as raw false hits; no zero-hit gate; not an ACL failure"
+}

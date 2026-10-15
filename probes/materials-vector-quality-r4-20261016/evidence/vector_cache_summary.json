@@ -1,0 +1,131 @@
+{
+  "header": {
+    "cache_version": 1,
+    "dim": 768,
+    "model": "embeddinggemma-2-Q8_0",
+    "record": "header"
+  },
+  "readable": true,
+  "entries": [
+    {
+      "source_id": "source_1KM4HYBN3MX3SMJPKW617HE622",
+      "title": "D1",
+      "kind": "text",
+      "basis": "formal",
+      "model": "embeddinggemma-2-Q8_0",
+      "dim": 768,
+      "finite": true,
+      "l2": 1.0,
+      "nonzero": true,
+      "fragment_hash": "069db5546fa96137353abf9ffbefac2b107e55925d6a036fb24023b54e060c00"
+    },
+    {
+      "source_id": "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+      "title": "D2",
+      "kind": "text",
+      "basis": "formal",
+      "model": "embeddinggemma-2-Q8_0",
+      "dim": 768,
+      "finite": true,
+      "l2": 1.0,
+      "nonzero": true,
+      "fragment_hash": "a1bff85d0f2ef521870867849a535dda05984de063fba710c4eb9a449d426fb1"
+    },
+    {
+      "source_id": "source_5YTYNYNHBEAR59DDZYYK44D9MH",
+      "title": "D3",
+      "kind": "text",
+      "basis": "formal",
+      "model": "embeddinggemma-2-Q8_0",
+      "dim": 768,
+      "finite": true,
+      "l2": 1.0,
+      "nonzero": true,
+      "fragment_hash": "21886e277f58da9e59ad639caad261c8cdd6552ed1c3711852921104f4fb1af0"
+    },
+    {
+      "source_id": "source_081XH6161QFTBE82SFY0K0EE03",
+      "title": "D4",
+      "kind": "text",
+      "basis": "formal",
+      "model": "embeddinggemma-2-Q8_0",
+      "dim": 768,
+      "finite": true,
+      "l2": 1.0,
+      "nonzero": true,
+      "fragment_hash": "f8dbffd6db8cca88b87c8944487bf162dd57dcf40fb82364d6f5831ab7a404ca"
+    },
+    {
+      "source_id": "source_0JMX817752WK0M51XVDVCYSTFE",
+      "title": "D5",
+      "kind": "text",
+      "basis": "formal",
+      "model": "embeddinggemma-2-Q8_0",
+      "dim": 768,
+      "finite": true,
+      "l2": 1.0,
+      "nonzero": true,
+      "fragment_hash": "c783d7be885cc97b34e63e0b1b0503faa6ca66b203627d42ea2b094e0c624851"
+    },
+    {
+      "source_id": "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+      "title": "D6",
+      "kind": "text",
+      "basis": "formal",
+      "model": "embeddinggemma-2-Q8_0",
+      "dim": 768,
+      "finite": true,
+      "l2": 1.0,
+      "nonzero": true,
+      "fragment_hash": "8dcd07b89777113f82f9da2e916efd0ce469a2a5fdd46823405ae1a0aaef576b"
+    },
+    {
+      "source_id": "source_1F8D5TAEYKKSWK7NZ141RC99W3",
+      "title": "D7",
+      "kind": "text",
+      "basis": "formal",
+      "model": "embeddinggemma-2-Q8_0",
+      "dim": 768,
+      "finite": true,
+      "l2": 1.0,
+      "nonzero": true,
+      "fragment_hash": "dd8dca1e39b83c693523a04222f3cdc7dd1658d1565e14fec98e151d84673fb2"
+    },
+    {
+      "source_id": "source_4XKMV77VDQ5E6ADJH577VYZME2",
+      "title": "M_IMG_ZH",
+      "kind": "image",
+      "basis": "original",
+      "model": "embeddinggemma-2-Q8_0",
+      "dim": 768,
+      "finite": true,
+      "l2": 1.0,
+      "nonzero": true,
+      "fragment_hash": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f"
+    },
+    {
+      "source_id": "source_52Y0FWFPWGJC716BAGKFP0RHA9",
+      "title": "M_IMG_EN",
+      "kind": "image",
+      "basis": "original",
+      "model": "embeddinggemma-2-Q8_0",
+      "dim": 768,
+      "finite": true,
+      "l2": 1.0,
+      "nonzero": true,
+      "fragment_hash": "f9c80afb481abc07fdc6ff013df3048ef31141e7b1b90ec90ccbee8c3eddbea7"
+    },
+    {
+      "source_id": "source_0YG24QWMWTZ7Y1QAN4FZVTGE5Y",
+      "title": "M_AUD_ZH",
+      "kind": "audio",
+      "basis": "original",
+      "model": "embeddinggemma-2-Q8_0",
+      "dim": 768,
+      "finite": true,
+      "l2": 1.0,
+      "nonzero": true,
+      "fragment_hash": "0cf59176de2b58c4386215256af159af94f01ebb4509e89bfbbadac7eac5cc37"
+    }
+  ]
+}
