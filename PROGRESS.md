@@ -246,3 +246,14 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
   **LG-040 不解锁**；**LG-041 质量门阻塞不解锁**。
 - backlog 专用根：`validate` **41 tasks, no diagnostics**；`digest` complete=true → **32 done / 4 in-progress / 5 todo**。
 - 未完成质量门：LG-022 独立 R2 复验、LG-031 真闭环（新预算内）、LG-035/037 真实质量、LG-040 版本 QA、完整 checkpoint skip。`main` 未推送。
+
+## 2026-10-16 持久检查点：core R2 补证与 LG-031 phase4
+
+- 主工作区 `integrate/batch7@85adc82`，`main@29ffbb6` 尚未快进收拢；产品候选 `0144eb7`，契约 **1.10.0**。串行整合检查：775 passed / 2 skipped，mypy 137 files clean，见 `probes/batch-20261016/INTEGRATION-7.md`。旧 dirty/worktree/原始实验均保留。
+- 独立 core QA `qa/lg022-r2@0a88ab8` 的真实主链已到 `awaiting_acceptance` 并绑定 accept，实际生成 **8**（主链7+直答1）。**补查已更正原“8/10统一硬限”表述：两阶段使用不同账本，实际8可核实但未执行统一总额硬限；不是产品持久账本缺陷。** 原首轮 unknown、R1 6 均保留。见 `qa/lg022-r2/{REPORT,SUPPLEMENT,STATUS}.md`。真实 SDK 活跃复核的 cancel/stop 直接补证尚未跑成，LG-022 **暂不 done**，不以原 PASS 标题覆盖后续补遗。
+- 首个 SDK cancel 补证开发包 bounded-uuv5ekyo 到 wall600/exit143；后续只读收尾已保全临时探针与清理签名进程。无新增 DeepSeek 生成，未知副作用不重放。已另拆零真实模型调用调查包，查 SDK 官方安装 API 与本地流式替身协议，避免反复100秒超时试错；报告落于独立 QA worktree 的 `qa/lg022-r2/sdk-cancel-investigation/`。
+- LG-031 phase3 交付 `fix/lg031-r3@faacb90`：G1 bootstrap 开关接线、G2 discovery 目标/写范围投影已修；真实 **14/14** 耗尽，仍缺完整双worker交接/整合候选 review，故 in-progress。原累计10+14=**24**，全部 partial/失败成本保留。见该分支 `probes/lg031/phase3/{REPORT,LEDGER}.md`。
+- 同一隔离分支已续接 phase4：先零模型离线定位，再一个固定 fixture 的真实闭环；新增最多 **16** 次全role/stage共享持久扣减，已知工程累计上限40。不是 LG-032 对照实验，不改未来样本/收益门，不开默认自主模式。此时 owner 正执行，不能提前 merge 其未完工作。
+- LG-023 尚未启动/claim；预注册拟2样本×2arm×1repeat=4 attempts，PM在执行前确定总24次、每attempt最多6、单一持久账本，计入执行/QA/返修/复验/失败。等待022补证裁定后由串行集成者收拢并原子claim。LG-024、032同样按实际依赖推进。
+- 资料候选服务本轮只读复查 `/health`、`/v1/models` 均连接失败，POST0；035/037质量仍阻塞，040未解锁，041仍受039负结果质量门限制。私有证据 `/home/yhvh/.cache/lightgravity-bot/checkpoints/2026-10-16-batch/MATERIALS-RECHECK.md`。普通实现不需用户确认；真正外部待项为服务恢复/另授权端点及可用真实中文/表格truth样本。
+- 续接：先核当前两个 pi owner 是否退出及准确HEAD/REPORT，再按补证真实判定处理022；勿重跑未知写入或覆盖旧worktree。未来所有生成阶段共用同一phase data_dir/ledger，不得分账后声称统一硬限。所有开发执行仍仅pi+env DeepSeek，主代理只PM；未推送/部署/发布。
