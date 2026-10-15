@@ -1,0 +1,11 @@
+---server log---
+t=   0.021 LISTEN 127.0.0.1:36567 pid=307740 cors=True
+t=  19.987 REQ GET /api/echo from=127.0.0.1:36026 origin=null ua='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.'
+t=  20.140 REQ GET /sse from=127.0.0.1:36028 origin=null ua='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.'
+t=  20.140 SSE open path=/sse events=3 interval_ms=150
+t=  20.140 SSE tick n=1
+t=  20.290 SSE tick n=2
+t=  20.441 SSE tick n=3
+t=  20.591 SSE done
+t=  21.162 REQ GET /api/echo from=127.0.0.1:36032 origin=- ua='node'
+t=  21.317 REQ GET /health from=127.0.0.1:36042 origin=null ua='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.'

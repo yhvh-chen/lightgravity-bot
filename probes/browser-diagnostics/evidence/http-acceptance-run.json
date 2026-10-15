@@ -1,0 +1,74 @@
+{
+  "base_url": "http://127.0.0.1:36567",
+  "chrome": "google-chrome",
+  "modes": [
+    "doc-int",
+    "channel",
+    "bridge"
+  ],
+  "results": {
+    "doc-int": {
+      "mode": "doc-int",
+      "origin": "http://127.0.0.1:36567",
+      "doc_nav": {
+        "url": "http://127.0.0.1:36567/page",
+        "nav_returned": null,
+        "nav_error": null,
+        "nav_ms": 6004,
+        "fetch_paused_for_document": false,
+        "paused_urls": []
+      },
+      "request_paused": false,
+      "after_nav": "EVALERR:TIMEOUT 13000ms: CDP Runtime.evaluate",
+      "verdict": "document-interception-unreachable: Fetch.requestPaused never fired for the Document request; main-frame http nav is parked before the Fetch stage on this host"
+    },
+    "channel": {
+      "mode": "channel",
+      "transport": "file:// shell + fetch()/EventSource (real network)",
+      "origin": "http://127.0.0.1:36567",
+      "api": {
+        "kick": "started",
+        "result": "ok:200:{\"ok\":true,\"source\":\"server\",\"path\":\"/api/echo\",\"t\":19.987}",
+        "ok": true
+      },
+      "sse": {
+        "kick": "started",
+        "state": "{\"ev\":[1,2,3],\"done\":true,\"err\":null}",
+        "ok": true,
+        "events_received": [
+          1,
+          2,
+          3
+        ]
+      },
+      "ok": true
+    },
+    "bridge": {
+      "mode": "bridge",
+      "note": "subresource transparent bridge: Node GET -> Fetch.fulfillRequest (real server round trip)",
+      "origin": "http://127.0.0.1:36567",
+      "bridged": [
+        {
+          "url": "http://127.0.0.1:36567/api/echo",
+          "resourceType": "XHR",
+          "status": 200,
+          "bytes": 59
+        }
+      ],
+      "native": [
+        {
+          "url": "http://127.0.0.1:36567/health",
+          "how": "browser native (Fetch disabled)",
+          "result": "native:{\"ok\":true}"
+        }
+      ],
+      "kick_bridged": "started",
+      "bridged_result": "ok:200:{\"ok\":true,\"source\":\"server\",\"path\":\"/api/echo\",\"t\":21.162}",
+      "bridge_ok": true,
+      "native_result": "native:{\"ok\":true}",
+      "ok": true
+    }
+  },
+  "ok": true,
+  "note": "doc-int records whether CDP Fetch could intercept the main Document; channel is the real-browser fetch+SSE acceptance; bridge is the subresource transparent-proxy transport."
+}

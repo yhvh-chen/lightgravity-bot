@@ -1,0 +1,38 @@
+# Real-HTTP browser acceptance run (LG-013/021/027)
+
+Command:
+  cd probes/browser-diagnostics
+  ./run_http_channel_smoke.sh --mode all --deadline-ms 9000
+
+Host: Linux yhvh-nas. Browsers: system Google Chrome 151.0.7922.71 and
+isolated Chrome for Testing 150.0.7871.124 (see browser-binary.txt).
+
+=== System Chrome 151.0.7922.71 ===
+probe server: http://127.0.0.1:34253 (pid group 304586)
+browser: google-chrome
+mode=doc-int fetch_paused_for_document=false verdict=document-interception-unreachable: Fetch.requestPaused never fired for the Document request; main-frame http nav is parked before the Fetch stage on this host
+mode=channel ok=true api="ok:200:{\"ok\":true,\"source\":\"server\",\"path\":\"/api/echo\",\"t\":19.077}" sse=[1,2,3] fatal=-
+mode=bridge ok=true bridged=[{"url":"http://127.0.0.1:34253/api/echo","resourceType":"XHR","status":200,"bytes":59}] native=["native:{\"ok\":true}"] fatal=-
+--- server log (what the browser actually sent) ---
+t=   0.020 LISTEN 127.0.0.1:34253 pid=304586 cors=True
+t=  19.077 REQ GET /api/echo from=127.0.0.1:58776 origin=null ua='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.'
+t=  19.229 REQ GET /sse from=127.0.0.1:58790 origin=null ua='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.'
+t=  19.229 SSE open path=/sse events=3 interval_ms=150
+t=  19.229 SSE tick n=1
+t=  19.379 SSE tick n=2
+t=  19.530 SSE tick n=3
+t=  19.681 SSE done
+t=  20.305 REQ GET /api/echo from=127.0.0.1:58804 origin=- ua='node'     <-- BRIDGED (Node did the real GET)
+t=  20.459 REQ GET /health from=127.0.0.1:58806 origin=null ua='Mozilla/5.0 ...'  <-- NATIVE browser request
+
+=== Isolated Chrome for Testing 150.0.7871.124 ===
+probe server: http://127.0.0.1:37847 (pid group 305682)
+mode=doc-int fetch_paused_for_document=false verdict=document-interception-unreachable
+mode=channel ok=true api="ok:200:{...source server...}" sse=[1,2,3]
+mode=bridge ok=true bridged=[{"url":".../api/echo","resourceType":"XHR","status":200,"bytes":59}] native=["native:{\"ok\":true}"]
+--- server log excerpt ---
+t=  19.077 REQ GET /api/echo from=127.0.0.1:50400 ua='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.'
+t=  19.232 REQ GET /sse from=127.0.0.1:50400 ua='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.'
+t=  19.232 SSE tick n=1 / n=2 / n=3 / done
+t=  20.388 REQ GET /api/echo from=127.0.0.1:50412 ua='node'   <-- BRIDGED
+t=  20.544 REQ GET /health from=127.0.0.1:50418 ua='Mozilla/5.0 ...'  <-- NATIVE

@@ -1,0 +1,80 @@
+# Why the requested main-Document Fetch interception cannot yield an http origin here
+
+This file records the exact, reproducible investigation behind the `doc-int`
+mode of `http_channel_smoke.mjs`. It is deliberately specific: it does **not**
+claim "HTTP is blocked" (that was already disproven: real browser fetch + SSE
+work), only that **CDP Fetch cannot intercept the top-level Document request in
+this Chrome build on this host**, so the "fulfil the Document from a real Node
+GET to keep an http origin" technique is unreachable.
+
+## What was attempted (all bounded, own process group, real server)
+
+1. `Fetch.enable {patterns:[{urlPattern:'*',resourceType:'Document'}]}` +
+   `Page.navigate http://127.0.0.1:PORT/page` -> **no `Fetch.requestPaused`**;
+   `Page.navigate` never returns; subsequent `Runtime.evaluate` on that frame
+   times out (frame script context wedged while the load is pending).
+2. Same with the Document pattern removed (`urlPattern:'*'`, no resourceType),
+   and with the session attached at browser level plus target level.
+3. Same against a non-loopback host (`http://example.com/`) -> no pause, nav
+   hangs. So this is **not** loopback/LNA-specific: *any* `http(s)` main-frame
+   navigation parks before the Fetch stage.
+4. `Target.createTarget(url)` and browser **startup URL** `chrome <http url>`
+   behave the same (frame origin stays `null`, no server hit).
+5. `https://127.0.0.1` main-frame nav -> no pause, parks.
+6. `<iframe src="http://127.0.0.1:PORT/frame">` from a `file://` page -> the
+   iframe document does **not** load (origin `null`, no server hit), unlike an
+   XHR `fetch()` which does reach the server.
+7. Launch flags tried (none change the outcome):
+   `--disable-features=LocalNetworkAccessChecks,PrivateNetworkAccessChecks,
+   LocalNetworkAccessPermissionPrompt`,
+   `--disable-features=LocalNetworkAccessForNavigations,
+   LocalNetworkAccessForNavigationsWarningOnly,
+   LocalNetworkAccessRestrictionsTemporaryOptOut,
+   LocalNetworkAccessNonSecureContextAllowed`,
+   `--disable-features=NetworkServiceSandbox,LocalNetworkAccessChecks`,
+   `--disable-web-security`, `--unsafely-treat-insecure-origin-as-secure=…`,
+   `--ignore-certificate-errors`, `--enable-features=LocalNetworkAccessSendPreflights`.
+8. CDP `Browser.setPermission {name:'local-network-access', setting:'granted'}`
+   succeeds but does not unblock the nav.
+9. `--headless=old` and **headful Chrome under Xvfb** behave the same.
+
+## What DOES work (the observable contrast)
+
+- `Fetch.enable` **does** intercept and can fulfil **subresources**: an XHR
+  `fetch()` to `http://127.0.0.1:PORT/api/echo` produced a real
+  `Fetch.requestPaused` (`resourceType:'XHR'`) and `Fetch.fulfillRequest`
+  delivered Node-fetched bytes. This is the `bridge` mode.
+- A `file://` / `about:blank` shell page really reaches the loopback server:
+  `fetch()` returns 200 and `EventSource` streams real SSE events (`channel`
+  mode; server log shows Chrome's UA).
+- `file://`, `about:blank` and `data:` main-frame navigations complete normally
+  (they just cannot carry an http origin).
+
+## Conclusion / accurate limitation
+
+- **`frame.location.origin` cannot be made `http://…` in this environment** by
+  intercepting the main Document navigation, because the navigation never
+  reaches the CDP Fetch stage (it is parked earlier, at the network delegate).
+  `doc-int` mode records `fetch_paused_for_document=false` as falsifiable
+  evidence every run.
+- Therefore the acceptance helper uses the working transport (`file://` shell +
+  real `fetch()`/`EventSource`), which is a **genuine** browser HTTP + SSE
+  round trip (not a mock), but whose **document origin is `null`/`file://`**, not
+  `http://`. Anything requiring a same-origin `http` document (e.g. relying on
+  `location.origin === http://127.0.0.1:PORT`, `document.cookie` at that origin,
+  or same-origin policy between page and API) is **not** covered by this helper
+  and must not be claimed as passing.
+- The `bridge` mode proves the transparent-proxy transport itself is sound for
+  the paths the browser *does* hand to Fetch (subresources): Node performs the
+  real GET and the browser receives the real status/headers/body. It records
+  which requests were bridged (server log `ua='node'`) and which went natively
+  (`ua='Mozilla/…'`). It is a transport demonstration, not a claim that the
+  main Document origin can be made http.
+
+## Environment
+
+- Chrome: Google Chrome 151.0.7922.71 and Chrome for Testing 150.0.7871.124.
+- Host: Linux yhvh-nas. No proxy env vars. DevTools port/`/json/version`/WS/
+  `Target.*`/`Runtime.evaluate` on a non-navigated page all work in tens of ms.
+- No product code, contract, dependency or global browser policy was changed.
+  No web-security feature was disabled to make this pass.
