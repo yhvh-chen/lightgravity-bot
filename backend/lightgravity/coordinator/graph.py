@@ -925,19 +925,6 @@ class GraphDispatcher:
             return self._fail_node(node, controller, code="config_invalid", message=drift)
 
         request = self._build_request(node, context, upstream, grant_token=grant_token)
-        if autonomous:
-            # Autonomous workers must have actually claimed through the tool
-            # before their result can be admitted; a worker that never claims
-            # cannot pass (program-authority, not model self-report).
-            if self._node_grants.get(node.key) is None:
-                self._revoke_if_pool(node.key, grant_token)
-                self._release_node(node, claimer)
-                return self._fail_node(
-                    node,
-                    controller,
-                    code="lock_conflict",
-                    message="autonomous worker did not claim an authorized node",
-                )
         run_id = context.run_id
         task = asyncio.ensure_future(self._executor.execute(request, emit))
         self._inflight.setdefault(run_id, set()).add(task)
@@ -962,11 +949,25 @@ class GraphDispatcher:
             return self._crash_node(node, controller, exc)
         finally:
             self._inflight.get(run_id, set()).discard(task)
-            # A grant is runtime authority only: revocation happens as soon as
-            # the execution stops (confirmed or not), so a stale worker identity
-            # can never outlive its node execution.
-            if grant_token is not None:
-                self._revoke_grant(node.key, grant_token)
+        # Autonomous workers must have actually claimed through the restricted
+        # discover/claim tool *during* their own execution; a worker that never
+        # claims cannot have its result admitted (program authority, not model
+        # self-report).  The check runs after the execution has stopped and
+        # before the grant is revoked, so a genuine in-run claim is observable.
+        if autonomous and result.state == "succeeded" and self._node_grants.get(node.key) is None:
+            self._revoke_if_pool(node.key, grant_token)
+            self._release_node(node, claimer)
+            return self._fail_node(
+                node,
+                controller,
+                code="claim_required",
+                message="autonomous worker did not claim an authorized node",
+            )
+        # A grant is runtime authority only: revocation happens as soon as the
+        # execution stops (confirmed or not), so a stale worker identity can
+        # never outlive its node execution.
+        if grant_token is not None:
+            self._revoke_grant(node.key, grant_token)
         self._release_node(node, claimer)
         if result.execution_ref is not None:
             self._active_refs.setdefault(run_id, []).append(result.execution_ref)
@@ -1087,10 +1088,22 @@ class GraphDispatcher:
         the frozen authority and mints the worker's **node** grant.  A refusal is
         returned as a definite machine receipt; nothing is granted on a partial
         check.
+
+        The model may *propose* any node it can discover, but the program only
+        authorizes the node it actually scheduled for this worker: a claim for a
+        different node is refused program-side, so scheduling authority never
+        moves from the program to the model (the worker still has to make the
+        request itself; the program decides what it may hold).
         """
 
         from lightgravity.collaboration import ClaimRequest, default_registry
 
+        if node_ref != node.subtask_id:
+            return {
+                "granted": False,
+                "reason": "node_not_scheduled_for_worker",
+                "request_id": request_id,
+            }
         collab = self._collaboration
         if collab is None:
             return {"granted": False, "reason": "feature_disabled"}

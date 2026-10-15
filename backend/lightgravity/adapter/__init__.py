@@ -65,8 +65,10 @@ from .executor import (
 from .proxy import (
     AUTHORIZED_UPSTREAM_HOSTS,
     DEEPSEEK_UPSTREAM_URL,
+    GenerationCounter,
     LocalAuthProxy,
     ProxyCallRecord,
+    global_generation_counter,
     upstream_chat_completions,
 )
 from .redaction import REDACTED, is_sensitive_key, mask_values, redact, sensitive_paths
@@ -127,6 +129,8 @@ __all__ = [
     "AUTHORIZED_UPSTREAM_HOSTS",
     "DEEPSEEK_UPSTREAM_URL",
     "LocalAuthProxy",
+    "GenerationCounter",
+    "global_generation_counter",
     "ProxyCallRecord",
     "upstream_chat_completions",
     # errors

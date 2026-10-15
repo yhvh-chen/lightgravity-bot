@@ -486,7 +486,7 @@ async def test_autonomous_mode_requires_worker_initiated_claim(tmp_path: Path) -
     dispatcher = GraphDispatcher(
         store,
         executor,
-        catalog=RoleCatalog({"implementation": ["developer"]}),
+        catalog=RoleCatalog({"implementation": ["developer"], "verification": ["verifier"]}),
         max_parallel=1,
         collaboration=collab,
         grant_registry=registry,
@@ -552,7 +552,7 @@ async def test_autonomous_worker_tool_claim_grants_node(tmp_path: Path) -> None:
     dispatcher = GraphDispatcher(
         store,
         executor,
-        catalog=RoleCatalog({"implementation": ["developer"]}),
+        catalog=RoleCatalog({"implementation": ["developer"], "verification": ["verifier"]}),
         max_parallel=1,
         collaboration=collab,
         grant_registry=registry,

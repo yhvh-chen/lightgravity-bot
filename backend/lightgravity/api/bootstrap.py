@@ -37,6 +37,7 @@ from fastapi import FastAPI
 
 from ..adapter import AntigravityExecutor, DirectoryArtifactSink, ResourceCompiler
 from ..adapter.compiler import ConnectionPin
+from ..adapter.proxy import global_generation_counter
 from ..config import Settings
 from ..coordinator import GraphDispatcher
 from ..collaboration import (
@@ -396,6 +397,12 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
                 workspace_root=settings.workspace_root,
                 max_proxy_calls=options.max_proxy_calls,
                 model_calls_cap=options.model_calls_cap,
+                # LG-031 R2: the default assembly shares the one process-global
+                # generation counter, so every worker/reviewer session and SDK
+                # retry consumes the same real hard cap
+                # (``LIGHTGRAVITY_MAX_GENERATION_CALLS``) instead of a
+                # per-worker budget that silently resets.
+                generation_budget=global_generation_counter(),
             )
             catalog: RoleCatalog | None = None
             if options.role_catalog is not None:
