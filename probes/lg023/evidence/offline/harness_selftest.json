@@ -1,0 +1,68 @@
+{
+  "ok": true,
+  "checks": {
+    "plan_s1_independent_A": {
+      "keys": [
+        "deliver"
+      ],
+      "deps": {
+        "deliver": []
+      },
+      "plan_hash": "db37e6b16a5b3710451f9505b64e007a75a5f35d5b0e1140e1064971300558c4",
+      "source": "frozen-frozen-A",
+      "pass": true
+    },
+    "plan_s1_independent_B": {
+      "keys": [
+        "part_a",
+        "part_b"
+      ],
+      "deps": {
+        "part_a": [],
+        "part_b": [
+          "part_a"
+        ]
+      },
+      "plan_hash": "6357a68bf6cb7f8b37ab7248a577aff4234c176beff0246fd5145c9f7d99a63e",
+      "source": "frozen-frozen-B",
+      "pass": true
+    },
+    "plan_s2_interface_A": {
+      "keys": [
+        "deliver"
+      ],
+      "deps": {
+        "deliver": []
+      },
+      "plan_hash": "7ba38d9eb0965e705d70c4d294ebcdbf2ecc2981cbbae9726f4b6b09c5062b22",
+      "source": "frozen-frozen-A",
+      "pass": true
+    },
+    "plan_s2_interface_B": {
+      "keys": [
+        "part_a",
+        "part_b"
+      ],
+      "deps": {
+        "part_a": [],
+        "part_b": [
+          "part_a"
+        ]
+      },
+      "plan_hash": "49ef699b7df25afee21e56650bf7a11ee9088ae944362df8f41096d467d82028",
+      "source": "frozen-frozen-B",
+      "pass": true
+    },
+    "attempt_guard_12": {
+      "granted": 12,
+      "denied": true,
+      "ledger": {
+        "count": 12,
+        "limit": 48,
+        "remaining": 36,
+        "corrupt": false
+      },
+      "pass": true
+    }
+  }
+}

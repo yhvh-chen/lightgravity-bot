@@ -1,0 +1,91 @@
+{
+  "audit_item": "A4",
+  "ledger_path": "probes/lg023/ledger/generation/generation.jsonl",
+  "total_entries": 45,
+  "global_count_json": {
+    "count": 45
+  },
+  "per_process_timeline": [
+    {
+      "pid": 2045483,
+      "n": 5,
+      "start": "04:27:08",
+      "end": "04:27:18",
+      "counts": [
+        1,
+        5
+      ]
+    },
+    {
+      "pid": 2046510,
+      "n": 5,
+      "start": "04:27:41",
+      "end": "04:27:50",
+      "counts": [
+        6,
+        10
+      ]
+    },
+    {
+      "pid": 2046909,
+      "n": 6,
+      "start": "04:27:53",
+      "end": "04:28:02",
+      "counts": [
+        11,
+        16
+      ]
+    },
+    {
+      "pid": 2047190,
+      "n": 6,
+      "start": "04:28:05",
+      "end": "04:28:16",
+      "counts": [
+        17,
+        22
+      ]
+    },
+    {
+      "pid": 2047691,
+      "n": 6,
+      "start": "04:28:19",
+      "end": "04:28:29",
+      "counts": [
+        23,
+        28
+      ]
+    },
+    {
+      "pid": 2049869,
+      "n": 7,
+      "start": "04:29:38",
+      "end": "04:30:04",
+      "counts": [
+        29,
+        35
+      ]
+    },
+    {
+      "pid": 2051391,
+      "n": 4,
+      "start": "04:30:31",
+      "end": "04:30:43",
+      "counts": [
+        36,
+        39
+      ]
+    },
+    {
+      "pid": 2052815,
+      "n": 6,
+      "start": "04:31:19",
+      "end": "04:31:30",
+      "counts": [
+        40,
+        45
+      ]
+    }
+  ],
+  "note": "Each pid is one `run_attempt.py` process (one attempt-ish). 45 total matches generation.count.json=45. However the per-attempt attribution in the committed result.json files is NOT trustworthy because run_attempt.py changed between processes (see A2/A3), and the old per-attempt counter was monkey-patched onto the wrong object (see A8)."
+}

@@ -1,0 +1,115 @@
+{
+  "real_model_calls": 0,
+  "A7_stopgate_wired_ok": {
+    "close_ok": true,
+    "proxy_ok": true,
+    "dispatcher_state": "succeeded",
+    "run_session_refs": [
+      "sess_fake_subtask_01M50AJRRVKAZHA4FT8CP33Y7Z"
+    ],
+    "verify_state": "confirmed",
+    "verify_confirmed": true,
+    "verify_messages": [
+      "candidate ready for human acceptance"
+    ],
+    "phase_after_verify": "awaiting_acceptance",
+    "accept_reachable": true,
+    "stop_detail": {
+      "confirmed": true,
+      "run_stopped": true,
+      "sessions_stopped": true,
+      "slot_released": true,
+      "members_released": [],
+      "problems": [],
+      "session_confirmation": {
+        "run_id": "run_01M50AJRPJ1E735EWD6NMVZY58",
+        "confirmed": true,
+        "sessions_total": 1,
+        "sessions_stopped": 1,
+        "proxy_stopped": true,
+        "unknown_sessions": [],
+        "problems": []
+      }
+    }
+  },
+  "A7_stopgate_broken_close": {
+    "close_ok": false,
+    "proxy_ok": true,
+    "dispatcher_state": "succeeded",
+    "run_session_refs": [
+      "sess_fake_subtask_01M50AJS48DFKRF6JYPXV08RSG"
+    ],
+    "verify_state": "unconfirmed",
+    "verify_confirmed": false,
+    "verify_messages": [
+      "resources not confirmed stopped",
+      "1 session(s) not confirmed closed (cleanup='pending', adapter=['1 session(s) not confirmed closed by the adapter'])"
+    ],
+    "phase_after_verify": "verifying",
+    "accept_reachable": false,
+    "stop_detail": {
+      "confirmed": false,
+      "run_stopped": true,
+      "sessions_stopped": false,
+      "slot_released": true,
+      "members_released": [],
+      "problems": [
+        "1 session(s) not confirmed closed (cleanup='pending', adapter=['1 session(s) not confirmed closed by the adapter'])"
+      ],
+      "session_confirmation": {
+        "run_id": "run_01M50AJS259N1WDSY5CRG7ZP5K",
+        "confirmed": false,
+        "sessions_total": 1,
+        "sessions_stopped": 0,
+        "proxy_stopped": true,
+        "unknown_sessions": [
+          "sess_fake_subtask_01M50AJS48DFKRF6JYPXV08RSG"
+        ],
+        "problems": [
+          "1 session(s) not confirmed closed by the adapter"
+        ]
+      }
+    }
+  },
+  "A8_metering": {
+    "worker_codes_6": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "ledger_after_worker": 6,
+    "reviewer_codes_6": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "ledger_after_reviewer": 12,
+    "attempt_used": 12,
+    "worker_13th_code": 429,
+    "ledger_after_13th": 12,
+    "upstream_served": 12,
+    "reviewer_shares_global": true,
+    "attempt_cap_enforced": true,
+    "reserve_before_forward": true
+  },
+  "A8_old_wiring_defect": {
+    "codes": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "guard_used": 0,
+    "ledger": 6,
+    "defect_reproduced": true
+  },
+  "ok": true
+}

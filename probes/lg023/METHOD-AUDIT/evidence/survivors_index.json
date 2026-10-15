@@ -1,0 +1,109 @@
+{
+  "audit_item": "A1/A3/A9 originals",
+  "survivors_dir": "/home/yhvh/.cache/lightgravity-bot/checkpoints/2026-10-16-batch/lg023-survivors/",
+  "perms": "700 dir / 600 files + MANIFEST.sha256 (sha256sum + cmp verified, sources NOT deleted)",
+  "recovered": {
+    "sdk_session_dbs": 17,
+    "list": [
+      {
+        "source": "/tmp/antigravity_1aokzgfm/0062e98db5ac6916c1e090ee638971af.db",
+        "mtime": "04:20:05",
+        "bytes": 393216
+      },
+      {
+        "source": "/tmp/antigravity_30mgkeg9/dda44e242a9b2f388464af5817ff38c2.db",
+        "mtime": "04:28:02",
+        "bytes": 622592
+      },
+      {
+        "source": "/tmp/antigravity_33k9iitg/720ff3d6e669e92482381b5f0e671579.db",
+        "mtime": "04:31:29",
+        "bytes": 557056
+      },
+      {
+        "source": "/tmp/antigravity_667iooee/ac444aedcdf11f5f0e1ace515b0fd342.db",
+        "mtime": "04:28:04",
+        "bytes": 393216
+      },
+      {
+        "source": "/tmp/antigravity_7jlxu2v2/59031024bdc2ffb73b95787d6a468628.db",
+        "mtime": "04:30:07",
+        "bytes": 393216
+      },
+      {
+        "source": "/tmp/antigravity_8o27ef1m/058f8bd9ccf973f6409ab6e7317e5ecc.db",
+        "mtime": "04:27:50",
+        "bytes": 688128
+      },
+      {
+        "source": "/tmp/antigravity_axvads7n/8b24fdf468e713630f8dfeff4a8d0fe5.db",
+        "mtime": "04:28:29",
+        "bytes": 622592
+      },
+      {
+        "source": "/tmp/antigravity_dymshanw/13ffc03db68e4aa978727f51e90a4aee.db",
+        "mtime": "04:30:50",
+        "bytes": 393216
+      },
+      {
+        "source": "/tmp/antigravity_epgrvcka/6f3692263ae700ace0527287a6b9eb7e.db",
+        "mtime": "04:28:18",
+        "bytes": 393216
+      },
+      {
+        "source": "/tmp/antigravity_ibw4qnm4/d702f25aba500fa69051c358a3eb332a.db",
+        "mtime": "04:31:33",
+        "bytes": 393216
+      },
+      {
+        "source": "/tmp/antigravity_luj0ouny/bd98665bf198778fb001c0d6cc495a52.db",
+        "mtime": "04:28:16",
+        "bytes": 688128
+      },
+      {
+        "source": "/tmp/antigravity_p9q9h2l1/28f893f65dfed2af2ec226a0db838f84.db",
+        "mtime": "04:27:52",
+        "bytes": 393216
+      },
+      {
+        "source": "/tmp/antigravity_rieswia2/7f37ce1fcb2dd5a3459902401d79e4b9.db",
+        "mtime": "04:27:20",
+        "bytes": 393216
+      },
+      {
+        "source": "/tmp/antigravity_rxm_u7fj/86acdd700dbb4d8cac880146746d1ada.db",
+        "mtime": "04:27:18",
+        "bytes": 589824
+      },
+      {
+        "source": "/tmp/antigravity_s5n_a3vu/ff3d677fe30ef27160644ed7e2a8c195.db",
+        "mtime": "04:30:43",
+        "bytes": 524288
+      },
+      {
+        "source": "/tmp/antigravity_sn6xgj_w/dec880fe230df36d332d4378fa09ab87.db",
+        "mtime": "04:28:31",
+        "bytes": 393216
+      },
+      {
+        "source": "/tmp/antigravity_xizgpt8p/832a0336a36206a4108d6782b46c139b.db",
+        "mtime": "04:30:04",
+        "bytes": 720896
+      }
+    ],
+    "note": "Real Antigravity SDK trajectory DBs from the LG023 run window (04:27-04:31). They contain the original per-generation metadata incl. real token usage (recovered separately), and the original worker/reviewer prompts/tool calls."
+  },
+  "deleted_by_TemporaryDirectory": {
+    "runtime_roots": [
+      "/tmp/tmp* (e.g. /tmp/tmpcugnc8bx, /tmp/tmp7ber8xy_)"
+    ],
+    "missing": [
+      "FileStore control state (Task/Run/Subtask/Member)",
+      "candidate git workspaces + initial commits",
+      "raw proxy request logs",
+      "secrets dirs"
+    ],
+    "conclusion": "control-state and workspace originals are GONE and are NOT reconstructed/inferred; recorded as unknown."
+  },
+  "dispatch_log_survivor": "/home/yhvh/.cache/lightgravity-bot/dispatch-logs/lightgravity-pi-bounded-ogans7ad.log (owner transcript, cwd lg023, 04:2x-04:3x)"
+}

@@ -1,0 +1,487 @@
+{
+  "attempts": 4,
+  "records": [
+    {
+      "acceptance_gate": {
+        "accept_reachable": false,
+        "acceptance_pending_bound": false,
+        "artifact_refs": [],
+        "candidate_run_matches": true,
+        "diff_ref": null,
+        "phase": "executing",
+        "run_state": "executing",
+        "session_refs": [
+          "sess_935d600d1f8f4b5db0a4a7dcb8b2b589"
+        ]
+      },
+      "arm": "A",
+      "attempt_generation_requests": 0,
+      "attempt_limit": 12,
+      "dispatch_error": null,
+      "dispatcher_state": "failed",
+      "elapsed_seconds": 11.25,
+      "events_tail": [
+        "adapter.execution_started",
+        "adapter.session_requested",
+        "adapter.session_started",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.execution_finished"
+      ],
+      "first_round_machine_pass": false,
+      "global_ledger": {
+        "corrupt": false,
+        "count": 10,
+        "limit": 48,
+        "persistent": true,
+        "remaining": 38
+      },
+      "handoff_refs": [],
+      "initial_head": "780dc5760f35588897d3cf232d8dafd77e179dc0",
+      "machine_gate": {
+        "checks": [
+          {
+            "detail": "NotImplementedError: ",
+            "name": "slug.case",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "slug.multi",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "slug.trim",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "clamp.low",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "clamp.high",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "in_range",
+            "passed": false
+          }
+        ],
+        "exit_code": 0,
+        "passed": 0,
+        "total": 6
+      },
+      "machine_pass": false,
+      "per_request_output_cap": 16000,
+      "plan_source": "subtask graph failed at 'deliver': StopReason.MAX_TOOL_CALLS_EXCEEDED",
+      "review": {
+        "findings": [],
+        "model_calls": 1,
+        "outcome": "unavailable",
+        "reason": "No evidence was provided: the evidence list contains no resolved refs ('<none resolved>'), so there is no artifact, machine-check result, or file excerpt to examine against the acceptance criteria for src/slugs.py (slugify) and src/ranges.py (clamp, in_range). With zero citable evidence I cannot substantiate either a pass or a rework verdict, and per instructions I must not guess.",
+        "requested_model": "deepseek-v4-flash",
+        "resolved_evidence": [],
+        "reviewer_kind": "model",
+        "status": "ran",
+        "unsubstantiated": [],
+        "usage": {
+          "unknown": [
+            "usage"
+          ]
+        },
+        "validated_outcome": "unavailable"
+      },
+      "run_id": "run_01M509NYYQ1V4Z42TM6M9J1WGG",
+      "sample": "s1_independent",
+      "sample_delivered": false,
+      "status": "ran",
+      "task_id": "task_01M509NYYQ7JDRQZKHDFWNPXJB",
+      "worker_count": 1,
+      "worker_requests": [
+        {
+          "objective": "Implement in the workspace: src/slugs.py (slugify) and src/ranges.py (clamp, in_range). See the acceptance criteria.",
+          "subtask_id": "subtask_01M509NZ15NZ8NMKQZ1YZKBW4Y",
+          "upstream_artifact_refs": [],
+          "workspace_path": "/tmp/tmpcxtpwont/workspaces/candidate-ws"
+        }
+      ],
+      "host_elapsed_seconds": 11.83,
+      "returncode": 0,
+      "stderr_tail": ""
+    },
+    {
+      "acceptance_gate": {
+        "accept_reachable": false,
+        "acceptance_pending_bound": false,
+        "artifact_refs": [],
+        "candidate_run_matches": true,
+        "diff_ref": null,
+        "phase": "executing",
+        "run_state": "executing",
+        "session_refs": [
+          "sess_348f2fec61b34edb8556463bb6d900ce"
+        ]
+      },
+      "arm": "B",
+      "attempt_generation_requests": 0,
+      "attempt_limit": 12,
+      "dispatch_error": null,
+      "dispatcher_state": "failed",
+      "elapsed_seconds": 11.56,
+      "events_tail": [
+        "adapter.execution_started",
+        "adapter.session_requested",
+        "adapter.session_started",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.execution_finished"
+      ],
+      "first_round_machine_pass": false,
+      "global_ledger": {
+        "corrupt": false,
+        "count": 16,
+        "limit": 48,
+        "persistent": true,
+        "remaining": 32
+      },
+      "handoff_refs": [],
+      "initial_head": "791de14ac14201cff905bcb839689b41c006f23d",
+      "machine_gate": {
+        "checks": [
+          {
+            "detail": "NotImplementedError: ",
+            "name": "slug.case",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "slug.multi",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "slug.trim",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "clamp.low",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "clamp.high",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "in_range",
+            "passed": false
+          }
+        ],
+        "exit_code": 0,
+        "passed": 0,
+        "total": 6
+      },
+      "machine_pass": false,
+      "per_request_output_cap": 16000,
+      "plan_source": "subtask graph failed at 'part_a': StopReason.MAX_TOOL_CALLS_EXCEEDED",
+      "review": {
+        "findings": [],
+        "model_calls": 1,
+        "outcome": "unavailable",
+        "reason": "The evidence list is empty ('<none resolved>'), so no candidate files, code excerpts, or machine check results were provided. Without any citable evidence_ref, it is impossible to verify whether src/slugs.py (slugify) and src/ranges.py (clamp, in_range) satisfy the stated acceptance criteria. Per instructions, the verdict is 'unavailable' rather than a guess.",
+        "requested_model": "deepseek-v4-flash",
+        "resolved_evidence": [],
+        "reviewer_kind": "model",
+        "status": "ran",
+        "unsubstantiated": [],
+        "usage": {
+          "unknown": [
+            "usage"
+          ]
+        },
+        "validated_outcome": "unavailable"
+      },
+      "run_id": "run_01M509PAFKFNHWM6YNW43JWQ4P",
+      "sample": "s1_independent",
+      "sample_delivered": false,
+      "status": "ran",
+      "task_id": "task_01M509PAFKDHX14F9EB6JPQ1PM",
+      "worker_count": 1,
+      "worker_requests": [
+        {
+          "objective": "First part: create/complete src/slugs.py only. Full task: Implement in the workspace: src/slugs.py (slugify) and src/ranges.py (clamp, in_range). See the acceptance criteria.",
+          "subtask_id": "subtask_01M509PAJA4JMGW8CDJR987Q22",
+          "upstream_artifact_refs": [],
+          "workspace_path": "/tmp/tmpwx2tz4x5/workspaces/candidate-ws"
+        }
+      ],
+      "host_elapsed_seconds": 12.12,
+      "returncode": 0,
+      "stderr_tail": ""
+    },
+    {
+      "acceptance_gate": {
+        "accept_reachable": false,
+        "acceptance_pending_bound": false,
+        "artifact_refs": [],
+        "candidate_run_matches": true,
+        "diff_ref": null,
+        "phase": "executing",
+        "run_state": "executing",
+        "session_refs": [
+          "sess_18e1708f6131441caa8655a981ba7d94"
+        ]
+      },
+      "arm": "A",
+      "attempt_generation_requests": 0,
+      "attempt_limit": 12,
+      "dispatch_error": null,
+      "dispatcher_state": "failed",
+      "elapsed_seconds": 13.28,
+      "events_tail": [
+        "adapter.execution_started",
+        "adapter.session_requested",
+        "adapter.session_started",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.execution_finished"
+      ],
+      "first_round_machine_pass": false,
+      "global_ledger": {
+        "corrupt": false,
+        "count": 22,
+        "limit": 48,
+        "persistent": true,
+        "remaining": 26
+      },
+      "handoff_refs": [],
+      "initial_head": "243dd74648dac7529ce779ac2926bd68d78f4cad",
+      "machine_gate": {
+        "checks": [
+          {
+            "detail": "",
+            "name": "geo.rect.area",
+            "passed": true
+          },
+          {
+            "detail": "",
+            "name": "geo.circle.area",
+            "passed": true
+          },
+          {
+            "detail": "",
+            "name": "geo.rect.perimeter",
+            "passed": true
+          },
+          {
+            "detail": "",
+            "name": "geo.bad.kind",
+            "passed": true
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "report.rect",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "report.circle",
+            "passed": false
+          }
+        ],
+        "exit_code": 0,
+        "passed": 4,
+        "total": 6
+      },
+      "machine_pass": false,
+      "per_request_output_cap": 16000,
+      "plan_source": "subtask graph failed at 'deliver': StopReason.MAX_TOOL_CALLS_EXCEEDED",
+      "review": {
+        "findings": [],
+        "model_calls": 1,
+        "outcome": "unavailable",
+        "reason": "The evidence list contains no resolved refs ('<none resolved>'), so no candidate artifact, machine-check result, or file excerpt was provided. Without any citable evidence_ref there is no material to verify the acceptance criteria (rect/circle support, ValueError on unknown kind, describe() format and its use of geometry), and per review policy an unsupported verdict must not be guessed.",
+        "requested_model": "deepseek-v4-flash",
+        "resolved_evidence": [],
+        "reviewer_kind": "model",
+        "status": "ran",
+        "unsubstantiated": [],
+        "usage": {
+          "unknown": [
+            "usage"
+          ]
+        },
+        "validated_outcome": "unavailable"
+      },
+      "run_id": "run_01M509PPAVP56XFQP8QYPRWXH3",
+      "sample": "s2_interface",
+      "sample_delivered": false,
+      "status": "ran",
+      "task_id": "task_01M509PPAVBMKZ1SHAMZ35PR8C",
+      "worker_count": 1,
+      "worker_requests": [
+        {
+          "objective": "Implement in the workspace: src/geometry.py (area, perimeter) and src/report.py (describe, which depends on geometry). See the acceptance criteria.",
+          "subtask_id": "subtask_01M509PPDETDDN8MFD6YVJZEG5",
+          "upstream_artifact_refs": [],
+          "workspace_path": "/tmp/tmpuxzzdrhd/workspaces/candidate-ws"
+        }
+      ],
+      "host_elapsed_seconds": 13.85,
+      "returncode": 0,
+      "stderr_tail": ""
+    },
+    {
+      "acceptance_gate": {
+        "accept_reachable": false,
+        "acceptance_pending_bound": false,
+        "artifact_refs": [],
+        "candidate_run_matches": true,
+        "diff_ref": null,
+        "phase": "executing",
+        "run_state": "executing",
+        "session_refs": [
+          "sess_bb23bf727b524da6ade757ca8d09e709"
+        ]
+      },
+      "arm": "B",
+      "attempt_generation_requests": 0,
+      "attempt_limit": 12,
+      "dispatch_error": null,
+      "dispatcher_state": "failed",
+      "elapsed_seconds": 12.47,
+      "events_tail": [
+        "adapter.execution_started",
+        "adapter.session_requested",
+        "adapter.session_started",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.execution_finished"
+      ],
+      "first_round_machine_pass": false,
+      "global_ledger": {
+        "corrupt": false,
+        "count": 28,
+        "limit": 48,
+        "persistent": true,
+        "remaining": 20
+      },
+      "handoff_refs": [],
+      "initial_head": "a1c207e988c19125ebafe9999d0a5dd7be4f2f19",
+      "machine_gate": {
+        "checks": [
+          {
+            "detail": "NotImplementedError: ",
+            "name": "geo.rect.area",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "geo.circle.area",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "geo.rect.perimeter",
+            "passed": false
+          },
+          {
+            "detail": "AssertionError: expected ValueError, got NotImplementedError: ",
+            "name": "geo.bad.kind",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "report.rect",
+            "passed": false
+          },
+          {
+            "detail": "NotImplementedError: ",
+            "name": "report.circle",
+            "passed": false
+          }
+        ],
+        "exit_code": 0,
+        "passed": 0,
+        "total": 6
+      },
+      "machine_pass": false,
+      "per_request_output_cap": 16000,
+      "plan_source": "subtask graph failed at 'part_a': StopReason.MAX_TOOL_CALLS_EXCEEDED",
+      "review": {
+        "findings": [],
+        "model_calls": 1,
+        "outcome": "unavailable",
+        "reason": "The candidate's evidence list contains only '<none resolved>': no machine check results and no bounded excerpts of src/geometry.py or src/report.py were provided. With no resolvable evidence refs to cite, the acceptance criteria (rect/circle support with ValueError on unknown kind; describe formatting and geometry dependency) cannot be substantiated or refuted, so no verdict can be rendered.",
+        "requested_model": "deepseek-v4-flash",
+        "resolved_evidence": [],
+        "reviewer_kind": "model",
+        "status": "ran",
+        "unsubstantiated": [],
+        "usage": {
+          "unknown": [
+            "usage"
+          ]
+        },
+        "validated_outcome": "unavailable"
+      },
+      "run_id": "run_01M509Q3VECSQWS3N72PPQVYWB",
+      "sample": "s2_interface",
+      "sample_delivered": false,
+      "status": "ran",
+      "task_id": "task_01M509Q3VEBDAST7GF9THRB1TV",
+      "worker_count": 1,
+      "worker_requests": [
+        {
+          "objective": "First part: create/complete src/geometry.py only. Full task: Implement in the workspace: src/geometry.py (area, perimeter) and src/report.py (describe, which depends on geometry). See the acceptance criteria.",
+          "subtask_id": "subtask_01M509Q3Y4KF3DYXAJ9G6DRC2H",
+          "upstream_artifact_refs": [],
+          "workspace_path": "/tmp/tmptponv4ll/workspaces/candidate-ws"
+        }
+      ],
+      "host_elapsed_seconds": 13.04,
+      "returncode": 0,
+      "stderr_tail": ""
+    }
+  ],
+  "elapsed_seconds": 50.84,
+  "ledger_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg023/probes/lg023/ledger"
+}

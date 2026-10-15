@@ -1,0 +1,12 @@
+diff --git a/tmp/tmpwx2tz4x5/workspaces/candidate-ws/src/__pycache__/__init__.cpython-312.pyc b/tmp/tmpwx2tz4x5/workspaces/candidate-ws/src/__pycache__/__init__.cpython-312.pyc
+new file mode 100644
+index 0000000..8e6592d
+Binary files /dev/null and b/tmp/tmpwx2tz4x5/workspaces/candidate-ws/src/__pycache__/__init__.cpython-312.pyc differ
+diff --git a/tmp/tmpwx2tz4x5/workspaces/candidate-ws/src/__pycache__/ranges.cpython-312.pyc b/tmp/tmpwx2tz4x5/workspaces/candidate-ws/src/__pycache__/ranges.cpython-312.pyc
+new file mode 100644
+index 0000000..2e118f3
+Binary files /dev/null and b/tmp/tmpwx2tz4x5/workspaces/candidate-ws/src/__pycache__/ranges.cpython-312.pyc differ
+diff --git a/tmp/tmpwx2tz4x5/workspaces/candidate-ws/src/__pycache__/slugs.cpython-312.pyc b/tmp/tmpwx2tz4x5/workspaces/candidate-ws/src/__pycache__/slugs.cpython-312.pyc
+new file mode 100644
+index 0000000..8432ca6
+Binary files /dev/null and b/tmp/tmpwx2tz4x5/workspaces/candidate-ws/src/__pycache__/slugs.cpython-312.pyc differ

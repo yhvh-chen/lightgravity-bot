@@ -39,3 +39,6 @@ secrets/
 # LG-031 phase3/phase4 runtime ledger lock (ephemeral, not evidence)
 probes/lg031/phase3/ledger/**/*.lock
 probes/lg031/phase4/ledger/**/*.lock
+
+# LG-023 phase ledger lock (ephemeral, not evidence)
+probes/lg023/ledger/**/*.lock

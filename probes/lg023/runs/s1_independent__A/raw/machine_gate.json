@@ -1,0 +1,37 @@
+{
+  "checks": [
+    {
+      "name": "slug.case",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "slug.multi",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "slug.trim",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "clamp.low",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "clamp.high",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "in_range",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "passed": 6,
+  "total": 6,
+  "exit_code": 0
+}

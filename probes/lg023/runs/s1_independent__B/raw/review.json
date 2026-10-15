@@ -1,0 +1,17 @@
+{
+  "status": "ran",
+  "requested_model": "deepseek-v4-flash",
+  "reviewer_kind": "model",
+  "outcome": "unavailable",
+  "validated_outcome": "unavailable",
+  "findings": [],
+  "unsubstantiated": [],
+  "reason": "The evidence list is empty ('<none resolved>'), so no candidate files, code excerpts, or machine check results were provided. Without any citable evidence_ref, it is impossible to verify whether src/slugs.py (slugify) and src/ranges.py (clamp, in_range) satisfy the stated acceptance criteria. Per instructions, the verdict is 'unavailable' rather than a guess.",
+  "model_calls": 1,
+  "usage": {
+    "unknown": [
+      "usage"
+    ]
+  },
+  "resolved_evidence": []
+}
