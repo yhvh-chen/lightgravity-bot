@@ -684,6 +684,7 @@ class ExecutorAdapter(Protocol):
 - **独立复核（`1.7.0`，LG-017 R1）**：`verifying` 先经**独立 reviewer**（独立角色/连接/上下文，默认 `default_reviewer_connection_ref`）才能进入 `awaiting_acceptance`；程序机器检查（LG-009）是机器门，**不等价**于独立复核。无可用的真实 reviewer 时报告复核 `unavailable`，Task 停在 `waiting_user`，**不消耗返修轮、不开放验收、不假 pass**。review `rework` 且有预算时进入 `repairing` 并开新 Run（重新招募/复验），旧候选与证据保留；模型输出只作报告，经程序 `validate_findings` 绑定可解析候选证据，**不能直接判 done**。
 - **独立复核生命周期与停确认（`1.8.0`，LG-022 R1）**：独立复核与状态/控制请求**并发**可服务（reviewer turn 不在协调器事件循环内同步执行）。复核运行中的 `pause`/`cancel` 必须对 reviewer 有**真实 stop/释放确认**：确认停止后才写 `paused`/`cancelled` 并释放槽位（`verifying` 下 pause 经法定 `waiting_user → paused` 两步落位，候选与证据保留）；**未确认/超时**计 `unknown`，**不写终止状态、不释放槽、不重放未知副作用**。进程重启时处于 `verifying`/`repairing` 的 Run 若 worker 已消失，按 `recovery_required` 诚实停车（`1.8.0` 新增该迁移），旧候选保留，需人工决定后才开新 Run。
 - **全局生成计数（`1.8.0`，LG-022 R1）**：所有 worker session、独立 reviewer turn 与 SDK 重试共享**同一进程全局**上游生成请求计数，在**转发前**预留；`GET /api/v1/diagnostics/generation` 报告 `count`/`limit`/`remaining`，用于集中 QA 约束并观测全局硬上限，不把未知当零。
+  **实现接线（`1.9.0`，LG-031 R2，无版本/字段/端点变化）**：执行器支持加性可选的共享计数注入；默认产品装配（`api/bootstrap`）把该进程全局计数注入真实执行器，使每个 worker/reviewer 的 loopback 认证代理都消费**同一**硬上限，不会按 worker/session 重置。契约字段、端点与版本不变。
 - **验收过期/重复**：`acceptance_stale` 或幂等返回；过期决定不作用于新版本；重复提交相同 `request_id` 幂等。
 - **部分写入**：Store 保证单文件原子性；跨文件操作以写入标识/日志 + 恢复扫描处理，不宣称跨文件事务。
 
