@@ -1,0 +1,21 @@
+{
+  "provider": "provider-substitute",
+  "real_model_calls": 0,
+  "chat_returned": true,
+  "is_idle_after_send": false,
+  "stream_opened": true,
+  "is_idle_while_streaming": false,
+  "cancel_call_ok": true,
+  "cancel_exc": null,
+  "wait_for_idle_returned": true,
+  "wait_for_idle_elapsed_s": 0.009,
+  "wait_for_idle_exc": null,
+  "is_idle_after_cancel": true,
+  "upstream_saw_client_gone": false,
+  "upstream_requests": 1,
+  "agent_aexit_ok": true,
+  "agent_aexit_elapsed_s": 0.035,
+  "agent_aexit_exc": null,
+  "proxy_stopped": true,
+  "verdict_cancel_order_proven": true
+}

@@ -1,0 +1,55 @@
+{
+  "provider": "provider-substitute",
+  "real_model_calls": 0,
+  "sdk_version": "0.1.22",
+  "A_current_product": {
+    "scenario": "A_current_product",
+    "provider": "provider-substitute",
+    "stream_opened": true,
+    "reviewing": true,
+    "control_stop_elapsed_s": 5.027,
+    "control": {
+      "action": "cancel",
+      "state": "unconfirmed",
+      "confirmed": false,
+      "task_id": "task_01M507FDS27E5PB2PEG47WSQF3",
+      "run_id": "run_01M507FDS2VCAM9E69QV25V1Q0",
+      "phase": "cancelling",
+      "reason": "reviewer did not stop within 5.0s; unknown side effects, slot retained"
+    },
+    "resource_stop_report_at_stop": {},
+    "upstream_saw_client_gone_at_stop": false,
+    "lifecycle_still_reviewing_at_stop": true,
+    "run_state_after_stop": "verifying",
+    "task_phase_after_stop": "cancelling",
+    "session_refs_preserved": true,
+    "turn_kept_running_after_stop": true
+  },
+  "B_sdk_cancel_fix": {
+    "scenario": "B_sdk_cancel_fix",
+    "provider": "provider-substitute",
+    "stream_opened": true,
+    "chunks_before_stop": 0,
+    "turn_stopped_within_6s": true,
+    "stop_elapsed_s": 0.013,
+    "is_idle_after_cancel": true,
+    "upstream_saw_client_gone": false,
+    "resource_stop_report": {
+      "agent_closed": true,
+      "proxy_stopped": true,
+      "confirmed": true
+    }
+  },
+  "verdict": {
+    "A_current_product_unconfirmed": true,
+    "A_current_product_turn_kept_running": true,
+    "A_current_product_no_teardown_fact": true,
+    "A_current_product_no_sdk_cancel_reached": true,
+    "A_refs_and_slot_preserved": true,
+    "B_sdk_cancel_stops_turn": true,
+    "B_sdk_cancel_idle": true,
+    "B_confirmed_teardown": true
+  },
+  "product_defect_confirmed": true,
+  "fix_direction_works": true
+}

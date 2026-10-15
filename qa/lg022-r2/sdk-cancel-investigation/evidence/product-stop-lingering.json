@@ -1,0 +1,22 @@
+{
+  "provider": "provider-substitute",
+  "real_model_calls": 0,
+  "stream_opened": true,
+  "reviewing": true,
+  "control_stop_elapsed_s": 5.039,
+  "control": {
+    "action": "cancel",
+    "state": "unconfirmed",
+    "confirmed": false,
+    "task_id": "task_01M507G0E8GQD41M263A3ZZAWJ",
+    "run_id": "run_01M507G0E8VQJYT69HR0EANJYS",
+    "phase": "cancelling",
+    "reason": "reviewer did not stop within 5.0s; unknown side effects, slot retained"
+  },
+  "reviewing_6s_after_stop": true,
+  "resource_stop_report_6s_after_stop": {},
+  "upstream_saw_client_gone": false,
+  "future_done_6s_after_stop": false,
+  "run_state_6s_after_stop": "verifying",
+  "task_phase_6s_after_stop": "cancelling"
+}

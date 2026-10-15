@@ -1,0 +1,112 @@
+{
+  "evidence_kind": "local-deterministic-stopgate-r2",
+  "real_model_calls": 0,
+  "note": "Proves the R2 authoritative-stop-confirmation gate releases real-shape Runs and holds unknown/active ones.",
+  "cases": [
+    {
+      "label": "R2A_real_shape_adapter_confirmed",
+      "session_refs_before": [
+        "sess_a",
+        "sess_b"
+      ],
+      "session_refs_after": [
+        "sess_a",
+        "sess_b"
+      ],
+      "cleanup_after": {
+        "status": "pending"
+      },
+      "stop_confirmed": true,
+      "stop_sessions_stopped": true,
+      "stop_problems": [],
+      "verify_state": "confirmed",
+      "verify_phase": "awaiting_acceptance",
+      "task_phase_after": "awaiting_acceptance"
+    },
+    {
+      "label": "R2B_real_shape_open_session_held",
+      "session_refs_before": [
+        "sess_a",
+        "sess_b"
+      ],
+      "session_refs_after": [
+        "sess_a",
+        "sess_b"
+      ],
+      "cleanup_after": {
+        "status": "pending"
+      },
+      "stop_confirmed": false,
+      "stop_sessions_stopped": false,
+      "stop_problems": [
+        "2 session(s) not confirmed closed (cleanup='pending', adapter=['1 session(s) not confirmed closed by the adapter'])"
+      ],
+      "verify_state": "unconfirmed",
+      "verify_phase": "verifying",
+      "task_phase_after": "verifying"
+    },
+    {
+      "label": "R2C_reviewer_not_confirmed_held",
+      "session_refs_before": [
+        "sess_a"
+      ],
+      "session_refs_after": [
+        "sess_a"
+      ],
+      "cleanup_after": {
+        "status": "pending"
+      },
+      "stop_confirmed": false,
+      "stop_sessions_stopped": true,
+      "stop_problems": [
+        "reviewer resource not confirmed stopped (status='pending')"
+      ],
+      "verify_state": "unconfirmed",
+      "verify_phase": "verifying",
+      "task_phase_after": "verifying"
+    },
+    {
+      "label": "R2D_control_cleanup_done_backcompat",
+      "session_refs_before": [
+        "sess_a",
+        "sess_b"
+      ],
+      "session_refs_after": [
+        "sess_a",
+        "sess_b"
+      ],
+      "cleanup_after": {
+        "status": "done"
+      },
+      "stop_confirmed": true,
+      "stop_sessions_stopped": true,
+      "stop_problems": [],
+      "verify_state": "confirmed",
+      "verify_phase": "awaiting_acceptance",
+      "task_phase_after": "awaiting_acceptance"
+    },
+    {
+      "label": "R2E_control_no_sessions",
+      "session_refs_before": [],
+      "session_refs_after": [],
+      "cleanup_after": {
+        "status": "pending"
+      },
+      "stop_confirmed": true,
+      "stop_sessions_stopped": true,
+      "stop_problems": [],
+      "verify_state": "confirmed",
+      "verify_phase": "awaiting_acceptance",
+      "task_phase_after": "awaiting_acceptance"
+    }
+  ],
+  "adapter_confirmer_called": true,
+  "verdict": {
+    "R2A_awaiting_and_refs_preserved": true,
+    "R2B_unknown_held_and_refs_preserved": true,
+    "R2C_reviewer_held": true,
+    "R2D_cleanup_done_backcompat": true,
+    "R2E_no_sessions": true
+  },
+  "all_pass": true
+}
