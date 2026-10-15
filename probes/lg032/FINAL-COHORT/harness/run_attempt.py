@@ -576,11 +576,16 @@ def run_attempt(sample: str, arm: str, *, dry_run: bool = False,
     base_url = fake_upstream or C.BASE_URL
     _seed_resources(settings, credential, base_url=base_url)
 
-    # arm B (and only arm B) enables the frozen candidate-pool switch BEFORE the
-    # runtime is built, so the product dispatcher wires autonomous_pool.  arm A
-    # keeps the deterministic single-node path (autonomous claim off).
-    if arm == "B":
-        _enable_decentralized_pool(settings)
+    # MODE-ISOLATION (LG-032 repair): EVERY attempt EXPLICITLY writes its own
+    # mode through the product's controlled settings service BEFORE the runtime
+    # is built -- arm B enables the frozen candidate-pool switch, arm A writes an
+    # explicit ``False``.  The former harness only enabled B and left A at the
+    # persisted value, so on the ONE shared ``settings.data_dir`` the earlier arm
+    # B's ``True`` leaked into a later arm A (serial mode pollution).  Writing
+    # both polarities removes the cross-attempt inheritance.  This is the
+    # product's own supported settings write (``ConnectionService.update_settings``),
+    # not a control-state edit, not a ``monkeypatch``, and not a fabricated Run.
+    mode_snapshot_before = _set_mode(settings, arm)
 
     state: RuntimeState = build_runtime(
         StartupOptions(
@@ -615,11 +620,15 @@ def run_attempt(sample: str, arm: str, *, dry_run: bool = False,
     if dispatcher is None or not hasattr(dispatcher, "_program_planner"):
         raise SystemExit("real GraphDispatcher was not assembled; refusing to fake the run")
     dispatcher._program_planner = _FrozenPlanner(arm, sample)  # type: ignore[attr-defined]
-    if arm == "B":
-        if not getattr(dispatcher, "_autonomous_pool", False):
-            raise SystemExit(
-                "arm B requires the product candidate-pool path; refusing to fake the run"
-            )
+
+    # MODE-ISOLATION: after the REAL bootstrap (real ``build_runtime`` wired the
+    # real dispatcher from the persisted settings entity), assert the *actual*
+    # active mode + the three persisted settings switches match the arm's frozen
+    # expectation.  This is a read of the assembled product objects, NOT a string
+    # ``os.environ`` check, and it refuses (STOP the attempt) on any mismatch --
+    # so a later arm A can never silently inherit an earlier arm B's pool mode.
+    mode_snapshot_after = _assert_active_mode(settings, dispatcher, arm)
+    mode_snapshot_after["mode_snapshot_before"] = mode_snapshot_before
 
     # The real CoordinatorWorkerLoop is started by the product app's own
     # FastAPI ``lifespan`` when uvicorn boots below -- exactly the production
@@ -651,6 +660,7 @@ def run_attempt(sample: str, arm: str, *, dry_run: bool = False,
         "total_limit": C.TOTAL_GENERATION_LIMIT,
         "attempt_limit": C.ATTEMPT_GENERATION_LIMIT,
         "caller": "agent:pi-lg032-final-cohort",
+        "mode_snapshot_after_bootstrap": mode_snapshot_after,
         "steps": [],
     }
 
@@ -863,6 +873,13 @@ def run_attempt(sample: str, arm: str, *, dry_run: bool = False,
         results["final_phase"] = final_phase
         results["elapsed_seconds"] = round(time.monotonic() - started, 2)
         results["global_ledger"] = _safe(gen)
+        # MODE-ISOLATION: leave the shared phase settings entity in the product
+        # DEFAULT state (off) at the end of every attempt, so no later attempt's
+        # bootstrap can ever observe a stale enabled switch.  Uses the product's
+        # own controlled settings write; the product source default (off) is
+        # never changed.  Recorded either way (restore failure is reported, not
+        # hidden, but never turns a real attempt failure into a fake success).
+        results["mode_restore"] = _safe_restore_mode(settings)
         results["ok"] = all(s["ok"] for s in results["steps"])
         (out_dir / "result.json").write_text(
             json.dumps(results, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8"
@@ -881,6 +898,141 @@ def _safe(fn: Any) -> Any:
         return fn()
     except Exception as exc:  # noqa: BLE001
         return {"error": f"{type(exc).__name__}: {exc}"}
+
+
+def _settings_switches(settings: Any) -> dict[str, Any]:
+    """Read the three persisted settings switches from the shared settings entity.
+
+    Reads the product ``settings/settings`` entity directly from the one phase
+    ``settings.data_dir`` -- the exact persisted values ``build_runtime`` reads
+    through ``ClaimPolicyReader``.  Values only; never mutates.
+    """
+
+    from lightgravity.store import FileStore
+
+    store = FileStore(settings.data_dir, settings.workspace_root)
+    entity = store.read("settings", "settings").entity
+    return {
+        "decentralized_claim_enabled": bool(entity.get("decentralized_claim_enabled", False)),
+        "collab_requests_enabled": bool(entity.get("collab_requests_enabled", False)),
+        "claim_lease_seconds": entity.get("claim_lease_seconds"),
+        "default_worker_connection_ref": entity.get("default_worker_connection_ref"),
+    }
+
+
+def _set_mode(settings: Any, arm: str) -> dict[str, Any]:
+    """Explicitly write the arm's mode to the shared settings entity (BEFORE build).
+
+    MODE-ISOLATION: arm B enables the decentralized candidate-pool switch; arm A
+    writes an explicit ``False`` ("default off").  Both polarities are written so
+    the persisted value can never be inherited from a previous serial attempt on
+    the same ``settings.data_dir``.  Uses the product's controlled settings write
+    (``ConnectionService.update_settings``) -- a legitimate product configuration
+    input, not a control-state edit and not a ``monkeypatch``.
+
+    Returns the settings-switch snapshot observed *before* the write for audit.
+    """
+
+    from lightgravity.settings import ConnectionService, FileSecretStore
+    from lightgravity.store import FileStore
+
+    store = FileStore(settings.data_dir, settings.workspace_root)
+    conns = ConnectionService(store, secret_store=FileSecretStore(settings.secret_store))
+    before = _settings_switches(settings)
+    try:
+        current = store.read("settings", "settings").revision
+    except Exception:  # noqa: BLE001
+        current = None
+    conns.update_settings(
+        expected_revision=current,
+        actor="lg032-mode-isolation",
+        default_worker_connection_ref="lg032-worker",
+        decentralized_claim_enabled=(arm == "B"),
+    )
+    after = _settings_switches(settings)
+    return {"arm": arm, "before": before, "after": after}
+
+
+def _assert_active_mode(settings: Any, dispatcher: Any, arm: str) -> dict[str, Any]:
+    """Assert the REAL assembled dispatcher mode + persisted switches match the arm.
+
+    MODE-ISOLATION: called after ``build_runtime`` (the product wired the real
+    ``GraphDispatcher`` from the settings entity).  Checks the *actual* object
+    state the program will use to dispatch -- ``_autonomous_claim``,
+    ``_autonomous_pool`` and ``_decentralized_enabled()`` -- plus the three
+    persisted switches.  This is not a string ``os.environ`` assertion, and it
+    fails closed (raises -> attempt STOP) so a later arm A can never inherit an
+    earlier arm B's pool mode.
+
+    Returns the recorded snapshot for evidence.
+    """
+
+    want = arm == "B"
+    switches = _settings_switches(settings)
+    active_claim = bool(getattr(dispatcher, "_autonomous_claim", False))
+    active_pool = bool(getattr(dispatcher, "_autonomous_pool", False))
+    decentralized_fn = getattr(dispatcher, "_decentralized_enabled", None)
+    active_decentralized = bool(decentralized_fn()) if callable(decentralized_fn) else None
+    snapshot = {
+        "arm": arm,
+        "expected_enabled": want,
+        "settings_switches": switches,
+        "dispatcher_autonomous_claim": active_claim,
+        "dispatcher_autonomous_pool": active_pool,
+        "dispatcher_decentralized_enabled": active_decentralized,
+    }
+    problems = []
+    if switches["decentralized_claim_enabled"] is not want:
+        problems.append(
+            "persisted decentralized_claim_enabled="
+            f"{switches['decentralized_claim_enabled']} != expected {want}"
+        )
+    if active_claim is not want:
+        problems.append(f"dispatcher._autonomous_claim={active_claim} != expected {want}")
+    if active_pool is not want:
+        problems.append(f"dispatcher._autonomous_pool={active_pool} != expected {want}")
+    if active_decentralized is not want:
+        problems.append(
+            f"dispatcher._decentralized_enabled()={active_decentralized} != expected {want}"
+        )
+    snapshot["congruent"] = not problems
+    snapshot["problems"] = problems
+    if problems:
+        raise SystemExit(
+            "MODE-ISOLATION violation (arm " + arm + "); refusing to run a polluted attempt: "
+            + "; ".join(problems)
+        )
+    print(f"[MODE] arm={arm} active mode congruant with frozen expectation: {snapshot}",
+          flush=True)
+    return snapshot
+
+
+def _safe_restore_mode(settings: Any) -> dict[str, Any]:
+    """Restore the shared phase settings candidate switch to the product default (off).
+
+    MODE-ISOLATION: after every attempt (success or failure) the shared phase
+    settings entity is returned to ``decentralized_claim_enabled=False`` so a
+    subsequent serial attempt always starts from the product default and must
+    explicitly re-enable its own mode.  Never touches the product source default.
+    """
+
+    from lightgravity.settings import ConnectionService, FileSecretStore
+    from lightgravity.store import FileStore
+
+    store = FileStore(settings.data_dir, settings.workspace_root)
+    conns = ConnectionService(store, secret_store=FileSecretStore(settings.secret_store))
+    before = _settings_switches(settings)
+    try:
+        current = store.read("settings", "settings").revision
+    except Exception:  # noqa: BLE001
+        current = None
+    conns.update_settings(
+        expected_revision=current,
+        actor="lg032-mode-isolation",
+        decentralized_claim_enabled=False,
+    )
+    after = _settings_switches(settings)
+    return {"before": before, "after": after, "restored_off": after["decentralized_claim_enabled"] is False}
 
 
 def _review_from_store(state: Any, task_id: str) -> dict[str, Any]:
@@ -942,33 +1094,6 @@ def _authorize_task_checks(state: Any, task_id: str) -> tuple[str, ...]:
     writer = StateWriter(store, actor="lg032")
     writer.write_task(task_id, {"checks": list(FROZEN_TASK_CHECKS)})
     return FROZEN_TASK_CHECKS
-
-
-def _enable_decentralized_pool(settings: Any) -> None:
-    """Write the frozen product switch for arm B (candidate-pool autonomous claim).
-
-    The decentralized switch lives on the product ``settings`` entity
-    (``decentralized_claim_enabled``); the product ``build_runtime`` reads it
-    through ``ClaimPolicyReader`` and wires ``autonomous_claim`` +
-    ``autonomous_pool``.  Uses the product's own controlled settings write; the
-    value is part of the frozen protocol, not a control-state edit.
-    """
-
-    from lightgravity.settings import ConnectionService, FileSecretStore
-    from lightgravity.store import FileStore
-
-    store = FileStore(settings.data_dir, settings.workspace_root)
-    conns = ConnectionService(store, secret_store=FileSecretStore(settings.secret_store))
-    try:
-        current = store.read("settings", "settings").revision
-    except Exception:  # noqa: BLE001
-        current = None
-    conns.update_settings(
-        expected_revision=current,
-        actor="lg032",
-        default_worker_connection_ref="lg032-worker",
-        decentralized_claim_enabled=True,
-    )
 
 
 def _seed_resources(settings: Any, credential: str, *, base_url: str = C.BASE_URL) -> None:
