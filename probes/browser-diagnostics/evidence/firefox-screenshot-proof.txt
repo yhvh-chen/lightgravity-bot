@@ -1,0 +1,9 @@
+# Firefox headless --screenshot proof (real http main-frame nav)
+# Command (snap Firefox 156.0.1, temp profile under the snap $HOME):
+#   snap run firefox --headless --profile <snap-home>/p --window-size 800,600 \
+#     --screenshot <snap-home>/p/shot.png http://127.0.0.1:PORT/marker
+# Observed server log (marker_server.py):
+#   REQ GET /marker from=127.0.0.1:60096 ua=Mozilla/5.0 (X11; Ubuntu; Linux x86_64; ...
+#   RESP 200 /marker
+# Screenshot: 800x600 PNG, body text 'MARKER-OK' (see firefox-http-marker-screenshot.png)
+# Note: --screenshot path must be inside the snap-confined $HOME; /tmp is remapped.

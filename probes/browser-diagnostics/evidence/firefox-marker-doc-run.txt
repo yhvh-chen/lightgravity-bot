@@ -1,0 +1,10 @@
+# firefox_bidi_smoke  binary=firefox
+# profile=/home/yhvh/snap/firefox/current/fgbidi-331175-qE1rl3
+# bidi-port=33515 deadline=25000ms mode=doc
+# webSocketDebuggerUrl=ws://127.0.0.1:33515/session
+# session.status ready=true message=
+# session.new browser=firefox/156.0.1 headless=true
+# userAgent=Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:156.0) Gecko/20100101 Firefox/156.0
+# navigationCommitted url=http://127.0.0.1:46299/marker navId=ea90bcdf-75e0-42df-8fd7-8b8064034269
+# location.origin=http://127.0.0.1:46299 domMarker="MARKER-OK" domOrigin=undefined doc_pass=true
+RESULT {"binary":"firefox","profile":"/home/yhvh/snap/firefox/current/fgbidi-331175-qE1rl3","port":33515,"checks":{"doc":{"locationOrigin":"http://127.0.0.1:46299","locationHref":"http://127.0.0.1:46299/marker","domMarkerText":"MARKER-OK","bodyText":"MARKER-OK","expectedOrigin":"http://127.0.0.1:46299","isHttp":true,"pass":true}},"ok":true,"browserReady":true,"sessionId":"9544c8f6-30b6-4300-8c04-c597851fa633","browserName":"firefox","browserVersion":"156.0.1","userAgent":"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:156.0) Gecko/20100101 Firefox/156.0","headless":true}

@@ -1,0 +1,33 @@
+# probe server 127.0.0.1:37199 (srclog=/tmp/ff_bidi_srv.sKeZsB.log)
+# firefox_bidi_smoke  binary=firefox
+# profile=/home/yhvh/snap/firefox/current/fgbidi-333100-oG3ooe
+# bidi-port=34121 deadline=40000ms mode=all
+# webSocketDebuggerUrl=ws://127.0.0.1:34121/session
+# session.status ready=true message=
+# session.new browser=firefox/156.0.1 headless=true
+# userAgent=Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:156.0) Gecko/20100101 Firefox/156.0
+# navigationCommitted url=http://127.0.0.1:37199/page navId=6f02538a-b7f6-48ba-9954-8e8401bf311b
+# location.origin=http://127.0.0.1:37199 domMarker=undefined domOrigin="http://127.0.0.1:37199" doc_pass=true
+# api status=200 body={"ok":true,"source":"server","path":"/api/echo","t":2.979} api_pass=true
+# sse events=["{\"n\":1,\"t\":3.025}","{\"n\":2,\"t\":3.125}","{\"n\":3,\"t\":3.225}"] done=true sse_pass=true
+# dom before=http://127.0.0.1:37199 after=CLICKED attr=clicked dom_pass=true
+RESULT {"binary":"firefox","profile":"/home/yhvh/snap/firefox/current/fgbidi-333100-oG3ooe","port":34121,"checks":{"doc":{"locationOrigin":"http://127.0.0.1:37199","locationHref":"http://127.0.0.1:37199/page","domOriginText":"http://127.0.0.1:37199","bodyText":"http://127.0.0.1:37199\nAPI:server:true\nPENDING","expectedOrigin":"http://127.0.0.1:37199","isHttp":true,"pass":true},"api":{"status":200,"body":"{\"ok\":true,\"source\":\"server\",\"path\":\"/api/echo\",\"t\":2.979}","pass":true},"sse":{"events":["{\"n\":1,\"t\":3.025}","{\"n\":2,\"t\":3.125}","{\"n\":3,\"t\":3.225}"],"done":true,"last":"{\"n\":3}","pass":true},"dom":{"before":"http://127.0.0.1:37199","after":"CLICKED","attr":"clicked","pass":true}},"ok":true,"browserReady":true,"sessionId":"dba308b3-ca65-418d-989a-e38b4a743db2","browserName":"firefox","browserVersion":"156.0.1","userAgent":"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:156.0) Gecko/20100101 Firefox/156.0","headless":true}
+===== server-side request log (independent wire fact) =====
+t=   0.021 LISTEN 127.0.0.1:37199 pid=333093 cors=False
+t=   2.912 REQ GET /page from=127.0.0.1:57648 origin=- ua='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:156.0'
+t=   2.963 REQ GET /sse from=127.0.0.1:57648 origin=- ua='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:156.0'
+t=   2.963 SSE open path=/sse events=3 interval_ms=100
+t=   2.963 SSE tick n=1
+t=   2.964 REQ GET /api/echo from=127.0.0.1:57650 origin=- ua='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:156.0'
+t=   2.979 REQ GET /api/echo from=127.0.0.1:57650 origin=- ua='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:156.0'
+t=   3.025 REQ GET /sse from=127.0.0.1:57650 origin=- ua='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:156.0'
+t=   3.025 SSE open path=/sse events=3 interval_ms=100
+t=   3.025 SSE tick n=1
+t=   3.063 SSE tick n=2
+t=   3.125 SSE tick n=2
+t=   3.163 SSE tick n=3
+t=   3.225 REQ GET /favicon.ico from=127.0.0.1:57658 origin=- ua='Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:156.0'
+t=   3.225 SSE tick n=3
+t=   3.264 SSE done
+t=   3.326 SSE done
+===== smoke exit code: 0 =====

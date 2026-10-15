@@ -126,6 +126,74 @@ download. System Chrome is the only available binary.
   pinned, non-system binary is wanted for QA. It behaves the same as 151 for
   the paths above. Pass it with `--chrome` / `CHROME_BIN`; nothing hardcodes it.
 
+## Independent-engine result: Firefox native WebDriver BiDi **works** (2025-10-15)
+
+To avoid generalising a Chrome-only transport bug, the same real loopback HTTP
+acceptance was re-run on an **independent engine**. A working Firefox was found
+on this host — the Ubuntu **snap Firefox 156.0.1** (`/snap/bin/firefox`); the
+`/usr/bin/firefox` shim is unusable and the snap is the only usable build, so
+**no download was needed** (the authorised Mozilla-release download path was
+not exercised).
+
+Result: **real Firefox main-frame HTTP navigation works on this host.**
+
+| fact | source | value |
+|---|---|---|
+| browser | BiDi `session.new` | `firefox` / `156.0.1`, `moz:headless=true`, `rv:156.0` |
+| navigation | BiDi `browsingContext.navigate` | `url=http://127.0.0.1:PORT/page` committed |
+| document origin | `script.evaluate location.origin` | `http://127.0.0.1:PORT` |
+| DOM marker | `document.getElementById('lg-marker')` | `MARKER-OK` |
+| screenshot | `--headless --screenshot` | 800x600 PNG, body `MARKER-OK` |
+| server wire log | `http_probe_server.py` | `GET /page … ua=Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:156.0` |
+| JSON API | same-origin `fetch('/api/echo')` | `status=200` |
+| SSE | same-origin `EventSource('/sse')` | `n=1,2,3` + `done` |
+| DOM interaction | script click/mutate + read | `before=http://… after=CLICKED` |
+
+This means main-frame `http://` navigation, `location.origin === http://…`,
+page-origin `fetch`, page-origin `EventSource` and DOM interaction are all
+**independently achievable on this host** — so the Chrome `Page.navigate` hang
+must **not** be reported as "HTTP is broken" or "the product is broken". It is
+a Chrome-151/150 main-frame-navigation behaviour here.
+
+### Host-specific constraints (snap Firefox)
+
+- The snap's confined `$HOME` is `~/snap/firefox/current`. A temporary profile
+  **and** a `--screenshot` output path must live **inside that path**; `/tmp`
+  is remapped to the snap's private tmp and paths outside the confined home are
+  not writable.
+- Launch the snap via `/snap/bin/firefox` (or `snap run firefox`); passing a
+  custom `--profile` outside the confined home makes Firefox fall back to the
+  default profile ("already running" error).
+- Native WebDriver BiDi is reached over the **root WebSocket at `/session`** on
+  `--remote-debugging-port` (`ws://127.0.0.1:PORT/session`); the root HTTP path
+  serves an `httpd.js` info page, and there is no `/json/version` (that is a
+  Chrome CDP endpoint). An active `session.new` is required before
+  `browsingContext.*` / `script.*`.
+
+### Reusable native-BiDi helper for LG-013 / LG-021 / LG-027 QA
+
+`firefox_bidi_smoke.mjs` + `run_firefox_bidi_smoke.sh` give a reusable real
+Firefox acceptance path with a temporary profile, parameterised binary
+(`--firefox` / `FIREFOX_BIN`), its own process group, and owner-checked
+cleanup (only the group whose leader cmdline matches is signalled; the parent
+pi / sibling processes are never touched). It does **not** mock the API/SSE,
+**does not** disable web security, and does **not** fake responses.
+
+```sh
+cd probes/browser-diagnostics
+./run_firefox_bidi_smoke.sh --mode all --deadline-ms 40000
+# marker-only (no SSE):
+#   node firefox_bidi_smoke.mjs --url http://127.0.0.1:PORT/marker --mode doc
+# choose a different engine:  --firefox /path/to/firefox
+```
+
+Modes: `doc` (navigation + `location.origin` + DOM marker), `api` (page-origin
+`fetch('/api/echo')`), `sse` (page-origin `EventSource('/sse')`), `dom`
+(DOM interaction), `all`. Evidence: `evidence/firefox-bidi-run.txt`,
+`evidence/firefox-marker-doc-run.txt`,
+`evidence/firefox-http-marker-screenshot.png`,
+`evidence/firefox-screenshot-proof.txt`.
+
 ## Real HTTP acceptance helper for LG-013 / LG-021 / LG-027
 
 `http_probe_server.py` + `http_channel_smoke.mjs` +
@@ -177,6 +245,13 @@ be reported as passing from this evidence.
 
 ## Files
 
+- `firefox_bidi_smoke.mjs` — bounded, reusable **Firefox native WebDriver BiDi**
+  acceptance helper (`--mode doc|api|sse|dom|all`); temp profile, parameterised
+  binary, own process group + owner-checked cleanup; no npm dependency (Node's
+  built-in `WebSocket`).
+- `run_firefox_bidi_smoke.sh` — one-command Firefox BiDi runner; starts the real
+  probe server, runs the smoke, prints the server request log, cleans up only
+  its own server group. Defaults the temp profile into the snap-confined home.
 - `http_probe_server.py` — real loopback HTTP server: `/page` (real HTML),
   `/api/echo` (real JSON), `/sse` (real event stream, N events + `done`),
   `/health`, `/marker`; logs method/path/peer/`Origin`/`User-Agent`; `--cors`
@@ -196,7 +271,8 @@ be reported as passing from this evidence.
 - `chrome_probe.mjs` — earlier bounded CDP probe comparing `Page.navigate` vs
   `Target.createTarget`; kept for the historical netlog repro.
 - `evidence/` — captured run outputs, the netlog excerpt, the working-path
-  proof, and the Document-interception limitation matrix.
+  proof, the Firefox BiDi/screenshot proof, and the Document-interception
+  limitation matrix.
 
 ## Reproduce (bounded)
 
