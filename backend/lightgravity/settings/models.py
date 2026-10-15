@@ -82,6 +82,12 @@ class GlobalSettings:
     #: no real reviewer is configured, so the runtime reports ``unavailable``
     #: instead of reviewing with the implementer's own connection.
     default_reviewer_connection_ref: str | None = None
+    #: LG-031 additive: decentralized collaboration switches (docs/08 §6.5).  All
+    #: default to the closed/deterministic path; a missing or invalid value is
+    #: read as the default and never opens the decentralized path implicitly.
+    decentralized_claim_enabled: bool = False
+    collab_requests_enabled: bool = False
+    claim_lease_seconds: int = 300
     exists: bool = True
     data: dict[str, Any] = field(default_factory=dict)
 
@@ -93,6 +99,9 @@ class GlobalSettings:
             "default_coordinator_connection_ref": self.default_coordinator_connection_ref,
             "default_worker_connection_ref": self.default_worker_connection_ref,
             "default_reviewer_connection_ref": self.default_reviewer_connection_ref,
+            "decentralized_claim_enabled": self.decentralized_claim_enabled,
+            "collab_requests_enabled": self.collab_requests_enabled,
+            "claim_lease_seconds": self.claim_lease_seconds,
         }
 
 

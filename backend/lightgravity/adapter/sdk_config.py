@@ -92,6 +92,7 @@ def build_sdk_config(
     save_dir: str | None = None,
     response_schema: Any | None = None,
     continuation_mode: str | None = None,
+    custom_tools: list[Any] | None = None,
 ) -> SdkConfigResult:
     """Construct an SDK ``AgentConfig`` for ``compiled`` without executing it.
 
@@ -136,6 +137,12 @@ def build_sdk_config(
     if response_schema is not None:
         kwargs["response_schema"] = response_schema
     kwargs.update(_skill_kwargs(compiled, types_mod))
+    # LG-031: program-authorized in-process custom tools (e.g. the restricted
+    # peer-request tool).  They are plain callables the SDK may invoke; the
+    # program (not the model) decides whether any are attached, and each is
+    # already bound to a minted execution grant.
+    if custom_tools:
+        kwargs["tools"] = list(custom_tools)
     hooks = _hook_objects(compiled)
     if hooks:
         kwargs["hooks"] = hooks

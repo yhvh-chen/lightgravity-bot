@@ -109,6 +109,10 @@ def create_app(
     #: keeps its built-in deterministic responder; bootstrap injects a real
     #: tool-less model handler when a coordinator connection is configured.
     responder: Callable[[str, Any], str] | None = None,
+    #: LG-031 execution-identity resolver.  ``None`` (default) leaves the
+    #: worker-scoped collaboration endpoints default-deny, so no caller can
+    #: impersonate a run member with a body field.
+    worker_identity: Any | None = None,
 ) -> FastAPI:
     """Build the application; every heavy dependency is injectable for tests."""
 
@@ -163,6 +167,7 @@ def create_app(
         notifications=NotificationService(
             broadcasting, NotificationStateStore(resolved.data_dir)
         ),
+        worker_identity=worker_identity,
     )
 
     @asynccontextmanager

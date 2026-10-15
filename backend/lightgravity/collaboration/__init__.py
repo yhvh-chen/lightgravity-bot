@@ -31,6 +31,15 @@ from .context import (
 )
 from .discovery import DiscoveryLimits, DiscoveryService
 from .errors import ClaimRefused, StaleLease
+from .execution_grant import (
+    DEFAULT_GRANT_SECONDS,
+    ExecutionGrant,
+    ExecutionGrantRegistry,
+    default_registry,
+    make_restricted_peer_tool,
+    reset_default_registry,
+    resolve_worker_identity,
+)
 from .handoff import (
     ArtifactRef,
     HandoffError,
@@ -66,6 +75,7 @@ __all__ = [
     "CLAIMABLE_SUBTASK_STATES",
     "COLLAB_MODES",
     "DEFAULT_COLLAB_TIMEOUT_SECONDS",
+    "DEFAULT_GRANT_SECONDS",
     "DEFAULT_LEASE_SECONDS",
     "DEFAULT_MAX_COLLAB_REQUESTS",
     "MAX_SUMMARY_CHARS",
@@ -87,6 +97,8 @@ __all__ = [
     "DiscoveryLimits",
     "DiscoveryService",
     "DiscoveryView",
+    "ExecutionGrant",
+    "ExecutionGrantRegistry",
     "HandoffError",
     "HandoffRejected",
     "LeaseManager",
@@ -96,9 +108,13 @@ __all__ = [
     "ReclaimOutcome",
     "StaleLease",
     "classify_summary",
+    "default_registry",
     "encode_upstream_ref",
     "fence_of",
+    "make_restricted_peer_tool",
     "parse_artifact_ref",
+    "reset_default_registry",
+    "resolve_worker_identity",
     "validate_binding",
     "validate_handoff_refs",
 ]

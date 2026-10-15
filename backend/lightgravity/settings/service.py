@@ -334,6 +334,9 @@ class ConnectionService:
         default_coordinator_connection_ref: Any = _UNSET,
         default_worker_connection_ref: Any = _UNSET,
         default_reviewer_connection_ref: Any = _UNSET,
+        decentralized_claim_enabled: Any = _UNSET,
+        collab_requests_enabled: Any = _UNSET,
+        claim_lease_seconds: Any = _UNSET,
     ) -> dict[str, Any]:
         current = self._repo.read_settings()
         coordinator = (
@@ -351,13 +354,36 @@ class ConnectionService:
             if default_reviewer_connection_ref is _UNSET
             else default_reviewer_connection_ref
         )
+        claim_enabled = (
+            current.decentralized_claim_enabled
+            if decentralized_claim_enabled is _UNSET
+            else decentralized_claim_enabled
+        )
+        collab_enabled = (
+            current.collab_requests_enabled
+            if collab_requests_enabled is _UNSET
+            else collab_requests_enabled
+        )
+        lease_seconds = (
+            current.claim_lease_seconds
+            if claim_lease_seconds is _UNSET
+            else claim_lease_seconds
+        )
         self._validate_default_ref(coordinator, role=ROLE_COORDINATOR)
         self._validate_default_ref(worker, role=ROLE_WORKER)
         self._validate_default_ref(reviewer, role=ROLE_REVIEWER)
+        self._validate_claim_switches(
+            decentralized_claim_enabled=claim_enabled,
+            collab_requests_enabled=collab_enabled,
+            claim_lease_seconds=lease_seconds,
+        )
         content = {
             "default_coordinator_connection_ref": coordinator,
             "default_worker_connection_ref": worker,
             "default_reviewer_connection_ref": reviewer,
+            "decentralized_claim_enabled": claim_enabled,
+            "collab_requests_enabled": collab_enabled,
+            "claim_lease_seconds": lease_seconds,
         }
         if current.exists:
             if expected_revision is None:
@@ -382,6 +408,9 @@ class ConnectionService:
                 default_coordinator_connection_ref=coordinator,
                 default_worker_connection_ref=worker,
                 default_reviewer_connection_ref=reviewer,
+                decentralized_claim_enabled=claim_enabled,
+                collab_requests_enabled=collab_enabled,
+                claim_lease_seconds=lease_seconds,
                 actor=actor,
                 request_id="settings-init",
             )
@@ -394,6 +423,40 @@ class ConnectionService:
             },
         }
 
+    def _validate_claim_switches(
+        self,
+        *,
+        decentralized_claim_enabled: Any,
+        collab_requests_enabled: Any,
+        claim_lease_seconds: Any,
+    ) -> None:
+        """Validate the additive decentralized switches (docs/08 §6.5).
+
+        They are non-secret booleans/positives that only ever *open* the opt-in
+        path, so an invalid value is a config error rather than a silent enable.
+        """
+
+        for field, value in (
+            ("decentralized_claim_enabled", decentralized_claim_enabled),
+            ("collab_requests_enabled", collab_requests_enabled),
+        ):
+            if not isinstance(value, bool):
+                raise SettingsConfigInvalid(
+                    f"{field} must be a boolean",
+                    diagnostics=[{"code": "switch_invalid", "location": field}],
+                )
+        if (
+            isinstance(claim_lease_seconds, bool)
+            or not isinstance(claim_lease_seconds, int)
+            or claim_lease_seconds <= 0
+        ):
+            raise SettingsConfigInvalid(
+                "claim_lease_seconds must be a positive integer",
+                diagnostics=[
+                    {"code": "lease_seconds_invalid", "location": "claim_lease_seconds"}
+                ],
+            )
+
     def _write_settings_content(
         self, content: dict[str, Any], *, expected_revision: int, actor: str
     ) -> GlobalSettings:
@@ -405,6 +468,13 @@ class ConnectionService:
             "default_reviewer_connection_ref": content.get(
                 "default_reviewer_connection_ref"
             ),
+            # Preserve the additive decentralized switches (LG-031) so a
+            # connection-default write does not silently reset the opt-in state.
+            "decentralized_claim_enabled": bool(
+                content.get("decentralized_claim_enabled", False)
+            ),
+            "collab_requests_enabled": bool(content.get("collab_requests_enabled", False)),
+            "claim_lease_seconds": content.get("claim_lease_seconds", 300) or 300,
         }
         return self._repo.write_settings(
             updates, expected_revision=expected_revision, actor=actor

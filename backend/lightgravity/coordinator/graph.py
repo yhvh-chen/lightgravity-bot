@@ -146,6 +146,8 @@ class GraphDispatcher:
         compiler: ResourceCompiler | None = None,
         connections: DefaultConnectionResolver | None = None,
         workspaces: "WorkspaceProvider | None" = None,
+        collaboration: Any | None = None,
+        grant_registry: Any | None = None,
     ) -> None:
         if max_parallel < 1:
             raise ValueError("max_parallel must be >= 1")
@@ -178,12 +180,21 @@ class GraphDispatcher:
         self._inflight: dict[str, set[asyncio.Task[ExecutorResult]]] = {}
         self._active_refs: dict[str, list[ExecutionRef]] = {}
         self._explicit_cancel: set[str] = set()
-        #: Per-Run on-demand proposal attempts, keyed by run id.  The program
+        #: Optional on-demand proposal attempts, keyed by run id.  The program
         #: (not a shared instance counter) owns this budget, so sharing one
         #: planner across Runs is safe and re-dispatching the same Run cannot
         #: open a new model loop.  Only Runs that carried an explicit
         #: ``PlanningRequest`` get an entry, kept for the process lifetime.
         self._on_demand_calls: dict[str, int] = {}
+        #: LG-031 optional decentralized authority.  ``None`` (the default) keeps
+        #: the deterministic ``SubtaskClaimer`` path exactly as before; when a
+        #: ``CollaborationService`` with ``enabled=True`` is supplied the graph
+        #: claims through the fenced lease authority and mints a program-frozen
+        #: execution grant for each node.
+        self._collaboration = collaboration
+        self._grant_registry = grant_registry
+        #: node key -> (grant token, subtask id) for explicit revocation on stop.
+        self._node_grants: dict[str, tuple[str, str]] = {}
 
     @property
     def executor(self) -> ExecutorAdapter:
@@ -874,21 +885,32 @@ class GraphDispatcher:
             extra={"upstream_artifact_refs": list(upstream)},
             reason="dependencies satisfied",
         )
-        claim = claimer.claim(node.subtask_id, self._owner, lease_seconds=self._lease_seconds)
-        if not claim.acquired:
-            return self._fail_node(
-                node,
-                controller,
-                code="lock_conflict",
-                message=f"subtask claim refused: {claim.state} ({claim.reason})",
-            )
+        grant_token: str | None = None
+        if self._decentralized_enabled():
+            acquired, grant_token, reason = self._claim_decentralized(node, context)
+            if not acquired:
+                return self._fail_node(
+                    node,
+                    controller,
+                    code="lock_conflict",
+                    message=f"decentralized claim refused: {reason}",
+                )
+        else:
+            claim = claimer.claim(node.subtask_id, self._owner, lease_seconds=self._lease_seconds)
+            if not claim.acquired:
+                return self._fail_node(
+                    node,
+                    controller,
+                    code="lock_conflict",
+                    message=f"subtask claim refused: {claim.state} ({claim.reason})",
+                )
 
         drift = self._config_drift(node, context)
         if drift is not None:
-            claimer.release(node.subtask_id, self._owner)
+            self._release_node(node, claimer)
             return self._fail_node(node, controller, code="config_invalid", message=drift)
 
-        request = self._build_request(node, context, upstream)
+        request = self._build_request(node, context, upstream, grant_token=grant_token)
         run_id = context.run_id
         task = asyncio.ensure_future(self._executor.execute(request, emit))
         self._inflight.setdefault(run_id, set()).add(task)
@@ -909,14 +931,125 @@ class GraphDispatcher:
                 ),
             )
         except Exception as exc:  # noqa: BLE001 - classify a crash, never fake success
-            claimer.release(node.subtask_id, self._owner)
+            self._release_node(node, claimer)
             return self._crash_node(node, controller, exc)
         finally:
             self._inflight.get(run_id, set()).discard(task)
-        claimer.release(node.subtask_id, self._owner)
+            # A grant is runtime authority only: revocation happens as soon as
+            # the execution stops (confirmed or not), so a stale worker identity
+            # can never outlive its node execution.
+            if grant_token is not None:
+                self._revoke_grant(node.key, grant_token)
+        self._release_node(node, claimer)
         if result.execution_ref is not None:
             self._active_refs.setdefault(run_id, []).append(result.execution_ref)
         return self._apply_result(node, controller, result)
+
+    # ---------------------------------------------------- decentralized claim
+    def _decentralized_enabled(self) -> bool:
+        collab = self._collaboration
+        return collab is not None and bool(getattr(collab, "enabled", False))
+
+    def _claim_decentralized(
+        self, node: _Node, context: DispatchContext
+    ) -> tuple[bool, str | None, str]:
+        """Claim a node through the fenced lease authority and mint its grant."""
+
+        from lightgravity.collaboration import ClaimRequest, default_registry
+
+        collab = self._collaboration
+        assert collab is not None
+        decision = collab.request_claim(
+            context.run_id,
+            ClaimRequest(
+                subtask_id=node.subtask_id,
+                owner=self._owner,
+                request_id=f"graph-claim-{context.run_id}-{node.key}",
+                lease_seconds=self._lease_seconds,
+                capability=node.spec.capability,
+            ),
+            allow_write=True,
+            dependencies_ready=True,
+            capability_ok=True,
+        )
+        if not decision.granted:
+            return False, None, decision.reason
+        granted_ids = frozenset(
+            candidate.subtask_id
+            for candidate in collab.discover(context.run_id, self._owner).candidates
+        )
+        registry = self._grant_registry or default_registry()
+        token, _grant = registry.mint(
+            task_id=context.task_id,
+            run_id=context.run_id,
+            subtask_id=node.subtask_id,
+            member_ref=node.member_id,
+            fence=decision.fence,
+            authorized_node_refs=granted_ids,
+            max_collab_calls=int(context.budget.get("max_collab_requests", 0) or 0),
+            budget_remaining=decision.fence,
+            ttl_seconds=max(60, int(self._lease_seconds) * 2),
+        )
+        self._node_grants[node.key] = (token, node.subtask_id)
+        return True, token, decision.reason
+
+    def _release_node(self, node: _Node, claimer: SubtaskClaimer) -> None:
+        if self._decentralized_enabled() and self._collaboration is not None:
+            try:
+                self._collaboration.release(node.subtask_id, self._owner)
+            except Exception:  # noqa: BLE001 - release must never mask the outcome
+                return
+            return
+        claimer.release(node.subtask_id, self._owner)
+
+    def _revoke_grant(self, key: str, token: str) -> None:
+        registry = self._grant_registry
+        if registry is None:
+            from lightgravity.collaboration import default_registry
+
+            registry = default_registry()
+        registry.revoke_token(token)
+        self._node_grants.pop(key, None)
+
+    def _peer_tools_for(self, node: _Node, context: DispatchContext, token: str | None) -> tuple[Any, ...]:
+        """Build the minimal restricted peer tool bound to this node's grant.
+
+        Only assembled when the decentralized path is enabled **and** the Run has
+        a positive collaboration allowance; the deterministic path exposes no
+        custom tool.
+        """
+
+        if token is None or not self._decentralized_enabled():
+            return ()
+        if int(context.budget.get("max_collab_requests", 0) or 0) <= 0:
+            return ()
+        from lightgravity.collaboration import (
+            ClaimPolicyReader,
+            PeerService,
+            default_registry,
+            make_restricted_peer_tool,
+        )
+
+        registry = self._grant_registry or default_registry()
+        data_dir = getattr(self._store, "data_dir", None)
+
+        def peer_factory() -> PeerService:
+            policy = ClaimPolicyReader(self._store).read()
+            return PeerService(
+                self._store,
+                data_dir=data_dir if data_dir is not None else ".",
+                policy=policy,
+            )
+
+        tool = make_restricted_peer_tool(
+            registry=registry,
+            token=token,
+            peer_service_factory=peer_factory,
+            run_id=context.run_id,
+            node_ref=node.subtask_id,
+            from_member_ref=node.member_id,
+        )
+        return (tool,)
 
     def _apply_result(
         self, node: _Node, controller: RunController, result: ExecutorResult
@@ -1173,7 +1306,12 @@ class GraphDispatcher:
 
     # ------------------------------------------------------------- request
     def _build_request(
-        self, node: _Node, context: DispatchContext, upstream: Sequence[str]
+        self,
+        node: _Node,
+        context: DispatchContext,
+        upstream: Sequence[str],
+        *,
+        grant_token: str | None = None,
     ) -> ExecuteRequest:
         candidate = node.member.candidate
         # Per-node native continuation (LG-016): a node may safely reattach to
@@ -1218,6 +1356,8 @@ class GraphDispatcher:
             save_dir=save_dir,
             conversation_id=conversation_id,
             continuation_mode=continuation_mode,
+            execution_grant=grant_token,
+            custom_tools=self._peer_tools_for(node, context, grant_token),
         )
 
     def _config_drift(self, node: _Node, context: DispatchContext) -> str | None:

@@ -1,0 +1,22 @@
+{
+  "findings": [],
+  "last_error": "",
+  "model_calls": 1,
+  "outcome": "passed",
+  "reason": "The single required artifact out/result.txt is present in the evidence and its excerpted content is exactly 'hello review', satisfying the acceptance criterion that out/result.txt exists and contains 'hello review'. No blocking problems found.",
+  "requested_model": "deepseek-v4-flash",
+  "resolved_evidence": [
+    "out/result.txt"
+  ],
+  "reviewer": "model-reviewer",
+  "reviewer_kind": "model",
+  "reviewer_role": "reviewer",
+  "status": "ran",
+  "unsubstantiated": [],
+  "usage": {
+    "unknown": [
+      "usage"
+    ]
+  },
+  "validated_outcome": "passed"
+}
