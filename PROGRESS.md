@@ -512,3 +512,7 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - **未宣 / 归 032**：原 Task `checks` 空 ⇒ `authorized=[]`，**不称机器检查执行 pass**（真实文件外部 truth 已验证且 hash 匹配，但属独立只读复算）；**新鲜正常产品入口 + 授权机器检查 / 异步 review / 真实 stopgate / 绑定 accept / 正式成本样本仍归 032**，不得借此绕过 032。
 - **状态**：**LG-031 mark `done`**（保留全部历史重开/失败/成本记录，task record 引用本补遗与 audit）；**LG-032 `in-progress`** 反锁依赖正式可满足（**尚未正式采样**）。产品 code/contract **不变** 1.11.0 / SDK 0.1.22 / default 自主池 off，既有 token/连接 pin/授权/evidence/stop/replay 边界不变。
 - **成本**：旧真实工程 **86**（34+24+28）；**本包产品 0**；032 预算固定 **4×48 / 总 192** 但**本包不执行**。**不把计划当结果**；provider token/费用 unknown 不当 0。本包零代码变化，不重复未改产品全测（记录先前 R1 门）。未 push/deploy/publish，无外部消息；未动 `qa/lg032-final-cohort`。
+
+### PM 更新：LG-031 正常启动边界待修复（2026-10-16）
+
+LG-032 零真实请求预检发现 selector scratch 与 SDK workspace_root 边界不一致，LG-031 已重新标为 in-progress。唯一 pi owner 在 lg031-workspace-boundary-fix 隔离 worktree 返修，待独立复验；原审计及收口证据保留。主分支新增本段及任务状态两份 PM dirty，后续集成须精确保全。当前按状态变更为 35 done / 4 in-progress / 2 todo，最终以任务 CLI 再核。
