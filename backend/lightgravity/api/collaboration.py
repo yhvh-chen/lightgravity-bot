@@ -1,33 +1,35 @@
-"""Decentralized discovery/claim/lease/协作 endpoints (LG-029, docs/08 §4.3).
+"""Decentralized discovery/claim/lease/协作 endpoints (LG-029 + LG-030, docs/08 §4.3).
 
-Covers the LG-029-owned frozen endpoints:
+Covers the frozen endpoints owned by this collaboration line:
 
-* ``GET  /runs/{run_id}/discoverable``                 read-only authorized projection
-* ``POST /runs/{run_id}/claim_requests``               candidate claim request
-* ``POST /subtasks/{subtask_id}/lease/renew``          lease renewal (``fence``)
-* ``POST /subtasks/{subtask_id}/lease/release``        holder/program release
+* ``GET  /runs/{run_id}/discoverable``                 read-only authorized projection (LG-029)
+* ``POST /runs/{run_id}/claim_requests``               candidate claim request (LG-029)
+* ``POST /subtasks/{subtask_id}/lease/renew``          lease renewal (``fence``) (LG-029)
+* ``POST /subtasks/{subtask_id}/lease/release``        holder/program release (LG-029)
+* ``POST /runs/{run_id}/collab_requests``              controlled peer request (LG-030)
+* ``GET  /runs/{run_id}/collab_requests``              peer request/result projection (LG-030)
 
-The peer endpoints (``POST/GET /runs/{run_id}/collab_requests``) belong to
-LG-030 and are deliberately **not** registered here.
-
-Default-off: the endpoints always exist but behave inertly when
-``decentralized_claim_enabled`` is false — discovery returns an empty, disabled
-projection and claims are refused with ``claim_refused``/``feature_disabled`` —
-so the deterministic scheduler path is unchanged (docs/08 §6.5).
+Default-off: the endpoints always exist but behave inertly when the respective
+switch is false — discovery returns an empty, disabled projection and claims are
+refused with ``claim_refused``/``feature_disabled``; peer requests are rejected
+with ``feature_disabled`` — so the deterministic scheduler path is unchanged
+(docs/08 §6.5).
 
 Worker identity: this router does not accept an arbitrary ``owner`` from a
-browser.  Until the executor-identity seam is wired by the integration owner
-(see ``probes/lg029/INTEGRATION.md``), the request body carries the owner and the
-router is reachable only through the frozen local access policy
-(``X-LG-Token`` when the runtime injects one), exactly like the other control
-endpoints.
+browser as an *authorization*.  Until the executor-identity seam is wired by the
+integration owner (see ``probes/lg030/INTEGRATION.md``), the request body carries
+the member identity and the peer service additionally requires that identity to
+be a member of the same Run; the router itself is reachable only through the
+frozen local access policy (``X-LG-Token`` when the runtime injects one), exactly
+like the other control endpoints.  Server-side authentication of the caller is
+LG-031's execution-identity injection, not something this body field can grant.
 """
 
 from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Query, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..collaboration import (
@@ -35,6 +37,7 @@ from ..collaboration import (
     ClaimPolicyReader,
     ClaimRequest,
     CollaborationService,
+    PeerService,
 )
 from .context import ApiContext, get_context
 
@@ -65,11 +68,35 @@ class LeaseReleaseBody(BaseModel):
     reason: str | None = None
 
 
+class CollabRequestBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    request_id: str
+    from_member_ref: str
+    to_member_ref: str | None = None
+    node_ref: str
+    mode: str = "summarize"
+    summary: str
+    message_id: str
+    correlation_id: str
+    in_reply_to: str | None = None
+    handoff_refs: list[str] = Field(default_factory=list)
+    fence: int | None = Field(default=None, ge=0)
+    timeout_seconds: int | None = Field(default=None, gt=0)
+
+
 def _service(ctx: ApiContext) -> CollaborationService:
     """Build the claim/lease service with the current default-off policy."""
 
     policy: ClaimPolicy = ClaimPolicyReader(ctx.store).read()
     return CollaborationService(ctx.store, policy=policy)
+
+
+def _peer_service(ctx: ApiContext) -> PeerService:
+    """Build the peer service with the current default-off policy."""
+
+    policy: ClaimPolicy = ClaimPolicyReader(ctx.store).read()
+    return PeerService(ctx.store, data_dir=ctx.data_dir, policy=policy)
 
 
 def build_collaboration_router() -> APIRouter:
@@ -132,6 +159,43 @@ def build_collaboration_router() -> APIRouter:
             reason=payload.reason or "released",
         )
         return {"subtask_ref": subtask_id, "owner": payload.owner, "released": released}
+
+    @router.post("/runs/{run_id}/collab_requests")
+    def request_collab(
+        run_id: str,
+        payload: CollabRequestBody,
+        ctx: Annotated[ApiContext, Depends(get_context)],
+    ) -> dict[str, Any]:
+        result = _peer_service(ctx).request(
+            run_id,
+            request_id=payload.request_id,
+            from_member_ref=payload.from_member_ref,
+            to_member_ref=payload.to_member_ref,
+            mode=payload.mode,
+            summary=payload.summary,
+            node_ref=payload.node_ref,
+            message_id=payload.message_id,
+            correlation_id=payload.correlation_id,
+            in_reply_to=payload.in_reply_to,
+            handoff_refs=payload.handoff_refs,
+            fence=payload.fence,
+            timeout_seconds=payload.timeout_seconds,
+        )
+        return result.to_dict()
+
+    @router.get("/runs/{run_id}/collab_requests")
+    def list_collab(
+        run_id: str,
+        ctx: Annotated[ApiContext, Depends(get_context)],
+        after: Annotated[str | None, Query()] = None,
+        limit: Annotated[int, Query(ge=1, le=500)] = 100,
+    ) -> dict[str, Any]:
+        results = _peer_service(ctx).list_requests(run_id, after=after, limit=limit)
+        return {
+            "run_ref": run_id,
+            "enabled": _peer_service(ctx).enabled,
+            "items": [result.to_dict() for result in results],
+        }
 
     return router
 
