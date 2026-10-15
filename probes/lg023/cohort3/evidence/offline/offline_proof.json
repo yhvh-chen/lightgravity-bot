@@ -1,0 +1,288 @@
+{
+  "p1_fixtures": {
+    "ok": true,
+    "samples": {
+      "s1_independent": {
+        "initial_hash": "5c730fd1aa5d31335159319b6a0eb115b8cb2fcf7071c3b4825e6d3668c49a72",
+        "reference_hash": "58e01490bc0712b60804cb1db2f833316d98de6b99a779897def1ee4de9b7bcc",
+        "initial": {
+          "checks": [
+            {
+              "name": "slug.case",
+              "passed": false,
+              "detail": "NotImplementedError: "
+            },
+            {
+              "name": "slug.multi",
+              "passed": false,
+              "detail": "NotImplementedError: "
+            },
+            {
+              "name": "slug.trim",
+              "passed": false,
+              "detail": "NotImplementedError: "
+            },
+            {
+              "name": "clamp.low",
+              "passed": false,
+              "detail": "NotImplementedError: "
+            },
+            {
+              "name": "clamp.high",
+              "passed": false,
+              "detail": "NotImplementedError: "
+            },
+            {
+              "name": "in_range",
+              "passed": false,
+              "detail": "NotImplementedError: "
+            }
+          ],
+          "passed": 0,
+          "total": 6,
+          "exit_code": 0
+        },
+        "initial_fails": true,
+        "reference": {
+          "checks": [
+            {
+              "name": "slug.case",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "name": "slug.multi",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "name": "slug.trim",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "name": "clamp.low",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "name": "clamp.high",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "name": "in_range",
+              "passed": true,
+              "detail": ""
+            }
+          ],
+          "passed": 6,
+          "total": 6,
+          "exit_code": 0
+        },
+        "reference_passes": true
+      },
+      "s2_interface": {
+        "initial_hash": "43854d3e5b279c3b621fb5b9eb4db1bf77c46c5a8d593e19e47ba802bf1cb2eb",
+        "reference_hash": "d8127bcac0881a0885f1c660eecf486d4ec130bd5a2d11dc373f8bebc5118ae8",
+        "initial": {
+          "checks": [
+            {
+              "name": "geo.rect.area",
+              "passed": false,
+              "detail": "NotImplementedError: "
+            },
+            {
+              "name": "geo.circle.area",
+              "passed": false,
+              "detail": "NotImplementedError: "
+            },
+            {
+              "name": "geo.rect.perimeter",
+              "passed": false,
+              "detail": "NotImplementedError: "
+            },
+            {
+              "name": "geo.bad.kind",
+              "passed": false,
+              "detail": "AssertionError: expected ValueError, got NotImplementedError: "
+            },
+            {
+              "name": "report.rect",
+              "passed": false,
+              "detail": "NotImplementedError: "
+            },
+            {
+              "name": "report.circle",
+              "passed": false,
+              "detail": "NotImplementedError: "
+            }
+          ],
+          "passed": 0,
+          "total": 6,
+          "exit_code": 0
+        },
+        "initial_fails": true,
+        "reference": {
+          "checks": [
+            {
+              "name": "geo.rect.area",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "name": "geo.circle.area",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "name": "geo.rect.perimeter",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "name": "geo.bad.kind",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "name": "report.rect",
+              "passed": true,
+              "detail": ""
+            },
+            {
+              "name": "report.circle",
+              "passed": true,
+              "detail": ""
+            }
+          ],
+          "passed": 6,
+          "total": 6,
+          "exit_code": 0
+        },
+        "reference_passes": true
+      }
+    }
+  },
+  "p2p3_plans_compile": {
+    "ok": true,
+    "plans": {
+      "s1_independent__A": {
+        "nodes": 1,
+        "keys": [
+          "deliver"
+        ],
+        "arm_a_single_node": true,
+        "arm_b_two_dependent_nodes": false,
+        "plan_hash": "177c833cf8100adcaedce19ab1526a0addf1c27e6a977dc03b34c252cf1010a3",
+        "capabilities": [
+          "implementation"
+        ]
+      },
+      "s1_independent__B": {
+        "nodes": 2,
+        "keys": [
+          "part_a",
+          "part_b"
+        ],
+        "arm_a_single_node": false,
+        "arm_b_two_dependent_nodes": true,
+        "plan_hash": "5a466bae70ee7c2c9d47a9a28155b22b36a023e9e03e530ab256c11589f0f65a",
+        "capabilities": [
+          "implementation"
+        ]
+      },
+      "s2_interface__A": {
+        "nodes": 1,
+        "keys": [
+          "deliver"
+        ],
+        "arm_a_single_node": true,
+        "arm_b_two_dependent_nodes": false,
+        "plan_hash": "a42ec8dfd1908bd12c61e8dda037f57abab1f3643e9b60af1badd6882fe59653",
+        "capabilities": [
+          "implementation"
+        ]
+      },
+      "s2_interface__B": {
+        "nodes": 2,
+        "keys": [
+          "part_a",
+          "part_b"
+        ],
+        "arm_a_single_node": false,
+        "arm_b_two_dependent_nodes": true,
+        "plan_hash": "ebe85baf8b6d130a15975411f13ed5372f08f6623b637e060622c6c3eb7c9c48",
+        "capabilities": [
+          "implementation"
+        ]
+      }
+    },
+    "compile": {
+      "ok": true,
+      "tools": [
+        "view-file",
+        "create-file",
+        "edit-file"
+      ],
+      "executable": true,
+      "config_hash": "a2d3099ec16354befd1ebd5df9d1ccba0b399cdee5e44d59e133ffbbc2f2f14e"
+    }
+  },
+  "p4_measurement": {
+    "worker_codes_6": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "ledger_after_worker": 6,
+    "reviewer_codes_6": [
+      200,
+      200,
+      200,
+      200,
+      200,
+      200
+    ],
+    "ledger_after_reviewer": 12,
+    "attempt_used": 12,
+    "worker_13th_code": 429,
+    "ledger_after_13th": 12,
+    "upstream_served": 12,
+    "reviewer_shares_global": true,
+    "attempt_cap_enforced": true,
+    "count_is_not_zero": true,
+    "reserve_before_forward": true,
+    "ok": true
+  },
+  "p5_stopgate": {
+    "teardown_complete_reaches_awaiting_acceptance": true,
+    "missing_fact_stays_unconfirmed": true,
+    "case_ok": {
+      "dispatch_state": "succeeded",
+      "verify_state": "confirmed",
+      "confirmed": true,
+      "messages": [
+        "candidate ready for human acceptance"
+      ],
+      "phase_after_verify": "awaiting_acceptance",
+      "accept_reachable": true
+    },
+    "case_missing": {
+      "dispatch_state": "succeeded",
+      "verify_state": "unconfirmed",
+      "confirmed": false,
+      "messages": [
+        "resources not confirmed stopped",
+        "2 session(s) not confirmed closed (cleanup='pending', adapter=['2 session(s) not confirmed closed by the adapter'])"
+      ],
+      "phase_after_verify": "verifying",
+      "accept_reachable": false
+    },
+    "ok": true
+  },
+  "ok": true
+}

@@ -1,0 +1,90 @@
+{
+  "ok": true,
+  "arms": {
+    "A": {
+      "returncode": 1,
+      "final_phase": "waiting_user",
+      "phases_seen": [
+        "executing",
+        "verifying",
+        "waiting_user"
+      ],
+      "steps": {
+        "health_ok": true,
+        "execution_ready": true,
+        "reviewer_wired_model": true,
+        "ledger_persistent_single_path": true,
+        "task_created": true,
+        "run_reached_awaiting_acceptance": false,
+        "machine_gate_pass": false,
+        "real_session_refs_recorded": true,
+        "reviewer_real_teardown_recorded": true,
+        "accept_confirmed_bound": false
+      },
+      "attempt_generation_requests": 2,
+      "generation_final": {
+        "corrupt": false,
+        "count": 2,
+        "limit": 48,
+        "persistent": true,
+        "remaining": 46
+      },
+      "session_refs": [
+        "sess_88ffd8f9ff3a41b884200709eb132907"
+      ],
+      "reviewer_cleanup": {
+        "agent_closed": true,
+        "confirmed": true,
+        "problems": [],
+        "proxy_stopped": true,
+        "status": "done"
+      },
+      "accept_response_state": null,
+      "node_worktrees": [],
+      "wiring_ok": true
+    },
+    "B": {
+      "returncode": 1,
+      "final_phase": "waiting_user",
+      "phases_seen": [
+        "executing",
+        "verifying",
+        "waiting_user"
+      ],
+      "steps": {
+        "health_ok": true,
+        "execution_ready": true,
+        "reviewer_wired_model": true,
+        "ledger_persistent_single_path": true,
+        "task_created": true,
+        "run_reached_awaiting_acceptance": false,
+        "machine_gate_pass": false,
+        "real_session_refs_recorded": true,
+        "reviewer_real_teardown_recorded": true,
+        "accept_confirmed_bound": false
+      },
+      "attempt_generation_requests": 3,
+      "generation_final": {
+        "corrupt": false,
+        "count": 3,
+        "limit": 48,
+        "persistent": true,
+        "remaining": 45
+      },
+      "session_refs": [
+        "sess_d214e1717fed44578d4f6a511f3919c6",
+        "sess_0f38959c9f754d4f87fe063ba3c02575"
+      ],
+      "reviewer_cleanup": {
+        "agent_closed": true,
+        "confirmed": true,
+        "problems": [],
+        "proxy_stopped": true,
+        "status": "done"
+      },
+      "accept_response_state": null,
+      "node_worktrees": [],
+      "wiring_ok": true
+    }
+  }
+}

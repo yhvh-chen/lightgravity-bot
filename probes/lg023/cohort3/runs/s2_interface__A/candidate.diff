@@ -1,0 +1,67 @@
+diff --git a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s2_interface/initial/src/__pycache__/geometry.cpython-312.pyc b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s2_interface__A/workspaces/candidate-ws/src/__pycache__/geometry.cpython-312.pyc
+index 473b65f..12f9927 100644
+Binary files a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s2_interface/initial/src/__pycache__/geometry.cpython-312.pyc and b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s2_interface__A/workspaces/candidate-ws/src/__pycache__/geometry.cpython-312.pyc differ
+diff --git a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s2_interface/initial/src/__pycache__/report.cpython-312.pyc b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s2_interface__A/workspaces/candidate-ws/src/__pycache__/report.cpython-312.pyc
+index 0002a25..37625ea 100644
+Binary files a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s2_interface/initial/src/__pycache__/report.cpython-312.pyc and b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s2_interface__A/workspaces/candidate-ws/src/__pycache__/report.cpython-312.pyc differ
+diff --git a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s2_interface/initial/src/geometry.py b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s2_interface__A/workspaces/candidate-ws/src/geometry.py
+index 4dfce77..38c8fe1 100644
+--- a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s2_interface/initial/src/geometry.py
++++ b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s2_interface__A/workspaces/candidate-ws/src/geometry.py
+@@ -1,9 +1,33 @@
+-"""Geometry (initial stub — not implemented)."""
++"""Area and perimeter helpers for simple shapes.
++
++A shape is a dict with a ``kind`` key.  Supported kinds:
++
++* ``rect``   -- requires ``width`` and ``height``
++* ``circle`` -- requires ``radius``
++
++Any other ``kind`` raises :class:`ValueError`.
++"""
++
++import math
++
++__all__ = ["area", "perimeter"]
+ 
+ 
+ def area(shape):
+-    raise NotImplementedError
++    """Return the area of ``shape``."""
++    kind = shape["kind"]
++    if kind == "rect":
++        return shape["width"] * shape["height"]
++    if kind == "circle":
++        return math.pi * shape["radius"] ** 2
++    raise ValueError(f"unknown shape kind: {kind!r}")
+ 
+ 
+ def perimeter(shape):
+-    raise NotImplementedError
++    """Return the perimeter (circumference for circles) of ``shape``."""
++    kind = shape["kind"]
++    if kind == "rect":
++        return 2 * (shape["width"] + shape["height"])
++    if kind == "circle":
++        return 2 * math.pi * shape["radius"]
++    raise ValueError(f"unknown shape kind: {kind!r}")
+diff --git a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s2_interface/initial/src/report.py b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s2_interface__A/workspaces/candidate-ws/src/report.py
+index cf4fd78..e7276e6 100644
+--- a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s2_interface/initial/src/report.py
++++ b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s2_interface__A/workspaces/candidate-ws/src/report.py
+@@ -1,6 +1,13 @@
+-"""Report rendering (initial stub — depends on geometry)."""
++"""Human readable shape reports built on top of :mod:`src.geometry`."""
++
+ from .geometry import area, perimeter
+ 
++__all__ = ["describe"]
++
+ 
+ def describe(shape):
+-    raise NotImplementedError
++    """Return ``'<kind>: area=<area> perimeter=<perimeter>'`` for ``shape``."""
++    return (
++        f"{shape['kind']}: "
++        f"area={area(shape):.2f} perimeter={perimeter(shape):.2f}"
++    )

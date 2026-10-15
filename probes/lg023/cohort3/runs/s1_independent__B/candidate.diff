@@ -1,0 +1,54 @@
+diff --git a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s1_independent/initial/src/__pycache__/ranges.cpython-312.pyc b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s1_independent__B/workspaces/candidate-ws/src/__pycache__/ranges.cpython-312.pyc
+index 480ad33..5d94eba 100644
+Binary files a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s1_independent/initial/src/__pycache__/ranges.cpython-312.pyc and b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s1_independent__B/workspaces/candidate-ws/src/__pycache__/ranges.cpython-312.pyc differ
+diff --git a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s1_independent/initial/src/__pycache__/slugs.cpython-312.pyc b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s1_independent__B/workspaces/candidate-ws/src/__pycache__/slugs.cpython-312.pyc
+index 0055776..91ef1ad 100644
+Binary files a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s1_independent/initial/src/__pycache__/slugs.cpython-312.pyc and b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s1_independent__B/workspaces/candidate-ws/src/__pycache__/slugs.cpython-312.pyc differ
+diff --git a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s1_independent/initial/src/ranges.py b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s1_independent__B/workspaces/candidate-ws/src/ranges.py
+index c208a98..91131cc 100644
+--- a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s1_independent/initial/src/ranges.py
++++ b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s1_independent__B/workspaces/candidate-ws/src/ranges.py
+@@ -1,9 +1,19 @@
+-"""Range helpers (initial stub — not implemented)."""
++"""Simple numeric range helpers."""
+ 
+ 
+ def clamp(value, lo, hi):
+-    raise NotImplementedError
++    """Return ``value`` constrained to the inclusive range [lo, hi].
++
++    If ``value`` is below ``lo`` return ``lo``; if it is above ``hi`` return
++    ``hi``; otherwise return ``value`` unchanged.
++    """
++    if value < lo:
++        return lo
++    if value > hi:
++        return hi
++    return value
+ 
+ 
+ def in_range(value, lo, hi) -> bool:
+-    raise NotImplementedError
++    """Return ``True`` iff ``lo <= value <= hi`` (inclusive bounds)."""
++    return lo <= value <= hi
+diff --git a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s1_independent/initial/src/slugs.py b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s1_independent__B/workspaces/candidate-ws/src/slugs.py
+index b7a8512..1ab9ce0 100644
+--- a/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2/probes/lg023/cohort3/fixtures/s1_independent/initial/src/slugs.py
++++ b/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data/attempts/s1_independent__B/workspaces/candidate-ws/src/slugs.py
+@@ -1,5 +1,14 @@
+-"""Slug helpers (initial stub — not implemented)."""
++"""Slug generation utilities."""
++
++import re
+ 
+ 
+ def slugify(title: str) -> str:
+-    raise NotImplementedError
++    """Convert a title into a URL-friendly slug.
++
++    Lowercases the input, replaces any run of non ``[a-z0-9]`` characters
++    with a single ``-``, then strips leading/trailing ``-``.
++    """
++    lowered = title.lower()
++    collapsed = re.sub(r"[^a-z0-9]+", "-", lowered)
++    return collapsed.strip("-")
