@@ -1,0 +1,21 @@
+# LG-032 COHORT3 entry repair — source-unchanged evidence
+# captured: 2026-10-15T21:17:48Z
+
+## driver / overlay (read-only, byte-identical to cohort2-qa)
+503a807fe987b65236222b734127b21aff70455e3070403fe98fe9f62b286208  probes/lg032/FINAL-COHORT/harness/run_attempt.py
+a04a8f309a72626c5b039039198feab03f143966e6634bf1fe5228ff0834a117  probes/lg032/FINAL-COHORT/harness/final_cohort_config.py
+df5652919e54830f7af5af8fa8c26a0f2cb527d3ddca2c1811259054acc788bf  probes/lg032/MODE-ISOLATION/mode_config.py
+
+## NEW cohort3 entry (candidate freeze identity)
+3efff40668ea73728e01037c718bc1c2b4b8e8d30c5373afb23b8e737de954cd  probes/lg032/COHORT3/run_formal.py
+943af652fcc7873c2ec58b29995675cd40e1579d27364628cfe036df03f7dc65  probes/lg032/COHORT3/.gitignore
+
+## old cohort2 entry (must be byte-unchanged)
+a7477753d4b016ad2ac8a9e68d1b749b5583ff20fc53a9d8f30bb0ac8c763040  probes/lg032/COHORT2-QA/run_formal.py
+
+## product tree object (must equal 55e4de56b7fe333d81a9bbc7a5e45e19977f9e9f)
+55e4de56b7fe333d81a9bbc7a5e45e19977f9e9f
+
+## old raw cost lines (untouched)
+cohort1(method-final) count: {"count":87}
+cohort2 count: {"count":19}

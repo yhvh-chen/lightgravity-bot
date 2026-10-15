@@ -1,0 +1,8 @@
+# COHORT3 package: never commit bytecode or raw runtime artifacts.
+__pycache__/
+*.pyc
+# Formal/cohort attempt outputs live outside the repo (sibling *-data roots);
+# only sanitized evidence JSON is committed here.
+runs/
+# The --prepare-only synthetic record lives in a fresh NONCE scratch sibling
+# (outside the repo); nothing raw is committed from here.
