@@ -66,6 +66,12 @@ from .scheduler import (
     SubtaskClaimer,
     encode_handoffs,
 )
+from .session_flow import (
+    NodeSession,
+    extract_node_session,
+    node_session_for_resume,
+    record_node_session,
+)
 from .state import RunController, StateWriter
 
 _BLOCKED_STATES = frozenset({"failed", "blocked", "cancelled"})
@@ -84,6 +90,7 @@ class _Node:
     spec: SubtaskSpec
     member: MemberPlan
     depends_on: tuple[str, ...]
+    member_id: str = ""
 
     @property
     def key(self) -> str:
@@ -402,6 +409,7 @@ class GraphDispatcher:
                     spec=spec,
                     member=member,
                     depends_on=tuple(key_to_subtask[dep] for dep in spec.depends_on),
+                    member_id=member_ids[member.role_ref],
                 )
             )
         return tuple(nodes)
@@ -590,6 +598,11 @@ class GraphDispatcher:
         self, node: _Node, controller: RunController, result: ExecutorResult
     ) -> NodeResult:
         subtask_id = node.subtask_id
+        # Collect the node's complete non-secret native session from the
+        # authoritative terminal result and persist it to the Member + the Run
+        # node mapping before classifying the outcome, so a confirmed pause can
+        # later continue this exact node (LG-016).
+        self._record_node_session(node, controller, result)
         if result.state == "cancelled":
             controller.transition_subtask(
                 subtask_id,
@@ -651,6 +664,72 @@ class GraphDispatcher:
             state="passed",
             handoff=handoff,
             result=result,
+        )
+
+    def _record_node_session(
+        self, node: _Node, controller: RunController, result: ExecutorResult
+    ) -> None:
+        """Persist a node's native session to Member + Run mapping (LG-016).
+
+        The node's frozen ``config_hash`` (subtask entity) is captured so a later
+        resume only reattaches when the node configuration and member identity
+        are unchanged.  Nothing is written when the SDK reported no conversation.
+        """
+
+        try:
+            subtask_config_hash = self._store.read("subtask", node.subtask_id).entity.get(
+                "config_hash"
+            )
+        except Exception:  # noqa: BLE001 - absence must not abort the node outcome
+            subtask_config_hash = None
+        session = extract_node_session(
+            result,
+            key=node.key,
+            subtask_id=node.subtask_id,
+            member_ref=node.member_id,
+            role_ref=node.member.role_ref,
+            node_state=result.state,
+            config_hash=(
+                str(subtask_config_hash)
+                if isinstance(subtask_config_hash, str) and subtask_config_hash
+                else node.member.candidate.config_hash
+            ),
+        )
+        if session is None:
+            return
+        record_node_session(controller, session)
+
+    def _resolve_node_continuation(
+        self, node: _Node, context: DispatchContext
+    ) -> NodeSession | None:
+        """Resolve this node's own prior native session for a resumed Run.
+
+        Uses the Plan key + node ``config_hash`` + member identity so a node is
+        only continued when the plan, frozen configuration and authorization all
+        match; otherwise the node dispatches fresh (new conversation) and a
+        completed write is never silently replayed.
+        """
+
+        prior_run = getattr(context, "prior_run", None)
+        if prior_run is None:
+            return None
+        # Compare the *subtask* config hash (node definition + member config),
+        # the same value persisted with the node session, so a reconfigured node
+        # is dispatched fresh rather than reattached to a stale conversation.
+        try:
+            subtask_config_hash = self._store.read(
+                "subtask", node.subtask_id
+            ).entity.get("config_hash")
+        except Exception:  # noqa: BLE001 - absent hash means "do not continue"
+            return None
+        if not isinstance(subtask_config_hash, str) or not subtask_config_hash:
+            return None
+        return node_session_for_resume(
+            prior_run,
+            key=node.key,
+            config_hash=subtask_config_hash,
+            member_ref=node.member_id,
+            role_ref=node.member.role_ref,
         )
 
     def _record_evidence(self, controller: RunController, node: _Node, ref: str) -> str:
@@ -746,6 +825,23 @@ class GraphDispatcher:
         self, node: _Node, context: DispatchContext, upstream: Sequence[str]
     ) -> ExecuteRequest:
         candidate = node.member.candidate
+        # Per-node native continuation (LG-016): a node may safely reattach to
+        # *its own* prior conversation when the plan key, config hash and member
+        # match; otherwise fall back to the Run-level continuation decision (or a
+        # fresh session).  The node coordinates override the run-level ones so a
+        # multi-node graph never funnels every member into one conversation.
+        node_continuation = self._resolve_node_continuation(node, context)
+        save_dir: str | None
+        conversation_id: str | None
+        continuation_mode: str | None
+        if node_continuation is not None:
+            save_dir = node_continuation.save_dir
+            conversation_id = node_continuation.conversation_id
+            continuation_mode = node_continuation.to_continuation()["continuation_mode"]
+        else:
+            save_dir = context.save_dir
+            conversation_id = context.conversation_id
+            continuation_mode = context.continuation_mode
         return ExecuteRequest(
             task_id=context.task_id,
             run_id=context.run_id,
@@ -762,9 +858,9 @@ class GraphDispatcher:
             timeout_seconds=context.timeout_seconds,
             budget=dict(context.budget),
             agent_ref=node.member.role_ref,
-            save_dir=context.save_dir,
-            conversation_id=context.conversation_id,
-            continuation_mode=context.continuation_mode,
+            save_dir=save_dir,
+            conversation_id=conversation_id,
+            continuation_mode=continuation_mode,
         )
 
     def _config_drift(self, node: _Node, context: DispatchContext) -> str | None:

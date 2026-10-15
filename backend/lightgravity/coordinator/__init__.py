@@ -86,6 +86,13 @@ from .recovery import (
     RecoveryDecision,
     RecoveryScanner,
 )
+from .session_flow import (
+    NodeSession,
+    completed_keys,
+    extract_node_session,
+    node_session_for_resume,
+    record_node_session,
+)
 from .resource_commands import (
     ResourceProposal,
     parse_resource_proposal,
@@ -164,5 +171,10 @@ __all__ = [
     "ProcessProbe",
     "RecoveryDecision",
     "RecoveryScanner",
+    "NodeSession",
+    "completed_keys",
+    "extract_node_session",
+    "node_session_for_resume",
+    "record_node_session",
     "build_router",
 ]

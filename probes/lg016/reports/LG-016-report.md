@@ -65,13 +65,58 @@ reset、未覆盖任何已有证据。日志改写到 home 缓存并过滤重复
 - SDK 只在回合结束后才分配 `conversation_id`（`agent.conversation_id` 文档与实测一致），所以协调器从 **`ExecutorResult.session_ref`** 记录最终标识（仅 `session_started` 事件会丢失它）；`tests/control/test_continuation.py::test_final_result_session_ref_is_persisted_for_continuation` 固定该行为。
 - 为防控制/worker 竞态导致“暂停丢失并被自动重放”，`_apply_outcome` 增加陈旧 Run 守卫，`_process_one` 仅在仍持有 `claimed` 时释放租约。
 
+## 2c. Graph 节点级原生 session 数据流（主线补接线，2026-10-15 续作）
+
+主代理核对发现的关键缺口：上轮只做了 **Run 级** 续接，而产品默认执行路径是
+`GraphDispatcher`（一个 Run 是真实多节点图）。Graph 路径下每个节点的原生 session
+标识被丢弃：`member.session_ref` 恒为 `None`，`outcome.result` 为 `None`（图聚合了
+节点结果），因此 Run 级 `_record_result_session`/续接判定拿不到原生身份，实际续接
+不可达。本轮做**有界补接线**，只改 Graph/Member 原生 session 数据流：
+
+- **新增 `coordinator/session_flow.py`**（唯一数据流模块）：从可信终结源
+  （`ExecutorResult.session_ref`，或可信终结事件）抽取**完整非秘密**原生 session；
+  `record_node_session` 统一持久化到三处：执行节点的 `member.session_ref`、Run 的
+  `node_sessions`（按 subtask 运行时 ID 的**节点映射**）、Run 的 `session_refs`（停止门
+  用不透明 id）。幂等（按 `session_id`）；缺 `conversation_id` 时**不写**，不伪造身份。
+- **`graph.py`**：`_Node` 增加稳定 `member_id`；`_apply_result` 对每个终结节点
+  （passed/failed/cancelled）调用 `_record_node_session`；`_build_request` 用
+  `_resolve_node_continuation` 把**该节点自己的** `conversation_id`/`save_dir`/原生
+  `resume` 透传 `ExecuteRequest`，否则回落到 Run 级或 fresh 新会话——多变图不再把所有
+  成员塞进同一个会话。
+- **安全匹配（不降级）**：`node_session_for_resume` 只在 plan `key` + 节点 `config_hash`
+  （含 `member_config_hash`）+ 稳定 `role_ref` + 原生 state 可续接 + 同时有
+  `conversation_id`/`save_dir` 时返回；`config_hash` 漂移、成员/授权变更、`closed`、缺
+  标识一律返回 `None`（fresh），**绝不**重挂旧会话。跨 Task/Run 授权、固定配置/credential
+  pin、`recovery_required`/未知副作用规则均由既有 `plan_continuation`/`_config_drift` 保持。
+- **Run 级回落**：`service._record_run_continuation_from_nodes` 在图聚合（无
+  `outcome.result`）时从 `node_sessions` 派生 Run 级 `continuation`（首个带原生化身份的
+  节点 + `primary_node_key`），使默认 Graph 路径暂停后的新 Run 能拿到非秘密续接源；
+  `_build_context` 对 `decision == 'resume'` 把源 Run 实体作为 `DispatchContext.prior_run`
+  交给图，节点级续接由此可用。
+- **已完成节点/产物保留**：`completed_keys` 从 `node_sessions` 报告已 `passed` 的 plan key
+  （连同 `member.session_ref` 与 `node_sessions` 里的产物版本引用），供上游调度避免静默
+  从头重放；完整节点级跳过调度属 LG-008 图调度范围，本轮只保证原生会话不被 fresh 重放
+  且节点身份/产物记录保留（见 §5 限制）。
+- **测试**：`tests/control/test_graph_session_flow.py`（11 项）——纯函数（抽取需原生
+  `conversation_id`、按 key/config/member 匹配、closed/缺失不续接、completed 报告）、
+  `record_node_session` 幂等写入 Member+Run、真实 `Coordinator`+`GraphDispatcher`
+  端到端 pause→resume，断言续接节点的 `ExecuteRequest.continuation_mode=='resume'` 且
+  `conversation_id/save_dir` 等于**该节点自己**的旧会话（非 Run 级单一会话），以及双节点
+  各自续接各自会话。
+
 ## 3. 局部检查（实际结果）
 
 ```bash
-.venv/bin/python -m mypy          # Success: no issues found in 88 source files
-.venv/bin/python -m pytest -q     # 420 passed, 4 skipped, 1 warning in 30.0s
-.venv/bin/python -m pytest tests/control -q   # 32 passed
+.venv/bin/python -m mypy          # Success: no issues found in 89 source files
+.venv/bin/python -m pytest -q     # 431 passed, 4 skipped, 1 warning in 32.1s
+.venv/bin/python -m pytest tests/control -q   # 43 passed
+.venv/bin/python -m pytest tests/control/test_graph_session_flow.py -q  # 11 passed
 ```
+
+本轮（Graph 数据流补接线）**未新增真实模型调用**：底层 SDK 原生续接已由上轮探针
+（`resumed_same_conversation=true`）与 LG-003 证实，本轮按指令优先「局部 Graph
+集成与保存/恢复映射测试」，用 `Coordinator`+`GraphDispatcher` 端到端单测验证续接
+参数实际进入图构建的 `ExecuteRequest`，不重复底层探针，也不消耗新模型调用。
 
 真实路径（bounded，复用上轮 cancel/pause 证据）：
 
@@ -107,10 +152,12 @@ DEEPSEEK_API_KEY=... .venv/bin/python probes/lg016/lg016_native_continuation.py 
   经 store lease + `active_run` 守卫，最多一个非终止 Run；awaiting_acceptance/
   paused 停后释放 claim；cleanup 失败写 Run 字段 + `cleanup.updated(failed)` 事
   件，不掩盖已确认的停止，也不删除原始 diff/worktree/历史。
-- **恢复同一 Task 的原生会话/剩余工作，不静默从头重放（本轮补齐）**：确认暂停后，
+- **恢复同一 Task 的原生会话/剩余工作，不静默从头重放（本轮补齐 + 主线数据流）**：确认暂停后，
   新 Run 携带旧 Run 的非秘密 `conversation_id`+`save_dir`+`continuation_mode=resume`，
-  SDK 原生续接同一会话（真实证据 `resumed_same_conversation=true`）；不确定副作用
-  的 Run 不自动续接，保持 `recovery_required` 并保留 Task ID/历史。
+  SDK 原生续接同一会话（真实证据 `resumed_same_conversation=true`）；默认 `GraphDispatcher`
+  路径下每个节点携带**自己**的原生标识续接（`tests/control/test_graph_session_flow.py`
+  `Coordinator`+`GraphDispatcher` 端到端断言参数进入 `ExecuteRequest`）；`config_hash`/成员/授权
+  不匹配则 fresh，不确定副作用的 Run 不自动续接，保持 `recovery_required` 并保留 Task ID/历史。
 
 ## 5. 真实限制与接线需求
 
@@ -120,7 +167,8 @@ DEEPSEEK_API_KEY=... .venv/bin/python probes/lg016/lg016_native_continuation.py 
 - **跨 Run 的 SDK 会话续接已实现（本轮补齐）**：协调器现在持久化**非秘密**原生会话标识（`conversation_id`+`save_dir`+`continuation_mode`+固定 `config_version`），并只对可证明安全的「已确认暂停且 cleanup=done」旧 Run 用 SDK 原生 `SessionContinuationMode.RESUME` 续接同一 Task 的原生会话；不静默用初始目标从头重放已执行写副作用。真实证据：原生续接探针 `resumed_same_conversation=true`（§3）。
 - **SDK 原生会话标识的实际语义（实测）**：SDK 在回合结束后才分配 `conversation_id`（`session_started` 时为空），因此协调器从 `ExecutorResult.session_ref` 记录最终标识；`save_dir` 为 SDK 原生 trajectory 存储目录。`conversation_id` 需满足 SDK 校验 `[a-zA-Z0-9-]` 且 ≥32 字符（`LocalOpenAIAgentConfig` 实测），协调器只存储适配器回报的值、不自行编造。
 - **不确定副作用仍不自动恢复**：`recovery_required`/中断 Run/cleanup 未 done 的 Run，`_open_run` 拒绝开新 Run 并保持 `recovery_required`，需人工用 resume/retry/cancel 明确决定，不为 green 自动重放。
-- **GraphDispatcher 节点级 member `session_ref` 仍为 `None`**（LG-008 范围，未越界修改）；但节点级 `ExecuteRequest` 已透传协调器的 `save_dir`/`conversation_id`/`continuation_mode`。
+- **Graph 节点级数据流本轮已补齐（主线）**：每个真实节点从 `ExecutorResult.session_ref` 抽取完整非秘密 session，统一写入 `member.session_ref` + Run `node_sessions` 节点映射 + `session_refs`；确认暂停后新 Run 按 plan `key`/`config_hash`/`role_ref` 匹配，把**对应节点自己的** `conversation_id`/`save_dir`/原生 `resume` 透传 `ExecuteRequest`（端到端单测证明参数进入图构建的请求）。`tests/control/test_graph_session_flow.py` 覆盖。
+- **完整节点级跳过调度仍属 LG-008 图调度范围（非本包引入）**：现有调度器在一个新 Run 里重新物化并执行所有节点；LG-016 保证续接节点走**同一原生会话**（非 fresh 重放），并以 `completed_keys` 与 `node_sessions` 保留已完成节点、成员 session 与产物版本引用，但“直接跳过已 passed 写节点”的图调度改动不在本轮 bounded 范围，已在 §2c 如实说明，未冒充已实现。
 - **跨 owner 改动**：`tests/api/test_tasks.py` 属 LG-012；因 LG-016 实现了
   resume，原「resume 未实现」断言失效，做了 5 行最小修正。如需回退接线，请由整
   合执行者串行处理。

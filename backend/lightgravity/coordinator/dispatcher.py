@@ -75,6 +75,11 @@ class DispatchContext:
     save_dir: str | None = None
     conversation_id: str | None = None
     continuation_mode: str | None = None
+    #: The previous stopped Run entity (non-secret) when this Run continues a
+    #: confirmed pause.  GraphDispatcher reads ``node_sessions`` from it to give
+    #: each node *its own* native conversation instead of a single run-level one
+    #: (LG-016).  ``None`` for a fresh Run.
+    prior_run: Mapping[str, Any] | None = None
 
     def to_execute_request(self) -> ExecuteRequest:
         """Build the frozen adapter request from this context."""

@@ -1081,7 +1081,30 @@ class Coordinator:
             save_dir=save_dir,
             conversation_id=conversation_id,
             continuation_mode=continuation_mode,
+            prior_run=self._prior_run_for(run_id),
         )
+
+    def _prior_run_for(self, run_id: str) -> dict[str, Any] | None:
+        """Return the source Run entity a resumed Run continues, else ``None``.
+
+        Only a Run whose ``continuation.decision == 'resume'`` has a source; a
+        fresh Run never inherits another Run's native node sessions.
+        """
+
+        try:
+            run = self._store.read("run", run_id).entity
+        except EntityNotFound:
+            return None
+        raw = run.get("continuation")
+        if not isinstance(raw, dict) or raw.get("decision") != "resume":
+            return None
+        source = raw.get("source_run_id")
+        if not isinstance(source, str) or not source:
+            return None
+        try:
+            return self._store.read("run", source).entity
+        except EntityNotFound:
+            return None
 
     def _continuation_for(self, run_id: str) -> tuple[str | None, str | None, str | None]:
         """Return ``(conversation_id, save_dir, continuation_mode)`` to resume.
@@ -1147,6 +1170,12 @@ class Coordinator:
         # ``session_started`` event alone cannot carry it; the ``ExecutorResult``
         # session ref is authoritative (proven by probes/lg016 native evidence).
         self._record_result_session(run_id, outcome.result)
+        # The default GraphDispatcher path aggregates node results, so the Run's
+        # authoritative native identity lives in the per-node ``node_sessions``
+        # the graph persisted.  Derive the Run-level continuation from them so a
+        # later confirmed-pause resume still has a non-secret source even when no
+        # single ``outcome.result`` exists (LG-016 graph session wiring).
+        self._record_run_continuation_from_nodes(run_id)
         state = outcome.state
         stop_confirmed = outcome.stop_confirmed
         if state == "cancelled" and stop_confirmed is False:
@@ -1300,6 +1329,66 @@ class Coordinator:
         if session_id:
             self._record_session_ref(run_id, str(session_id))
         self._record_continuation(run_id, session)
+
+    def _record_run_continuation_from_nodes(self, run_id: str) -> None:
+        """Derive the Run-level ``continuation`` from persisted node sessions.
+
+        Only the GraphDispatcher populates ``node_sessions``.  When there is no
+        single ``outcome.result`` (the graph aggregates node results), the Run's
+        continuation source is the first node session that carries a native
+        conversation id.  The run-level record is a *fallback* used to open a
+        later Run; the authoritative per-node coordinates stay in
+        ``node_sessions``.  Nothing is written when no node reported a native id.
+        """
+
+        try:
+            run = self._store.read("run", run_id).entity
+        except EntityNotFound:
+            return
+        node_sessions = run.get("node_sessions")
+        if not isinstance(node_sessions, dict) or not node_sessions:
+            return
+        primary: dict[str, Any] | None = None
+        for entry in node_sessions.values():
+            if not isinstance(entry, dict):
+                continue
+            conversation_id = entry.get("conversation_id")
+            save_dir = entry.get("save_dir")
+            if (
+                isinstance(conversation_id, str)
+                and conversation_id.strip()
+                and isinstance(save_dir, str)
+                and save_dir.strip()
+                and str(entry.get("state")) != "closed"
+            ):
+                primary = entry
+                break
+        if primary is None:
+            return
+        existing = run.get("continuation")
+        planned_source = existing.get("source_run_id") if isinstance(existing, dict) else None
+        resumed = str(primary.get("state")) == "resumed"
+        record = continuation_record(
+            conversation_id=str(primary["conversation_id"]),
+            save_dir=str(primary["save_dir"]),
+            continuation_mode=(MODE_RESUME if resumed else MODE_CREATE_ONLY),
+            source_run_id=(
+                str(planned_source)
+                if isinstance(planned_source, str) and planned_source
+                else None
+            ),
+            resumed=resumed,
+        )
+        if record is None:
+            return
+        record["decision"] = "resume" if resumed else "fresh"
+        # Never downgrade an already-planned native resume to a fresh decision
+        # on a chained resume; the Run-level record is only a fallback and must
+        # not lose the continuation intent proven at open time.
+        if isinstance(existing, dict) and existing.get("decision") == "resume":
+            record["decision"] = "resume"
+        record["primary_node_key"] = str(primary.get("key", ""))
+        self._writer.write_run(run_id, {"continuation": record})
 
     def _record_session_ref(self, run_id: str, session_id: str) -> None:
         """Add ``session_id`` to the Run's ``session_refs`` once (idempotent)."""
