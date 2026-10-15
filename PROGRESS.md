@@ -327,3 +327,44 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - **预算（采样前最终修订，非看结果后改额；样本/门固定 2 任务 × 2 arm × 一次）**：**4 attempts / 总 48 真实 DeepSeek 生成 / 每 attempt 12**；**全 stage 同 phase 持久 ledger**；**output ≤ 16000 / HTTP 120s / retry 0 / 并发 ≤ 2**；**旧 16/24/6 只是未执行草稿、作废**（不构成额度）；按已见真实双 worker 链约 **10 calls**，为**双方 arm 设同样足够 cap**。
 - **LG-032 暂不 claim**（原 ready ≠ 立刻占有；待 023 评估后与 **LG-024** 并行排期）。
 - **状态如实**：**LG-022 `done`（门内）**；**LG-031 `done`（待 032）**；**LG-023 claim 后 `in-progress`**；**LG-032 `todo` 暂不 claim**；**LG-035/037 `in-progress`**、**LG-036/038 `done` 待 040**、**LG-040/041 `todo` 不解锁**。自主模式默认 off。**契约保持 `1.10.0`、SDK `0.1.22` 不变**。本包产品生成 **0**，未推送/部署/发布。
+
+## 2026-10-16 LG-032 排期检查点（主代理 PM，claim + worktree 准备；产品真实生成 0）
+
+本节为当前事实，覆盖上文 LG-032 相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
+未 reset/clean/覆盖/重复 pick，未推送/部署/发布。主代理只 PM，无嵌套派工；执行经 pi + 现有 DeepSeek。
+
+- **开工核对（真实）**：`main@03c7db6` **clean**；`dev/lg023@fa9401d` 与 `fix/lg023-method@fa9401d` 均 clean
+  （LG-023 方法审计独立 worktree，本包 **未触碰**）；backlog 专用根 `validate` **OK 41 tasks/no diagnostics**、
+  `digest` complete=true、`ready` = **LG-032**。`/home/yhvh/code/lightgravity-bot-worktrees/lg032` **不存在**（先核后建，不覆盖）。
+- **依赖判定（不机械等 023）**：LG-032 `depends_on: [LG-031, LG-022]` **均已 `done`**（022 门内 done、031 done 待 032）。
+  LG-032 **不依赖 LG-023**；023 与 032 是**不同评估**，032 不重用 023 的对照数据（023 是单 agent vs 组队实施 worker 开发对照；
+  032 是去中心化**版本 QA + 程序调度基线 vs 新协作路径**的全生命周期成本对比）。**不把 LG-023 当 032 前置**。
+  LG-024 `depends_on: [LG-022, LG-023]` 仍 **todo**，因 023 未完成评估而等待；024 与本包无关。
+- **LG-023 状态如实**：保持 **`in-progress`**。首 cohort `45/48` 真实生成后发生**预算冻结**；已确认
+  「**提示/工具在 bring-up 中被变更**（worker 提示修正 + 加 `edit-file`）」「**样本结果被新 attempt 覆盖**（1# 结果被 4# 覆盖）」
+  与「**版本验收 stopgate 未闭合**（`cleanup='pending'`，两 arm 共有）」三项，组队 arm 与 S2 未在最终 harness 下取得可比结果。
+  **新方法审计只做 0 真实生成**，**不合并未经完成的 `fa9401d` 评估记录、不解锁 024**。
+- **LG-032 排期（本次，先 QA 阶段 A，不提前跑成本样本）**：
+  1. **阶段 A：独立机制/语义质量 QA（产品真实生成 0）**——由独立于实施者的 pi 复核去中心化版本候选
+     的**机制与语义**：竞争领取/原子授权与 fence、过期租约、崩溃恢复、取消、权限/身份、带 hash 交接、
+     有界返修与复验、默认关闭回退、事件可重放/重启不重复副作用。**只读/离线/替身证据，不运行产品生成样本**，
+     不预注册成本样本、不预设节省。**失败须修复后复验**（另派；QA 不自修、不自判 done）。
+  2. **阶段 B：全生命周期成本对照（另行冻结，且必须先验证实验 harness）**——仅在阶段 A 机制/语义无阻断后，
+     由 PM **另行冻结**固定样本/次数/费用上限与成功门，并**先验证实验 harness**（起点/任务/模型/预算/验收门/重复策略一致，
+     单一持久 ledger 全 stage 共用、跨重启不归零、损坏绝不当 0、转发前预留、usage 未知记 unknown）。
+     比较**程序调度基线 vs 新协作路径**，逐样本成功率/耗时/执行+QA+返修+复验+失败尝试 token 与人工介入；
+     **未完成样本不计已交付成本**；**旧 LG-023 混淆数据（提示/工具变更 + 结果覆盖）不能代替 032 对照**。
+     只有质量不退化且结果支持收益才建议默认启用，否则保留可选开关/回退并记录结论。
+- **预算（本轮 claim/prep 阶段记录，非采样；采样前最终值须在各自阶段另行冻结）**：阶段 A 产品真实生成 **0**；
+  阶段 B 的 **wall 400s / maxround 100 / noncache 100k / idle 120s / retry 0** 为本轮派工/运行上限草案，
+  **样本与费用上限仍须阶段 B 另行冻结**，不预先宣称节省、不据 023 结果改额。
+- **契约/SDK/默认不变**：契约 **`1.10.0`**、SDK **`google-antigravity==0.1.22`**、**自主模式默认 off** 不动；
+  不扩状态、不跑产品代码/测试（本 PM 包仅 `tasks`/git relation/PM 文档）。
+- **claim/worktree（本次，原子）**：backlog 根 `validate`/`digest`/`ready` 确认 complete 无诊断后，
+  CLI **原子 claim `LG-032 --as agent:pi-lg032`**；创建**全新持久 worktree**
+  `/home/yhvh/code/lightgravity-bot-worktrees/lg032`（branch **`qa/lg032`**），基于最终 main/claim commit。
+  精确本地提交 PM/claim。**本包不运行产品代码/测试，不执行 QA，不跑真实模型。**
+- **状态如实**：**LG-032 `todo → in-progress`（claim 后）**；**LG-031 `done`（待 032）**；**LG-022 `done`（门内）**；
+  **LG-023 `in-progress`（partial，新方法审计 0 真实生成、不解锁 024）**；**LG-024 `todo`**；**LG-035/037 `in-progress`**、
+  **LG-036/038 `done` 待 040**、**LG-040/041 `todo` 不解锁**。本包产品生成 **0**，未推送/部署/发布。
+  handoff 报告落 `probes/batch-20261016/LG032-QUALITY-HANDOFF.md` 后精准 commit。
