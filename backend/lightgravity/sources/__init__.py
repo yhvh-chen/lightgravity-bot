@@ -19,6 +19,7 @@ Boundaries kept deliberately:
   authorized roots.
 """
 
+from .content import ContentStore, MachineDraft, PageText
 from .intake import (
     IntakeService,
     PayloadHashMismatch,
@@ -27,19 +28,46 @@ from .intake import (
     compute_payload_hash,
 )
 from .models import IntakeJobRecord, ReceiptEntry, SourceRecord
+from .ocr import (
+    OcrBackend,
+    OcrPageResult,
+    OcrRequest,
+    OcrTimeout,
+    OcrUnavailable,
+    OpenAICompatOcrBackend,
+    PdfiumRasterizer,
+    UnavailableOcrBackend,
+    is_pdf_bytes,
+)
+from .processing import ProcessingConfig, ProcessingEngine, ProcessingOutcome
 from .service import SourceService, build_source_service
 from .store import SourceStore
 
 __all__ = [
+    "ContentStore",
     "IntakeService",
     "IntakeJobRecord",
+    "MachineDraft",
+    "OcrBackend",
+    "OcrPageResult",
+    "OcrRequest",
+    "OcrTimeout",
+    "OcrUnavailable",
+    "OpenAICompatOcrBackend",
+    "PageText",
     "PayloadHashMismatch",
+    "PdfiumRasterizer",
+    "ProcessingConfig",
+    "ProcessingEngine",
+    "ProcessingOutcome",
     "ReceiptEntry",
     "ReceiveRequest",
     "SourceRecord",
     "SourceService",
     "SourceStore",
+    "UnavailableOcrBackend",
     "build_source_service",
     "compute_content_hash",
     "compute_payload_hash",
+    "is_pdf_bytes",
 ]

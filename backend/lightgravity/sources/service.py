@@ -25,11 +25,19 @@ from pathlib import Path
 from typing import Any, Callable, Protocol
 
 from lightgravity.contracts import AppError, ErrorCode
+from lightgravity.store.clock import to_iso, utcnow
 from lightgravity.store.errors import EntityNotFound
 
 from .intake import IntakeService, ReceiveRequest
 from .models import IntakeJobRecord, ReceiptEntry, ReceiveResult, SourceRecord
+from .processing import ProcessingEngine
 from .store import SourceStore, new_inbox_id, sanitize_filename
+
+
+def _now(intake: IntakeService) -> Any:
+    """Return the current instant (indirect for testability, unused argument kept)."""
+
+    return utcnow()
 
 #: Max bytes for an inline base64 body accepted via ``POST /sources``.
 MAX_INLINE_BYTES = 10_000_000
@@ -61,16 +69,22 @@ class SourceService:
         resolve_path: Callable[[str, bool], Path] | None = None,
         project_resolver: ProjectResolver | None = None,
         intake: IntakeService | None = None,
+        processing: ProcessingEngine | None = None,
     ) -> None:
         self._store = store
         self._tasks = task_store
         self._resolve_path = resolve_path
         self._projects = project_resolver
         self._intake = intake or IntakeService(store)
+        self._processing = processing
 
     @property
     def intake(self) -> IntakeService:
         return self._intake
+
+    @property
+    def processing(self) -> ProcessingEngine | None:
+        return self._processing
 
     @property
     def store(self) -> SourceStore:
@@ -349,6 +363,254 @@ class SourceService:
         job = self._store.read_job(job_id)
         return self._job_view(job)
 
+    # ------------------------------------------------------------- processing
+    def process_source(
+        self,
+        source_id: str,
+        *,
+        job_id: str | None = None,
+        force: bool = False,
+        cancel_check: Any | None = None,
+    ) -> dict[str, Any]:
+        """Run OCR extraction into a machine derivative (never the formal one)."""
+
+        if self._processing is None:
+            from .ocr import UnavailableOcrBackend
+            from .processing import ProcessingEngine
+
+            self._processing = ProcessingEngine(
+                self._store,
+                backend=UnavailableOcrBackend("no OCR backend configured for this service"),
+                intake=self._intake,
+            )
+        outcome = self._processing.process(
+            source_id, job_id=job_id, force=force, cancel_check=cancel_check
+        )
+        return outcome.to_dict()
+
+    def _content_store(self, source_id: str) -> Any:
+        from .content import ContentStore
+
+        return ContentStore(source_root=self._store.source_dir(source_id))
+
+    def content_view(self, source_id: str, *, kind: str = "auto") -> dict[str, Any]:
+        """Preview the formal version if present, else the machine derivative.
+
+        Reading never mutates state and never executes content (docs/08 §4.3).
+        """
+
+        record = self._store.read_source(source_id)
+        content = self._content_store(source_id)
+        formal = content.read_formal()
+        machine = content.read_machine_markdown(record.source_version)
+        wanted = kind
+        if wanted == "auto":
+            wanted = "formal" if formal is not None else "machine"
+        if wanted == "formal":
+            body = formal
+            path = content.formal_relative_path() if body is not None else None
+        elif wanted == "machine":
+            body = machine
+            path = (
+                f"derivative/machine.v{record.source_version}.md" if body is not None else None
+            )
+        else:
+            raise AppError(
+                ErrorCode.VALIDATION_FAILED,
+                "kind must be one of: auto, formal, machine",
+                details={"kind": kind},
+            )
+        if body is None:
+            raise AppError(
+                ErrorCode.NOT_FOUND,
+                f"no {wanted} content exists for source {source_id!r}",
+                details={"source_id": source_id, "kind": wanted},
+            )
+        return {
+            "source_id": source_id,
+            "kind": wanted,
+            "path": path,
+            "media_type": "text/markdown; charset=utf-8",
+            "content": body,
+            "formal_present": formal is not None,
+        }
+
+    def download_view(self, source_id: str, *, kind: str = "original") -> dict[str, Any]:
+        """Return the original bytes plus a **stat**-type revision (not a hash)."""
+
+        record = self._store.read_source(source_id)
+        if kind == "original":
+            original = record.entity.get("original")
+            original = original if isinstance(original, dict) else {}
+            rel = original.get("path")
+            if not isinstance(rel, str) or not rel:
+                raise AppError(
+                    ErrorCode.NOT_FOUND,
+                    "source has no persisted original",
+                    details={"source_id": source_id},
+                )
+            name = rel.rsplit("/", 1)[-1]
+            path = self._store.original_dir(source_id) / name
+            if not path.is_file():
+                raise AppError(
+                    ErrorCode.NOT_FOUND,
+                    "original bytes are missing on disk",
+                    details={"source_id": source_id},
+                )
+            stat = path.stat()
+            return {
+                "source_id": source_id,
+                "kind": "original",
+                "filename": name,
+                "media_type": original.get("media_type") or "application/octet-stream",
+                "bytes": path.read_bytes(),
+                "stat_revision": f"{stat.st_size}-{stat.st_mtime_ns}",
+                "content_hash": record.content_digest,
+            }
+        # Formal/machine download is served as text content, not raw bytes.
+        view = self.content_view(source_id, kind=kind)
+        return {
+            "source_id": source_id,
+            "kind": view["kind"],
+            "filename": view["path"].rsplit("/", 1)[-1] if view["path"] else "content.md",
+            "media_type": view["media_type"],
+            "bytes": view["content"].encode("utf-8"),
+            "stat_revision": f"{record.revision}",
+            "content_hash": None,
+        }
+
+    # ----------------------------------------------------------- formal edits
+    def edit_formal(
+        self,
+        source_id: str,
+        *,
+        content: str,
+        edited_by: str,
+        expected_revision: int | None = None,
+    ) -> dict[str, Any]:
+        """Create/update the human formal version and record it on the source.
+
+        The **machine derivative is untouched**: this is the separation that
+        makes reprocessing non-destructive (docs/08 §6.6).
+        """
+
+        record = self._store.read_source(source_id)
+        content_store = self._content_store(source_id)
+        formal = record.entity.get("formal")
+        formal = formal if isinstance(formal, dict) else {}
+        current_revision = formal.get("revision")
+        current_revision = (
+            current_revision
+            if isinstance(current_revision, int) and not isinstance(current_revision, bool)
+            else 0
+        )
+        if expected_revision is not None and expected_revision != current_revision:
+            raise AppError(
+                ErrorCode.REVISION_CONFLICT,
+                "formal version revision does not match",
+                details={
+                    "expected": expected_revision,
+                    "actual": current_revision,
+                    "source_id": source_id,
+                },
+            )
+        if not content_store.has_formal():
+            # Seed once from the current machine derivative, then apply the edit.
+            content_store.initialize_formal_from_machine(record.source_version, edited_by=edited_by)
+        new_revision = current_revision + 1
+        content_store.write_formal(content, edited_by=edited_by, expected_revision=current_revision)
+        updated = self._store.update_source(
+            source_id,
+            {
+                "formal": {
+                    "path": content_store.formal_relative_path(),
+                    "revision": new_revision,
+                    "edited_by": edited_by,
+                },
+                "title_origin": record.entity.get("title_origin", "user"),
+                "updated_at": to_iso(_now(self._intake)),
+            },
+            expected_revision=record.revision,
+        )
+        return {
+            "source_id": source_id,
+            "formal": updated.entity.get("formal"),
+            "revision": updated.revision,
+        }
+
+    def source_actions(
+        self,
+        source_id: str,
+        *,
+        action: str,
+        confirmed: bool = False,
+        job_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Control actions: ``reprocess``/``cancel``/``revoke``/``delete``.
+
+        ``reprocess`` re-runs OCR into a new machine derivative and never
+        overwrites the formal version.  ``delete``/``revoke`` mark the source
+        and remove its cache directories only with explicit copies of state;
+        the original is preserved for ``revoke`` and removed only for an
+        explicit ``delete``.
+        """
+
+        record = self._store.read_source(source_id)
+        if action == "reprocess":
+            return self.process_source(source_id, job_id=job_id, force=True)
+        if action == "cancel":
+            if job_id is None:
+                raise AppError(
+                    ErrorCode.VALIDATION_FAILED,
+                    "cancel requires the intake job_id being cancelled",
+                    details={"source_id": source_id},
+                )
+            job = self._intake.cancel(job_id, confirmed=confirmed, reason="source cancel")
+            return {"source_id": source_id, "job_id": job_id, "status": job.status, "confirmed": True}
+        if action == "revoke":
+            updated = self._store.update_source(
+                source_id,
+                {
+                    "status": "archived",
+                    "index": {
+                        "lexical": "not_indexed",
+                        "lexical_hash": None,
+                        "vector": "disabled",
+                        "vector_model": None,
+                    },
+                    "updated_at": to_iso(_now(self._intake)),
+                },
+                expected_revision=record.revision,
+            )
+            return {"source_id": source_id, "status": updated.status, "revoked": True}
+        if action == "delete":
+            if not confirmed:
+                raise AppError(
+                    ErrorCode.CANCELLATION_UNCONFIRMED,
+                    "delete must be confirmed",
+                    details={"source_id": source_id},
+                )
+            self._delete_source(source_id)
+            return {"source_id": source_id, "deleted": True}
+        raise AppError(
+            ErrorCode.VALIDATION_FAILED,
+            f"unsupported action {action!r}; supported: reprocess, cancel, revoke, delete",
+            details={"action": action},
+        )
+
+    def _delete_source(self, source_id: str) -> None:
+        import shutil
+
+        self._store._validate_source_id(source_id)  # noqa: SLF001 - same package
+        root = self._store.source_dir(source_id)
+        if not root.is_dir():
+            raise AppError(
+                ErrorCode.NOT_FOUND,
+                f"source {source_id!r} not found",
+                details={"source_id": source_id},
+            )
+        shutil.rmtree(root)
+
     # ---------------------------------------------------------------- internals
     def _source_view(self, record: SourceRecord) -> dict[str, Any]:
         entity = record.entity
@@ -406,6 +668,7 @@ def build_source_service(
     project_resolver: ProjectResolver | None = None,
     clock: Any | None = None,
     events: Any | None = None,
+    ocr_backend: Any | None = None,
 ) -> SourceService:
     """Construct a service bound to one data root (single-app wiring helper)."""
 
@@ -419,12 +682,25 @@ def build_source_service(
     if events is not None:
         intake_kwargs["events"] = events
     intake = IntakeService(store, **intake_kwargs)
+    processing_kwargs: dict[str, Any] = {}
+    if clock is not None:
+        processing_kwargs["clock"] = clock
+    if events is not None:
+        processing_kwargs["events"] = events
+    if ocr_backend is None:
+        from .ocr import backend_from_env
+
+        ocr_backend = backend_from_env()
+    processing = ProcessingEngine(
+        store, backend=ocr_backend, intake=intake, **processing_kwargs
+    )
     return SourceService(
         store,
         task_store=task_store,
         resolve_path=resolve_path,
         project_resolver=project_resolver,
         intake=intake,
+        processing=processing,
     )
 
 
