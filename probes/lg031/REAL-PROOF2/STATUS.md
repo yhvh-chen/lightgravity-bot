@@ -26,8 +26,8 @@ updated: "2026-10-16"
 | 2 | 建全新持久 `lg031-real-proof2`（branch `dev/lg031-real-proof2`）基于 `b819dd3` | DONE |
 | 3 | 0 真实生成 forensics：旧 24 归因（selection/execute/verify）→ 根因共享 cap 24 | DONE |
 | 4 | PM 预注册 proof2：PLAN 冻结（fixture/计划/requirements/提示模板/工具/caps 48/initialcommit/同门） | DONE |
-| 5 | 预检（实际 `build_runtime`+SDK+localfake 三节点、startup 后物理 ledger、fakeRoot/formalRoot 隔离、stage count） | TODO |
-| 6 | 正式真实 DeepSeek **一次**运行（`fixtures/formal`） | TODO |
+| 5 | 预检（实际 `build_runtime`+SDK+localfake 三节点、startup 后物理 ledger、fakeRoot/formalRoot 隔离、stage count） | DONE（PASS） |
+| 6 | 正式真实 DeepSeek **一次**运行（`fixtures/formal`） | IN-PROGRESS |
 | 7 | 真实机器门 + 真实独立 ModelReviewer + 真实 stopgate + 绑定 accept | TODO |
 | 8 | REPORT + 私有原件 + 精准本地 commit | TODO |
 
@@ -39,6 +39,9 @@ updated: "2026-10-16"
 - **实际模型**：`deepseek-v4-flash`（env `DEEPSEEK_API_KEY` 受控使用，不打印/不落盘）。
 - **PLAN hash**：`37c339da8d2749555594e62061eefa369baed5f63341a99cde589d3c9d6926d3`。
 - **forensics 脚本 hash**：`82c3054df37ddb6663e4388b96cbcf572bb3acdea53488719c3f82d0da2cab95`。
+- **正式 harness hash**（`probe_formal_real2.py`）：`fce51ced98b7a9df8d2dd36a56cf9867ade1dfc145392ed970655299423b1db0`。
+- **预检 harness hash**（`probe_precheck2.py`）：`b37b28d7822e23b915dfbed381fbd88ca8c4376f64aa52f5f02967e5f00c713e`。
+- **fake 上游 hash**（=`fake_precheck_upstream.py`）：`5de0631e987e06e657f5766d184bc8b21a41e99b6aa63315c763a4b56e5f1ba9`（与旧 proof 逐字节相同）。
 - **初始 commit（旧固定，只读 clone）**：`6cf81ea38456b7a0c3c2536b48985d7af3a55f11`。
 - **machine truth**：`out/alpha.txt`==`alpha`、`out/beta.txt`==`beta`（各自隔离 worktree，无串）。
 - **ledger 物理路径**：`probes/lg031/REAL-PROOF2/fixtures/formal/data/generation/generation.jsonl`（持久、跨会话/Run 不归零）。
