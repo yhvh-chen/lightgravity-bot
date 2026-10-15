@@ -1,0 +1,43 @@
+{
+  "evidence_kind": "local-fake-upstream",
+  "real_generation_calls": 0,
+  "checks": {
+    "C1_counting": {
+      "counter_count": 2,
+      "expected": 2,
+      "ok": true,
+      "first_two_status": [
+        200,
+        200
+      ],
+      "forwarded_upstream_calls": 2
+    },
+    "C2_cap_reject": {
+      "third_status": 429,
+      "ok": true,
+      "snapshot": {
+        "count": 2,
+        "limit": 2,
+        "remaining": 0
+      }
+    },
+    "C3_cross_session_share": {
+      "second_session_status": 429,
+      "ok": true
+    },
+    "C4_restart_persistence": {
+      "fresh_interpreter_snapshot": "{'count': 0, 'limit': 10, 'remaining': 10}",
+      "persisted_across_restart": false,
+      "observed": "counter is a process-global in-memory object; a fresh process starts from count=0 (limit re-read from env)",
+      "ok": false
+    },
+    "env_limit_default": {
+      "global_limit_after_env_read": {
+        "count": 0,
+        "limit": null,
+        "remaining": null
+      }
+    }
+  },
+  "all_ok": false
+}
