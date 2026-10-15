@@ -43,6 +43,13 @@ updated: "2026-10-15"
 
 ## 决策日志
 
+### 2026-10-16：接口契约冻结 1.11.0（LG-031 runtime/API/SDK 集成公开兼容变化保守 MINOR）
+
+- **PM 普通技术决定**：正式契约由 `1.10.0` 升至 **`1.11.0` MINOR**。依据 R1 独立复验（`qa/lg032-runtime-r1@26ea945`）观察 **O3**：`afcae82` 落地后存在**实际公开兼容变化**——① 四个去中心化端点（`GET /runs/{run_id}/discoverable`、`POST /runs/{run_id}/claim_requests`、`POST /subtasks/{subtask_id}/lease/renew`、`POST /subtasks/{subtask_id}/lease/release`）请求体 `owner` 由 `1.6.0` 冻结时事实采用的 **required/端点采用** 放宽为 **optional/仅一致性校验、不再具有授权含义**；② `ExecutionGrant` 加性新增进程内非持久字段 `lease_owner`。按 docs/08 §13「新增向后兼容字段/语义放宽为 MINOR」**保守**分类为 `1.11.0`，取代此前 `1.10.0` 的“实现说明增补（无版本变化）”口径。
+- **精确行为**：四端点 principal/scope/fence 仅从 `ApiContext.worker_grant`（`X-LG-Execution-Grant`）解析的程序冻结 grant 推导；body `owner` 存在且不等于认证 principal ⇒ `claim_refused`/`identity_mismatch` 且**不落盘**；无 resolver/无效 grant ⇒ `claim_refused`/`unauthenticated`；body `capability`/`write`/`scope` 不授予权限。**回退**：旧客户端传 `owner` 仍被接受（仅一致性校验、不获授权），不传亦可用；认证 A 不能冒 B/跨 TaskRun，只读身份不能写。**安全边界**：未配置/未认证一律 default-deny 且不写业务状态；仍不接受浏览器直接指定任意 `owner`；`lease_owner` 不进入 HTTP/实体 schema（进程内非持久）。
+- **源锚与非机械覆盖**：本次分类基于 `afcae82` 实际实现（`api/collaboration.py` 四端点经 grant 推导 + `collaboration/execution_grant.py` 的 `lease_owner`/`effective_lease_owner`）与 R1 观察 O3，**不沿用历史拟议的 `1.6.0`**，也不重写任何旧 JSON/PLAN/日志。`1.10.0`/e0 首版 L0 包与所有历史证据**保持原版本**。
+- **范围**：本包仅改**接口版本元数据**（`docs/08` 变更控制先行 + `contracts/constants.py` + 当前测试断言 + README/PROJECT/agent/docs06 入口），**不顺带改任何 runtime 行为**。`git diff afcae82 HEAD -- backend frontend tests pyproject.toml uv.lock Makefile` 已证实除版本常量/测试断言外产品树逐字节相同。SDK `google-antigravity==0.1.22`、默认自主 off / `max_parallel=1` 保持。**main 本轮不合此候选**。
+
 ### 2026-10-16：核心首版 QA 收口——LG-022 流式停止独立复验合入并 done，LG-023 采样前预算最终修订
 
 - **唯一串行验收证据整合/排期 owner，主代理只 PM，无嵌套派工/推送/部署/发布；本包产品生成 0**（不执行评估/新探针/不重跑模型或测试）。详见 [probes/batch-20261016/CORE-QA-CLOSE.md](probes/batch-20261016/CORE-QA-CLOSE.md)。

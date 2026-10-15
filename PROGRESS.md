@@ -456,3 +456,12 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
   **LG-029/031/032 仍 `in-progress`**（source candidate 未合 main / 独立 R1 进行）；**LG-035/037 `in-progress`**；**LG-036/038 `done` 待 040**；**LG-040/041 锁不动（`todo`）**。
   契约 `1.10.0`、SDK `0.1.22`、程序最小规则调度、真实 SDK 唯一路径、自主模式默认 off **不变**。
   **本包产品真实生成 0、外部服务调用 0**；未推送/部署/发布/上传。所有旧包/实验/路径保留。
+
+## 2026-10-16 续接：LG031 契约冻结 1.11.0 + 真实工程 proof（branch `dev/lg031-real-proof`）
+
+- **本包 owner**：LG031 接口冻结/真实工程 proof owner（pi 现有 DeepSeek，无嵌套派工/推送/部署/发布，主代理仅 PM）。源实施 / 独立 R1 / LG-024 文档 owner 已退出。
+- **worktree/branch**：全新持久 `/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof`（branch `dev/lg031-real-proof`），基于 `qa/lg032-runtime-r1@26ea945`，**安全 `--no-ff` merge** `main@3797964`（仅 LG-024 docs/包，无产品代码）。**未 reset/clean/覆盖/重复 pick**；所有旧 worktree/branch/dirty/进程保留。
+- **产品树字节同一**：`git diff afcae82 HEAD -- backend frontend tests pyproject.toml uv.lock Makefile` 为空（除本包版本常量/测试断言外）；相对 R1 基 `26ea945` 仅新增 `main` 的 `probes/lg024/**` 与 `docs/06` LG-024 行。
+- **契约冻结 1.11.0 MINOR**（PM 决定，详见 PROJECT 决策日志）：按 R1 观察 O3 的实际公开兼容变化（四端点 body `owner` required→optional/非授权 + `ExecutionGrant.lease_owner` 加性）保守升 MINOR；先改 `docs/08` §13/§4.3/头部，再同步 `contracts/constants.py`（`CONTRACT_VERSION="1.11.0"`）、`tests/contracts/test_contracts.py` 与 README/PROJECT/agent/docs06 入口。**1.10/e0 首版包与历史证据保持原版本，不重写旧 JSON/PLAN/日志**；**未改任何 runtime 行为**。
+- **局部验证**：`uv run --frozen pytest tests/contracts tests/api/test_health.py -q` → **11 passed**；`uv run --frozen mypy` → **137 files clean**。
+- **状态**：LG-029 待确认为 `done`（R1 正向证据齐）；LG-031 真实 provider 门未做前保持 `in-progress`；LG-032 保持 `in-progress`（阶段 B 暂停）。真实 proof 见 `probes/lg031/REAL-PROOF/**`，本包产品真实生成随时间记录，旧 LG031 累计 34/40 不归零。

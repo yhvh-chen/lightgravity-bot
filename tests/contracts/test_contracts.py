@@ -23,8 +23,11 @@ def test_frozen_constants() -> None:
     # source flag + ``archive``/``unarchive`` actions and the mounted optional
     # vector endpoints) -> 1.10.0 (LG-022 R2 targeted refix additive: stop gate
     # confirms real session/reviewer resource stops; generation diagnostics gain
-    # a ``persistent``/``corrupt`` durability flag).  Additive MINOR only.
-    assert CONTRACT_VERSION == "1.10.0"
+    # a ``persistent``/``corrupt`` durability flag) -> 1.11.0 (LG-031 runtime
+    # integration additive: the four decentralized endpoints' request-body
+    # ``owner`` relaxed from required to optional/compat-only + additive internal
+    # ``ExecutionGrant.lease_owner``).  Additive MINOR only.
+    assert CONTRACT_VERSION == "1.11.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 

@@ -3,6 +3,32 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
+#: docs/08 §13: 1.11.0 (2026-10-16) is the conservative additive MINOR bump
+#: registering the LG-031 runtime/API/SDK integration's actual public-compat
+#: changes (R1 observation O3), replacing the earlier "implementation-note,
+#: no version change" wording kept at 1.10.0.  Two public-compat changes:
+#: (a) the request-body ``owner`` on the four decentralized endpoints
+#: (``GET /runs/{run_id}/discoverable``, ``POST /runs/{run_id}/claim_requests``,
+#: ``POST /subtasks/{subtask_id}/lease/renew``,
+#: ``POST /subtasks/{subtask_id}/lease/release``) is relaxed from
+#: required/endpoint-adopted (``1.6.0`` freeze) to optional/compat-check-only
+#: and no longer carries authorization; (b) ``ExecutionGrant`` gains the
+#: additive in-process non-persistent field ``lease_owner`` (program-frozen
+#: lease authority, ``effective_lease_owner = lease_owner or member_ref``).
+#: Both are backward-compatible: an old client may still send ``owner`` (now
+#: only consistency-checked, not authorized) or omit it; no
+#: endpoint/enum/error-code/entity-schema/transition changes, and the
+#: unauthenticated/default-deny/no-persist boundary is unchanged.
+#:
+#: docs/08 §13: 1.10.0 (2026-10-16) is the LG-022 second targeted-refix additive MINOR: the
+#: stop gate may confirm a Run's real session/reviewer stop from authoritative
+#: adapter facts (``run.cleanup``/``run.reviewer_cleanup`` stop-confirmation)
+#: instead of requiring a fabricated ``cleanup=done``, and
+#: ``GET /api/v1/diagnostics/generation`` gains additive ``persistent``
+#: (and, on a persistent ledger, ``corrupt``/``reason``) fields -- the global
+#: generation counter is now a durable ledger under the controlled data root.
+#: No new endpoints, enums, transitions or error codes; no secret is exposed.
+#:
 #: docs/08 §13: 1.9.0 (2026-10-16) is an additive MINOR bump from the serial
 #: integration after the first-version repair: the reversible organizational
 #: ``archived`` source flag + ``archive``/``unarchive`` actions (§4.3, §6.6;
@@ -65,21 +91,12 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: canonicalized as ``evidence:<run_id>/<name>@sha256:<hex>`` under the Task/Run
 #: evidence root, and raw absolute paths are rejected.
 #:
-#: 1.10.0 (2026-10-16) is the LG-022 second targeted-refix additive MINOR: the
-#: stop gate may confirm a Run's real session/reviewer stop from authoritative
-#: adapter facts (``run.cleanup``/``run.reviewer_cleanup`` stop-confirmation)
-#: instead of requiring a fabricated ``cleanup=done``, and
-#: ``GET /api/v1/diagnostics/generation`` gains additive ``persistent``
-#: (and, on a persistent ledger, ``corrupt``/``reason``) fields -- the global
-#: generation counter is now a durable ledger under the controlled data root.
-#: No new endpoints, enums, transitions or error codes; no secret is exposed.
-#:
 #: 1.3.0 registered LG-009's additive Task ``checks`` authorization and
 #: ``acceptance`` candidate-binding fields (``candidate_ref``/
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.10.0"
+CONTRACT_VERSION = "1.11.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]
