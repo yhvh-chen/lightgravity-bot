@@ -403,13 +403,17 @@ async def test_coordinator_integration_reaches_verifying(store: FileStore) -> No
     assert created.task_id is not None
     coordinator.start()
     try:
-        phase = await wait_for_phase(coordinator, created.task_id, {"verifying"}, timeout=5.0)
+        # Honest default (LG-017 R1): no real reviewer -> an unreviewed
+        # candidate parks at ``waiting_user`` and never opens acceptance.
+        phase = await wait_for_phase(
+            coordinator, created.task_id, {"verifying", "waiting_user"}, timeout=5.0
+        )
     finally:
         await coordinator.stop()
-    assert phase == "verifying"
+    assert phase in {"verifying", "waiting_user"}
     assert len(executor.requests) == 2
     snapshot = coordinator.status(created.task_id)
-    assert snapshot["phase"] == "verifying"
+    assert snapshot["phase"] in {"verifying", "waiting_user"}
     assert snapshot["queue"]["state"] == "not_queued"
 
 

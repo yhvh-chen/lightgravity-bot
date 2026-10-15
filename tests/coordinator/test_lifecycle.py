@@ -36,7 +36,12 @@ async def test_single_execution_slot(store: FileStore) -> None:
                 break
             await asyncio.sleep(0.01)
         assert len(executor.requests) == 2
-        assert coordinator.status(second)["phase"] in {"executing", "verifying", "failed"}
+        assert coordinator.status(second)["phase"] in {
+            "executing",
+            "verifying",
+            "waiting_user",
+            "failed",
+        }
     finally:
         gate.set()
         await coordinator.stop()

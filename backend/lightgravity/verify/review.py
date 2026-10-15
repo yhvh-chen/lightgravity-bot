@@ -35,7 +35,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Protocol, runtime_checkable
+from typing import Any, Callable, Protocol, runtime_checkable
 
 from lightgravity.evidence import (
     EvidenceRefError,
@@ -132,6 +132,14 @@ class ReviewReport:
     unsubstantiated: tuple[str, ...] = ()
     reviewer: str = ""
     reason: str = ""
+    #: LG-017 R1 additive: ``program`` | ``model`` | ``unavailable`` — makes it
+    #: explicit whether this was a machine gate or a real independent review.
+    reviewer_kind: str = ""
+    #: LG-017 R1 additive: real model calls made by this review (0 for program).
+    model_calls: int = 0
+    #: LG-017 R1 additive: real usage counters; unknown counters are listed,
+    #: never zeroed.
+    usage: dict[str, Any] = field(default_factory=dict)
 
     @property
     def is_pass(self) -> bool:
@@ -157,6 +165,9 @@ class ReviewReport:
             "unsubstantiated": list(self.unsubstantiated),
             "reviewer": self.reviewer,
             "reason": self.reason,
+            "reviewer_kind": self.reviewer_kind,
+            "model_calls": self.model_calls,
+            "usage": dict(self.usage),
         }
 
     @classmethod
@@ -166,6 +177,8 @@ class ReviewReport:
             Finding.from_dict(item) for item in raw if isinstance(item, dict)
         ) if isinstance(raw, list) else ()
         unsub = data.get("unsubstantiated")
+        usage = data.get("usage")
+        model_calls = data.get("model_calls")
         return cls(
             outcome=str(data.get("outcome", REVIEW_UNAVAILABLE)),
             candidate_ref=str(data.get("candidate_ref", "")),
@@ -173,6 +186,9 @@ class ReviewReport:
             unsubstantiated=tuple(str(x) for x in unsub) if isinstance(unsub, list) else (),
             reviewer=str(data.get("reviewer", "")),
             reason=str(data.get("reason", "")),
+            reviewer_kind=str(data.get("reviewer_kind", "")),
+            model_calls=model_calls if isinstance(model_calls, int) and not isinstance(model_calls, bool) else 0,
+            usage=dict(usage) if isinstance(usage, dict) else {},
         )
 
 
@@ -315,6 +331,12 @@ def validate_findings(
         unsubstantiated=tuple(dropped),
         reviewer=report.reviewer,
         reason=report.reason,
+        # Preserve the reviewer identity/kind and real model usage through
+        # validation: dropping them would let a validated model review be
+        # recorded as if it were a program gate (or hide a real call).
+        reviewer_kind=report.reviewer_kind,
+        model_calls=report.model_calls,
+        usage=dict(report.usage),
     )
 
 
@@ -331,6 +353,7 @@ class ProgramReviewer:
     """
 
     name = "program-reviewer"
+    kind = "program"
 
     def __init__(self, registry: CheckRegistry | None = None) -> None:
         self._registry = registry or default_check_registry()
@@ -427,6 +450,7 @@ class UnavailableReviewer:
     """
 
     name = "unavailable"
+    kind = "unavailable"
 
     def review(self, context: ReviewContext) -> ReviewReport:
         return ReviewReport(
@@ -437,8 +461,411 @@ class UnavailableReviewer:
         )
 
 
+#: A model-backed review is a *single* bounded, tool-less turn.
+DEFAULT_REVIEW_MODEL_CALLS = 1
+DEFAULT_REVIEW_TIMEOUT_SECONDS = 120.0
+
+_REVIEW_SYSTEM_INSTRUCTIONS = (
+    "You are an independent QA reviewer for a delivery candidate. You did NOT "
+    "write this candidate and you cannot change it. You receive only a read-only "
+    "description of the candidate: the task title/objective/acceptance criteria, "
+    "the machine check results, and a bounded excerpt of each of the candidate's "
+    "real, resolvable evidence files. Decide whether the candidate satisfies the "
+    "acceptance criteria based on that material. You have no tools: you cannot "
+    "read further, write, run commands or browse. "
+    "Reply with a single JSON object and nothing else:\n"
+    '{"outcome": "passed"|"rework", "reason": string, '
+    '"findings": [{"finding_id": string, "severity": "blocking"|"advisory", '
+    '"summary": string, "evidence_ref": string, "rework_target": string, '
+    '"detail": string}]}\n'
+    "Every finding MUST cite an evidence_ref copied verbatim from the provided "
+    "evidence list; a finding that cites anything else is discarded and cannot "
+    "block or pass the candidate. If the provided material is insufficient to "
+    "substantiate a verdict, reply with outcome \"unavailable\" instead of "
+    "guessing. A 'passed' verdict means you examined the provided evidence and "
+    "found no blocking problem."
+)
+
+
+def _parse_review_json(text: str) -> dict[str, Any] | None:
+    """Extract one JSON object from a model reply (tolerating code fences)."""
+
+    if not isinstance(text, str) or not text.strip():
+        return None
+    candidate = text.strip()
+    if candidate.startswith("```"):
+        candidate = candidate.strip("`")
+        if candidate.lower().startswith("json"):
+            candidate = candidate[4:]
+    start = candidate.find("{")
+    end = candidate.rfind("}")
+    if start == -1 or end == -1 or end < start:
+        return None
+    import json
+
+    try:
+        parsed = json.loads(candidate[start : end + 1])
+    except ValueError:
+        return None
+    return parsed if isinstance(parsed, dict) else None
+
+
+@dataclass(frozen=True, slots=True)
+class ReviewerSupport:
+    """Resolved, non-secret configuration for a real model-backed review.
+
+    Built from the *reviewer* default connection pin + its `credential_ref`, so
+    the reviewer never shares the implementer's connection/session unless the
+    operator explicitly points them at the same connection.
+    """
+
+    model: str
+    base_url: str
+    credential_ref: str
+    backend: str = "openai-compat"
+
+    @property
+    def usable(self) -> bool:
+        return bool(self.model and self.base_url and self.credential_ref)
+
+
+def resolve_reviewer_support(connection_pin: Any) -> ReviewerSupport | None:
+    """Build :class:`ReviewerSupport` from a pinned reviewer connection."""
+
+    if connection_pin is None:
+        return None
+    try:
+        model = str(getattr(connection_pin, "model", "") or "")
+        base_url = str(getattr(connection_pin, "base_url", "") or "")
+        credential_ref = str(getattr(connection_pin, "credential_ref", "") or "")
+        backend = str(getattr(connection_pin, "backend", "") or "openai-compat")
+    except Exception:  # noqa: BLE001 - never raise at startup
+        return None
+    support = ReviewerSupport(
+        model=model, base_url=base_url, credential_ref=credential_ref, backend=backend
+    )
+    return support if support.usable else None
+
+
+#: Cap on how much of each evidence file the reviewer may read into its
+#: read-only prompt (keeps the context bounded and the model roughly honest).
+EVIDENCE_EXCERPT_BYTES = 2000
+
+
+def _evidence_digest(context: ReviewContext) -> str:
+    """Read-only, non-secret description of the candidate + its evidence.
+
+    Includes a bounded excerpt of each resolved evidence file so the reviewer
+    can substantiate a verdict from what was actually delivered (a bare ref list
+    is not enough for a content criterion).  Excerpts are truncated and never
+    include credential values.
+    """
+
+    candidate = context.candidate
+    task_entity: dict[str, Any] = {}
+    try:
+        task_entity = context.store.read("task", candidate.task_id).entity
+    except Exception:  # noqa: BLE001 - a missing task just means a thinner digest
+        task_entity = {}
+    lines = [
+        f"task_id: {candidate.task_id}",
+        f"run_id: {candidate.run_id}",
+        f"candidate_ref: {candidate.candidate_ref}",
+    ]
+    title = task_entity.get("title")
+    objective = task_entity.get("objective")
+    if isinstance(title, str) and title:
+        lines.append(f"title: {title}")
+    if isinstance(objective, str) and objective:
+        lines.append(f"objective: {objective}")
+    criteria = task_entity.get("acceptance_criteria")
+    if isinstance(criteria, list) and criteria:
+        lines.append("acceptance_criteria:")
+        lines.extend(f"- {item}" for item in criteria if isinstance(item, str))
+    check_records = candidate.check_records
+    if check_records:
+        lines.append("machine_checks:")
+        for record in check_records:
+            check_id = record.get("check_id") if isinstance(record, dict) else None
+            status = record.get("status") if isinstance(record, dict) else None
+            detail = record.get("detail") if isinstance(record, dict) else None
+            lines.append(f"- {check_id}: {status} {detail or ''}".rstrip())
+    lines.append(
+        "evidence (only these refs may be cited; a bounded excerpt of each is "
+        "shown):"
+    )
+    if context.resolved_evidence:
+        for ref, path in context.resolved_evidence.items():
+            lines.append(f"--- {ref} ---")
+            excerpt = _read_excerpt(path)
+            lines.append(excerpt if excerpt else "<unreadable>")
+    else:
+        lines.append("- <none resolved>")
+    return "\n".join(lines)
+
+
+def _read_excerpt(path: Path) -> str:
+    """Bounded, best-effort text excerpt of one evidence file (never raises)."""
+
+    try:
+        if not path.is_file():
+            return ""
+        raw = path.read_bytes()[:EVIDENCE_EXCERPT_BYTES]
+    except OSError:
+        return ""
+    try:
+        text = raw.decode("utf-8", "replace")
+    except Exception:  # noqa: BLE001 - decoding is best-effort
+        return ""
+    if len(raw) >= EVIDENCE_EXCERPT_BYTES:
+        text += "\n<truncated>"
+    return text
+
+
+class ModelReviewer:
+    """Real, minimal, controlled SDK reviewer (LG-017 R1).
+
+    Runs **one** tool-less turn on the *reviewer* default connection (via the
+    same loopback auth proxy the executor uses) with its own system instructions
+    and its own prompt built from the read-only candidate evidence digest.  It
+    never runs the executor, never reuses the implementer's session/context, and
+    never writes control state.
+
+    Its structured reply is parsed and then passed through
+    :func:`validate_findings`, so a model can never accept a candidate on its own
+    and a finding that does not cite resolvable candidate evidence is dropped.
+    If the connection/credential/SDK is unavailable, or the turn fails, it
+    returns an honest ``unavailable`` (never a fabricated pass) and records the
+    attempt in :attr:`last_usage`.
+    """
+
+    name = "model-reviewer"
+    kind = "model"
+
+    def __init__(
+        self,
+        support: ReviewerSupport,
+        credential_resolver: Callable[[str], Any],
+        *,
+        turn: Any | None = None,
+        timeout_seconds: float = DEFAULT_REVIEW_TIMEOUT_SECONDS,
+        max_model_calls: int = DEFAULT_REVIEW_MODEL_CALLS,
+    ) -> None:
+        self._support = support
+        self._resolve = credential_resolver
+        #: Injected turn (tests use a fake); ``None`` uses the real SDK turn.
+        self._turn = turn
+        self._timeout = timeout_seconds
+        self._max_calls = max_model_calls
+        self.model_calls = 0
+        self.last_usage: dict[str, Any] = {"unknown": ["usage"]}
+        self.last_error: str | None = None
+
+    @property
+    def support(self) -> ReviewerSupport:
+        return self._support
+
+    def available(self) -> bool:
+        if not self._support.usable:
+            return False
+        try:
+            return self._resolve(self._support.credential_ref) is not None
+        except Exception:  # noqa: BLE001 - resolution failure is a readiness gap
+            return False
+
+    def review(self, context: ReviewContext) -> ReviewReport:
+        candidate = context.candidate
+        self.last_error = None
+        if not self.available():
+            self.last_error = "reviewer connection/credential is not resolvable"
+            self.last_usage = {"unknown": ["usage"]}
+            return self._report(
+                REVIEW_UNAVAILABLE, candidate.candidate_ref, reason=self.last_error
+            )
+        declared = declared_path_refs(candidate)
+        if declared and not context.resolved_evidence:
+            self.last_error = "candidate declares path evidence but none resolves"
+            return self._report(
+                REVIEW_UNAVAILABLE, candidate.candidate_ref, reason=self.last_error
+            )
+        prompt = (
+            "Review the following candidate. Cite only the evidence refs listed.\n\n"
+            + _evidence_digest(context)
+        )
+        self.model_calls += 1
+        try:
+            raw_text, usage = self._run_turn(prompt)
+        except Exception as exc:  # noqa: BLE001 - a failed turn is unavailable
+            self.last_error = f"reviewer turn raised {type(exc).__name__}: {exc}"
+            self.last_usage = {"unknown": ["usage"]}
+            return self._report(
+                REVIEW_UNAVAILABLE, candidate.candidate_ref, reason=self.last_error
+            )
+        self.last_usage = usage or {"unknown": ["usage"]}
+        parsed = _parse_review_json(raw_text or "")
+        if parsed is None:
+            self.last_error = "reviewer reply was not a single JSON object"
+            return self._report(
+                REVIEW_UNAVAILABLE, candidate.candidate_ref, reason=self.last_error
+            )
+        outcome = str(parsed.get("outcome", "")).strip().lower()
+        if outcome not in {REVIEW_PASSED, REVIEW_REWORK, REVIEW_UNAVAILABLE}:
+            self.last_error = f"reviewer returned an unknown outcome {outcome!r}"
+            return self._report(
+                REVIEW_UNAVAILABLE, candidate.candidate_ref, reason=self.last_error
+            )
+        findings_raw = parsed.get("findings")
+        findings: tuple[Finding, ...] = ()
+        if isinstance(findings_raw, list):
+            findings = tuple(
+                Finding.from_dict(item)
+                for item in findings_raw
+                if isinstance(item, dict)
+            )
+        return self._report(
+            outcome,
+            candidate.candidate_ref,
+            findings=findings,
+            reason=str(parsed.get("reason", "")),
+        )
+
+    def _report(
+        self,
+        outcome: str,
+        candidate_ref: str,
+        *,
+        findings: tuple[Finding, ...] = (),
+        reason: str = "",
+    ) -> ReviewReport:
+        """Build a report stamped with the real reviewer identity + usage.
+
+        Stamping happens here (not just in the orchestrator) so a directly
+        called reviewer still reports its kind/calls/usage honestly.
+        """
+
+        return ReviewReport(
+            outcome=outcome,
+            candidate_ref=candidate_ref,
+            findings=findings,
+            reviewer=self.name,
+            reason=reason,
+            reviewer_kind=self.kind,
+            model_calls=self.model_calls,
+            usage=dict(self.last_usage),
+        )
+
+    def _run_turn(self, prompt: str) -> tuple[str | None, dict[str, Any]]:
+        if self._turn is not None:
+            return self._turn(prompt)
+        return run_review_turn(
+            self._support,
+            self._resolve,
+            prompt,
+            timeout_seconds=self._timeout,
+            max_model_calls=self._max_calls,
+        )
+
+
+def run_review_turn(
+    support: ReviewerSupport,
+    credential_resolver: Callable[[str], Any],
+    prompt: str,
+    *,
+    timeout_seconds: float = DEFAULT_REVIEW_TIMEOUT_SECONDS,
+    max_model_calls: int = DEFAULT_REVIEW_MODEL_CALLS,
+) -> tuple[str | None, dict[str, Any]]:
+    """One real, tool-less SDK turn on the reviewer connection.
+
+    Reuses the pinned SDK (``LocalOpenAIAgentConfig`` + loopback auth proxy)
+    already used by the executor/dialogue; no second SDK and no second secret
+    path are introduced.  Returns ``(text, usage)``; raises only on a setup
+    error so the caller can classify it as ``unavailable``.  The credential value
+    is never logged or serialized.
+    """
+
+    import asyncio
+
+    import google.antigravity as ag
+    from google.antigravity import Agent
+    from google.antigravity import types
+
+    from ..adapter.proxy import LocalAuthProxy, upstream_chat_completions
+
+    credential = credential_resolver(support.credential_ref)
+    if credential is None:
+        return None, {"unknown": ["usage"]}
+
+    proxy = LocalAuthProxy(
+        credential=credential,
+        upstream_url=upstream_chat_completions(support.base_url),
+        max_calls=max_model_calls,
+    )
+    agent = None
+    try:
+        proxy.start()
+        capabilities = types.CapabilitiesConfig(enabled_tools=[], enable_subagents=False)
+        config = ag.LocalOpenAIAgentConfig(
+            base_url=proxy.base_url,
+            model=support.model,
+            system_instructions=_REVIEW_SYSTEM_INSTRUCTIONS,
+            capabilities=capabilities,
+            workspaces=None,
+        )
+
+        async def _turn() -> tuple[str, dict[str, Any]]:
+            nonlocal agent
+            agent = Agent(config)
+            await agent.__aenter__()
+            response = await asyncio.wait_for(
+                agent.chat(prompt), timeout=timeout_seconds
+            )
+            chunks = []
+            async for chunk in response.chunks:
+                chunks.append(chunk)
+            text = "".join(
+                chunk.text for chunk in chunks if isinstance(chunk, types.Text)
+            ).strip()
+            usage = _usage_from_response(response)
+            return text, usage
+
+        return asyncio.run(_turn())
+    finally:
+        if agent is not None:
+            try:
+                asyncio.run(agent.__aexit__(None, None, None))
+            except Exception:  # noqa: BLE001 - best-effort teardown
+                pass
+        try:
+            proxy.stop()
+        except Exception:  # noqa: BLE001 - stop confirmation is best effort
+            pass
+
+
+def _usage_from_response(response: Any) -> dict[str, Any]:
+    """Extract real usage counters; unknown counters are listed, never zeroed."""
+
+    usage_obj = getattr(response, "usage", None)
+    if usage_obj is None:
+        return {"unknown": ["usage"]}
+    mapping = usage_obj.to_dict() if hasattr(usage_obj, "to_dict") else None
+    if not isinstance(mapping, dict):
+        fields = {
+            key: getattr(usage_obj, key, None)
+            for key in ("prompt_tokens", "candidates_tokens", "total_tokens")
+        }
+        mapping = {k: v for k, v in fields.items() if v is not None}
+    unknown = [key for key, value in mapping.items() if value is None]
+    result = {key: value for key, value in mapping.items() if value is not None}
+    if unknown:
+        result["unknown"] = unknown
+    return result or {"unknown": ["usage"]}
+
+
 __all__ = [
+    "DEFAULT_REVIEW_MODEL_CALLS",
+    "DEFAULT_REVIEW_TIMEOUT_SECONDS",
     "Finding",
+    "ModelReviewer",
     "ProgramReviewer",
     "REVIEW_PASSED",
     "REVIEW_REWORK",
@@ -446,6 +873,7 @@ __all__ = [
     "ReviewContext",
     "ReviewReport",
     "Reviewer",
+    "ReviewerSupport",
     "SEV_ADVISORY",
     "SEV_BLOCKING",
     "UnavailableReviewer",

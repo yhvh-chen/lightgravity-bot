@@ -213,6 +213,8 @@ __all__ = [
     "make_stub_app",
     "settle_task",
     "wait_for_phase",
+    "wire_program_reviewer",
+    "wire_scripted_reviewer",
 ]
 
 
@@ -271,6 +273,45 @@ def make_stub_app(settings: Settings, **dispatcher_kwargs: object) -> FastAPI:
         settings,
         dispatcher=dispatcher,
         access_policy=LocalAccessPolicy(allow_sensitive_without_token=True),
+    )
+
+
+def wire_program_reviewer(app: Any) -> None:
+    """Wire the deterministic *machine-gate* reviewer onto an app's coordinator.
+
+    LG-017 R1: the honest default is ``UnavailableReviewer`` (no real reviewer ->
+    no acceptance).  Tests that only want to exercise the auto-verify/acceptance
+    path opt in to the deterministic program reviewer explicitly, so a
+    program-only machine gate is never silently presented as independent QA.
+    """
+
+    from lightgravity.verify.review import ProgramReviewer
+    from lightgravity.verify.rework import ReworkOrchestrator
+
+    coordinator = app.state.coordinator
+    coordinator.set_rework(
+        ReworkOrchestrator(
+            app.state.store,
+            reviewer=ProgramReviewer(),
+            spawner=coordinator,
+            actor="review",
+        )
+    )
+
+
+def wire_scripted_reviewer(app: Any, reviewer: Any) -> None:
+    """Wire an arbitrary reviewer (e.g. a scripted pass) onto the coordinator."""
+
+    from lightgravity.verify.rework import ReworkOrchestrator
+
+    coordinator = app.state.coordinator
+    coordinator.set_rework(
+        ReworkOrchestrator(
+            app.state.store,
+            reviewer=reviewer,
+            spawner=coordinator,
+            actor="review",
+        )
     )
 
 

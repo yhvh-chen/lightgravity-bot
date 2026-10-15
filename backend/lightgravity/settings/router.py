@@ -80,6 +80,9 @@ class SettingsUpdateRequest(BaseModel):
     expected_revision: int | None = None
     default_coordinator_connection_ref: str | None = None
     default_worker_connection_ref: str | None = None
+    #: LG-017 additive: set the independent reviewer's default connection
+    #: (``null`` clears it, so the runtime reports ``unavailable``).
+    default_reviewer_connection_ref: str | None = None
 
 
 class ConnectionTestRequest(BaseModel):
