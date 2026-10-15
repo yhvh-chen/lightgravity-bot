@@ -148,6 +148,7 @@ class GraphDispatcher:
         workspaces: "WorkspaceProvider | None" = None,
         collaboration: Any | None = None,
         grant_registry: Any | None = None,
+        autonomous_claim: bool = False,
     ) -> None:
         if max_parallel < 1:
             raise ValueError("max_parallel must be >= 1")
@@ -193,6 +194,13 @@ class GraphDispatcher:
         #: execution grant for each node.
         self._collaboration = collaboration
         self._grant_registry = grant_registry
+        #: LG-031 R1 additive: when true (and the decentralized path is enabled)
+        #: the graph does **not** pre-claim a node on the worker's behalf.  It
+        #: mints a discovery-only *pool* grant and attaches the restricted
+        #: discover/claim tool, so the worker itself proposes the claim and the
+        #: program authenticates/validates/grants atomically.  Default ``False``
+        #: keeps the exact prior behavior (program pre-claims per node).
+        self._autonomous_claim = autonomous_claim
         #: node key -> (grant token, subtask id) for explicit revocation on stop.
         self._node_grants: dict[str, tuple[str, str]] = {}
 
@@ -886,7 +894,13 @@ class GraphDispatcher:
             reason="dependencies satisfied",
         )
         grant_token: str | None = None
-        if self._decentralized_enabled():
+        autonomous = self._decentralized_enabled() and self._autonomous_claim
+        if autonomous:
+            # R1: the worker itself proposes the claim through the restricted
+            # discover/claim tool; the program only freezes a discovery-only
+            # pool identity here (never a node lease and never a global token).
+            grant_token = self._mint_pool_grant(node, context)
+        elif self._decentralized_enabled():
             acquired, grant_token, reason = self._claim_decentralized(node, context)
             if not acquired:
                 return self._fail_node(
@@ -911,6 +925,19 @@ class GraphDispatcher:
             return self._fail_node(node, controller, code="config_invalid", message=drift)
 
         request = self._build_request(node, context, upstream, grant_token=grant_token)
+        if autonomous:
+            # Autonomous workers must have actually claimed through the tool
+            # before their result can be admitted; a worker that never claims
+            # cannot pass (program-authority, not model self-report).
+            if self._node_grants.get(node.key) is None:
+                self._revoke_if_pool(node.key, grant_token)
+                self._release_node(node, claimer)
+                return self._fail_node(
+                    node,
+                    controller,
+                    code="lock_conflict",
+                    message="autonomous worker did not claim an authorized node",
+                )
         run_id = context.run_id
         task = asyncio.ensure_future(self._executor.execute(request, emit))
         self._inflight.setdefault(run_id, set()).add(task)
@@ -1009,7 +1036,135 @@ class GraphDispatcher:
 
             registry = default_registry()
         registry.revoke_token(token)
-        self._node_grants.pop(key, None)
+        # Also revoke a node grant minted by an autonomous claim tool for this
+        # node, so no worker identity outlives its execution.
+        node_grant = self._node_grants.pop(key, None)
+        if node_grant is not None:
+            registry.revoke_token(node_grant[0])
+
+    def _revoke_if_pool(self, key: str, token: str | None) -> None:
+        if token is not None:
+            self._revoke_grant(key, token)
+
+    def _mint_pool_grant(self, node: _Node, context: DispatchContext) -> str:
+        """Mint a **discovery-only** pool identity for one autonomous worker.
+
+        It authorizes requesting a claim (never a node lease, never a global
+        token) and lists the nodes this worker may see; the program upgrades it
+        to a node grant at claim time.
+        """
+
+        from lightgravity.collaboration import default_registry
+
+        registry = self._grant_registry or default_registry()
+        collab = self._collaboration
+        visible: frozenset[str] = frozenset()
+        if collab is not None:
+            view = collab.discover(context.run_id, self._owner)
+            visible = frozenset(candidate.subtask_id for candidate in view.candidates)
+        token, _grant = registry.mint(
+            task_id=context.task_id,
+            run_id=context.run_id,
+            subtask_id=node.subtask_id,
+            member_ref=node.member_id,
+            fence=0,
+            authorized_node_refs=visible,
+            max_collab_calls=int(context.budget.get("max_collab_requests", 0) or 0),
+            budget_remaining=None,
+            ttl_seconds=max(60, int(self._lease_seconds) * 2),
+            origin="graph-dispatcher:autonomous-pool",
+            kind="pool",
+        )
+        return token
+
+    def _claim_for_worker(
+        self, node: _Node, context: DispatchContext, node_ref: str, request_id: str
+    ) -> dict[str, Any]:
+        """Program-side handler for an autonomous claim proposal.
+
+        Re-authenticates by construction (this is the program, not the model),
+        validates the requested node, atomically grants the lease/fence through
+        the frozen authority and mints the worker's **node** grant.  A refusal is
+        returned as a definite machine receipt; nothing is granted on a partial
+        check.
+        """
+
+        from lightgravity.collaboration import ClaimRequest, default_registry
+
+        collab = self._collaboration
+        if collab is None:
+            return {"granted": False, "reason": "feature_disabled"}
+        decision = collab.request_claim(
+            context.run_id,
+            ClaimRequest(
+                subtask_id=node_ref,
+                owner=self._owner,
+                request_id=request_id,
+                lease_seconds=self._lease_seconds,
+                capability=node.spec.capability,
+            ),
+            allow_write=True,
+            dependencies_ready=True,
+            capability_ok=True,
+        )
+        if not decision.granted:
+            return {
+                "granted": False,
+                "reason": decision.reason,
+                "request_id": decision.request_id,
+            }
+        registry = self._grant_registry or default_registry()
+        granted_ids = frozenset(
+            candidate.subtask_id
+            for candidate in collab.discover(context.run_id, self._owner).candidates
+        )
+        node_token, _grant = registry.mint(
+            task_id=context.task_id,
+            run_id=context.run_id,
+            subtask_id=node_ref,
+            member_ref=node.member_id,
+            fence=decision.fence,
+            authorized_node_refs=granted_ids,
+            max_collab_calls=int(context.budget.get("max_collab_requests", 0) or 0),
+            budget_remaining=decision.fence,
+            ttl_seconds=max(60, int(self._lease_seconds) * 2),
+            origin="graph-dispatcher:autonomous-claim",
+        )
+        self._node_grants[node.key] = (node_token, node_ref)
+        return {
+            "granted": True,
+            "reason": decision.reason,
+            "fence": decision.fence,
+            "lease_expires_at": decision.lease_expires_at,
+            "request_id": decision.request_id,
+        }
+
+    def _claim_tools_for(
+        self, node: _Node, context: DispatchContext, token: str | None
+    ) -> tuple[Any, ...]:
+        """Build the worker-facing discover/claim tool for autonomous mode."""
+
+        if token is None or not self._decentralized_enabled() or not self._autonomous_claim:
+            return ()
+        from lightgravity.collaboration import default_registry, make_restricted_claim_tool
+
+        collab = self._collaboration
+        registry = self._grant_registry or default_registry()
+
+        def discover() -> Any:
+            assert collab is not None
+            return collab.discover(context.run_id, self._owner)
+
+        def claim_callback(node_ref: str, request_id: str) -> Any:
+            return self._claim_for_worker(node, context, node_ref, request_id)
+
+        tool = make_restricted_claim_tool(
+            registry=registry,
+            token=token,
+            discover=discover,
+            claim_callback=claim_callback,
+        )
+        return (tool,)
 
     def _peer_tools_for(self, node: _Node, context: DispatchContext, token: str | None) -> tuple[Any, ...]:
         """Build the minimal restricted peer tool bound to this node's grant.
@@ -1357,7 +1512,10 @@ class GraphDispatcher:
             conversation_id=conversation_id,
             continuation_mode=continuation_mode,
             execution_grant=grant_token,
-            custom_tools=self._peer_tools_for(node, context, grant_token),
+            custom_tools=(
+                *self._claim_tools_for(node, context, grant_token),
+                *self._peer_tools_for(node, context, grant_token),
+            ),
         )
 
     def _config_drift(self, node: _Node, context: DispatchContext) -> str | None:

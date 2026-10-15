@@ -1,0 +1,198 @@
+{
+  "autonomous_claim_tool_calls": 6,
+  "candidate_evidence": [
+    "out/result.txt"
+  ],
+  "distinct_nodes_claimed": [
+    "subtask_01M500JS5BC9Y2GRAVHBVRTHZ5",
+    "subtask_01M500JS5BP4SMZJ3XXF8DF2DA"
+  ],
+  "each_worker_claimed_a_node": true,
+  "max_real_calls_budget": 3,
+  "nodes_claimed": [
+    "subtask_01M500JS5BC9Y2GRAVHBVRTHZ5",
+    "subtask_01M500JS5BP4SMZJ3XXF8DF2DA"
+  ],
+  "real_call_estimate": 3,
+  "real_workers": 2,
+  "review": {
+    "findings": [],
+    "model_calls": 1,
+    "outcome": "unavailable",
+    "reason": "The evidence list is empty ('<none resolved>') \u2014 no resolvable evidence files were provided for this candidate. The sole acceptance criterion requires verifying that out/result.txt exists and contains 'hello review', and no machine check results or evidence excerpts were supplied to substantiate or refute that claim. Without any citable evidence_ref, no blocking or passing determination can be made.",
+    "requested_model": "deepseek-v4-flash",
+    "resolved_evidence": [],
+    "reviewer_kind": "model",
+    "status": "ran",
+    "unsubstantiated": [],
+    "usage": {
+      "unknown": [
+        "usage"
+      ]
+    },
+    "validated_outcome": "unavailable"
+  },
+  "status": "ran",
+  "workers": [
+    {
+      "claim_tool_calls": [
+        {
+          "args": {
+            "node_ref": null
+          },
+          "result": {
+            "candidates": [
+              "subtask_01M500JS5BC9Y2GRAVHBVRTHZ5"
+            ]
+          }
+        },
+        {
+          "args": {
+            "node_ref": null
+          },
+          "result": {
+            "candidates": [
+              "subtask_01M500JS5BC9Y2GRAVHBVRTHZ5"
+            ]
+          }
+        },
+        {
+          "args": {
+            "node_ref": "subtask_01M500JS5BC9Y2GRAVHBVRTHZ5",
+            "request_id": "claim_ae74dd36e3010807"
+          },
+          "result": {
+            "fence": 1,
+            "granted": true,
+            "reason": "granted"
+          }
+        }
+      ],
+      "elapsed_seconds": 3.64,
+      "failure": {
+        "code": "execution_error",
+        "message": "AntigravityExecutionError: HTTP request failed with status 429: {\"error\":{\"message\":\"local auth proxy call budget exhausted\"}}"
+      },
+      "granted": {
+        "fence": 1,
+        "node_ref": "subtask_01M500JS5BC9Y2GRAVHBVRTHZ5",
+        "token": true
+      },
+      "member_ref": "member-a",
+      "model_events": [
+        "adapter.session_requested",
+        "adapter.session_started",
+        "adapter.tool_call",
+        "adapter.tool_call"
+      ],
+      "pool_grant_redacted": {
+        "authorized_node_refs": [
+          "subtask_01M500JS5BC9Y2GRAVHBVRTHZ5"
+        ],
+        "budget_remaining": null,
+        "claims_granted": 1,
+        "collab_calls": 0,
+        "fence": 0,
+        "grant_id": "grant_d9a9af641b70e7d3",
+        "kind": "pool",
+        "max_collab_calls": 4,
+        "member_ref": "member-a",
+        "origin": "probe-dispatcher",
+        "run_id": "run_01M500JS5B4QZAF09N88Q0DXP5",
+        "subtask_id": "pool-member-a",
+        "task_id": "probe-task"
+      },
+      "state": "failed",
+      "stop_confirmed": null,
+      "stop_reason": "StopReason.UNSPECIFIED",
+      "usage": {
+        "cached_tokens": 3200,
+        "candidates_tokens": 163,
+        "prompt_tokens": 6704,
+        "thought_tokens": 13,
+        "total_tokens": 6880,
+        "unknown": []
+      }
+    },
+    {
+      "claim_tool_calls": [
+        {
+          "args": {
+            "node_ref": null
+          },
+          "result": {
+            "candidates": [
+              "subtask_01M500JS5BP4SMZJ3XXF8DF2DA"
+            ]
+          }
+        },
+        {
+          "args": {
+            "node_ref": null
+          },
+          "result": {
+            "candidates": [
+              "subtask_01M500JS5BP4SMZJ3XXF8DF2DA"
+            ]
+          }
+        },
+        {
+          "args": {
+            "node_ref": "subtask_01M500JS5BP4SMZJ3XXF8DF2DA",
+            "request_id": "req_01M500JS5BP4SMZJ3XXF8DF2DA"
+          },
+          "result": {
+            "fence": 1,
+            "granted": true,
+            "reason": "granted"
+          }
+        }
+      ],
+      "elapsed_seconds": 2.98,
+      "failure": {
+        "code": "execution_error",
+        "message": "AntigravityExecutionError: HTTP request failed with status 429: {\"error\":{\"message\":\"local auth proxy call budget exhausted\"}}"
+      },
+      "granted": {
+        "fence": 1,
+        "node_ref": "subtask_01M500JS5BP4SMZJ3XXF8DF2DA",
+        "token": true
+      },
+      "member_ref": "member-b",
+      "model_events": [
+        "adapter.session_requested",
+        "adapter.session_started",
+        "adapter.tool_call",
+        "adapter.tool_call"
+      ],
+      "pool_grant_redacted": {
+        "authorized_node_refs": [
+          "subtask_01M500JS5BP4SMZJ3XXF8DF2DA"
+        ],
+        "budget_remaining": null,
+        "claims_granted": 1,
+        "collab_calls": 0,
+        "fence": 0,
+        "grant_id": "grant_a60051c5f3a8aabd",
+        "kind": "pool",
+        "max_collab_calls": 4,
+        "member_ref": "member-b",
+        "origin": "probe-dispatcher",
+        "run_id": "run_01M500JS5B4QZAF09N88Q0DXP5",
+        "subtask_id": "pool-member-b",
+        "task_id": "probe-task"
+      },
+      "state": "failed",
+      "stop_confirmed": null,
+      "stop_reason": "StopReason.UNSPECIFIED",
+      "usage": {
+        "cached_tokens": 3200,
+        "candidates_tokens": 201,
+        "prompt_tokens": 6705,
+        "thought_tokens": 17,
+        "total_tokens": 6923,
+        "unknown": []
+      }
+    }
+  ]
+}
