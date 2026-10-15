@@ -135,6 +135,12 @@ class ErrorCode(StrEnum):
     BUDGET_EXHAUSTED = "budget_exhausted"
     CAPABILITY_UNAVAILABLE = "capability_unavailable"
     INTERNAL_ERROR = "internal_error"
+    # Additive, frozen-but-unimplemented codes (docs/08 §13 1.6.0).
+    STALE_LEASE = "stale_lease"
+    CLAIM_REFUSED = "claim_refused"
+    SOURCE_CONFLICT = "source_conflict"
+    SOURCE_STALE = "source_stale"
+    INDEX_UNAVAILABLE = "index_unavailable"
 
 
 class EventType(StrEnum):
@@ -160,6 +166,26 @@ class EventType(StrEnum):
     CLEANUP_UPDATED = "cleanup.updated"
     NOTIFICATION_CREATED = "notification.created"
     ERROR_RECORDED = "error.recorded"
+    # Additive, frozen-but-unimplemented event types (docs/08 §13 1.6.0).
+    SUBTASK_LEASE_GRANTED = "subtask.lease_granted"
+    SUBTASK_LEASE_RENEWED = "subtask.lease_renewed"
+    SUBTASK_LEASE_EXPIRED = "subtask.lease_expired"
+    SUBTASK_LEASE_REVOKED = "subtask.lease_revoked"
+    SUBTASK_CLAIM_REFUSED = "subtask.claim_refused"
+    COLLAB_REQUESTED = "collab.requested"
+    COLLAB_RESOLVED = "collab.resolved"
+    HANDOFF_PRODUCED = "handoff.produced"
+    HANDOFF_REJECTED = "handoff.rejected"
+    SOURCE_RECEIVED = "source.received"
+    SOURCE_VERSION_CHANGED = "source.version_changed"
+    SOURCE_ATTRIBUTED = "source.attributed"
+    SOURCE_INDEXED = "source.indexed"
+    SOURCE_INVALIDATED = "source.invalidated"
+    SOURCE_DELETED = "source.deleted"
+    INTAKE_STAGE_CHANGED = "intake.stage_changed"
+    INTAKE_RECEIPT = "intake.receipt"
+    INTAKE_FAILED = "intake.failed"
+    INTAKE_CANCELLED = "intake.cancelled"
 
 
 __all__ = [

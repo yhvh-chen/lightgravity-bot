@@ -7,10 +7,10 @@ updated: "2026-10-15"
 
 # 资料接入与检索设计（方向已确认，待实现）
 
-> 性质：**方向已确认的待实现设计**。本文记录用户已确认的接入与检索方向，供后续实现引用；
-> **不代表任何功能已实现**，也不冻结接口。API、schema、事件、实体与状态枚举**均未冻结**，
-> 实现前必须按 [首版接口与状态契约](08-interface-contract.md) 第 13 节先冻结接口并按变更控制升版。
-> 现阶段不新增 API/枚举、不升级 `CONTRACT_VERSION`、不改变 `docs/08` 既有端点语义。
+> 性质：**方向已确认、接口已按 docs/08 1.6.0 加性冻结（仍待实现）**。本文记录用户已确认的接入与检索方向，供后续实现引用；
+> **不代表任何功能已实现**。API、schema、事件、实体与状态枚举已在 [首版接口与状态契约](08-interface-contract.md)
+> `1.6.0`（2026-10-16）MINOR 加性冻结（§4.3 端点、§5.1 事件、§6.6 实体），但**仅冻结接口、尚未实现**；
+> 实现前不得先于该版契约扩展语义。集中 QA 归 LG-040。
 >
 > 现有 Files 上传/下载 API 与 UI 是**历史实现**（`docs/08` §4.3 已登记的
 > `POST /files/upload`、`GET /files/download`，[frontend/src/views/files/FilesView.tsx](../frontend/src/views/files/FilesView.tsx)、

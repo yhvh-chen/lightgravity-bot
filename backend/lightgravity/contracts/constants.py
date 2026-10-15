@@ -3,7 +3,22 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
-#: docs/08 §13: 1.5.0 (2026-10-15) registers LG-020's additive, non-secret
+#: docs/08 §13: 1.6.0 (2026-10-16) is the single-owner serial freeze of two
+#: NOT-YET-IMPLEMENTED lines.  LG-028 (decentralized collaboration) adds the
+#: additive optional Subtask ``fence`` field plus lease/fencing/expiry semantics,
+#: discovery/claim/renew/release/collab endpoints, ``subtask.lease_*`` /
+#: ``collab.*`` / ``handoff.*`` events, ``stale_lease``/``claim_refused`` error
+#: codes, and default-off switches ``decentralized_claim_enabled`` /
+#: ``collab_requests_enabled`` / ``claim_lease_seconds``.  LG-033 (source intake
+#: and retrieval) adds the ``source``/``intake_job`` entities, ``sources`` /
+#: ``intake`` / ``search`` / ``inbox`` endpoints, ``source.*``/``intake.*``
+#: events, and ``source_conflict``/``source_stale``/``index_unavailable`` error
+#: codes.  Everything is additive and optional: existing state/phase/acceptance
+#: enums, transitions, endpoints and error-code semantics are unchanged, and the
+#: decentralized path defaults off.  The new endpoints/entities are frozen
+#: interfaces only (NOT implemented).  Full checkpoint skip remains unimplemented.
+#:
+#: 1.5.0 (2026-10-15) registers LG-020's additive, non-secret
 #: ``connection_pin`` field on Run and Member entities.  It records the default
 #: worker connection (ref + revision + content_hash + opaque
 #: ``credential_version``) resolved when a Run recruits its team, so a later
@@ -32,7 +47,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.5.0"
+CONTRACT_VERSION = "1.6.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

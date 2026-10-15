@@ -25,6 +25,11 @@ ERROR_HTTP_STATUS: dict[ErrorCode, int] = {
     ErrorCode.BUDGET_EXHAUSTED: 429,
     ErrorCode.CAPABILITY_UNAVAILABLE: 503,
     ErrorCode.INTERNAL_ERROR: 500,
+    ErrorCode.STALE_LEASE: 409,
+    ErrorCode.CLAIM_REFUSED: 409,
+    ErrorCode.SOURCE_CONFLICT: 409,
+    ErrorCode.SOURCE_STALE: 409,
+    ErrorCode.INDEX_UNAVAILABLE: 503,
 }
 
 #: Whether a client may reasonably retry after a short backoff (docs/08 §4.2).
@@ -45,6 +50,11 @@ ERROR_RETRYABLE: dict[ErrorCode, bool] = {
     ErrorCode.BUDGET_EXHAUSTED: False,
     ErrorCode.CAPABILITY_UNAVAILABLE: True,
     ErrorCode.INTERNAL_ERROR: False,
+    ErrorCode.STALE_LEASE: False,
+    ErrorCode.CLAIM_REFUSED: False,
+    ErrorCode.SOURCE_CONFLICT: False,
+    ErrorCode.SOURCE_STALE: False,
+    ErrorCode.INDEX_UNAVAILABLE: True,
 }
 
 

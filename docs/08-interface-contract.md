@@ -2,15 +2,15 @@
 title: "首版接口与状态契约（v1）"
 doc_type: specification
 category: architecture
-contract_version: "1.5.0"
-updated: "2026-10-15"
+contract_version: "1.6.0"
+updated: "2026-10-16"
 ---
 
 # 首版接口与状态契约（v1）
 
 > 性质：LG-001 冻结的候选实现契约。它把 [产品与架构设计](01-design.md)、[Task 与 SDK 资源契约](02-task-and-sdk-resources.md)、[Bot 行为契约](04-bot-behavior.md)、[SDK 能力审计](03-sdk-capability-audit.md)、[导航设计](05-navigation-and-team.md)、[模型设置](07-settings-and-models.md) 收敛到可实现的接口与状态边界，不新增产品能力，也不代表功能已实现或经过运行时验证。
 >
-> 契约版本 `1.5.0`（2026-10-15 MINOR：登记 LG-020 的**加性、非秘密**字段 `connection_pin`（Run 与 Member 实体，§6.2、§6.4），用于在 Run 招募时冻结默认 worker 连接（ref + revision + content_hash + 不透明 `credential_version`），使活跃 Run 内默认连接或凭证轮换不得在下一 Subtask 静默换用（漂移按 `config_invalid` 失败，新 Run 重新解析）；**不落盘任何秘密**，既有端点语义、错误码、事件类型、枚举与状态迁移均未变化，向后兼容。此前 `1.4.0`（2026-10-15 MINOR：登记 LG-015 Team/Resources 的**加性**受控写入端点 `PATCH /resources/{kind}/{id}`、只读端点 `GET /team/available`/`GET /team/members`，以及 Task 消息信封新增可选字段 `resource_proposal` 与回写 `resource_result.status`（§4.3、§5.2），用于把有界资源修改提议经 Task 对话由协调器程序校验后调用 `ResourceService.update`；**既有端点语义、错误码、事件类型、枚举与状态迁移均未变化**，向后兼容）；此前 `1.3.1`（2026-10-15 PATCH：将 `1.3.0` 登记的 `POST /files/upload`/`GET /files/download` 由 **planned** 标记为**已实现**（§4.3，revision 语义与外部改动复核限制见该节），并明确机器检查证据引用的解析语义——workspace 相对引用仅按授权 workspace 根解析，executor 产物证据由协调器导入 Task/Run 拥有的 evidence 根并以 `evidence:<run_id>/<name>@sha256:<hex>` 规范化解析，原始绝对路径一律拒绝）；此前 `1.3.0` 登记 LG-009 的加性 Task `checks` 授权字段与 `acceptance` 绑定字段 `candidate_ref`/`candidate_plan_hash`/`check_records`/`note`（§6.1），新增只读端点 `GET /tasks/{task_id}/acceptance`、LG-025 设置端点 `GET /settings/connections/{id}` 与 `PATCH /settings`、全局对话 `GET/POST /conversations/global/messages`（§4.3、§5.2）；`1.2.0` 登记 LG-008 自动组队与依赖调度使用的加性实体字段——Run `plan`/`plan_hash`/`plan_source`，Subtask `objective`/`capability`/`key`/`write`/`config_hash`/`owner`/`lease_expires_at`/`fail_reason`/`blocked_by`，见 §6.2、§6.3；`1.1.0` 明确首版唯一真实执行后端为已验收的 OpenAI-compatible `LocalOpenAIAgentConfig` → DeepSeek 路径并补充本地认证代理与凭证边界，见 §8.1；变更记录见第 13 节）。实体 schema 命名空间 `lightgravity.bot/v1`；HTTP API 前缀 `/api/v1`。变更规则见第 13 节。实现与本文冲突时以本文为准；本文未定义的行为一律视为“不支持”，实现不得自行扩展语义。运行时未知字段按“保留但不赋予执行语义”处理。
+> 契约版本 `1.6.0`（2026-10-16 MINOR：串行冻结 LG-028 去中心化协作与 LG-033 资料摄取/检索两条**尚未实现**的新线契约，全部为**加性可选**字段、端点、事件与错误码，**默认关闭**且不改变既有 `state`/`phase` 枚举、迁移方向与错误码语义；`fence`、`claim_request`/`collab_request`、`source`/`intake_job` 及相应端点/事件/错误码**仅冻结接口，不代表已实现或可用**；去中心化版本（LG-032）与资料版本（LG-040）集中 QA 前不得宣称通过，见 §4.3、§5.1、§6.2、§6.3、§6.6、§13）。此前 `1.5.0`（2026-10-15 MINOR：登记 LG-020 的**加性、非秘密**字段 `connection_pin`（Run 与 Member 实体，§6.2、§6.4），用于在 Run 招募时冻结默认 worker 连接（ref + revision + content_hash + 不透明 `credential_version`），使活跃 Run 内默认连接或凭证轮换不得在下一 Subtask 静默换用（漂移按 `config_invalid` 失败，新 Run 重新解析）；**不落盘任何秘密**，既有端点语义、错误码、事件类型、枚举与状态迁移均未变化，向后兼容。此前 `1.4.0`（2026-10-15 MINOR：登记 LG-015 Team/Resources 的**加性**受控写入端点 `PATCH /resources/{kind}/{id}`、只读端点 `GET /team/available`/`GET /team/members`，以及 Task 消息信封新增可选字段 `resource_proposal` 与回写 `resource_result.status`（§4.3、§5.2），用于把有界资源修改提议经 Task 对话由协调器程序校验后调用 `ResourceService.update`；**既有端点语义、错误码、事件类型、枚举与状态迁移均未变化**，向后兼容）；此前 `1.3.1`（2026-10-15 PATCH：将 `1.3.0` 登记的 `POST /files/upload`/`GET /files/download` 由 **planned** 标记为**已实现**（§4.3，revision 语义与外部改动复核限制见该节），并明确机器检查证据引用的解析语义——workspace 相对引用仅按授权 workspace 根解析，executor 产物证据由协调器导入 Task/Run 拥有的 evidence 根并以 `evidence:<run_id>/<name>@sha256:<hex>` 规范化解析，原始绝对路径一律拒绝）；此前 `1.3.0` 登记 LG-009 的加性 Task `checks` 授权字段与 `acceptance` 绑定字段 `candidate_ref`/`candidate_plan_hash`/`check_records`/`note`（§6.1），新增只读端点 `GET /tasks/{task_id}/acceptance`、LG-025 设置端点 `GET /settings/connections/{id}` 与 `PATCH /settings`、全局对话 `GET/POST /conversations/global/messages`（§4.3、§5.2）；`1.2.0` 登记 LG-008 自动组队与依赖调度使用的加性实体字段——Run `plan`/`plan_hash`/`plan_source`，Subtask `objective`/`capability`/`key`/`write`/`config_hash`/`owner`/`lease_expires_at`/`fail_reason`/`blocked_by`，见 §6.2、§6.3；`1.1.0` 明确首版唯一真实执行后端为已验收的 OpenAI-compatible `LocalOpenAIAgentConfig` → DeepSeek 路径并补充本地认证代理与凭证边界，见 §8.1；变更记录见第 13 节）。实体 schema 命名空间 `lightgravity.bot/v1`；HTTP API 前缀 `/api/v1`。变更规则见第 13 节。实现与本文冲突时以本文为准；本文未定义的行为一律视为“不支持”，实现不得自行扩展语义。运行时未知字段按“保留但不赋予执行语义”处理。
 
 ## 1. 范围
 
@@ -18,7 +18,11 @@ updated: "2026-10-15"
 
 本版不包含：具体规划/组队算法、UI 视觉实现、SDK 真实能力结论（LG-003 探针）、模型与凭证存储实现（LG-025）、部署与云端、多后端、多用户、外部渠道与自主触发。
 
-资料/知识库接入也不在本版内：`1.5.0` **没有**新增资料或摄取 schema、检索/搜索 API、索引/向量服务、邮件/邮箱连接器；现有文件上传/下载端点（§4.3）是其唯一相关实现，语义不变。资料接入、归属、派生层与检索的**方向已确认但待实现**，见 [资料接入与检索设计](09-source-intake-and-retrieval.md)；实现前必须按第 13 节冻结接口并升版，不得把设计字段/状态/端点当作已冻结语义。
+资料/知识库接入的**接口**已于 `1.6.0` MINOR 冻结（LG-033）：新实体 `source`/`intake_job`（§6.6）、摄取/检索端点（§4.3）、事件（§5.1）与错误码（§4.2）。该冻结**只定义接口**，**不代表任何资料/摄取/检索/向量能力已实现或可用**；现有文件上传/下载端点（§4.3）语义不变，是当前唯一相关实现。实现分工见 §6.6 与 [资料接入与检索设计](09-source-intake-and-retrieval.md)。
+
+去中心化协作的**接口**已于 `1.6.0` MINOR 冻结（LG-028）：Subtask 加性字段 `fence`（§6.3）、发现/领取/续租/释放/协作端点（§4.3）、事件（§5.1）与错误码（§4.2）；默认路径仍为程序确定性调度（`plan_source=rules`），去中心化路径**默认关闭**。该冻结**只定义接口**，**不代表发现/领取/协作/租约 fencing 已实现或可用**。
+
+两条新线共享本文与 §4.3/§5.1/§6 相关段落，已由**单一 docs08 owner 串行冻结**；后续实现不得先于本版契约扩展语义。
 
 组件边界（仅示意，不是部署图）：
 
@@ -110,11 +114,11 @@ docs/                           # 本项目设计/契约
 
 ```text
 <kind>_<ULID>
-kind ∈ { task, run, subtask, member, conv, msg, evt, notif, req }
+kind ∈ { task, run, subtask, member, conv, msg, evt, notif, req, source, intake }
 ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间有序
 ```
 
-- `msg_...` 由客户端生成，用于幂等；`evt_...`、`notif_...`、`req_...` 由服务端生成。
+- `msg_...` 由客户端生成，用于幂等；`evt_...`、`notif_...`、`req_...` 由服务端生成。`source_...`（资料记录）与 `intake_...`（摄取作业）为 `1.6.0` 新增类型前缀（LG-033，§6.6），实体前缀 `source`/`intake`。
 - 事件流 `stream_id` 复用其承载实体的 ID（如 `task_...`、`run_...`）。
 - docs/02 §3 中的 `id: TASK-001` 是示意占位符，运行时按本节语法生成，记为 `<kind>_<ULID>`。
 
@@ -171,6 +175,11 @@ ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间�
 | `validation_failed` | 422 | 否 | 请求未通过 schema 校验 |
 | `budget_exhausted` | 429 | 否 | 达到预算/时限/返修上限 |
 | `capability_unavailable` | 503 | 是 | SDK/模型/沙箱等运行能力不可用 |
+| `stale_lease` | 409 | 否 | 写回携带的 `fence` 不等于当前租约 `fence`（旧持有者/过期回收后写回），拒绝且不落盘（§6.3，LG-028） |
+| `claim_refused` | 409 | 否 | 候选领取请求被程序拒绝（能力不符/不可发现/竞争/非法），附稳定 `reason`（§6.3，LG-028） |
+| `source_conflict` | 409 | 否 | 同一 `request_id` 的资料接入请求 payload 不同（§6.6，LG-033） |
+| `source_stale` | 409 | 否 | 候选命中回源时源版本/内容哈希已变（§6.6，LG-033） |
+| `index_unavailable` | 503 | 是 | 索引损坏或处理中；词法降级仍可用或明确不可用，不返回悬空结果（§6.6，LG-033） |
 | `internal_error` | 500 | 未知 | 未预期错误，附 `request_id` |
 
 ### 4.3 核心端点（v1 冻结）
@@ -208,8 +217,27 @@ ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间�
 | `GET /api/v1/conversations/global/messages` | 全局对话消息（游标；仅 singleton global） | 整合/LG-007 | 冻结 |
 | `POST /api/v1/conversations/global/messages` | 追加全局消息（幂等：`message_id`/`request_id`） | 整合/LG-007 | 冻结 |
 | `GET /api/v1/settings` | 默认连接引用与偏好 | LG-026/LG-025 | 冻结 |
+| `GET /api/v1/runs/{run_id}/discoverable` | worker 可发现候选投影（只读，按 Member 过滤） | LG-029 | 冻结接口（未实现，默认关闭） |
+| `POST /api/v1/runs/{run_id}/claim_requests` | 提交候选领取请求（幂等 `request_id`） | LG-029 | 冻结接口（未实现，默认关闭） |
+| `POST /api/v1/subtasks/{subtask_id}/lease/renew` | 续租（`owner`+`lease_seconds`） | LG-029 | 冻结接口（未实现，默认关闭） |
+| `POST /api/v1/subtasks/{subtask_id}/lease/release` | 主动释放（仅持有者或程序） | LG-029 | 冻结接口（未实现，默认关闭） |
+| `POST /api/v1/runs/{run_id}/collab_requests` | 受控同伴请求（幂等 `request_id`） | LG-030 | 冻结接口（未实现，默认关闭） |
+| `GET /api/v1/runs/{run_id}/collab_requests` | 协作请求与结果（只读，游标） | LG-030 | 冻结接口（未实现，默认关闭） |
+| `POST /api/v1/sources` | 登记一次资料接入请求（幂等 `request_id`；只登记+落盘原件，不创建 Task/Run） | LG-034 | 冻结接口（未实现） |
+| `GET /api/v1/sources` | 资料列表（分页/作用域过滤；只返回已授权资料） | LG-034 | 冻结接口（未实现） |
+| `GET /api/v1/sources/{source_id}` | 资料详情（状态/派生/正式版本引用；不回显越界路径） | LG-034 | 冻结接口（未实现） |
+| `GET /api/v1/sources/{source_id}/receipt` | 最近逐文件回执（与 Files 同一份状态） | LG-034 | 冻结接口（未实现） |
+| `GET /api/v1/sources/{source_id}/content` | 预览正式内容/原件（只读；经 `resolve_path` 授权，不执行脚本） | LG-035/036 | 冻结接口（未实现） |
+| `GET /api/v1/sources/{source_id}/download` | 下载原件/正式内容（附 stat 型 revision，**非密码学哈希**） | LG-035/036 | 冻结接口（未实现） |
+| `POST /api/v1/sources/{source_id}/actions` | 控制动作：`reprocess`/`cancel`/`revoke`/`delete`（`cancel` 需确认停止；`reprocess` 不覆盖人工校订） | LG-035/036 | 冻结接口（未实现） |
+| `GET /api/v1/intake/jobs/{job_id}` | 摄取作业状态（逻辑视图，非第二套状态库） | LG-034 | 冻结接口（未实现） |
+| `POST /api/v1/intake/jobs/{job_id}/actions` | `cancel`/`retry`（未知副作用中断**不自动重放**） | LG-034 | 冻结接口（未实现） |
+| `GET /api/v1/search` | 词法优先检索（授权过滤；命中**必须回源核对**） | LG-036 | 冻结接口（未实现，向量可选） |
+| `POST /api/v1/inbox/messages`（或复用全局对话） | 归属未知资料入受控收件区（全局上传**不强建 Task**） | LG-034/038 | 冻结接口（未实现） |
 
 > `planned` 行只冻结将来的路径与最小语义，**当前实现不提供该端点**；调用方应以 `404`/`not_ready` 如实处理，不得假定已可用。本版无剩余 `planned` 行。
+>
+> **1.6.0 冻结但未实现的新线端点**：上表“冻结接口（未实现…）”行是 LG-028 与 LG-033 的**契约冻结点**——只固定路径与最小语义，**端点可能尚未注册或返回 `not_ready`/`404`**，不得假定已可用；去中心化端点默认关闭（见 §6.3 开关）。实现分别归 LG-029/030（去中心化）与 LG-034～038（资料）；集中 QA 前不得宣称通过。worker 侧调用须经受控执行身份，不接受浏览器直接指定任意 `owner`；资料端点不创建交付 Task/Run。
 >
 > 文件端点说明（1.3.1）：`POST /files/upload`/`GET /files/download` 已实现，上传为有界 body、`path`+`expected_revision` 冲突检测、原子替换并拒绝 `..`/符号链接/secret store 越界；下载为有界流式并在读取前复核 revision。`revision` 是 `size-mtime_ns` 变更令牌（**非密码学哈希**）；跨进程外部改动只在同一 `flock` 范围内、读取与替换前做二次复核，属**尽力而为**，不构成跨进程事务或强一致保证。
 >
@@ -269,7 +297,9 @@ ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间�
 - `seq` 在单个 `stream_id` 内从 1 开始单调递增、无空洞；游标 `v1:<stream_id>:<seq>` 指向“已读到 seq”。
 - 事件只追加、不修改、不删除；查询视图可重建。
 - 事件类型（v1 冻结最小集）：`task.created`、`task.phase_changed`、`task.status_changed`、`task.requirements_changed`、`queue.enqueued`、`queue.claimed`、`queue.released`、`run.created`、`run.state_changed`、`subtask.state_changed`、`member.recruited`、`member.state_changed`、`member.released`、`message.appended`、`decision.requested`、`decision.resolved`、`artifact.produced`、`cleanup.updated`、`notification.created`、`error.recorded`。
-- 新增事件类型属于 MINOR 变更（第 13 节）；消费方必须忽略未知类型而不是报错崩溃。
+- `1.6.0` 加性新增（LG-028 去中心化，默认关闭）：`subtask.lease_granted`、`subtask.lease_renewed`、`subtask.lease_expired`、`subtask.lease_revoked`、`subtask.claim_refused`、`collab.requested`、`collab.resolved`、`handoff.produced`、`handoff.rejected`；`payload` 可含 `subtask_ref`/`owner`/`fence`/`reason`（如适用）。
+- `1.6.0` 加性新增（LG-033 资料摄取，未实现）：`source.received`、`source.version_changed`、`source.attributed`、`source.indexed`、`source.invalidated`、`source.deleted`、`intake.stage_changed`、`intake.receipt`、`intake.failed`、`intake.cancelled`。
+- 新增事件类型属于 MINOR 变更（第 13 节）；消费方必须忽略未知类型而不是报错崩溃。以上 `1.6.0` 新事件类型**仅冻结**，实际未产生；实现前不得假定可消费。
 
 ### 5.2 消息
 
@@ -296,6 +326,7 @@ ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间�
 - 执行中的状态查询与控制消息不排队等待代码任务结束。
 - Task 消息信封可携带**加性可选字段** `resource_proposal`（`{kind, id, expected_revision, patch, body}`）：它是程序结构而非自然语言，只接受已认证的 `role=user` Task 消息。协调器在写入前完成 allow-list、adapter schema、引用解析与 `expected_revision` 校验，再调用 `ResourceService.update`；实际结果/冲突写回同一 Task 对话（`message.appended`，回写 assistant 消息附 `resource_result.status`，取值 `applied`/`conflict`/`rejected`/`invalid_proposal`/`unauthorized_source`），不创建 Run、不等待代码任务、不让 model/worker 直接写控制。连接类资源仍走 Settings。
 - 全局对话（`GET/POST /api/v1/conversations/global/messages`）只暴露**单例 global 会话**；`POST` 以 `message_id` 幂等，可选 `request_id` 作为控制副作用第二道幂等键；`workspace_ref`/`agent_ref` 来源受限——只接受服务端已授权的 workspace（经 `Store.resolve_path` 限制在授权根内）与已知 agent 引用，越界或不存在返回 `path_outside_workspace`/`reference_invalid`，不允许浏览器直接指定任意执行身份。该端点只做消息持久与路由，不新建会话平台。
+- 资料接入消息（`1.6.0`，LG-033，未实现）：资料消息可复用现有 `attachments`（`{path, media_type}`），**不新增**与 `resource_proposal` 混淆的字段；`resource_proposal` 仅用于受控资源写，不用于资料摄取。上传文件/消息的 frontmatter **不是**受信 Task/资源配置或指令，未知字段保留但**不获得执行语义**（不得 import/eval、不得启动 MCP/Trigger、不得改控制状态，§6.6）。
 
 ## 6. 实体状态契约
 
@@ -417,6 +448,7 @@ fail_reason: null
 - `connection_pin` 为加性可选字段（1.5.0）：Run 招募团队时解析一次当前默认 worker 连接并按 `{connection_id, revision, content_hash, credential_version}` 冻结，供该 Run 的所有 Subtask 复用；活跃 Run 内默认连接或凭证轮换不得在下一 Subtask 静默换用，检测到漂移按 `config_invalid` 失败，新 Run 才重新解析。该字段**永不包含秘密**，不改变既有连接选择优先级（显式模板 `connection_ref` 仍优先）。
 - `completed` 与 `cancelled`/`failed` 是不同终态；team cleanup 状态独立记录，清理失败不得掩盖交付成功。
 - `cancelling` → `cancelled` 仅在 adapter 确认停止后。
+- 去中心化协作预算与恢复（`1.6.0`，LG-028，默认关闭）：协作/领取请求受 Task 总预算、`max_workers`/`max_parallel`/`max_repair_rounds` 与协作次数/超时约束，全部计入**同一** Task/Run 预算；worker 不得创建新 Run/Task 或无限递归协作。租约过期/崩溃后，对 `write=true` 或**未知副作用**的节点**不自动重放**，进入既有 `recovery_required`（该状态已在上述枚举中，**不新增迁移方向**）；恢复仅依赖已落盘证据，**完整 checkpoint skip 尚未实现**。
 
 ### 6.3 Subtask
 
@@ -439,6 +471,7 @@ write: false             # 是否写工作区；同一工作区 write 节点串�
 config_hash: null        # 节点运行配置冻结哈希（节点定义 + 成员 config_hash）
 owner: null              # 当前执行租约持有者
 lease_expires_at: null   # 执行租约到期时间
+fence: 0                 # 加性（1.6.0，LG-028）：租约 fencing 计数，单调递增
 fail_reason: null        # 失败/阻塞原因
 blocked_by: []           # 阻塞它的上游失败 Subtask 运行时 ID
 acceptance:
@@ -452,6 +485,7 @@ acceptance:
 - `objective`/`capability`/`key`/`write` 为加性可选字段，来自已校验计划；`key` 仅在计划内唯一，不是运行时 ID；`write=true` 的节点写工作区，同一工作区 write 节点串行（§7 单 writer）。
 - `config_hash` 冻结节点运行配置（节点定义与 `member_config_hash` 的组合）；派发前重编译并比对，漂移按 `config_invalid` 失败，不静默换配置。
 - `owner`/`lease_expires_at` 是 Subtask 执行租约，与 Task `queue` 租约是不同层面的租约：领取幂等、按 `owner` 互斥、过期可回收、终态拒绝领取。
+- `fence` 为加性可选字段（`1.6.0`，LG-028）：整数，单调递增，每次成功授予/回收 `+1`；旧持有者写回、产物交接、事件 emit 与 Member 释放必须校验 `fence == 当前 fence`，不匹配返回 `stale_lease` 且不落盘（fencing 拒绝，**非 last-write-wins**）。**租约过期不等于执行已停止**：过期仅表示可重新授予，对有副作用的节点不得自动重跑，须进入 `recovery_required`。旧实体无 `fence` 时按 `fence=0` 处理并给诊断，不阻断执行。`owner`/`lease_expires_at`/`fence` 均为加性，不改变本节 `state`/`acceptance.status` 枚举与迁移方向。
 - `fail_reason` 记录失败原因；`blocked_by` 列出使其阻塞的上游失败 Subtask 运行时 ID，被阻塞节点 `acceptance.status=blocked`，不得伪造 `passed`。
 - 上述字段均为加性可选字段，不改变本节既有 `state`、`acceptance.status` 枚举与迁移语义。
 - `evidence_refs` 的解析语义（1.3.1）：workspace 产物为相对授权 workspace 根的路径；executor 产物（如 diff）由协调器导入 `<data_dir>/tasks/<task_id>/artifacts/<run_id>/` 并记录为 `evidence:<run_id>/<name>@sha256:<hex>`。机器检查只解析这两类授权命名空间，并校验 Task/Run 归属、路径/符号链接包含与内容摘要；**原始绝对路径一律拒绝，不作为 workspace 相对路径解析**。
@@ -486,6 +520,67 @@ budget: {}
 ### 6.5 资源与设置
 
 资源（Agent、Connection、Conversation 配置、Hook、MCP、Tool、Trigger、Skill）通用字段：`schema: lightgravity.bot/v1`、`kind`、`id`、`title`、`enabled`、`revision`。Connection 只保存 `credential_ref`，不保存秘密；全局默认引用在 `bot-data/settings/SETTINGS.md`（`kind: settings`，含 `default_coordinator_connection_ref`、`default_worker_connection_ref`、`revision`）。资源 schema 细节沿用 [docs/02](02-task-and-sdk-resources.md)。
+
+- `1.6.0` 加性设置项（LG-028，去中心化，均**默认关闭**）：`decentralized_claim_enabled`（默认 `false`）、`collab_requests_enabled`（默认 `false`）、`claim_lease_seconds`（默认建议 `300`，可配置）。关闭时行为与现状完全一致（程序按 `plan_source=rules` 顺序调度，无发现/领取/协作端点副作用）；SDK 内部委派（`enable_subagents`）仍默认关闭，且**不因本扩展自动开启**。这些项写入 `bot-data/settings/SETTINGS.md`（**非秘密**）。
+
+### 6.6 资料实体（`1.6.0`，LG-033；接口冻结，未实现）
+
+`1.6.0` 登记两个加性运行时实体 `source`（资料记录）与 `intake_job`（摄取作业），**只冻结接口，未实现**；实体前缀见 §3.1。文件（原件 + 资料 frontmatter + 正式内容）是资料层的**唯一事实源**，JSONL 保存历史；索引/向量只为**可重建缓存**。
+
+```yaml
+schema: lightgravity.bot/v1
+kind: source
+id: source_01J...
+title: "…"
+title_origin: user            # user | derived（派生标题不覆盖用户标题）
+status: received              # received | processing | extracted | attributed | indexed | archived | partial | failed（展示层，不加入 §6.1 Task phase 枚举）
+revision: 0
+scope: { task_ref: null, project_ref: null, inbox_ref: null }
+origin: { kind: upload, external_ref: null, fetched: false }
+content_hash: null            # 当前源版本内容 SHA-256（内容是否变化）
+stat_revision: null           # 文件写入令牌（如 size-mtime_ns），**非密码学哈希**，与 content_hash 严格区分
+source_version: 1             # 源版本序号；内容 hash 变化时 +1
+original: { path: null, media_type: null, bytes: null, archived_at: null }
+derivatives: []               # {kind, path, source_version, content_hash, model_version}
+formal: { path: null, revision: null, edited_by: null }   # 人工正式版本，重处理不覆盖
+index: { lexical: not_indexed, lexical_hash: null, vector: disabled, vector_model: null }
+receipt_ref: null
+created_at: null
+updated_at: null
+```
+
+```yaml
+schema: lightgravity.bot/v1
+kind: intake_job
+id: intake_01J...
+source_ref: source_01J...
+status: queued                # queued | running | succeeded | partial | failed | cancelled | recovery_required
+revision: 0
+request_id: req_01J...        # 幂等键
+payload_hash: null            # 同 request_id 不同 payload → source_conflict
+stage: received               # received → extracting → attributing → formalizing → indexing → done（展示用）
+attempt: 1
+budget: { max_model_calls: 0, timeout_seconds: null, max_retries: 1 }
+cancel: { requested: false, confirmed: false }   # 只有确认停止才写 cancelled
+fail_reason: null
+created_at: null
+updated_at: null
+```
+
+**写授权边界（冻结时不可弱化）**：在资料接入授权范围内，程序可直接写原件、资料记录、机器提取件、人工正式版本、索引/向量缓存与摄取事件，**不要求交付 Task/Run/团队**，不占执行槽、不排队交付。但摄取**不等于**工程写：`backend/**`、`frontend/**` 与共享依赖的修改仍必须走既有 Task/Run、验证与人工验收；摄取**不得**修改任何 Task/Run/Member 运行控制状态（`status`/`phase`/`queue`/`acceptance`/`active_run`），不领取工件、不释放队伍、不写验收决定；上传文件不自动创建交付 Task/Run/团队；有界工具问答仍只读。
+
+**不可弱化的语义**（LG-033）：
+- 幂等按稳定接入 `request_id`（**不是“同一 URL 永远跳过”**）；同 `request_id` 不同 payload → `source_conflict`。
+- 去重只在**同一来源、同一授权范围**内按内容 hash 识别；**跨来源/跨 Task 不合并**，不自动合并授权、抹掉来源或扩大可见范围（去重存储，不去重权限）。
+- 权限与归属**只能在文件 SoT**，不得只存在索引/向量；检索只返回已授权候选且**读取时回源核对**存在/哈希/版本/权限。
+- 来源内容 hash 变化→ `source_version + 1` 并重建派生/索引/向量，旧命中失效（`source_stale`）；`stat_revision` 变化但内容 hash 不变**不**构成新源版本。
+- 撤销/删除使命中失效，**不返回悬空结果**；重处理**不覆盖**人工正式版本（位置分离）。
+- 取消需**确认停止**（`cancel.confirmed`）才写 `cancelled`；未知副作用的中断**不自动重放**（对齐 §9 与 LG-016）。
+- 失败**不造空成功正文**，失败说明**不作为知识正文参与检索**。
+- 向量为**可选派生**，不是摄取/OCR/词法索引的前提；向量服务不可用时词法检索与原件查看仍可用；**embedding ≠ OCR/ASR**，不得用一条通路推断另一条。
+- 收件区与资料路径必须经 `Store.resolve_path` 授权（拒绝 `..`/绝对路径/逃逸符号链接）。
+
+> 迁移兼容：现有 `POST /files/upload`、`GET /files/download` 等（§4.3）语义不变，是当前唯一相关实现；资料接入目标交互逐步收拢到 Chat，**当前尚未迁移**。新增资料 schema/端点/事件属 MINOR；若改既有 Files/Chat 端点语义或有损迁移则属 MAJOR（须 `/api/v2`，§4.1）。
 
 ## 7. Store 接口（文件事实源）
 
@@ -605,6 +700,8 @@ class ExecutorAdapter(Protocol):
 | `probes/**` | LG-003 | 独立探针环境，不进入主包 import 路径 |
 | `tests/e2e/**` | LG-021、LG-022 | 浏览器与端到端验收 |
 | `docs/08-interface-contract.md` | LG-001 | 契约变更按第 13 节流程 |
+| 去中心化契约（LG-028） | docs08 owner 串行冻结；实现 LG-029（`store/**` 租约/fence、`coordinator/scheduler.py` 发现/领取、`api/**` 发现/领取端点）、LG-030（`coordinator/**` 协作路由/预算、`store/**` collab 持久、`api/**` collab 端点）、LG-031（`coordinator/**`/`verify/**`/`tests/e2e/**` 整合） | 共享 `coordinator/**`、`api/**`、`store/**` 与 docs/08 由**单一 owner 串行接线**；LG-029/030 可在独立 worktree 并行，接口以 §6.3/§4.3 冻结点为准 |
+| 资料摄取/检索契约（LG-033） | docs08 owner 串行冻结；实现 LG-034（`POST/GET /sources`、原件落盘、收件区）、LG-035（派生/正式分层）、LG-036（词法索引/回源）、LG-037（可选向量）、LG-038（Chat/Files 整合） | 共享 Store/Coordinator/API/前端入口由**单一 owner 串行接线**；实现前必须已完成本版冻结 |
 
 跨任务需要修改他人 owner 文件时，必须由整合执行者串行接线，或经主代理协调后指定临时 owner；不得并发改同一文件。
 
@@ -612,7 +709,7 @@ class ExecutorAdapter(Protocol):
 
 LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与版本 QA）：
 
-- [ ] 契约版本与 `/api/v1`、`lightgravity.bot/v1` 在本文一致声明（LG-001 冻结 `1.0.0`；当前 `1.5.0`，变更记录见第 13 节）。
+- [ ] 契约版本与 `/api/v1`、`lightgravity.bot/v1` 在本文一致声明（LG-001 冻结 `1.0.0`；当前 `1.6.0`，变更记录见第 13 节）。
 - [ ] ID 语法、时间格式、命名约定明确，且与 docs/02 资源示例的差异有说明。
 - [ ] API 端点表覆盖首版所需路径，错误码表覆盖配置失败、冲突、取消未确认、能力不可用、验收过期。
 - [ ] Task/Subtask/Run/Member 状态枚举、合法组合与迁移方向齐备，无 `done + executing` 类矛盾。
@@ -630,6 +727,7 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 
 | 版本 | 日期 | 级别 | 变更 | API/实体字段影响 |
 |---|---|---|---|---|
+| `1.6.0` | 2026-10-16 | MINOR | 由**单一 docs08 owner 串行冻结**两条**尚未实现**新线契约：① LG-028 去中心化协作——Subtask 加性可选字段 `fence`（§6.3）与租约/fencing/过期语义、发现/领取/续租/释放/协作端点（§4.3）、事件 `subtask.lease_*`/`subtask.claim_refused`/`collab.*`/`handoff.*`（§5.1）、错误码 `stale_lease`/`claim_refused`（§4.2）、设置开关 `decentralized_claim_enabled`/`collab_requests_enabled`/`claim_lease_seconds`（均默认关闭，§6.5）、协作预算与 `recovery_required` 说明（§6.2）；② LG-033 资料摄取/检索——新实体 `source`/`intake_job`（§6.6）与 ID 前缀（§3.1）、端点 `sources`/`intake`/`search`/`inbox`（§4.3）、事件 `source.*`/`intake.*`（§5.1）、错误码 `source_conflict`/`source_stale`/`index_unavailable`（§4.2） | **仅新增可选实体/schema/字段、端点、事件与错误码**；不改变既有 `state`/`phase`/`acceptance` 枚举、迁移方向、既有端点与既有错误码语义；去中心化端点默认关闭。新端点/实体**仅冻结接口，尚未实现**；`source`/`intake_job` 展示状态**不加入** §6.1 Task `phase` 枚举。既有 Files 上传/下载语义不变。完整 checkpoint skip 仍**未实现**，恢复仅依赖已落盘证据 |
 | `1.5.0` | 2026-10-15 | MINOR | 登记 LG-020 的加性、非秘密字段 `connection_pin`（Run §6.2、Member §6.4），用于在 Run 招募时冻结默认 worker 连接（ref + revision + content_hash + 不透明 `credential_version`）；活跃 Run 内默认/凭证轮换不得在下一 Subtask 静默换用（漂移按 `config_invalid` 失败，新 Run 重新解析）。整合期登记只读端点 `GET /tasks/{task_id}/artifacts/content` 与 `GET /tasks/{task_id}/artifacts/download`，从 Task 产物 API 经 Task/Run evidence resolver 预览/下载 canonical evidence 产物（§4.3） | 仅新增可选实体字段与只读端点；不落盘秘密，既有端点语义、错误码、事件类型、枚举与状态迁移未变化 |
 | `1.4.0` | 2026-10-15 | MINOR | 登记 LG-015 Team/Resources 的加性受控写入端点 `PATCH /resources/{kind}/{id}`、只读端点 `GET /team/available`/`GET /team/members`（§4.3），以及 Task 消息信封新增可选字段 `resource_proposal` 与回写 `resource_result.status`（§5.2）；该提议由协调器程序校验后调用 `ResourceService.update`，实际结果/冲突写回同一 Task 对话 | 仅新增可选消息字段与端点；既有端点语义、错误码、事件类型、枚举与状态迁移未变化 |
 | `1.3.1` | 2026-10-15 | PATCH | 将 `1.3.0` 登记为 planned 的 LG-014 `POST /files/upload`/`GET /files/download` 标记为已实现（§4.3），明确其 `revision` 为 `size-mtime_ns` 尽力令牌与跨进程复核限制；明确证据引用解析语义：workspace 相对引用 vs Task/Run evidence 根的 `evidence:<run_id>/<name>@sha256:<hex>`，拒绝原始绝对路径（§6.3、§8） | 无新增/变更端点、错误码、事件类型与枚举；仅完成既定 planned 端点并澄清既有 `evidence_refs` 字符串格式，既有状态迁移未变 |
@@ -649,6 +747,8 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 | Adapter 能力声明、取消确认、沙箱状态 | LG-003、LG-006、LG-016、LG-022 |
 | 状态机合法组合与看板展示一致 | LG-013、LG-021 |
 | 凭证/设置边界与脱敏 | LG-025、LG-027 |
+| 去中心化发现/领取/租约 fencing/协作/预算（§4.3、§5.1、§6.2、§6.3） | LG-029、LG-030、LG-031、**LG-032（集中 QA）** |
+| 资料摄取/来源版本/去重/回源/索引失效与可选向量降级（§4.3、§5.1、§6.6） | LG-034～038、LG-039、**LG-040（集中 QA）** |
 
 ## 参考
 
