@@ -1,0 +1,29 @@
+# LG035 Z2 real-PDF render evidence (investigate/materials-ocr-protocol-r6-20261016)
+# All offline. No OCR/embedding/ASR/model/network.
+
+## Source PDF (Public Domain, Wikimedia Commons / NLC416)
+file: LG035-ZH-Z2.pdf
+title: File:NLC416-14jh004627-68702 方言調查表格.pdf (工作: 方言調查表格)
+license: Public domain (Commons imageinfo: LicenseShortName=Public domain; License=pd; UsageTerms=Public domain)
+url: https://upload.wikimedia.org/wikipedia/commons/1/14/NLC416-14jh004627-68702_%E6%96%B9%E8%A8%80%E8%AA%BF%E6%9F%A5%E8%A1%A8%E6%A0%BC.pdf
+sha1:   fe5572520076aee2f3a252277e0fa648588a02bc
+sha256: da50c9f6963f70bc022db55a367b88fd4d6c5be36d899ae5a1d7392aada0eb5a
+bytes:  392964
+pages:  18; page size 420.48 x 689.28 pts; producer Foxit GSDK; text layer: none (pure scan)
+
+## Product rasterizer output (backend/lightgravity/sources/ocr/pdf.py, PdfiumRasterizer)
+file: product_scale2_p2.png
+dims: 817 x 1380 (bitdepth 8, colortype 2)
+bytes: 164473
+sha256: 15ca62198b90b2effee1ef5933f4104fb3d986637b040a0da0b0d89e7ddf3ac4
+NOTE: byte-identical to R4 OCR input (probes/materials-ocr-r4) and R6 analysis input.
+
+## Extra renders (pdftoppm; different encoder, same geometry)
+z2p2_r150-02.png  sha256 158e1258298c120f01d46db2998a8c5d9c10a8a7714ba411a190b5286582bc75
+z2p2_r300-02.png  sha256 ffee9b5f16c1a67ff17f8544340e113c32cd1f97e7c60d335f56c4eceabb4bdc
+
+## Human truth (Wikisource ProofreadPage, human, quality level 3 = Proofread)
+file: probes/lg035/TRUTH-PREP/truth/LG035-ZH-Z2.p2.txt
+sha256: 8c6ad74b3b647dd85aacb1db665ceafd262da579a0c65aac7e879488665862b0 (identical in every worktree copy)
+page:   Page:NLC416-14jh004627-68702 方言調查表格.pdf/2 ; proofreader "Fish bowl"
+license (truth): CC BY-SA 4.0 (Wikisource human transcription)

@@ -1,0 +1,257 @@
+{
+  "schema": "lg035.z2_pixel_geometry/v1",
+  "method": "independent stdlib PNG decode + luminance<128 ink mask on the PRODUCT rasterizer output (no OCR/model/network)",
+  "input": {
+    "png_sha256": "15ca62198b90b2effee1ef5933f4104fb3d986637b040a0da0b0d89e7ddf3ac4",
+    "dims": [
+      817,
+      1380
+    ],
+    "scale": 2.0,
+    "pdf_sha256": "da50c9f6963f70bc022db55a367b88fd4d6c5be36d899ae5a1d7392aada0eb5a"
+  },
+  "content_box_xyxy": [
+    109,
+    319,
+    704,
+    1039
+  ],
+  "ruling": {
+    "horizontal_rules": 0,
+    "vertical_rules": 0,
+    "max_horizontal_dark_run_px": 69,
+    "max_vertical_dark_run_px": 50,
+    "note": "a 15x3 ruled table would show column separators / horizontal rules; none exist"
+  },
+  "text_line_count": 13,
+  "lines": [
+    {
+      "idx": 0,
+      "y0": 319,
+      "y1": 365,
+      "h": 47,
+      "x0": 164,
+      "x1": 704,
+      "width": 541,
+      "clusters": 9,
+      "big_gaps_ge12px": [
+        [
+          194,
+          223
+        ],
+        [
+          253,
+          283
+        ],
+        [
+          313,
+          342
+        ],
+        [
+          373,
+          387
+        ],
+        [
+          463,
+          477
+        ],
+        [
+          507,
+          522
+        ],
+        [
+          553,
+          564
+        ],
+        [
+          624,
+          657
+        ]
+      ]
+    },
+    {
+      "idx": 1,
+      "y0": 380,
+      "y1": 398,
+      "h": 19,
+      "x0": 127,
+      "x1": 665,
+      "width": 539,
+      "clusters": 3,
+      "big_gaps_ge12px": [
+        [
+          158,
+          183
+        ],
+        [
+          627,
+          648
+        ]
+      ]
+    },
+    {
+      "idx": 2,
+      "y0": 408,
+      "y1": 427,
+      "h": 20,
+      "x0": 125,
+      "x1": 676,
+      "width": 552,
+      "clusters": 3,
+      "big_gaps_ge12px": [
+        [
+          159,
+          184
+        ],
+        [
+          610,
+          673
+        ]
+      ]
+    },
+    {
+      "idx": 3,
+      "y0": 436,
+      "y1": 454,
+      "h": 19,
+      "x0": 126,
+      "x1": 634,
+      "width": 509,
+      "clusters": 2,
+      "big_gaps_ge12px": [
+        [
+          159,
+          184
+        ]
+      ]
+    },
+    {
+      "idx": 4,
+      "y0": 551,
+      "y1": 569,
+      "h": 19,
+      "x0": 127,
+      "x1": 647,
+      "width": 521,
+      "clusters": 2,
+      "big_gaps_ge12px": [
+        [
+          356,
+          399
+        ]
+      ]
+    },
+    {
+      "idx": 5,
+      "y0": 579,
+      "y1": 598,
+      "h": 20,
+      "x0": 116,
+      "x1": 651,
+      "width": 536,
+      "clusters": 2,
+      "big_gaps_ge12px": [
+        [
+          355,
+          400
+        ]
+      ]
+    },
+    {
+      "idx": 6,
+      "y0": 609,
+      "y1": 626,
+      "h": 18,
+      "x0": 127,
+      "x1": 675,
+      "width": 549,
+      "clusters": 3,
+      "big_gaps_ge12px": [
+        [
+          375,
+          398
+        ],
+        [
+          610,
+          674
+        ]
+      ]
+    },
+    {
+      "idx": 7,
+      "y0": 721,
+      "y1": 740,
+      "h": 20,
+      "x0": 127,
+      "x1": 673,
+      "width": 547,
+      "clusters": 1,
+      "big_gaps_ge12px": []
+    },
+    {
+      "idx": 8,
+      "y0": 749,
+      "y1": 769,
+      "h": 21,
+      "x0": 128,
+      "x1": 675,
+      "width": 548,
+      "clusters": 1,
+      "big_gaps_ge12px": []
+    },
+    {
+      "idx": 9,
+      "y0": 779,
+      "y1": 798,
+      "h": 20,
+      "x0": 127,
+      "x1": 671,
+      "width": 545,
+      "clusters": 3,
+      "big_gaps_ge12px": [
+        [
+          421,
+          433
+        ],
+        [
+          486,
+          498
+        ]
+      ]
+    },
+    {
+      "idx": 10,
+      "y0": 879,
+      "y1": 966,
+      "h": 88,
+      "x0": 109,
+      "x1": 670,
+      "width": 562,
+      "clusters": 1,
+      "big_gaps_ge12px": []
+    },
+    {
+      "idx": 11,
+      "y0": 969,
+      "y1": 975,
+      "h": 7,
+      "x0": 114,
+      "x1": 190,
+      "width": 77,
+      "clusters": 1,
+      "big_gaps_ge12px": []
+    },
+    {
+      "idx": 12,
+      "y0": 984,
+      "y1": 1038,
+      "h": 55,
+      "x0": 358,
+      "x1": 510,
+      "width": 153,
+      "clusters": 1,
+      "big_gaps_ge12px": []
+    }
+  ],
+  "finding": "every text line starts at x~116-128 (left margin) and spans most of the content width; they do NOT start at 3 distinct column x-positions"
+}
