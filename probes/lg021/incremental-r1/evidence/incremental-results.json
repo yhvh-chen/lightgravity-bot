@@ -1,0 +1,641 @@
+{
+  "url": "http://127.0.0.1:39791/",
+  "checks": {
+    "viewport_1440x900_innerWH": {
+      "pass": true,
+      "measured": {
+        "iw": 1440,
+        "ih": 900
+      }
+    },
+    "viewport_1440x900_fiveEntries_plusSettings": {
+      "pass": true,
+      "labels": [
+        "Chat",
+        "Board",
+        "Files",
+        "Team",
+        "Resources",
+        "Settings"
+      ],
+      "openDrawer": true
+    },
+    "viewport_1440x900_settingsAtRailBottom": {
+      "pass": true,
+      "railRect": {
+        "rail": {
+          "top": 48,
+          "bottom": 900,
+          "width": 56
+        },
+        "settings": {
+          "top": 852,
+          "bottom": 892
+        },
+        "vh": 900
+      }
+    },
+    "viewport_1440x900_noHorizontalOverflow": {
+      "pass": true,
+      "overflow": {
+        "sw": 1440,
+        "cw": 1440,
+        "bw": 1440
+      }
+    },
+    "viewport_1440_screenshotPixels": {
+      "pass": true,
+      "px": {
+        "width": 1440,
+        "height": 900
+      }
+    },
+    "viewport_1024x768_innerWH": {
+      "pass": true,
+      "measured": {
+        "iw": 1024,
+        "ih": 768
+      }
+    },
+    "viewport_1024x768_fiveEntries_plusSettings": {
+      "pass": true,
+      "labels": [
+        "Chat",
+        "Board",
+        "Files",
+        "Team",
+        "Resources",
+        "Settings"
+      ],
+      "openDrawer": true
+    },
+    "viewport_1024x768_settingsAtRailBottom": {
+      "pass": true,
+      "railRect": {
+        "rail": {
+          "top": 48,
+          "bottom": 768,
+          "width": 56
+        },
+        "settings": {
+          "top": 720,
+          "bottom": 760
+        },
+        "vh": 768
+      }
+    },
+    "viewport_1024x768_noHorizontalOverflow": {
+      "pass": true,
+      "overflow": {
+        "sw": 1024,
+        "cw": 1024,
+        "bw": 1024
+      }
+    },
+    "viewport_1024_screenshotPixels": {
+      "pass": true,
+      "px": {
+        "width": 1024,
+        "height": 768
+      }
+    },
+    "viewport_390x844_innerWH": {
+      "pass": true,
+      "measured": {
+        "iw": 390,
+        "ih": 844
+      }
+    },
+    "viewport_390x844_fiveEntries_plusSettings": {
+      "pass": true,
+      "labels": [
+        "Chat",
+        "Board",
+        "Files",
+        "Team",
+        "Resources",
+        "Settings"
+      ],
+      "openDrawer": true
+    },
+    "viewport_390x844_settingsAtRailBottom": {
+      "pass": true,
+      "railRect": {
+        "rail": {
+          "top": 48,
+          "bottom": 328,
+          "width": 56
+        },
+        "settings": {
+          "top": 280,
+          "bottom": 320
+        },
+        "vh": 844
+      }
+    },
+    "viewport_390x844_noHorizontalOverflow": {
+      "pass": true,
+      "overflow": {
+        "sw": 390,
+        "cw": 390,
+        "bw": 390
+      }
+    },
+    "viewport_390_screenshotPixels": {
+      "pass": true,
+      "px": {
+        "width": 390,
+        "height": 844
+      }
+    },
+    "reviewerBackendConnectionsCreated": {
+      "pass": true,
+      "c1": {
+        "status": 201,
+        "body": "{\"id\":\"deepseek-primary\",\"title\":\"DeepSeek (primary)\",\"enabled\":true,\"revision\":0,\"content_hash\":\"dbd2f6763a669966904c6272b971eb80f70dfa00f441155fe865e777d1becd"
+      },
+      "c2": {
+        "status": 201,
+        "body": "{\"id\":\"deepseek-reviewer\",\"title\":\"DeepSeek (reviewer)\",\"enabled\":true,\"revision\":0,\"content_hash\":\"29f646d58e3a6553a20063f436e106219ad5cdd38dc647e8bbf7d006b69a"
+      }
+    },
+    "reviewerConfiguredViaUI_realApiReflects": {
+      "pass": true,
+      "setReviewerViaUI": "set",
+      "clickSave": true,
+      "savedOk": true,
+      "apiAfterSave": {
+        "reviewer": "deepseek-reviewer",
+        "worker": null,
+        "coordinator": null,
+        "resolved": true,
+        "rev": 0
+      }
+    },
+    "reviewerIsSeparateConnectionEntity": {
+      "pass": true,
+      "reviewer": "deepseek-reviewer",
+      "worker": null
+    },
+    "reviewerSelectionPersistsAfterReload": {
+      "pass": true,
+      "persistedSel": "deepseek-reviewer"
+    },
+    "reviewerExpectedRevisionConflictRejected": {
+      "pass": true,
+      "staleWrite": {
+        "status": 409,
+        "body": "{\"error\":{\"code\":\"revision_conflict\",\"message\":\"revision conflict for settings 'settings': expected -1, actual 0\",\"details\":{\"kind\":\"settings\",\"id\":\"settings\",\"expected_revision\":-1,\"actual_revision\":"
+      },
+      "revNow": 0
+    },
+    "missingTokenRejectedOnProtectedWrite": {
+      "pass": true,
+      "noToken": {
+        "status": 401,
+        "body": "{\"error\":{\"code\":\"unauthorized\",\"message\":\"missing or invalid local access token\",\"details\":{\"header\":\"X-LG-Token\",\"endpoint\":\"/api/v1/settings/credentials/some-ref\"},\"retryable\":false,\"request_id\":nu"
+      }
+    },
+    "noSecretEchoInSettingsApi": {
+      "pass": true,
+      "echoScan": {
+        "hasSk": false,
+        "conns": [
+          {
+            "id": "deepseek-primary",
+            "caps": null,
+            "hasValue": false
+          },
+          {
+            "id": "deepseek-reviewer",
+            "caps": null,
+            "hasValue": false
+          }
+        ]
+      }
+    },
+    "reviewerUnconfiguredHonestFeedback": {
+      "pass": true,
+      "honestState": {
+        "reviewer": null,
+        "desc": "null"
+      },
+      "honestUi": true,
+      "honestTextSample": "LG\nLightGravity Bot\nScope\nRun\n4\nWide layout\nChat\nBoard\nFiles\nTeam\nResources\nSettings\nSETTINGS\nModels & Providers\n\nModels & Providers is shown in the main panel.\n\nSettings\nModels & Providers\nsection: Models & Providers\ntask: global\nsource: GET /api/v1/settings\nConnections\n\nThe same Connection entity as Resources → Connections. Only the verified OpenAI-compatible (DeepSeek) backend can be saved as e"
+    },
+    "taskScopeSurvivesSettingsSwitch": {
+      "pass": true,
+      "scopeAfterOpen": "?view=board&task=task_01M4ZZ4CG5YPQBAYBYK92ZQBM8",
+      "scopeAfterSwitch": "?view=board&task=task_01M4ZZ4CG5YPQBAYBYK92ZQBM8"
+    },
+    "focusRailReachableByRealTab": {
+      "pass": true,
+      "focusReport": [
+        {
+          "tag": "BUTTON",
+          "cls": "lg-rail__item",
+          "label": "Files",
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(71, 85, 105)"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "lg-rail__item",
+          "label": "Team",
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(71, 85, 105)"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "lg-rail__item",
+          "label": "Resources",
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(71, 85, 105)"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "lg-rail__item",
+          "label": "Settings",
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(71, 85, 105)"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "lg-icon-button",
+          "label": "Hide context panel",
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(71, 85, 105)"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "lg-button",
+          "label": null,
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(15, 23, 42)"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "lg-context-item is-selected",
+          "label": null,
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(37, 99, 235)"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "lg-context-item",
+          "label": null,
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(15, 23, 42)"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "lg-context-item",
+          "label": null,
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(15, 23, 42)"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "lg-context-item",
+          "label": null,
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(15, 23, 42)"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "lg-context-item",
+          "label": null,
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(15, 23, 42)"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "lg-context-item",
+          "label": null,
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(15, 23, 42)"
+        },
+        {
+          "tag": "DIV",
+          "cls": "lg-resizer",
+          "label": "Resize context panel",
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(15, 23, 42)"
+        },
+        {
+          "tag": "DIV",
+          "cls": "lg-view",
+          "label": null,
+          "fv": false,
+          "outline": "none 3px",
+          "oc": "rgb(15, 23, 42)"
+        }
+      ]
+    },
+    "metaContrastSampledVisibleClassesMeetAA": {
+      "pass": true,
+      "sampled": [
+        {
+          "sel": ".lg-notification__meta",
+          "ratio": 4.76,
+          "fg": "rgb(100,116,139)",
+          "bg": "rgb(255,255,255)"
+        },
+        {
+          "sel": ".lg-popover__status",
+          "ratio": 4.76,
+          "fg": "rgb(100,116,139)",
+          "bg": "rgb(255,255,255)"
+        },
+        {
+          "sel": ".lg-message__meta",
+          "ratio": 4.76,
+          "fg": "rgb(100,116,139)",
+          "bg": "rgb(255,255,255)"
+        },
+        {
+          "sel": ".lg-board__count",
+          "ratio": 4.55,
+          "fg": "rgb(100,116,139)",
+          "bg": "rgb(248,250,252)"
+        },
+        {
+          "sel": ".lg-detail-header__meta",
+          "ratio": 7.24,
+          "fg": "rgb(71,85,105)",
+          "bg": "rgb(248,250,252)"
+        }
+      ],
+      "subAA": [],
+      "notApplicable": []
+    }
+  },
+  "contrast": {
+    "popover": {
+      "pairs": {
+        ".lg-notification__meta": {
+          "text": "task_01M4ZZ4CGM1DGNG3SJN",
+          "fg": "rgb(100,116,139)",
+          "bg": "rgb(255,255,255)",
+          "ratio": 4.76
+        },
+        ".lg-popover__status": {
+          "text": "Reconnecting (connecting",
+          "fg": "rgb(100,116,139)",
+          "bg": "rgb(255,255,255)",
+          "ratio": 4.76
+        },
+        ".lg-notification-list": {
+          "text": "errorTask failedtask_01M",
+          "fg": "rgb(15,23,42)",
+          "bg": "rgb(255,255,255)",
+          "ratio": 17.85
+        },
+        ".lg-popover": {
+          "text": "NotificationsReconnectin",
+          "fg": "rgb(15,23,42)",
+          "bg": "rgb(255,255,255)",
+          "ratio": 17.85
+        }
+      },
+      "missing": []
+    },
+    "chat": {
+      "pairs": {
+        ".lg-message__meta": {
+          "text": "You2026-10-15T14:23:43.4",
+          "fg": "rgb(100,116,139)",
+          "bg": "rgb(255,255,255)",
+          "ratio": 4.76
+        }
+      },
+      "missing": [],
+      "msgCount": 1,
+      "bodyText": "LG\nLightGravity Bot\nScope\nRun\n4\nWide layout\nChat\nBoard\nFiles\nTeam\nResources\nSettings\nCONVERSATIONS\nGlobal scope\nTasks\nRe"
+    },
+    "board": {
+      "pairs": {
+        ".lg-board__count": {
+          "text": "0",
+          "fg": "rgb(100,116,139)",
+          "bg": "rgb(248,250,252)",
+          "ratio": 4.55
+        }
+      },
+      "missing": [],
+      "boardCountEls": 3
+    },
+    "detail": {
+      "pairs": {
+        ".lg-detail-header__meta": {
+          "text": "section: Models & Provid",
+          "fg": "rgb(71,85,105)",
+          "bg": "rgb(248,250,252)",
+          "ratio": 7.24
+        },
+        ".lg-detail-header__title": {
+          "text": "Settings",
+          "fg": "rgb(15,23,42)",
+          "bg": "rgb(248,250,252)",
+          "ratio": 17.06
+        }
+      },
+      "missing": []
+    }
+  },
+  "focus": {
+    "tabSequence": [
+      {
+        "tag": "BUTTON",
+        "cls": "lg-rail__item",
+        "label": "Files",
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(71, 85, 105)"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "lg-rail__item",
+        "label": "Team",
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(71, 85, 105)"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "lg-rail__item",
+        "label": "Resources",
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(71, 85, 105)"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "lg-rail__item",
+        "label": "Settings",
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(71, 85, 105)"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "lg-icon-button",
+        "label": "Hide context panel",
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(71, 85, 105)"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "lg-button",
+        "label": null,
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(15, 23, 42)"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "lg-context-item is-selected",
+        "label": null,
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(37, 99, 235)"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "lg-context-item",
+        "label": null,
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(15, 23, 42)"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "lg-context-item",
+        "label": null,
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(15, 23, 42)"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "lg-context-item",
+        "label": null,
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(15, 23, 42)"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "lg-context-item",
+        "label": null,
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(15, 23, 42)"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "lg-context-item",
+        "label": null,
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(15, 23, 42)"
+      },
+      {
+        "tag": "DIV",
+        "cls": "lg-resizer",
+        "label": "Resize context panel",
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(15, 23, 42)"
+      },
+      {
+        "tag": "DIV",
+        "cls": "lg-view",
+        "label": null,
+        "fv": false,
+        "outline": "none 3px",
+        "oc": "rgb(15, 23, 42)"
+      }
+    ],
+    "ringObservable": false,
+    "ringNote": "not observable via BiDi key events; recorded as not-applicable (not faked, not a product defect)"
+  },
+  "screenshots": [
+    "/tmp/lg021-incr.AiWexy/shots/inc-1440-settings.png",
+    "/tmp/lg021-incr.AiWexy/shots/inc-1024-settings.png",
+    "/tmp/lg021-incr.AiWexy/shots/inc-390-settings.png"
+  ],
+  "ok": true,
+  "browser": "firefox/156.0.1",
+  "shot_1440": {
+    "file": "/tmp/lg021-incr.AiWexy/shots/inc-1440-settings.png",
+    "px": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "shot_1024": {
+    "file": "/tmp/lg021-incr.AiWexy/shots/inc-1024-settings.png",
+    "px": {
+      "width": 1024,
+      "height": 768
+    }
+  },
+  "shot_390": {
+    "file": "/tmp/lg021-incr.AiWexy/shots/inc-390-settings.png",
+    "px": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "contrastSummary": {
+    "sampled": [
+      {
+        "sel": ".lg-notification__meta",
+        "ratio": 4.76,
+        "fg": "rgb(100,116,139)",
+        "bg": "rgb(255,255,255)"
+      },
+      {
+        "sel": ".lg-popover__status",
+        "ratio": 4.76,
+        "fg": "rgb(100,116,139)",
+        "bg": "rgb(255,255,255)"
+      },
+      {
+        "sel": ".lg-message__meta",
+        "ratio": 4.76,
+        "fg": "rgb(100,116,139)",
+        "bg": "rgb(255,255,255)"
+      },
+      {
+        "sel": ".lg-board__count",
+        "ratio": 4.55,
+        "fg": "rgb(100,116,139)",
+        "bg": "rgb(248,250,252)"
+      },
+      {
+        "sel": ".lg-detail-header__meta",
+        "ratio": 7.24,
+        "fg": "rgb(71,85,105)",
+        "bg": "rgb(248,250,252)"
+      }
+    ],
+    "notApplicable": [],
+    "subAA": []
+  }
+}
