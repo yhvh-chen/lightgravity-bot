@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from fastapi import Request
 
@@ -23,6 +24,9 @@ from ..verify import VerificationService
 from .access import AccessPolicy
 from .eventbus import EventBroker
 
+if TYPE_CHECKING:  # avoid importing the collaboration engine at API-import time
+    from ..collaboration.execution_grant import ExecutionGrant
+
 
 #: Resolves the **program-authenticated** worker identity for a request.
 #:
@@ -32,6 +36,14 @@ from .eventbus import EventBroker
 #: seam (LG-031); until it is wired the default is ``None`` (default-deny) so no
 #: local caller can act as an arbitrary run member.
 WorkerIdentityResolver = Callable[[Request], str | None]
+
+#: Resolves the **full** program-frozen execution grant for a request (LG-029 F2).
+#:
+#: Returns the minted :class:`ExecutionGrant` (member + run/subtask scope +
+#: authorized nodes + fence) or ``None`` when the caller is not authenticated.
+#: Worker-scoped claim/lease endpoints derive identity, authorization scope and
+#: fence from this grant only; a request body can never grant or widen them.
+WorkerGrantResolver = Callable[[Request], "ExecutionGrant | None"]
 
 
 @dataclass(slots=True)
@@ -53,6 +65,11 @@ class ApiContext:
     #: way to authenticate a worker, so worker-scoped collaboration endpoints
     #: default-deny instead of trusting a body-supplied member ref.
     worker_identity: WorkerIdentityResolver | None = None
+    #: LG-029 F2 grant seam. ``None`` means no program-frozen grant resolver is
+    #: wired, so the discovery/claim/lease endpoints default-deny rather than
+    #: accept an ``owner`` from the request body.  When present it carries the
+    #: full scope (run/subtask/fence/authorized nodes), not just a member ref.
+    worker_grant: WorkerGrantResolver | None = None
 
     @property
     def data_dir(self) -> Path:
@@ -83,4 +100,10 @@ def get_notifications(request: Request) -> NotificationService:
     return service
 
 
-__all__ = ["ApiContext", "get_context", "get_notifications"]
+__all__ = [
+    "ApiContext",
+    "WorkerGrantResolver",
+    "WorkerIdentityResolver",
+    "get_context",
+    "get_notifications",
+]
