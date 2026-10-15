@@ -1,0 +1,163 @@
+{
+  "ok": true,
+  "samples": {
+    "s1_independent": {
+      "initial_hash": "795cf3a862ebc0637c421d12aa8b9fcbef2ce4177122cb28ae4ebd10f111c0db",
+      "initial": {
+        "checks": [
+          {
+            "name": "slug.case",
+            "passed": false,
+            "detail": "NotImplementedError: "
+          },
+          {
+            "name": "slug.multi",
+            "passed": false,
+            "detail": "NotImplementedError: "
+          },
+          {
+            "name": "slug.trim",
+            "passed": false,
+            "detail": "NotImplementedError: "
+          },
+          {
+            "name": "clamp.low",
+            "passed": false,
+            "detail": "NotImplementedError: "
+          },
+          {
+            "name": "clamp.high",
+            "passed": false,
+            "detail": "NotImplementedError: "
+          },
+          {
+            "name": "in_range",
+            "passed": false,
+            "detail": "NotImplementedError: "
+          }
+        ],
+        "passed": 0,
+        "total": 6,
+        "exit_code": 0
+      },
+      "initial_fails": true,
+      "reference": {
+        "checks": [
+          {
+            "name": "slug.case",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "name": "slug.multi",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "name": "slug.trim",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "name": "clamp.low",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "name": "clamp.high",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "name": "in_range",
+            "passed": true,
+            "detail": ""
+          }
+        ],
+        "passed": 6,
+        "total": 6,
+        "exit_code": 0
+      },
+      "reference_passes": true
+    },
+    "s2_interface": {
+      "initial_hash": "528bd41c86d934c3b2f28aa1f97251929523fe0dd000f66529b82954cc5c5601",
+      "initial": {
+        "checks": [
+          {
+            "name": "geo.rect.area",
+            "passed": false,
+            "detail": "NotImplementedError: "
+          },
+          {
+            "name": "geo.circle.area",
+            "passed": false,
+            "detail": "NotImplementedError: "
+          },
+          {
+            "name": "geo.rect.perimeter",
+            "passed": false,
+            "detail": "NotImplementedError: "
+          },
+          {
+            "name": "geo.bad.kind",
+            "passed": false,
+            "detail": "AssertionError: expected ValueError, got NotImplementedError: "
+          },
+          {
+            "name": "report.rect",
+            "passed": false,
+            "detail": "NotImplementedError: "
+          },
+          {
+            "name": "report.circle",
+            "passed": false,
+            "detail": "NotImplementedError: "
+          }
+        ],
+        "passed": 0,
+        "total": 6,
+        "exit_code": 0
+      },
+      "initial_fails": true,
+      "reference": {
+        "checks": [
+          {
+            "name": "geo.rect.area",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "name": "geo.circle.area",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "name": "geo.rect.perimeter",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "name": "geo.bad.kind",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "name": "report.rect",
+            "passed": true,
+            "detail": ""
+          },
+          {
+            "name": "report.circle",
+            "passed": true,
+            "detail": ""
+          }
+        ],
+        "passed": 6,
+        "total": 6,
+        "exit_code": 0
+      },
+      "reference_passes": true
+    }
+  }
+}

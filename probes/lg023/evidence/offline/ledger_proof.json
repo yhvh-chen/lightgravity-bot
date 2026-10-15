@@ -1,0 +1,61 @@
+{
+  "ok": true,
+  "checks": {
+    "L1_cap48": {
+      "snapshot": {
+        "count": 48,
+        "limit": 48,
+        "remaining": 0,
+        "corrupt": false
+      },
+      "pass": true
+    },
+    "L2_cap_enforced_49th": {
+      "granted": false,
+      "count": 48,
+      "reason": "limit reached",
+      "pass": true
+    },
+    "L3_persist_across_instance": {
+      "snapshot": {
+        "count": 48,
+        "limit": 48,
+        "remaining": 0,
+        "corrupt": false
+      },
+      "pass": true
+    },
+    "L4_persist_cross_process": {
+      "child_stdout": "48",
+      "child_returncode": 0,
+      "pass": true
+    },
+    "L5_corrupt_fail_closed": {
+      "snapshot": {
+        "count": null,
+        "limit": 48,
+        "remaining": null,
+        "corrupt": true,
+        "reason": "history line 1 is not valid JSON"
+      },
+      "reserve_granted": false,
+      "count_raises": true,
+      "pass": true
+    },
+    "L6_attempt_cap12": {
+      "attempt_used": 12,
+      "attempt_denied_at": 12,
+      "global_snapshot": {
+        "count": 12,
+        "limit": 48,
+        "remaining": 36,
+        "corrupt": false
+      },
+      "pass": true
+    },
+    "L7_single_ledger_all_stages": {
+      "count_after_two_stages": 2,
+      "pass": true
+    }
+  }
+}
