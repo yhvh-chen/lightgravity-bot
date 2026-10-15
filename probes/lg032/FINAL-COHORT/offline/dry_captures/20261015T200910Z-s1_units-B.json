@@ -1,0 +1,8 @@
+{
+  "sample": "s1_units",
+  "arm": "B",
+  "rc": 1,
+  "fake_base_url": "http://127.0.0.1:38911/v1",
+  "captured_tools": [],
+  "records": []
+}

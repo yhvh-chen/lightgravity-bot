@@ -1,0 +1,187 @@
+{
+  "sample": "s1_units",
+  "arm": "A",
+  "rc": 1,
+  "fake_base_url": "http://127.0.0.1:39749/v1",
+  "captured_tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "view_file",
+        "description": "View the contents of a file from the local filesystem. This tool supports text files and following binary files: image, pdf, video, audio.\nText file usage:\n- The lines of the file are 1-indexed\n- You can view at most 800 lines at a time\n- Specify StartLine and EndLine to view the lines of the file using slice notation:\n  - Omit both to view the entire file, or the first 800 lines of the file, whichever is smaller.\n  - Specify StartLine only to view the remaining lines of the file, or the next 800 lines, whichever is smaller\n  - Specify EndLine only to view the remaining preceding lines of the file, or the previous 800 lines, whichever is smaller\n  - Specify both to view a precise line range. This range must be smaller than 800 lines or only the first 800 lines of the range will be shown.\n- Content is limited to 46080 bytes per view. If content is truncated, use the ContentOffset parameter to view the remaining content\nBinary file usage:\n- Do not provide StartLine or EndLine arguments, this tool always returns the entire file\n- Files larger than 100 MB cannot be viewed.",
+        "parameters": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "AbsolutePath": {
+              "description": "Path to file to view. Must be an absolute path.",
+              "type": "string"
+            },
+            "ContentOffset": {
+              "description": "Optional. Byte offset into the content. Use this to view content beyond the initial byte limit when the tool output indicates content was truncated.",
+              "type": "integer"
+            },
+            "EndLine": {
+              "description": "Optional. Endline to view, 1-indexed, inclusive. When specified, this value must be greater than or equal to StartLine.",
+              "type": "integer"
+            },
+            "StartLine": {
+              "description": "Optional. Startline to view, 1-indexed, inclusive. When specified, this value must be less than or equal to EndLine.",
+              "type": "integer"
+            },
+            "toolAction": {
+              "description": "Brief 2-5 word phrase in -ing form describing the specific action. Capitalize like a sentence. Some examples: 'Analyzing directory', 'Searching the web', 'Checking git status', 'Running tests', 'Searching code'.",
+              "type": "string"
+            },
+            "toolSummary": {
+              "description": "Brief 2-5 word noun phrase describing the specific task. Capitalize like a sentence. Some examples: 'Directory analysis', 'Web search', 'Git status check', 'Test execution', 'Code search'.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "AbsolutePath",
+            "toolSummary",
+            "toolAction"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "list_skills",
+        "description": "List all available skills with their names and descriptions.",
+        "parameters": {
+          "properties": {
+            "toolAction": {
+              "description": "Brief 2-5 word phrase in -ing form describing the specific action. Capitalize like a sentence. Some examples: 'Analyzing directory', 'Searching the web', 'Checking git status', 'Running tests', 'Searching code'.",
+              "type": "string"
+            },
+            "toolSummary": {
+              "description": "Brief 2-5 word noun phrase describing the specific task. Capitalize like a sentence. Some examples: 'Directory analysis', 'Web search', 'Git status check', 'Test execution', 'Code search'.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "toolSummary",
+            "toolAction"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "lookup_skill",
+        "description": "Look up a skill's full instructions by name. Call this before executing a skill to get its detailed instructions.",
+        "parameters": {
+          "properties": {
+            "skill_name": {
+              "description": "The name of the skill to look up",
+              "type": "string"
+            },
+            "toolAction": {
+              "description": "Brief 2-5 word phrase in -ing form describing the specific action. Capitalize like a sentence. Some examples: 'Analyzing directory', 'Searching the web', 'Checking git status', 'Running tests', 'Searching code'.",
+              "type": "string"
+            },
+            "toolSummary": {
+              "description": "Brief 2-5 word noun phrase describing the specific task. Capitalize like a sentence. Some examples: 'Directory analysis', 'Web search', 'Git status check', 'Test execution', 'Code search'.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "skill_name",
+            "toolSummary",
+            "toolAction"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "lookup_skills",
+        "description": "Look up full instructions for multiple skills at once. More efficient than calling lookup_skill multiple times.",
+        "parameters": {
+          "properties": {
+            "skill_names": {
+              "description": "The names of the skills to look up",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "toolAction": {
+              "description": "Brief 2-5 word phrase in -ing form describing the specific action. Capitalize like a sentence. Some examples: 'Analyzing directory', 'Searching the web', 'Checking git status', 'Running tests', 'Searching code'.",
+              "type": "string"
+            },
+            "toolSummary": {
+              "description": "Brief 2-5 word noun phrase describing the specific task. Capitalize like a sentence. Some examples: 'Directory analysis', 'Web search', 'Git status check', 'Test execution', 'Code search'.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "skill_names",
+            "toolSummary",
+            "toolAction"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  ],
+  "records": [
+    {
+      "phase": "capture",
+      "path": "/v1/chat/completions",
+      "tool_names": [
+        "view_file",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ],
+      "roles": [
+        "system",
+        "user"
+      ],
+      "tail": [
+        "<identity>\nYou are Antigravity, a powerful agentic AI assistant designed by the Google DeepMind team.\nThe task may require creating a new codebase, modifying or",
+        "<USER_REQUEST>\nComplete BOTH stub files so the acceptance criteria hold. src/labels.py must define slugify(title) -> str: lowercase, replace any run of non-[a-z"
+      ]
+    },
+    {
+      "phase": "capture",
+      "path": "/v1/chat/completions",
+      "tool_names": [
+        "view_file",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ],
+      "roles": [
+        "system",
+        "user"
+      ],
+      "tail": [
+        "<identity>\nYou are Antigravity, a powerful agentic AI assistant designed by the Google DeepMind team.\nThe task may require creating a new codebase, modifying or",
+        "<USER_REQUEST>\nRead the delivered artifacts and report their exact contents: src/labels.py, src/numeric.py. Read-only: do not write.\n\n# Task\n\n## \u76ee\u6807\n\nComplete BO"
+      ]
+    },
+    {
+      "phase": "capture",
+      "path": "/v1/chat/completions",
+      "tool_names": [],
+      "roles": [
+        "system",
+        "user"
+      ],
+      "tail": [
+        "<identity>\nYou are Antigravity, a powerful agentic AI assistant designed by the Google DeepMind team.\nThe task may require creating a new codebase, modifying or",
+        "<USER_REQUEST>\nReview the following candidate. Cite only the evidence refs listed.\n\ntask_id: task_01M50JGF06K1EB36WPBGMSRC6K\nrun_id: run_01M50JGF20JE5N5RCB42JFX"
+      ]
+    }
+  ]
+}

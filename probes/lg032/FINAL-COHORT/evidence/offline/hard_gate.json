@@ -1,0 +1,132 @@
+{
+  "ok": true,
+  "real_generation": 0,
+  "gate_root": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data-gate-sandbox-20261015T200031Z-8321abb8",
+  "H1_fixtures": {
+    "samples": {
+      "s1_units": {
+        "initial_passed": 1,
+        "initial_total": 5,
+        "reference_passed": 5,
+        "reference_total": 5,
+        "ok": true
+      },
+      "s2_pipeline": {
+        "initial_passed": 1,
+        "initial_total": 7,
+        "reference_passed": 7,
+        "reference_total": 7,
+        "ok": true
+      }
+    },
+    "ok": true
+  },
+  "H2_frozen_plans": {
+    "plans": {
+      "s1_units__A": {
+        "nodes": 2,
+        "write_nodes": 1,
+        "read_only_nodes": 1,
+        "verify_has_deps": true,
+        "ok": true
+      },
+      "s1_units__B": {
+        "nodes": 3,
+        "write_nodes": 2,
+        "read_only_nodes": 1,
+        "verify_has_deps": true,
+        "ok": true
+      },
+      "s2_pipeline__A": {
+        "nodes": 2,
+        "write_nodes": 1,
+        "read_only_nodes": 1,
+        "verify_has_deps": true,
+        "ok": true
+      },
+      "s2_pipeline__B": {
+        "nodes": 3,
+        "write_nodes": 2,
+        "read_only_nodes": 1,
+        "verify_has_deps": true,
+        "ok": true
+      }
+    },
+    "ok": true
+  },
+  "H5_stopgate": {
+    "missing_teardown_unconfirmed": true,
+    "complete_teardown_accepts": true,
+    "final_phase": "awaiting_acceptance",
+    "ok": true
+  },
+  "H6_save_dir": {
+    "save_dir_field": true,
+    "inside_authorized_root": true,
+    "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data/attempts/_gate_save_dir/workspaces/.lg-sdk-sessions",
+    "ok": true
+  },
+  "H3_startup": {
+    "start1_counter": {
+      "ledger_attached": true,
+      "counter_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data-gate-sandbox-20261015T200031Z-8321abb8/gate-phase/generation/generation.jsonl",
+      "frozen_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data-gate-sandbox-20261015T200031Z-8321abb8/gate-phase/generation/generation.jsonl",
+      "counter_ledger_matches_frozen": true
+    },
+    "start2_counter": {
+      "ledger_attached": true,
+      "counter_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data-gate-sandbox-20261015T200031Z-8321abb8/gate-phase/generation/generation.jsonl",
+      "frozen_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data-gate-sandbox-20261015T200031Z-8321abb8/gate-phase/generation/generation.jsonl",
+      "counter_ledger_matches_frozen": true
+    },
+    "same_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data-gate-sandbox-20261015T200031Z-8321abb8/gate-phase",
+    "ok": true
+  },
+  "H4_ledger": {
+    "worker_codes_start1": [
+      200,
+      200,
+      200
+    ],
+    "reviewer_codes_start2": [
+      200,
+      200,
+      200
+    ],
+    "count_after_start1": 3,
+    "count_seen_at_start2": 3,
+    "count_after_start2": 6,
+    "physical_history_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data-gate-sandbox-20261015T200031Z-8321abb8/gate-phase/generation/generation.jsonl",
+    "physical_history_exists": true,
+    "physical_history_lines": 6,
+    "ok": true
+  },
+  "H4_attempt_cap": {
+    "used": 48,
+    "limit": 48,
+    "codes_tail": [
+      200,
+      200,
+      429
+    ],
+    "count_after_overrun": 48,
+    "ok": true
+  },
+  "H4_total_cap": {
+    "codes": [
+      200,
+      200,
+      200,
+      429
+    ],
+    "count_after_overrun": 3,
+    "ok": true
+  },
+  "H4_corrupt_failclosed": {
+    "baseline_reserved": true,
+    "corrupt_reserve_denied": true,
+    "corrupt_flag": true,
+    "count_not_zero": true,
+    "ok": true
+  }
+}

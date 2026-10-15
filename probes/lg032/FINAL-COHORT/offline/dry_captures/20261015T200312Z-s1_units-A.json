@@ -1,0 +1,413 @@
+{
+  "sample": "s1_units",
+  "arm": "A",
+  "rc": 1,
+  "fake_base_url": "http://127.0.0.1:40843/v1",
+  "captured_tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "replace_file_content",
+        "description": "Use this tool to edit an existing file. Follow these rules:\n1. Use this tool ONLY when you are making a SINGLE CONTIGUOUS block of edits to the same file (i.e. replacing a single contiguous block of text).\n2. Do NOT make multiple parallel calls to this tool for the same file.\n3. To edit multiple, non-adjacent lines of code in the same file, make multiple calls to this tool.\n4. For the ReplacementChunk, specify StartLine, EndLine, TargetContent and ReplacementContent. StartLine and EndLine should specify a range of lines containing precisely the instances of TargetContent that you wish to edit. To edit a single instance of the TargetContent, the range should be such that it contains that specific instance of the TargetContent and no other instances. In TargetContent, specify the precise lines of code to edit. These lines MUST EXACTLY MATCH text in the existing file content. In ReplacementContent, specify the replacement content for the specified target content. This must be a complete drop-in replacement of the TargetContent, with necessary modifications made.\n5. If you are making multiple edits across a single file, make multiple calls to this tool. DO NOT try to replace the entire existing content with the new content, this is very expensive.\n6. You may not edit file extensions: [.ipynb]",
+        "parameters": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "AllowMultiple": {
+              "description": "If true, multiple occurrences of 'targetContent' will be replaced by 'replacementContent' if they are found. Otherwise if multiple occurrences are found, an error will be returned.",
+              "type": "boolean"
+            },
+            "Description": {
+              "description": "Brief, user-facing explanation of what this change did. Focus on non-obvious rationale, design decisions, or important context. Don't just restate what the code does.",
+              "type": "string"
+            },
+            "EndLine": {
+              "description": "The ending line number of the chunk (1-indexed). Should be at or after the last line containing the target content. Must satisfy StartLine <= EndLine <= number of lines in the file. The target content is searched for within the [StartLine, EndLine] range.",
+              "type": "integer"
+            },
+            "Instruction": {
+              "description": "A description of the changes that you are making to the file.",
+              "type": "string"
+            },
+            "ReplacementContent": {
+              "description": "The content to replace the target content with.",
+              "type": "string"
+            },
+            "StartLine": {
+              "description": "The starting line number of the chunk (1-indexed). Should be at or before the first line containing the target content. Must satisfy 1 <= StartLine <= EndLine. The target content is searched for within the [StartLine, EndLine] range.",
+              "type": "integer"
+            },
+            "TargetContent": {
+              "description": "The exact string to be replaced. This must be the exact character-sequence to be replaced, including whitespace. Be very careful to include any leading whitespace otherwise this will not work at all. This must be a unique substring within the file, or else it will error.",
+              "type": "string"
+            },
+            "TargetFile": {
+              "description": "The target file to modify. Must be an absolute path. Always specify the target file as the very first argument.",
+              "type": "string"
+            },
+            "TargetLintErrorIds": {
+              "description": "If applicable, IDs of lint errors this edit aims to fix (they'll have been given in recent IDE feedback). If you believe the edit could fix lints, do specify lint IDs; if the edit is wholly unrelated, do not. A rule of thumb is, if your edit was influenced by lint feedback, include lint IDs. Exercise honest judgement here.",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "toolAction": {
+              "description": "Brief 2-5 word phrase in -ing form describing the specific action. Capitalize like a sentence. Some examples: 'Analyzing directory', 'Searching the web', 'Checking git status', 'Running tests', 'Searching code'.",
+              "type": "string"
+            },
+            "toolSummary": {
+              "description": "Brief 2-5 word noun phrase describing the specific task. Capitalize like a sentence. Some examples: 'Directory analysis', 'Web search', 'Git status check', 'Test execution', 'Code search'.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "TargetFile",
+            "Instruction",
+            "Description",
+            "AllowMultiple",
+            "TargetContent",
+            "ReplacementContent",
+            "StartLine",
+            "EndLine",
+            "toolSummary",
+            "toolAction"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "view_file",
+        "description": "View the contents of a file from the local filesystem. This tool supports text files and following binary files: image, pdf, video, audio.\nText file usage:\n- The lines of the file are 1-indexed\n- You can view at most 800 lines at a time\n- Specify StartLine and EndLine to view the lines of the file using slice notation:\n  - Omit both to view the entire file, or the first 800 lines of the file, whichever is smaller.\n  - Specify StartLine only to view the remaining lines of the file, or the next 800 lines, whichever is smaller\n  - Specify EndLine only to view the remaining preceding lines of the file, or the previous 800 lines, whichever is smaller\n  - Specify both to view a precise line range. This range must be smaller than 800 lines or only the first 800 lines of the range will be shown.\n- Content is limited to 46080 bytes per view. If content is truncated, use the ContentOffset parameter to view the remaining content\nBinary file usage:\n- Do not provide StartLine or EndLine arguments, this tool always returns the entire file\n- Files larger than 100 MB cannot be viewed.",
+        "parameters": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "AbsolutePath": {
+              "description": "Path to file to view. Must be an absolute path.",
+              "type": "string"
+            },
+            "ContentOffset": {
+              "description": "Optional. Byte offset into the content. Use this to view content beyond the initial byte limit when the tool output indicates content was truncated.",
+              "type": "integer"
+            },
+            "EndLine": {
+              "description": "Optional. Endline to view, 1-indexed, inclusive. When specified, this value must be greater than or equal to StartLine.",
+              "type": "integer"
+            },
+            "StartLine": {
+              "description": "Optional. Startline to view, 1-indexed, inclusive. When specified, this value must be less than or equal to EndLine.",
+              "type": "integer"
+            },
+            "toolAction": {
+              "description": "Brief 2-5 word phrase in -ing form describing the specific action. Capitalize like a sentence. Some examples: 'Analyzing directory', 'Searching the web', 'Checking git status', 'Running tests', 'Searching code'.",
+              "type": "string"
+            },
+            "toolSummary": {
+              "description": "Brief 2-5 word noun phrase describing the specific task. Capitalize like a sentence. Some examples: 'Directory analysis', 'Web search', 'Git status check', 'Test execution', 'Code search'.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "AbsolutePath",
+            "toolSummary",
+            "toolAction"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "write_to_file",
+        "description": "Use this tool to create new files. The file and any parent directories will be created for you if they do not already exist.\n\t\tFollow these instructions:\n\t\t1. By default this tool will error if TargetFile already exists. To overwrite an existing file, set Overwrite to true. To append to an existing file (or create it if it does not exist), set Append to true.\n\t\t2. When creating an artifact, always provide ArtifactMetadata. When creating non-artifact files, do not provide it.",
+        "parameters": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "Append": {
+              "description": "Set this to true to append CodeContent to the end of TargetFile (creating the file if it does not exist). Cannot be combined with Overwrite=true.",
+              "type": "boolean"
+            },
+            "ArtifactMetadata": {
+              "additionalProperties": false,
+              "description": "Metadata that defines artifact properties. ONLY provide when creating an artifact file in the artifact directory. Omit this field when creating non-artifact files.",
+              "properties": {
+                "RequestFeedback": {
+                  "description": "Set to true if you'd like to request user feedback on this artifact and if the contents of this artifact are executable (e.g., a plan). The user will be provided with a 'Proceed' button to execute it.",
+                  "type": "boolean"
+                },
+                "Summary": {
+                  "description": "Detailed multi-line summary of the artifact file, after edits have been made. Summary does not need to mention the artifact name and should focus on the contents and purpose of the artifact.",
+                  "type": "string"
+                },
+                "UserFacing": {
+                  "description": "Set to true if this artifact should be presented to the user. Set to false for scratch scripts, temporary data files, or files that the user does not need to see",
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "Summary",
+                "UserFacing",
+                "RequestFeedback"
+              ],
+              "type": "object"
+            },
+            "CodeContent": {
+              "description": "The code contents to write to the file.",
+              "type": "string"
+            },
+            "Description": {
+              "description": "Brief, user-facing explanation of what this change did. Focus on non-obvious rationale, design decisions, or important context. Don't just restate what the code does.",
+              "type": "string"
+            },
+            "Overwrite": {
+              "description": "Set this to true to overwrite an existing file. WARNING: This will replace the entire file contents. Only use when you explicitly intend to overwrite. Otherwise, use a code edit tool to modify existing files.",
+              "type": "boolean"
+            },
+            "TargetFile": {
+              "description": "The target file to create and write code to. Must be an absolute path.",
+              "type": "string"
+            },
+            "toolAction": {
+              "description": "Brief 2-5 word phrase in -ing form describing the specific action. Capitalize like a sentence. Some examples: 'Analyzing directory', 'Searching the web', 'Checking git status', 'Running tests', 'Searching code'.",
+              "type": "string"
+            },
+            "toolSummary": {
+              "description": "Brief 2-5 word noun phrase describing the specific task. Capitalize like a sentence. Some examples: 'Directory analysis', 'Web search', 'Git status check', 'Test execution', 'Code search'.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "TargetFile",
+            "Overwrite",
+            "CodeContent",
+            "Description",
+            "toolSummary",
+            "toolAction"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "list_skills",
+        "description": "List all available skills with their names and descriptions.",
+        "parameters": {
+          "properties": {
+            "toolAction": {
+              "description": "Brief 2-5 word phrase in -ing form describing the specific action. Capitalize like a sentence. Some examples: 'Analyzing directory', 'Searching the web', 'Checking git status', 'Running tests', 'Searching code'.",
+              "type": "string"
+            },
+            "toolSummary": {
+              "description": "Brief 2-5 word noun phrase describing the specific task. Capitalize like a sentence. Some examples: 'Directory analysis', 'Web search', 'Git status check', 'Test execution', 'Code search'.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "toolSummary",
+            "toolAction"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "lookup_skill",
+        "description": "Look up a skill's full instructions by name. Call this before executing a skill to get its detailed instructions.",
+        "parameters": {
+          "properties": {
+            "skill_name": {
+              "description": "The name of the skill to look up",
+              "type": "string"
+            },
+            "toolAction": {
+              "description": "Brief 2-5 word phrase in -ing form describing the specific action. Capitalize like a sentence. Some examples: 'Analyzing directory', 'Searching the web', 'Checking git status', 'Running tests', 'Searching code'.",
+              "type": "string"
+            },
+            "toolSummary": {
+              "description": "Brief 2-5 word noun phrase describing the specific task. Capitalize like a sentence. Some examples: 'Directory analysis', 'Web search', 'Git status check', 'Test execution', 'Code search'.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "skill_name",
+            "toolSummary",
+            "toolAction"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "lookup_skills",
+        "description": "Look up full instructions for multiple skills at once. More efficient than calling lookup_skill multiple times.",
+        "parameters": {
+          "properties": {
+            "skill_names": {
+              "description": "The names of the skills to look up",
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "toolAction": {
+              "description": "Brief 2-5 word phrase in -ing form describing the specific action. Capitalize like a sentence. Some examples: 'Analyzing directory', 'Searching the web', 'Checking git status', 'Running tests', 'Searching code'.",
+              "type": "string"
+            },
+            "toolSummary": {
+              "description": "Brief 2-5 word noun phrase describing the specific task. Capitalize like a sentence. Some examples: 'Directory analysis', 'Web search', 'Git status check', 'Test execution', 'Code search'.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "skill_names",
+            "toolSummary",
+            "toolAction"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  ],
+  "records": [
+    {
+      "phase": "execution",
+      "path": "/v1/chat/completions",
+      "tool_names": [
+        "replace_file_content",
+        "view_file",
+        "write_to_file",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ],
+      "roles": [
+        "system",
+        "user"
+      ],
+      "tail": [
+        "<identity>\nYou are Antigravity, a powerful agentic AI assistant designed by the Google DeepMind team.\nThe task may require creating a new codebase, modifying or",
+        "<USER_REQUEST>\nComplete BOTH stub files so the acceptance criteria hold. src/labels.py must define slugify(title) -> str: lowercase, replace any run of non-[a-z"
+      ]
+    },
+    {
+      "phase": "selection",
+      "path": "/v1/chat/completions",
+      "tool_names": [
+        "view_file",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ],
+      "roles": [
+        "system",
+        "user"
+      ],
+      "tail": [
+        "<identity>\nYou are Antigravity, a powerful agentic AI assistant designed by the Google DeepMind team.\nThe task may require creating a new codebase, modifying or",
+        "<USER_REQUEST>\nRead the delivered artifacts and report their exact contents: src/labels.py, src/numeric.py. Read-only: do not write.\n\n# Task\n\n## \u76ee\u6807\n\nComplete BO"
+      ]
+    },
+    {
+      "phase": "selection",
+      "path": "/v1/chat/completions",
+      "tool_names": [
+        "view_file",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ],
+      "roles": [
+        "system",
+        "user",
+        "assistant",
+        "tool"
+      ],
+      "tail": [
+        "<USER_REQUEST>\nRead the delivered artifacts and report their exact contents: src/labels.py, src/numeric.py. Read-only: do not write.\n\n# Task\n\n## \u76ee\u6807\n\nComplete BO",
+        "[{'id': 'call_1', 'type': 'function', 'function': {'name': 'discover_and_request_claim', 'arguments': '{}'}}]",
+        "Created At: 2026-10-16T07:03:14+11:00\nError invalid tool call: There was a problem parsing the tool call. \nError Message: model output error: invalid tool call "
+      ]
+    },
+    {
+      "phase": "selection",
+      "path": "/v1/chat/completions",
+      "tool_names": [
+        "view_file",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ],
+      "roles": [
+        "system",
+        "user",
+        "assistant",
+        "tool",
+        "assistant",
+        "tool"
+      ],
+      "tail": [
+        "Created At: 2026-10-16T07:03:14+11:00\nError invalid tool call: There was a problem parsing the tool call. \nError Message: model output error: invalid tool call ",
+        "[{'id': 'call_1', 'type': 'function', 'function': {'name': 'discover_and_request_claim', 'arguments': '{}'}}]",
+        "Created At: 2026-10-16T07:03:14+11:00\nError invalid tool call: There was a problem parsing the tool call. \nError Message: model output error: invalid tool call "
+      ]
+    },
+    {
+      "phase": "selection",
+      "path": "/v1/chat/completions",
+      "tool_names": [
+        "view_file",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ],
+      "roles": [
+        "assistant",
+        "tool",
+        "assistant",
+        "tool",
+        "assistant",
+        "tool"
+      ],
+      "tail": [
+        "Created At: 2026-10-16T07:03:14+11:00\nError invalid tool call: There was a problem parsing the tool call. \nError Message: model output error: invalid tool call ",
+        "[{'id': 'call_1', 'type': 'function', 'function': {'name': 'discover_and_request_claim', 'arguments': '{}'}}]",
+        "Created At: 2026-10-16T07:03:14+11:00\nError invalid tool call: There was a problem parsing the tool call. \nError Message: model output error: invalid tool call "
+      ]
+    },
+    {
+      "phase": "selection",
+      "path": "/v1/chat/completions",
+      "tool_names": [
+        "view_file",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ],
+      "roles": [
+        "assistant",
+        "tool",
+        "assistant",
+        "tool",
+        "assistant",
+        "tool"
+      ],
+      "tail": [
+        "Created At: 2026-10-16T07:03:14+11:00\nError invalid tool call: There was a problem parsing the tool call. \nError Message: model output error: invalid tool call ",
+        "[{'id': 'call_1', 'type': 'function', 'function': {'name': 'discover_and_request_claim', 'arguments': '{}'}}]",
+        "Created At: 2026-10-16T07:03:14+11:00\nError invalid tool call: There was a problem parsing the tool call. \nError Message: model output error: invalid tool call "
+      ]
+    }
+  ]
+}
