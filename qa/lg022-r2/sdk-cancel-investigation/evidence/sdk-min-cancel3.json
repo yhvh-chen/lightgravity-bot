@@ -1,0 +1,42 @@
+{
+  "provider": "provider-substitute",
+  "real_model_calls": 0,
+  "control": {
+    "do_cancel": false,
+    "stream_opened": true,
+    "is_idle_pre": false,
+    "drain_still_running_pre": true,
+    "drain_done_within_6s": false,
+    "drain_result": {},
+    "is_idle_post": false,
+    "upstream_saw_client_gone": false,
+    "agent_aexit_ok": true,
+    "proxy_stopped": true
+  },
+  "cancel": {
+    "do_cancel": true,
+    "stream_opened": true,
+    "is_idle_pre": false,
+    "drain_still_running_pre": true,
+    "drain_done_within_6s": true,
+    "drain_result": {
+      "exc": "AntigravityCancelledError",
+      "exc_msg": "The request was cancelled by the client.",
+      "chunks": 0,
+      "finished_at": 0.052
+    },
+    "is_idle_post": true,
+    "upstream_saw_client_gone": false,
+    "agent_aexit_ok": true,
+    "proxy_stopped": true
+  },
+  "verdict": {
+    "control_stream_open_6s": true,
+    "control_not_idle": true,
+    "cancel_drain_ended": true,
+    "cancel_idle": true,
+    "cancel_reports_sdk_cancelled_error": true,
+    "cancel_agent_aexit_ok": true
+  },
+  "cancel_order_proven": true
+}

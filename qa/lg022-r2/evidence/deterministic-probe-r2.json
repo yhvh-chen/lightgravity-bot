@@ -1,0 +1,44 @@
+{
+  "evidence_kind": "deterministic-double",
+  "real_model_calls": 0,
+  "restart_no_replay": {
+    "decisions": [
+      "recovery_required"
+    ],
+    "task_phase_after": "recovery_required",
+    "queue_after": {
+      "state": "not_queued",
+      "owner": null,
+      "lease_expires_at": null
+    },
+    "active_run_after": "run_01M506BDEGKSV9JJ98E8W3FX1W",
+    "run_state_after": "executing",
+    "run_attempt_after": 1,
+    "replayed": false,
+    "no_replay_and_recovery_required": true
+  },
+  "cross_run_budget": {
+    "before": {
+      "review_rounds": 2,
+      "repair_rounds_spent": 1
+    },
+    "after": {
+      "review_rounds": 2,
+      "repair_rounds_spent": 1
+    },
+    "not_reset_across_run": true
+  },
+  "cancel_during_review": {
+    "confirmed": true,
+    "reviewer_saw_stop": true,
+    "task_phase": "cancelled",
+    "run_state": "cancelled",
+    "cancel_confirmed_after_real_stop": true
+  },
+  "verdict": {
+    "restart_no_replay": true,
+    "cross_run_budget": true,
+    "cancel_during_review_real_stop": true
+  },
+  "all_pass": true
+}

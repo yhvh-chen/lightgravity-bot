@@ -1,0 +1,12 @@
+{
+  "P2_persisted": true,
+  "phase": "read_fresh_process",
+  "real_model_calls": 0,
+  "snapshot": {
+    "corrupt": false,
+    "count": 3,
+    "limit": 3,
+    "persistent": true,
+    "remaining": 0
+  }
+}

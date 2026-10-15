@@ -1,0 +1,32 @@
+{
+  "provider": "provider-substitute",
+  "real_model_calls": 0,
+  "control": {
+    "do_cancel": false,
+    "stream_opened": true,
+    "is_idle_pre": false,
+    "idle_within_6s": false,
+    "is_idle_post": false,
+    "upstream_saw_client_gone": false,
+    "agent_aexit_ok": true,
+    "proxy_stopped": true
+  },
+  "cancel": {
+    "do_cancel": true,
+    "stream_opened": true,
+    "is_idle_pre": false,
+    "idle_within_6s": true,
+    "is_idle_post": true,
+    "last_turn_stop_reason": "UNSPECIFIED",
+    "upstream_saw_client_gone": false,
+    "agent_aexit_ok": true,
+    "proxy_stopped": true
+  },
+  "verdict": {
+    "control_not_idle_within_window": true,
+    "cancel_idle_within_window": true,
+    "cancel_stop_reason_cancelled": false,
+    "cancel_agent_aexit_ok": true
+  },
+  "cancel_order_proven": false
+}

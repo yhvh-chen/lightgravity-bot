@@ -1,0 +1,25 @@
+{
+  "provider": "provider-substitute",
+  "real_model_calls": 0,
+  "stream_opened": true,
+  "reviewing": true,
+  "control_stop_elapsed_s": 5.017,
+  "control": {
+    "action": "cancel",
+    "state": "unconfirmed",
+    "confirmed": false,
+    "task_id": "task_01M507E36V182F9B9WMBP4P203",
+    "run_id": "run_01M507E36VENK2WSEP6FS7GPY3",
+    "phase": "cancelling",
+    "reason": "reviewer did not stop within 5.0s; unknown side effects, slot retained"
+  },
+  "resource_stop_report_at_stop": {},
+  "upstream_saw_client_gone": false,
+  "lifecycle_still_reviewing": true,
+  "run_state_after": "verifying",
+  "task_phase_after": "cancelling",
+  "session_refs_preserved": true,
+  "review_future_resolved_after_release": true,
+  "review_outcome": "unavailable",
+  "product_stop_reached_sdk_cancel": true
+}
