@@ -1,0 +1,12 @@
+{
+  "head": "<commit>",
+  "port": 18432,
+  "no_executor": true,
+  "health_200": true,
+  "exit_health": 0,
+  "exit_version": 0,
+  "exit_ui_recorded_only": 0,
+  "exit_protected": 0,
+  "exit_stop": 0,
+  "real_model_generation": 0
+}

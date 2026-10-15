@@ -426,3 +426,33 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - **handoff/边界**：`main@b7db2c7`（clean）；LG-024 HEAD `db84849`（clean）；metrics 原件边界：cohort-3 唯一物理 ledger `lg023-cohort3-data/generation/generation.jsonl`（16 行）、
   逐 attempt `probes/lg023/cohort3/runs/**`（不可变）、旧 cohort1 ledger `probes/lg023/ledger/generation/generation.jsonl`（45 行）、cohort2 `lg023-cohort2-data/attempts/**`（4）。
   退出无残留本包进程；下一步阶段 B 待共享 docs owner 释放。
+
+## 2026-10-16 LG-024 首版交付准备收口检查点（主代理 PM，产品真实生成 0 / 外部服务 0）
+
+本节为当前事实，覆盖上文 LG-024 相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
+未 reset/clean/覆盖/重复 pick，未推送/部署/发布/上传。主代理只 PM，无嵌套派工。
+详细报告见 [probes/batch-20261016/LG024-CLOSE.md](probes/batch-20261016/LG024-CLOSE.md)。
+
+- **开工核对（真实，只读）**：主工作区 `main@66b2b10` clean；源 024 owner 已退出、`dev/lg024@73f570c` clean；
+  `main` 为 `dev/lg024` 直接祖先（`git merge-base --is-ancestor` = YES）⇒ **可 fast-forward、无冲突**。
+  变更范围仅 `README.md`/`backlog/tasks/LG-024.md`/`docs/06-roadmap.md` + `probes/lg024/**`，**无产品代码、无 `docs/08`、无 `qa/**`**。
+  主工作区 uvicorn(`:8123` PID 3320750) **未触碰**；在途签名 `lg032-runtime-r1` 独立 QA（PID 2233535）**未 kill、未碰其 branch/文件/index/worktree**。
+- **安全收拢**：`git merge --ff-only dev/lg024` → `main` 前进到 **`73f570c`**。**不合**未验 `integrate/lg031-runtime@afcae82`；**不碰** `qa/lg032-runtime-r1`。
+  README/PROJECT/agent/docs06 无冲突（main 未改这些文件），双方内容保留，未复制秘密，**docs/08 本包不写**。
+- **包锚点复核（逐字节，PM 独立核）**：首版稳定 product tree **`e0a8cec`**（= 收拢前 `main` `66b2b10` 产品路径，`git diff` 空）；契约 `1.10.0`、SDK `0.1.22`；
+  tarball **`probes/lg024/STAGE-B/dist/lightgravity-bot-L0-e0a8cec-20261015T183958Z.tar.gz`**；
+  **sha256 = `581f1de603ab8adc6533efa9d4b2ed0506433d17328646b00ab7bbb2761f4de0`**（工作区实体 + `git cat-file blob | sha256sum` **双核一致**）；
+  **405 文件**（`tar` 条目 = manifest 行数 = 405）；`sha256sum -c`（除 manifest 自身）**全 MATCH exit 0**；`verify-stage-b.sh` → **`OK (405 files, strictly clean)`，exit 0**（无 `/home/yhvh/`、秘密、DB、日志、依赖体、开发/PM 证据）。
+- **已验 scope**：私有本地 L0 包（运行时/前端源码 + 预构建 `frontend/dist` + tests + 锁文件 + 用户文档）；解包离线 `uv sync` + health/version/index/静态资产 200 + 无 token 敏感写 401 + stop 释放
+  （脚本 `smoke-unpack.sh`：专用端口 `18433`、独立 data/secret、`--no-executor`、产品真实 SDK/模型 0、**不碰 `:8123`**）。
+  **未测保留**：真实 `lightgravity init` 写凭证、`status --deep`、浏览器六入口渲染、真实模型闭环；**未重跑**无变更的完整 pytest/前端矩阵（产品树无变更，引用已验锚点）。
+- **许可范围**：L0 不重分发第三方包体/SDK/weights；`NOTICE.md` 列运行时 51 包 + 前端 224 + `pypdfium2` 捆绑 CC-BY-4.0、弱 copyleft MPL-2.0、无 GPL/AGPL；
+  **项目自身无 `LICENSE`/`NOTICE`、公开许可证未选定 ⇒ 未授予公开再分发**；NOTICE 列上游许可但不授公开再分发（**不代用户选公开许可证**）；私有 review 准备范围准确。
+- **协作候选单列**：`integrate/lg031-runtime@afcae82` **未合 main、独立 QA R1 进行中**，**未来协作 source 不是本包已验内容**；
+  若集入 main 需**另包候选并刷新绑定届时真实 product tree**，**不把 `e0a8cec` 旧包冒称最新全产品**。
+- **措辞边界（不泛化）**：组队成本「更高/更低」只能指**已测请求数 / elapsed**（cohort-3 A 6 请求/25.17s、B 10 请求/33.43s），**不泛指完整费用**；
+  **provider token / 费用 / sharedpiQA 仍 `unknown`**（不当 0）；**023 旧 45+4 历史不洗白**（另行单列）。
+- **状态如实**：**LG-024 `in-progress → done`**（仅**首版交付准备原门**内，**仍非发布授权**）；`main@73f570c`（+ 本 PM 收口 commit）。
+  **LG-029/031/032 仍 `in-progress`**（source candidate 未合 main / 独立 R1 进行）；**LG-035/037 `in-progress`**；**LG-036/038 `done` 待 040**；**LG-040/041 锁不动（`todo`）**。
+  契约 `1.10.0`、SDK `0.1.22`、程序最小规则调度、真实 SDK 唯一路径、自主模式默认 off **不变**。
+  **本包产品真实生成 0、外部服务调用 0**；未推送/部署/发布/上传。所有旧包/实验/路径保留。

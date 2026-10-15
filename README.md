@@ -42,6 +42,48 @@ Task 是主要操作入口：一项任务一个目录、一份 TASK.md、一条�
 
 任务、角色及 SDK 资源采用 Markdown＋YAML frontmatter 描述与渲染，程序校验后编译为 SDK 配置。日志与 SDK 会话保持各自格式，不重复保存当前业务状态。
 
+## 首版使用指南（安装 / 启动 / 配置 / 使用 / 恢复）
+
+> 本节面向使用首版的人；开发实现与证据见 [当前进展](#当前进展截至-2026-10-15) 与 [文档入口](#文档入口)。
+> 绑定首版核心稳定产品树 `e0a8cec`（= `main` `66b2b10` 产品路径，逐字节相同），契约 `1.10.0`、SDK `google-antigravity==0.1.22`。
+> L0 首版私评包（含 portable 使用说明、NOTICE、manifest、sha256）见 [probes/lg024/STAGE-B](probes/lg024/STAGE-B/)，**未发布、未授予公开再分发**。
+
+### 安装与启动
+
+```bash
+uv sync                                   # 按 uv.lock 从公开来源 / 本地缓存重建后端依赖
+uv run lightgravity start \
+  --data-dir ./bot-data --workspace-root ./bot-data/workspaces \
+  --secret-store ./secrets --host 127.0.0.1 --port 8000
+# 浏览器打开 http://127.0.0.1:8000/ ；make serve 会先构建前端再启动
+```
+
+`lightgravity start | status [--deep] | stop | init` 为入口；**默认仅 loopback**，首启在**内存**握手运行时 token 并注入页面；**敏感写默认拒绝**；首启幂等种子 `lg-default-worker` 仅含 `view-file`/`create-file`/`edit-file` 三个 workspace 受限工具。
+
+### Settings：worker 与独立 reviewer
+
+- Settings → Connections 建连接 / 存凭证（只存引用，不写真实密钥）；非交互 `lightgravity init --connection-id <id> --credential-ref <REF> [--set-worker-default]` 幂等。
+- 设 `default_worker_connection_ref` 后，新 Task 招募用该默认（Run/Member 冻结非秘密 `connection_pin`）。
+- 设 `default_reviewer_connection_ref` 指定**独立 reviewer**；**未配置时诚实 `unavailable` 且阻止 accept**，**程序机器门 ≠ 独立复核**，不静默回退 worker。
+- 自主协作开关 `decentralized_claim_enabled`/`collab_requests_enabled` **默认关闭**，走确定性 `plan_source=rules`。
+
+### Chat 轻问答与交付 Task
+
+- **轻问答**：Chat 直问直答（无工具单次直答）；未配置默认协调连接/凭证时诚实 `unavailable`，不伪造 AI。
+- **交付 Task**：Chat 提目标 → **程序按规则生成最小计划**（不调用模型）→ 招募最小团队 → 调度执行 → 机器检查 + 独立复核 → 待验收 → **人工最终验收**；worker 自报完成只进待验证。
+
+### Files：资料原件与来源
+
+Files 只读预览/下载、受控上传（`X-LG-Token`，无 token 时上传如实 `unauthorized`），检查符号链接与路径逃逸。**资料接入方向已确认（[docs/09](docs/09-source-intake-and-retrieval.md)）**：Chat 为唯一常规资料接入入口，Files 负责预览/来源追溯/归档/校订/重处理/下载；**schema/API 未冻结、摄取/检索未实现**，现有上传属历史实现。
+
+### Resources 与恢复入口
+
+- Resources 分类：Connections、Session Profiles、Hooks、MCP、Tools、Triggers、Skills；`enabled` 不等于已运行/可用，健康未知如实 `unknown`。
+- **恢复**：暂停/取消/断连/会话关闭/完成分别处理；**确认真实停止才写终止**；浏览器断线不取消后端工作，重连按游标补齐。
+- **未知副作用不自动重放**：进 `recovery_required` 诚实停车、保留 `session_refs`；**完整 checkpoint skip 调度未实现**。诊断入口 `GET /api/v1/diagnostics/generation`（`persistent` 跨重启不归零、损坏给 `corrupt`）。
+
+> **不宣传为可用**：资料摄取/检索（docs/09）、中文 ASR（LG-039 负结论）、Office 格式、完整 checkpoint skip；自主协作默认 off。真实模型调用只走唯一已验收路径，且需明确测试环境与预算。
+
 ## 当前进展（截至 2026-10-15）
 
 | 任务 | 状态 | 实际证据与限制 |
