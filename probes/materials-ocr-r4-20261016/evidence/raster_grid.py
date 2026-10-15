@@ -15,9 +15,10 @@ import struct
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(os.path.dirname(ROOT))
 PRIV = os.path.join(ROOT, "private")
 EVID = os.path.join(ROOT, "evidence")
-sys.path.insert(0, os.path.join(ROOT, "backend"))
+sys.path.insert(0, os.path.join(REPO, "backend"))
 
 from lightgravity.sources.ocr.pdf import PdfiumRasterizer  # noqa: E402
 

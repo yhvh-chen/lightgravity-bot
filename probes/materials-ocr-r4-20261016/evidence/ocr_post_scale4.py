@@ -18,10 +18,11 @@ import time
 import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(os.path.dirname(ROOT))
 EVID = os.path.join(ROOT, "evidence")
 PRIV = os.path.join(ROOT, "private")
 
-sys.path.insert(0, os.path.join(ROOT, "backend"))
+sys.path.insert(0, os.path.join(REPO, "backend"))
 
 from lightgravity.sources.ocr.adapter import OcrRequest, OpenAICompatOcrBackend  # noqa: E402
 from lightgravity.sources.ocr.pdf import PdfiumRasterizer  # noqa: E402
