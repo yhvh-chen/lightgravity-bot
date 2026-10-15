@@ -82,31 +82,51 @@ def check_plan_hash_equal() -> dict[str, Any]:
 
 
 def check_only_mode_switch_differs() -> dict[str, Any]:
-    """Static proof: every arm-dependent branch concerns the collaboration switch.
+    """Static proof: the ONLY arm-dependent variable is the collaboration switch.
 
-    Two ``arm == "B"`` gates exist and both concern the one switch: (1) it enables
-    the switch before runtime build; (2) it asserts the product actually wired the
-    candidate-pool path.  Neither alters the plan, members, tools, objective,
-    acceptance, truth or caps.  A guard that fails loudly is *not* an experimental
-    variable.
+    MODE-ISOLATION update: the fixed harness writes the switch *explicitly for
+    every arm* (A -> False, B -> True) through ``_set_mode``, and re-asserts the
+    real assembled dispatcher mode through ``_assert_active_mode`` after build.
+    So the required static invariants are now:
+
+    * ``_set_mode`` exists and is CALLED unconditionally before ``build_runtime``
+      (not inside an ``arm == "B"`` branch);
+    * ``_safe_restore_mode`` exists and is called (phase-end restore off);
+    * ``_assert_active_mode`` exists and is called (post-bootstrap assertion);
+    * every ``arm == "B"`` gate concerns only the collaboration switch -- none
+      alters the plan, members, tools, objective, acceptance, truth or caps.
+
+    A guard that fails loudly is *not* an experimental variable; an unconditional
+    explicit switch write for BOTH arms is the fix, not a new variable.
     """
 
     src = (HERE / "run_attempt.py").read_text(encoding="utf-8")
     lines = src.splitlines()
     arm_gates = [i for i, line in enumerate(lines) if 'arm == "B"' in line]
-    # Each gate must be followed (within a few lines) by a collaboration-switch
-    # reference -- either the switch writer or the pool guard.
-    switch_markers = ("_enable_decentralized_pool", "_autonomous_pool", "decentralized")
+    # Each arm-dependent gate must stay inside the mode helpers, i.e. its window
+    # references the collaboration switch only.
+    switch_markers = ("decentralized", "_autonomous_pool", "_autonomous_claim")
     gates_ok = True
     for i in arm_gates:
-        window = "\n".join(lines[i : i + 4])
+        window = "\n".join(lines[i : i + 6])
         gates_ok = gates_ok and any(m in window for m in switch_markers)
-    ok = 1 <= len(arm_gates) <= 2 and gates_ok and "_enable_decentralized_pool" in src
+    # The fix requires an UNCONDITIONAL per-attempt writer + restore + assertion.
+    set_mode_present = "def _set_mode(" in src and "_set_mode(settings, arm)" in src
+    restore_present = "def _safe_restore_mode(" in src and "_safe_restore_mode(settings)" in src
+    assert_present = ("def _assert_active_mode(" in src
+                      and "_assert_active_mode(settings, dispatcher, arm)" in src)
+    # The old B-only writer must be gone (it caused the serial pollution).
+    legacy_writer_removed = "_enable_decentralized_pool" not in src
+    ok = (gates_ok and set_mode_present and restore_present and assert_present
+          and legacy_writer_removed)
     return {
         "ok": ok,
         "arm_B_gate_count": len(arm_gates),
         "all_gates_are_switch": gates_ok,
-        "switch_writer_present": "_enable_decentralized_pool" in src,
+        "set_mode_present": set_mode_present,
+        "restore_present": restore_present,
+        "post_bootstrap_assert_present": assert_present,
+        "legacy_b_only_writer_removed": legacy_writer_removed,
     }
 
 
