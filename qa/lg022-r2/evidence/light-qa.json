@@ -1,0 +1,32 @@
+{
+  "steps": [
+    {
+      "name": "light_qa_no_task_created",
+      "ok": true,
+      "code": 200,
+      "before": 0,
+      "after": 0
+    },
+    {
+      "name": "real_answer_returned",
+      "ok": true
+    }
+  ],
+  "kind": "real-light-qa",
+  "response": {
+    "code": 200,
+    "kind": "direct",
+    "reply": "幂等指同一操作执行一次或多次，对系统状态产生的结果相同。",
+    "error": null
+  },
+  "generation": {
+    "count": 1,
+    "limit": 3,
+    "remaining": 2,
+    "corrupt": false,
+    "persistent": true
+  },
+  "light_qa_no_task_created": true,
+  "real_answer_returned": true,
+  "ok": true
+}

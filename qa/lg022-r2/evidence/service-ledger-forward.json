@@ -1,0 +1,22 @@
+{
+  "P1_count_increments": true,
+  "P3_denied_no_forward": true,
+  "P3_status_4th": 429,
+  "P3_upstream_calls_delta_for_denied": 0,
+  "data_dir": "/tmp/lg022-r2-svc/restart",
+  "p1_statuses_3_allowed": [
+    200,
+    200,
+    200
+  ],
+  "phase": "forward",
+  "real_model_calls": 0,
+  "snapshot_after_3": {
+    "corrupt": false,
+    "count": 3,
+    "limit": 3,
+    "persistent": true,
+    "remaining": 0
+  },
+  "total_fake_upstream_calls": 3
+}

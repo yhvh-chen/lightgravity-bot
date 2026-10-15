@@ -1,0 +1,16 @@
+{
+  "P4_corrupt_unknown_not_zero": true,
+  "P4_refused_forward": true,
+  "corrupt_status": 429,
+  "phase": "corrupt",
+  "real_model_calls": 0,
+  "snapshot": {
+    "corrupt": true,
+    "count": null,
+    "limit": 3,
+    "persistent": true,
+    "reason": "history line 1 is not valid JSON",
+    "remaining": null
+  },
+  "upstream_calls": 0
+}

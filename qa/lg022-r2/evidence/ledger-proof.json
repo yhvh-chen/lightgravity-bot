@@ -1,0 +1,84 @@
+{
+  "C1_reserve_before_forward": {
+    "count_after_first": 1,
+    "count_final": 3,
+    "denied_at_limit": {
+      "granted": false,
+      "reason": "limit reached"
+    },
+    "grants": [
+      true,
+      true,
+      true
+    ],
+    "history_exists_after_first": true
+  },
+  "C3_shared_across_roles": {
+    "expect_grants": 4,
+    "grants": 4,
+    "ok": true,
+    "reviewer_count": 4,
+    "sequence": [
+      true,
+      true,
+      true,
+      true,
+      false,
+      false
+    ],
+    "worker_count": 4
+  },
+  "C4_restart_persistent": {
+    "child_returncode": 0,
+    "count_before_restart": 2,
+    "fresh_interpreter_count": 2,
+    "persisted_across_restart": true,
+    "reopen_same_process_count": 2
+  },
+  "C5_concurrency": {
+    "children": 6,
+    "each_tries": 5,
+    "ledger_count": 10,
+    "limit": 10,
+    "ok": true,
+    "total_granted": 10
+  },
+  "C6_corrupt_fail_closed": {
+    "counter_count": -1,
+    "not_treated_as_zero": true,
+    "reserve_corrupt_flag": true,
+    "reserve_granted": false,
+    "reserve_reason": "history line 2 is not valid JSON",
+    "snapshot": {
+      "corrupt": true,
+      "count": null,
+      "limit": 5,
+      "reason": "history line 2 is not valid JSON",
+      "remaining": null
+    }
+  },
+  "C6b_corrupt_snapshot": {
+    "not_treated_as_zero": true,
+    "reserve_granted": false,
+    "snapshot": {
+      "corrupt": true,
+      "count": null,
+      "limit": 5,
+      "reason": "count snapshot unreadable: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)",
+      "remaining": null
+    }
+  },
+  "verdict": {
+    "all_pass": true,
+    "checks": {
+      "C1": true,
+      "C2": true,
+      "C3": true,
+      "C4": true,
+      "C5": true,
+      "C6": true
+    },
+    "evidence_kind": "offline-persistent-ledger-proof",
+    "real_model_calls": 0
+  }
+}
