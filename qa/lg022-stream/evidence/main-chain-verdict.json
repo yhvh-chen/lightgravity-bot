@@ -1,0 +1,40 @@
+{
+  "source_raw": "qa/lg022-stream/evidence/main-chain.json",
+  "candidate_head": "e0a8cec845864b387f89934266901e62817aaa9d",
+  "phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data",
+  "phase_limit": 10,
+  "real_generation_count": 5,
+  "corrections": [
+    "worker_connection_pin_present keyed by connection_id+role (was pin['ref'])",
+    "control_on_terminal expected 409 illegal_transition (was HTTP200 not_applicable)"
+  ],
+  "verdict": {
+    "health_ok": true,
+    "worker_default_pinned": true,
+    "reviewer_default_pinned": true,
+    "protected_write_requires_token": true,
+    "execution_ready": true,
+    "reviewer_wired_model": true,
+    "ledger_persistent_single_path": true,
+    "task_created": true,
+    "duplicate_task_idempotent": true,
+    "run_reached_awaiting_acceptance": true,
+    "status_query_not_blocked": true,
+    "real_artifact_written": true,
+    "real_session_refs_recorded": true,
+    "cleanup_not_fabricated_done": true,
+    "reviewer_real_teardown_recorded": true,
+    "worker_connection_pin_present": true,
+    "accept_confirmed_bound": true,
+    "accept_candidate_ref_matches_run": true,
+    "accept_plan_hash_matches_run": true,
+    "accept_requirements_revision_matches": true,
+    "duplicate_accept_idempotent": true,
+    "stale_accept_rejected": true,
+    "control_on_terminal_rejected_no_fabricated_stop": true,
+    "ledger_persistent_final": true,
+    "ledger_history_present_single_path": true,
+    "real_generation_within_limit": true
+  },
+  "ok": true
+}

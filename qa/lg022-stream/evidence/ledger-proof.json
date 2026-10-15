@@ -1,0 +1,54 @@
+{
+  "phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data",
+  "phase_limit": 10,
+  "proof_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data/ledger-proof",
+  "env": {
+    "LIGHTGRAVITY_GENERATION_LEDGER_DIR": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data",
+    "LIGHTGRAVITY_DATA_DIR": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data",
+    "LIGHTGRAVITY_MAX_GENERATION_CALLS": "10"
+  },
+  "checks": {
+    "L1_single_ledger_persists_across_instance": {
+      "pass": true,
+      "count_after_two_reserves": 2,
+      "count_after_fresh_instance": 2,
+      "reserves": [
+        1,
+        2
+      ]
+    },
+    "L2_cross_process_sees_cumulative": {
+      "pass": true,
+      "returncode": 0,
+      "stdout": "{\"count\": 3, \"granted\": true, \"count_after\": 3, \"remaining\": 7}",
+      "stderr_tail": ""
+    },
+    "L3_hard_cap_enforced": {
+      "pass": true,
+      "grants": [
+        true,
+        true,
+        false
+      ],
+      "count": 2,
+      "refused_remaining": 0,
+      "refused_reason": "limit reached"
+    },
+    "L4_corruption_fail_closed": {
+      "pass": true,
+      "refused_granted": false,
+      "refused_corrupt": true,
+      "snapshot_corrupt": true,
+      "snapshot_count_is_none": true,
+      "count_raised": true,
+      "reason": "history line 1 is not valid JSON"
+    },
+    "L5_env_wires_single_path": {
+      "pass": true,
+      "resolved": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data",
+      "expected": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data",
+      "limit_env": "10"
+    }
+  },
+  "ok": true
+}

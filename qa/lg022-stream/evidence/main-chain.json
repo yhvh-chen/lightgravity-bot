@@ -1,0 +1,593 @@
+{
+  "candidate_head": "e0a8cec845864b387f89934266901e62817aaa9d",
+  "phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data",
+  "phase_limit": 10,
+  "steps": [
+    {
+      "name": "health_ok",
+      "ok": true
+    },
+    {
+      "name": "worker_default_pinned",
+      "ok": true
+    },
+    {
+      "name": "reviewer_default_pinned",
+      "ok": true
+    },
+    {
+      "name": "protected_write_requires_token",
+      "ok": true
+    },
+    {
+      "name": "execution_ready",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "name": "reviewer_wired_model",
+      "ok": true,
+      "reviewer": {
+        "reviewer": "model",
+        "connection_id": "deepseek-chat",
+        "credential_configured": true
+      }
+    },
+    {
+      "name": "ledger_persistent_single_path",
+      "ok": true,
+      "generation": {
+        "count": 0,
+        "limit": 10,
+        "remaining": 10,
+        "corrupt": false,
+        "persistent": true
+      }
+    },
+    {
+      "name": "task_created",
+      "ok": true,
+      "code": 200,
+      "task_id": "task_01M5090RSAP06FV0HYV1VKFFYZ"
+    },
+    {
+      "name": "duplicate_task_idempotent",
+      "ok": true,
+      "code": 200
+    },
+    {
+      "name": "run_reached_awaiting_acceptance",
+      "ok": true,
+      "phase": "awaiting_acceptance",
+      "phases_seen": [
+        "awaiting_acceptance",
+        "executing",
+        "verifying"
+      ]
+    },
+    {
+      "name": "status_query_not_blocked",
+      "ok": true,
+      "max_status_latency": 0.226
+    },
+    {
+      "name": "real_artifact_written",
+      "ok": true,
+      "artifact": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data/workspace/ws1/out/result.txt",
+      "content": "LG022_STREAM_OK"
+    },
+    {
+      "name": "real_session_refs_recorded",
+      "ok": true,
+      "session_refs": [
+        "sess_2c6186b4762c47bd9d606d2530c2ddb4",
+        "sess_ff34ebac7ad1428a866984b2600bc4f3"
+      ]
+    },
+    {
+      "name": "cleanup_not_fabricated_done",
+      "ok": true,
+      "cleanup": {
+        "status": "pending"
+      }
+    },
+    {
+      "name": "reviewer_real_teardown_recorded",
+      "ok": true,
+      "reviewer_cleanup": {
+        "status": "done",
+        "agent_closed": true,
+        "proxy_stopped": true,
+        "confirmed": true,
+        "problems": []
+      }
+    },
+    {
+      "name": "worker_connection_pin_present",
+      "ok": false,
+      "pin": {
+        "connection_id": "deepseek-worker-qa-stream",
+        "role": "worker",
+        "revision": 0,
+        "content_hash": "89515122e2c15ed38ff60ec743211073ce4c07c51ff89788c5567f51bb76fc7f",
+        "backend": "openai-compat",
+        "model": "deepseek-chat",
+        "base_url": "https://api.deepseek.com/v1",
+        "credential_ref": "deepseek-api-key",
+        "credential_version": null,
+        "config_hash": "16eb07b79ebbcd2c82aae6ed53453ce461c1ca74ba0fd689ad163b9990cd680a"
+      }
+    },
+    {
+      "name": "accept_confirmed_bound",
+      "ok": true,
+      "code": 200,
+      "state": "confirmed",
+      "acceptance": {
+        "status": "accepted",
+        "requirements_revision": 1,
+        "deliverable_revision": 1,
+        "evidence_refs": [
+          "out/result.txt",
+          "evidence:run_01M5090RWKSZ02AWQDPZ4YSMVA/subtask_01M5090S0957P9PD1Y5S9BR6N8-lg006-diff.patch@sha256:fa2323188bd02446fb61c9677c1d7fccc7987db0406c175b0e8b8f824e4bef3d"
+        ],
+        "decided_at": "2026-10-15T17:16:15.671Z",
+        "decision_ref": "qa-stream-accept-1",
+        "candidate_ref": "run_01M5090RWKSZ02AWQDPZ4YSMVA",
+        "candidate_plan_hash": "ca18a47be86d12fba9b3ba91e7c766f61df2fd6c40986dfc968441d2eb2177d1",
+        "check_records": []
+      },
+      "candidate_ref": "run_01M5090RWKSZ02AWQDPZ4YSMVA",
+      "plan_hash": "ca18a47be86d12fba9b3ba91e7c766f61df2fd6c40986dfc968441d2eb2177d1",
+      "req_rev": 1
+    },
+    {
+      "name": "duplicate_accept_idempotent",
+      "ok": true,
+      "code": 200
+    },
+    {
+      "name": "stale_accept_rejected",
+      "ok": true,
+      "code": 409,
+      "error": {
+        "code": "illegal_transition",
+        "message": "target_run_id does not match the Task's active Run",
+        "details": {
+          "active_run": null,
+          "target_run_id": "run_does_not_exist"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    },
+    {
+      "name": "control_on_terminal_not_applicable",
+      "ok": false,
+      "code": 409,
+      "state": null
+    },
+    {
+      "name": "ledger_persistent_final",
+      "ok": true,
+      "generation": {
+        "count": 5,
+        "limit": 10,
+        "remaining": 5,
+        "corrupt": false,
+        "persistent": true
+      }
+    },
+    {
+      "name": "ledger_history_present_single_path",
+      "ok": true,
+      "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data/generation/generation.jsonl"
+    }
+  ],
+  "generation_readings": [
+    {
+      "at": "start",
+      "count": 0,
+      "limit": 10,
+      "remaining": 10,
+      "corrupt": false,
+      "persistent": true
+    },
+    {
+      "at": "after_run_and_review",
+      "count": 5,
+      "limit": 10,
+      "remaining": 5,
+      "corrupt": false,
+      "persistent": true
+    },
+    {
+      "at": "final",
+      "count": 5,
+      "limit": 10,
+      "remaining": 5,
+      "corrupt": false,
+      "persistent": true
+    }
+  ],
+  "phases_seen": [
+    "awaiting_acceptance",
+    "executing",
+    "verifying"
+  ],
+  "task_after_run": {
+    "title": "Write result file",
+    "objective": "Create a file named out/result.txt containing exactly the token LG022_STREAM_OK on a single line. Do nothing else.",
+    "acceptance_criteria": [
+      "out/result.txt exists and contains LG022_STREAM_OK"
+    ],
+    "status": "in-progress",
+    "phase": "awaiting_acceptance",
+    "requirements_revision": 1,
+    "project_ref": null,
+    "repository_ref": null,
+    "workspace_ref": "ws1",
+    "agent_ref": "coordinator",
+    "depends_on": [],
+    "active_run": "run_01M5090RWKSZ02AWQDPZ4YSMVA",
+    "deliverable_revision": 1,
+    "queue": {
+      "state": "not_queued",
+      "order": 1,
+      "queued_at": "2026-10-15T17:16:06.887Z",
+      "owner": null,
+      "lease_expires_at": null
+    },
+    "acceptance": {
+      "status": "awaiting",
+      "requirements_revision": 1,
+      "deliverable_revision": 1,
+      "evidence_refs": [
+        "out/result.txt",
+        "evidence:run_01M5090RWKSZ02AWQDPZ4YSMVA/subtask_01M5090S0957P9PD1Y5S9BR6N8-lg006-diff.patch@sha256:fa2323188bd02446fb61c9677c1d7fccc7987db0406c175b0e8b8f824e4bef3d"
+      ],
+      "decided_at": null,
+      "decision_ref": null,
+      "candidate_ref": "run_01M5090RWKSZ02AWQDPZ4YSMVA",
+      "candidate_plan_hash": "ca18a47be86d12fba9b3ba91e7c766f61df2fd6c40986dfc968441d2eb2177d1",
+      "check_records": []
+    },
+    "budget": {
+      "max_workers": 3,
+      "max_parallel": 2,
+      "max_repair_rounds": 1
+    },
+    "archived": false,
+    "schema": "lightgravity.bot/v1",
+    "kind": "task",
+    "id": "task_01M5090RSAP06FV0HYV1VKFFYZ",
+    "revision": 9,
+    "rework": {
+      "review_rounds": 1,
+      "repair_rounds_spent": 0,
+      "sdk_retries": 0,
+      "outcomes": [
+        "passed"
+      ],
+      "last_findings": [],
+      "last_candidate_ref": "run_01M5090RWKSZ02AWQDPZ4YSMVA",
+      "history": [
+        {
+          "at": "2026-10-15T17:16:15.309Z",
+          "outcome": "passed",
+          "candidate_ref": "run_01M5090RWKSZ02AWQDPZ4YSMVA",
+          "findings": 0
+        }
+      ],
+      "reviewer": "model-reviewer",
+      "reviewer_kind": "model",
+      "model_usage": {
+        "unknown": [
+          "usage"
+        ]
+      }
+    },
+    "etag": "\"9\"",
+    "body": "# Task\n\n## 目标\n\nCreate a file named out/result.txt containing exactly the token LG022_STREAM_OK on a single line. Do nothing else.\n\n## 验收条件\n\n- out/result.txt exists and contains LG022_STREAM_OK\n",
+    "task_id": "task_01M5090RSAP06FV0HYV1VKFFYZ",
+    "run": {
+      "task_ref": "task_01M5090RSAP06FV0HYV1VKFFYZ",
+      "attempt": 1,
+      "state": "awaiting_acceptance",
+      "plan_ref": "PLAN.md",
+      "team_refs": [
+        "member_01M5090S0986RKE21661R1G3H7"
+      ],
+      "subtask_refs": [
+        "subtask_01M5090S0957P9PD1Y5S9BR6N8",
+        "subtask_01M5090S09MRMZNJG6Z50RKZM4"
+      ],
+      "session_refs": [
+        "sess_2c6186b4762c47bd9d606d2530c2ddb4",
+        "sess_ff34ebac7ad1428a866984b2600bc4f3"
+      ],
+      "continuation": {
+        "conversation_id": "417c199b86089de62b828ca0e4cc53af",
+        "save_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data/native-sessions/task_01M5090RSAP06FV0HYV1VKFFYZ",
+        "continuation_mode": "create_only",
+        "config_version": "lg016.1",
+        "decision": "fresh",
+        "primary_node_key": "deliver"
+      },
+      "cleanup": {
+        "status": "pending"
+      },
+      "ended_at": null,
+      "fail_reason": null,
+      "schema": "lightgravity.bot/v1",
+      "kind": "run",
+      "id": "run_01M5090RWKSZ02AWQDPZ4YSMVA",
+      "revision": 15,
+      "plan": {
+        "source": "rules",
+        "notes": [
+          "minimal rule plan: deliver + optional verify"
+        ],
+        "subtasks": [
+          {
+            "key": "deliver",
+            "objective": "Create a file named out/result.txt containing exactly the token LG022_STREAM_OK on a single line. Do nothing else.",
+            "capability": "implementation",
+            "acceptance": [
+              "out/result.txt exists and contains LG022_STREAM_OK"
+            ],
+            "depends_on": [],
+            "write": true,
+            "order": 0
+          },
+          {
+            "key": "verify",
+            "objective": "独立验证：Create a file named out/result.txt containing exactly the token LG022_STREAM_OK on a single line. Do nothing else.",
+            "capability": "verification",
+            "acceptance": [
+              "out/result.txt exists and contains LG022_STREAM_OK"
+            ],
+            "depends_on": [
+              "deliver"
+            ],
+            "write": false,
+            "order": 1
+          }
+        ]
+      },
+      "plan_hash": "ca18a47be86d12fba9b3ba91e7c766f61df2fd6c40986dfc968441d2eb2177d1",
+      "plan_source": "rules",
+      "connection_pin": {
+        "connection_id": "deepseek-worker-qa-stream",
+        "role": "worker",
+        "revision": 0,
+        "content_hash": "89515122e2c15ed38ff60ec743211073ce4c07c51ff89788c5567f51bb76fc7f",
+        "backend": "openai-compat",
+        "model": "deepseek-chat",
+        "base_url": "https://api.deepseek.com/v1",
+        "credential_ref": "deepseek-api-key",
+        "credential_version": null,
+        "config_hash": "16eb07b79ebbcd2c82aae6ed53453ce461c1ca74ba0fd689ad163b9990cd680a"
+      },
+      "node_sessions": {
+        "subtask_01M5090S0957P9PD1Y5S9BR6N8": {
+          "key": "deliver",
+          "subtask_ref": "subtask_01M5090S0957P9PD1Y5S9BR6N8",
+          "member_ref": "member_01M5090S0986RKE21661R1G3H7",
+          "session_id": "sess_2c6186b4762c47bd9d606d2530c2ddb4",
+          "conversation_id": "417c199b86089de62b828ca0e4cc53af",
+          "save_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data/native-sessions/task_01M5090RSAP06FV0HYV1VKFFYZ",
+          "state": "created",
+          "source": "result",
+          "config_version": "lg016.1",
+          "node_state": "passed",
+          "role_ref": "lg-default-worker",
+          "config_hash": "2557150e2efd0ce9ec7272577987b40c2c142e65da4edfd093291130d4737488",
+          "reuse_identity": "b01c61feab6e2549b195ad1dcba2ad8eb18cdb8568ccf90bed847e96a7ee1ea9",
+          "handoff": {
+            "subtask_ref": "subtask_01M5090S0957P9PD1Y5S9BR6N8",
+            "revision": 5,
+            "content_hash": "cfa46af2379f58b6398096724660c01faf2f14d65f26547a55ce3732cfa9c4b5",
+            "artifacts": [
+              "out/result.txt",
+              "evidence:run_01M5090RWKSZ02AWQDPZ4YSMVA/subtask_01M5090S0957P9PD1Y5S9BR6N8-lg006-diff.patch@sha256:fa2323188bd02446fb61c9677c1d7fccc7987db0406c175b0e8b8f824e4bef3d"
+            ]
+          }
+        },
+        "subtask_01M5090S09MRMZNJG6Z50RKZM4": {
+          "key": "verify",
+          "subtask_ref": "subtask_01M5090S09MRMZNJG6Z50RKZM4",
+          "member_ref": "member_01M5090S0986RKE21661R1G3H7",
+          "session_id": "sess_ff34ebac7ad1428a866984b2600bc4f3",
+          "conversation_id": "b1a9d2af777a7eec5cc24cba123d2096",
+          "save_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data/native-sessions/task_01M5090RSAP06FV0HYV1VKFFYZ",
+          "state": "created",
+          "source": "result",
+          "config_version": "lg016.1",
+          "node_state": "passed",
+          "role_ref": "lg-default-worker",
+          "config_hash": "a294728b0f01de8b3d73fcdda9d3b31f8f6cea76133add90a15ccd5babeea0a8",
+          "reuse_identity": "8d559b1e08085917ba9f48b6bc9d1acfefa8c5edcb917236181ac99a2317a9c9",
+          "handoff": {
+            "subtask_ref": "subtask_01M5090S09MRMZNJG6Z50RKZM4",
+            "revision": 5,
+            "content_hash": "22936a16e24988b328fdc78703470b07d1957879ff3c57fe22cc13a83b569f29",
+            "artifacts": []
+          }
+        }
+      },
+      "reviewer_cleanup": {
+        "status": "done",
+        "agent_closed": true,
+        "proxy_stopped": true,
+        "confirmed": true,
+        "problems": []
+      },
+      "etag": "\"15\"",
+      "body": "# Run run_01M5090RWKSZ02AWQDPZ4YSMVA\n\nTask: task_01M5090RSAP06FV0HYV1VKFFYZ\n"
+    },
+    "members": [
+      {
+        "run_ref": "run_01M5090RWKSZ02AWQDPZ4YSMVA",
+        "role_ref": "lg-default-worker",
+        "state": "released",
+        "template_version": "0",
+        "connection_ref": "deepseek-worker-qa-stream",
+        "connection_pin": {
+          "connection_id": "deepseek-worker-qa-stream",
+          "role": "worker",
+          "revision": 0,
+          "content_hash": "89515122e2c15ed38ff60ec743211073ce4c07c51ff89788c5567f51bb76fc7f",
+          "backend": "openai-compat",
+          "model": "deepseek-chat",
+          "base_url": "https://api.deepseek.com/v1",
+          "credential_ref": "deepseek-api-key",
+          "credential_version": null,
+          "config_hash": "16eb07b79ebbcd2c82aae6ed53453ce461c1ca74ba0fd689ad163b9990cd680a"
+        },
+        "skill_refs": [],
+        "session_ref": {
+          "session_id": "sess_ff34ebac7ad1428a866984b2600bc4f3",
+          "conversation_id": "b1a9d2af777a7eec5cc24cba123d2096",
+          "save_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data/native-sessions/task_01M5090RSAP06FV0HYV1VKFFYZ",
+          "state": "created",
+          "source": "result",
+          "config_version": "lg016.1"
+        },
+        "tool_policy": {
+          "allowed_tools": [
+            "view-file",
+            "create-file",
+            "edit-file"
+          ]
+        },
+        "workspace_ref": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data/workspace/ws1",
+        "assigned_subtask_refs": [
+          "subtask_01M5090S0957P9PD1Y5S9BR6N8",
+          "subtask_01M5090S09MRMZNJG6Z50RKZM4"
+        ],
+        "budget": {
+          "max_workers": 3,
+          "max_parallel": 2,
+          "max_repair_rounds": 1
+        },
+        "config_hash": "e51693f491e7dd57fa4d0bfa3876cd9df6c62b35854458dc298d13feb17b4da3",
+        "capabilities": [
+          "implementation",
+          "verification"
+        ],
+        "schema": "lightgravity.bot/v1",
+        "kind": "member",
+        "id": "member_01M5090S0986RKE21661R1G3H7",
+        "revision": 5,
+        "etag": "\"5\"",
+        "body": "# Member lg-default-worker\n\nRole: lg-default-worker\n"
+      }
+    ],
+    "subtasks": [
+      {
+        "run_ref": "run_01M5090RWKSZ02AWQDPZ4YSMVA",
+        "state": "passed",
+        "depends_on": [],
+        "assignee_member_ref": "member_01M5090S0986RKE21661R1G3H7",
+        "upstream_artifact_refs": [],
+        "objective": "Create a file named out/result.txt containing exactly the token LG022_STREAM_OK on a single line. Do nothing else.",
+        "capability": "implementation",
+        "key": "deliver",
+        "write": true,
+        "config_hash": "2557150e2efd0ce9ec7272577987b40c2c142e65da4edfd093291130d4737488",
+        "reuse_identity": "b01c61feab6e2549b195ad1dcba2ad8eb18cdb8568ccf90bed847e96a7ee1ea9",
+        "acceptance": {
+          "status": "passed",
+          "criteria": [
+            "out/result.txt exists and contains LG022_STREAM_OK"
+          ],
+          "evidence_refs": [
+            "out/result.txt",
+            "evidence:run_01M5090RWKSZ02AWQDPZ4YSMVA/subtask_01M5090S0957P9PD1Y5S9BR6N8-lg006-diff.patch@sha256:fa2323188bd02446fb61c9677c1d7fccc7987db0406c175b0e8b8f824e4bef3d"
+          ]
+        },
+        "schema": "lightgravity.bot/v1",
+        "kind": "subtask",
+        "id": "subtask_01M5090S0957P9PD1Y5S9BR6N8",
+        "revision": 5,
+        "owner": null,
+        "lease_expires_at": null,
+        "etag": "\"5\"",
+        "body": "# Subtask deliver\n\nCreate a file named out/result.txt containing exactly the token LG022_STREAM_OK on a single line. Do nothing else.\n"
+      },
+      {
+        "run_ref": "run_01M5090RWKSZ02AWQDPZ4YSMVA",
+        "state": "passed",
+        "depends_on": [
+          "subtask_01M5090S0957P9PD1Y5S9BR6N8"
+        ],
+        "assignee_member_ref": "member_01M5090S0986RKE21661R1G3H7",
+        "upstream_artifact_refs": [
+          "subtask_01M5090S0957P9PD1Y5S9BR6N8@cfa46af2379f58b6398096724660c01faf2f14d65f26547a55ce3732cfa9c4b5:out/result.txt",
+          "subtask_01M5090S0957P9PD1Y5S9BR6N8@cfa46af2379f58b6398096724660c01faf2f14d65f26547a55ce3732cfa9c4b5:evidence:run_01M5090RWKSZ02AWQDPZ4YSMVA/subtask_01M5090S0957P9PD1Y5S9BR6N8-lg006-diff.patch@sha256:fa2323188bd02446fb61c9677c1d7fccc7987db0406c175b0e8b8f824e4bef3d"
+        ],
+        "objective": "独立验证：Create a file named out/result.txt containing exactly the token LG022_STREAM_OK on a single line. Do nothing else.",
+        "capability": "verification",
+        "key": "verify",
+        "write": false,
+        "config_hash": "a294728b0f01de8b3d73fcdda9d3b31f8f6cea76133add90a15ccd5babeea0a8",
+        "reuse_identity": "8d559b1e08085917ba9f48b6bc9d1acfefa8c5edcb917236181ac99a2317a9c9",
+        "acceptance": {
+          "status": "passed",
+          "criteria": [
+            "out/result.txt exists and contains LG022_STREAM_OK"
+          ],
+          "evidence_refs": []
+        },
+        "schema": "lightgravity.bot/v1",
+        "kind": "subtask",
+        "id": "subtask_01M5090S09MRMZNJG6Z50RKZM4",
+        "revision": 5,
+        "owner": null,
+        "lease_expires_at": null,
+        "etag": "\"5\"",
+        "body": "# Subtask verify\n\n独立验证：Create a file named out/result.txt containing exactly the token LG022_STREAM_OK on a single line. Do nothing else.\n"
+      }
+    ]
+  },
+  "accept_response": {
+    "action": "accept",
+    "state": "confirmed",
+    "confirmed": true,
+    "task_id": "task_01M5090RSAP06FV0HYV1VKFFYZ",
+    "phase": "completed",
+    "acceptance": {
+      "status": "accepted",
+      "requirements_revision": 1,
+      "deliverable_revision": 1,
+      "evidence_refs": [
+        "out/result.txt",
+        "evidence:run_01M5090RWKSZ02AWQDPZ4YSMVA/subtask_01M5090S0957P9PD1Y5S9BR6N8-lg006-diff.patch@sha256:fa2323188bd02446fb61c9677c1d7fccc7987db0406c175b0e8b8f824e4bef3d"
+      ],
+      "decided_at": "2026-10-15T17:16:15.671Z",
+      "decision_ref": "qa-stream-accept-1",
+      "candidate_ref": "run_01M5090RWKSZ02AWQDPZ4YSMVA",
+      "candidate_plan_hash": "ca18a47be86d12fba9b3ba91e7c766f61df2fd6c40986dfc968441d2eb2177d1",
+      "check_records": []
+    },
+    "request_id": "qa-stream-accept-1",
+    "candidate_ref": "run_01M5090RWKSZ02AWQDPZ4YSMVA",
+    "messages": [
+      "decision 'accept' recorded; no merge/push/deploy performed"
+    ],
+    "candidate": null,
+    "checks": null,
+    "stop": null
+  },
+  "plan_hash": "ca18a47be86d12fba9b3ba91e7c766f61df2fd6c40986dfc968441d2eb2177d1",
+  "requirements_revision": 1,
+  "final_generation": {
+    "count": 5,
+    "limit": 10,
+    "remaining": 5,
+    "corrupt": false,
+    "persistent": true
+  },
+  "ok": false
+}

@@ -1,0 +1,61 @@
+{
+  "candidate_head": "",
+  "phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream-data",
+  "phase_limit": 10,
+  "steps": [
+    {
+      "name": "health_ok",
+      "ok": true
+    },
+    {
+      "name": "worker_default_pinned",
+      "ok": true
+    },
+    {
+      "name": "reviewer_default_pinned",
+      "ok": true
+    },
+    {
+      "name": "protected_write_requires_token",
+      "ok": true
+    },
+    {
+      "name": "execution_ready",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "name": "reviewer_wired_model",
+      "ok": true,
+      "reviewer": {
+        "reviewer": "model",
+        "connection_id": "deepseek-chat",
+        "credential_configured": true
+      }
+    },
+    {
+      "name": "dry_run_no_model_steps",
+      "ok": true,
+      "note": "wiring validated; no generation"
+    }
+  ],
+  "generation_readings": [
+    {
+      "at": "dry_final",
+      "count": 0,
+      "limit": 10,
+      "remaining": 10,
+      "corrupt": false,
+      "persistent": true
+    }
+  ],
+  "dry": true,
+  "ok": true,
+  "final_generation": {
+    "count": 0,
+    "limit": 10,
+    "remaining": 10,
+    "corrupt": false,
+    "persistent": true
+  }
+}
