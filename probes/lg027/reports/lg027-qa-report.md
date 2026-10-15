@@ -7,6 +7,12 @@
 - 环境：Chrome 151.0.7922.71 / Node v22.23.2 / CPython 3.12.13 / uv 0.12.1
 - 结论：**pass**（有明确的环境限制，见 §6；未冒充 013 Chat / 016 恢复功能验收）
 
+> **整合期更正（2026-10-15，原文不改，仅追加）**
+>
+> 1. **浏览器 HTTP 结论已修正**：本报告 §6.1 的“浏览器无法做 HTTP(S) 导航与页面内 fetch”是过度概括。root `probes/browser-diagnostics` 诊断已证明：真实 loopback HTTP 的 `fetch` **可用**（从 `file://`/`about:blank` shell，服务端真实收到请求），SSE 也可用；**真正失败的只有顶层 `Page.navigate` 到 `http://`**（本机 headless Chrome 在网络层前挂起），以及 `data:` opaque origin 的 `fetch`（CORS 响应后拒绝，非网络阻断）。详见 [browser-diagnostics README](../../browser-diagnostics/README.md) 与 `evidence/loopback-http-working-path.txt`、`evidence/http-acceptance-run.txt`。因此本报告的浏览器部分仍只声称**渲染证据**，但这并非因为“HTTP 不可用”，而是本报告未采用可用的 `file://` + `fetch` 通道；该项更正不改变本报告 pass 的**范围限定**（仍仅设置/凭证 CLI+HTTP 与浏览器渲染，**不等于完整浏览器 HTTP 端到端**）。
+> 2. **调用计数记为未知**：本报告 §5 的“旧上限 5 + 本次恢复硬上限 4 = 最坏累计上限 9”只是**指令/运行预算**（harness `model_call_cap=1`），产品未暴露调用计数器，无独立计数。真实模型调用次数按规则记为**未知**，不写成已验证的实际硬上界或精确数。
+> 3. 原文其余内容（执行证据、限制与建议）按历史保留，不复述上述被更正的结论当新事实。
+
 ---
 
 ## 1. 环境恢复记录（不是重新开工）

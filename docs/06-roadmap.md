@@ -7,7 +7,7 @@ updated: "2026-10-15"
 
 # 首版滚动排期
 
-> 日期：2026-10-14，更新：2026-10-15。规划已落盘，开发已开始。阶段事实：LG-001～012、LG-014、LG-015、LG-020 与 LG-025、LG-026 共 17 项已完成并整合到 `main`（其中 **LG-010 最小真实开发闭环已通过独立版本 QA（pass/done）**，其余 16 项均**待版本 QA**；其中协调器 LG-007/LG-008、设置后端 LG-025、验证/验收 LG-009、查询 API LG-012、Files LG-014、Team/Resources LG-015、本地启动/分发 LG-020 已实现，成果以局部测试与证据为准）；首版接口契约当前为 `1.5.0`（LG-009 验收字段与全局对话端点登记于 1.3.0，LG-014 文件上传/下载标为已实现并澄清证据引用语义于 1.3.1，LG-015 受控资源写入/Team 端点与 Task 消息 `resource_proposal` 字段登记于 1.4.0，LG-020 `connection_pin` 加性字段与 canonical evidence 预览/下载端点登记于 1.5.0，见 [docs/08](08-interface-contract.md) §4.3/§5.2/§6.1/§6.3/§6.4/§13）。用户已确认首版先用 DeepSeek，LG-006 正式 executor + loopback 认证代理已在真实 DeepSeek 上跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消（真实调用 12，进程无残留，证据见 [tests/adapter/evidence](../tests/adapter/evidence/README.md)）；LG-020 提供 `lightgravity start/stop/status/init` 与一体分发（默认 loopback、token 内存握手、敏感写默认拒绝、首启种子有界工具 worker、Run/Member `connection_pin`），真实 dist 子进程 start→握手→stop 已验证。LG-010 最小后端闭环经独立版本 QA 判定 **pass/done**（真模型证据基点 `ffe7a63`，真实调用累计 12/14，报告 `probes/lg010/reports/lg010-qa-r2-after-refix.md`）；**该 QA 只覆盖契约 1.3.1 core 的最小后端闭环，并非 1.5 全功能 QA**，LG-015/LG-020 的新资源/启动仍待 LG-027 与 LG-021/LG-022。首版唯一真实路径为已验收的 `google-antigravity==0.1.22` + OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek（契约见 [docs/08](08-interface-contract.md) §8.1）。采用 Olav Tasks 的开发任务格式与依赖图；日历开始/结束日期、人员和每日投入未确定，暂不填写 start_date/end_date、assignee 或 effort，也不把实现速度假定为已知。
+> 日期：2026-10-14，更新：2026-10-15。规划已落盘，开发已开始。阶段事实：LG-001～012、LG-014、LG-015、LG-020 与 LG-025、LG-026 共 17 项已完成并整合到 `main`（其中 **LG-010 最小真实开发闭环已通过独立版本 QA（pass/done）**，其余 16 项均**待版本 QA**；其中协调器 LG-007/LG-008、设置后端 LG-025、验证/验收 LG-009、查询 API LG-012、Files LG-014、Team/Resources LG-015、本地启动/分发 LG-020 已实现，成果以局部测试与证据为准）；LG-013 接入 Task Chat 与真实看板的**实施已完成并置 `done`**（本包验收：真实 API 接线 + 服务层真实 HTTP + 局部证据；**完整浏览器业务路径仍归 LG-021/022**）；LG-027 设置/凭证专项已独立 QA **pass**（**仅设置/凭证 CLI+HTTP 与 browser 渲染范围**，**不等于完整浏览器 HTTP 端到端**；其真实调用计数产品未暴露，旧上限 5 + 恢复硬上限 4 仅为指令/运行预算，不视为已验证实际次数或精确上界）。首版接口契约当前为 `1.5.0`（LG-009 验收字段与全局对话端点登记于 1.3.0，LG-014 文件上传/下载标为已实现并澄清证据引用语义于 1.3.1，LG-015 受控资源写入/Team 端点与 Task 消息 `resource_proposal` 字段登记于 1.4.0，LG-020 `connection_pin` 加性字段与 canonical evidence 预览/下载端点登记于 1.5.0，见 [docs/08](08-interface-contract.md) §4.3/§5.2/§6.1/§6.3/§6.4/§13）。用户已确认首版先用 DeepSeek，LG-006 正式 executor + loopback 认证代理已在真实 DeepSeek 上跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消（真实调用 12，进程无残留，证据见 [tests/adapter/evidence](../tests/adapter/evidence/README.md)）；LG-020 提供 `lightgravity start/stop/status/init` 与一体分发（默认 loopback、token 内存握手、敏感写默认拒绝、首启种子有界工具 worker、Run/Member `connection_pin`），真实 dist 子进程 start→握手→stop 已验证。LG-010 最小后端闭环经独立版本 QA 判定 **pass/done**（真模型证据基点 `ffe7a63`，真实调用累计 12/14，报告 `probes/lg010/reports/lg010-qa-r2-after-refix.md`）；**该 QA 只覆盖契约 1.3.1 core 的最小后端闭环，并非 1.5 全功能 QA**，LG-015/LG-020 的新资源/启动仍待 LG-027 与 LG-021/LG-022。首版唯一真实路径为已验收的 `google-antigravity==0.1.22` + OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek（契约见 [docs/08](08-interface-contract.md) §8.1）。采用 Olav Tasks 的开发任务格式与依赖图；日历开始/结束日期、人员和每日投入未确定，暂不填写 start_date/end_date、assignee 或 effort，也不把实现速度假定为已知。
 
 ## 1. 目标与假设
 
@@ -35,7 +35,7 @@ updated: "2026-10-15"
 
 阶段是展示分组，不额外增加假依赖。真实顺序以每项 depends_on 为准；例如 UI 壳层无需等 SDK 探针成功，Files 可以在存储/API/壳层就绪后推进，恢复机制可以在 LG-010 后提前开始。
 
-LG-010 是最小后端闭环验收，不代表已有完整网页或所有恢复机制；LG-013 是网页主要路径接入，不代表五入口全部齐备；LG-022 是完整首版故障/端到端验收。不能把前一个门通过宣传成后一个门通过。
+LG-010 是最小后端闭环验收，不代表已有完整网页或所有恢复机制；LG-013 是网页主要路径接入，不代表五入口全部齐备；LG-022 是完整首版故障/端到端验收。不能把前一个门通过宣传成后一个门通过。旧 QA「浏览器全 HTTP/fetch 阻断」结论已被 root `probes/browser-diagnostics` 诊断推翻并精确更正：真实 loopback HTTP 的 `fetch`/SSE 从 `file://`/`about:blank` shell 可用，仅顶层 `Page.navigate` 到 `http://` 在本机 headless Chrome 挂起；原报告按历史保留，只追加更正引用。
 
 ### 2.1 版本 QA 门（开发侧）
 
@@ -44,12 +44,12 @@ LG-010 是最小后端闭环验收，不代表已有完整网页或所有恢复�
 | 版本 QA 门 | 覆盖范围 | 说明 |
 |---|---|---|
 | LG-010 原型大版本 QA 门 | LG-005～010，LG-012 接口就绪 | 首个可运行原型闭环的独立 QA：真实任务、状态转换、幂等、成员释放与失败/缺资料案例。LG-010 本身即该门的验收执行项。**2026-10-15 已独立复核 pass/done**（契约 1.3.1 core 最小后端闭环）。 |
-| LG-027 首版集中 QA | 设置与凭证生命周期 | 与 LG-021／LG-022 并列的首版版本集中 QA 之一。 |
+| LG-027 首版集中 QA | 设置与凭证生命周期 | 与 LG-021／LG-022 并列的首版版本集中 QA 之一。**2026-10-15 已独立 QA pass**，范围限于设置/凭证的 CLI+HTTP 链路与 browser 渲染（`probes/lg027/reports/lg027-qa-report.md`），**不等于完整浏览器 HTTP 端到端**（后者仍归 LG-020/021/022）。 |
 | LG-021 首版集中 QA | 前端状态与响应式 | 与 LG-022／LG-027 并列，覆盖浏览器主要路径、空/错/断线与窄屏。 |
 | LG-022 首版集中 QA | 端到端与故障 | 完整首版验收门，汇总 LG-027／LG-021 证据。 |
 
 - 仅上述四类门需要独立 QA；LG-003、LG-004、LG-011 等基础任务以自身局部检查与证据为准，不追加逐任务 QA，也不因未做独立 QA 而阻塞。
-- 尚未经过版本 QA 的成果在任务正文标注“待版本 QA”；LG-010 原型大版本 QA 门已通过（2026-10-15，仅覆盖契约 1.3.1 core 最小后端闭环），但不代表完整网页、恢复机制或 LG-015/LG-020 的新资源/启动功能通过；后者仍待 LG-027 与 LG-021/LG-022。
+- 尚未经过版本 QA 的成果在任务正文标注“待版本 QA”；LG-010 原型大版本 QA 门已通过（2026-10-15，仅覆盖契约 1.3.1 core 最小后端闭环），LG-027 设置/凭证专项 QA 已通过（2026-10-15，仅限设置/凭证 CLI+HTTP 与 browser 渲染范围）；但不代表完整网页、恢复机制或 LG-015/LG-020 的新资源/启动功能通过；后者仍待 LG-021/LG-022。LG-013 实施已 done，其**完整浏览器业务路径仍归 LG-021/022**。
 
 ## 3. 建议推进顺序与并行条件
 
