@@ -1,0 +1,71 @@
+{
+  "scenario": "stream_stop_fix",
+  "provider": "provider-substitute",
+  "stream_opened": true,
+  "release_set_before_stop": false,
+  "reviewing": true,
+  "control_stop_elapsed_s": 0.213,
+  "control": {
+    "action": "cancel",
+    "state": "confirmed",
+    "confirmed": true,
+    "task_id": "task_01M508DKWMBJPTK6RDYDR7946S",
+    "run_id": "run_01M508DKWMQBHYWVC3AXGSTZJH",
+    "phase": "cancelled",
+    "reason": "worker already returned",
+    "cleanup": "done"
+  },
+  "resource_stop_report": {
+    "agent_closed": true,
+    "proxy_stopped": true,
+    "confirmed": true,
+    "problems": []
+  },
+  "upstream_saw_client_gone": false,
+  "lifecycle_still_reviewing_at_stop": false,
+  "run_state_after_stop": "cancelled",
+  "reviewer_cleanup_after_stop": null,
+  "task_phase_after_stop": "cancelled",
+  "session_refs_preserved": true,
+  "review_future_done": true,
+  "review_future_outcome": "unavailable",
+  "reviewer_last_error": "reviewer turn raised ReviewStopped: review stopped for task= run=",
+  "turn_kept_running_after_stop": false,
+  "sdk_cancel_calls": 1,
+  "sdk_wait_for_idle_calls": 1,
+  "sdk_is_idle_after_cancel": true,
+  "cancel_sdk_turn_calls": 1,
+  "no_stop_completion": {
+    "scenario": "no_stop_completion",
+    "provider": "provider-substitute",
+    "returned": true,
+    "text": "partial-still-streaming",
+    "usage": {
+      "unknown": [
+        "usage"
+      ]
+    },
+    "resource_stop_report": {
+      "agent_closed": true,
+      "proxy_stopped": true,
+      "confirmed": true,
+      "problems": []
+    }
+  },
+  "real_model_calls": 0,
+  "sdk_version": "0.1.22",
+  "verdict": {
+    "stream_opened": true,
+    "control_confirmed": true,
+    "reviewer_teardown_confirmed": true,
+    "sdk_cancel_reached": true,
+    "sdk_idle_after_cancel": true,
+    "review_future_done": true,
+    "no_lingering_review": true,
+    "refs_preserved": true,
+    "stop_under_timeout": true,
+    "no_stop_path_returns": true,
+    "no_stop_teardown_confirmed": true
+  },
+  "fix_confirmed": true
+}

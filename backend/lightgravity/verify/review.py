@@ -826,14 +826,43 @@ def _run_coro_sync(coro: Any) -> Any:
         return pool.submit(runner).result()
 
 
-async def _await_with_stop(chat: Any, stop_event: Any | None) -> Any:
+#: How long the streaming stage waits for one chunk before re-checking the
+#: cooperative stop channel.  Small enough to react promptly, large enough not
+#: to spin: the loop only yields/wakes on a real chunk or a stop request.
+_STREAM_STOP_POLL_SECONDS = 0.05
+
+#: Upper bound for the SDK teardown acknowledgement (``cancel`` +
+#: ``wait_for_idle``) so a stop can never hang the reviewer thread indefinitely.
+#: After this the honest teardown report carries the failure; the stop is still
+#: unconfirmed downstream.
+_CANCEL_IDLE_TIMEOUT_SECONDS = 5.0
+
+#: Upper bound for ``agent.__aexit__`` on the stop path (LG-022 stream-stop).
+_AGENT_CLOSE_TIMEOUT_SECONDS = 10.0
+
+
+def _raise_review_stopped() -> None:
+    from .review_lifecycle import ReviewStopped
+
+    raise ReviewStopped("", "")
+
+
+async def _await_with_stop(chat: Any, stop_event: Any | None, agent: Any = None) -> Any:
     """Await ``chat`` but abort promptly when a cooperative stop is requested.
 
     The stop event is a :class:`threading.Event` polled from the async loop via
-    small sleeps.  When it fires we cancel the outstanding chat and raise
+    small sleeps.  When it fires we cancel the outstanding chat, reach the SDK's
+    documented cancel entry (``agent.conversation.cancel()``) and raise
     :class:`~lightgravity.verify.review_lifecycle.ReviewStopped` so the lifecycle
     reports an honest stop instead of a fabricated outcome.  ``None`` means no
     stop channel (sync fixture path): behave like a plain await.
+
+    This guards the prompt-send stage.  ``agent.chat()`` returns a lazy
+    ``ChatResponse`` almost immediately, so the long part of a real turn is the
+    streaming stage; that is handled by :func:`_drain_stream_with_stop`, which
+    also reaches the SDK cancel entry (LG-022 stream-stop D2 fix).  ``chat.cancel()``
+    here cancels at most the prompt-send task and is **not** a substitute for
+    the SDK conversation cancel -- both paths call :func:`_cancel_sdk_turn`.
     """
 
     if stop_event is None:
@@ -845,13 +874,103 @@ async def _await_with_stop(chat: Any, stop_event: Any | None) -> Any:
                 await chat
             except BaseException:  # noqa: BLE001 - cancellation is the point
                 pass
-            from .review_lifecycle import ReviewStopped
-
-            raise ReviewStopped("", "")
+            if agent is not None:
+                await _cancel_sdk_turn(agent)
+            _raise_review_stopped()
         try:
             return await asyncio.wait_for(asyncio.shield(chat), timeout=0.1)
         except asyncio.TimeoutError:
             continue
+
+
+async def _cancel_sdk_turn(agent: Any) -> bool:
+    """Reach the SDK's documented cancel entry and wait for real idle.
+
+    ``Conversation.cancel()`` only *requests* cancellation; the SDK turn has
+    really stopped only when the connection reports idle.  This awaits
+    ``wait_for_idle()`` under a bound so a pathological turn cannot hang the
+    reviewer thread.  Returns ``True`` only when the SDK acknowledged idle.
+    Failures are reported as ``False`` -- never assumed to have stopped.
+    """
+
+    conversation = getattr(agent, "conversation", None)
+    if conversation is None:
+        return False
+    try:
+        await conversation.cancel()
+    except Exception:  # noqa: BLE001 - cancel request failure is reported, not faked
+        return False
+    try:
+        await asyncio.wait_for(
+            conversation.wait_for_idle(), timeout=_CANCEL_IDLE_TIMEOUT_SECONDS
+        )
+    except Exception:  # noqa: BLE001 - idle not proven (incl. timeout)
+        return False
+    return True
+
+
+async def _drain_stream_with_stop(
+    response: Any,
+    stop_event: Any | None,
+    agent: Any,
+) -> list[Any]:
+    """Collect stream chunks, polling ``stop_event`` between every chunk.
+
+    This is the actual fix for the LG-022 stream-stop defect: the stop request
+    is observed during the *streaming* stage (not only around the prompt send),
+    and on stop the SDK turn is really cancelled via ``Conversation.cancel()`` +
+    ``wait_for_idle()`` before raising :class:`ReviewStopped`.  Chunks received
+    before the stop are preserved (each is appended exactly once; ``anext`` is
+    not retried after a value is produced).  ``None`` stop channel streams to
+    completion exactly like before.
+    """
+
+    chunks: list[Any] = []
+    if stop_event is None:
+        async for chunk in response.chunks:
+            chunks.append(chunk)
+        return chunks
+    # The SDK's ``response.chunks`` cursor pulls the underlying network stream
+    # under an internal lock.  Cancelling a pending pull (e.g. the old
+    # ``asyncio.wait_for(anext, 0.05)`` timeout) closes that stream, so the
+    # remaining chunks are lost.  Instead run the pull as a task we never
+    # cancel merely to poll: we wait on it with a short timeout and keep it
+    # pending while we re-check the cooperative stop channel.  Only an actual
+    # stop tears the SDK turn down (via the documented cancel entry).
+    aiter = response.chunks.__aiter__()
+    while True:
+        pull = asyncio.ensure_future(aiter.__anext__())
+        while True:
+            done, _pending = await asyncio.wait(
+                {pull}, timeout=_STREAM_STOP_POLL_SECONDS
+            )
+            if pull in done:
+                break
+            if stop_event.is_set():
+                await _cancel_sdk_turn(agent)
+                # The SDK turn is cancelled/idle, but the buffered cursor's
+                # pending pull can stay blocked on the transport until
+                # ``__aexit__`` disconnects it.  Do not wait on it here: cancel
+                # it (we are abandoning the rest of the stream by contract) and
+                # let the caller's finally do the real teardown.  Chunks already
+                # received remain in ``chunks``.
+                pull.cancel()
+                try:
+                    await pull
+                except BaseException:  # noqa: BLE001 - discarded teardown path
+                    pass
+                _raise_review_stopped()
+        if stop_event.is_set():
+            # Stop arrived on the same tick a chunk completed: honour the stop
+            # rather than silently continuing to read.
+            await _cancel_sdk_turn(agent)
+            _raise_review_stopped()
+        try:
+            chunk = pull.result()
+        except StopAsyncIteration:
+            break
+        chunks.append(chunk)
+    return chunks
 
 
 def run_review_turn(
@@ -895,7 +1014,6 @@ def run_review_turn(
         upstream_url=upstream_chat_completions(support.base_url),
         max_calls=max_model_calls,
     )
-    agent = None
     try:
         proxy.start()
         capabilities = types.CapabilitiesConfig(enabled_tools=[], enable_subagents=False)
@@ -907,52 +1025,70 @@ def run_review_turn(
             workspaces=None,
         )
 
-        async def _turn() -> tuple[str, dict[str, Any]]:
-            nonlocal agent
+        async def _turn_with_teardown() -> tuple[str, dict[str, Any]]:
+            # The SDK agent's asyncio internals (reader task, locks) are bound
+            # to the loop it was entered on.  ``__aexit__`` must therefore run
+            # on the *same* loop as ``__aenter__``/``chat``; otherwise
+            # ``disconnect`` schedules on a closed loop and raises
+            # ``RuntimeError('Event loop is closed')`` (LG-022 stream-stop).
+            # LG-022 R2 records the *real* reviewer resource teardown here so
+            # the coordinator can prove the reviewer stopped; a failed close or
+            # proxy stop is reported honestly (never assumed).
             agent = Agent(config)
-            await agent.__aenter__()
-            chat = asyncio.ensure_future(
-                asyncio.wait_for(agent.chat(prompt), timeout=timeout_seconds)
-            )
-            response = await _await_with_stop(chat, stop_event)
-            chunks = []
-            async for chunk in response.chunks:
-                chunks.append(chunk)
-            text = "".join(
-                chunk.text for chunk in chunks if isinstance(chunk, types.Text)
-            ).strip()
-            usage = _usage_from_response(response)
-            return text, usage
-
-        return _run_coro_sync(_turn())
-    finally:
-        # LG-022 R2: record the *real* reviewer resource teardown so the
-        # coordinator can prove the reviewer stopped, not only the worker.  A
-        # failed agent close or proxy stop is reported honestly (never assumed).
-        agent_closed = True
-        proxy_stopped = True
-        problems: list[str] = []
-        if agent is not None:
+            agent_closed = True
+            problems: list[str] = []
             try:
-                _run_coro_sync(agent.__aexit__(None, None, None))
-            except Exception as exc:  # noqa: BLE001 - teardown failure reported
-                agent_closed = False
-                problems.append(f"reviewer agent close failed: {type(exc).__name__}")
+                await agent.__aenter__()
+                chat = asyncio.ensure_future(
+                    asyncio.wait_for(agent.chat(prompt), timeout=timeout_seconds)
+                )
+                response = await _await_with_stop(chat, stop_event, agent)
+                chunks = await _drain_stream_with_stop(response, stop_event, agent)
+                text = "".join(
+                    chunk.text for chunk in chunks if isinstance(chunk, types.Text)
+                ).strip()
+                return text, _usage_from_response(response)
+            finally:
+                # Bound the close so a pathological turn cannot hang the
+                # reviewer thread; a timeout is an unconfirmed teardown.
+                try:
+                    await asyncio.wait_for(
+                        agent.__aexit__(None, None, None),
+                        timeout=_AGENT_CLOSE_TIMEOUT_SECONDS,
+                    )
+                except Exception as exc:  # noqa: BLE001 - teardown failure reported
+                    agent_closed = False
+                    problems.append(
+                        f"reviewer agent close failed: {type(exc).__name__}"
+                    )
+                proxy_stopped = True
+                try:
+                    proxy_stopped = bool(proxy.stop())
+                except Exception as exc:  # noqa: BLE001 - stop is best effort
+                    proxy_stopped = False
+                    problems.append(
+                        f"reviewer proxy stop failed: {type(exc).__name__}"
+                    )
+                if resource_stop_report is not None:
+                    resource_stop_report.clear()
+                    resource_stop_report.update(
+                        {
+                            "agent_closed": agent_closed,
+                            "proxy_stopped": proxy_stopped,
+                            "confirmed": agent_closed and proxy_stopped,
+                            "problems": problems,
+                        }
+                    )
+
+        return _run_coro_sync(_turn_with_teardown())
+    except BaseException:
+        # Setup failed before the turn ran (no teardown fact to claim); make
+        # sure the loopback proxy this call started is still stopped.
         try:
-            proxy_stopped = bool(proxy.stop())
-        except Exception as exc:  # noqa: BLE001 - stop confirmation is best effort
-            proxy_stopped = False
-            problems.append(f"reviewer proxy stop failed: {type(exc).__name__}")
-        if resource_stop_report is not None:
-            resource_stop_report.clear()
-            resource_stop_report.update(
-                {
-                    "agent_closed": agent_closed,
-                    "proxy_stopped": proxy_stopped,
-                    "confirmed": agent_closed and proxy_stopped,
-                    "problems": problems,
-                }
-            )
+            proxy.stop()
+        except Exception:  # noqa: BLE001 - best effort on the error path
+            pass
+        raise
 
 
 def _usage_from_response(response: Any) -> dict[str, Any]:
