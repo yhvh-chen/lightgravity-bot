@@ -52,6 +52,7 @@ from .ocr import (
     PdfiumRasterizer,
     UnavailableOcrBackend,
     is_pdf_bytes,
+    parse_scale_env,
 )
 from .store import SourceStore
 
@@ -67,11 +68,33 @@ IMAGE_MEDIA_TYPES = (
 
 @dataclass(frozen=True, slots=True)
 class ProcessingConfig:
-    """Bounded work limits for one extraction run (never unbounded)."""
+    """Bounded work limits for one extraction run (never unbounded).
+
+    ``scale`` is the PDF page-render scale passed to the product rasteriser.
+    The PDF user unit is 1/72 inch, so the default ``2.0`` renders at ~144 DPI
+    (the historical value, documented as "~150 DPI").  It can be overridden
+    additively via the optional ``LIGHTGRAVITY_OCR_SCALE`` env var through
+    :meth:`from_env`; absent/empty keeps the default unchanged and any invalid
+    value is rejected with an explicit diagnostic (never silently clamped).
+    """
 
     max_pages: int = 100
     max_tokens_per_page: int = 2000
     scale: float = 2.0
+
+    @classmethod
+    def from_env(cls, env: Any = None) -> "ProcessingConfig":
+        """Build the config from the environment, keeping default behaviour.
+
+        Only the optional render ``scale`` is read here today.  Page/token
+        bounds stay code defaults; this does **not** widen any work limit.
+        """
+
+        import os
+
+        source = os.environ if env is None else env
+        scale = parse_scale_env(source, default=ProcessingConfig().scale)
+        return ProcessingConfig(scale=scale)
 
 
 @dataclass(frozen=True, slots=True)

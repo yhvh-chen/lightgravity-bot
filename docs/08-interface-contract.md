@@ -599,6 +599,8 @@ updated_at: null
 
 > 迁移兼容：现有 `POST /files/upload`、`GET /files/download` 等（§4.3）语义不变，是当前唯一相关实现；资料接入目标交互逐步收拢到 Chat，**当前尚未迁移**。新增资料 schema/端点/事件属 MINOR；若改既有 Files/Chat 端点语义或有损迁移则属 MAJOR（须 `/api/v2`，§4.1）。
 
+**实现说明（OCR 渲染尺度，无契约版本变化）**：OCR 处理路径的 PDF 渲染尺度为可选、非秘密的组合配置，经既有环境配置入口 `LIGHTGRAVITY_OCR_SCALE` 读取并传到产品 `ProcessingEngine` → `PdfiumRasterizer`。PDF 用户单位为 1/72 英寸，缺省 `2.0`（约 144 DPI）保持既有默认行为；显式值须为有限正数且不超过已记录安全上限（`MAX_OCR_SCALE=4.0`，约 288 DPI），非法值显式报错、不静默夹取为通过。此为**加性可选环境变量，不新增/改变端点、错误码、实体 schema、枚举、迁移方向与请求/响应字段**，按 docs/08 §13 属“实现说明增补（无版本变化）”，**不机械升版**；契约版本保持 `1.11.0`。
+
 ## 7. Store 接口（文件事实源）
 
 Store 是唯一控制状态写入者；worker/adapter 不得直接编辑 TASK.md/RUN.md 等控制文件。接口以 Python `Protocol` 表达（LG-004 实现，LG-002 建骨架）：

@@ -1,0 +1,255 @@
+{
+  "thresholds": {
+    "segment_cer": 0.25,
+    "printed_page_cer": 0.15
+  },
+  "truth_chars": 331,
+  "hyp_chars": 334,
+  "whole_page_cer": 0.299094,
+  "whole_page_pass_at_0.15": false,
+  "segmental": {
+    "per_row": [
+      {
+        "human": "國、有一囘，北風跟太陽兩個人在那兒爭論誰的本事大。",
+        "machine_best": "語助詞北風跟太陽-1-",
+        "cer": 0.8,
+        "window": 1
+      },
+      {
+        "human": "蘇、有一轉，北風搭太陽两家頭勒浪爭啥人格本事大。",
+        "machine_best": "A/C",
+        "cer": 1.0,
+        "window": 1
+      },
+      {
+        "human": "廣、有一句，北風同𤍠頭兩個人喺處爭論邊個嘅本事大。",
+        "machine_best": "H17",
+        "cer": 1.0,
+        "window": 1
+      },
+      {
+        "human": "北風說，我的本事大極了。",
+        "machine_best": "國、有一回,北風跟太陽兩個人在那兒爭論誰的本事大。",
+        "cer": 1.666667,
+        "window": 1
+      },
+      {
+        "human": "北風說，我格本事大極哉。",
+        "machine_best": "蘇、有一轉,北風搭太陽兩家頭勒爭爭啥人格本事大。",
+        "cer": 1.583333,
+        "window": 1
+      },
+      {
+        "human": "北風話，我嘅本事至大嘅喇。",
+        "machine_best": "廣、有一勻,北風同熱頭兩個人臨處爭論邊個嘅本事大。",
+        "cer": 1.615385,
+        "window": 1
+      },
+      {
+        "human": "世界上的東西沒有不怕我的。",
+        "machine_best": "北風說,我的本事大極了。世界上的東西沒有不怕我的。",
+        "cer": 0.923077,
+        "window": 1
+      },
+      {
+        "human": "世界浪格末事嘸不勿怕我格。",
+        "machine_best": "北風說,我格本事大極哉。世界浪格末事嘸不勿怕我格。",
+        "cer": 0.923077,
+        "window": 1
+      },
+      {
+        "human": "世界上嘅野冇唔怕我嘅。",
+        "machine_best": "北風話,我嘅本事至大嘸喇。世界上嘅野有唔怕我嘅。",
+        "cer": 1.272727,
+        "window": 1
+      },
+      {
+        "human": "船碰見了我就會翻，房子碰見了我就會坍，樹碰見了我就會倒，什",
+        "machine_best": "船碰見了我就會翻,房子碰見了我就會坍,樹碰見了我就會倒,什",
+        "cer": 0.0,
+        "window": 1
+      },
+      {
+        "human": "船碰着仔我就會翻，房子碰着仔我就會坍，樹碰着仔我就會倒，啥",
+        "machine_best": "船碰着仔我就會翻,房子碰着仔我就會坍,樹碰着仔我就會倒,啥",
+        "cer": 0.0,
+        "window": 1
+      },
+      {
+        "human": "船見親我就噲沈，屋見親我我就會 {{參|Lhann|「冧」？}}，樹見親我就會倒，個",
+        "machine_best": "船見親我就會沈,屋見親我我就會Lhann,樹見親我就會倒,個",
+        "cer": 0.292683,
+        "window": 1
+      },
+      {
+        "human": "末貓阿，狗阿，花阿，草阿，他們見了我，更是怕得不得了了。",
+        "machine_best": "狗阿,花阿,草阿,他們見了我,更是怕得不得了。",
+        "cer": 0.178571,
+        "window": 1
+      },
+      {
+        "human": "格貓阿，狗阿，花阿，草阿，俚篤見仔我，加二嚇得勿知那亨哉。",
+        "machine_best": "狗阿,花阿,草阿,但篤見仔我,加二嚇得勿知那亨哉。",
+        "cer": 0.172414,
+        "window": 1
+      },
+      {
+        "human": "的貓阿，狗阿，花阿，草阿，佢哋見親我，越發怕到交關喇。",
+        "machine_best": "狗阿,花阿,草阿,但嘅見親我,越發怕到交關喇。",
+        "cer": 0.222222,
+        "window": 1
+      }
+    ],
+    "mean_row_cer": 0.634136,
+    "token_weighted_cer": 0.510574,
+    "independent_best_window_mean_cer": 0.458564,
+    "independent_best_window_token_weighted_cer": 0.317221,
+    "independent_best_window_per_row": [
+      {
+        "human": "國、有一囘，北風跟太陽兩個人在那兒爭論誰的本事大。",
+        "cer": 0.04
+      },
+      {
+        "human": "蘇、有一轉，北風搭太陽两家頭勒浪爭啥人格本事大。",
+        "cer": 0.083333
+      },
+      {
+        "human": "廣、有一句，北風同𤍠頭兩個人喺處爭論邊個嘅本事大。",
+        "cer": 0.12
+      },
+      {
+        "human": "北風說，我的本事大極了。",
+        "cer": 1.0
+      },
+      {
+        "human": "北風說，我格本事大極哉。",
+        "cer": 1.0
+      },
+      {
+        "human": "北風話，我嘅本事至大嘅喇。",
+        "cer": 0.923077
+      },
+      {
+        "human": "世界上的東西沒有不怕我的。",
+        "cer": 0.923077
+      },
+      {
+        "human": "世界浪格末事嘸不勿怕我格。",
+        "cer": 0.923077
+      },
+      {
+        "human": "世界上嘅野冇唔怕我嘅。",
+        "cer": 1.0
+      },
+      {
+        "human": "船碰見了我就會翻，房子碰見了我就會坍，樹碰見了我就會倒，什",
+        "cer": 0.0
+      },
+      {
+        "human": "船碰着仔我就會翻，房子碰着仔我就會坍，樹碰着仔我就會倒，啥",
+        "cer": 0.0
+      },
+      {
+        "human": "船見親我就噲沈，屋見親我我就會 {{參|Lhann|「冧」？}}，樹見親我就會倒，個",
+        "cer": 0.292683
+      },
+      {
+        "human": "末貓阿，狗阿，花阿，草阿，他們見了我，更是怕得不得了了。",
+        "cer": 0.178571
+      },
+      {
+        "human": "格貓阿，狗阿，花阿，草阿，俚篤見仔我，加二嚇得勿知那亨哉。",
+        "cer": 0.172414
+      },
+      {
+        "human": "的貓阿，狗阿，花阿，草阿，佢哋見親我，越發怕到交關喇。",
+        "cer": 0.222222
+      }
+    ]
+  },
+  "segment_cer_mean": 0.634136,
+  "segment_cer_pass_at_0.25": false,
+  "segment_cer_independent_mean": 0.458564,
+  "segment_cer_independent_pass_at_0.25": false,
+  "segment_cer_independent_token_weighted": 0.317221,
+  "segment_cer_independent_token_weighted_pass_at_0.25": false,
+  "structure": {
+    "human_row_count": 15,
+    "human_column_count": 3,
+    "human_section_count": 5,
+    "machine_row_count": "unverified",
+    "machine_column_count": "unverified",
+    "machine_row_count_reason": "plain OCR text has no reliable row boundaries; cannot infer machine table rows without layout analysis (not available)",
+    "machine_column_count_reason": "plain OCR text has no reliable column boundaries; cannot infer machine table columns without layout analysis (not available)",
+    "structure_pass": false,
+    "structure_pass_reason": "protocol §4 requires machine row count == human row count AND machine column count == human column count AND every cell token byte-exact; machine row/column counts are unverified from plain text, so the structural gate CANNOT be claimed as pass (recorded as fail/unverified, never faked)",
+    "row_token_exact_present": 6,
+    "row_token_total": 15,
+    "row_tokens": [
+      {
+        "token": "國、有一囘，北風跟太陽兩個人在那兒爭論誰的本事大。",
+        "present_exact": false
+      },
+      {
+        "token": "蘇、有一轉，北風搭太陽两家頭勒浪爭啥人格本事大。",
+        "present_exact": false
+      },
+      {
+        "token": "廣、有一句，北風同𤍠頭兩個人喺處爭論邊個嘅本事大。",
+        "present_exact": false
+      },
+      {
+        "token": "北風說，我的本事大極了。",
+        "present_exact": true
+      },
+      {
+        "token": "北風說，我格本事大極哉。",
+        "present_exact": true
+      },
+      {
+        "token": "北風話，我嘅本事至大嘅喇。",
+        "present_exact": false
+      },
+      {
+        "token": "世界上的東西沒有不怕我的。",
+        "present_exact": true
+      },
+      {
+        "token": "世界浪格末事嘸不勿怕我格。",
+        "present_exact": true
+      },
+      {
+        "token": "世界上嘅野冇唔怕我嘅。",
+        "present_exact": false
+      },
+      {
+        "token": "船碰見了我就會翻，房子碰見了我就會坍，樹碰見了我就會倒，什",
+        "present_exact": true
+      },
+      {
+        "token": "船碰着仔我就會翻，房子碰着仔我就會坍，樹碰着仔我就會倒，啥",
+        "present_exact": true
+      },
+      {
+        "token": "船見親我就噲沈，屋見親我我就會 {{參|Lhann|「冧」？}}，樹見親我就會倒，個",
+        "present_exact": false
+      },
+      {
+        "token": "末貓阿，狗阿，花阿，草阿，他們見了我，更是怕得不得了了。",
+        "present_exact": false
+      },
+      {
+        "token": "格貓阿，狗阿，花阿，草阿，俚篤見仔我，加二嚇得勿知那亨哉。",
+        "present_exact": false
+      },
+      {
+        "token": "的貓阿，狗阿，花阿，草阿，佢哋見親我，越發怕到交關喇。",
+        "present_exact": false
+      }
+    ],
+    "numeric_tokens": []
+  },
+  "table_quality_pass": false,
+  "machine_input_sha256": "15ca62198b90b2effee1ef5933f4104fb3d986637b040a0da0b0d89e7ddf3ac4",
+  "machine_model": "qwen3.8-27b"
+}

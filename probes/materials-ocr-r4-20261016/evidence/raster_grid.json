@@ -1,0 +1,33 @@
+{
+  "pdf_sha256": "da50c9f6963f70bc022db55a367b88fd4d6c5be36d899ae5a1d7392aada0eb5a",
+  "renders": {
+    "2.0": {
+      "scale": 2.0,
+      "approx_dpi": 144.0,
+      "page_point_size": {
+        "width": 408,
+        "height": 689
+      },
+      "png_pixels": {
+        "width": 817,
+        "height": 1380
+      },
+      "png_bytes": 164473,
+      "png_sha256": "15ca62198b90b2effee1ef5933f4104fb3d986637b040a0da0b0d89e7ddf3ac4"
+    },
+    "4.0": {
+      "scale": 4.0,
+      "approx_dpi": 288.0,
+      "page_point_size": {
+        "width": 408,
+        "height": 689
+      },
+      "png_pixels": {
+        "width": 1633,
+        "height": 2759
+      },
+      "png_bytes": 366217,
+      "png_sha256": "2b8327bf14cba890a80f8866c6562734ff16199a8a7438351ada9c27f700c894"
+    }
+  }
+}
