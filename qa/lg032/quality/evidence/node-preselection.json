@@ -1,0 +1,22 @@
+{
+  "discoverable_at_execution": [
+    "subtask_01M50AEMK19ZARKBGCC3S5RW5R",
+    "subtask_01M50AEMK5Z9A9W3WA0GXP8P8B"
+  ],
+  "scheduled_node": "subtask_01M50AEMK19ZARKBGCC3S5RW5R",
+  "other_discoverable_node": "subtask_01M50AEMK5Z9A9W3WA0GXP8P8B",
+  "claim_scheduled": {
+    "granted": true,
+    "reason": "granted",
+    "fence": 1,
+    "lease_expires_at": "2026-10-15T17:46:09.891Z",
+    "request_id": "req-own"
+  },
+  "claim_other_discoverable": {
+    "granted": false,
+    "reason": "node_not_scheduled_for_worker",
+    "request_id": "req-other"
+  },
+  "note": "The node the worker was NOT scheduled for is discoverable and authorized by the projection, yet the program refuses its claim.",
+  "provider_substitute": "no SDK, no network, no model"
+}

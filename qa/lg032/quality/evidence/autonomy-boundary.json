@@ -1,0 +1,83 @@
+{
+  "outcome": {
+    "state": "succeeded",
+    "summary": "all 2 subtask(s) passed; candidate handed to verification"
+  },
+  "plan_source": "rules",
+  "plan_subtasks": [
+    {
+      "key": "deliver",
+      "capability": "implementation",
+      "write": true,
+      "depends_on": []
+    },
+    {
+      "key": "verify",
+      "capability": "verification",
+      "write": false,
+      "depends_on": [
+        "deliver"
+      ]
+    }
+  ],
+  "node_bindings": [
+    {
+      "subtask_ref": "subtask_01M50AC0ACHEZWYAHJJNGXDQ4G",
+      "key": "deliver",
+      "assignee_member_ref": "member_01M50AC0AC9WHPC9C2FHP540JW"
+    },
+    {
+      "subtask_ref": "subtask_01M50AC0ACP7501Y8Y7NM5A084",
+      "key": "verify",
+      "assignee_member_ref": "member_01M50AC0ACDB42HSKQFW42HHEF"
+    }
+  ],
+  "workers": [
+    {
+      "subtask_id": "subtask_01M50AC0ACHEZWYAHJJNGXDQ4G",
+      "objective": "Write out/deliver.txt containing the word delivered",
+      "has_claim_tool": true,
+      "active_grants_before": 1,
+      "discovery_count": 1,
+      "discovery_nodes": [
+        "subtask_01M50AC0ACHEZWYAHJJNGXDQ4G"
+      ],
+      "matching_candidates": 1,
+      "other_candidate": null,
+      "claim": {
+        "ok": true,
+        "reason": "granted",
+        "state": "granted",
+        "node_ref": "subtask_01M50AC0ACHEZWYAHJJNGXDQ4G",
+        "fence": 1,
+        "lease_expires_at": "2026-10-15T17:44:43.753Z",
+        "request_id": "req-subtask_01M50AC0ACHEZWYAHJJNGXDQ4G"
+      },
+      "claim_pool_count": 1
+    },
+    {
+      "subtask_id": "subtask_01M50AC0ACP7501Y8Y7NM5A084",
+      "objective": "\u72ec\u7acb\u9a8c\u8bc1\uff1aWrite out/deliver.txt containing the word delivered",
+      "has_claim_tool": true,
+      "active_grants_before": 1,
+      "discovery_count": 1,
+      "discovery_nodes": [
+        "subtask_01M50AC0ACP7501Y8Y7NM5A084"
+      ],
+      "matching_candidates": 1,
+      "other_candidate": null,
+      "claim": {
+        "ok": true,
+        "reason": "granted",
+        "state": "granted",
+        "node_ref": "subtask_01M50AC0ACP7501Y8Y7NM5A084",
+        "fence": 1,
+        "lease_expires_at": "2026-10-15T17:44:43.889Z",
+        "request_id": "req-subtask_01M50AC0ACP7501Y8Y7NM5A084"
+      },
+      "claim_pool_count": 1
+    }
+  ],
+  "active_grants_after": 0,
+  "provider_substitute": "no SDK, no network, no model"
+}

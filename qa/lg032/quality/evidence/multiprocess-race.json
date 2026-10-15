@@ -1,0 +1,46 @@
+{
+  "processes": 6,
+  "results": [
+    {
+      "worker": "worker-0",
+      "granted": false,
+      "reason": "held_by_other",
+      "fence": 1
+    },
+    {
+      "worker": "worker-1",
+      "granted": false,
+      "reason": "held_by_other",
+      "fence": 1
+    },
+    {
+      "worker": "worker-2",
+      "granted": false,
+      "reason": "held_by_other",
+      "fence": 1
+    },
+    {
+      "worker": "worker-3",
+      "granted": true,
+      "reason": "granted",
+      "fence": 1
+    },
+    {
+      "worker": "worker-4",
+      "granted": false,
+      "reason": "held_by_other",
+      "fence": 1
+    },
+    {
+      "worker": "worker-5",
+      "granted": false,
+      "reason": "held_by_other",
+      "fence": 1
+    }
+  ],
+  "granted_count": 1,
+  "final_owner": "worker-3",
+  "final_fence": 1,
+  "final_state": "running",
+  "provider_substitute": "no SDK, no network, no model"
+}
