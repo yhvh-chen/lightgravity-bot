@@ -72,6 +72,7 @@ updated: "2026-10-16"
 ## 关键 hash / 锚
 
 - PLAN：`37c339da…`｜formal harness：`fce51ced…`｜预检 harness：`b37b28d7…`｜fake 上游：`5de0631e…`（与旧逐字节同）。
+- **protocol hash**：`155e1cc0896207848b44080ac51c2a05679bc54ed8d9a96bc620e406641bc025`。
 - validated plan hash：`37e5c771a7e1c9c41543180e71b79e08de79205fa687cfcca3385a00137b8e8e`（与旧正式一致）。
 - 初始 commit：`6cf81ea38456b7a0c3c2536b48985d7af3a55f11`。
 - 脱敏 evidence：`evidence/formal-real2.redacted.json`（sha256 `7caa3d88…`）。

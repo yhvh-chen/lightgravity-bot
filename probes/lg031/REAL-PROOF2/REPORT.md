@@ -34,6 +34,7 @@ updated: "2026-10-16"
 | SDK | `google-antigravity==0.1.22`（`installed_sdk_version()` 实证） |
 | 实际模型 | `deepseek-v4-flash` @ `https://api.deepseek.com/v1`（env 凭证，不打印/不落盘） |
 | PLAN hash | `37c339da8d2749555594e62061eefa369baed5f63341a99cde589d3c9d6926d3` |
+| **protocol hash** | `155e1cc0896207848b44080ac51c2a05679bc54ed8d9a96bc620e406641bc025` |
 | formal harness hash | `fce51ced98b7a9df8d2dd36a56cf9867ade1dfc145392ed970655299423b1db0` |
 | validated plan hash | `37e5c771a7e1c9c41543180e71b79e08de79205fa687cfcca3385a00137b8e8e`（与旧 proof 正式一致） |
 | ledger 路径 | `probes/lg031/REAL-PROOF2/fixtures/formal/data/generation/generation.jsonl`（持久） |
