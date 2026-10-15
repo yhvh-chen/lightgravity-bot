@@ -141,26 +141,38 @@ class RecordingBackend:
             "input": [_input_element(item)],
         }
         payload = json.dumps(body, ensure_ascii=False).encode("utf-8")
+        req_view = {
+            "method": "POST",
+            "path": "/v1/embeddings",
+            "endpoint_host": urllib.parse.urlsplit(self._inner.endpoint).netloc,
+            "model": self._inner.model_id,
+            "encoding_format": "float",
+            "input_type": "text" if item.part_type == "text" else "media",
+            "text": item.text,
+            "text_bytes": len((item.text or "").encode("utf-8")),
+            "text_sha256": hashlib.sha256((item.text or "").encode("utf-8")).hexdigest(),
+            "request_body_bytes": len(payload),
+            "auth_header_present": False,
+            "media_attached": item.part_type != "text",
+        }
         t0 = time.monotonic()
-        result = self._inner.embed(item)
+        try:
+            result = self._inner.embed(item)
+        except Exception as exc:  # noqa: BLE001  (record failures, never drop them)
+            self.records.append({
+                "input_kind": item.part_type,
+                "request": req_view,
+                "response": None,
+                "error": f"{type(exc).__name__}: {str(exc)[:400]}",
+                "input_sha256": hashlib.sha256((item.text or "").encode("utf-8")).hexdigest(),
+                "latency_seconds": round(time.monotonic() - t0, 4),
+            })
+            raise
         latency = time.monotonic() - t0
         vb = json.dumps(list(result.vector)).encode()
         rec = {
             "input_kind": item.part_type,
-            "request": {
-                "method": "POST",
-                "path": "/v1/embeddings",
-                "endpoint_host": urllib.parse.urlsplit(self._inner.endpoint).netloc,
-                "model": self._inner.model_id,
-                "encoding_format": "float",
-                "input_type": "text" if item.part_type == "text" else "media",
-                "text": item.text,
-                "text_bytes": len((item.text or "").encode("utf-8")),
-                "text_sha256": hashlib.sha256((item.text or "").encode("utf-8")).hexdigest(),
-                "request_body_bytes": len(payload),
-                "auth_header_present": False,
-                "media_attached": item.part_type != "text",
-            },
+            "request": req_view,
             "response": {
                 "status": 200,
                 "dim": result.dim,
@@ -261,8 +273,12 @@ def build_store(header: dict, entries: list[dict], labels: dict[str, str]) -> So
     re-verify hits; content_hash mirrors the R5 cache entry.
     """
 
+    data_dir = os.path.join(SCRATCH, "data")
+    if os.path.isdir(data_dir):
+        import shutil
+        shutil.rmtree(data_dir)
     os.makedirs(SCRATCH, exist_ok=True)
-    store = SourceStore(os.path.join(SCRATCH, "data"))
+    store = SourceStore(data_dir)
     for e in entries:
         sid = e["source_id"]
         entity = {
@@ -467,6 +483,7 @@ def main() -> int:
             "source": q["source"], "text_bytes": text_bytes,
             "error": err, "latency": qlat,
             "vector_index_status": (vres or {}).get("index_status"),
+            "index_unavailable_reason": (vres or {}).get("index_unavailable_reason"),
             "vector_model": (vres or {}).get("vector_model"),
             "product_hits": (vres or {}).get("hits", []),
             "product_hit_fields": sorted((vres or {}).get("hits", [{}])[0].keys()) if (vres or {}).get("hits") else [],

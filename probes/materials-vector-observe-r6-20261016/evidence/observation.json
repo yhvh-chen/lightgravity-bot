@@ -1,0 +1,240 @@
+{
+  "probe": "materials-vector-observe-r6-20261016",
+  "phase": "OBSERVATION",
+  "base_url": "http://192.168.8.12:11434",
+  "model": "embeddinggemma-2-Q8_0",
+  "policy": {
+    "post_cap": 2,
+    "retries": 0,
+    "concurrency": 1,
+    "timeout_seconds": 30.0,
+    "connect_timeout_seconds": 3.0,
+    "text_bytes_cap": 1024,
+    "docembedding": 0,
+    "audio": 0,
+    "image": 0,
+    "ocr": 0,
+    "asr": 0,
+    "worker": 0
+  },
+  "r5_reuse": {
+    "copy": {
+      "source_path": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/materials-vector-r5-20261016/private/vector-data/sources-index/vectors/vectors.jsonl",
+      "source_sha256": "8e8e6afc1e6bad922f4841e99ad5691892d26cfe8c91ab5495415d6bceeb989e",
+      "copied_sha256": "8e8e6afc1e6bad922f4841e99ad5691892d26cfe8c91ab5495415d6bceeb989e",
+      "byte_identical": true,
+      "copied_path": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-observe-r6-20261016/probes/materials-vector-observe-r6-20261016/private/scratch/r5-vectors/vectors.jsonl"
+    },
+    "header": {
+      "cache_version": 1,
+      "dim": 768,
+      "model": "embeddinggemma-2-Q8_0",
+      "record": "header"
+    },
+    "entry_count": 10,
+    "label_map": {
+      "source_1KM4HYBN3MX3SMJPKW617HE622": "D1",
+      "source_12CQTK6VBVC0VVBDTTSSS7MV28": "D2",
+      "source_5YTYNYNHBEAR59DDZYYK44D9MH": "D3",
+      "source_70M0207JXW4318R6RSEQ0C6GH3": "T_NORTHWIND",
+      "source_0JMX817752WK0M51XVDVCYSTFE": "D5",
+      "source_7D6MCNNR17JAHM71SP8J9T9HV6": "D6",
+      "source_4XKMV77VDQ5E6ADJH577VYZME2": "M_IMG_ZH",
+      "source_52Y0FWFPWGJC716BAGKFP0RHA9": "M_IMG_EN",
+      "source_0YG24QWMWTZ7Y1QAN4FZVTGE5Y": "M_AUD_ZH",
+      "source_67262NY4ZC3T53H0Y3PCR59Q9H": "M_AUD_DIQIU"
+    },
+    "entries_meta": [
+      {
+        "source_id": "source_1KM4HYBN3MX3SMJPKW617HE622",
+        "label": "D1",
+        "kind": "text",
+        "basis": "formal",
+        "model": "embeddinggemma-2-Q8_0",
+        "dim": 768,
+        "cache_version": 1,
+        "fragment_hash": "b3d1a866c2bf6f966869bcd3f24ba38ffa952057c0c617f6b47d95426acedad7",
+        "source_version": 1,
+        "content_hash": "2267f1c6d33c85edff1f7c709c39535efc053b298873e7f3b06a652e99fb1049",
+        "vector_sha256": "8601472328847462745e9cba691dfc029a5b691631829b39ca7f5341ef2bfeda"
+      },
+      {
+        "source_id": "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+        "label": "D2",
+        "kind": "text",
+        "basis": "formal",
+        "model": "embeddinggemma-2-Q8_0",
+        "dim": 768,
+        "cache_version": 1,
+        "fragment_hash": "150bc176a305907dd2f6ca6c66a4de289471cbb1a58f31cce52e650a6e891d31",
+        "source_version": 1,
+        "content_hash": "fe54758ed038143a0cd1a564c692604d6c25f135a5854799e2b6aa95d438d104",
+        "vector_sha256": "0362053d6bc15c6d8c5418da50c275532e4130d6443c57515434e53c987d6290"
+      },
+      {
+        "source_id": "source_5YTYNYNHBEAR59DDZYYK44D9MH",
+        "label": "D3",
+        "kind": "text",
+        "basis": "formal",
+        "model": "embeddinggemma-2-Q8_0",
+        "dim": 768,
+        "cache_version": 1,
+        "fragment_hash": "3cc3d8d242aa4f3a31027a732020fbe5c340d76a464071fba7f230b931d50446",
+        "source_version": 1,
+        "content_hash": "20e819f328c63c6b5b4ffebee4ffba30784c44fe1b1323ec893705a3a1604f30",
+        "vector_sha256": "863ac8e5236a833ac2c8b129ebbbea71f0ea09c759926ba23d8edd6cae4d258d"
+      },
+      {
+        "source_id": "source_70M0207JXW4318R6RSEQ0C6GH3",
+        "label": "T_NORTHWIND",
+        "kind": "text",
+        "basis": "formal",
+        "model": "embeddinggemma-2-Q8_0",
+        "dim": 768,
+        "cache_version": 1,
+        "fragment_hash": "1f1cf921a38ad2fca59b1384da86d8c29e45b06e82b27118eb8ff644500a3df0",
+        "source_version": 1,
+        "content_hash": "51131e1c123b4cd812d24c8f84aea91a4b4d9b24acda5bb8f63267ed639be502",
+        "vector_sha256": "24d77bccc9eedc9c10bfc581df07929c07a1d4b0fad67697588f8ff66fd99110"
+      },
+      {
+        "source_id": "source_0JMX817752WK0M51XVDVCYSTFE",
+        "label": "D5",
+        "kind": "text",
+        "basis": "formal",
+        "model": "embeddinggemma-2-Q8_0",
+        "dim": 768,
+        "cache_version": 1,
+        "fragment_hash": "d00dc8848337da248c2b51025c96eeba109ad21d0601bc4a7052d75575ea6b18",
+        "source_version": 1,
+        "content_hash": "6b1e15be2f75621d86f3717c4924a618623076c40ac22b8f62e0bb2704469f08",
+        "vector_sha256": "6c607d62be7fae0d32b2adf5721955bbb9c335cb216a757f4d89c667d0c7e6d5"
+      },
+      {
+        "source_id": "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+        "label": "D6",
+        "kind": "text",
+        "basis": "formal",
+        "model": "embeddinggemma-2-Q8_0",
+        "dim": 768,
+        "cache_version": 1,
+        "fragment_hash": "1d73dd4a74ba389caba95166aa172d0cb473097b5ccbb0a208d4576a29ba640c",
+        "source_version": 1,
+        "content_hash": "b0ad3d82ddd30851de782bd1b2aad1ddb9289b91984b444d39af845f65db1604",
+        "vector_sha256": "82031b03854bb017a611e6353137fcb15013940d3ad4cb3ebfaf8ca599df3417"
+      },
+      {
+        "source_id": "source_4XKMV77VDQ5E6ADJH577VYZME2",
+        "label": "M_IMG_ZH",
+        "kind": "image",
+        "basis": "original",
+        "model": "embeddinggemma-2-Q8_0",
+        "dim": 768,
+        "cache_version": 1,
+        "fragment_hash": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+        "source_version": 1,
+        "content_hash": "9d9d3673edb72b8ca6ca2539f7efd1c28423a7d80d3b397529377a0b5fde0e75",
+        "vector_sha256": "06c1969d3fd13a2452bb046f706166a5dbec3822ae37f5aa491e5fbe542400d4"
+      },
+      {
+        "source_id": "source_52Y0FWFPWGJC716BAGKFP0RHA9",
+        "label": "M_IMG_EN",
+        "kind": "image",
+        "basis": "original",
+        "model": "embeddinggemma-2-Q8_0",
+        "dim": 768,
+        "cache_version": 1,
+        "fragment_hash": "f9c80afb481abc07fdc6ff013df3048ef31141e7b1b90ec90ccbee8c3eddbea7",
+        "source_version": 1,
+        "content_hash": "a2f01fc7db90930e132d509bec0c454979f49f0054261ea9f5c0f5ecf53c721d",
+        "vector_sha256": "e7b364d2ab3e6489770ff4f34a83158a5ae8b683aeb365dd3e00c04f62ee7768"
+      },
+      {
+        "source_id": "source_0YG24QWMWTZ7Y1QAN4FZVTGE5Y",
+        "label": "M_AUD_ZH",
+        "kind": "audio",
+        "basis": "original",
+        "model": "embeddinggemma-2-Q8_0",
+        "dim": 768,
+        "cache_version": 1,
+        "fragment_hash": "0cf59176de2b58c4386215256af159af94f01ebb4509e89bfbbadac7eac5cc37",
+        "source_version": 1,
+        "content_hash": "1e80897e539af9fc1baaa47ff7a838be808361bfd2f7fbf32b0b7907d3e0217d",
+        "vector_sha256": "c06f1bf5f433b3867aa023f97a3c3e3d106aaa56ecd9b7585b4a0b200330124d"
+      },
+      {
+        "source_id": "source_67262NY4ZC3T53H0Y3PCR59Q9H",
+        "label": "M_AUD_DIQIU",
+        "kind": "audio",
+        "basis": "original",
+        "model": "embeddinggemma-2-Q8_0",
+        "dim": 768,
+        "cache_version": 1,
+        "fragment_hash": "91430d5aa8bec7f6865872e9d863df7208a1cbee82441f54b33f742a77277c51",
+        "source_version": 1,
+        "content_hash": "c711855f13ec1e8a3883c3b33054dd312e7577b5958a34e1888ffe98f953b712",
+        "vector_sha256": "9ded3added96c785fa80f930ec4b8c15a205758c9149475b9097ed4594677cec"
+      }
+    ]
+  },
+  "queries": [
+    {
+      "q": "Q_IMG_ZH",
+      "text": "老子 道德經 註解 學說",
+      "type": "positive_crossmodal_image",
+      "relevant": [
+        "M_IMG_ZH"
+      ],
+      "source": "R5 frozen corpus (verbatim)",
+      "text_bytes": 30,
+      "error": null,
+      "latency": 30.0402,
+      "vector_index_status": "index_unavailable",
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "product_hits": [],
+      "product_hit_fields": [],
+      "product_stale": [],
+      "product_skipped": [],
+      "full_ranking": [],
+      "independent_recompute": [],
+      "independent_order_matches_product": null,
+      "target_rank_info": null,
+      "embedding_record": {}
+    },
+    {
+      "q": "Q_NEG_ZH",
+      "text": "量子色動力學 膠子 強相互作用",
+      "type": "negative_control",
+      "relevant": [],
+      "source": "R5 frozen corpus old negative",
+      "text_bytes": 41,
+      "error": null,
+      "latency": 30.0303,
+      "vector_index_status": "index_unavailable",
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "product_hits": [],
+      "product_hit_fields": [],
+      "product_stale": [],
+      "product_skipped": [],
+      "full_ranking": [],
+      "independent_recompute": [],
+      "independent_order_matches_product": null,
+      "target_rank_info": null,
+      "embedding_record": {}
+    }
+  ],
+  "counters": {
+    "post_used": 2,
+    "post_attempted": 2,
+    "retries": 0,
+    "health_get": 1,
+    "media_inputs": 0,
+    "audio_seconds": 0.0
+  },
+  "health": {
+    "status": 200,
+    "raw": "{\"status\":\"ok\"}",
+    "latency": 0.004
+  },
+  "post_log": []
+}
