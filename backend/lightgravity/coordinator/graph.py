@@ -319,7 +319,7 @@ class GraphDispatcher:
         # git worktree at a frozen base commit *before* scheduling.  Nodes that
         # cannot be isolated (non-git / unauthorized workspace, or no provider)
         # keep the conservative same-workspace single-writer serialization.
-        self._isolate_write_nodes(context, nodes)
+        self.isolate_write_nodes(context, nodes)
         controller.update_run(
             {
                 "team_refs": list(member_ids.values()),
@@ -1294,16 +1294,10 @@ class GraphDispatcher:
         self._run_workspaces[context.run_id] = isolated
         return isolated
 
-    def _isolate_write_nodes(self, context: DispatchContext, nodes: Sequence[_Node]) -> None:
-        self.isolate_write_nodes(context, nodes)
-
     def workspace_for_node(self, run_id: str, key: str) -> str | None:
         """The isolated workspace path for a node, else ``None`` (shared)."""
 
         return self._run_workspaces.get(run_id, {}).get(key)
-
-    def _run_workspace_map(self, context: DispatchContext) -> dict[str, str]:
-        return self._run_workspaces.setdefault(context.run_id, {})
 
     # ---------------------------------------------------------------- helpers
     def _writer_key(self, node: _Node, context: DispatchContext) -> str:

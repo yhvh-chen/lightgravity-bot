@@ -25,7 +25,7 @@ from lightgravity.contracts import ErrorCode
 from lightgravity.workspaces import WorkspaceError, WorktreeManager
 from lightgravity.workspaces.git import GitRunner
 
-from conftest import GitRepo
+from gitfixtures import GitRepo
 
 
 def test_repo_hooks_are_not_executed(repo: GitRepo, tmp_path: Path) -> None:

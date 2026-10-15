@@ -36,7 +36,7 @@ from lightgravity.store import FileStore
 from lightgravity.workspaces import GraphWorkspaceProvider, WorktreeManager
 from lightgravity.workspaces.manager import WORKTREE_DIRNAME
 
-from conftest import GitRepo, init_repo
+from gitfixtures import GitRepo
 from graph_helpers import FakeGraphExecutor, build_environment, make_dispatch_setup
 
 TWO_WRITE = RoleCatalog({"implementation": ["developer"]})

@@ -27,7 +27,7 @@ from lightgravity.contracts import ErrorCode
 from lightgravity.workspaces import WorkspaceError, WorktreeManager
 from lightgravity.workspaces.manager import METADATA_FILENAME, WORKTREE_DIRNAME
 
-from conftest import GitRepo
+from gitfixtures import GitRepo
 
 
 def manager_for(repo: GitRepo) -> WorktreeManager:
