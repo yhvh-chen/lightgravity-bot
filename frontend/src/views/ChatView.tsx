@@ -1,9 +1,10 @@
-import { ChatPanel } from '../components/ChatPanel'
+import { ChatBody } from './chat/ChatBody'
 
 /**
- * Chat view body (owner view task: LG-013). LG-011 provides the shell wiring
- * and the single shared ChatPanel; message routing/delivery is LG-007/LG-013.
+ * Chat view body (owner: LG-013). Thin re-export: the real conversation surface
+ * (global/Task history, attachments, drafts, message send) lives under
+ * `views/chat/**` and is shared with the shell's right rail via ChatPanel.
  */
 export function ChatView() {
-  return <ChatPanel variant="main" />
+  return <ChatBody variant="main" />
 }

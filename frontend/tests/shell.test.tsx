@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { App } from '../src/App'
-import { setViewport } from './setup'
+import { backendFetch, setViewport } from './setup'
 
 function renderShell() {
   return render(<App />)
@@ -16,7 +16,10 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup()
-  vi.mocked(globalThis.fetch).mockClear()
+  vi.mocked(globalThis.fetch).mockReset()
+  vi.mocked(globalThis.fetch).mockImplementation(
+    backendFetch as unknown as (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>,
+  )
 })
 
 describe('LG-011 shell: navigation', () => {
@@ -66,7 +69,7 @@ describe('LG-011 shell: navigation', () => {
 })
 
 describe('LG-011 shell: scope, selection and drafts survive view switches', () => {
-  it('preserves task/run scope, selected item and chat draft, with one chat', () => {
+  it('preserves task/run scope and chat draft, with one conversation session', () => {
     renderShell()
 
     fireEvent.change(screen.getByLabelText('Scope'), {
@@ -78,33 +81,26 @@ describe('LG-011 shell: scope, selection and drafts survive view switches', () =
 
     fireEvent.click(screen.getByRole('button', { name: 'Board' }))
     expect(screen.getByLabelText('Scope')).toHaveValue('mock-task-1')
-
-    const contextItem = screen.getByRole('button', {
-      name: /Add login to the example site/,
-    })
-    fireEvent.click(contextItem)
-    expect(contextItem).toHaveAttribute('aria-pressed', 'true')
+    // The rail and the Chat panel share one active draft for the same scope.
     expect(screen.getByLabelText('Message for mock-task-1')).toHaveValue('draft text')
 
     fireEvent.click(screen.getByRole('button', { name: 'Files' }))
     expect(screen.getByLabelText('Scope')).toHaveValue('mock-task-1')
 
     fireEvent.click(screen.getByRole('button', { name: 'Board' }))
-    expect(
-      screen.getByRole('button', { name: /Add login to the example site/ }),
-    ).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getAllByRole('textbox')).toHaveLength(1)
+    // Exactly one Chat conversation surface (one composer) across the shell.
+    expect(screen.getAllByLabelText(/^Message for /)).toHaveLength(1)
   })
 
   it('renders a single Chat surface and disables the rail toggle on the Chat view', () => {
     renderShell()
-    expect(screen.getAllByRole('textbox')).toHaveLength(1)
+    expect(screen.getAllByLabelText(/^Message for /)).toHaveLength(1)
     expect(screen.getAllByLabelText('Chat workspace')).toHaveLength(1)
     expect(screen.getByRole('button', { name: 'Toggle chat panel' })).toBeDisabled()
 
     fireEvent.click(screen.getByRole('button', { name: 'Board' }))
     expect(screen.getAllByLabelText('Chat panel')).toHaveLength(1)
-    expect(screen.getAllByRole('textbox')).toHaveLength(1)
+    expect(screen.getAllByLabelText(/^Message for /)).toHaveLength(1)
   })
 })
 
@@ -140,29 +136,27 @@ describe('LG-011 shell: panel controls', () => {
   })
 })
 
-describe('LG-011 shell: empty, error and mock states', () => {
-  it('shows explicit empty states when the layout mock is off', async () => {
+describe('LG-011 shell: empty, error and real-data states', () => {
+  it('shows explicit empty states instead of inventing tasks or messages', async () => {
     renderShell()
-    fireEvent.click(screen.getByRole('button', { name: 'Toggle layout mock data' }))
+    // The rail is backend-driven now; mocked fetch has no /tasks, so the rail
+    // must say so rather than render layout-mock tasks.
     fireEvent.click(screen.getByRole('button', { name: 'Board' }))
-    expect(
-      screen.getByText('No tasks yet — create one from Chat.'),
-    ).toBeInTheDocument()
+    // The backend has no /tasks under test, so the board reports the real error
+    // rather than rendering layout-mock tasks.
+    expect(await screen.findByText('Could not load tasks')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Chat' }))
-    expect(await screen.findByText('No messages yet')).toBeInTheDocument()
+    expect(await screen.findByText('Scope not found')).toBeInTheDocument()
   })
 
-  it('labels the layout mock and never fakes a sent message', async () => {
+  it('never fabricates a sent message and keeps the draft on a real failure', async () => {
     renderShell()
-    expect(
-      screen.getAllByText('MOCK LAYOUT DATA — not from backend').length,
-    ).toBeGreaterThan(0)
-
     const composer = screen.getByLabelText('Message for Global')
     fireEvent.change(composer, { target: { value: 'hello there' } })
     fireEvent.keyDown(composer, { key: 'Enter' })
-    expect(await screen.findByText(/Not sent: message delivery is not implemented/)).toBeInTheDocument()
-    // Draft is kept and no message element was created from it.
+    // The mocked backend returns 404 for the global conversation, so the send
+    // fails honestly and the draft is preserved.
+    expect(await screen.findByText(/Send failed:/)).toBeInTheDocument()
     expect(composer).toHaveValue('hello there')
     expect(
       screen.queryAllByText('hello there', { selector: '.lg-message__bubble' }),
@@ -170,9 +164,9 @@ describe('LG-011 shell: empty, error and mock states', () => {
   })
 
   it('renders a real not-connected state when the backend is unreachable', async () => {
-    vi.mocked(globalThis.fetch).mockRejectedValueOnce(new Error('Connection refused'))
+    vi.mocked(globalThis.fetch).mockRejectedValue(new Error('Connection refused'))
     renderShell()
-    expect(await screen.findByText('Backend not connected')).toBeInTheDocument()
+    expect(await screen.findByText(/Could not load messages|Scope not found/)).toBeInTheDocument()
     expect(screen.getByText(/network_error/)).toBeInTheDocument()
   })
 })

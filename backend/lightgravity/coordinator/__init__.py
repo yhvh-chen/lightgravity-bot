@@ -35,6 +35,13 @@ from .classification import (
     MessageIntent,
     classify_message,
 )
+from .dialogue import (
+    DialogueSupport,
+    ModelDialogue,
+    make_sync_responder,
+    resolve_dialogue_support,
+    unavailable_reply,
+)
 from .dispatcher import (
     DispatchContext,
     Dispatcher,
@@ -87,6 +94,11 @@ __all__ = [
     "Classification",
     "MessageIntent",
     "classify_message",
+    "DialogueSupport",
+    "ModelDialogue",
+    "make_sync_responder",
+    "resolve_dialogue_support",
+    "unavailable_reply",
     "DispatchContext",
     "Dispatcher",
     "DispatchOutcome",

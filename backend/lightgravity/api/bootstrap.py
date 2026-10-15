@@ -39,9 +39,15 @@ from ..adapter import AntigravityExecutor, DirectoryArtifactSink, ResourceCompil
 from ..adapter.compiler import ConnectionPin
 from ..config import Settings
 from ..coordinator import GraphDispatcher
+from ..coordinator.dialogue import (
+    ModelDialogue,
+    make_sync_responder,
+    resolve_dialogue_support,
+)
 from ..coordinator.graph import DEFAULT_CAPABILITIES
 from ..coordinator.recruiter import RoleCatalog
 from ..settings import (
+    ROLE_COORDINATOR,
     ConnectionService,
     ConnectionTestLog,
     ConnectionTester,
@@ -198,6 +204,36 @@ class _ServiceConnectionPins:
         )
 
 
+def _dialogue_responder(
+    connections: ConnectionService, log: LogSink
+) -> Callable[[str, Any], str] | None:
+    """Build a real tool-less direct-answer responder when one is configured.
+
+    Returns ``None`` when no coordinator connection/credential resolves, so the
+    coordinator keeps its built-in responder and the UI does not claim a model
+    answered a question it never asked.  The handler never prints the credential.
+    """
+
+    try:
+        pinned = connections.resolve_default(ROLE_COORDINATOR)
+    except Exception as exc:  # noqa: BLE001 - startup must never crash here
+        log(f"dialogue responder not wired: {type(exc).__name__}: {exc}")
+        return None
+    support = resolve_dialogue_support(pinned)
+    if support is None:
+        log(
+            "dialogue responder not wired: no default coordinator connection "
+            "(plain questions will report unavailable instead of a real answer)"
+        )
+        return None
+    dialogue = ModelDialogue(support, connections.credential_resolver.resolve)
+    log(
+        "dialogue responder wired: tool-less single turn on the default "
+        "coordinator connection (no team, no write tools)"
+    )
+    return make_sync_responder(dialogue)
+
+
 def _enabled_agents(store: Store, data_dir: Path) -> tuple[str, ...]:
     directory = data_dir / "resources" / RESOURCE_DIRS["agent"]
     if not directory.is_dir():
@@ -325,6 +361,8 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
     token = options.token or resolve_runtime_token(os.environ)
     access: AccessPolicy = LocalAccessPolicy(token=token.value)
 
+    responder = _dialogue_responder(connections, log)
+
     app = create_app(
         settings,
         store=store,
@@ -333,6 +371,7 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         connection_service=connections,
         access_policy=access,
         tester=tester,
+        responder=responder,
     )
     allowed_hosts = options.allowed_hosts
     env_hosts = os.environ.get(ALLOWED_HOSTS_ENV, "")

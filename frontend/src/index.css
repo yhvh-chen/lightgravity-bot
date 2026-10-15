@@ -4,3 +4,5 @@
  */
 @import './app/tokens.css';
 @import './app/shell.css';
+@import './views/chat/chat.css';
+@import './views/board/board.css';
