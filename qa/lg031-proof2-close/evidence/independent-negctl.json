@@ -1,0 +1,21 @@
+{
+  "X1_non_succeeded_finish_refused": {
+    "confirmed": false,
+    "sessions_stopped": 5,
+    "unknown": [
+      "sess_71642b2e0f464386b2d728d0a5eb4fd0"
+    ]
+  },
+  "X2_missing_sqlite_refused": {
+    "confirmed": false,
+    "problems": [
+      "6 session(s) not proven closed from recorded facts",
+      "loopback auth proxy not confirmed stopped from recorded facts"
+    ],
+    "sessions_stopped": 0
+  },
+  "X3_requirements_mismatch_unavailable": {
+    "outcome": "unavailable",
+    "refusal": "requirements_revision 999 != 1"
+  }
+}
