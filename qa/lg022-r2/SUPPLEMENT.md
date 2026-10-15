@@ -92,6 +92,23 @@
 4. **计数只认账本**：报告中的 phase 实数取**该统一账本** `count`，不得把多个独立账本 count 相加充当单一硬限内用量。
 5. **保留旧脚本/证据**：仅可新增修正版脚本或明确 diff 说明，不得篡改历史证据 hash。
 
+**本包已提供（仅配置/协调，未执行、无模型调用）**：
+`qa/lg022-r2/harness/unified_phase_ledger_config.py` —— 固化原始 harness SHA-256、单一
+`LG022_GEN_LIMIT` 默认值(10)，并提供 `validate_run_config(data_dirs, limits)`：
+对历史双路径配置会返回两条违规（`2 dirs` + `limits [3,10]`），对未来统一配置返回 `[]`。
+**未执行任何真实运行**；旧脚本字节未改（hash 见该文件与下文）。
+
+原始 harness 冻结 SHA-256（本包提交时）：
+```
+fc95283c…07357  deterministic_probe_r2.py
+5b7d5400…78853  ledger_proof.py
+e73e9e9d…f8a72  light_qa_probe.py
+98da253c…8ce89  real_chain_r2.py
+ce4a6ba9…587a7  review_cancel_sdk_proof.py
+af4cbbf5…b593a  service_ledger_proof.py
+7c326b68…9ae95  stopgate_proof.py
+```
+
 ## S3. REPORT “PASS（成功门全满足）”的准确 scope 修正
 
 原 `REPORT.md` §5 判定「成功门全满足」。按 PM 补查要求，改为**分列**（不降门、不改门）：
@@ -124,16 +141,24 @@
 
 ## S4. 这是否阻断 LG-022 最终 `done`（独立判断，不擅自降门）
 
-- 依据 LG-022 原验收 + `docs/06` 标准：停止门的产品**机制**（未确认 → held/不释放/不删 refs）
-  在 `stopgate-proof.json` 与真链上**均通过**；真实主链已到 `awaiting_acceptance` 并完成绑定 accept。
-- 原 `REPORT.md` §6 已把「真实 reviewer teardown 故障端到端」「真实 pause」等列为**未测**，
-  以机制 + 产品测试覆盖替代。**真实 SDK cancel 补证**属「方法与证据完整性」缺口：
-  - 若验收标准要求「真实 SDK 路径下 cancel/stop 确认顺序有直接证据」，则该项**尚未满足**，
-    构成对 022 最终 `done` 的**证据完整性阻断**（需先补齐或由 PM 明确接受限制）。
-  - 产品机制本身**未见缺陷**；因此若 PM 判定该机制证据充要，可**保留限制**而非门内条件。
-- **来源与依据**：不满足项来自 ① 前包补证脚本未跑成（`/tmp/lg022-cancel-sdk.json` `all_pass=false`）
-  ② 两份原始证据显示主链/light 账本分路径（§S2）。**未为推进排期擅自降门**；门保持原样，
-  是否阻断由 PM/用户据上述依据裁定。
+**依据来源（原文）**：
+- `docs/06-roadmap.md` §2：D 阶段含“暂停取消、重启检查、返修、并行整合”；E 阶段含“浏览器与 Bot 故障场景通过”；
+  §2.1 明列 **LG-022 首版集中 QA＝端到端与故障，完整首版验收门，汇总 LG-027/LG-021 证据**。
+- `PROJECT.md`（LG-016/006 行为约定）：**“`cancel` 只有观察到 SDK 会话 idle 才返回 `confirmed=true`，
+  未确认不写终止状态”**。这是被验收的产品**行为语义**。
+
+**独立判断**：
+- 该语义的**产品机制**已在两处通过：① `evidence/stopgate-proof.json` R2A–R2E（未确认 → held、不释放、不删 refs；
+  确认后才 `awaiting_acceptance`）；② 真主链 `evidence/real-chain.json` 记录**真实** reviewer teardown 事实
+  （`reviewer_cleanup.confirmed=true`）。本补证 C2 再证「未确认保留」。
+- **仍缺**：真实 SDK session 活跃时的 cancel/pause **直接**演示“确认顺序”（§S1）——原 §4 只有 deterministic-double，
+  前包 provider-substitute 补证未跑成。
+- **裁定**：产品行为机制**已满足且未见缺陷**；但**真实 SDK cancel/stop 的直接端到端证据缺失**。
+  若 LG-022“端到端与故障”验收把该直接证据设为**必要**，则该项**尚未满足**，构成对 022 最终 `done` 的
+  **证据完整性阻断**（应先补齐或由 PM 明确接受限制）；若判定机制证据（离线 stop-gate + 真主链 reviewer teardown）
+  已充要，则可**保留限制**（列为“未测/替代方法”），而非门内条件。
+- 第二项（§S2 统一账本，仅影响统计口径）属 QA 流程缺口，**不构成** 022 最终 done 的阻断。
+- **不降门**：门保持 PLAN.md §4 原文；本条仅如实分列“已满足/未满足”，交 PM/用户裁定。
 
 ## S5. 剩余步骤（准确、可执行）
 
@@ -147,8 +172,9 @@
 
 ## S6. 提交与资源
 
-- 本包新增/修改：`qa/lg022-r2/SUPPLEMENT.md`、`qa/lg022-r2/STATUS.md`，
-  以及收纳前包遗留的 `qa/lg022-r2/harness/review_cancel_sdk_proof.py`（QA 脚本，无秘密）。
+- 本包新增/修改：`qa/lg022-r2/SUPPLEMENT.md`、`qa/lg022-r2/STATUS.md`，收纳前包遗留的
+  `qa/lg022-r2/harness/review_cancel_sdk_proof.py`（QA 脚本，无秘密），以及新增未执行配置助手
+  `qa/lg022-r2/harness/unified_phase_ledger_config.py`（仅配置/协调，无模型调用、无秘密）。
 - 未改产品代码、未改历史证据/账本、未动 `docs/`、未动 `lg031`。
 - 残留资源：本包无新增进程/端口；root `8123`（pid 3320750）未触碰；旧 worktree/dirty/证据保留。
 - 凭证/密钥/grant/请求头/请求体**未**进入本报告或任何文件。
