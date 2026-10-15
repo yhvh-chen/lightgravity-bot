@@ -1075,24 +1075,43 @@ class GraphDispatcher:
         self._pool_selected.pop(slot_id, None)
         return _PoolSlotOutcome(member_id=member_id, selected=node, failure=outcome)
 
+    def _selection_scratch_root(self, context: DispatchContext) -> Path | None:
+        """The authorized root a selection scratch directory may live under.
+
+        LG-032 workspace-boundary fix: a selection session's SDK workspace must
+        stay inside the executor's authorized root (``Settings.workspace_root``),
+        otherwise the real executor honestly rejects the request with
+        ``escapes the authorized root`` and the whole Run fails.  The Run's
+        worktree area (``<workspace_root>/.lg-worktrees/<run_id>``, the same
+        isolation seam real write nodes use) is inside that root by
+        construction, so it is the correct home for a throwaway, non-write
+        scratch.  ``None`` when no worktree provider is wired.
+        """
+
+        provider = self._workspaces
+        if provider is None:
+            return None
+        selection_root = getattr(provider, "selection_scratch_root", None)
+        if selection_root is None:
+            return None
+        authorized = selection_root(context.run_id)
+        return Path(authorized) if authorized is not None else None
+
     def _selection_workspace(self, context: DispatchContext, slot_id: str) -> str:
         """A dedicated, empty scratch workspace for a selection session.
 
         Never a product workspace: a selection session has no write authority,
-        so its SDK workspace is a throwaway directory under the Run's save area
-        (falling back to the run workspace's parent).  If neither can be
-        resolved the shared workspace path is returned so the session still
-        builds; the phase still carries no write tools.
+        so its SDK workspace is a throwaway directory under the Run's authorized
+        worktree area (inside the executor's authorized root).  If no worktree
+        provider is wired the shared workspace path is returned so the session
+        still builds; the phase still carries no write tools.
         """
 
-        base = context.save_dir or context.workspace_path
-        if not base:
-            return context.workspace_path
         try:
-            root = Path(base)
-            if root.is_file():
-                root = root.parent
-            scratch = root / ".lg-pool-selection" / context.run_id / slot_id
+            root = self._selection_scratch_root(context)
+            if root is None:
+                return context.workspace_path
+            scratch = root / ".lg-pool-selection" / slot_id
             scratch.mkdir(parents=True, exist_ok=True)
             return str(scratch)
         except OSError:
