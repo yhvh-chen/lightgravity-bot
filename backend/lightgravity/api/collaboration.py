@@ -179,13 +179,13 @@ def _require_grant(ctx: ApiContext, request: Request) -> ExecutionGrant:
 def _grant_owner(grant: ExecutionGrant) -> str:
     """The program-frozen lease owner (never a request-body value).
 
-    The grant's ``member_ref`` is the program-authenticated principal; using it
-    as the lease owner means an authenticated worker can only ever act as
-    itself.  (A future graph-side owner override would be carried on the grant,
-    not taken from the body.)
+    The grant carries the exact identity string the program claimed/renews/releases
+    the node under (:attr:`ExecutionGrant.effective_lease_owner`).  A request body
+    can neither set nor widen it, so an authenticated worker can only ever act as
+    the principal the program froze.
     """
 
-    return grant.member_ref
+    return grant.effective_lease_owner
 
 
 def _check_body_owner(payload_owner: str | None, grant: ExecutionGrant) -> None:
@@ -197,7 +197,7 @@ def _check_body_owner(payload_owner: str | None, grant: ExecutionGrant) -> None:
 
     if payload_owner is None:
         return
-    if payload_owner != grant.member_ref:
+    if payload_owner != grant.effective_lease_owner:
         raise _refuse(
             "identity_mismatch",
             "request owner does not match the program-authenticated principal",

@@ -962,10 +962,12 @@ class GraphDispatcher:
             spec=SubtaskSpec(
                 key=f"pool-slot-{slot_id}",
                 objective=(
-                    "Select exactly one node from the authorized candidate pool by "
-                    "calling discover_and_request_claim(node_ref=...) and then "
-                    "produce that node's artifact; the program authorizes and "
-                    "records the selected node."
+                    "PHASE 1 (selection only): choose exactly one node from the "
+                    "authorized candidate pool by calling "
+                    "discover_and_request_claim(node_ref=...). You have NO write "
+                    "permission and NO product workspace in this phase; do not "
+                    "produce artifacts. The program authorizes the node you select "
+                    "and then runs a separate execution session bound to it."
                 ),
                 capability=representative.spec.capability,
                 acceptance=(),
@@ -977,61 +979,90 @@ class GraphDispatcher:
             depends_on=(),
             member_id=member_id,
         )
-        request = self._build_pool_request(
-            slot_node, context, bindings=bindings, pool_refs=pool_refs, grant_token=token
+        # ------------------------------------------------------------------
+        # PHASE 1 -- the selection session.  It runs on a dedicated, empty
+        # *selection scratch* workspace (never a product workspace), exposes
+        # only the restricted discover/claim tool and grants no write tools, so
+        # the worker cannot produce any artifact before the program authorizes
+        # the node it selected.  It shares the same Task/phase budget and the
+        # same process-global generation ledger as the execution phase.
+        # ------------------------------------------------------------------
+        selection_workspace = self._selection_workspace(context, slot_id)
+        selection_request = self._build_selection_request(
+            slot_node,
+            context,
+            bindings=bindings,
+            pool_refs=pool_refs,
+            grant_token=token,
+            workspace=selection_workspace,
         )
         run_id = context.run_id
-        task = asyncio.ensure_future(self._executor.execute(request, emit))
-        self._inflight.setdefault(run_id, set()).add(task)
-        try:
-            result = await task
-        except asyncio.CancelledError:
-            if run_id not in self._explicit_cancel:
-                self._revoke_if_pool(slot_id, token)
-                raise
-            result = ExecutorResult(
-                state="cancelled",
-                summary="pool slot cancelled by run control",
-                stop_confirmed=True,
-                execution_ref=ExecutionRef(
-                    execution_id=f"exec_cancelled_{slot_id}",
-                    task_id=context.task_id,
-                    run_id=run_id,
-                ),
-            )
-        except Exception:  # noqa: BLE001 - classify, never fake success
-            result = ExecutorResult(state="failed", summary="pool slot executor crashed")
-        finally:
-            self._inflight.get(run_id, set()).discard(task)
+        selection_result = await self._run_executor_task(selection_request, context, emit, slot_id)
 
         from lightgravity.collaboration import default_registry
 
         selection = self._pool_selected.get(slot_id) or {}
         selected_id = selection.get("node_ref")
         node_grant = self._node_grants.pop(slot_id, None)
-        if node_grant is not None:
-            (self._grant_registry or default_registry()).revoke_token(node_grant[0])
+        node_grant_token = node_grant[0] if node_grant is not None else None
+        # The pool (selection) grant is single-purpose: once the worker has
+        # selected (or not) it is revoked, so a selection session identity can
+        # never act as an execution identity.
         self._revoke_if_pool(slot_id, token)
 
         if selected_id is None or selected_id not in pool_by_id:
-            # Worker never made a valid selection: no node is passed, and no
+            # Phase 1 ended without a valid selection: no node is passed and no
             # control state is written for any candidate.  Honest no-op slot.
+            if node_grant_token is not None:
+                (self._grant_registry or default_registry()).revoke_token(node_grant_token)
             controller.emit(
                 EventType.ERROR_RECORDED,
                 {
                     "mode": "pool_slot",
+                    "phase": "selection",
                     "code": "claim_required",
                     "message": "autonomous worker did not claim an authorized candidate",
                     "pool_refs": list(pool_refs),
+                    "selection_stopped": self._execution_stopped(selection_result),
                 },
             )
             return _PoolSlotOutcome(member_id=member_id, selected=None, failure=None)
 
         node = pool_by_id[selected_id]
-        # The pool path took the lease itself through the fenced authority; apply
-        # the result first (so state/manifest/handoff attribute to the selected
-        # node) and then release the lease, exactly as the deterministic path
-        # does -- but only after the execution has actually stopped.
+        # ------------------------------------------------------------------
+        # PHASE 2 -- the execution session.  It is a *separate* SDK session
+        # built from the **selected** node's program-frozen context: isolated
+        # workspace, objective, acceptance, upstream versioned/hashed handoffs
+        # and the node's own member permissions.  The selection session's
+        # scratch workspace is never the product write target, so a B result
+        # can never be written as A: the program applies this result to the
+        # node the worker selected, and nothing else.
+        # ------------------------------------------------------------------
+        upstream = encode_handoffs(
+            [
+                memory.handoffs[dep]
+                for dep in node.spec.depends_on
+                if dep in memory.handoffs
+            ]
+        )
+        controller.transition_subtask(
+            node.subtask_id,
+            "ready",
+            extra={"upstream_artifact_refs": list(upstream)},
+            reason="candidate selected by autonomous worker",
+        )
+        execution_request = self._build_request(
+            node, context, upstream, grant_token=node_grant_token
+        )
+        result = await self._run_executor_task(execution_request, context, emit, slot_id)
+        if node_grant_token is not None:
+            (self._grant_registry or default_registry()).revoke_token(node_grant_token)
+
+        # Attribute the execution result to the node the worker selected.  The
+        # pool path took the lease itself through the fenced authority; apply
+        # the result first (state/manifest/handoff) and then release the lease,
+        # exactly as the deterministic path does -- but only after the execution
+        # has actually stopped.
         if result.state == "succeeded":
             outcome = self._apply_result(node, controller, result)
         else:
@@ -1044,8 +1075,88 @@ class GraphDispatcher:
         self._pool_selected.pop(slot_id, None)
         return _PoolSlotOutcome(member_id=member_id, selected=node, failure=outcome)
 
+    def _selection_workspace(self, context: DispatchContext, slot_id: str) -> str:
+        """A dedicated, empty scratch workspace for a selection session.
+
+        Never a product workspace: a selection session has no write authority,
+        so its SDK workspace is a throwaway directory under the Run's save area
+        (falling back to the run workspace's parent).  If neither can be
+        resolved the shared workspace path is returned so the session still
+        builds; the phase still carries no write tools.
+        """
+
+        base = context.save_dir or context.workspace_path
+        if not base:
+            return context.workspace_path
+        try:
+            root = Path(base)
+            if root.is_file():
+                root = root.parent
+            scratch = root / ".lg-pool-selection" / context.run_id / slot_id
+            scratch.mkdir(parents=True, exist_ok=True)
+            return str(scratch)
+        except OSError:
+            return context.workspace_path
+
+    async def _run_executor_task(
+        self,
+        request: ExecuteRequest,
+        context: DispatchContext,
+        emit: Callable[[dict[str, Any]], Any],
+        slot_id: str,
+    ) -> ExecutorResult:
+        """Run one executor call, classifying cancel/crash without faking.
+
+        Shared by both pool phases.  A run-control cancel is reported as a
+        confirmed stop; an unexpected crash is a classified failure, never a
+        fabricated success.
+        """
+
+        run_id = context.run_id
+        task = asyncio.ensure_future(self._executor.execute(request, emit))
+        self._inflight.setdefault(run_id, set()).add(task)
+        try:
+            return await task
+        except asyncio.CancelledError:
+            if run_id not in self._explicit_cancel:
+                raise
+            return ExecutorResult(
+                state="cancelled",
+                summary="pool slot cancelled by run control",
+                stop_confirmed=True,
+                execution_ref=ExecutionRef(
+                    execution_id=f"exec_cancelled_{slot_id}",
+                    task_id=context.task_id,
+                    run_id=run_id,
+                ),
+            )
+        except Exception:  # noqa: BLE001 - classify, never fake success
+            return ExecutorResult(state="failed", summary="pool phase executor crashed")
+        finally:
+            self._inflight.get(run_id, set()).discard(task)
+
+    @staticmethod
+    def _execution_stopped(result: ExecutorResult | None) -> bool:
+        """Whether a phase's SDK session is provably stopped (for honest events)."""
+
+        if result is None:
+            return False
+        if result.stop_confirmed is True:
+            return True
+        # A terminal non-cancel result means the adapter closed the session in
+        # its own teardown (``ensure_closed`` + proxy stop); the adapter reports
+        # the authoritative fact via ``stop_confirmed`` only for cancels, so a
+        # completed session is treated as stopped for the selection phase.
+        return result.state in {"succeeded", "failed", "blocked", "budget_exhausted", "timeout"}
+
     def _release_collaboration_lease(self, node: "_Node") -> None:
-        """Release a pool-selected node's lease after its execution stopped."""
+        """Release a pool-selected node's lease after its execution stopped.
+
+        The release uses the **same program-frozen lease owner** the pool claim
+        used (this worker dispatcher's ``self._owner``), never a body-supplied or
+        shared identity, so the fenced lease authority sees one consistent
+        claimant from claim to release.
+        """
 
         collab = self._collaboration
         if collab is None:
@@ -1055,7 +1166,7 @@ class GraphDispatcher:
         except Exception:  # noqa: BLE001 - release must never mask the outcome
             return
 
-    def _build_pool_request(
+    def _build_selection_request(
         self,
         slot_node: "_Node",
         context: DispatchContext,
@@ -1063,8 +1174,18 @@ class GraphDispatcher:
         bindings: Mapping[str, dict[str, Any]],
         pool_refs: Sequence[str],
         grant_token: str,
+        workspace: str,
     ) -> ExecuteRequest:
-        """Build the worker-facing pool request (selection then program binds)."""
+        """Build the phase-1 (selection-only) SDK request.
+
+        The selection session gets **no write authority**: it runs on the
+        dedicated scratch ``workspace`` (never a product workspace and never the
+        selected node's isolated worktree), offers only the restricted
+        discover/claim tool as a custom tool, and carries no product acceptance
+        criteria.  Identity, budget and the global generation ledger are the
+        same as the execution phase; the program (not this session) authorizes
+        the node and owns its state.
+        """
 
         candidate = slot_node.member.candidate
         return ExecuteRequest(
@@ -1076,8 +1197,12 @@ class GraphDispatcher:
             acceptance_criteria=(),
             instructions=context.instructions,
             upstream_artifact_refs=(),
-            workspace_path=context.workspace_path,
-            allowed_tools=candidate.tool_refs,
+            workspace_path=workspace,
+            # The selection phase has no product write tools: the member's normal
+            # tool ceiling is withheld (empty allowed set denies every agent
+            # template tool) so a pre-selection session cannot produce an
+            # artifact.  The only custom tool is the restricted claim tool.
+            allowed_tools=(),
             skill_refs=candidate.skill_refs,
             connection_ref=candidate.connection_ref,
             timeout_seconds=context.timeout_seconds,
@@ -1246,6 +1371,13 @@ class GraphDispatcher:
             context.run_id,
             ClaimRequest(
                 subtask_id=node_ref,
+                # Program-frozen lease owner for a pool selection: the *worker
+                # instance* identity (the dispatcher that runs this slot), not the
+                # shared member ref.  Two genuine workers of the same member must
+                # race for the node with distinct owners so the fenced authority
+                # yields exactly one winner instead of treating them as the same
+                # worker (``already_owned``).  The API renew/release path resolves
+                # the same frozen owner from the grant.
                 owner=self._owner,
                 request_id=request_id,
                 lease_seconds=self._lease_seconds,
@@ -1273,6 +1405,10 @@ class GraphDispatcher:
             budget_remaining=decision.fence,
             ttl_seconds=max(60, int(self._lease_seconds) * 2),
             origin="graph-dispatcher:candidate-claim",
+            # Freeze the exact lease owner the node was claimed under (the worker
+            # instance) so the HTTP renew/release path resolves the same authority
+            # while the grant's ``member_ref`` remains the member identity.
+            lease_owner=self._owner,
         )
         # Record the selected node for the slot's execute step; revoke any prior
         # node grant the same worker minted (one selection per slot).

@@ -104,11 +104,14 @@ def _enable_settings(store: FileStore) -> None:
 
 
 class PoolWorkerSim:
-    """A worker that selects a chosen candidate and writes its isolated artifact.
+    """A two-phase worker: select in phase 1, execute the selected node in phase 2.
 
-    ``select`` decides which candidate the worker picks (by key); the worker only
-    learns *where* to write from the binding the program returns for the node it
-    selected, never from a pre-bound field.
+    Phase 1 runs on the selection scratch workspace with only the restricted
+    claim tool: the worker selects a candidate (``select_key``) and produces **no
+    artifact**.  Phase 2 is a separate executor call bound by the program to the
+    selected node's isolated workspace/objective; the worker writes that node's
+    artifact there.  This mirrors the real SDK two-session lifecycle without a
+    real model (the executor is a provider-substitute).
     """
 
     name = "pool-worker-sim"
@@ -117,21 +120,38 @@ class PoolWorkerSim:
     def __init__(self, select_key: str) -> None:
         self.select_key = select_key
         self.requests = []
+        self.selection_requests: list[Any] = []
+        self.execution_requests: list[Any] = []
         self.pool_sizes: list[int] = []
         self.claims: list[dict] = []
         self.bindings: list[dict] = []
         self.selected_keys: list[str] = []
+        #: Per selected subtask id -> key, so phase 2 knows which node it owns.
+        self._selected_by_node: dict[str, str] = {}
+
+    @staticmethod
+    def _is_selection(request: Any) -> bool:
+        return any(
+            getattr(t, "__name__", "") == "discover_and_request_claim"
+            for t in request.custom_tools
+        )
 
     async def execute(self, request, emit):  # noqa: ANN001
         self.requests.append(request)
+        if self._is_selection(request):
+            return await self._phase_select(request)
+        return await self._phase_execute(request)
+
+    async def _phase_select(self, request):  # noqa: ANN001
+        """Phase 1: pick a candidate; produce no artifact."""
+
+        self.selection_requests.append(request)
         tool = next(
             t for t in request.custom_tools if getattr(t, "__name__", "") == "discover_and_request_claim"
         )
         discovered = tool()
         candidates = discovered.get("candidates") or []
         self.pool_sizes.append(len(candidates))
-        # Prefer the configured key, but fall back to any remaining legal
-        # candidate: a real worker re-discovers after its first choice passes.
         match = next((c for c in candidates if c.get("key") == self.select_key), None)
         if match is None and candidates:
             match = candidates[0]
@@ -142,17 +162,40 @@ class PoolWorkerSim:
         assert claim["ok"] is True and claim["state"] == "granted", claim
         binding = claim.get("binding") or {}
         self.bindings.append(binding)
-        # Write the selected node's artifact inside the binding's isolation path.
-        target = Path(binding["workspace_path"]) / "out" / f"{chosen_key}.txt"
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(f"{chosen_key} selected\n", encoding="utf-8")
         self.selected_keys.append(chosen_key)
+        self._selected_by_node[binding["node_ref"]] = chosen_key
+        # No write tools / no product workspace in the selection phase: the
+        # session can only report the selection.  Any artifact would be an
+        # observable violation, so the sim deliberately produces none.
+        assert not request.workspace_path.endswith("task-ws"), request.workspace_path
         return ExecutorResult(
             state="succeeded",
-            summary="selected and delivered",
+            summary="selected candidate",
+            artifact_refs=(),
+            execution_ref=ExecutionRef(
+                execution_id=f"sel-{request.subtask_id}",
+                task_id=request.task_id,
+                run_id=request.run_id,
+                subtask_id=request.subtask_id,
+            ),
+            stop_confirmed=True,
+        )
+
+    async def _phase_execute(self, request):  # noqa: ANN001
+        """Phase 2: the program bound the selected node; write its artifact."""
+
+        self.execution_requests.append(request)
+        chosen_key = self._selected_by_node.get(request.subtask_id)
+        assert chosen_key is not None, f"unexpected execution for {request.subtask_id}"
+        target = Path(request.workspace_path) / "out" / f"{chosen_key}.txt"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(f"{chosen_key} selected\n", encoding="utf-8")
+        return ExecutorResult(
+            state="succeeded",
+            summary="delivered selected node artifact",
             artifact_refs=(f"out/{chosen_key}.txt",),
             execution_ref=ExecutionRef(
-                execution_id="e",
+                execution_id=f"exec-{request.subtask_id}",
                 task_id=request.task_id,
                 run_id=request.run_id,
                 subtask_id=request.subtask_id,
@@ -241,6 +284,71 @@ async def test_worker_selects_non_first_candidate_and_result_lands_on_it(tmp_pat
 
     # Every worker identity is revoked once the execution stopped.
     assert registry.active_grants() == []
+
+
+@pytest.mark.asyncio
+async def test_two_phase_sdk_lifecycle_selects_then_binds_selected_node(
+    tmp_path: Path,
+) -> None:
+    """Phase 1 selects with no write authority; phase 2 binds the selected node.
+
+    This pins the *two-phase* SDK lifecycle: the selection session runs on a
+    dedicated scratch workspace with no product write tools, and the execution
+    session is a separate call whose request is bound to the *selected* node's
+    isolated worktree/objective.  A single-call (no-rebind) implementation would
+    make the selection request and the execution request identical and would
+    write into the slot workspace, which this test rejects.
+    """
+
+    root = tmp_path / "ws"
+    repo = GitRepo(init_repo(root / "task-ws"))
+    workspace_root = repo.path.parent
+    store = FileStore(tmp_path / "data", workspace_root)
+    build_environment(store)
+    _enable_settings(store)
+    _task_id, _run_id, controller, base_context = make_dispatch_setup(
+        store,
+        budget={
+            "max_workers": 3,
+            "max_parallel": 1,
+            "max_repair_rounds": 1,
+            "max_collab_requests": 4,
+        },
+    )
+    context = replace(
+        base_context,
+        objective="produce both artifacts",
+        planning_request=PlanningRequest(
+            trigger=PlanningTrigger.USER_REQUEST,
+            reason="pool-test",
+            requested_by="test",
+            max_calls=1,
+        ),
+    )
+    registry = ExecutionGrantRegistry()
+    executor = PoolWorkerSim(select_key="beta")
+    dispatcher = _make_dispatcher(store, workspace_root, executor, registry)
+    await dispatcher.dispatch(context, controller, lambda e: None)
+
+    # Two distinct phases ran per worker slot: selection, then execution.
+    assert len(executor.selection_requests) == 2
+    assert len(executor.execution_requests) == 2
+    first_selection = executor.selection_requests[0]
+    # Phase 1 has no product write tools and runs on a scratch workspace that is
+    # not the node's isolated worktree and not the shared base workspace.
+    assert first_selection.allowed_tools == ()
+    assert ".lg-pool-selection" in first_selection.workspace_path
+    assert first_selection.workspace_path != context.workspace_path
+    # Phase 1 exposes only the restricted claim tool and no peer write tool.
+    assert [getattr(t, "__name__", "") for t in first_selection.custom_tools] == [
+        "discover_and_request_claim"
+    ]
+    # The execution request is bound to the *selected* node: a real node subtask
+    # id (not the slot), the node objective, and its isolated worktree.
+    selected_exec = executor.execution_requests[0]
+    assert "out/beta.txt" in selected_exec.objective or "out/alpha.txt" in selected_exec.objective
+    assert selected_exec.subtask_id != first_selection.subtask_id
+    assert "pool-slot" not in selected_exec.subtask_id
 
 
 @pytest.mark.asyncio
@@ -536,6 +644,10 @@ def test_claim_selects_non_first_node_and_binds_it(tmp_path: Path) -> None:
     assert chosen["granted"] is True
     assert chosen["binding"]["key"] == "beta"
     assert store.read("subtask", beta).entity["state"] == "running"
+    # LG-031 runtime integration: the lease owner is the program-frozen *worker
+    # instance* identity (the dispatcher), while the grant keeps the member ref
+    # as the authenticated identity; the same frozen owner claims, renews and
+    # releases over HTTP.
     assert store.read("subtask", beta).entity["owner"] == "graph-dispatcher:a"
     # The non-selected node is untouched: no owner/fence, still pending.
     untouched = store.read("subtask", alpha).entity
@@ -685,8 +797,11 @@ async def test_two_member_pools_run_in_parallel_without_writer_collision(tmp_pat
     outcome = await dispatcher.dispatch(context, controller, lambda e: None)
     assert outcome.state == "succeeded"
     # Two distinct workers ran, each with a single-candidate pool, in distinct
-    # isolated worktrees.
-    assert len(executor.requests) == 2
+    # isolated worktrees.  The two-phase lifecycle makes 2 executor calls per
+    # worker (selection session + execution session): 2 select + 2 execute.
+    assert len(executor.selection_requests) == 2
+    assert len(executor.execution_requests) == 2
+    assert len(executor.requests) == 4
     workspaces = {Path(b["workspace_path"]).resolve() for b in executor.bindings if b.get("workspace_path")}
     assert len(workspaces) == 2
     assert repo.path.resolve() not in workspaces

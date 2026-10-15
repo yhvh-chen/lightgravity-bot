@@ -349,6 +349,42 @@ async def test_claim_cannot_take_node_outside_grant_scope(
     assert store.read("subtask", sub_b).entity["owner"] is None
 
 
+async def test_claim_body_capability_cannot_widen_scope(
+    client: httpx.AsyncClient, app: FastAPI
+) -> None:
+    """A body ``capability`` is advisory and can never authorize a node.
+
+    The grant's ``authorized_node_refs`` is the only scope; a worker that names
+    an unauthorized node (even with a matching/higher body capability) is
+    refused and nothing is persisted.
+    """
+
+    store: FileStore = app.state.context.store
+    task_id = create_task(store)
+    run_id = create_run(store, task_id)
+    sub_a = create_subtask(store, run_id, key="a", capability="implementation")
+    sub_b = create_subtask(store, run_id, key="b", capability="verification")
+    link_subtasks(store, run_id, [sub_a, sub_b])
+    set_switches(store, enabled=True, lease_seconds=60)
+    # Grant authorizes only node A; the body claims node B and asserts a
+    # capability, which must not widen the grant.
+    token = _mint(app, run_id=run_id, subtask_id=sub_a, authorized_node_refs={sub_a})
+    response = await client.post(
+        f"/api/v1/runs/{run_id}/claim_requests",
+        json={
+            "owner": "w1",
+            "request_id": "r1",
+            "subtask_ref": sub_b,
+            "capability": "implementation",
+        },
+        headers=_grant_headers(token),
+    )
+    assert response.status_code == 409
+    assert response.json()["error"]["details"]["reason"] == "not_discoverable"
+    assert store.read("subtask", sub_b).entity["owner"] is None
+    assert store.read("subtask", sub_b).entity["state"] == "pending"
+
+
 async def test_claim_refused_when_feature_disabled(
     client: httpx.AsyncClient, app: FastAPI
 ) -> None:
@@ -428,6 +464,68 @@ async def test_renew_and_release_endpoints(
     )
     assert released.status_code == 200
     assert released.json()["released"] is True
+
+
+async def test_frozen_lease_owner_distinct_from_member_is_authoritative(
+    client: httpx.AsyncClient, app: FastAPI, seeded: tuple[str, str, str]
+) -> None:
+    """The program-frozen ``lease_owner`` (worker instance) is the authority.
+
+    A pool selection freezes the *worker instance* identity as the lease owner
+    while the grant's authenticated ``member_ref`` stays the member.  The HTTP
+    endpoints must use the frozen owner (never the body) so two workers of the
+    same member race distinctly and renew/release consistently.
+    """
+
+    store: FileStore = app.state.context.store
+    _, run_id, sub = seeded
+    # member_ref="member-a" authenticates the caller; lease_owner="worker-7" is
+    # the program-frozen authority the graph claimed under.
+    token = _mint(
+        app,
+        run_id=run_id,
+        subtask_id=sub,
+        member_ref="member-a",
+        lease_owner="worker-7",
+    )
+    headers = _grant_headers(token)
+    # A body naming the member (not the frozen lease owner) is a mismatch and
+    # must not be treated as the lease authority.
+    mismatch = await client.post(
+        f"/api/v1/runs/{run_id}/claim_requests",
+        json={"owner": "member-a", "request_id": "r1", "subtask_ref": sub},
+        headers=headers,
+    )
+    assert mismatch.status_code == 409
+    assert mismatch.json()["error"]["details"]["reason"] == "identity_mismatch"
+    assert store.read("subtask", sub).entity["owner"] is None
+    # The frozen owner (or no owner field) claims as worker-7.
+    granted = await client.post(
+        f"/api/v1/runs/{run_id}/claim_requests",
+        json={"request_id": "r1", "subtask_ref": sub},
+        headers=headers,
+    )
+    assert granted.status_code == 200
+    assert granted.json()["granted"] is True
+    assert store.read("subtask", sub).entity["owner"] == "worker-7"
+    fence = granted.json()["fence"]
+    # Renew under the frozen owner: the grant's member_ref still authenticates.
+    node_token = _mint(
+        app,
+        run_id=run_id,
+        subtask_id=sub,
+        member_ref="member-a",
+        lease_owner="worker-7",
+        fence=fence,
+        kind="node",
+    )
+    renewed = await client.post(
+        f"/api/v1/subtasks/{sub}/lease/renew",
+        json={"owner": "worker-7", "fence": fence, "lease_seconds": 60},
+        headers=_grant_headers(node_token),
+    )
+    assert renewed.status_code == 200
+    assert renewed.json()["renewed"] is True
 
 
 async def test_renew_requires_grant_and_writes_nothing(

@@ -53,6 +53,15 @@ class ExecutionGrant:
     expires_at: float
     revoked: bool = False
     collab_calls: int = 0
+    #: Program-frozen **lease owner** for the collaboration authority: the exact
+    #: identity string the graph used when it claimed the node through the fenced
+    #: :class:`CollaborationService`, and therefore the only identity that may
+    #: renew/release that lease over HTTP.  It defaults to ``member_ref`` (a bound
+    #: node grant where the worker member *is* the claimant), but a candidate-pool
+    #: grant whose ``member_ref`` is the selecting member can freeze the
+    #: program-side owner explicitly so the API never derives it from a body.  A
+    #: request body can never set/override this value.
+    lease_owner: str | None = None
     #: Non-secret provenance for honest reporting/tests.
     origin: str = "graph-dispatcher"
     #: ``node`` (bound to one execution) or ``pool`` (discovery only: authorizes
@@ -71,6 +80,12 @@ class ExecutionGrant:
     def covers_node(self, node_ref: str) -> bool:
         return node_ref in self.authorized_node_refs
 
+    @property
+    def effective_lease_owner(self) -> str:
+        """The frozen lease owner, defaulting to the authenticated member ref."""
+
+        return self.lease_owner or self.member_ref
+
     def active(self, *, now: float | None = None) -> bool:
         if self.revoked:
             return False
@@ -86,6 +101,7 @@ class ExecutionGrant:
             "run_id": self.run_id,
             "subtask_id": self.subtask_id,
             "member_ref": self.member_ref,
+            "lease_owner": self.effective_lease_owner,
             "fence": self.fence,
             "authorized_node_refs": sorted(self.authorized_node_refs),
             "max_collab_calls": self.max_collab_calls,
@@ -127,6 +143,7 @@ class ExecutionGrantRegistry:
         origin: str = "graph-dispatcher",
         kind: str = "node",
         max_claims: int | None = None,
+        lease_owner: str | None = None,
     ) -> tuple[str, ExecutionGrant]:
         """Mint a fresh grant and return ``(opaque_token, grant)``.
 
@@ -149,6 +166,7 @@ class ExecutionGrantRegistry:
             origin=origin,
             kind=kind,
             max_claims=max_claims,
+            lease_owner=lease_owner,
         )
         with self._lock:
             prior = self._by_subtask.get(subtask_id)
