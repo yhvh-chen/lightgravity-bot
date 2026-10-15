@@ -2,10 +2,46 @@
 title: "2026-10-15 开发进展与续接记录"
 doc_type: report
 category: project
-updated: "2026-10-15"
+updated: "2026-10-16"
 ---
 
 # 当前进展与续接记录
+
+> **2026-10-16 最新事实见下方「## 2026-10-16 资料质量证据集成收拢检查点」；其下 2026-10-15 起的历史快照整体标记为历史，保留不改。**
+
+## 2026-10-16 资料质量证据集成收拢检查点（唯一 main 最终整合/PM 文档 owner；产品真实生成 0/外部服务 0）
+
+本节为**当前事实**，覆盖其上历史快照中的相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
+未 reset/clean/覆盖/重复 cherry-pick，未推送/部署/发布。主代理只 PM，无嵌套派工。
+详细报告 [probes/materials-test-integration-20261016/REPORT.md](probes/materials-test-integration-20261016/REPORT.md)。
+
+- **开工核对（真实，只读）**：本项目根 `main@db01cd6` clean、无 stash；四条证据分支各领先 1 commit，
+  共同基点均为 `db01cd6`；四条分支相对 `main` 对 `backend/ frontend/ src/ tests/ docs/ pyproject.toml uv.lock Makefile backlog/` 的 diff **全部为空**（仅写各自 `probes/**`）。
+- **evidence audit 包终结交接（显式，非自动重放）**：`qa/materials-r3-audit-20261016` worktree 原由被 harness
+  token 预算在 **~106 s** 终止（wrapper exit **143**，**非正常退出**），停止发生在 REPORT/评分件已完整落盘之后、**commit 之前**。
+  现由集成 owner 检查确认 worktree 仅 5 个 owned 未跟踪文件、无其他 dirty/越界写入，**未重跑任何测试/网络/模型**，
+  追加 [ERRATA-DELIVERY.md](probes/materials-r3-audit-20261016/ERRATA-DELIVERY.md)（不改原始 REPORT/raw evidence 字节），
+  提交**仅**这 6 个 owned 文件为 **`c94b2e7`**（parent `db01cd6`）。
+- **安全收拢（唯一写动作，串行 `--no-ff`，无重复 cherry-pick）**：
+  ① `test/materials-retry-20261016-r2@b3b7b4f` → merge **`d2f733a`**（14 文件，仅 probes）；
+  ② `qa/lg040-gate-prep-20261016@0d4359b` → merge **`ab78f37`**（4 文件）；
+  ③ `test/materials-quality-20261016-r3@9e8ec8c` → merge **`d8edb22`**（17 文件）；
+  ④ `qa/materials-r3-audit-20261016@c94b2e7` → merge **`dd1cc37`**（6 文件）。
+  四次 merge 均 ort 无冲突；`db01cd6..HEAD` 仅 `probes/**`；四条分支 tip 现均为 `main` 祖先；双方有效报告**均保留**。
+- **证据要点（合并后，相对真实链接）**：
+  - **retry r2**：[REPORT](probes/materials-retry-20261016-r2/REPORT.md) — Stage A 3/3 GET **200**（llama.cpp router），冻结预算 2/2 POST：OCR 真实 Z1 **CER 0.0423 ≤ 0.15 PASS**；embedding **768 维 finite nonzero L2=1.0**；ASR **0 POST**。
+  - **LG-040 gate-prep**：[REPORT](probes/lg040/GATE-PREP-20261016/REPORT.md) — 对 r2 的独立离线证据审计，headline 数字**逐项复现**，1 条诚实 caveat（冻结时间点无法仅凭 git 证明）+ 边界澄清；**QA 准备，非 LG-040 版本判定**。
+  - **quality r3**：[REPORT](probes/materials-quality-20261016-r3/REPORT.md) — 16/18 POST：OCR **Z2 表格页 FAIL**（segment CER 0.328 > 0.25、结构塌陷）；Z1 印刷页 PASS（r2 既有）；vector **Recall@5 1.0/MRR 1.0 vs 词法 0.7/0.8**；7 docs/7 queries **仅 indicative**；**ASR 0 POST，LG-041 锁**；无产品/task 变更。
+  - **R3 独立审计**：[REPORT](probes/materials-r3-audit-20261016/REPORT.md) + [ERRATA-DELIVERY](probes/materials-r3-audit-20261016/ERRATA-DELIVERY.md) — 见下方独立审计结论。
+- **独立审计修正结论（crucial，已核）**：**Z2 whole-page CER 0.2948 可复现**；R3 段评分器有 bug（单行 best-overlap，过报 0.3323/0.3281），修正后 layout-agnostic segment **≈0.3172 仍 > 0.25** ⇒ 表格类 FAIL **稳健**；R3 的 `structure_pass` 判据**系自创**、非**严格协议 §4**（行列/cell 字节级）；**源 PDF 300 DPI，产品 `scale=2.0` 实际渲染 ~816×1379 px ≈144 DPI**，`408×689` 是**点尺寸非像素**；**负向查询返回 top-5 是 NN 候选的预期行为，不是 ACL 泄漏/契约失败**（无 zero-hit 要求）——报告 false hits 但**不关闭 LG-037 跨模态质量**、**不在同一 7 条查询上校准阈值**；**图片向量可调用性 ≠ 文本-图片质量**；**Z1 0.0423 为真**；服务实际为 **`192.168.8.12:11434` llama.cpp router（非 Ollama）**，**仅在记录的时点健康**、**非一般未来承诺**；**ASR/LG-041 仍锁在 LG-039 质量门**，音频支持声明**不构成新用户解锁决定**。
+- **状态（CLI 实读，backlog 专用根）**：`validate` **41 tasks / 0 diagnostics**；`digest` complete=true → **2 todo / 2 in-progress / 37 done**；`ready=[]`。
+  卡状态：**LG-035 `in-progress`**、**LG-037 `in-progress`**、**LG-040/041 `todo` 不解锁**；LG-031/032/036/038 done 保留。契约 **`1.11.0`**、SDK **`0.1.22`**、自主协作 default **off**。**baseline `db01cd6` 时为 37 done/2 in-progress/2 todo**（与上列一致）。
+- **并行在途（不读不合并）**：`fix/materials-ocr-r4-20261016` 为 **INPROGRESS 无结果**，本包**不等待/不轮询/不读其部分产出为最终**，不改 source/docs07/docs08。
+- **本包产品真实生成 0、外部服务调用 0（模型调用仅发生在已合并证据分支内且已如实计数）**；未 push/deploy/publish；未删 worktree/原始实验/历史失败。
+
+---
+
+## 历史快照（2026-10-15 起，保留不改；以下为历史，以下当前事实以上节为准）
 
 这是 2026-10-15 用户要求保存的本地检查点。以下提交与任务数量为保存前核实结果；任务状态仍以各分支的 backlog/tasks frontmatter 为准，本文不替代任务事实源。尚未完成主分支合并，不把集成分支成果写成已在 main 可用。
 

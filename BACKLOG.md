@@ -2,20 +2,34 @@
 title: "LightGravity Bot 开发任务入口"
 doc_type: index
 category: planning
-updated: "2026-10-15"
+updated: "2026-10-16"
 ---
 
 # LightGravity Bot 开发任务入口
 
 > 创建：2026-10-14。开发任务由 Olav Tasks 管理，schema 为 `olav.tasks/v1`，编号 LG。状态以单项 Markdown frontmatter 为准，本索引不重复维护状态。
 
-## 当前批次状态（2026-10-16，最终收拢）
+## 当前批次状态（2026-10-16，资料质量证据集成收拢）
 
-- 任务 CLI（backlog 专用根）：`validate` **41 tasks / 0 diagnostics**；`digest` **2 todo / 2 in-progress / 37 done**，complete=true；`ready=[]`。
-- **in-progress**：LG-035（图片/PDF OCR，真实中文样本已备但 OCR 质量未测）、LG-037（可选向量，真实质量未达）。
-- **todo**：LG-040（资料/Embedding 集中验收，未解锁）、LG-041（中文 ASR 质量锁，未解锁）。
+- 任务 CLI（**backlog 专用根** `/home/yhvh/code/lightgravity-bot/backlog`）：`validate` **41 tasks / 0 diagnostics**；`digest` **2 todo / 2 in-progress / 37 done**，complete=true；`ready=[]`。
+- **in-progress**：LG-035（图片/PDF OCR）、LG-037（可选向量）。二者实现/机制已在位；**真实质量不再空白**（下方真实证据），但仍**未达标/未封闭**。
+- **todo**：LG-040（资料/Embedding 集中验收，**未执行/未就绪**）、LG-041（中文 ASR 质量锁，未解锁）。
 - **LG-032 已 `done`（仅评估范围）**：独立封账 PASS；default 自主协作仍 **off**。契约 `1.11.0`、SDK `0.1.22`。
-- 唯一 future block：候选资料服务不可达 + ASR 质量门；续接见 [FINAL-CHECKPOINT/RESUME](probes/batch-20261016/FINAL-CHECKPOINT/RESUME.md)。
+- **并行在途（INPROGRESS，无结果，本索引不读为最终）**：`fix/materials-ocr-r4-20261016`。
+- 唯一 future block：候选资料服务**仅历史时点健康** + OCR 表格类质量未达标 + ASR 质量门；续接见 [FINAL-CHECKPOINT/RESUME](probes/batch-20261016/FINAL-CHECKPOINT/RESUME.md)。
+
+### 新真实质量证据（2026-10-16 集成入 main，链接有效）
+
+- **retry r2 smoke**（[REPORT](probes/materials-retry-20261016-r2/REPORT.md)，merge `d2f733a`）：3/3 GET 200；2/2 POST；OCR 真实 Z1 **CER 0.0423 PASS**；embedding 768 维 finite；ASR 0 POST。
+- **LG-040 gate-prep 独立审计**（[REPORT](probes/lg040/GATE-PREP-20261016/REPORT.md)，merge `ab78f37`）：r2 数字逐项复现；**QA-PLAN 非版本判定**。
+- **quality r3 真实质量**（[REPORT](probes/materials-quality-20261016-r3/REPORT.md)，merge `d8edb22`）：16/18 POST；OCR **Z2 表格页 FAIL**；vector Recall@5 1.0 vs lexical 0.7（7 docs/7 queries，仅 indicative）。
+- **R3 独立审计 + errata**（[REPORT](probes/materials-r3-audit-20261016/REPORT.md)、[ERRATA-DELIVERY](probes/materials-r3-audit-20261016/ERRATA-DELIVERY.md)，merge `dd1cc37`）：Z2 整页 CER 0.2948 复现、修正段 ≈0.3172 仍 FAIL；R3 段评分器有 bug、结构判据自创；渲染 ~144 DPI 非 300；**负向 top-5 非 ACL 泄漏**；图片向量可调用 ≠ 跨模态质量。
+
+### 仍缺/未达标（不称全通过）
+
+- **LG-040 未执行、未就绪**：单列印刷页 PASS，但**表格页 FAIL、混合 born-digital+扫描类缺失、跨模态检索质量未验**。
+- **LG-041 阻塞**：真实 ASR 不可用/质量门未过。
+- LG-037 负向 false hits 需报告，但**不以此关闭跨模态质量、不在同一 7 查询上校准阈值**。服务仅**记录时点健康**，非未来承诺。
 
 本目录的任务是**开发 LightGravity Bot 的工作**，与未来产品的 Task/Run/Member 文件及 `lightgravity.bot/v1` 完全分开。
 
@@ -100,3 +114,7 @@ node /home/yhvh/code/olav-tasks/dist/cli.js tasks validate /home/yhvh/code/light
 ```
 
 绝对路径是当前开发环境入口，不是产品运行依赖。其他环境使用已安装的 `olav-tasks` 执行同等命令。
+
+> **任务根约定**：本仓库开发任务的**实际根目录是 `backlog/`**（`olav.tasks/v1`，LG 编号），**不是项目根**。
+> 对项目根跑 `validate` 会命中历史实验 `probes/agensh-orchestration-r2/runs/**` 既存样例的重复 frontmatter 键，属旧实验、非 backlog 任务。
+> 正确命令（已核 41 tasks / 0 diagnostics）：`node /home/yhvh/code/olav-tasks/dist/cli.js tasks validate /home/yhvh/code/lightgravity-bot/backlog --json`（`digest`/`ready` 同理，根为 `.../backlog`）。
