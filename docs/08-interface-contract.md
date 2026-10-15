@@ -686,6 +686,7 @@ class ExecutorAdapter(Protocol):
 - **全局生成计数（`1.8.0`，LG-022 R1）**：所有 worker session、独立 reviewer turn 与 SDK 重试共享**同一进程全局**上游生成请求计数，在**转发前**预留；`GET /api/v1/diagnostics/generation` 报告 `count`/`limit`/`remaining`，用于集中 QA 约束并观测全局硬上限，不把未知当零。
 - **持久生成账本（`1.10.0`，LG-022 R2）**：全局生成计数改为受控 dataRoot 下的**持久账本**（append-only JSONL 事实源 + 可重建原子计数快照），跨 worker/reviewer/session/进程重启不归零；**转发前持久预留**（保守预留与确认转发分列，不声称远端 exactly-once）；账本损坏/不可读时**拒绝转发并报 unknown，绝不当 0**。`GET /api/v1/diagnostics/generation` 加性新增 `persistent`（及损坏时 `corrupt`/`reason`）。账本仅保留计数与最小非秘密元数据（单调序号/时间戳/不透明预留 id），**不落输入/prompt/header/凭证/grant**。
 - **执行器共享计数接线（`1.10.0`，LG-031 R2，无版本/字段/端点变化）**：执行器支持加性可选的共享计数注入；默认产品装配（`api/bootstrap`）在 `configure_generation_ledger` 之后把同一**持久账本**注入真实执行器，使每个 worker/reviewer 的 loopback 认证代理都消费**同一持久硬上限**，不会按 worker/session 重置或回退为非持久内存计数。契约字段、端点与版本不变。
+- **产品路径自主 claim 接线（`1.10.0`，LG-031 phase3，无版本/字段/端点变化）**：`api/bootstrap` 默认装配从 `decentralized_claim_enabled` 开关决定是否启用 `GraphDispatcher(autonomous_claim=True)` 并注入进程内 `ExecutionGrantRegistry`（关闭/缺省保持旧确定性 `plan_source=rules`、无工具、无 grant）；受限 claim 工具的发现投影加性补充程序拥有的 `objective`/`write`（内部 SDK 工具投影，非 HTTP 契约字段），使真实 worker 能据程序投影判定其节点产物。**不新增端点/枚举/错误码/字段，不改既有 `state`/`phase`/`acceptance` 语义，不新增供应商/秘密表单/常驻编排 agent。**
 - **验收过期/重复**：`acceptance_stale` 或幂等返回；过期决定不作用于新版本；重复提交相同 `request_id` 幂等。
 - **部分写入**：Store 保证单文件原子性；跨文件操作以写入标识/日志 + 恢复扫描处理，不宣称跨文件事务。
 

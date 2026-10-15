@@ -1,0 +1,78 @@
+{
+  "adapter_events": [
+    "adapter.execution_started",
+    "adapter.session_requested",
+    "adapter.session_started",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.tool_call",
+    "adapter.tool_call",
+    "adapter.tool_call",
+    "adapter.tool_call",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.tool_call",
+    "adapter.tool_call",
+    "adapter.execution_finished"
+  ],
+  "autonomous_claim_tool_router": "GraphDispatcher._claim_for_worker",
+  "dispatcher_outcome": "failed",
+  "dispatcher_summary": "subtask graph failed at 'produce': StopReason.MAX_MODEL_CALLS_EXCEEDED",
+  "elapsed_seconds": 9.14,
+  "generation_ledger": {
+    "corrupt": false,
+    "count": 4,
+    "limit": 14,
+    "persistent": true,
+    "remaining": 10
+  },
+  "handoff_refs": [],
+  "max_real_calls_budget": 14,
+  "per_request_output_cap": 12000,
+  "real_workers": 2,
+  "review": {
+    "findings": [],
+    "model_calls": 1,
+    "outcome": "unavailable",
+    "reason": "No evidence was provided for this candidate: the evidence list is explicitly '<none resolved>', so there are no evidence refs to cite. The acceptance criteria require verifying the existence and contents of out/produce.txt ('produced') and out/integrate.txt ('integrated'), but with zero resolvable evidence files and no ability to read, run commands, or browse, there is no material to confirm or refute the criteria. Per instructions, a verdict cannot be substantiated when the material is insufficient, so the outcome is 'unavailable' rather than a guess.",
+    "requested_model": "deepseek-v4-flash",
+    "resolved_evidence": [],
+    "reviewer_kind": "model",
+    "status": "ran",
+    "unsubstantiated": [],
+    "usage": {
+      "unknown": [
+        "usage"
+      ]
+    },
+    "validated_outcome": "unavailable"
+  },
+  "run_id": "run_01M5067FK6J6R8AQ6FYGN6F9YD",
+  "status": "ran",
+  "task_id": "task_01M5067FK6JM4FCE8EKDWZGHNA"
+}
+wrote /home/yhvh/code/lightgravity-bot-worktrees/lg031-r3/probes/lg031/phase3/real_worker_closure.json
+ledger snapshot: {'count': 4, 'limit': 14, 'remaining': 10, 'corrupt': False, 'persistent': True}

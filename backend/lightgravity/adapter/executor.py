@@ -583,7 +583,20 @@ class AntigravityExecutor:
                 code="budget_exhausted",
                 message="adapter real-model call cap reached",
             )
-        max_calls = self._max_proxy_calls if remaining is None else min(self._max_proxy_calls, remaining)
+        # LG-031 phase4: align the per-session loopback proxy cap with the
+        # per-request ``budget.max_model_calls`` the coordinator froze for this
+        # node.  The SDK already enforces that number as its own ``BudgetConfig``
+        # ceiling and reports a clean ``MAX_MODEL_CALLS_EXCEEDED`` stop reason; if
+        # the proxy outlives it, a multi-step worker hits an opaque 429 that masks
+        # the SDK's real stop reason (the phase3 failure).  When the request sets
+        # no model budget the behaviour is unchanged (additive only).
+        request_model_calls = _int_or_none((request.budget or {}).get("max_model_calls"))
+        ceilings = [self._max_proxy_calls]
+        if remaining is not None:
+            ceilings.append(remaining)
+        if request_model_calls is not None and request_model_calls > 0:
+            ceilings.append(request_model_calls)
+        max_calls = min(ceilings)
 
         upstream = upstream_chat_completions(connection.base_url)
         proxy = self._make_proxy(credential, upstream, max_calls)

@@ -405,6 +405,13 @@ def make_restricted_claim_tool(
                 "node_ref": candidate.subtask_id,
                 "capability": getattr(candidate, "capability", None),
                 "key": getattr(candidate, "key", None),
+                # The worker must know *what artifact to build* to act on an
+                # authorized node.  The discovery projection already carries the
+                # program-owned objective/acceptance; without it a product-path
+                # worker cannot tell which file its node owns (the R2 probe hid
+                # this by hand-feeding a path).  Additive, non-secret.
+                "objective": getattr(candidate, "objective", None),
+                "write": getattr(candidate, "write", None),
             }
             for candidate in getattr(view, "candidates", ())
         ]

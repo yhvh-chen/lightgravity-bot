@@ -1,0 +1,92 @@
+{
+  "handoffs_received_total": [
+    "subtask_01M5079F7MS9XM6AJRDJD4D7HM@1a60539e58a045065adb2c46c1b957b2fd50dc1679eaf2baaf5efe074eeaf64d:evidence:run_01M5079F4W8V37RHRTN7W6WWV6/subtask_01M5079F7MS9XM6AJRDJD4D7HM-lg006-diff.patch@sha256:820a554a18070c0c19ea9a79d8230727a183b6b6c7288f3077a4480f9c907714",
+    "subtask_01M5079F7MS9XM6AJRDJD4D7HM@1a60539e58a045065adb2c46c1b957b2fd50dc1679eaf2baaf5efe074eeaf64d:out/deliver.txt"
+  ],
+  "hash_verification": {
+    "all_rechecked_match": true,
+    "diff_patch_sha256_rechecked": [
+      {
+        "checked": true,
+        "excerpt_bytes": 69,
+        "expected_sha256": "820a554a18070c0c19ea9a79d8230727a183b6b6c7288f3077a4480f9c907714",
+        "match": true,
+        "recomputed_sha256": "820a554a18070c0c19ea9a79d8230727a183b6b6c7288f3077a4480f9c907714",
+        "ref": "evidence:run_01M5079F4W8V37RHRTN7W6WWV6/subtask_01M5079F7MS9XM6AJRDJD4D7HM-lg006-diff.patch"
+      }
+    ]
+  },
+  "note": "Recovered from the already-persisted SDK sessions of the same single real run; the tempfile run data/workspace/store/worktree directories were deleted by the probe's TemporaryDirectory. No model call, no re-run, no write to the original evidence.",
+  "original_stdout": {
+    "bytes": 4656,
+    "path": "/tmp/phase4_run_stdout.txt",
+    "sha256": "0f428ce59060dcc7ad6170146a49dd1407e52d1230e5b614d54cc25aa18bdd99"
+  },
+  "residual_gaps": [
+    "The tempfile run data/workspace/store/worktree directories were deleted by the probe's TemporaryDirectory; only the SDK sessions (below), the raw stdout and the persistent generation ledger survive.",
+    "The handoff ``content_hash`` is the sha256 of the *subtask entity document* (SUBTASK.md) captured at the passed revision; that file was inside the deleted temp dir and no surviving artifact carries its bytes, so the content_hash value is recoverable as a *recorded* fact but not re-derivable offline from original bytes.  It is NOT fabricated."
+  ],
+  "run_id": "run_01M5079F4W8V37RHRTN7W6WWV6",
+  "sandbox_set_has_secret": false,
+  "sessions": [
+    {
+      "discovery_projection": null,
+      "grant_receipt": null,
+      "grant_receipt_has_token": false,
+      "handoffs_received": [],
+      "kind": "deliver_worker",
+      "session_db": "58500ca62ec7af903d74371117fcffc0.db",
+      "session_db_sha256": "385d861d0481180d2f61acaec41bffcb1e323410b291d6245567988d7a82249a",
+      "session_dir": "/tmp/antigravity_285smjk4"
+    },
+    {
+      "diff_hash_check": {
+        "checked": true,
+        "excerpt_bytes": 69,
+        "expected_sha256": "820a554a18070c0c19ea9a79d8230727a183b6b6c7288f3077a4480f9c907714",
+        "match": true,
+        "recomputed_sha256": "820a554a18070c0c19ea9a79d8230727a183b6b6c7288f3077a4480f9c907714",
+        "ref": "evidence:run_01M5079F4W8V37RHRTN7W6WWV6/subtask_01M5079F7MS9XM6AJRDJD4D7HM-lg006-diff.patch"
+      },
+      "discovery_projection": null,
+      "grant_receipt": null,
+      "grant_receipt_has_token": false,
+      "handoffs_received": [],
+      "kind": "reviewer",
+      "session_db": "3f9db899bf2ad17ffc3cd9f42f8b9fbb.db",
+      "session_db_sha256": "18a3dd55ae7c2637aa2c605d8a3845911f5258dbdf0b8fd105efbcf3ad3a3135",
+      "session_dir": "/tmp/antigravity_7qlg37q5",
+      "verdict": {
+        "findings": [],
+        "outcome": "passed",
+        "reason": "The acceptance criterion requires out/deliver.txt to exist and contain 'delivered'. The provided evidence shows the file body is exactly the single line 'delivered', and the diff evidence (evidence:run_01M5079F4W8V37RHRTN7W6WWV6/subtask_01M5079F7MS9XM6AJRDJD4D7HM-lg006-diff.patch@sha256:820a554a18070c0c19ea9a79d8230727a183b6b6c7288f3077a4480f9c907714) confirms the file was newly created with the line '+delivered' at out/deliver.txt. No blocking problem found."
+      }
+    },
+    {
+      "discovery_projection": null,
+      "grant_receipt": null,
+      "grant_receipt_has_token": false,
+      "handoffs_received": [
+        {
+          "artifact": "evidence:run_01M5079F4W8V37RHRTN7W6WWV6/subtask_01M5079F7MS9XM6AJRDJD4D7HM-lg006-diff.patch@sha256:820a554a18070c0c19ea9a79d8230727a183b6b6c7288f3077a4480f9c907714",
+          "content_hash": "1a60539e58a045065adb2c46c1b957b2fd50dc1679eaf2baaf5efe074eeaf64d",
+          "ref": "subtask_01M5079F7MS9XM6AJRDJD4D7HM@1a60539e58a045065adb2c46c1b957b2fd50dc1679eaf2baaf5efe074eeaf64d:evidence:run_01M5079F4W8V37RHRTN7W6WWV6/subtask_01M5079F7MS9XM6AJRDJD4D7HM-lg006-diff.patch@sha256:820a554a18070c0c19ea9a79d8230727a183b6b6c7288f3077a4480f9c907714",
+          "source_subtask": "subtask_01M5079F7MS9XM6AJRDJD4D7HM"
+        },
+        {
+          "artifact": "out/deliver.txt",
+          "content_hash": "1a60539e58a045065adb2c46c1b957b2fd50dc1679eaf2baaf5efe074eeaf64d",
+          "ref": "subtask_01M5079F7MS9XM6AJRDJD4D7HM@1a60539e58a045065adb2c46c1b957b2fd50dc1679eaf2baaf5efe074eeaf64d:out/deliver.txt",
+          "source_subtask": "subtask_01M5079F7MS9XM6AJRDJD4D7HM"
+        }
+      ],
+      "kind": "verify_worker",
+      "session_db": "aae0af78be5e668e73a5f0aa77bcb7c1.db",
+      "session_db_sha256": "3214d2dcf5fcf6f521fd8b2a2e0fb7ad8b084020b2ff860c7811bba6b6c27628",
+      "session_dir": "/tmp/antigravity_82urbszj"
+    }
+  ],
+  "source": "surviving google-antigravity SDK session store (read-only)",
+  "status": "recovered",
+  "task_id": "task_01M5079F4WRHPVMVHGM1NS7FK9"
+}

@@ -257,3 +257,42 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - LG-023 尚未启动/claim；预注册拟2样本×2arm×1repeat=4 attempts，PM在执行前确定总24次、每attempt最多6、单一持久账本，计入执行/QA/返修/复验/失败。等待022补证裁定后由串行集成者收拢并原子claim。LG-024、032同样按实际依赖推进。
 - 资料候选服务本轮只读复查 `/health`、`/v1/models` 均连接失败，POST0；035/037质量仍阻塞，040未解锁，041仍受039负结果质量门限制。私有证据 `/home/yhvh/.cache/lightgravity-bot/checkpoints/2026-10-16-batch/MATERIALS-RECHECK.md`。普通实现不需用户确认；真正外部待项为服务恢复/另授权端点及可用真实中文/表格truth样本。
 - 续接：先核当前两个 pi owner 是否退出及准确HEAD/REPORT，再按补证真实判定处理022；勿重跑未知写入或覆盖旧worktree。未来所有生成阶段共用同一phase data_dir/ledger，不得分账后声称统一硬限。所有开发执行仍仅pi+env DeepSeek，主代理只PM；未推送/部署/发布。
+
+## 2026-10-16 LG-031 phase3 工程验证检查点（owner `agent:pi-lg031-r3`，partial）
+
+本节覆盖 LG-031 相关上文；全部经 pi + 现有 DeepSeek，未推送/部署/发布；主代理只 PM，无嵌套派工。详细报告 [probes/lg031/phase3/REPORT.md](probes/lg031/phase3/REPORT.md)。
+
+- **基点/保护**：worktree `lg031-r3`（branch `fix/lg031-r3`）@ 整合候选 `0144eb7`（契约 `1.10.0`），开工 `git status` clean。旧全部 worktree/分支/实验/失败证据/`fix/lg031-r1` 原 dirty **未触碰**，未 reset/clean/覆盖/删 worktree；主 worktree 2026-10-15 的 uvicorn（端口 8123，**非本包**）未 kill/接线/复用 dataRoot。
+- **真实调用（不重置、不猜）**：旧累计 **10/10**（原 1 + R1 3 + R2 6，保留为失败/partial 成本）；本 phase3 PM 另批 **≤14**，实际 **14/14 用尽**（运行 1/2/3 = 4/5/5）；**旧 10 + 新 14 = 24**（全局已知 ≤24）。单一事实源：`probes/lg031/phase3/ledger/generation/`（持久账本，`count=14,limit=14,remaining=0,corrupt=false,persistent=true`）。**转发前已验证跨进程/重启**：进程1 预留 5 → 新进程再成功 9（合计14）→ 第三进程读到 14（不归零）→ 损坏 `raise`（**绝不当 0**）。SDK/API retry 0；单 HTTP ≤120s；并发 ≤2；输出 ≤12000 tokens；usage 未知记 unknown。
+- **发现并修复两个真实缺陷（离线先证，均在产品路径）**：**G1** `api/bootstrap.py` 默认 `GraphDispatcher` 未接 `autonomous_claim`/`grant_registry` 且不读开关 ⇒ 产品路径无法启用自主 claim 工具（R2 探针因此绕过产品协调器）；修复为开关开启才启用 + 进程内 `ExecutionGrantRegistry`，关闭/缺省走旧确定性路径。**G2** `collaboration/execution_grant.py` 受限 claim 工具发现投影缺程序拥有的 `objective`/`write`（经产品 planner `key` 必须是 slug，worker 学不到产物）；加性补齐。测试：`tests/startup/test_lg031_r3_bootstrap_autonomous.py`（2）、`tests/collaboration/test_lg031_r3_product_path_closure.py`（1，离线证明产品路径 2-worker 闭环：独立 worktree、原子授权 fence=1、脱敏 receipt、带 hash 交接）。
+- **真实链结果（partial）**：产品 `GraphDispatcher._claim_for_worker` 路由下，真实 worker **自主**调用 `discover_and_request_claim()`→`discover_and_request_claim(node_ref)`（硬条件 2 真实成立）；reviewer 真实调用 3 次均因候选不完整**诚实 `unavailable`**（未降级门）。**硬条件 4/5 未闭合**（integrate worker 未跑完、无带 hash 交接、无完整候选 review passed），根因 14 用尽 + worker 回合效率。**未写 done、未伪造、未偷偷归零。**
+- **检查（真实退出码）**：`uv run mypy` **137 files clean**；`uv run pytest -q -p no:randomly` **775 passed, 5 skipped**；定向 **249 passed**。与 INTEGRATION-7 基点（775/2）一致，多出的 skip 为条件门。
+- **契约/文档**：G1/G2 为实现接线与内部 SDK 工具投影，**无 HTTP 契约字段/端点/枚举/版本变化**，docs/08 §9 加性实现说明，**契约保持 `1.10.0`（不机械升版）**。1.9 归档/向量/检索/UI/token/pin/证据/反重放语义未回退。
+- **状态如实**：**LG-031 保持 `in-progress`（partial）**——真实门未齐；031 不因“032 未跑”循环，也不宣称 done。**不替 LG-032 预注册样本/预算/成功标准，不预设节省。**
+- **剩余门**：integrate worker 自主 claim+写、带 hash 交接、完整候选独立 reviewer `passed`；完整 checkpoint skip 仍未实现。下次真实 phase（若另批）可用修正 prompt（worker 据 objective 判产物）+ G1/G2 修复直接闭合，无需改门/降级。`main` 未推送。
+
+## 2026-10-16 LG-031 phase4 工程验证检查点（owner `agent:pi-lg031-r3`，核心通过 / 交接原文缺 ⇒ partial）
+
+本节覆盖 LG-031 相关上文；全部经 pi + 现有 DeepSeek，未推送/部署/发布；主代理只 PM，无嵌套派工。详细报告 [probes/lg031/phase4/REPORT.md](probes/lg031/phase4/REPORT.md)。
+
+- **基点/保护**：worktree `lg031-r3`（branch `fix/lg031-r3`）@ phase3 检查点 `faacb90`，开工 `git status` clean。旧全部 worktree/分支/实验/失败证据/`probes/lg031/{R1,R2,phase3}` **未触碰**，未 reset/clean/覆盖/删 worktree；主 worktree 的 uvicorn（端口 **8123**，**非本 worktree、非本包**）未 kill/接线/复用 dataRoot。
+- **§A 零模型定位 phase3 失败点**：SDK `BudgetConfig.max_model_calls` 与 loopback proxy `max_proxy_calls` 是**两个独立上限**；proxy 先 429 时**掩盖** SDK 真实停止原因（`MAX_MODEL_CALLS_EXCEEDED`），多步 worker 在写入前被杀，dependent worker 从未调度（run1=`MAX_MODEL_CALLS`、run2/3=proxy `429`；证据 `probes/lg031/phase3/evidence/`）。
+- **加性最小修复**：`adapter/executor.py::execute` 把 per-session proxy 上限对齐到 coordinator 冻结的 `request.budget.max_model_calls`（`min(max_proxy_calls, remaining, request_model_calls)`）；未设 model budget 时行为不变。测试 `tests/adapter/test_lg031_r3_generation_ceiling_alignment.py`（5）。**未平台化**，无契约字段/端点/版本变化。
+- **离线硬门全绿**（零模型/零网络，证据 `probes/lg031/phase4/OFFLINE-GATES.md`）：持久账本跨进程/重启**不归零**、损坏 `corrupt=true` 且**拒绝转发**（绝不当 0）；两 worker 权限（body 永不认证）；objective 投影（G2 回归）；依赖带 hash 交接；真实 bootstrap & Graph 配置（G1 回归）；**真实 `RuleBasedPlanner`（不注入）** 产品路径闭环 `tests/collaboration/test_lg031_r4_real_planner_closure.py`。
+- **真实调用（不重置、不猜）**：旧累计 **24**（原 1 + R1 3 + R2 6 + phase3 14，保留）；本 phase4 PM 另批 **≤16**，**一次**真实 attempt 用 **10**（worker ≈9 + reviewer 1），剩 6；**全局已知累计 = 34/40**。单一事实源 `probes/lg031/phase4/ledger/generation/`（`count=10,limit=16,remaining=6,corrupt=false,persistent=true`）。SDK/API retry 0；单 HTTP ≤120s；并发 1；输出 ≤12000；usage 未知记 unknown（不当 0）。
+- **真实闭环结果**：真实产品 `RuleBasedPlanner` → `deliver`(write) → `verify`(依赖)；2 个真实 SDK worker 各自自主 `discover_and_request_claim`（4 条工具调用，产品 router `GraphDispatcher._claim_for_worker`）；程序原子授权 fence=1、脱敏；dispatcher **succeeded**；真实独立 ModelReviewer + 机器门 **`passed`/`validated=passed`**，候选完整可复源（`out/deliver.txt` + diff `@sha256:820a…`）；耗时 25.07s。G1/G2 修复在真实产品路径下生效。
+- **未闭合（诚实，不伪称）**：**硬条件 4「带 hash 同伴交接」的真实原文未捕获**——探针从 `subtasks/*.md` 提取，实体实际在 `subtasks/<id>/SUBTASK.md`，故 `handoff_refs=[]`。产品侧交接**已发生**（verify 节点仅在 deliver 通过后才被领取并执行；deliver 产物在 reviewer 证据中可见），离线已证机制（`<subtask>@<64hex>:out/deliver.txt`）。一次完整复验需 ≈10 转发，本包剩 6，**不重跑同一 fixture**；探针提取 bug 已修复，留后续 phase 的**唯一**一次复验。**未降低任何复核/机器门/停止/验收门。**
+- **检查（真实退出码）**：`uv run mypy` **137 files clean**；`tests/adapter` **102**、`tests/collaboration` **77**、`tests/coordinator`（+collab）**187**、`tests/verify`+`tests/api`（+adapter）**233**、`tests/startup` **39 (+4 skip)**、`tests/settings` **46** 全通过；`py_compile` 探针 OK。
+- **状态如实**：**LG-031 保持 `in-progress`（partial）**——真实 loop 已闭合，但硬条件 4 真实原文证据缺失；不写 done、未偷偷归零、未重跑探过。**不替 LG-032 预注册样本/预算/成功标准，不预设节省。** `main` 未推送。
+
+## 2026-10-16 LG-031 phase4 同次运行证据恢复检查点（owner `agent:pi-lg031-r3`，硬条件 4 闭合 ⇒ done 待 032）
+
+本节覆盖 LG-031 phase4 相关上文；经 pi + 现有 DeepSeek，未推送/部署/发布；主代理只 PM，无嵌套派工。详细报告 [probes/lg031/phase4/SALVAGE-REPORT.md](probes/lg031/phase4/SALVAGE-REPORT.md)、[SALVAGE-STATUS.md](probes/lg031/phase4/SALVAGE-STATUS.md)。
+
+- **前 owner 停止核实**：前 spwchdnn 于 `maxround 65` 停止、进程 `exit 143`；**现无残留进程**（仅内核线程）；HEAD `8073830` clean（仅 2 个未跟踪恢复文件）；未 reset/clean/覆盖旧记录。
+- **恢复路径（只读、零模型）**：同次运行 `run_01M5079F4W8V37RHRTN7W6WWV6` 的 `data/store/worktrees` 已被探针 `TemporaryDirectory` 删除，但**3 个 SDK session DB 与原 stdout 存活**（`sha256` 逐一核对，与恢复 JSON 一致）；用 `sqlite3 mode=ro` 提取，**未写回原 store、未补字段、未编造收据**。
+- **硬条件 4 真实原文已复原**（产品构建 verify 节点 prompt 的 `Upstream artifacts:` 块）：`subtask_01M5079F7MS9XM6AJRDJD4D7HM@1a6053…a64d:out/deliver.txt` 与带独立 `@sha256:820a554a…` 的 diff 证据引用；diff patch 正文重取重算 **match=true**（69B）。
+- **授权**：源/目标节点 `reason=granted, fence=1`、程序原子授权、脱敏（`sandbox_set_has_secret=false`）；reviewer 真实 1 次 `outcome=passed`/`validated=passed`、usage `unknown`。
+- **契约判定（docs08 §6.3）**：依赖放行须传递上游产物引用与**版本/哈希**；workspace 相对产物**不要求**自身带 `@sha256:`（仅 executor evidence 属 `…@sha256:` 命名空间）。**硬条件 1–7 真实成立**。残余仅 `content_hash` 原始字节随临时目录删除（已记录事实，非伪造）。
+- **计数**：本恢复真实调用 **0**；全局已知累计仍 **34/40**（旧 24 + phase4 10，不重放、不归零）；usage `unknown` 不当 0。
+- **状态**：**LG-031 更新为 `done`**（硬条件 1–7 真实成立）；版本级行为由 **LG-032 独立集中 QA 复验**，不制造待 032 循环。未降低任何复核/机器门/停止/验收门；未改契约、未删断言。`main` 未推送。
