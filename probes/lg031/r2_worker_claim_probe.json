@@ -1,0 +1,179 @@
+{
+  "autonomous_claim_tool_calls": 4,
+  "candidate_evidence": [
+    "out/produce.txt"
+  ],
+  "distinct_nodes_claimed": [
+    "subtask_01M503AX731HAG0P57GXND3K8E"
+  ],
+  "each_worker_claimed_a_node": false,
+  "max_real_calls_budget": 6,
+  "nodes_claimed": [
+    "subtask_01M503AX731HAG0P57GXND3K8E"
+  ],
+  "real_call_estimate": 3,
+  "real_workers": 2,
+  "review": {
+    "findings": [],
+    "model_calls": 1,
+    "outcome": "unavailable",
+    "reason": "reviewer turn raised AntigravityExecutionError: HTTP request failed with status 429: {\"error\":{\"message\":\"local auth proxy call budget exhausted\"}}",
+    "requested_model": "deepseek-v4-flash",
+    "resolved_evidence": [
+      "out/produce.txt"
+    ],
+    "reviewer_kind": "model",
+    "status": "ran",
+    "unsubstantiated": [],
+    "usage": {
+      "unknown": [
+        "usage"
+      ]
+    },
+    "validated_outcome": "unavailable"
+  },
+  "shared_generation_counter": {
+    "count": 6,
+    "limit": 6,
+    "remaining": 0
+  },
+  "status": "ran",
+  "workers": [
+    {
+      "claim_tool_calls": [
+        {
+          "args": {
+            "node_ref": null
+          },
+          "result": {
+            "candidates": [
+              "subtask_01M503AX731HAG0P57GXND3K8E"
+            ]
+          }
+        },
+        {
+          "args": {
+            "node_ref": null
+          },
+          "result": {
+            "candidates": [
+              "subtask_01M503AX731HAG0P57GXND3K8E"
+            ]
+          }
+        },
+        {
+          "args": {
+            "node_ref": "subtask_01M503AX731HAG0P57GXND3K8E",
+            "request_id": "req_01M503AX73"
+          },
+          "result": {
+            "fence": 1,
+            "granted": true,
+            "reason": "granted"
+          }
+        }
+      ],
+      "elapsed_seconds": 11.97,
+      "failure": {
+        "code": "budget_exhausted",
+        "message": "StopReason.MAX_MODEL_CALLS_EXCEEDED"
+      },
+      "granted": {
+        "fence": 1,
+        "node_ref": "subtask_01M503AX731HAG0P57GXND3K8E",
+        "token": true
+      },
+      "member_ref": "member-a",
+      "model_events": [
+        "adapter.session_requested",
+        "adapter.session_started",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call",
+        "adapter.tool_call"
+      ],
+      "pool_grant_redacted": {
+        "authorized_node_refs": [
+          "subtask_01M503AX731HAG0P57GXND3K8E"
+        ],
+        "budget_remaining": null,
+        "claims_granted": 1,
+        "collab_calls": 0,
+        "fence": 0,
+        "grant_id": "grant_6f78f73737d3e6cb",
+        "kind": "pool",
+        "max_collab_calls": 4,
+        "member_ref": "member-a",
+        "origin": "probe-dispatcher",
+        "run_id": "run_01M503AX733Z2D40SMSST31NMR",
+        "subtask_id": "pool-member-a",
+        "task_id": "probe-task"
+      },
+      "state": "budget_exhausted",
+      "stop_confirmed": null,
+      "stop_reason": "StopReason.MAX_MODEL_CALLS_EXCEEDED",
+      "usage": {
+        "cached_tokens": 15360,
+        "candidates_tokens": 772,
+        "prompt_tokens": 19475,
+        "thought_tokens": 340,
+        "total_tokens": 20587,
+        "unknown": []
+      }
+    },
+    {
+      "claim_tool_calls": [
+        {
+          "args": {
+            "node_ref": null
+          },
+          "result": {
+            "candidates": [
+              "subtask_01M503AX734MTYTMTS8PAP721W"
+            ]
+          }
+        }
+      ],
+      "elapsed_seconds": 1.63,
+      "failure": {
+        "code": "execution_error",
+        "message": "AntigravityExecutionError: HTTP request failed with status 429: {\"error\":{\"message\":\"local auth proxy call budget exhausted\"}}"
+      },
+      "granted": {},
+      "member_ref": "member-b",
+      "model_events": [
+        "adapter.session_requested",
+        "adapter.session_started",
+        "adapter.tool_call"
+      ],
+      "pool_grant_redacted": {
+        "authorized_node_refs": [
+          "subtask_01M503AX734MTYTMTS8PAP721W"
+        ],
+        "budget_remaining": null,
+        "claims_granted": 0,
+        "collab_calls": 0,
+        "fence": 0,
+        "grant_id": "grant_72287dab38ec0c7e",
+        "kind": "pool",
+        "max_collab_calls": 4,
+        "member_ref": "member-b",
+        "origin": "probe-dispatcher",
+        "run_id": "run_01M503AX733Z2D40SMSST31NMR",
+        "subtask_id": "pool-member-b",
+        "task_id": "probe-task"
+      },
+      "state": "failed",
+      "stop_confirmed": null,
+      "stop_reason": "StopReason.UNSPECIFIED",
+      "usage": {
+        "cached_tokens": 0,
+        "candidates_tokens": 63,
+        "prompt_tokens": 3284,
+        "thought_tokens": 14,
+        "total_tokens": 3361,
+        "unknown": []
+      }
+    }
+  ]
+}

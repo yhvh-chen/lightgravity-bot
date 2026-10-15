@@ -685,6 +685,7 @@ class ExecutorAdapter(Protocol):
 - **独立复核生命周期与停确认（`1.8.0`，LG-022 R1）**：独立复核与状态/控制请求**并发**可服务（reviewer turn 不在协调器事件循环内同步执行）。复核运行中的 `pause`/`cancel` 必须对 reviewer 有**真实 stop/释放确认**：确认停止后才写 `paused`/`cancelled` 并释放槽位（`verifying` 下 pause 经法定 `waiting_user → paused` 两步落位，候选与证据保留）；**未确认/超时**计 `unknown`，**不写终止状态、不释放槽、不重放未知副作用**。进程重启时处于 `verifying`/`repairing` 的 Run 若 worker 已消失，按 `recovery_required` 诚实停车（`1.8.0` 新增该迁移），旧候选保留，需人工决定后才开新 Run。
 - **全局生成计数（`1.8.0`，LG-022 R1）**：所有 worker session、独立 reviewer turn 与 SDK 重试共享**同一进程全局**上游生成请求计数，在**转发前**预留；`GET /api/v1/diagnostics/generation` 报告 `count`/`limit`/`remaining`，用于集中 QA 约束并观测全局硬上限，不把未知当零。
 - **持久生成账本（`1.10.0`，LG-022 R2）**：全局生成计数改为受控 dataRoot 下的**持久账本**（append-only JSONL 事实源 + 可重建原子计数快照），跨 worker/reviewer/session/进程重启不归零；**转发前持久预留**（保守预留与确认转发分列，不声称远端 exactly-once）；账本损坏/不可读时**拒绝转发并报 unknown，绝不当 0**。`GET /api/v1/diagnostics/generation` 加性新增 `persistent`（及损坏时 `corrupt`/`reason`）。账本仅保留计数与最小非秘密元数据（单调序号/时间戳/不透明预留 id），**不落输入/prompt/header/凭证/grant**。
+- **执行器共享计数接线（`1.10.0`，LG-031 R2，无版本/字段/端点变化）**：执行器支持加性可选的共享计数注入；默认产品装配（`api/bootstrap`）在 `configure_generation_ledger` 之后把同一**持久账本**注入真实执行器，使每个 worker/reviewer 的 loopback 认证代理都消费**同一持久硬上限**，不会按 worker/session 重置或回退为非持久内存计数。契约字段、端点与版本不变。
 - **验收过期/重复**：`acceptance_stale` 或幂等返回；过期决定不作用于新版本；重复提交相同 `request_id` 幂等。
 - **部分写入**：Store 保证单文件原子性；跨文件操作以写入标识/日志 + 恢复扫描处理，不宣称跨文件事务。
 

@@ -25,6 +25,7 @@ deterministic integration evidence for LG-031.
 from __future__ import annotations
 
 import asyncio
+import json
 from pathlib import Path
 import sys
 
@@ -43,11 +44,14 @@ from lightgravity.collaboration import (
     ExecutionGrantRegistry,
     PeerService,
     default_registry,
+    make_restricted_claim_tool,
     make_restricted_peer_tool,
     resolve_worker_identity,
 )
 from lightgravity.collaboration.errors import StaleLease
+from lightgravity.coordinator import RoleCatalog
 from lightgravity.coordinator.graph import GraphDispatcher
+from lightgravity.coordinator.planning import PlanningRequest, PlanningTrigger
 from lightgravity.store import FileStore
 
 from collab_helpers import (
@@ -348,3 +352,228 @@ def test_worker_identity_resolver_reads_grant_header_only(tmp_path: Path) -> Non
         resolve_worker_identity(_Request({"from_member_ref": "member-a"}), registry=registry)
         is None
     )
+
+
+# ------------------------------------------- autonomous worker claim (R1)
+def _autonomous_registry_with_pool() -> tuple[ExecutionGrantRegistry, str]:
+    registry = ExecutionGrantRegistry()
+    token, _grant = registry.mint(
+        task_id="task_1",
+        run_id="run_1",
+        subtask_id="node-x",
+        member_ref="member-a",
+        fence=0,
+        authorized_node_refs={"sub_1", "sub_2"},
+        kind="pool",
+    )
+    return registry, token
+
+
+def test_restricted_claim_tool_requires_pool_grant_and_returns_redacted_receipt() -> None:
+    registry, token = _autonomous_registry_with_pool()
+    claims: list[tuple[str, str]] = []
+
+    class _View:
+        run_ref = "run_1"
+        candidates = (
+            type("C", (), {"subtask_id": "sub_1", "capability": "implementation", "key": "a"})(),
+            type("C", (), {"subtask_id": "sub_2", "capability": "implementation", "key": "b"})(),
+        )
+
+    def claim_callback(node_ref: str, request_id: str) -> dict[str, object]:
+        claims.append((node_ref, request_id))
+        return {"granted": True, "reason": "granted", "fence": 7, "request_id": request_id}
+
+    tool = make_restricted_claim_tool(
+        registry=registry,
+        token=token,
+        discover=lambda: _View(),
+        claim_callback=claim_callback,
+    )
+    # Discovery-only call: lists candidates, claims nothing.
+    discovered = tool()
+    assert discovered["ok"] is True
+    assert {c["node_ref"] for c in discovered["candidates"]} == {"sub_1", "sub_2"}
+    assert claims == []
+    # A node outside the authorized view is refused program-side, no callback.
+    refused = tool(node_ref="sub_elsewhere")
+    assert refused["ok"] is False
+    assert refused["reason"] == "not_discoverable"
+    assert claims == []
+    # An authorized claim reaches the program callback and returns a redacted
+    # receipt: the decision/fence, never a grant token.
+    granted = tool(node_ref="sub_1", request_id="req-1")
+    assert granted["ok"] is True
+    assert granted["state"] == "granted"
+    assert granted["fence"] == 7
+    assert claims == [("sub_1", "req-1")]
+    assert "token" not in json.dumps(granted).lower()
+
+
+def test_restricted_claim_tool_refuses_non_pool_and_revoked_grants() -> None:
+    registry = ExecutionGrantRegistry()
+    calls: list[str] = []
+
+    class _View:
+        run_ref = "run_1"
+        candidates = (
+            type("C", (), {"subtask_id": "sub_1", "capability": None, "key": None})(),
+        )
+
+    # A node (non-pool) grant may not claim.
+    node_token, _ = registry.mint(
+        task_id="task_1",
+        run_id="run_1",
+        subtask_id="sub_1",
+        member_ref="member-a",
+        fence=1,
+        authorized_node_refs={"sub_1"},
+    )
+    tool = make_restricted_claim_tool(
+        registry=registry,
+        token=node_token,
+        discover=lambda: _View(),
+        claim_callback=lambda n, r: calls.append(n) or {"granted": True},
+    )
+    refused = tool(node_ref="sub_1")
+    assert refused["ok"] is False and refused["reason"] == "grant_revoked_or_expired"
+    assert calls == []
+
+    # A revoked pool grant is refused before discovery.
+    pool_token, _ = registry.mint(
+        task_id="task_1",
+        run_id="run_1",
+        subtask_id="sub_1",
+        member_ref="member-a",
+        fence=0,
+        authorized_node_refs={"sub_1"},
+        kind="pool",
+    )
+    registry.revoke_token(pool_token)
+    tool2 = make_restricted_claim_tool(
+        registry=registry,
+        token=pool_token,
+        discover=lambda: _View(),
+        claim_callback=lambda n, r: calls.append(n) or {"granted": True},
+    )
+    assert tool2(node_ref="sub_1")["reason"] == "grant_revoked_or_expired"
+    assert calls == []
+
+
+@pytest.mark.asyncio
+async def test_autonomous_mode_requires_worker_initiated_claim(tmp_path: Path) -> None:
+    """A worker that never claims through the tool cannot pass (program authority)."""
+
+    from dataclasses import replace
+
+    from graph_helpers import build_environment, make_dispatch_setup
+
+    store = FileStore(tmp_path / "data", tmp_path / "workspaces")
+    build_environment(store)
+    _enable_settings(store)
+    _task_id, _run_id, controller, context = make_dispatch_setup(
+        store,
+        budget={
+            "max_workers": 3,
+            "max_parallel": 1,
+            "max_repair_rounds": 1,
+            "max_collab_requests": 2,
+        },
+    )
+    collab = _collaboration(store)
+    registry = ExecutionGrantRegistry()
+    executor = FakeGraphExecutor()
+    dispatcher = GraphDispatcher(
+        store,
+        executor,
+        catalog=RoleCatalog({"implementation": ["developer"], "verification": ["verifier"]}),
+        max_parallel=1,
+        collaboration=collab,
+        grant_registry=registry,
+        autonomous_claim=True,
+    )
+    context = replace(
+        context,
+        planning_request=PlanningRequest(
+            trigger=PlanningTrigger.USER_REQUEST,
+            reason="r1",
+            requested_by="test",
+            max_calls=1,
+        ),
+    )
+    outcome = await dispatcher.dispatch(context, controller, lambda e: None)
+    # The fake executor never calls the claim tool, so no node grant was minted
+    # and the run must not report success for the autonomous path.
+    assert outcome.state != "succeeded"
+    assert registry.active_grants() == []
+
+
+@pytest.mark.asyncio
+async def test_autonomous_worker_tool_claim_grants_node(tmp_path: Path) -> None:
+    """A worker that drives the discover/claim tool gets a real program grant."""
+
+    from dataclasses import replace
+
+    from graph_helpers import build_environment, make_dispatch_setup
+
+    store = FileStore(tmp_path / "data", tmp_path / "data" / "workspaces")
+    build_environment(store)
+    _enable_settings(store)
+    _task_id, _run_id, controller, context = make_dispatch_setup(
+        store,
+        budget={
+            "max_workers": 3,
+            "max_parallel": 1,
+            "max_repair_rounds": 1,
+            "max_collab_requests": 2,
+        },
+    )
+    collab = _collaboration(store)
+    registry = ExecutionGrantRegistry()
+    seen: list[dict[str, object]] = []
+
+    def responder(request: ExecuteRequest) -> ExecutorResult:
+        # The "worker" (model stand-in) autonomously calls the program tool.
+        assert request.custom_tools, "autonomous worker must be given the claim tool"
+        tool = request.custom_tools[0]
+        discovered = tool()
+        seen.append(discovered)
+        # The worker may only claim one of its own discoverable nodes.
+        claim = tool(node_ref=request.subtask_id)
+        seen.append(claim)
+        return ExecutorResult(
+            state="succeeded",
+            summary="claimed and delivered",
+            artifact_refs=("artifact",),
+            stop_confirmed=True,
+        )
+
+    executor = FakeGraphExecutor(responder)
+    dispatcher = GraphDispatcher(
+        store,
+        executor,
+        catalog=RoleCatalog({"implementation": ["developer"], "verification": ["verifier"]}),
+        max_parallel=1,
+        collaboration=collab,
+        grant_registry=registry,
+        autonomous_claim=True,
+    )
+    context = replace(
+        context,
+        planning_request=PlanningRequest(
+            trigger=PlanningTrigger.USER_REQUEST,
+            reason="r1",
+            requested_by="test",
+            max_calls=1,
+        ),
+    )
+    outcome = await dispatcher.dispatch(context, controller, lambda e: None)
+    assert outcome.state == "succeeded"
+    # The program granted a node via the worker's own request.
+    granted = [s for s in seen if s.get("state") == "granted"]
+    assert granted and granted[0]["ok"] is True
+    # The redacted receipt never leaks a token.
+    assert "token" not in json.dumps(seen).lower()
+    # Only the actually-claimed node got a grant; it is revoked after the
+    # confirmed stop, so no worker identity outlives its execution.
+    assert registry.active_grants() == []

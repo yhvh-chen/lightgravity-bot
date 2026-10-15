@@ -50,7 +50,7 @@ from .execution import (
     StopConfirmation,
     Usage,
 )
-from .proxy import LocalAuthProxy, upstream_chat_completions
+from .proxy import GenerationCounter, LocalAuthProxy, upstream_chat_completions
 from .redaction import mask_values, redact
 from .sdk_config import build_sdk_config
 
@@ -365,6 +365,7 @@ class AntigravityExecutor:
         upstream_timeout: float = 120.0,
         allow_loopback_upstream: bool = False,
         proxy_factory: Callable[[Secret, str, int], LocalAuthProxy] | None = None,
+        generation_budget: GenerationCounter | None = None,
     ) -> None:
         self._store = store
         self._compiler = compiler or ResourceCompiler(store)
@@ -379,6 +380,12 @@ class AntigravityExecutor:
         self._upstream_timeout = upstream_timeout
         self._allow_loopback_upstream = allow_loopback_upstream
         self._proxy_factory = proxy_factory
+        #: Optional **process-shared** generation counter.  When supplied, every
+        #: worker/reviewer proxy in the process consults the *same* hard cap
+        #: before forwarding, so a real generation budget cannot reset between
+        #: workers, sessions, reviewer turns or SDK retries.  ``None`` keeps the
+        #: prior per-proxy behavior.
+        self._generation_budget = generation_budget
         self._active: dict[str, _ExecutionHandle] = {}
         self._sessions: dict[str, _ExecutionHandle] = {}
         self._secret_values: list[str] = []
@@ -407,6 +414,7 @@ class AntigravityExecutor:
             max_calls=max_calls,
             timeout=self._upstream_timeout,
             allow_loopback_upstream=self._allow_loopback_upstream,
+            generation_budget=self._generation_budget,
         )
 
     # ------------------------------------------------------------- execution

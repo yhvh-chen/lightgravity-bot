@@ -55,6 +55,13 @@ class ExecutionGrant:
     collab_calls: int = 0
     #: Non-secret provenance for honest reporting/tests.
     origin: str = "graph-dispatcher"
+    #: ``node`` (bound to one execution) or ``pool`` (discovery only: authorizes
+    #: *requesting* a claim for an authorized node but cannot read/write one).  A
+    #: pool grant is what an autonomous worker starts with before it has chosen
+    #: a node; the program upgrades it to a node grant on an accepted claim.
+    kind: str = "node"
+    #: Number of accepted autonomous claim requests made through this grant.
+    claims_granted: int = 0
 
     def covers_node(self, node_ref: str) -> bool:
         return node_ref in self.authorized_node_refs
@@ -80,6 +87,8 @@ class ExecutionGrant:
             "budget_remaining": self.budget_remaining,
             "collab_calls": self.collab_calls,
             "origin": self.origin,
+            "kind": self.kind,
+            "claims_granted": self.claims_granted,
         }
 
 
@@ -110,6 +119,7 @@ class ExecutionGrantRegistry:
         budget_remaining: int | None = None,
         ttl_seconds: int = DEFAULT_GRANT_SECONDS,
         origin: str = "graph-dispatcher",
+        kind: str = "node",
     ) -> tuple[str, ExecutionGrant]:
         """Mint a fresh grant and return ``(opaque_token, grant)``.
 
@@ -130,6 +140,7 @@ class ExecutionGrantRegistry:
             budget_remaining=budget_remaining,
             expires_at=time.time() + max(1, ttl_seconds),
             origin=origin,
+            kind=kind,
         )
         with self._lock:
             prior = self._by_subtask.get(subtask_id)
@@ -154,6 +165,23 @@ class ExecutionGrantRegistry:
     def resolve_worker_identity(self, token: str | None) -> str | None:
         grant = self.resolve(token)
         return grant.member_ref if grant is not None else None
+
+    def grant_claim(self, token: str) -> tuple[bool, ExecutionGrant | None]:
+        """Atomically reserve one autonomous claim for a *pool* grant.
+
+        Only a ``kind="pool"`` grant may claim, and only while it is active; the
+        reservation is what makes two concurrent workers racing for the same node
+        observable (the loser sees a definite refusal).
+        """
+
+        with self._lock:
+            grant = self._by_token.get(token)
+            if grant is None or not grant.active():
+                return False, None
+            if grant.kind != "pool":
+                return False, grant
+            grant.claims_granted += 1
+            return True, grant
 
     def consume_collab_call(self, token: str) -> tuple[bool, ExecutionGrant | None]:
         """Atomically reserve one frozen collaboration call for ``token``.
@@ -335,12 +363,109 @@ def make_restricted_peer_tool(
     return request_peer
 
 
+def make_restricted_claim_tool(
+    *,
+    registry: ExecutionGrantRegistry,
+    token: str,
+    discover: Callable[[], Any],
+    claim_callback: Callable[[str, str], Any],
+) -> Callable[..., dict[str, Any]]:
+    """Build a worker-facing *autonomous* discovery/claim request tool.
+
+    This is the minimal safe request channel the R1 gap requires: a worker with a
+    program-frozen ``kind="pool"`` grant may (a) ask the program which nodes it
+    is *allowed* to see, and (b) *propose* a claim for one of them.  The program
+    - never the model - owns identity, authorization and the atomic grant:
+
+    * identity comes from the frozen grant (never from tool arguments);
+    * the discover projection is the program's authorized view for this member;
+    * a claim for a node outside that view is refused before any service call;
+    * the reservation is atomic, so a race has one winner and a definite refusal;
+    * the returned receipt is **redacted** - it carries the decision and fence but
+      never a grant token, so nothing credential-like enters the model prompt.
+
+    ``claim_callback(node_ref, request_id)`` is executed by the program and must
+    itself authenticate/validate and mint the node grant; its structured reply is
+    folded into the redacted receipt.
+    """
+
+    def discover_and_request_claim(
+        node_ref: str | None = None,
+        request_id: str | None = None,
+        summary: str = "",
+    ) -> dict[str, Any]:
+        grant = registry.resolve(token)
+        if grant is None or grant.kind != "pool":
+            return PeerToolResult(
+                ok=False, reason="grant_revoked_or_expired", state="rejected"
+            ).to_dict()
+        view = discover()
+        candidates = [
+            {
+                "node_ref": candidate.subtask_id,
+                "capability": getattr(candidate, "capability", None),
+                "key": getattr(candidate, "key", None),
+            }
+            for candidate in getattr(view, "candidates", ())
+        ]
+        if node_ref is None:
+            # Discovery-only call: nothing is claimed.
+            return PeerToolResult(
+                ok=True,
+                reason="discovered",
+                state="discovered",
+                detail={
+                    "candidates": candidates,
+                    "run_ref": getattr(view, "run_ref", grant.run_id),
+                },
+            ).to_dict()
+        visible = {item["node_ref"] for item in candidates}
+        if node_ref not in visible:
+            return PeerToolResult(
+                ok=False,
+                reason="not_discoverable",
+                state="rejected",
+                detail={"node_ref": node_ref, "candidates": candidates},
+            ).to_dict()
+        reserved, pooled = registry.grant_claim(token)
+        if not reserved:
+            reason = "grant_revoked_or_expired" if pooled is None else "claim_not_permitted"
+            return PeerToolResult(ok=False, reason=reason, state="rejected").to_dict()
+        receipt = claim_callback(node_ref, request_id or f"claim_{secrets.token_hex(8)}")
+        payload = receipt if isinstance(receipt, dict) else {"state": str(receipt)}
+        granted = bool(payload.get("granted"))
+        return PeerToolResult(
+            ok=granted,
+            reason=str(payload.get("reason") or ("granted" if granted else "refused")),
+            state="granted" if granted else "refused",
+            # Redacted receipt: no token, only the program's decision + fence.
+            detail={
+                "node_ref": node_ref,
+                "fence": payload.get("fence"),
+                "lease_expires_at": payload.get("lease_expires_at"),
+                "request_id": payload.get("request_id"),
+                "reason": payload.get("reason"),
+            },
+        ).to_dict()
+
+    discover_and_request_claim.__name__ = "discover_and_request_claim"
+    discover_and_request_claim.__doc__ = (
+        "Discover the nodes this worker is authorized to see and optionally "
+        "request to claim one.  Call with no node_ref to only list candidates; "
+        "call with node_ref to propose a claim.  The program authenticates this "
+        "worker, validates capability/dependencies/budget and grants atomically; "
+        "the reply is a redacted decision, not a credential."
+    )
+    return discover_and_request_claim
+
+
 __all__ = [
     "DEFAULT_GRANT_SECONDS",
     "ExecutionGrant",
     "ExecutionGrantRegistry",
     "PeerToolResult",
     "default_registry",
+    "make_restricted_claim_tool",
     "make_restricted_peer_tool",
     "reset_default_registry",
     "resolve_worker_identity",
