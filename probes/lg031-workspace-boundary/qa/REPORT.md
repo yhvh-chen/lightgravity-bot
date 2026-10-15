@@ -42,7 +42,7 @@ rejects (`escapes the authorized root`). Every arm-B Run under product defaults 
 | 2 | Selector scratch truly inside SDK authorized root | **PASS** | `qa/evidence/qa_boundary_probe.txt`, `qa/evidence/product-default-two-phase-sdk.json` (`scratch_inside_root=true`) |
 | 3 | No write tools before selection; after selection real SDK binds selected node's workspace | **PASS** | `product-default-two-phase-sdk.json`: `selection_phase_has_no_product_write_tool=true`, beta (non-first) selected, each artifact in its own worktree, `writer_collision_into_wrong_node=false` |
 | 4 | All refs enter stopgate / SDK confirmed-closed / not-stopped held | **PASS** | `product-default-two-phase-sdk.json` `stop_confirmation={confirmed:true, sessions_stopped:4/4, proxy_stopped:true, unknown_sessions:[]}` |
-| 5 | Out-of-root really rejected | **PASS** | `qa_boundary_probe.txt` (`data_dir` itself, sibling worktrees root outside, arbitrary outside, pre-fix save_dir scratch all rejected) |
+| 5 | Out-of-root really rejected | **PASS** | `qa_boundary_probe.txt` (`data_dir` itself, sibling worktrees root outside, arbitrary outside, pre-fix save_dir scratch all rejected); **real `execute` integration negative** `qa_real_executor_negative.txt` (state=blocked, `config_invalid`, message "escapes the authorized root", no session started) |
 | 6 | Real SDK 0.1.22 + loopback fake upstream, not FakeExecutor-as-SDK | **PASS** | `real_sdk_version="0.1.22"`; harness uses real `AntigravityExecutor`; provider = local fake SSE; no outbound POST |
 | 7 | No root widening / no `data_dir` as write authority / no monkeypatch of executor root or stopgate | **PASS** | fix delta is 3 files; only relative path resolution changed; `git diff` shows no stopgate/executor edits |
 | 8 | New `workspaceprovider` interface compat; residual recovery/leasefence/budget/diffhandoff impact | **PASS (with one low note)** | see "Interface & residual scope" below |
@@ -83,6 +83,7 @@ All saved raw under `probes/lg031-workspace-boundary/qa/evidence/`.
 | `uv run --frozen python probes/lg031-workspace-boundary/qa/qa_boundary_probe.py` (independent negative) | all checks pass | 0 |
 | `uv run --frozen python probes/lg031-workspace-boundary/qa/qa_default_bootstrap_probe.py` | all checks pass | 0 |
 | `uv run --frozen python probes/lg031-workspace-boundary/qa/qa_product_default_two_phase_sdk.py` | ok=true, failed_gates=[] | 0 |
+| `uv run --frozen python probes/lg031-workspace-boundary/qa/qa_real_executor_negative.py` | ok=true (real `execute` blocks out-of-root) | 0 |
 | `uv run --frozen pytest tests/collaboration/test_lg031_pool_selection.py -q -p no:randomly` | 13 passed | 0 |
 | `uv run --frozen pytest tests/collaboration tests/coordinator tests/workspaces tests/adapter -q -p no:randomly` | 329 passed | 0 |
 | `uv run --frozen mypy backend/lightgravity/coordinator/graph.py backend/lightgravity/workspaces/` | Success, 5 files | 0 |
@@ -105,6 +106,11 @@ All saved raw under `probes/lg031-workspace-boundary/qa/evidence/`.
    product-default-`save_dir` variant (`qa_product_default_two_phase_sdk.py`) that exercises the actual
    defect path end-to-end. The baseline probe still passes (`two-phase-sdk-baseline.json`).
 4. One low-severity interface note (item 8 above); no blocking defect found.
+5. The real `execute` out-of-root negative blocks with failure code `config_invalid` (not a
+   dedicated `path_outside` code): `AdapterConfigInvalid` is raised without an explicit code in
+   `_resolve_workspace`, so the code defaults to `config_invalid` while the message carries the exact
+   `escapes the authorized root` reason. This is a pre-existing, unchanged behaviour (the fix does not
+   touch `_resolve_workspace`); recorded for accuracy, not treated as a boundary-fix defect.
 
 ## Verdict
 
