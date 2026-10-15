@@ -27,6 +27,14 @@ from .intake import (
     compute_content_hash,
     compute_payload_hash,
 )
+from .lexical import (
+    IndexedDocument,
+    LexicalIndex,
+    LexicalSearchService,
+    SearchRequest,
+    parse_query,
+    tokenize,
+)
 from .models import IntakeJobRecord, ReceiptEntry, SourceRecord
 from .ocr import (
     OcrBackend,
@@ -45,8 +53,11 @@ from .store import SourceStore
 
 __all__ = [
     "ContentStore",
+    "IndexedDocument",
     "IntakeService",
     "IntakeJobRecord",
+    "LexicalIndex",
+    "LexicalSearchService",
     "MachineDraft",
     "OcrBackend",
     "OcrPageResult",
@@ -64,10 +75,13 @@ __all__ = [
     "ReceiveRequest",
     "SourceRecord",
     "SourceService",
+    "SearchRequest",
     "SourceStore",
     "UnavailableOcrBackend",
     "build_source_service",
     "compute_content_hash",
     "compute_payload_hash",
     "is_pdf_bytes",
+    "parse_query",
+    "tokenize",
 ]
