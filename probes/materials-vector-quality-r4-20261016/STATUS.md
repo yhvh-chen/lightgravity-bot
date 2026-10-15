@@ -2,7 +2,7 @@
 title: "Materials Vector Quality R4 — STATUS"
 doc_type: probe
 category: probe
-status: "in-progress — offline freeze phase; network PAUSED pending OCR wrapper exit"
+status: "complete — real cross-modal evidence obtained; partial (1 of 2 real audio candidates); LG-037 stays in-progress"
 updated: "2026-10-16"
 ---
 
@@ -39,7 +39,14 @@ and **exact relevance labels frozen BEFORE any POST**.
       docs09 §7 quality/vector boundaries.
 - [x] read R3 REPORT + R3 audit REPORT (invented negative-control criterion; product has no
       threshold/abstention — negative false-hits must be **reported**, not treated as ACL failure).
-- [x] narrow real media fixture inventory (no downloads, no synthesis):
+- [x] OFFLINE FREEZE commit `ff6615e` (`PLAN.md` + `corpus.json`) BEFORE any POST.
+- [x] prior OCR wrapper PID 2727394 observed; exited before network phase; not killed.
+- [x] bounded network phase: GET 1/2, POST 16/16, retries 0, serial. Real
+      text→image and text→audio cross-modal hits obtained (see REPORT).
+- [x] REPORT.md written.
+- [ ] final commit of owned evidence (in progress).
+
+### Fixture inventory (pre-network, no downloads, no synthesis)
   - real image candidates (Apache-2.0, tesseract-ocr/test, human gold): `phototest.tif`,
     `phototest-rotated-L.png`, `8071_093.3B.tif`.
   - real image candidate (Public domain PD scan + Wikisource human transcription CC BY-SA 4.0):
@@ -62,7 +69,12 @@ and **exact relevance labels frozen BEFORE any POST**.
 - Audio embedding ≠ ASR; this does not unlock LG-041.
 - LG-040 is NOT claimed passed; QA only at an integrated named milestone.
 
-## Case counter (updated through Phase A)
+## Case counter (final)
 
-- network GET: 0 / 2. inference POST: 0 / 16. ASR POST: 0. retries 0. concurrency 1.
-- media uploaded: 0 MiB / 10 MiB. real audio input: 0 s / 30 s.
+- network GET: **1 / 2**. inference POST: **16 / 16**. ASR POST: 0. OCR POST: 0.
+  retries 0. concurrency 1.
+- media uploaded: **2.68 MiB / 10 MiB**. real audio input: **30.0 s / 30 s**.
+- result: vector text→image Recall@5 1.0 (rank 5, rank 1); text→audio Recall@5 1.0 (rank 1);
+  MRR 0.7333; negative controls 5 false hits each (reported, not an ACL failure).
+- **LG-037 stays in-progress; LG-040 not passed; LG-041 locked (audio embedding ≠ ASR).**
+- Honest gap: only **1** real audio candidate exists; 2nd named as missing, not fabricated.
