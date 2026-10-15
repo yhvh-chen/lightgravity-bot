@@ -97,6 +97,8 @@ class SourceActionRequest(BaseModel):
     job_id: str | None = None
     confirmed: bool = False
     note: str | None = None
+    #: Optional optimistic-concurrency guard for state-changing actions.
+    expected_revision: int | None = None
 
 
 class FormalEditRequest(BaseModel):
@@ -358,6 +360,7 @@ def build_sources_router() -> APIRouter:
                 action=payload.action,
                 confirmed=payload.confirmed,
                 job_id=payload.job_id,
+                expected_revision=payload.expected_revision,
             )
         except EntityNotFound:
             raise AppError(

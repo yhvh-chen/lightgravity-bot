@@ -67,6 +67,12 @@ export interface SourceView {
   title: string | null
   title_origin: string | null
   status: SourceStatus | string
+  /**
+   * Reversible organizational archive flag (distinct from `status: archived`,
+   * which the invalidating `revoke` sets). An archived source stays searchable
+   * and openable; only revoke/delete make it unavailable.
+   */
+  archived?: boolean
   revision: number
   etag: string
   scope: SourceScope
@@ -265,7 +271,13 @@ export interface SourcesApi {
   ): Promise<{ source_id: string; formal: unknown; revision: number }>
   sourceAction(
     sourceId: string,
-    body: { action: string; job_id?: string | null; confirmed?: boolean; note?: string | null },
+    body: {
+      action: string
+      job_id?: string | null
+      confirmed?: boolean
+      note?: string | null
+      expected_revision?: number | null
+    },
     signal?: AbortSignal,
   ): Promise<Record<string, unknown>>
   appendInboxMessage(
@@ -453,6 +465,7 @@ export function createSourcesApi(runtime: SourcesRuntimeConfig = {}): SourcesApi
             job_id: body.job_id ?? null,
             confirmed: body.confirmed ?? false,
             note: body.note ?? null,
+            expected_revision: body.expected_revision ?? null,
           }),
           signal,
         },

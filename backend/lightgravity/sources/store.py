@@ -564,6 +564,9 @@ def validate_source(data: dict[str, Any], *, source: str) -> list[Any]:
         _check_enum(origin, "kind", ORIGIN_KINDS, f"{source}.origin", diagnostics, field_key="kind")
 
     _check_optional_digest(data, "content_hash", source, diagnostics)
+    archived = data.get("archived")
+    if archived is not None and not isinstance(archived, bool):
+        diagnostics.append(_diag("archived_invalid", "archived must be a boolean", "{}.archived".format(source)))
     version = data.get("source_version")
     if version is None or isinstance(version, bool) or not isinstance(version, int) or version < 1:
         diagnostics.append(_diag("source_version_invalid", "source_version must be an int >= 1", f"{source}.source_version"))

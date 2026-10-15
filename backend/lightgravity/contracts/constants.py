@@ -3,7 +3,14 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
-#: docs/08 §13: 1.8.0 (2026-10-16) is an additive MINOR bump for the LG-022
+#: docs/08 §13: 1.9.0 (2026-10-16) is an additive MINOR bump from the serial
+#: integration after the first-version repair: the reversible organizational
+#: ``archived`` source flag + ``archive``/``unarchive`` actions (§4.3, §6.6;
+#: archive keeps retrieval/opening/permissions, unlike the invalidating
+#: ``revoke``) and the mounted optional vector endpoints
+#: ``GET /vector/status``, ``GET /vector/search``, ``POST /vector/rebuild``
+#: (§4.3, §6.6; disabled by default, env-configured, candidates re-verified).
+#: 1.8.0 was the LG-022
 #: first-version QA D1/D2 repair R1: the legal transitions
 #: ``verifying -> recovery_required`` and ``repairing -> recovery_required``
 #: (§6.1, restart during independent review parks honestly for a human) and the
@@ -63,7 +70,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.8.0"
+CONTRACT_VERSION = "1.9.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

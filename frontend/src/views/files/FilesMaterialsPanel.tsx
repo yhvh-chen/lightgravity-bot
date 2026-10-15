@@ -157,6 +157,35 @@ export function FilesMaterialsPanel({ api, taskRef, openSourceId }: FilesMateria
     }
   }, [api, openSource, selected])
 
+  const toggleArchive = useCallback(async () => {
+    if (!selected) return
+    setStatus(null)
+    const next = !selected.archived
+    try {
+      await api.sourceAction(selected.source_id, {
+        action: next ? 'archive' : 'unarchive',
+        expected_revision: selected.revision,
+      })
+      setStatus({
+        kind: 'success',
+        text: next
+          ? 'Archived. The source stays searchable and openable.'
+          : 'Unarchived. The source is back in the default list.',
+      })
+      setRefreshToken((value) => value + 1)
+      await openSource(selected.source_id)
+    } catch (cause) {
+      const error = asApiError(cause)
+      setStatus({
+        kind: 'error',
+        text:
+          error.code === 'revision_conflict'
+            ? `Conflict: the source changed (${error.message}). Reload before archiving.`
+            : `Archive change failed: ${error.message}`,
+      })
+    }
+  }, [api, openSource, selected])
+
   const download = useCallback(
     async (kind: 'original' | 'formal' | 'machine') => {
       if (!selected) return
@@ -348,6 +377,13 @@ export function FilesMaterialsPanel({ api, taskRef, openSourceId }: FilesMateria
                   disabled={!content}
                 >
                   Save correction
+                </button>
+                <button
+                  type="button"
+                  className="lg-button"
+                  onClick={() => void toggleArchive()}
+                >
+                  {selected.archived ? 'Unarchive' : 'Archive'}
                 </button>
                 <button type="button" className="lg-button" onClick={() => void reprocess()}>
                   Reprocess (OCR)

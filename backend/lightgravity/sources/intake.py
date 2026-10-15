@@ -485,6 +485,7 @@ class IntakeService:
                     "vector": "disabled",
                     "vector_model": None,
                 },
+                "archived": False,
                 "receipt_ref": "receipt.jsonl",
                 "created_at": now,
                 "updated_at": now,

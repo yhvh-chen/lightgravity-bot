@@ -400,6 +400,33 @@ describe('FilesMaterialsPanel', () => {
     fireEvent.click(screen.getByText('Reprocess (OCR)'))
     await screen.findByText(/OCR service is not configured/)
   })
+
+  it('archives reversibly (no revoke) and keeps the source openable', async () => {
+    const sourceAction = vi.fn(async () => ({ source_id: 'source_01J', archived: true }))
+    const api = makeApi({ sourceAction })
+    render(<FilesMaterialsPanel api={api} taskRef={null} />)
+    fireEvent.click(await screen.findByText('notes.md'))
+    await screen.findAllByText(/extracted body/)
+    fireEvent.click(screen.getByText('Archive'))
+    await screen.findByText(/Archived. The source stays searchable and openable/)
+    // Reversible archive uses the additive action, never revoke.
+    expect(sourceAction).toHaveBeenCalledWith(
+      'source_01J',
+      expect.objectContaining({ action: 'archive', expected_revision: 2 }),
+    )
+    expect(sourceAction).not.toHaveBeenCalledWith(
+      'source_01J',
+      expect.objectContaining({ action: 'revoke' }),
+    )
+  })
+
+  it('shows Unarchive for an already-archived source', async () => {
+    const api = makeApi({ getSource: vi.fn(async () => source({ archived: true })) })
+    render(<FilesMaterialsPanel api={api} taskRef={null} />)
+    fireEvent.click(await screen.findByText('notes.md'))
+    await screen.findAllByText(/extracted body/)
+    expect(screen.getByText('Unarchive')).toBeTruthy()
+  })
 })
 
 describe('sources client search query shape', () => {
