@@ -62,6 +62,11 @@ class ExecutionGrant:
     kind: str = "node"
     #: Number of accepted autonomous claim requests made through this grant.
     claims_granted: int = 0
+    #: Maximum number of claim *reservations* a pool grant may make.  ``None``
+    #: means unbounded (legacy pool grants).  A candidate-pool grant fixes this
+    #: to the legal candidate count so a worker's selection attempts are bounded
+    #: and cannot be used to enumerate/deny legal candidates indefinitely.
+    max_claims: int | None = None
 
     def covers_node(self, node_ref: str) -> bool:
         return node_ref in self.authorized_node_refs
@@ -89,6 +94,7 @@ class ExecutionGrant:
             "origin": self.origin,
             "kind": self.kind,
             "claims_granted": self.claims_granted,
+            "max_claims": self.max_claims,
         }
 
 
@@ -120,6 +126,7 @@ class ExecutionGrantRegistry:
         ttl_seconds: int = DEFAULT_GRANT_SECONDS,
         origin: str = "graph-dispatcher",
         kind: str = "node",
+        max_claims: int | None = None,
     ) -> tuple[str, ExecutionGrant]:
         """Mint a fresh grant and return ``(opaque_token, grant)``.
 
@@ -141,6 +148,7 @@ class ExecutionGrantRegistry:
             expires_at=time.time() + max(1, ttl_seconds),
             origin=origin,
             kind=kind,
+            max_claims=max_claims,
         )
         with self._lock:
             prior = self._by_subtask.get(subtask_id)
@@ -179,6 +187,8 @@ class ExecutionGrantRegistry:
             if grant is None or not grant.active():
                 return False, None
             if grant.kind != "pool":
+                return False, grant
+            if grant.max_claims is not None and grant.claims_granted >= grant.max_claims:
                 return False, grant
             grant.claims_granted += 1
             return True, grant
@@ -441,18 +451,28 @@ def make_restricted_claim_tool(
         receipt = claim_callback(node_ref, request_id or f"claim_{secrets.token_hex(8)}")
         payload = receipt if isinstance(receipt, dict) else {"state": str(receipt)}
         granted = bool(payload.get("granted"))
+        detail: dict[str, Any] = {
+            "node_ref": node_ref,
+            "fence": payload.get("fence"),
+            "lease_expires_at": payload.get("lease_expires_at"),
+            "request_id": payload.get("request_id"),
+            "reason": payload.get("reason"),
+        }
+        # Additive: on an accepted claim the program hands back the *binding* of
+        # the node the worker itself selected (isolated workspace, upstream
+        # versioned refs, capability/objective).  This is program-owned metadata
+        # (never a token) so the worker knows where to write the artifact it owns;
+        # it does not move control authority - the program still applies the
+        # result to the chosen node and owns state/manifest/verification.
+        binding = payload.get("binding")
+        if granted and isinstance(binding, dict):
+            detail["binding"] = binding
         return PeerToolResult(
             ok=granted,
             reason=str(payload.get("reason") or ("granted" if granted else "refused")),
             state="granted" if granted else "refused",
             # Redacted receipt: no token, only the program's decision + fence.
-            detail={
-                "node_ref": node_ref,
-                "fence": payload.get("fence"),
-                "lease_expires_at": payload.get("lease_expires_at"),
-                "request_id": payload.get("request_id"),
-                "reason": payload.get("reason"),
-            },
+            detail=detail,
         ).to_dict()
 
     discover_and_request_claim.__name__ = "discover_and_request_claim"

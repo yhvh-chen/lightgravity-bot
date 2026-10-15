@@ -1,0 +1,5 @@
+# POOL-FIX probe runtime state is kept on disk (persistent, create-only) but is
+# not committed: it contains a real FileStore + nested real Git worktree fixtures
+# and JSONL state.  Reproduce deterministically with the probe command in
+# ../REPORT.md §6, which writes into this same directory.
+work/

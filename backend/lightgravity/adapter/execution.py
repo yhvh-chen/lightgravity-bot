@@ -70,6 +70,14 @@ class ExecuteRequest:
     #: for this node.  The default is empty, so a normal run exposes no custom
     #: tool to the model.
     custom_tools: tuple[Any, ...] = ()
+    #: LG-031 POOL-FIX additive: the legal candidate pool a worker may select
+    #: from when the program dispatched a *worker slot* instead of a pre-bound
+    #: node.  Each entry is a non-secret binding ``{node_ref, capability, key,
+    #: objective, write, workspace_path, upstream_artifact_refs, member_ref}``.
+    #: Empty for the normal (deterministic or single-node autonomous) path, so
+    #: the adapter only takes the pool lifecycle when the program actually offered
+    #: a choice.  The tuple is program-computed and read-only to the worker.
+    candidate_bindings: tuple[Mapping[str, Any], ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -93,6 +101,7 @@ class ExecuteRequest:
             "continuation_mode": self.continuation_mode,
             "execution_grant": bool(self.execution_grant),
             "custom_tools": [getattr(tool, "__name__", "tool") for tool in self.custom_tools],
+            "candidate_refs": [str(b.get("node_ref")) for b in self.candidate_bindings],
         }
 
 
