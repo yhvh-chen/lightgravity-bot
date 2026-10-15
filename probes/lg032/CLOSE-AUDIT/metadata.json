@@ -1,0 +1,42 @@
+{
+  "doc": "LG-032 CLOSE-AUDIT small metadata (desensitized; hashes only; no secret/raw content)",
+  "owner": "agent:pi-lg032-close-audit",
+  "real_provider": 0,
+  "base_commit": "271fefb448a77fcd0f419acba7d26e024d3aa658",
+  "product_tree_object": "55e4de56b7fe333d81a9bbc7a5e45e19977f9e9f",
+  "source_sha256": {
+    "entry_run_formal_py": "e8340f9035c06568bcd311c89f2f227f3e0b5504d0303505862c67e27aa590e2",
+    "overlay_mode_config_py": "df5652919e54830f7af5af8fa8c26a0f2cb527d3ddca2c1811259054acc788bf",
+    "driver_run_attempt_py": "503a807fe987b65236222b734127b21aff70455e3070403fe98fe9f62b286208",
+    "driver_final_cohort_config_py": "a04a8f309a72626c5b039039198feab03f143966e6634bf1fe5228ff0834a117"
+  },
+  "cohort3_ledger": {
+    "count": 84,
+    "jsonl_lines": 84,
+    "count_sha256": "fef0bd52e61e58a2f6200194bf7af5219a5d8c1f9ffd2dcbd7335fb81d92e68f",
+    "jsonl_sha256": "a266e2fd8fa80cbc828746b14d5b7aaaf0923d90c97331b42665295971aa3f72"
+  },
+  "attempts": {
+    "s1_units__A": {"gen_requests": 20, "machine": "5/5", "mode": "off", "lease_grants": 0, "result_sha256": "b54d3c018ac16a00ded280eb5588929923f9d6115b676848c5da963ef05a4d00", "review_outcome": "passed", "unsubstantiated": 0, "restored_off": true, "repair_rounds_spent": 0},
+    "s1_units__B": {"gen_requests": 20, "machine": "5/5", "mode": "on", "lease_grants": 3, "result_sha256": "09c237d9d9978e05a4c5fc77dae126e604802cb7f8b534591df360991dabc309", "review_outcome": "passed", "unsubstantiated": 0, "restored_off": true, "repair_rounds_spent": 0},
+    "s2_pipeline__A": {"gen_requests": 17, "machine": "7/7", "mode": "off", "lease_grants": 0, "result_sha256": "0bf3c82326982da7eed3cd588febf991ba0dad6474bcff47322d676214e6f7f6", "review_outcome": "passed", "unsubstantiated": 0, "restored_off": true, "repair_rounds_spent": 0},
+    "s2_pipeline__B": {"gen_requests": 27, "machine": "7/7", "mode": "on", "lease_grants": 3, "result_sha256": "fe0bf73e7ff2124723250ef6d7da8bfc83147be5ffb1cf88ed1bf6f03c97620d", "review_outcome": "passed", "unsubstantiated": 0, "restored_off": true, "repair_rounds_spent": 0}
+  },
+  "old_ledgers_preserved": {
+    "cohort1_count_sha256": "609946be7102a497ce9ddfbd1770aa8c2e7dd73925e5f48f93f3e9c2d8a01e68",
+    "cohort1_jsonl_sha256": "beba08e0a1b3e77e4195a9ddb4d53a21a5d1826adf93f1b5ef45ba2af1871abd",
+    "cohort2_count_sha256": "be90a0f9606c3c25a422bc22dc637c2b99af3e4d3b9d9179c5aee6aa78658585",
+    "cohort2_jsonl_sha256": "15a4bb003f844a7095632fa8a4ac97419b6f3a48d53858107b1bc4bf89595fbb"
+  },
+  "cost": {
+    "old_032_protocol_failure": 106,
+    "valid_cohort3": 84,
+    "real_total_032": 190,
+    "cohort3_cap": 192,
+    "known_upper_bound": 298,
+    "arm_A_requests": 37,
+    "arm_B_requests": 47,
+    "sdk_tokens_and_actual_cost": "unknown"
+  },
+  "verdict": "PASS (evaluation-scope); PM to decide LG-032 done; not full-product pass"
+}
