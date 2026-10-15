@@ -72,6 +72,7 @@ from .files import build_files_router
 from .health import router as health_router
 from .notifications import build_notifications_router
 from .resources import build_resource_router
+from .search import build_search_router
 from .sources import build_sources_router
 from .tasks import build_task_router
 
@@ -233,6 +234,7 @@ def create_app(
     app.include_router(build_resource_router(), prefix=API_PREFIX)
     app.include_router(build_files_router(), prefix=API_PREFIX)
     app.include_router(build_sources_router(), prefix=API_PREFIX)
+    app.include_router(build_search_router(), prefix=API_PREFIX)
     app.include_router(build_collaboration_router(), prefix=API_PREFIX)
     app.include_router(build_events_router(), prefix=API_PREFIX)
     app.include_router(build_notifications_router(), prefix=API_PREFIX)

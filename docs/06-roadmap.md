@@ -104,6 +104,15 @@ SDK 安装/真实测试属于 LG-002/003 后续实施，不包含在此次写排
 >
 > 2026-10-16 依赖校正与状态纠正（主代理 PM，准备 owner 落盘）：**LG-036 `depends_on` 由 `[LG-034, LG-035]` 校正为 `[LG-033, LG-034]`**（技术依据 [probes/lg036/DEPENDENCY-AUDIT.md](../../probes/lg036/DEPENDENCY-AUDIT.md)，PM 决定 `checkpoints/2026-10-15/pm-decision-lg036-20261016.txt`；本项只需已交付的内容接口 `faf7230`/`d7e4391`/第三批集成提交，非 LG-035 尚未通过的真实 OCR 质量门）；**不降低 LG-035 验收、不改 LG-040 依赖、不声称图片/PDF 检索质量通过**。**LG-017 由 `in-progress` 纠正为 `done`（待 LG-022 集中 QA、非完整版本通过）**：原注释将“待 LG-022”当本项 done 前置，与 LG-022 `depends_on` 含 LG-017 形成错误循环，按 agent.md 集中 QA 非逐项前置纠正；实现目标（独立 ModelReviewer 路径）已由 R1+第三批 UI 满足。**不改 LG-022 依赖、不宣称版本验收**。这两项使 LG-031/LG-036 可按真实依赖 ready；LG-022 仍待 LG-021 增量复验。
 
+> 2026-10-16 第四批集成更新（唯一集成 owner，报告 [probes/batch-20261016/INTEGRATION-4.md](../probes/batch-20261016/INTEGRATION-4.md)）：LG-021 增量 QA（`qa/lg021-r1` `5176edf`，26/26 真实通过）与 LG-036 词法索引（`dev/lg036` `ece758c`）已合并；**LG-021 置 `done`**（前端状态/响应式门，不等于 LG-022 端到端门）；LG-036 因 `api/app.py` 与 LG-031 并发 owner 冲突**保持 `in-progress`**（机制已实现、尚未接入默认 app）。CLI claim 仅 LG-022（`agent:pi-lg022`，`bf7851c`）；LG-037/038 依赖未满足，未 claim、未建 worktree。
+
+> 2026-10-16 第五批集成更新（唯一集成 owner，报告 [probes/batch-20261016/INTEGRATION-5.md](../probes/batch-20261016/INTEGRATION-5.md)）：
+> - **LG-031 `dev/lg031` `d4c0815` 已合并到 `main`**（`--no-ff`，无冲突）；031 owner 已释放共享 `api/{app,bootstrap}.py` 与 docs08，本集成 owner 成为唯一 writer，在同一次提交中一并加装 LG-036 `build_search_router()`（1 import + 1 `include_router`），两侧安全接线。
+> - **LG-036 由 `in-progress` 置 `done`（待版本 QA LG-040）**：真实默认 app 上 `GET /api/v1/search` → 200、缺失缓存诚实 `index_unavailable`/`hits=[]`、POST → 405（GET 只读）；`uv run pytest -q` **693 passed, 1 skipped**、mypy **130 files clean**。**无向量**（LG-037 未实现）、**无 Chat/Files UI**（LG-038 未实现），图片/PDF 检索质量不声称通过。
+> - **LG-031 保持 `in-progress`（非错误等 032 版本门）**：本项验收的**真实运行硬条件未满足**——031 的 1 次 DeepSeek 只是独立 reviewer，不是 SDK 多 worker；真实 Git + **进程内 fake executor** 不等于“真实 SDK 两 worker 发现/领取/交接/隔离执行”。据此**不置 done**，理由是本项真实运行硬条件未满足，**不是**“错误等待 032 版本门”（032 反依赖 031）；不把完整 checkpoint skip 未实现夸大，不扩大恢复重放。原 owner 等价续接分支 `fix/lg031-r1` 已建（保留原 `dev/lg031`）。
+> - 契约保持 **`1.7.0`**（无新字段/端点/错误码/枚举）；docs08 §4.3 `GET /search` 行改为“已实现（集成挂载；待版本 QA LG-040）”、§5.1 注明 `source.indexed`/`source.invalidated` 已实际产生。
+> - 就绪任务 CLI claim：LG-037 `agent:pi-lg037`、LG-038 `agent:pi-lg038`（持久 worktree `lg037`/`lg038`，基于同一 claim commit）；LG-022 仍 `in-progress`，保留不重 claim。
+
 - 当前优先收拢 LG-013、LG-016、LG-027 已有隔离成果，继续 LG-017/018/019 与既有首版集中验收；单独 worktree 的交付不视为 main 已集成。不在本次排期中改变其状态。
 - LG-028 与 LG-033 可独立准备；LG-039 可在 LG-033 后验证。实现以任务 depends_on 为准，两个新版本的 LG-022 依赖是保留首版验收的排序门，非新功能代码依赖。
 - 多条线共享 Store、Coordinator、API 或前端入口时指定单一 owner 串行集成；开发执行仍经 pi，不因排期自动派工，不采用宿主原生子代理替代。

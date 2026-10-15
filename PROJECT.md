@@ -43,6 +43,16 @@ updated: "2026-10-15"
 
 ## 决策日志
 
+### 2026-10-16：第五批集成——031 接线合回、036 词法挂载、031 保持 in-progress（真实缺口）
+
+- **LG-031 安全合回 `main`（`dev/lg031` `d4c0815`，`--no-ff`）**：保留 main 最新 021 状态/036 机制/022 claim；031 owner 已释放共享 `api/app.py`/`bootstrap.py`/docs08，本集成 owner 为唯一 writer，在同一次提交中一并加装 LG-036 `build_search_router()`（1 import + 1 `include_router`），`worker_identity`/`execution_grants` 注入保留，两侧安全接线。新协作默认关闭、程序权限/状态/预算/验收权威、无常驻模型编排。
+- **LG-036 `in-progress` → `done`（待版本 QA LG-040）**：真实默认 app 上 `GET /api/v1/search` → 200、缺失缓存诚实 `index_unavailable`/`hits=[]`、`POST` → 405（GET 只读）；集成候选 `pytest -q` **693 passed, 1 skipped**、mypy **130 files clean**。装配条件满足故 done；**不降 LG-035 真实 OCR 门、不动 LG-040 门**，无向量（LG-037 未实现）、无 Chat/Files UI（LG-038 未实现）。
+- **LG-031 保持 `in-progress`（真实运行硬条件未满足，非错误等 032 版本门）**：031 的 1 次 DeepSeek 只是**独立 reviewer**，不是 SDK 多 worker；**真实 Git + 进程内 fake executor** 不等于“真实 SDK 两 worker 发现/领取/交接/隔离执行”。不把完整 checkpoint skip 未实现夸大，不扩大恢复重放。预留连续实施分支 `fix/lg031-r1`（保留原 `dev/lg031`）。
+- **契约保持 `1.7.0`**：无新 schema 行为，不机械升版；docs08 §4.3/§5.1 仅同步实际实现状态（`GET /search` 已实现挂载；`source.indexed`/`source.invalidated` 已实际产生）。037 向量与 038 UI 未实现如实标。
+- **就绪任务 CLI claim**：LG-031 合回后 LG-037（`agent:pi-lg037`）、LG-038（`agent:pi-lg038`）依赖满足，持久 worktree `lg037`/`lg038` 基于同一 claim commit；不复制 `.env`、不覆盖已有；LG-022 仍 `in-progress`，保留不重 claim。
+- **已知风险**：`tests/collaboration/test_claims.py::test_two_owner_race...` 为既有 discovery/lease 竞争偶发 `not_discoverable`；本轮全量单跑一次通过、单跑连跑 3 次通过，**未宣称其无害/无缺陷**，留 LG-032 固定判定口径。
+- 产品模型/外部服务调用 **0**；本项报告 [probes/batch-20261016/INTEGRATION-5.md](probes/batch-20261016/INTEGRATION-5.md)。
+
 ### 2026-10-16：LG-036 真实依赖校正与 LG-017 状态语义纠正
 
 - **LG-036 依赖校正（真实依赖，非降门）**：依据只读技术调查（副本 [probes/lg036/DEPENDENCY-AUDIT.md](probes/lg036/DEPENDENCY-AUDIT.md)）与 PM 决定（`checkpoints/2026-10-15/pm-decision-lg036-20261016.txt`），将 LG-036 `depends_on` 由 `[LG-034, LG-035]` 校正为 `[LG-033, LG-034]`。本项需要的是**已交付的内容接口**（LG-035 commit `faf7230`/`d7e4391`、第三批集成提交提供的 `/content`/`/download`/`/actions` 只读通道、source/版本/哈希/权限接口），与 LG-035 **尚未通过的真实 OCR 质量门**无关。**不降低 LG-035 验收、不改 LG-040 依赖、不声称图片/PDF 检索质量已通过**：无派生正文或正文不可信的来源须诚实 `not_indexed`。
