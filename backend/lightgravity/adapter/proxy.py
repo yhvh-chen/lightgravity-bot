@@ -34,11 +34,14 @@ import threading
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, replace
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from .credentials import Secret
 from .errors import CapabilityUnavailable
+
+if TYPE_CHECKING:  # pragma: no cover - typing only (avoids import cycle)
+    from .generation_ledger import PersistentGenerationLedger
 
 #: Hosts the proxy may bind.  Loopback only - never 0.0.0.0.
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
@@ -71,14 +74,26 @@ class GenerationCounter:
 
     ``reserve`` is thread-safe.  ``None`` as ``limit`` means "count only, no
     cap" (used when an operator wants observability without a limit).
+
+    LG-022 R2: when a :class:`~lightgravity.adapter.generation_ledger.PersistentGenerationLedger`
+    is attached, the count lives in the controlled data root and is reserved
+    atomically **before** forwarding, so it survives a process/service restart
+    and is shared across worker/reviewer/session.  Corruption is never treated
+    as ``0``: a corrupt ledger denies the reservation and reports it.
     """
 
-    def __init__(self, limit: int | None = None) -> None:
+    def __init__(
+        self,
+        limit: int | None = None,
+        *,
+        ledger: "PersistentGenerationLedger | None" = None,
+    ) -> None:
         if limit is not None and limit < 0:
             raise ValueError("generation limit must be >= 0 or None")
         self._limit = limit
         self._lock = threading.Lock()
         self._count = 0
+        self._ledger = ledger
 
     @property
     def limit(self) -> int | None:
@@ -86,12 +101,24 @@ class GenerationCounter:
 
     @property
     def count(self) -> int:
+        if self._ledger is not None:
+            try:
+                return self._ledger.count()
+            except Exception:  # noqa: BLE001 - a corrupt ledger is reported as unknown
+                return -1
         with self._lock:
             return self._count
 
     def reserve(self) -> bool:
-        """Reserve one global generation slot; ``False`` if the cap is reached."""
+        """Reserve one global generation slot; ``False`` if denied.
 
+        A denial covers the cap being reached, the cross-process lock being
+        unavailable, and a corrupt ledger; all of them must refuse the forward
+        rather than spend the credential.
+        """
+
+        if self._ledger is not None:
+            return self._ledger.reserve().granted
         with self._lock:
             if self._limit is not None and self._count >= self._limit:
                 return False
@@ -99,6 +126,11 @@ class GenerationCounter:
             return True
 
     def snapshot(self) -> dict[str, Any]:
+        if self._ledger is not None:
+            snap = self._ledger.snapshot()
+            snap.setdefault("limit", self._limit)
+            snap.setdefault("persistent", True)
+            return snap
         with self._lock:
             return {
                 "count": self._count,
@@ -106,15 +138,26 @@ class GenerationCounter:
                 "remaining": (
                     None if self._limit is None else max(0, self._limit - self._count)
                 ),
+                "persistent": False,
             }
 
 
 def _default_generation_counter() -> GenerationCounter:
-    """Return the process-wide counter lazily (no import-time env coupling)."""
+    """Return the process-wide counter lazily (no import-time env coupling).
+
+    LG-022 R2: build the persistent ledger from the controlled data root so the
+    count survives restarts; a missing data root keeps the in-memory counter so
+    the meter still works (it is simply not durable in that deployment).
+    """
 
     global _GLOBAL_GENERATION_COUNTER
     if _GLOBAL_GENERATION_COUNTER is None:
-        _GLOBAL_GENERATION_COUNTER = GenerationCounter(_limit_from_env())
+        from .generation_ledger import PersistentGenerationLedger, ledger_root_from_env
+
+        limit = _limit_from_env()
+        root = ledger_root_from_env()
+        ledger = PersistentGenerationLedger(root, limit=limit) if root is not None else None
+        _GLOBAL_GENERATION_COUNTER = GenerationCounter(limit, ledger=ledger)
     return _GLOBAL_GENERATION_COUNTER
 
 
@@ -137,6 +180,25 @@ def global_generation_counter() -> GenerationCounter:
     """
 
     return _default_generation_counter()
+
+
+def configure_generation_ledger(
+    root: Any, limit: int | None = None
+) -> GenerationCounter:
+    """Attach a persistent ledger rooted at the controlled data dir (LG-022 R2).
+
+    Called once at startup with the resolved ``settings.data_dir`` so the count
+    is durable even when ``LIGHTGRAVITY_DATA_DIR`` is not exported.  Idempotent:
+    re-configuring the same root rebuilds the counter from the same ledger.
+    """
+
+    global _GLOBAL_GENERATION_COUNTER
+    from .generation_ledger import PersistentGenerationLedger
+
+    resolved_limit = _limit_from_env() if limit is None else limit
+    ledger = PersistentGenerationLedger(root, limit=resolved_limit)
+    _GLOBAL_GENERATION_COUNTER = GenerationCounter(resolved_limit, ledger=ledger)
+    return _GLOBAL_GENERATION_COUNTER
 
 
 #: Process-global counter shared by all proxies unless one is injected.
@@ -594,6 +656,7 @@ __all__ = [
     "DEEPSEEK_UPSTREAM_URL",
     "MAX_REQUEST_BYTES",
     "GenerationCounter",
+    "configure_generation_ledger",
     "ProxyCallRecord",
     "LocalAuthProxy",
     "global_generation_counter",

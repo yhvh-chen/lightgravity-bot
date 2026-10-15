@@ -50,7 +50,10 @@ async def test_generation_diagnostics_reports_real_global_count(
     generation = body["generation"]
     # Real cross-session counter, not a fabricated zero.
     assert generation["count"] >= before
-    assert set(generation) == {"count", "limit", "remaining"}
+    # LG-022 R2 adds the additive ``persistent`` durability flag (and
+    # ``corrupt`` when a persistent ledger is configured).
+    assert {"count", "limit", "remaining", "persistent"} <= set(generation)
+    assert set(generation) <= {"count", "limit", "remaining", "persistent", "corrupt", "reason"}
     # Only counts/limit are exposed; never a credential or prompt.
     assert GenerationCounter is type(counter)
     assert "credential" not in response.text

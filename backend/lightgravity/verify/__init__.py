@@ -85,6 +85,7 @@ from .stopgate import (
     ACTIVE_RUN_STATES,
     TERMINAL_MEMBER_STATES,
     ResourceStopper,
+    SessionStopConfirmer,
     StopReport,
     StoreResourceStopper,
 )
@@ -120,6 +121,7 @@ __all__ = [
     "REWORK_SPAWNED",
     "REWORK_UNAVAILABLE",
     "ResourceStopper",
+    "SessionStopConfirmer",
     "ReviewContext",
     "ReviewReport",
     "Reviewer",

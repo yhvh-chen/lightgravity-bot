@@ -126,6 +126,11 @@ class ReviewContext:
     #: stop a running reviewer instead of only tracking the worker.  ``None``
     #: in the sync fixture path.
     stop_event: Any | None = None
+    #: LG-022 R2: mutable sink the reviewer fills with the **real** reviewer
+    #: resource teardown fact (SDK agent closed + loopback proxy stopped).  The
+    #: coordinator records it so the stop gate sees the reviewer resource really
+    #: stopped, not only the worker.  Left empty when no real turn ran.
+    resource_stop_report: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -700,7 +705,9 @@ class ModelReviewer:
         )
         self.model_calls += 1
         try:
-            raw_text, usage = self._run_turn(prompt, context.stop_event)
+            raw_text, usage = self._run_turn(
+                prompt, context.stop_event, context.resource_stop_report
+            )
         except Exception as exc:  # noqa: BLE001 - a failed turn is unavailable
             self.last_error = f"reviewer turn raised {type(exc).__name__}: {exc}"
             self.last_usage = {"unknown": ["usage"]}
@@ -761,7 +768,10 @@ class ModelReviewer:
         )
 
     def _run_turn(
-        self, prompt: str, stop_event: Any | None = None
+        self,
+        prompt: str,
+        stop_event: Any | None = None,
+        resource_stop_report: dict[str, Any] | None = None,
     ) -> tuple[str | None, dict[str, Any]]:
         if self._turn is not None:
             return self._turn(prompt)
@@ -772,6 +782,7 @@ class ModelReviewer:
             timeout_seconds=self._timeout,
             max_model_calls=self._max_calls,
             stop_event=stop_event,
+            resource_stop_report=resource_stop_report,
         )
 
 
@@ -851,6 +862,7 @@ def run_review_turn(
     timeout_seconds: float = DEFAULT_REVIEW_TIMEOUT_SECONDS,
     max_model_calls: int = DEFAULT_REVIEW_MODEL_CALLS,
     stop_event: Any | None = None,
+    resource_stop_report: dict[str, Any] | None = None,
 ) -> tuple[str | None, dict[str, Any]]:
     """One real, tool-less SDK turn on the reviewer connection.
 
@@ -914,15 +926,33 @@ def run_review_turn(
 
         return _run_coro_sync(_turn())
     finally:
+        # LG-022 R2: record the *real* reviewer resource teardown so the
+        # coordinator can prove the reviewer stopped, not only the worker.  A
+        # failed agent close or proxy stop is reported honestly (never assumed).
+        agent_closed = True
+        proxy_stopped = True
+        problems: list[str] = []
         if agent is not None:
             try:
                 _run_coro_sync(agent.__aexit__(None, None, None))
-            except Exception:  # noqa: BLE001 - best-effort teardown
-                pass
+            except Exception as exc:  # noqa: BLE001 - teardown failure reported
+                agent_closed = False
+                problems.append(f"reviewer agent close failed: {type(exc).__name__}")
         try:
-            proxy.stop()
-        except Exception:  # noqa: BLE001 - stop confirmation is best effort
-            pass
+            proxy_stopped = bool(proxy.stop())
+        except Exception as exc:  # noqa: BLE001 - stop confirmation is best effort
+            proxy_stopped = False
+            problems.append(f"reviewer proxy stop failed: {type(exc).__name__}")
+        if resource_stop_report is not None:
+            resource_stop_report.clear()
+            resource_stop_report.update(
+                {
+                    "agent_closed": agent_closed,
+                    "proxy_stopped": proxy_stopped,
+                    "confirmed": agent_closed and proxy_stopped,
+                    "problems": problems,
+                }
+            )
 
 
 def _usage_from_response(response: Any) -> dict[str, Any]:

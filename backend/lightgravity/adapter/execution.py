@@ -212,6 +212,40 @@ class ExecutorResult:
 
 
 @dataclass(frozen=True, slots=True)
+class StopConfirmation:
+    """Authoritative proof that a Run's execution resources really stopped.
+
+    LG-022 R2: a successful Run records the SDK sessions it opened, but the
+    success path never wrote ``cleanup=done``, so the stop gate could not confirm
+    the sessions were closed and the Task deadlocked in ``verifying``.  This is
+    the adapter's **real** stop fact: the SDK agent was closed
+    (``Agent.__aexit__``) and the loopback auth proxy serving thread/socket were
+    torn down.  ``confirmed`` is true only when every requested session is
+    provably closed; an unknown session keeps ``confirmed=False`` (never a
+    fabricated stop).
+    """
+
+    run_id: str
+    confirmed: bool
+    sessions_total: int
+    sessions_stopped: int
+    proxy_stopped: bool
+    unknown_sessions: tuple[str, ...] = ()
+    problems: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "run_id": self.run_id,
+            "confirmed": self.confirmed,
+            "sessions_total": self.sessions_total,
+            "sessions_stopped": self.sessions_stopped,
+            "proxy_stopped": self.proxy_stopped,
+            "unknown_sessions": list(self.unknown_sessions),
+            "problems": list(self.problems),
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class CancelResult:
     """Cancel outcome; ``confirmed`` is the only signal that a stop happened."""
 
@@ -239,6 +273,21 @@ class ExecutorAdapter(Protocol):
     async def close(self, session_ref: SessionRef) -> None: ...
 
 
+@runtime_checkable
+class ResourceStopConfirmer(Protocol):
+    """Optional adapter port: confirm a Run's real sessions/proxy stopped.
+
+    The default :class:`~lightgravity.verify.stopgate.StoreResourceStopper` calls
+    this (when the adapter provides it) so a Run whose ``cleanup`` is still
+    ``pending`` can be released only on a genuine stop fact, never on a
+    fabricated ``cleanup=done``.
+    """
+
+    def confirm_stopped(
+        self, run_id: str, session_refs: tuple[str, ...]
+    ) -> StopConfirmation | None: ...
+
+
 __all__ = [
     "ExecutorState",
     "NormalizedEvent",
@@ -252,4 +301,6 @@ __all__ = [
     "ExecutorResult",
     "CancelResult",
     "ExecutorAdapter",
+    "ResourceStopConfirmer",
+    "StopConfirmation",
 ]
