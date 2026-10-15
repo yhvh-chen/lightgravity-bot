@@ -1,0 +1,78 @@
+{
+  "stage": "lifecycle-substitute",
+  "steps": [
+    {
+      "name": "task_created",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "code": 200,
+      "task_id": "task_01M5006TE6C11QZ1FZVWGG8CSJ"
+    },
+    {
+      "name": "reviewer_started",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "reviewer_ran": 1
+    },
+    {
+      "name": "control_served_during_review",
+      "ok": false,
+      "evidence_kind": "substitute",
+      "status_latency": 12.123,
+      "pause_latency": 0.013,
+      "status_phase": "awaiting_acceptance",
+      "pause_state": null,
+      "pause_error": "not_ready",
+      "note": "FAIL if the event loop is blocked so status/pause cannot be served"
+    },
+    {
+      "name": "reviewer_eventually_finished",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "reviewer_ran": 1
+    },
+    {
+      "name": "task_phase_after_review_with_pause_request",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "phase": "awaiting_acceptance"
+    },
+    {
+      "name": "status_query_immediate",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "elapsed": 0.0155,
+      "phase": "awaiting_acceptance"
+    },
+    {
+      "name": "accept_bound_exact_run",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "code": 200,
+      "candidate_ref": "run_01M5006TG2APRP80YD0RTRSY0D"
+    },
+    {
+      "name": "accept_wrong_target_rejected",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "code": 409,
+      "err": "illegal_transition"
+    }
+  ],
+  "review_probe": {
+    "status_latency": 12.123,
+    "status_code": 200,
+    "status_phase": "awaiting_acceptance",
+    "pause_latency": 0.013,
+    "pause_code": 409,
+    "pause_state": null,
+    "pause_error": "not_ready",
+    "reviewer_still_running_at_probe_start": true
+  },
+  "final_phase_after_probe": "awaiting_acceptance",
+  "final": {
+    "phase": "awaiting_acceptance",
+    "run_id": "run_01M5006TG2APRP80YD0RTRSY0D"
+  },
+  "ok": false
+}

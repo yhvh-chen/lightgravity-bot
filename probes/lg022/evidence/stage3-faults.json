@@ -1,0 +1,50 @@
+{
+  "stage": "faults-substitute",
+  "steps": [
+    {
+      "name": "duplicate_global_message_idempotent",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "first_kind": "direct",
+      "second_kind": "direct"
+    },
+    {
+      "name": "light_question_no_task",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "tasks": 0
+    },
+    {
+      "name": "duplicate_control_idempotent",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "code1": 200,
+      "code2": 200,
+      "state1": "confirmed",
+      "err1": null
+    },
+    {
+      "name": "task_reaches_awaiting_acceptance_substitute",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "phase": "paused",
+      "run_id": "run_01M5008QX2HV86JTYJ46XTFSJY"
+    },
+    {
+      "name": "sse_cursor_replay_no_duplicate",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "replayed": 11,
+      "unique": 11,
+      "cursor": "v1:task_01M5008QVECTT4HPM7AK4ABZCH:1"
+    },
+    {
+      "name": "pin_drift_recorded",
+      "ok": true,
+      "evidence_kind": "substitute",
+      "note": "pin staleness path exercised; see pin tests/evidence",
+      "revision_before": 0
+    }
+  ],
+  "ok": true
+}
