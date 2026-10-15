@@ -12,15 +12,41 @@ Scope split inside the package keeps LG-030 independent:
 * ``discovery`` — read-only authorized projection;
 * ``lease`` — atomic claim/renew/release/reclaim and the fence gate;
 * ``service`` — policy (default-off), budget, request idempotency;
-* ``peer`` — reserved, unimplemented LG-030 peer boundary.
+* ``handoff`` — versioned/hashed artifact-reference validation (LG-030);
+* ``context`` — bounded authorized summaries and causal binding (LG-030);
+* ``peer`` — controlled peer requests and results (LG-030).
 
 The default path stays deterministic scheduling: every entry point is inert
 unless ``decentralized_claim_enabled`` is true in ``settings/SETTINGS.md``.
 """
 
+from .context import (
+    COLLAB_MODES,
+    MAX_SUMMARY_CHARS,
+    AuthorizedSummary,
+    CausalBinding,
+    ContextError,
+    classify_summary,
+    validate_binding,
+)
 from .discovery import DiscoveryLimits, DiscoveryService
 from .errors import ClaimRefused, StaleLease
+from .handoff import (
+    ArtifactRef,
+    HandoffError,
+    encode_upstream_ref,
+    parse_artifact_ref,
+    validate_handoff_refs,
+)
 from .lease import DEFAULT_LEASE_SECONDS, LeaseManager
+from .peer import (
+    DEFAULT_COLLAB_TIMEOUT_SECONDS,
+    DEFAULT_MAX_COLLAB_REQUESTS,
+    CollabRefused,
+    CollabRequestResult,
+    HandoffRejected,
+    PeerService,
+)
 from .models import (
     CLAIMABLE_SUBTASK_STATES,
     REFUSAL_REASONS,
@@ -38,23 +64,41 @@ from .service import ClaimPolicy, ClaimPolicyReader, CollaborationService
 
 __all__ = [
     "CLAIMABLE_SUBTASK_STATES",
+    "COLLAB_MODES",
+    "DEFAULT_COLLAB_TIMEOUT_SECONDS",
     "DEFAULT_LEASE_SECONDS",
+    "DEFAULT_MAX_COLLAB_REQUESTS",
+    "MAX_SUMMARY_CHARS",
     "REFUSAL_REASONS",
     "TERMINAL_SUBTASK_STATES",
+    "ArtifactRef",
+    "AuthorizedSummary",
+    "CausalBinding",
     "ClaimDecision",
     "ClaimPolicy",
     "ClaimPolicyReader",
     "ClaimRefused",
     "ClaimRequest",
+    "CollabRefused",
+    "CollabRequestResult",
     "CollaborationService",
+    "ContextError",
     "DiscoverableCandidate",
     "DiscoveryLimits",
     "DiscoveryService",
     "DiscoveryView",
+    "HandoffError",
+    "HandoffRejected",
     "LeaseManager",
     "LeaseRenewal",
     "LeaseState",
+    "PeerService",
     "ReclaimOutcome",
     "StaleLease",
+    "classify_summary",
+    "encode_upstream_ref",
     "fence_of",
+    "parse_artifact_ref",
+    "validate_binding",
+    "validate_handoff_refs",
 ]
