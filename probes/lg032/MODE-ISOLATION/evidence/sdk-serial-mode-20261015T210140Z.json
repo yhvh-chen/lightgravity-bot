@@ -1,0 +1,650 @@
+{
+  "A_capture_summary": {
+    "phases": [
+      "execution",
+      "review",
+      "verify"
+    ],
+    "record_count": 7,
+    "tool_names_seen": [
+      "list_skills",
+      "lookup_skill",
+      "lookup_skills",
+      "replace_file_content",
+      "view_file",
+      "write_to_file"
+    ]
+  },
+  "A_result": {
+    "arm": "A",
+    "attempt_generation_requests": 7,
+    "attempt_id": "s2_pipeline__A",
+    "candidate_diff_count": 2,
+    "candidate_patch_applied": true,
+    "elapsed_seconds": 3.54,
+    "final_phase": "awaiting_acceptance",
+    "generation_final": {
+      "corrupt": false,
+      "count": 23,
+      "limit": 192,
+      "persistent": true,
+      "remaining": 169
+    },
+    "initial_head": "6fa0fd006ff058a7299f5e6dc42013fa051303de",
+    "machine_pass": true,
+    "mode_restore": {
+      "after": {
+        "claim_lease_seconds": 300,
+        "collab_requests_enabled": false,
+        "decentralized_claim_enabled": false,
+        "default_worker_connection_ref": "lg032-worker"
+      },
+      "before": {
+        "claim_lease_seconds": 300,
+        "collab_requests_enabled": false,
+        "decentralized_claim_enabled": false,
+        "default_worker_connection_ref": "lg032-worker"
+      },
+      "restored_off": true
+    },
+    "mode_snapshot_after_bootstrap": {
+      "arm": "A",
+      "congruent": true,
+      "dispatcher_autonomous_claim": false,
+      "dispatcher_autonomous_pool": false,
+      "dispatcher_decentralized_enabled": false,
+      "expected_enabled": false,
+      "mode_snapshot_before": {
+        "after": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "arm": "A",
+        "before": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        }
+      },
+      "problems": [],
+      "settings_switches": {
+        "claim_lease_seconds": 300,
+        "collab_requests_enabled": false,
+        "decentralized_claim_enabled": false,
+        "default_worker_connection_ref": "lg032-worker"
+      }
+    },
+    "ok": true,
+    "phases_seen": [
+      "awaiting_acceptance",
+      "executing",
+      "verifying"
+    ],
+    "sample": "s2_pipeline",
+    "sample_delivered": true,
+    "seed_head": "6fa0fd006ff058a7299f5e6dc42013fa051303de",
+    "steps": [
+      {
+        "name": "health_ok",
+        "ok": true
+      },
+      {
+        "name": "execution_ready",
+        "ok": true,
+        "reasons": []
+      },
+      {
+        "name": "reviewer_wired_model",
+        "ok": true,
+        "reviewer": {
+          "connection_id": "deepseek-v4-flash",
+          "credential_configured": true,
+          "reviewer": "model"
+        }
+      },
+      {
+        "generation": {
+          "corrupt": false,
+          "count": 16,
+          "limit": 192,
+          "persistent": true,
+          "remaining": 176
+        },
+        "name": "ledger_persistent_single_path",
+        "ok": true
+      },
+      {
+        "identity": {
+          "counter_is_global": true,
+          "counter_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-serial-sdk-20261015T210140Z/generation/generation.jsonl",
+          "counter_ledger_matches_frozen": true,
+          "frozen_history_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-serial-sdk-20261015T210140Z/generation/generation.jsonl",
+          "frozen_phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-serial-sdk-20261015T210140Z",
+          "physical_history_exists_at_freeze": true
+        },
+        "name": "counter_ledger_matches_frozen_path",
+        "ok": true
+      },
+      {
+        "code": 200,
+        "name": "task_created",
+        "ok": true,
+        "task_id": "task_01M50NXZ5PSHRMGCMTRPRWEQWB"
+      },
+      {
+        "checks": [
+          "evidence-present"
+        ],
+        "name": "task_checks_authorized",
+        "ok": true
+      },
+      {
+        "name": "run_reached_awaiting_acceptance",
+        "ok": true,
+        "phase": "awaiting_acceptance",
+        "phases_seen": [
+          "awaiting_acceptance",
+          "executing",
+          "verifying"
+        ]
+      },
+      {
+        "machine": {
+          "checks": [
+            {
+              "detail": "",
+              "name": "shapes.rect.area",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "shapes.circle.area",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "shapes.rect.perimeter",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "shapes.bad.kind",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "report.rect",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "report.circle",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "no_write_from_verify",
+              "passed": true
+            }
+          ],
+          "exit_code": 0,
+          "passed": 7,
+          "total": 7
+        },
+        "name": "machine_gate_pass",
+        "ok": true
+      },
+      {
+        "name": "real_session_refs_recorded",
+        "ok": true,
+        "session_refs": [
+          "sess_f46a9997c8ba42af8d2a187556dec187",
+          "sess_f2a0d2c4c03b46e7901c694cc12d9c35",
+          "sess_8dd7b0a8a8f6465e82d29e03e1c6c93c"
+        ]
+      },
+      {
+        "name": "reviewer_real_teardown_recorded",
+        "ok": true,
+        "reviewer_cleanup": {
+          "agent_closed": true,
+          "confirmed": true,
+          "problems": [],
+          "proxy_stopped": true,
+          "status": "done"
+        }
+      },
+      {
+        "acceptance": {
+          "candidate_plan_hash": "3519527fc0cbf9d778666f1012dd898eb66a3491b1a01b4794b646dd3fc94430",
+          "candidate_ref": "run_01M50NXZ888FGP82KA439VR32K",
+          "check_records": [
+            {
+              "check_id": "evidence-present",
+              "detail": "4 evidence ref(s) recorded",
+              "status": "passed"
+            }
+          ],
+          "decided_at": "2026-10-15T21:01:49.191Z",
+          "decision_ref": "lg032-s2_pipeline__A-accept",
+          "deliverable_revision": 1,
+          "evidence_refs": [
+            "src/shapes.py",
+            "evidence:run_01M50NXZ888FGP82KA439VR32K/subtask_01M50NXZD3AAADDGMBB05GAANZ-lg006-diff.patch@sha256:c490778cf381703bb679dd05743ee22ea6de8c72e9caac831fc6ea95e3e1ff1f",
+            "src/report.py",
+            "evidence:run_01M50NXZ888FGP82KA439VR32K/subtask_01M50NXZD324JFAKQ2A3Q5ATKJ-lg006-diff.patch@sha256:88d2aae6976e075e3996eb7637874fc7b174bcd6231ee50db9d86758d9eb036c"
+          ],
+          "requirements_revision": 1,
+          "status": "accepted"
+        },
+        "candidate_ref": "run_01M50NXZ888FGP82KA439VR32K",
+        "code": 200,
+        "name": "accept_confirmed_bound",
+        "ok": true,
+        "state": "confirmed"
+      },
+      {
+        "code": 200,
+        "decision_ref": "lg032-s2_pipeline__A-accept",
+        "name": "accept_same_request_idempotent",
+        "ok": true,
+        "state": "confirmed"
+      },
+      {
+        "body": {
+          "error": {
+            "code": "illegal_transition",
+            "details": {
+              "active_run": null,
+              "target_run_id": "run_0000000000000000000000000"
+            },
+            "message": "target_run_id does not match the Task's active Run",
+            "request_id": null,
+            "retryable": false
+          }
+        },
+        "code": 409,
+        "name": "accept_wrong_target_rejected",
+        "ok": true
+      }
+    ]
+  },
+  "B_capture_summary": {
+    "phases": [
+      "execution",
+      "review",
+      "selection",
+      "verify"
+    ],
+    "record_count": 16,
+    "tool_names_seen": [
+      "discover_and_request_claim",
+      "list_skills",
+      "lookup_skill",
+      "lookup_skills",
+      "replace_file_content",
+      "view_file",
+      "write_to_file"
+    ]
+  },
+  "B_result": {
+    "arm": "B",
+    "attempt_generation_requests": 16,
+    "attempt_id": "s2_pipeline__B",
+    "candidate_diff_count": 2,
+    "candidate_patch_applied": true,
+    "elapsed_seconds": 4.99,
+    "final_phase": "awaiting_acceptance",
+    "generation_final": {
+      "corrupt": false,
+      "count": 16,
+      "limit": 192,
+      "persistent": true,
+      "remaining": 176
+    },
+    "initial_head": "6fa0fd006ff058a7299f5e6dc42013fa051303de",
+    "machine_pass": true,
+    "mode_restore": {
+      "after": {
+        "claim_lease_seconds": 300,
+        "collab_requests_enabled": false,
+        "decentralized_claim_enabled": false,
+        "default_worker_connection_ref": "lg032-worker"
+      },
+      "before": {
+        "claim_lease_seconds": 300,
+        "collab_requests_enabled": false,
+        "decentralized_claim_enabled": true,
+        "default_worker_connection_ref": "lg032-worker"
+      },
+      "restored_off": true
+    },
+    "mode_snapshot_after_bootstrap": {
+      "arm": "B",
+      "congruent": true,
+      "dispatcher_autonomous_claim": true,
+      "dispatcher_autonomous_pool": true,
+      "dispatcher_decentralized_enabled": true,
+      "expected_enabled": true,
+      "mode_snapshot_before": {
+        "after": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": true,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "arm": "B",
+        "before": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        }
+      },
+      "problems": [],
+      "settings_switches": {
+        "claim_lease_seconds": 300,
+        "collab_requests_enabled": false,
+        "decentralized_claim_enabled": true,
+        "default_worker_connection_ref": "lg032-worker"
+      }
+    },
+    "ok": true,
+    "phases_seen": [
+      "awaiting_acceptance",
+      "executing",
+      "verifying"
+    ],
+    "sample": "s2_pipeline",
+    "sample_delivered": true,
+    "seed_head": "6fa0fd006ff058a7299f5e6dc42013fa051303de",
+    "steps": [
+      {
+        "name": "health_ok",
+        "ok": true
+      },
+      {
+        "name": "execution_ready",
+        "ok": true,
+        "reasons": []
+      },
+      {
+        "name": "reviewer_wired_model",
+        "ok": true,
+        "reviewer": {
+          "connection_id": "deepseek-v4-flash",
+          "credential_configured": true,
+          "reviewer": "model"
+        }
+      },
+      {
+        "generation": {
+          "corrupt": false,
+          "count": 0,
+          "limit": 192,
+          "persistent": true,
+          "remaining": 192
+        },
+        "name": "ledger_persistent_single_path",
+        "ok": true
+      },
+      {
+        "identity": {
+          "counter_is_global": true,
+          "counter_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-serial-sdk-20261015T210140Z/generation/generation.jsonl",
+          "counter_ledger_matches_frozen": true,
+          "frozen_history_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-serial-sdk-20261015T210140Z/generation/generation.jsonl",
+          "frozen_phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-serial-sdk-20261015T210140Z",
+          "physical_history_exists_at_freeze": false
+        },
+        "name": "counter_ledger_matches_frozen_path",
+        "ok": true
+      },
+      {
+        "code": 200,
+        "name": "task_created",
+        "ok": true,
+        "task_id": "task_01M50NXTBJTHE90Z8KKXSX317P"
+      },
+      {
+        "checks": [
+          "evidence-present"
+        ],
+        "name": "task_checks_authorized",
+        "ok": true
+      },
+      {
+        "name": "run_reached_awaiting_acceptance",
+        "ok": true,
+        "phase": "awaiting_acceptance",
+        "phases_seen": [
+          "awaiting_acceptance",
+          "executing",
+          "verifying"
+        ]
+      },
+      {
+        "machine": {
+          "checks": [
+            {
+              "detail": "",
+              "name": "shapes.rect.area",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "shapes.circle.area",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "shapes.rect.perimeter",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "shapes.bad.kind",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "report.rect",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "report.circle",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "no_write_from_verify",
+              "passed": true
+            }
+          ],
+          "exit_code": 0,
+          "passed": 7,
+          "total": 7
+        },
+        "name": "machine_gate_pass",
+        "ok": true
+      },
+      {
+        "name": "real_session_refs_recorded",
+        "ok": true,
+        "session_refs": [
+          "sess_758b0df26d2c479a97c389adc79843c3",
+          "sess_475221145b7d409aaa14c8b25a28a81e",
+          "sess_ad2d532354704e0289abfe2da91dccef",
+          "sess_7dd5c774d23e488ca1cae666990fd364",
+          "sess_6a43af52ed7445658241e06ccdd341bf",
+          "sess_e8d9563134d246908697001ebf6151a1"
+        ]
+      },
+      {
+        "name": "reviewer_real_teardown_recorded",
+        "ok": true,
+        "reviewer_cleanup": {
+          "agent_closed": true,
+          "confirmed": true,
+          "problems": [],
+          "proxy_stopped": true,
+          "status": "done"
+        }
+      },
+      {
+        "acceptance": {
+          "candidate_plan_hash": "025cc5d81e0bb7c91858142854872ecaf0acd5c3df3046ff31da6f62c34c7f44",
+          "candidate_ref": "run_01M50NXTDSCPAYZ5771P4PVH2K",
+          "check_records": [
+            {
+              "check_id": "evidence-present",
+              "detail": "4 evidence ref(s) recorded",
+              "status": "passed"
+            }
+          ],
+          "decided_at": "2026-10-15T21:01:45.495Z",
+          "decision_ref": "lg032-s2_pipeline__B-accept",
+          "deliverable_revision": 1,
+          "evidence_refs": [
+            "src/shapes.py",
+            "evidence:run_01M50NXTDSCPAYZ5771P4PVH2K/subtask_01M50NXTJ874ZSX23FZCV9PBBX-lg006-diff.patch@sha256:c490778cf381703bb679dd05743ee22ea6de8c72e9caac831fc6ea95e3e1ff1f",
+            "src/report.py",
+            "evidence:run_01M50NXTDSCPAYZ5771P4PVH2K/subtask_01M50NXTJ8FP72E6CJDJMCVXG1-lg006-diff.patch@sha256:88d2aae6976e075e3996eb7637874fc7b174bcd6231ee50db9d86758d9eb036c"
+          ],
+          "requirements_revision": 1,
+          "status": "accepted"
+        },
+        "candidate_ref": "run_01M50NXTDSCPAYZ5771P4PVH2K",
+        "code": 200,
+        "name": "accept_confirmed_bound",
+        "ok": true,
+        "state": "confirmed"
+      },
+      {
+        "code": 200,
+        "decision_ref": "lg032-s2_pipeline__B-accept",
+        "name": "accept_same_request_idempotent",
+        "ok": true,
+        "state": "confirmed"
+      },
+      {
+        "body": {
+          "error": {
+            "code": "illegal_transition",
+            "details": {
+              "active_run": null,
+              "target_run_id": "run_0000000000000000000000000"
+            },
+            "message": "target_run_id does not match the Task's active Run",
+            "request_id": null,
+            "retryable": false
+          }
+        },
+        "code": 409,
+        "name": "accept_wrong_target_rejected",
+        "ok": true
+      }
+    ]
+  },
+  "summary": {
+    "A_after_B": {
+      "mode": {
+        "arm": "A",
+        "congruent": true,
+        "dispatcher_autonomous_claim": false,
+        "dispatcher_autonomous_pool": false,
+        "dispatcher_decentralized_enabled": false,
+        "expected_enabled": false,
+        "mode_snapshot_before": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "arm": "A",
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "problems": [],
+        "settings_switches": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        }
+      },
+      "ok": true,
+      "phases": [
+        "execution",
+        "review",
+        "verify"
+      ],
+      "rc": 0,
+      "session_refs": 3
+    },
+    "B": {
+      "mode": {
+        "arm": "B",
+        "congruent": true,
+        "dispatcher_autonomous_claim": true,
+        "dispatcher_autonomous_pool": true,
+        "dispatcher_decentralized_enabled": true,
+        "expected_enabled": true,
+        "mode_snapshot_before": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "arm": "B",
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "problems": [],
+        "settings_switches": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": true,
+          "default_worker_connection_ref": "lg032-worker"
+        }
+      },
+      "ok": true,
+      "phases": [
+        "execution",
+        "review",
+        "selection",
+        "verify"
+      ],
+      "rc": 0,
+      "session_refs": 6
+    },
+    "checks": {
+      "A_after_B_congruent": true,
+      "A_after_B_no_pool_selection_phase": true,
+      "A_after_B_pool_off": true
+    },
+    "order": [
+      "B",
+      "A"
+    ],
+    "real_provider_generation": 0,
+    "sample": "s2_pipeline",
+    "shared_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-serial-sdk-20261015T210140Z",
+    "utc": "20261015T210140Z",
+    "verdict": "PASS"
+  }
+}

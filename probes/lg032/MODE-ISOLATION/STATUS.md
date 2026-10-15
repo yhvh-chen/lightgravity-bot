@@ -2,7 +2,7 @@
 title: "LG-032 MODE-ISOLATION STATUS（每 15 round 更新）"
 doc_type: status
 category: engineering
-status: "round 9–28：harness mode 隔离修复实现 + 0-real 串行 bootstrap/SDK A-after-B 验证 PASS；real provider 0"
+status: "round 9–35：harness mode 隔离修复 + 0-real 串行 bootstrap/SDK A-after-B/单A回归/fairness 全 PASS；交独立 QA；real provider 0"
 experiment_id: lg032-mode-isolation-20261016
 worktree: /home/yhvh/code/lightgravity-bot-worktrees/lg032-mode-isolation
 branch: fix/lg032-mode-isolation
@@ -52,15 +52,21 @@ owner: "agent:pi-lg032-mode-isolation"
 ## 已完成
 
 - [x] 新持久 worktree `lg032-mode-isolation` / branch `fix/lg032-mode-isolation` 基 `379c089`。
-- [x] `REPORT-MODE-FIX.md` + `STATUS.md`。
+- [x] `REPORT-MODE-FIX.md` + `STATUS.md` + `QA-HANDOFF.md`。
 - [x] harness 显式 mode 装配（A=false/B=true，build 前）。
 - [x] 真实 bootstrap 后 active mode + 三开关断言/记录 + STOP 失败闭合。
 - [x] phase 结束恢复 off 并记录。
 - [x] 新 cohort2 持久 root + overlay（`lg032-cohort2-data`）。
 - [x] 0-real 共享 data_dir 串行 A→B→A→B bootstrap 验证（fix+legacy）。
 - [x] 0-real 真 SDK loopback A-after-B 复现/修复。
-- [ ] 精确 commit。
-- [ ] 交独立 serial 方法 QA。
+- [x] fairness selftest（新不变量）PASS；单 A dry 14/14 PASS（回归）。
+- [x] 精确 commit `c433ffc` + `f08a12f`（+ 本 commit）。
+- [x] 交独立串行方法 QA（`QA-HANDOFF.md`）。
+
+## 阶段判断（round 30+；70 round 前保存）
+
+**本包交付完成，可交独立 QA**。已实现 harness 修复 + 0-real 双向验证；**不宣 formalReady / 不 mark 032 done /
+不 main merge**。剩余工作（由 PM 决定）：独立 serial 方法 QA 复核；是否授权新 cohort2 正式 4 attempt。
 
 ## 硬边界
 

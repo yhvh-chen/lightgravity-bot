@@ -1,0 +1,468 @@
+{
+  "fix_scenario": {
+    "scenario": "fix",
+    "steps": [
+      {
+        "active_mode_snapshot": {
+          "arm": "A",
+          "congruent": true,
+          "dispatcher_autonomous_claim": false,
+          "dispatcher_autonomous_pool": false,
+          "dispatcher_decentralized_enabled": false,
+          "execution_ready": true,
+          "expected_enabled": false,
+          "problems": [],
+          "settings_switches": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "arm": "A",
+        "restore": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "restored_off": true
+        },
+        "switches_after_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "switches_before_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "write": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "arm": "A",
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        }
+      },
+      {
+        "active_mode_snapshot": {
+          "arm": "B",
+          "congruent": true,
+          "dispatcher_autonomous_claim": true,
+          "dispatcher_autonomous_pool": true,
+          "dispatcher_decentralized_enabled": true,
+          "execution_ready": true,
+          "expected_enabled": true,
+          "problems": [],
+          "settings_switches": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "arm": "B",
+        "restore": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "restored_off": true
+        },
+        "switches_after_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": true,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "switches_before_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "write": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "arm": "B",
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        }
+      },
+      {
+        "active_mode_snapshot": {
+          "arm": "A",
+          "congruent": true,
+          "dispatcher_autonomous_claim": false,
+          "dispatcher_autonomous_pool": false,
+          "dispatcher_decentralized_enabled": false,
+          "execution_ready": true,
+          "expected_enabled": false,
+          "problems": [],
+          "settings_switches": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "arm": "A",
+        "restore": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "restored_off": true
+        },
+        "switches_after_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "switches_before_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "write": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "arm": "A",
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        }
+      },
+      {
+        "active_mode_snapshot": {
+          "arm": "B",
+          "congruent": true,
+          "dispatcher_autonomous_claim": true,
+          "dispatcher_autonomous_pool": true,
+          "dispatcher_decentralized_enabled": true,
+          "execution_ready": true,
+          "expected_enabled": true,
+          "problems": [],
+          "settings_switches": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "arm": "B",
+        "restore": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "restored_off": true
+        },
+        "switches_after_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": true,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "switches_before_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "write": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "arm": "B",
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        }
+      }
+    ]
+  },
+  "legacy_pollution_demo": {
+    "observed": [
+      {
+        "arm": "A",
+        "dispatcher_autonomous_pool": false,
+        "dispatcher_decentralized_enabled": false,
+        "persisted_switches": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        }
+      },
+      {
+        "arm": "B",
+        "dispatcher_autonomous_pool": true,
+        "dispatcher_decentralized_enabled": true,
+        "persisted_switches": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": true,
+          "default_worker_connection_ref": "lg032-worker"
+        }
+      },
+      {
+        "arm": "A_after_B_legacy",
+        "dispatcher_autonomous_pool": true,
+        "dispatcher_decentralized_enabled": true,
+        "persisted_switches": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": true,
+          "default_worker_connection_ref": "lg032-worker"
+        }
+      }
+    ],
+    "scenario": "legacy_pollution_demo"
+  },
+  "legacy_scenario_A_after_B": {
+    "scenario": "legacy_enable_b_only",
+    "steps": [
+      {
+        "active_mode_snapshot": {
+          "arm": "A",
+          "congruent": true,
+          "dispatcher_autonomous_pool": false,
+          "dispatcher_decentralized_enabled": false,
+          "expected_enabled": false,
+          "persisted_switches": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "arm": "A",
+        "restore": {
+          "skipped": "legacy scenario never restored"
+        },
+        "switches_after_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "switches_before_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "write": {
+          "arm": "A",
+          "legacy": "no write (inherits persisted value)"
+        }
+      },
+      {
+        "active_mode_snapshot": {
+          "arm": "B",
+          "congruent": true,
+          "dispatcher_autonomous_pool": true,
+          "dispatcher_decentralized_enabled": true,
+          "expected_enabled": true,
+          "persisted_switches": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "arm": "B",
+        "restore": {
+          "skipped": "legacy scenario never restored"
+        },
+        "switches_after_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": true,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "switches_before_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": false,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "write": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "arm": "B",
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        }
+      },
+      {
+        "active_mode_snapshot": {
+          "arm": "A",
+          "congruent": false,
+          "dispatcher_autonomous_pool": true,
+          "dispatcher_decentralized_enabled": true,
+          "expected_enabled": false,
+          "persisted_switches": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "arm": "A",
+        "restore": {
+          "skipped": "legacy scenario never restored"
+        },
+        "switches_after_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": true,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "switches_before_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": true,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "write": {
+          "arm": "A",
+          "legacy": "no write (inherits persisted value)"
+        }
+      },
+      {
+        "active_mode_snapshot": {
+          "arm": "B",
+          "congruent": true,
+          "dispatcher_autonomous_pool": true,
+          "dispatcher_decentralized_enabled": true,
+          "expected_enabled": true,
+          "persisted_switches": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "arm": "B",
+        "restore": {
+          "skipped": "legacy scenario never restored"
+        },
+        "switches_after_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": true,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "switches_before_write": {
+          "claim_lease_seconds": 300,
+          "collab_requests_enabled": false,
+          "decentralized_claim_enabled": true,
+          "default_worker_connection_ref": "lg032-worker"
+        },
+        "write": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "arm": "B",
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        }
+      }
+    ]
+  },
+  "summary": {
+    "fix_root": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-serial-fix-20261015T210136Z",
+    "fix_scenario_congruent_all_steps": true,
+    "label": "final",
+    "legacy_pollution_demo_reproduced": true,
+    "legacy_root": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-serial-legacy-20261015T210136Z",
+    "legacy_scenario_A_after_B_shows_pool_true": true,
+    "real_provider_generation": 0,
+    "shared_data_dir_strategy": "one shared settings.data_dir per scenario (A->B->A->B serial bootstraps), not per-nonce roots",
+    "utc": "20261015T210136Z",
+    "verdict": "PASS"
+  }
+}

@@ -879,7 +879,7 @@ def run_attempt(sample: str, arm: str, *, dry_run: bool = False,
         # own controlled settings write; the product source default (off) is
         # never changed.  Recorded either way (restore failure is reported, not
         # hidden, but never turns a real attempt failure into a fake success).
-        results["mode_restore"] = _safe_restore_mode(settings)
+        results["mode_restore"] = _safe(lambda: _safe_restore_mode(settings))
         results["ok"] = all(s["ok"] for s in results["steps"])
         (out_dir / "result.json").write_text(
             json.dumps(results, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8"
