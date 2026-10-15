@@ -495,3 +495,11 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
   **proof2 新 cap 48 只有上限、尚未实际报告**（**不计 0 完成、不称成功**）；provider token/费用/sharedpiQA **unknown**（不当 0）。
 - **最终 031/032 真实门（未闭合）**：**LG-031 仍需真实 `verify`/reviewer/绑定 accept 的真实 proof**；**LG-032 还需 029/031 返修闭合后的同门全生命周期成本对照**（阶段 B 暂停，另冻结 harness/样本/费用）。**不把局部机制 pass 当产品 pass**。
 - **本包产品真实生成 0、外部服务调用 0**；未创建 B 成本 cohort、未运行 SDK 测试、未调用模型；未 push/deploy/publish。
+
+## 2026-10-16 PM 直接 digest 校正与 proof2 续接
+
+- main `91550a9`，source契约1.11.0（机制独立R1四门PASS，SDK0.1.22，default自主off），原L0包仍e0/1.10/hash581f1de...原样。旧集成报告中的34done/5inprogress是错误/较早快照；主代理直接CLI于2026-10-15T19:26:11Z复核：**35done / 4inprogress(LG031/032/035/037) / 2todo(040/041)**，complete=true/diagnostics=[]。LG029和024 frontmatter均done，031/032真实门未完成仍inprogress。
+- LG031上一真实proof cap24实际24耗尽，alpha/beta精确/隔离产物和4条上游hash交接、6/6会话真实停止成立，verify执行/reviewer/accept未达；旧累计34+24=**58**工程真实调用，不归零。b819dd3已收拢main，不宣整版本pass。
+- 新独立engineering proof2 owner仅harness/观测、产品行为只读，在持久lg031-real-proof2/dev/lg031-real-proof2，单次全新隔离Task副本，**48次全phase硬上限**，与旧Run/旧ledger完全分开，不自动恢复/重放旧写；旧58+新最多48=工程已知上限106。先0真实forensics/实际runtime共享物理账本预检，固定同fixture/输入/提示/工具/门，只扩总cap与原件观测。活跃exec session82120/logbounded-a6rxg_5j/prompt lg031-real-proof2-budget-20261016.txt（最终实际进程/HEAD/REPORT需再次核实），不得先称成功或把上限当实际。未知token/费用与pi共同成本仍unknown。
+- 024两阶段和PM收拢均已结束；029源返修、R1独立复验已结束；main无其他源owner并发写。下一步核proof2真实verify/reviewer/绑定accept是否齐；若齐031done后给独立032成本B冻结固定样本、实际足够且双方相同上限，所有阶段/失败/QA/返修复验计入，使用同一个actual settings.data_dir物理ledger，禁止重犯未接helper/bootstrap覆盖错。defaultoff直至数据真支持，缺全cost不推收益。
+- 资料服务最近只读复查仍连接失败（health timeout/models无路由，POST0），私有证据MATERIALS-LATE-HEALTH.md，035/037/040/041状态不动。原始worktree/历史失败及丢失原SoT的诚实记录均保留，不push/deploy/publish。

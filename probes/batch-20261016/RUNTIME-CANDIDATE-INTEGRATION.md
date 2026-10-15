@@ -111,3 +111,7 @@ updated: "2026-10-16"
 - F2 身份返修：`probes/lg029/F2-AUTH-FIX/{PLAN,STATUS}.md`
 - 首版包：`probes/lg024/STAGE-B/`、`probes/batch-20261016/LG024-CLOSE.md`
 - [接口契约 1.11.0](../../docs/08-interface-contract.md)
+
+## PM 后续直接 CLI 校正（2026-10-15T19:26:11Z）
+
+本报告原34 done/5 in-progress计数与随后直接CLI不符；以完整扫描的实际结果为准：**35 done / 4 in-progress（LG031/032/035/037）/ 2 todo（040/041）**，diagnostics=[]，LG029与LG024 frontmatter均done。源代码/包校验和与本报告其余已核事实不变；工程proof2 cap48为在途上限而非已完成或实际消耗。
