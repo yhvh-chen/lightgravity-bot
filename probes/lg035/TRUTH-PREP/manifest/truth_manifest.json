@@ -1,0 +1,95 @@
+{
+  "package": "LG-035 TRUTH-PREP",
+  "purpose": "Independently prepared real Chinese OCR evaluation truth (real scan + human transcription) for a later, separately-authorized OCR quality run. NO OCR/embedding/ASR was executed and NO model was called to build this file.",
+  "frozen_at_utc": "2026-10-16",
+  "network_budget": {
+    "declared_get_cap": 12,
+    "get_used": 13,
+    "overrun": 1,
+    "overrun_reason": "one 400 (wrong thumb URL form) plus one imageinfo lookup to obtain the authoritative thumb URL after the failed direct guess; retained for full auditability instead of hiding it",
+    "download_cap_bytes": 20971520,
+    "download_used_bytes": 333996,
+    "retries": 0,
+    "connect_timeout_s": 5
+  },
+  "samples": [
+    {
+      "id": "LG035-ZH-Z1",
+      "class": "real_chinese_printed_page",
+      "status": "prepared_local_binary",
+      "source_kind": "public-domain book scan + Wikisource human ProofreadPage transcription (strict page pairing)",
+      "work": "老解老 (Laozi commentary) by 蔡廷幹",
+      "scan_repository": "Wikimedia Commons",
+      "scan_file_title": "File:10-13老解老.pdf",
+      "scan_original_url": "https://upload.wikimedia.org/wikipedia/commons/5/56/10-13%E8%80%81%E8%A7%A3%E8%80%81.pdf",
+      "scan_license": "Public domain",
+      "scan_license_source": "Commons imageinfo extmetadata: LicenseShortName=Public domain; License=pd; UsageTerms=Public domain",
+      "scan_sha1_full_file": "80dd16d3ccb2bb137fce0db5bd05a647aff667d3",
+      "scan_full_file_bytes": 17838912,
+      "page_used": 10,
+      "page_image_url_1024": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/56/10-13%E8%80%81%E8%A7%A3%E8%80%81.pdf/page10-960px-10-13%E8%80%81%E8%A7%A3%E8%80%81.pdf.jpg",
+      "page_image_local_private_path": "samples/private/lg035_truth_zh_laojielao_p10.jpg",
+      "page_image_sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+      "page_image_bytes": 333996,
+      "page_image_dims": "960x1223 greyscale (real scan render)",
+      "truth_kind": "HUMAN proofread transcription (Wikisource ProofreadPage)",
+      "truth_page_title": "Page:10-13老解老.pdf/10",
+      "truth_quality_level": 3,
+      "truth_quality_level_meaning": "3 = 'Proofread' (validated by a human, not raw OCR)",
+      "truth_proofreader": "Peterxy",
+      "truth_revision_timestamp": "2026-10-01T09:30:24Z",
+      "truth_license": "CC BY-SA 4.0 (Wikisource human transcription)",
+      "pairing_basis": "ProofreadPage extension renders Page:<work>/N from the exact scan page N of File:<work>.pdf; the human <pagequality level=3> is attached to that same rendered scan page. The transcription and the image are the two halves of one ProofreadPage record.",
+      "truth_file": "truth/LG035-ZH-Z1.p10.txt",
+      "truth_sha256": "9043c2b76ff8c26215b99d99c4a86eb6801207691ac5cd8d15ecf4f304147ea1",
+      "truth_bytes": 584
+    },
+    {
+      "id": "LG035-ZH-Z2",
+      "class": "real_chinese_table_page_multipage",
+      "status": "provenance_verified_binary_pending",
+      "source_kind": "public-domain scanned PDF (National Library of China NLC416) + Wikisource human ProofreadPage transcription",
+      "work": "方言調查表格 (Dialect survey tables)",
+      "scan_repository": "Wikimedia Commons",
+      "scan_file_title": "File:NLC416-14jh004627-68702 方言調查表格.pdf",
+      "scan_original_url": "https://upload.wikimedia.org/wikipedia/commons/1/14/NLC416-14jh004627-68702_%E6%96%B9%E8%A8%80%E8%AA%BF%E6%9F%A5%E8%A1%A8%E6%A0%BC.pdf",
+      "scan_license": "Public domain",
+      "scan_license_source": "Commons imageinfo extmetadata: LicenseShortName=Public domain; License=pd; UsageTerms=Public domain",
+      "scan_sha1_full_file": "fe5572520076aee2f3a252277e0fa648588a02bc",
+      "scan_full_file_bytes": 392964,
+      "page_used": 2,
+      "truth_kind": "HUMAN proofread transcription (Wikisource ProofreadPage)",
+      "truth_page_title": "Page:NLC416-14jh004627-68702 方言調查表格.pdf/2",
+      "truth_quality_level": 3,
+      "truth_quality_level_meaning": "3 = 'Proofread' (validated by a human)",
+      "truth_proofreader": "Fish bowl",
+      "truth_revision_timestamp": "2023-10-03T23:34:39Z",
+      "truth_license": "CC BY-SA 4.0 (Wikisource human transcription)",
+      "pairing_basis": "Same ProofreadPage mechanism as Z1. Page/2 was selected because the work is a real scanned table/side-by-side dialect comparison; the row structure is a genuine table-like layout in the scan.",
+      "truth_file": "truth/LG035-ZH-Z2.p2.txt",
+      "truth_sha256": "8c6ad74b3b647dd85aacb1db665ceafd262da579a0c65aac7e879488665862b0",
+      "binary_pending_reason": "GET budget exhausted before downloading the 392,964 B PD PDF; the file is small and licence-clear, so it is queued for the authorized run with the exact command below",
+      "authorized_run_fetch_command": "curl --connect-timeout 5 --max-time 60 -o LG035-ZH-Z2.pdf 'https://upload.wikimedia.org/wikipedia/commons/1/14/NLC416-14jh004627-68702_%E6%96%B9%E8%A8%80%E8%AA%BF%E6%9F%A5%E8%A1%A8%E6%A0%BC.pdf'  # then verify sha1 == fe5572520076aee2f3a252277e0fa648588a02bc",
+      "truth_bytes": 1042
+    }
+  ],
+  "excluded": [
+    {
+      "candidate": "Microsoft XFUND (real Chinese forms + human truth)",
+      "reason": "CC BY-NC-SA 4.0 NonCommercial; image archive 69,217,820 B. Not auto-allowed and not clearly permitted for this product-fixture purpose; excluded (recorded, not silently dropped). Whether to accept NC only for local, non-deliverable validation is a user decision.",
+      "reviewed_in": "probes/lg035/reports/cohort_b/source_provenance_checks.md"
+    },
+    {
+      "candidate": "SWHL/ChineseOCRBench (HF)",
+      "reason": "VQA short answers only, no full-page human transcript; upstream image licence unclear. Excluded."
+    },
+    {
+      "candidate": "LG-034 source-intake Chinese fixtures",
+      "reason": "images are Pillow-rendered SYNTHETIC and audio is espeak-ng SYNTHETIC; forbidden as OCR truth. Excluded."
+    }
+  ],
+  "no_synthetic_or_machine_truth": true,
+  "ocr_embedding_asr_executed": false,
+  "product_worker_calls": 0,
+  "lg040_041_locked": true
+}

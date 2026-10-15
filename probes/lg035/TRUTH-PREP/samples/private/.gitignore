@@ -1,0 +1,5 @@
+# Originals stay private — mode 0700 dir / 0600 files, never packaged into the repo.
+# The repo carries only the reviewable manifest / provenance / licence-permitted
+# human ground truth. The image path + sha256 are recorded in ../manifest/truth_manifest.json.
+*
+!.gitignore
