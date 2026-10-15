@@ -1,0 +1,35 @@
+{
+ "r4_titles": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7",
+  "M_AUD_ZH",
+  "M_IMG_EN",
+  "M_IMG_ZH"
+ ],
+ "r5_titles": [
+  "D1",
+  "D2",
+  "D3",
+  "D5",
+  "D6",
+  "M_AUD_DIQIU",
+  "M_AUD_ZH",
+  "M_IMG_EN",
+  "M_IMG_ZH",
+  "T_NORTHWIND"
+ ],
+ "r4_only": [
+  "D4",
+  "D7"
+ ],
+ "r5_only": [
+  "M_AUD_DIQIU",
+  "T_NORTHWIND"
+ ],
+ "note": "query vectors not preserved; ordinal rankings from crossmodal_results.json"
+}
