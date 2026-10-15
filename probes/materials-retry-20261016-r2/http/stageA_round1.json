@@ -1,0 +1,6 @@
+{"name":"health","url":"http://192.168.8.12:11434/health","utc":"2026-10-15T22:16:48Z","curl_exit":0,{"http_code":"200","time_total":"0.001931","time_connect":"0.000864","num_connects":"1","exitcode":0},
+  body_bytes: 15
+  err: 
+{"name":"models","url":"http://192.168.8.12:11434/v1/models","utc":"2026-10-15T22:16:48Z","curl_exit":0,{"http_code":"200","time_total":"0.002872","time_connect":"0.000543","num_connects":"1","exitcode":0},
+  body_bytes: 3909
+  err: 

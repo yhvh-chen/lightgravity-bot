@@ -1,0 +1,24 @@
+{
+  "post": 2,
+  "endpoint": "http://192.168.8.12:11434/v1/embeddings",
+  "model": "embeddinggemma-2-Q8_0",
+  "dim": 768,
+  "input_kind": "text",
+  "input_sha256": "220bf48fb97506845f8129d0dc136e5d45e45ee2d8e7cf2607b6ca3798417054",
+  "input_bytes": 108,
+  "latency_seconds": 4.873,
+  "prompt_tokens": 37,
+  "finite": true,
+  "nonzero": true,
+  "l2_norm": 1.0,
+  "first8": [
+    -0.032838,
+    -0.009322,
+    -0.025601,
+    0.004019,
+    0.019534,
+    0.035327,
+    0.003682,
+    -0.026947
+  ]
+}
