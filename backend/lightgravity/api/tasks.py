@@ -227,6 +227,50 @@ def _parse_task_body(body: str) -> dict[str, Any]:
     }
 
 
+def _spawn_rework_after_reject(
+    ctx: ApiContext,
+    task_id: str,
+    payload: TaskActionRequest,
+    decision: Any,
+) -> dict[str, Any] | None:
+    """Queue a fresh rework Run after a human reject (LG-017).
+
+    The rejected candidate + evidence are kept (the prior Run stays on disk and
+    ``last_run``); the Task keeps its id.  A new Run re-recruits and re-verifies.
+    Returns the spawn outcome for the response, or ``None`` when the runtime has
+    no rework spawner (the reject still stands; the Task stays ``repairing``).
+    """
+
+    coordinator = ctx.coordinator
+    spawn_fn = getattr(coordinator, "spawn_repair_run", None)
+    if not callable(spawn_fn):
+        return None
+    candidate_ref = getattr(decision, "candidate_ref", None)
+    note = (payload.note or "").strip()
+    findings = (
+        (
+            {
+                "finding_id": "human-reject",
+                "severity": "blocking",
+                "summary": note or "user rejected the candidate",
+                "evidence_ref": "",
+                "rework_target": "deliverable",
+                "candidate_ref": candidate_ref or "",
+                "detail": "human acceptance decision",
+            },
+        )
+        if note
+        else ()
+    )
+    outcome = spawn_fn(
+        task_id,
+        prior_run_id=candidate_ref or "",
+        findings=findings,
+        request_id=payload.request_id,
+    )
+    return outcome.to_dict() if hasattr(outcome, "to_dict") else None
+
+
 def build_task_router() -> APIRouter:
     router = APIRouter(tags=["tasks"])
 
@@ -389,7 +433,16 @@ def build_task_router() -> APIRouter:
             )
             if replayed is not None:
                 response.headers["ETag"] = f'"{ctx.store.read("task", task_id).revision}"'
-                return replayed.to_dict()
+                replayed_payload = replayed.to_dict()
+                if action is ActionName.REJECT:
+                    # A duplicate reject must be byte-for-byte idempotent with the
+                    # first response, including the LG-017 rework outcome.  The
+                    # spawner collapses a duplicate request, so re-deriving the
+                    # outcome here is safe and writes no second Run.
+                    spawn = _spawn_rework_after_reject(ctx, task_id, payload, replayed)
+                    if spawn is not None:
+                        replayed_payload["rework"] = spawn
+                return replayed_payload
         if (
             payload.expected_revision is not None
             and payload.expected_revision != current.revision
@@ -479,8 +532,19 @@ def build_task_router() -> APIRouter:
                 target_run_id=payload.target_run_id,
                 note=payload.note,
             )
+            rework_spawn: dict[str, Any] | None = None
+            if action is ActionName.REJECT:
+                # A human reject must open a fresh rework Run that re-recruits
+                # and re-verifies, while keeping the original Task ID and the
+                # rejected candidate/evidence (docs/08 §6.1; LG-017).  The
+                # decision already moved the Task to ``repairing`` with
+                # ``active_run=None``; the spawner queues the new Run.
+                rework_spawn = _spawn_rework_after_reject(ctx, task_id, payload, decision)
             response.headers["ETag"] = f'"{ctx.store.read("task", task_id).revision}"'
-            return decision.to_dict()
+            decision_payload = decision.to_dict()
+            if rework_spawn is not None:
+                decision_payload["rework"] = rework_spawn
+            return decision_payload
         owner = _ACTION_OWNER.get(action.value, "LG-016")
         raise AppError(
             ErrorCode.NOT_READY,
