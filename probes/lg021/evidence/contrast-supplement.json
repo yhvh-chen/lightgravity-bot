@@ -1,0 +1,249 @@
+{
+  "board": {
+    "href": "http://127.0.0.1:42161/?view=board",
+    "presentClasses": 38,
+    "pairs": {
+      ".lg-card__meta": {
+        "text": "queued",
+        "fg": "rgb(100, 116, 139)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 4.76
+      },
+      ".lg-section__title": {
+        "text": "Tasks",
+        "fg": "rgb(100, 116, 139)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 4.76
+      },
+      ".lg-scope-field__label": {
+        "text": "Scope",
+        "fg": "rgb(71, 85, 105)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 7.58
+      },
+      ".lg-context__title": {
+        "text": "Tasks",
+        "fg": "rgb(71, 85, 105)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 7.58
+      },
+      ".lg-context-item__label": {
+        "text": "Refactor the batch intak",
+        "fg": "rgb(15, 23, 42)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 17.85
+      },
+      ".lg-context-item__meta": {
+        "text": "phase: awaiting_acceptan",
+        "fg": "rgb(100, 116, 139)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 4.76
+      },
+      ".lg-state__body": {
+        "text": "Describe a goal to creat",
+        "fg": "rgb(71, 85, 105)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 7.58
+      },
+      ".lg-composer__hint": {
+        "text": "Enter to send · Shift+En",
+        "fg": "rgb(100, 116, 139)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 4.76
+      },
+      ".lg-main h2": {
+        "text": "Board",
+        "fg": "rgb(15, 23, 42)",
+        "bg": "rgb(248, 250, 252)",
+        "ratio": 17.06
+      },
+      ".lg-topbar__scope": {
+        "text": "ScopeGlobalmock-task-1mo",
+        "fg": "rgb(15, 23, 42)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 17.85
+      }
+    },
+    "missing": [
+      ".lg-field__label",
+      ".lg-detail-header__title",
+      ".lg-detail-header__meta",
+      ".lg-message__meta",
+      ".lg-notification__meta",
+      ".lg-popover__status",
+      ".lg-board__count"
+    ],
+    "disabledExempt": {
+      ".lg-button:disabled": "absent",
+      ".lg-select:disabled": {
+        "fg": "rgb(100, 116, 139)",
+        "bg": "rgb(241, 245, 249)",
+        "ratio": 4.34,
+        "note": "disabled-control (WCAG 1.4.3 exempt)"
+      }
+    }
+  },
+  "settings": {
+    "href": "http://127.0.0.1:42161/?view=settings",
+    "presentClasses": 12,
+    "pairs": {
+      ".lg-section__title": {
+        "text": "Models & Providers",
+        "fg": "rgb(100, 116, 139)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 4.76
+      },
+      ".lg-field__label": {
+        "text": "Default coordinator conn",
+        "fg": "rgb(15, 23, 42)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 17.85
+      },
+      ".lg-scope-field__label": {
+        "text": "Scope",
+        "fg": "rgb(71, 85, 105)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 7.58
+      },
+      ".lg-context__title": {
+        "text": "Settings",
+        "fg": "rgb(71, 85, 105)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 7.58
+      },
+      ".lg-detail-header__title": {
+        "text": "Settings",
+        "fg": "rgb(15, 23, 42)",
+        "bg": "rgb(248, 250, 252)",
+        "ratio": 17.06
+      },
+      ".lg-detail-header__meta": {
+        "text": "section: Models & Provid",
+        "fg": "rgb(71, 85, 105)",
+        "bg": "rgb(248, 250, 252)",
+        "ratio": 7.24
+      },
+      ".lg-state__body": {
+        "text": "Create a DeepSeek (OpenA",
+        "fg": "rgb(71, 85, 105)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 7.58
+      },
+      ".lg-composer__hint": {
+        "text": "Enter to send · Shift+En",
+        "fg": "rgb(100, 116, 139)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 4.76
+      },
+      ".lg-main h2": {
+        "text": "Settings",
+        "fg": "rgb(15, 23, 42)",
+        "bg": "rgb(248, 250, 252)",
+        "ratio": 17.06
+      },
+      ".lg-topbar__scope": {
+        "text": "ScopeGlobalmock-task-1mo",
+        "fg": "rgb(15, 23, 42)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 17.85
+      }
+    },
+    "missing": [
+      ".lg-card__meta",
+      ".lg-context-item__label",
+      ".lg-context-item__meta",
+      ".lg-message__meta",
+      ".lg-notification__meta",
+      ".lg-popover__status",
+      ".lg-board__count"
+    ],
+    "disabledExempt": {
+      ".lg-button:disabled": "absent",
+      ".lg-select:disabled": {
+        "fg": "rgb(100, 116, 139)",
+        "bg": "rgb(241, 245, 249)",
+        "ratio": 4.34,
+        "note": "disabled-control (WCAG 1.4.3 exempt)"
+      }
+    }
+  },
+  "chat": {
+    "href": "http://127.0.0.1:42161/?view=chat",
+    "presentClasses": 20,
+    "pairs": {
+      ".lg-section__title": {
+        "text": "Tasks",
+        "fg": "rgb(100, 116, 139)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 4.76
+      },
+      ".lg-scope-field__label": {
+        "text": "Scope",
+        "fg": "rgb(71, 85, 105)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 7.58
+      },
+      ".lg-context__title": {
+        "text": "Conversations",
+        "fg": "rgb(71, 85, 105)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 7.58
+      },
+      ".lg-context-item__label": {
+        "text": "Refactor the batch intak",
+        "fg": "rgb(15, 23, 42)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 17.85
+      },
+      ".lg-context-item__meta": {
+        "text": "phase: awaiting_acceptan",
+        "fg": "rgb(100, 116, 139)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 4.76
+      },
+      ".lg-state__body": {
+        "text": "Describe a goal to creat",
+        "fg": "rgb(71, 85, 105)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 7.58
+      },
+      ".lg-composer__hint": {
+        "text": "Enter to send · Shift+En",
+        "fg": "rgb(100, 116, 139)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 4.76
+      },
+      ".lg-main h2": {
+        "text": "Chat",
+        "fg": "rgb(15, 23, 42)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 17.85
+      },
+      ".lg-topbar__scope": {
+        "text": "ScopeGlobalmock-task-1mo",
+        "fg": "rgb(15, 23, 42)",
+        "bg": "rgb(255, 255, 255)",
+        "ratio": 17.85
+      }
+    },
+    "missing": [
+      ".lg-card__meta",
+      ".lg-field__label",
+      ".lg-detail-header__title",
+      ".lg-detail-header__meta",
+      ".lg-message__meta",
+      ".lg-notification__meta",
+      ".lg-popover__status",
+      ".lg-board__count"
+    ],
+    "disabledExempt": {
+      ".lg-button:disabled": "absent",
+      ".lg-select:disabled": {
+        "fg": "rgb(100, 116, 139)",
+        "bg": "rgb(241, 245, 249)",
+        "ratio": 4.34,
+        "note": "disabled-control (WCAG 1.4.3 exempt)"
+      }
+    }
+  }
+}
