@@ -536,6 +536,7 @@ class AntigravityExecutor:
                 save_dir=request.save_dir,
                 response_schema=request.response_schema,
                 continuation_mode=request.continuation_mode,
+                custom_tools=list(request.custom_tools),
             )
         except CapabilityUnavailable as exc:
             return await self._blocked(handle, emit, code="capability_unavailable", message=str(exc))

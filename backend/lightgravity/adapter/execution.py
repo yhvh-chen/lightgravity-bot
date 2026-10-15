@@ -60,6 +60,16 @@ class ExecuteRequest:
     #: paused Run; ``None`` keeps the compiled session profile's behavior.
     continuation_mode: str | None = None
     response_schema: Any | None = None
+    #: LG-031 additive: the opaque, program-minted execution grant token for this
+    #: node.  It is *not* a global management token and is meaningless outside
+    #: the process that minted it; the adapter only uses it to build a restricted
+    #: custom tool bound to the worker's frozen identity/authorization.  ``None``
+    #: (the default) keeps the deterministic path with no extra tools.
+    execution_grant: str | None = None
+    #: LG-031 additive: in-process SDK custom tools the coordinator authorized
+    #: for this node.  The default is empty, so a normal run exposes no custom
+    #: tool to the model.
+    custom_tools: tuple[Any, ...] = ()
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -81,6 +91,8 @@ class ExecuteRequest:
             "save_dir": self.save_dir,
             "conversation_id": self.conversation_id,
             "continuation_mode": self.continuation_mode,
+            "execution_grant": bool(self.execution_grant),
+            "custom_tools": [getattr(tool, "__name__", "tool") for tool in self.custom_tools],
         }
 
 

@@ -39,6 +39,11 @@ from ..adapter import AntigravityExecutor, DirectoryArtifactSink, ResourceCompil
 from ..adapter.compiler import ConnectionPin
 from ..config import Settings
 from ..coordinator import GraphDispatcher
+from ..collaboration import (
+    ClaimPolicyReader,
+    CollaborationService,
+    resolve_worker_identity,
+)
 from ..workspaces import GraphWorkspaceProvider, WorktreeManager
 from ..coordinator.dialogue import (
     ModelDialogue,
@@ -404,6 +409,9 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
                 compiler=compiler,
                 connections=connection_pins,
                 workspaces=GraphWorkspaceProvider(WorktreeManager(settings.workspace_root)),
+                collaboration=CollaborationService(
+                    store, policy=ClaimPolicyReader(store).read()
+                ),
             )
             log(
                 "executor wired: antigravity/openai-compat via loopback auth proxy"
@@ -432,6 +440,10 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         access_policy=access,
         tester=tester,
         responder=responder,
+        # Program-frozen execution identity (LG-031): an in-process worker
+        # request presenting an execution grant is bound to the member the graph
+        # minted; a body field is never consulted as authentication.
+        worker_identity=resolve_worker_identity,
     )
     allowed_hosts = options.allowed_hosts
     env_hosts = os.environ.get(ALLOWED_HOSTS_ENV, "")

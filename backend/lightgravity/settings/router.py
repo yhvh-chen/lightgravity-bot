@@ -29,7 +29,7 @@ from typing import Any, Literal
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Header, HTTPException, Request, Response
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from lightgravity.contracts import AppError, ErrorCode
 
@@ -83,6 +83,12 @@ class SettingsUpdateRequest(BaseModel):
     #: LG-017 additive: set the independent reviewer's default connection
     #: (``null`` clears it, so the runtime reports ``unavailable``).
     default_reviewer_connection_ref: str | None = None
+    #: LG-031 additive: decentralized collaboration switches (docs/08 §6.5).
+    #: Omitted fields keep the current value; both default to the closed,
+    #: deterministic ``plan_source=rules`` path.
+    decentralized_claim_enabled: bool | None = None
+    collab_requests_enabled: bool | None = None
+    claim_lease_seconds: int | None = Field(default=None, gt=0)
 
 
 class ConnectionTestRequest(BaseModel):
@@ -143,6 +149,16 @@ def build_settings_router(
     ) -> dict[str, Any]:
         data = payload.model_dump(exclude_unset=True)
         expected = data.pop("expected_revision", None)
+        # A ``null`` body value for the switch fields means "leave unchanged" so
+        # an incomplete form cannot silently flip a switch; the service treats
+        # absent keys as unchanged too.
+        for key in (
+            "decentralized_claim_enabled",
+            "collab_requests_enabled",
+            "claim_lease_seconds",
+        ):
+            if key in data and data[key] is None:
+                data.pop(key)
         result = service.update_settings(
             expected_revision=expected, actor=_actor(x_lg_actor), **data
         )

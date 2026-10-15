@@ -72,6 +72,7 @@ from .files import build_files_router
 from .health import router as health_router
 from .notifications import build_notifications_router
 from .resources import build_resource_router
+from .search import build_search_router
 from .sources import build_sources_router
 from .tasks import build_task_router
 
@@ -109,6 +110,10 @@ def create_app(
     #: keeps its built-in deterministic responder; bootstrap injects a real
     #: tool-less model handler when a coordinator connection is configured.
     responder: Callable[[str, Any], str] | None = None,
+    #: LG-031 execution-identity resolver.  ``None`` (default) leaves the
+    #: worker-scoped collaboration endpoints default-deny, so no caller can
+    #: impersonate a run member with a body field.
+    worker_identity: Any | None = None,
 ) -> FastAPI:
     """Build the application; every heavy dependency is injectable for tests."""
 
@@ -163,6 +168,7 @@ def create_app(
         notifications=NotificationService(
             broadcasting, NotificationStateStore(resolved.data_dir)
         ),
+        worker_identity=worker_identity,
     )
 
     @asynccontextmanager
@@ -228,6 +234,7 @@ def create_app(
     app.include_router(build_resource_router(), prefix=API_PREFIX)
     app.include_router(build_files_router(), prefix=API_PREFIX)
     app.include_router(build_sources_router(), prefix=API_PREFIX)
+    app.include_router(build_search_router(), prefix=API_PREFIX)
     app.include_router(build_collaboration_router(), prefix=API_PREFIX)
     app.include_router(build_events_router(), prefix=API_PREFIX)
     app.include_router(build_notifications_router(), prefix=API_PREFIX)

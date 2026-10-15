@@ -217,12 +217,12 @@ ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间�
 | `GET /api/v1/conversations/global/messages` | 全局对话消息（游标；仅 singleton global） | 整合/LG-007 | 冻结 |
 | `POST /api/v1/conversations/global/messages` | 追加全局消息（幂等：`message_id`/`request_id`） | 整合/LG-007 | 冻结 |
 | `GET /api/v1/settings` | 默认连接引用与偏好 | LG-026/LG-025 | 冻结 |
-| `GET /api/v1/runs/{run_id}/discoverable` | worker 可发现候选投影（只读，按 Member 过滤） | LG-029 | 已实现（默认关闭；待版本 QA LG-032） |
-| `POST /api/v1/runs/{run_id}/claim_requests` | 提交候选领取请求（幂等 `request_id`） | LG-029 | 已实现（默认关闭；待版本 QA LG-032） |
-| `POST /api/v1/subtasks/{subtask_id}/lease/renew` | 续租（`owner`+`lease_seconds`） | LG-029 | 已实现（默认关闭；待版本 QA LG-032） |
-| `POST /api/v1/subtasks/{subtask_id}/lease/release` | 主动释放（仅持有者或程序） | LG-029 | 已实现（默认关闭；待版本 QA LG-032） |
-| `POST /api/v1/runs/{run_id}/collab_requests` | 受控同伴请求（幂等 `request_id`；须经程序认证执行身份） | LG-030 | 已实现（默认关闭；待版本 QA LG-032） |
-| `GET /api/v1/runs/{run_id}/collab_requests` | 协作请求与结果（只读，游标） | LG-030 | 已实现（默认关闭；待版本 QA LG-032） |
+| `GET /api/v1/runs/{run_id}/discoverable` | worker 可发现候选投影（只读，按 Member 过滤） | LG-029 | 已实现并运行时接线（默认关闭；真实执行身份接线于 LG-031；待版本 QA LG-032） |
+| `POST /api/v1/runs/{run_id}/claim_requests` | 提交候选领取请求（幂等 `request_id`） | LG-029 | 已实现并运行时接线（默认关闭；真实执行身份接线于 LG-031；待版本 QA LG-032） |
+| `POST /api/v1/subtasks/{subtask_id}/lease/renew` | 续租（`owner`+`lease_seconds`） | LG-029 | 已实现并运行时接线（默认关闭；真实执行身份接线于 LG-031；待版本 QA LG-032） |
+| `POST /api/v1/subtasks/{subtask_id}/lease/release` | 主动释放（仅持有者或程序） | LG-029 | 已实现并运行时接线（默认关闭；真实执行身份接线于 LG-031；待版本 QA LG-032） |
+| `POST /api/v1/runs/{run_id}/collab_requests` | 受控同伴请求（幂等 `request_id`；须经程序认证执行身份） | LG-030 | 已实现并运行时接线（默认关闭；真实执行身份接线于 LG-031；待版本 QA LG-032） |
+| `GET /api/v1/runs/{run_id}/collab_requests` | 协作请求与结果（只读，游标） | LG-030 | 已实现并运行时接线（默认关闭；真实执行身份接线于 LG-031；待版本 QA LG-032） |
 | `POST /api/v1/sources` | 登记一次资料接入请求（幂等 `request_id`；只登记+落盘原件，不创建 Task/Run） | LG-034 | 已实现（待版本 QA LG-040；未实现提取/OCR/索引） |
 | `GET /api/v1/sources` | 资料列表（分页/作用域过滤；只返回已授权资料） | LG-034 | 已实现（待版本 QA LG-040） |
 | `GET /api/v1/sources/{source_id}` | 资料详情（状态/派生/正式版本引用；不回显越界路径） | LG-034 | 已实现（待版本 QA LG-040） |
@@ -232,7 +232,7 @@ ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间�
 | `POST /api/v1/sources/{source_id}/actions` | 控制动作：`reprocess`/`cancel`/`revoke`/`delete`（`cancel` 需确认停止；`reprocess` 不覆盖人工校订） | LG-035/036 | 已实现（LG-035；待版本 QA LG-040） |
 | `GET /api/v1/intake/jobs/{job_id}` | 摄取作业状态（逻辑视图，非第二套状态库） | LG-034 | 已实现（待版本 QA LG-040） |
 | `POST /api/v1/intake/jobs/{job_id}/actions` | `cancel`/`retry`（未知副作用中断**不自动重放**） | LG-034 | 已实现（待版本 QA LG-040） |
-| `GET /api/v1/search` | 词法优先检索（授权过滤；命中**必须回源核对**） | LG-036 | 冻结接口（未实现，向量可选） |
+| `GET /api/v1/search` | 词法优先检索（授权过滤；命中**必须回源核对**） | LG-036 | 已实现（2026-10-16 集成挂载；待版本 QA LG-040；无向量、无 Chat/Files UI） |
 | `POST /api/v1/inbox/messages`（或复用全局对话） | 归属未知资料入受控收件区（全局上传**不强建 Task**） | LG-034/038 | 已实现（LG-034 受控收件区；待版本 QA LG-040） |
 
 > `planned` 行只冻结将来的路径与最小语义，**当前实现不提供该端点**；调用方应以 `404`/`not_ready` 如实处理，不得假定已可用。本版无剩余 `planned` 行。
@@ -301,7 +301,7 @@ ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间�
 - 事件类型（v1 冻结最小集）：`task.created`、`task.phase_changed`、`task.status_changed`、`task.requirements_changed`、`queue.enqueued`、`queue.claimed`、`queue.released`、`run.created`、`run.state_changed`、`subtask.state_changed`、`member.recruited`、`member.state_changed`、`member.released`、`message.appended`、`decision.requested`、`decision.resolved`、`artifact.produced`、`cleanup.updated`、`notification.created`、`error.recorded`。
 - `1.6.0` 加性新增（LG-028 去中心化，默认关闭）：`subtask.lease_granted`、`subtask.lease_renewed`、`subtask.lease_expired`、`subtask.lease_revoked`、`subtask.claim_refused`、`collab.requested`、`collab.resolved`、`handoff.produced`、`handoff.rejected`；`payload` 可含 `subtask_ref`/`owner`/`fence`/`reason`（如适用）。
 - `1.7.0` 加性 payload（LG-017 R1，`error.recorded` 的 review/rework 事件）：`mode`（`review`/`rework`）、`outcome`、`reviewer`、`reviewer_kind ∈ {program, model, unavailable}`、`model_calls`、`usage`（未知计 `unknown`）、`findings`/`unsubstantiated` 数量。仅新增加性 payload 字段，不新增事件类型、不改变既有字段语义。
-- `1.6.0` 加性新增（LG-033 资料摄取，未实现）：`source.received`、`source.version_changed`、`source.attributed`、`source.indexed`、`source.invalidated`、`source.deleted`、`intake.stage_changed`、`intake.receipt`、`intake.failed`、`intake.cancelled`。**LG-034 已实现并实际产生** `source.received`、`source.version_changed`、`intake.stage_changed`、`intake.failed`、`intake.cancelled`；**LG-035 另已实现并实际产生** `source.attributed`（成功/部分提取）与 `intake.failed`（失败）；其余（`source.indexed`/`source.invalidated`/`source.deleted`/`intake.receipt`）随 LG-036～038 实现，当前不得假定产生。
+- `1.6.0` 加性新增（LG-033 资料摄取，未实现）：`source.received`、`source.version_changed`、`source.attributed`、`source.indexed`、`source.invalidated`、`source.deleted`、`intake.stage_changed`、`intake.receipt`、`intake.failed`、`intake.cancelled`。**LG-034 已实现并实际产生** `source.received`、`source.version_changed`、`intake.stage_changed`、`intake.failed`、`intake.cancelled`；**LG-035 另已实现并实际产生** `source.attributed`（成功/部分提取）与 `intake.failed`（失败）；**LG-036 另已实现并实际产生** `source.indexed`（正式内容重建入库）与 `source.invalidated`（撤销/删除/校订后旧命中失效）；其余（`source.deleted`/`intake.receipt`）随 LG-037～038 实现，当前不得假定产生（`source.deleted` 不单独产生：实体移除时以 `source.invalidated` 加 `reason=deleted` 代替）。
 - 新增事件类型属于 MINOR 变更（第 13 节）；消费方必须忽略未知类型而不是报错崩溃。去中心化事件（LG-028）与未实现资料事件**仍仅冻结**，实际未产生；实现前不得假定可消费。
 
 ### 5.2 消息
@@ -527,6 +527,8 @@ budget: {}
 
 - `1.7.0` 加性设置项（LG-017 返修 R1）：`default_reviewer_connection_ref`（默认 `null`）。它是**独立复核者**的默认连接，对应与 `coordinator`/`worker` 并列的独立角色 `reviewer`，由 `ConnectionService.resolve_default("reviewer")` 解析。运行时据此装配真实、工具无关、必要时单轮模型调用的 reviewer；未配置时明确报告复核 `unavailable` 且**阻止 accept**（不把程序机器门当作独立复核）。仅新增可选非秘密字段，不改变既有默认角色语义。
 - `1.6.0` 加性设置项（LG-028，去中心化，均**默认关闭**）：`decentralized_claim_enabled`（默认 `false`）、`collab_requests_enabled`（默认 `false`）、`claim_lease_seconds`（默认建议 `300`，可配置）。关闭时行为与现状完全一致（程序按 `plan_source=rules` 顺序调度，无发现/领取/协作端点副作用）；SDK 内部委派（`enable_subagents`）仍默认关闭，且**不因本扩展自动开启**。这些项写入 `bot-data/settings/SETTINGS.md`（**非秘密**）。
+
+  **实现状态（`1.7.0`，LG-031 装配，无字段/端点变化）**：三个开关现可经 `PATCH /settings`（`decentralized_claim_enabled`/`collab_requests_enabled`/`claim_lease_seconds`）与 `ConnectionService.update_settings` 读写，缺省/非法值一律回落为**关闭**；未提供的字段保留当前值。真实 worker 执行身份由**程序冻结的不透明 execution grant**（进程内、非持久、`X-LG-Execution-Grant`）绑定到 `(run, subtask, member, fence)`，只授权本 Run/Task 节点与冻结协作预算；body 自报 `from_member_ref` 永远不作认证，worker 不持有全局管理 token。关闭开关时图调度器仍走确定性路径且不附加自定义工具。
 
 ### 6.6 资料实体（`1.6.0`，LG-033；接口冻结，未实现）
 
