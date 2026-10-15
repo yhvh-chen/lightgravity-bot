@@ -1,0 +1,17 @@
+{"seq": 1, "kind": "corpus_text", "ts": 1792105793.31, "doc": "D1", "input_sha256": null, "media_type": null}
+{"seq": 2, "kind": "corpus_text", "ts": 1792105793.458, "doc": "D2", "input_sha256": null, "media_type": null}
+{"seq": 3, "kind": "corpus_text", "ts": 1792105793.518, "doc": "D3", "input_sha256": null, "media_type": null}
+{"seq": 4, "kind": "corpus_text", "ts": 1792105793.58, "doc": "T_NORTHWIND", "input_sha256": null, "media_type": null}
+{"seq": 5, "kind": "corpus_text", "ts": 1792105793.649, "doc": "D5", "input_sha256": null, "media_type": null}
+{"seq": 6, "kind": "corpus_text", "ts": 1792105793.712, "doc": "D6", "input_sha256": null, "media_type": null}
+{"seq": 7, "kind": "media_image", "ts": 1792105793.798, "doc": "M_IMG_ZH", "input_sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f", "media_type": "image/jpeg"}
+{"seq": 8, "kind": "media_image", "ts": 1792105794.129, "doc": "M_IMG_EN", "input_sha256": "f9c80afb481abc07fdc6ff013df3048ef31141e7b1b90ec90ccbee8c3eddbea7", "media_type": "image/png"}
+{"seq": 9, "kind": "media_audio_pcm_wav", "ts": 1792105794.266, "doc": "M_AUD_ZH", "input_sha256": "0cf59176de2b58c4386215256af159af94f01ebb4509e89bfbbadac7eac5cc37", "media_type": "audio/wav"}
+{"seq": 10, "kind": "media_audio_pcm_wav", "ts": 1792105794.563, "doc": "M_AUD_DIQIU", "input_sha256": "91430d5aa8bec7f6865872e9d863df7208a1cbee82441f54b33f742a77277c51", "media_type": "audio/wav"}
+{"seq": 11, "kind": "query", "ts": 1792105794.772, "q": "Q_IMG_ZH", "text_sha256": "b23cfe0071d1db3d77c8abc21ed25700951d2e976f2c546ce94c2a197e492d99"}
+{"seq": 12, "kind": "query", "ts": 1792105794.835, "q": "Q_IMG_EN", "text_sha256": "738994f35ea0301c0295b52c57db4485a72d7a45d3f9452c7206ca3334515887"}
+{"seq": 13, "kind": "query", "ts": 1792105794.895, "q": "Q_AUD_LANG", "text_sha256": "7ef27cff705b8bbc0c8b0a1f9b5ba78b8bbc660cff6b73d25273d9b02bf36bea"}
+{"seq": 14, "kind": "query", "ts": 1792105794.947, "q": "Q_AUD_EARTH", "text_sha256": "1f5796fa355ddd72949da200601fa71052cd97fb018c43aba9bea082329d61e6"}
+{"seq": 15, "kind": "query", "ts": 1792105795.01, "q": "Q_TXT_ZH", "text_sha256": "a0da7c69eaf9069b197eb281f0ca154bece841852ca64a145b046630a2f9e0aa"}
+{"seq": 16, "kind": "query", "ts": 1792105795.073, "q": "Q_NEG_ZH", "text_sha256": "5bca7dabebdcb6f77f5c40d61e0755a14d9265f2065e0ab7472ac82146957e68"}
+{"seq": 17, "kind": "query", "ts": 1792105795.126, "q": "Q_NEG_EN", "text_sha256": "c4d746e88e45b4be760229074394befbf3bb994013424191ba64c885fb48b570"}
