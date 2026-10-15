@@ -39,11 +39,40 @@ owner: "agent:pi-lg031-r3"
 
 | # | 时间(UTC) | 角色/stage | 模型 | 结果 | usage | 备注 |
 |---|---|---|---|---|---|---|
-| — | — | — | — | 尚未开始 | — | 真实转发前此处保持空 |
+| 1 | 2026-10-16T~03:27Z | produce worker (turn 1) | deepseek-v4-flash | 429/预算 | `unknown`（SDK worker usage 未暴露） | Run1：produce worker 第 1 轮 |
+| 2 | 同上 | produce worker (turn 2) | deepseek-v4-flash | ok | `unknown` | Run1：自主调用 claim 工具 |
+| 3 | 同上 | produce worker (turn 3) | deepseek-v4-flash | ok | `unknown` | Run1：`max_model_calls=3` 用尽前最后一轮 |
+| 4 | 同上 | reviewer | deepseek-v4-flash | `unavailable`（无候选证据） | `{"unknown":["usage"]}`（不当 0） | Run1 reviewer 单轮 |
+| 5 | 2026-10-16T~03:29Z | produce worker | deepseek-v4-flash | ok（自主 discover+claim） | `unknown` | Run2：`discover_and_request_claim()` |
+| 6 | 同上 | produce worker | deepseek-v4-flash | ok（claim granted） | `unknown` | Run2：`discover_and_request_claim(node_ref=...)` |
+| 7 | 同上 | produce worker | deepseek-v4-flash | ok | `unknown` | Run2：写文件轮 |
+| 8 | 同上 | produce worker | deepseek-v4-flash | 429（per-worker proxy cap=4 用尽） | `unknown` | Run2：produce worker 第 4 次后 429 |
+| 9 | 同上 | reviewer | deepseek-v4-flash | `unavailable`（无候选证据） | `{"unknown":["usage"]}` | Run2 reviewer 单轮 |
+| 10 | 2026-10-16T~03:30Z | produce worker | deepseek-v4-flash | ok（自主 discover/claim） | `unknown` | Run3：cap 提升至 6，worker 多次工具调用 |
+| 11 | 同上 | produce worker | deepseek-v4-flash | ok | `unknown` | Run3 |
+| 12 | 同上 | produce worker | deepseek-v4-flash | ok | `unknown` | Run3 |
+| 13 | 同上 | produce worker | deepseek-v4-flash | ok | `unknown` | Run3 |
+| 14 | 同上 | produce worker + reviewer（嵌套 429） | deepseek-v4-flash | `unavailable`（429） | `{"unknown":["usage"]}` | Run3 最后一次预留；全局 14/14 用尽 |
 
-（每次真实转发后由本包 owner 更新；机器账本 `count` 必须与上表行数一致。）
+- **机器账本最终 `count=14, limit=14, remaining=0, corrupt=false, persistent=true`。**
+- 三次运行分别消耗 4 / 5 / 5 = **14**；`generation.jsonl` 共 14 条 `reserved` 条目（pid 1934241:4、1936962:5、1940208:5）。
+- 所有 reviewer `usage` **unknown**（不当 0）；worker usage 由 SDK 事件未暴露为 token 明细，记 **unknown**。
+- 证据：`probes/lg031/phase3/evidence/run{1,2,3}_*` + `probes/lg031/phase3/ledger/generation/generation.jsonl`。
+
+### 真实硬条件达成情况（本 phase3）
+
+| # | 条件 | 结果 |
+|---|---|---|
+| 1 | ≥2 真实 SDK worker，各自独立 worktree | ⚠️ 仅 produce worker 真跑；integrate 未达（预算耗尽） |
+| 2 | worker 自主 discovery→申请原子授权 claim | ✅ Run2/Run3 真实 worker **自主**调用 `discover_and_request_claim()`→`discover_and_request_claim(node_ref)`；经**产品** `GraphDispatcher._claim_for_worker` 路由 |
+| 3 | 程序验证并原子授权 + lease/fencing | ✅ 程序 granted/fence=1、receipt 脱敏（离线产品路径测试证实）；真链中 claim 工具调用事件已捕获 |
+| 4 | 受控带 hash 同伴交接 | ❌ 未达（integrate worker 未跑完，无交接） |
+| 5 | 完整候选独立 ModelReviewer + 机器门 passed | ❌ 未达（候选不完整；reviewer 真实跑但诚实 `unavailable`） |
+| 6 | 默认关闭/回退、身份程序注入、worker 无全局 token | ✅ |
+
+**结论：partial。** 真实请求硬上限 14/14 用尽；硬条件 2/3/6 真实成立，1 部分、4/5 未闭合。
 
 ## 未知项
 
-- 旧 reviewer usage、phase3 reviewer usage（若未知）一律记 `unknown`，**不当 0**。
+- 旧 reviewer usage、phase3 worker/reviewer usage 一律记 `unknown`，**不当 0**。
 - 部分 SDK 路径的 usage 若不可得，明确 `unknown` 而非估算。

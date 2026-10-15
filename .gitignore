@@ -35,3 +35,6 @@ frontend/dist/
 # LightGravity runtime data and secret store (must stay out of source control)
 bot-data/
 secrets/
+
+# LG-031 phase3 runtime ledger lock (ephemeral, not evidence)
+probes/lg031/phase3/ledger/**/*.lock

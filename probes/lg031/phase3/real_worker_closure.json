@@ -1,0 +1,95 @@
+{
+  "adapter_events": [
+    "adapter.execution_started",
+    "adapter.session_requested",
+    "adapter.session_started",
+    "adapter.tool_call",
+    "adapter.tool_call",
+    "adapter.tool_call",
+    "adapter.tool_call",
+    "adapter.tool_call",
+    "adapter.tool_call",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.text",
+    "adapter.tool_call",
+    "adapter.error",
+    "adapter.execution_finished"
+  ],
+  "autonomous_claim_chain": [
+    {
+      "args": {},
+      "error": null,
+      "name": "discover_and_request_claim",
+      "status": null,
+      "type": "adapter.tool_call"
+    },
+    {
+      "args": {
+        "node_ref": "subtask_01M506DJT1DHF1Y74VYF3T72PA",
+        "summary": "Claiming produce node to create out/produce.txt"
+      },
+      "error": null,
+      "name": "discover_and_request_claim",
+      "status": null,
+      "type": "adapter.tool_call"
+    }
+  ],
+  "autonomous_claim_tool_router": "GraphDispatcher._claim_for_worker",
+  "dispatcher_outcome": "failed",
+  "dispatcher_summary": "subtask graph failed at 'produce': AntigravityExecutionError: HTTP request failed with status 429: {\"error\":{\"message\":\"local auth proxy call budget exhausted\"}}",
+  "elapsed_seconds": 9.9,
+  "generation_ledger": {
+    "corrupt": false,
+    "count": 14,
+    "limit": 14,
+    "persistent": true,
+    "remaining": 0
+  },
+  "handoff_refs": [],
+  "max_real_calls_budget": 14,
+  "per_request_output_cap": 12000,
+  "real_workers": 2,
+  "review": {
+    "findings": [],
+    "model_calls": 1,
+    "outcome": "unavailable",
+    "reason": "reviewer turn raised AntigravityExecutionError: HTTP request failed with status 429: {\"error\":{\"message\":\"local auth proxy call budget exhausted\"}}",
+    "requested_model": "deepseek-v4-flash",
+    "resolved_evidence": [],
+    "reviewer_kind": "model",
+    "status": "ran",
+    "unsubstantiated": [],
+    "usage": {
+      "unknown": [
+        "usage"
+      ]
+    },
+    "validated_outcome": "unavailable"
+  },
+  "run_id": "run_01M506DJQGYBMBWWJY49XYRZW1",
+  "status": "ran",
+  "task_id": "task_01M506DJQGRZN6RNXNSFY0MXM1"
+}

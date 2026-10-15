@@ -109,7 +109,14 @@ def _init_git_repo(root: Path) -> None:
 
 
 class TwoNodePlan:
-    """Program-side plan: one produce write node -> one dependent integrate node."""
+    """Program-side plan: one produce write node -> one dependent integrate node.
+
+    The plan ``key`` must be a slug (the program validator rejects paths), so the
+    worker learns the *file path to create* from the node's **objective** (which
+    the program's discovery projection carries as ``candidate.objective``), not
+    from ``candidate.key``.  (A R2-style "key == path" fixture bypasses the
+    product planner entirely and is exactly the product-path gap phase3 closes.)
+    """
 
     name = "phase3-two-node"
 
@@ -182,15 +189,18 @@ def _build_resources(store: FileStore) -> None:
         },
         body=(
             "You are a worker in a controlled two-worker collaboration. You work ONLY in "
-            "your own workspace. Before doing any work you MUST call the "
-            "discover_and_request_claim tool. In your FIRST reply, call "
-            "discover_and_request_claim with no arguments to list candidates (each has a "
-            "`key` = the relative file path you must create). Then, in the SAME reply if "
-            "possible, call discover_and_request_claim again with that node_ref and a "
-            "request_id. Once the program grants the node, use create_file to write the "
-            "file named by `key` with EXACTLY the content the objective names, then stop. "
-            "Never invent a grant, never reuse another worker's key, never write outside "
-            "your workspace. Be economical: do not repeat discovery you already did."
+            "your own workspace. The program fixes your identity; you only REQUEST a "
+            "node. Steps, in this order, using as few turns as possible:\n"
+            "1. Call discover_and_request_claim with NO arguments to list candidates. "
+            "Each candidate has `node_ref`, `objective` and `key` (key is a short slug).\n"
+            "2. Decide which candidate to claim from its `objective` (the objective names "
+            "the exact relative file path you must create). Immediately call "
+            "discover_and_request_claim again with that `node_ref` and a `request_id`.\n"
+            "3. The program grants or refuses atomically. If granted, use create_file to "
+            "write the file named in the objective with EXACTLY the content the "
+            "objective names (one line, no extra text), then stop.\n"
+            "Do not repeat discovery you already did. Never invent a grant, never reuse "
+            "another worker's candidate, never write outside your workspace."
         ),
     )
     create(
@@ -310,7 +320,11 @@ def _build_task_run(store: FileStore, workspace_ref: str) -> tuple[str, str, Any
             "max_parallel": 2,
             "max_repair_rounds": 1,
             "max_collab_requests": 4,
-            "max_model_calls": 3,
+            # Per-worker SDK turn headroom only; the REAL hard cap is the shared
+            # persistent generation ledger (14).  A too-tight model-call budget
+            # (the R2 lesson) starves the write turn, so leave room for
+            # discover + claim + write + finish.
+            "max_model_calls": 6,
             "max_tool_calls": 8,
         },
         planning_request=PlanningRequest(
@@ -411,7 +425,7 @@ async def _main() -> int:
             credential_resolver=resolver,
             artifacts=DirectoryArtifactSink(root / "artifacts"),
             workspace_root=workspace_root,
-            max_proxy_calls=4,
+            max_proxy_calls=6,
             model_calls_cap=None,
             upstream_timeout=110.0,
             allow_loopback_upstream=False,
@@ -438,9 +452,30 @@ async def _main() -> int:
         events: list[dict[str, Any]] = []
 
         async def emit(event: dict[str, Any]) -> None:
-            events.append(event)
+            # Keep the full autonomous claim chain (real model -> program tool ->
+            # result) plus session lifecycle; this is the hard-condition evidence
+            # that the *worker itself* drove discovery/claim.
+            if str(event.get("type", "")).startswith("adapter."):
+                events.append(event)
 
         outcome = await dispatcher.dispatch(context, controller, emit)
+
+        # Extract the worker-initiated claim chain from the real event stream.
+        claim_chain: list[dict[str, Any]] = []
+        for event in events:
+            etype = event.get("type")
+            if etype in {"adapter.tool_call", "adapter.tool_result"}:
+                name = str(event.get("name"))
+                if name == "discover_and_request_claim":
+                    claim_chain.append(
+                        {
+                            "type": etype,
+                            "name": name,
+                            "args": event.get("args"),
+                            "status": event.get("status"),
+                            "error": event.get("error"),
+                        }
+                    )
 
         # Snapshot the documented handoff from the produced run (the program
         # recorded the dependent node's upstream handoff in its subtask history).
@@ -470,6 +505,7 @@ async def _main() -> int:
             "run_id": run_id,
             "real_workers": 2,
             "autonomous_claim_tool_router": "GraphDispatcher._claim_for_worker",
+            "autonomous_claim_chain": claim_chain,
             "handoff_refs": sorted(set(handoffs)),
             "review": review,
             "generation_ledger": before.snapshot(),
@@ -477,10 +513,8 @@ async def _main() -> int:
             "per_request_output_cap": PER_REQUEST_OUTPUT_CAP,
             "elapsed_seconds": round(time.monotonic() - started_all, 2),
             "adapter_events": [
-                e.get("type")
-                for e in events
-                if str(e.get("type", "")).startswith("adapter.")
-            ][:40],
+                e.get("type") for e in events
+            ][:60],
         }
         text = json.dumps(result, indent=2, sort_keys=True)
         print(text)

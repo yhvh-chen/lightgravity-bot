@@ -214,3 +214,16 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - **LG-031 续接准备**：新分支 `fix/lg031-r2`（基于 `9698e8a`）已把原 `fix/lg031-r1` 的 tracked 改动 + `probes/lg031/R1_*` untracked 证据**精确 WIP commit**（不 `add -A`）；原 `fix/lg031-r1` dirty 原样留存。**真实产品调用以 `probes/lg031/r1_worker_claim_probe.json` 为准**：R1 = 2 worker + 1 reviewer = **3**；原包 1；**累计 4/10，剩 ≤ 6**（交接日志的 turn_end 114/响应 224 是开发 pi 事件，不算产品请求）。未闭合项：autonomous-claim 定向测试在整合候选与原 base **均失败**（`plan_validation failed: config_invalid`，非整合回归），交下一 owner。
 - **状态如实**：LG-022 in-progress（待独立复验）；LG-017 done 待 022、不制造循环；LG-037/035 不假 done；LG-038 done 待 040；LG-040 不解锁；LG-041 quality gate 不解锁。未领取 023/024/032/040。
 - 本包结束先写持久 REPORT（本文件 + `probes/batch-20261016/INTEGRATION-6.md`），再精确本地 commit；main 未推送。
+
+## 2026-10-16 LG-031 phase3 工程验证检查点（owner `agent:pi-lg031-r3`，partial）
+
+本节覆盖 LG-031 相关上文；全部经 pi + 现有 DeepSeek，未推送/部署/发布；主代理只 PM，无嵌套派工。详细报告 [probes/lg031/phase3/REPORT.md](probes/lg031/phase3/REPORT.md)。
+
+- **基点/保护**：worktree `lg031-r3`（branch `fix/lg031-r3`）@ 整合候选 `0144eb7`（契约 `1.10.0`），开工 `git status` clean。旧全部 worktree/分支/实验/失败证据/`fix/lg031-r1` 原 dirty **未触碰**，未 reset/clean/覆盖/删 worktree；主 worktree 2026-10-15 的 uvicorn（端口 8123，**非本包**）未 kill/接线/复用 dataRoot。
+- **真实调用（不重置、不猜）**：旧累计 **10/10**（原 1 + R1 3 + R2 6，保留为失败/partial 成本）；本 phase3 PM 另批 **≤14**，实际 **14/14 用尽**（运行 1/2/3 = 4/5/5）；**旧 10 + 新 14 = 24**（全局已知 ≤24）。单一事实源：`probes/lg031/phase3/ledger/generation/`（持久账本，`count=14,limit=14,remaining=0,corrupt=false,persistent=true`）。**转发前已验证跨进程/重启**：进程1 预留 5 → 新进程再成功 9（合计14）→ 第三进程读到 14（不归零）→ 损坏 `raise`（**绝不当 0**）。SDK/API retry 0；单 HTTP ≤120s；并发 ≤2；输出 ≤12000 tokens；usage 未知记 unknown。
+- **发现并修复两个真实缺陷（离线先证，均在产品路径）**：**G1** `api/bootstrap.py` 默认 `GraphDispatcher` 未接 `autonomous_claim`/`grant_registry` 且不读开关 ⇒ 产品路径无法启用自主 claim 工具（R2 探针因此绕过产品协调器）；修复为开关开启才启用 + 进程内 `ExecutionGrantRegistry`，关闭/缺省走旧确定性路径。**G2** `collaboration/execution_grant.py` 受限 claim 工具发现投影缺程序拥有的 `objective`/`write`（经产品 planner `key` 必须是 slug，worker 学不到产物）；加性补齐。测试：`tests/startup/test_lg031_r3_bootstrap_autonomous.py`（2）、`tests/collaboration/test_lg031_r3_product_path_closure.py`（1，离线证明产品路径 2-worker 闭环：独立 worktree、原子授权 fence=1、脱敏 receipt、带 hash 交接）。
+- **真实链结果（partial）**：产品 `GraphDispatcher._claim_for_worker` 路由下，真实 worker **自主**调用 `discover_and_request_claim()`→`discover_and_request_claim(node_ref)`（硬条件 2 真实成立）；reviewer 真实调用 3 次均因候选不完整**诚实 `unavailable`**（未降级门）。**硬条件 4/5 未闭合**（integrate worker 未跑完、无带 hash 交接、无完整候选 review passed），根因 14 用尽 + worker 回合效率。**未写 done、未伪造、未偷偷归零。**
+- **检查（真实退出码）**：`uv run mypy` **137 files clean**；`uv run pytest -q -p no:randomly` **775 passed, 5 skipped**；定向 **249 passed**。与 INTEGRATION-7 基点（775/2）一致，多出的 skip 为条件门。
+- **契约/文档**：G1/G2 为实现接线与内部 SDK 工具投影，**无 HTTP 契约字段/端点/枚举/版本变化**，docs/08 §9 加性实现说明，**契约保持 `1.10.0`（不机械升版）**。1.9 归档/向量/检索/UI/token/pin/证据/反重放语义未回退。
+- **状态如实**：**LG-031 保持 `in-progress`（partial）**——真实门未齐；031 不因“032 未跑”循环，也不宣称 done。**不替 LG-032 预注册样本/预算/成功标准，不预设节省。**
+- **剩余门**：integrate worker 自主 claim+写、带 hash 交接、完整候选独立 reviewer `passed`；完整 checkpoint skip 仍未实现。下次真实 phase（若另批）可用修正 prompt（worker 据 objective 判产物）+ G1/G2 修复直接闭合，无需改门/降级。`main` 未推送。
