@@ -156,6 +156,13 @@ SDK 安装/真实测试属于 LG-002/003 后续实施，不包含在此次写排
 > - **范围如实**：029/031/032 返修未验；035/037 真实质量未齐；039 负结论/041 锁；040 未开；完整 checkpoint skip 未实现；023 两小样本组队无收益且 usage/费用 unknown（旧 45+4 单列）。**服务可达/合成样本/Embedding 输出 ≠ OCR 转写品质**；本包**不宣扬完整产品 pass**。
 > - **状态**：LG-024 阶段 B 达原交付准备门后可置 `done`（**仍非发布授权**）；契约/SDK/自主 off 不变。
 
+> 2026-10-16 最终批次收拢与 LG-032 评估范围关闭（唯一 main 最终整合/PM 文档 owner，报告 [probes/batch-20261016/FINAL-BATCH-REPORT.md](../probes/batch-20261016/FINAL-BATCH-REPORT.md)）：**本包产品真实生成 0**。
+> - **安全收拢（串行、无重复 pick）**：`prep/lg035-real-truth@9ad8315`（ff-only，main 为直接祖先）→ main `9ad8315`；`qa/lg032-close-audit@4d175113`（`--no-ff`，merge-base `0814b80`）→ merge `d0c0c4e`。**产品树未变**（`HEAD:backend/lightgravity = 55e4de56…`，产品路径 diff 为空）⇒ 不重跑产品全套测试；旧 worktree/实验/失败证据全部保留。
+> - **LG-032 → `done`（仅「评估范围」）**：独立封账 `probes/lg032/CLOSE-AUDIT/CLOSE-REPORT.md` 判 **PASS**。有效 cohort3 `4/4` 各唯一次全真实 delivered/first-pass，actual mode `off/on/off/on + restored off`，唯一物理 ledger `0→20→40→57→84`（84≤192），异步真实独立 ModelReviewer passed/0 unsubstantiated。**旧 106**（cohort1 87 invalid + cohort2 19 STOP）**永久单列**；032 本轮真实已知 **190=106+84**，上限 298 未超。**default off/回退保留**；**全 cost unknown、收益不支持默认启用**；**非全产品 pass**；2 tiny case 无统计承诺。
+> - **LG-035 `in-progress`**：TRUTH-PREP 已备两份严格配对真实中文样本（Z1 PD 书页扫描 + 人工 level-3；Z2 PD 表格扫描 PDF 18 页无 text layer）；**真实 OCR/embedding/ASR 0 新调用、quality NOT measured**；GET `13/12` 超 1 保留 + 授权补 Z2 → 累计 14；**不解锁 040/041**。**LG-037 `in-progress`**（真实 vectors quality 未达）。**LG-040/041 `todo` 不解锁**（041 中文 ASR 质量锁）。
+> - **唯外部 block**：候选资料服务 `192.168.8.12:11434` 仍不可达（health/models HTTP 000、无 TCP、0 POST；llama.cpp/OpenAI-compatible）；恢复后先 health/models/预算 freeze → OCR/embedding 质量门 → 040；ASR 独立达标才 041。**不因 XFUND NC/普通实现选择要求用户确认**。
+> - **CLI 实读**：41 tasks / 0 diagnostics；`2 todo / 2 in-progress / 37 done`；`ready=[]`（可执行部分已完成，非未认领）。契约 `1.11.0`/SDK `0.1.22`/自主 off 不变。
+
 - 当前优先收拢 LG-013、LG-016、LG-027 已有隔离成果，继续 LG-017/018/019 与既有首版集中验收；单独 worktree 的交付不视为 main 已集成。不在本次排期中改变其状态。
 - LG-028 与 LG-033 可独立准备；LG-039 可在 LG-033 后验证。实现以任务 depends_on 为准，两个新版本的 LG-022 依赖是保留首版验收的排序门，非新功能代码依赖。
 - 多条线共享 Store、Coordinator、API 或前端入口时指定单一 owner 串行集成；开发执行仍经 pi，不因排期自动派工，不采用宿主原生子代理替代。

@@ -84,7 +84,16 @@ Files 只读预览/下载、受控上传（`X-LG-Token`，无 token 时上传如
 
 > **不宣传为可用**：资料摄取/检索（docs/09）、中文 ASR（LG-039 负结论）、Office 格式、完整 checkpoint skip；自主协作默认 off。真实模型调用只走唯一已验收路径，且需明确测试环境与预算。
 
-## 当前进展（截至 2026-10-15）
+## 当前进展（截至 2026-10-16）
+
+> **最新状态（2026-10-16，最终批次收拢）**：任务 CLI（backlog 专用根）`validate` **41 tasks / 0 diagnostics**；
+> `digest` complete=true → **2 todo / 2 in-progress / 37 done**；`ready=[]`。
+> **37 done** 含本轮依据独立封账 PASS 关闭的 **LG-032（仅「评估范围」）**；**in-progress = LG-035（图片/PDF OCR，
+> 真实中文样本已备但质量未测）、LG-037（可选向量，真实质量未达）**；**todo = LG-040（资料/Embedding 集中验收，未解锁）、
+> LG-041（中文 ASR 质量锁，未解锁）**。**协作候选 default off、可回退**；代码契约 **`1.11.0`**、SDK **`0.1.22`**。
+> 唯外部 block：候选资料服务不可达 + ASR 质量门；持续执行与续接见
+> [FINAL-CHECKPOINT/RESUME](probes/batch-20261016/FINAL-CHECKPOINT/RESUME.md) 与
+> [FINAL-BATCH-REPORT](probes/batch-20261016/FINAL-BATCH-REPORT.md)。下方表格为 2026-10-15 历史局部证据，保留不改。
 
 | 任务 | 状态 | 实际证据与限制 |
 |---|---|---|
@@ -110,7 +119,7 @@ Files 只读预览/下载、受控上传（`X-LG-Token`，无 token 时上传如
 - 上述 done 为执行者局部证据，**除 LG-010、LG-027 外均不是版本 QA 结论**；LG-003 已实测的 DeepSeek（OpenAI-compatible）路径是 docs/08 v1.7.0 确定的（1.1.0 起）真实后端，LG-006 已在该路径上实现正式 executor + 产品侧 loopback 认证代理。LG-010 已通过独立版本 QA（最小后端闭环），但其收尾是**基于契约 1.3.1 core**、不覆盖 1.5 新资源/启动功能；LG-015、LG-020 仍待 LG-021/LG-022 版本 QA 门集中验证（LG-027 已就其设置/凭证子范围 pass）。
 - LG-013 实施已按真实 API 接线通过本包验收并置 `done`，但**完整浏览器业务路径（真实浏览器 HTTP 创建/继续任务、交付审阅与验收停止释放）仍归 LG-021/022**，不能据此宣称完整网页可用。
 - 旧 QA「浏览器全 HTTP/fetch 阻断」结论已被 root `probes/browser-diagnostics` 诊断推翻并精确更正：真实 loopback HTTP 的 `fetch` 与 SSE 从 `file://`/`about:blank` shell 可用，仅**顶层 `Page.navigate` 到 `http://` 在本机 headless Chrome 挂起**（见 [browser-diagnostics README](probes/browser-diagnostics/README.md)）。原报告按历史保留，更正不改写旧文。
-- 下一步：LG-016 已整合到 `main`（恢复反重放守卫；完整 checkpoint skip 调度尚未实现）；LG-013 实施已 done；LG-015 与 LG-020 仍待 LG-021/LG-022 版本 QA；LG-027 已完成设置/凭证专项。**当前资源/启动的新功能与完整浏览器路径仍待验收**。LG-028（去中心化协作契约）与 LG-033（资料摄取/检索契约）已由本包领取，准备稿在各自 worktree，尚未冻结。LG-017/018/019 尚未领取。
+- 下一步（已更新至 2026-10-16）：LG-016/LG-017/LG-018/LG-019/LG-021/LG-022/LG-023/LG-024 已 done；LG-028～032 已交付，**LG-031/LG-032 已依据独立门 done（032 仅评估范围）**；**LG-033～038 中 LG-036/038 done 待 LG-040，LG-035/037 仍 in-progress**；**LG-040/041 未解锁**。**完整 checkpoint skip 调度仍未实现**。契约保持 `1.11.0`，SDK `0.1.22`。
 - **计划标记（资料接入与检索）**：方向已确认并落盘到 [docs/09](docs/09-source-intake-and-retrieval.md)，2026-10-15 已正式排入资料线 [LG-033～041](BACKLOG.md)，但**未实现、接口未冻结**；其中中文 ASR 先由 LG-039 做质量验证，达标后再由 LG-041 条件接入，且不作为 LG-040 的硬依赖；图片/PDF、词法、可选向量与 Chat/Files 统一由 LG-040 集中 QA。实施前须按 [docs/08 §13](docs/08-interface-contract.md) 变更控制冻结接口并升版；不改变现有 LG 任务状态与优先级。
 - **计划标记（去中心化协作）**：[LG-028～032](BACKLOG.md) 已正式排期（契约 → 原子领取/租约 → 同伴交接 → 隔离执行与 QA/返修整合 → 集中版本验收），但**完整自主协作尚未实现、接口未冻结**；不改变现有任务状态，也不把已有“无独立编排”QA 当作去中心化验收。
 

@@ -9,6 +9,14 @@ updated: "2026-10-15"
 
 > 创建：2026-10-14。开发任务由 Olav Tasks 管理，schema 为 `olav.tasks/v1`，编号 LG。状态以单项 Markdown frontmatter 为准，本索引不重复维护状态。
 
+## 当前批次状态（2026-10-16，最终收拢）
+
+- 任务 CLI（backlog 专用根）：`validate` **41 tasks / 0 diagnostics**；`digest` **2 todo / 2 in-progress / 37 done**，complete=true；`ready=[]`。
+- **in-progress**：LG-035（图片/PDF OCR，真实中文样本已备但 OCR 质量未测）、LG-037（可选向量，真实质量未达）。
+- **todo**：LG-040（资料/Embedding 集中验收，未解锁）、LG-041（中文 ASR 质量锁，未解锁）。
+- **LG-032 已 `done`（仅评估范围）**：独立封账 PASS；default 自主协作仍 **off**。契约 `1.11.0`、SDK `0.1.22`。
+- 唯一 future block：候选资料服务不可达 + ASR 质量门；续接见 [FINAL-CHECKPOINT/RESUME](probes/batch-20261016/FINAL-CHECKPOINT/RESUME.md)。
+
 本目录的任务是**开发 LightGravity Bot 的工作**，与未来产品的 Task/Run/Member 文件及 `lightgravity.bot/v1` 完全分开。
 
 ## 排期与执行原则

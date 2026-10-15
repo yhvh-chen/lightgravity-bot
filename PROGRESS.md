@@ -526,3 +526,52 @@ LG-032 零真实请求预检发现 selector scratch 与 SDK workspace_root 边�
 - **不宣**：**真实 provider 86 仍旧限定门**；**真实 SDK 由 fake 证明默认布局**；**完整 CoordinatorWorkerLoop + 真实模型质量/成本对照仍归 032 未过**，**不宣全产品 pass**。共享 docs/08 无公开契约变化 ⇒ **不升版**（仍 1.11.0）；**release L0 旧 `e0`/1.10 包不动**，不假称最新 source 1.11。
 - **成本**：**本集成包产品真实生成 0**；旧真实工程 **86**（34+24+28）不归零；032 预算固定 **4×48 / 总 192** 但**本包不执行**；provider token/费用 unknown 不当 0。并行 032 harness owner 仅新 worktree 报告，不合未验 harness。未 push/deploy/publish。
 - **证据**：`probes/batch-20261016/LG031-BOUNDARY-INTEGRATION.md`、`probes/lg031-workspace-boundary/qa/{REPORT,STATUS}.md`、`qa/evidence/**`。
+
+## 2026-10-16 最终批次检查点：LG-032 评估范围 done + 本轮全部交付收拢（唯一 main 最终整合/PM 文档 owner；产品真实生成 0）
+
+本节为**当前事实**，覆盖上文 LG-032 相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
+未 reset/clean/覆盖/重复 pick，未推送/部署/发布。主代理只 PM，无嵌套派工；执行经 pi + 现有 DeepSeek。
+详细报告 [probes/batch-20261016/FINAL-BATCH-REPORT.md](probes/batch-20261016/FINAL-BATCH-REPORT.md)、
+持久续接 [probes/batch-20261016/FINAL-CHECKPOINT/RESUME.md](probes/batch-20261016/FINAL-CHECKPOINT/RESUME.md)。
+
+- **开工核对（真实）**：`main@5df1956` clean（无 PM dirty）；两个待合 owner 均已退出且 clean——
+  `qa/lg032-close-audit@4d175113`（含 `fix/lg032-cohort3-entry@271fefb`）、`prep/lg035-real-truth@9ad8315`（前 `77596f4`）；
+  无残留源 owner 进程（仅本整合 owner 的 bounded pi）。
+- **安全收拢（唯一写动作，串行）**：① `git merge --ff-only prep/lg035-real-truth` → main **`9ad8315`**（main 为直接祖先 ⇒ ff-safe）；
+  ② `git merge --no-ff qa/lg032-close-audit` → merge **`d0c0c4e`**（无冲突；merge-base `0814b80`）。**无重复 cherry-pick**；
+  **保留双方历史**（main 的 LG-031「BOUNDARY-R1」再开记录与 LG-032「依赖恢复」记录仍在，分支旧任务文件未覆盖 main）。
+- **产品树核准（PM 独立核）**：`git diff 5df1956 d0c0c4e -- backend/ frontend/ src/ tests/ docs/ pyproject.toml uv.lock Makefile`
+  **为空**；`HEAD:backend/lightgravity = 55e4de56b7fe333d81a9bbc7a5e45e19977f9e9f`（=验证冻结 tree）⇒ **不重跑产品全套测试**
+  （源机制已由 R1/BOUNDARY-R1/SERIAL-R1 + 329 affected tests + mypy 独立覆盖）；新增 only `harness/probes/docs/任务元数据`。
+  **不称 whole-product pass，不把真 SDK+fake 门叫 real provider。**
+- **LG-032 → `done`（仅「评估范围」）**：依据独立封账 `probes/lg032/CLOSE-AUDIT/CLOSE-REPORT.md`（`qa/lg032-close-audit@4d175113`）
+  判 **PASS**。有效 cohort3 **4/4** 各唯一次全真实 delivered/first-pass，actual mode **off/on/off/on + restored off**，
+  A refs 无 selector（`lease=0`）/ B refs 有 selector（`lease=3`），机器 **5/5,5/5,7/7,7/7**，唯一物理 ledger **0→20→40→57→84**
+  （reqs 20+20+17+27=84≤192），异步真实独立 ModelReviewer **passed / 0 unsubstantiated** + 权威 teardown，
+  accept 绑同 candidate plan/requirements、幂等、wrong-target 409，18 个真实 SDK DB trajectory。**旧 106**（cohort1 87 模式污染 invalid +
+  cohort2 19 entry STOP）**永久单列**；032 本轮真实已知 **190 = 106 + 84**，新已知上限 **298** 未超。**default off/回退保留**；
+  **全 cost unknown、收益不支持默认启用**；2 tiny code case **无统计承诺**；**非全产品/OS sandbox/auto-resume/checkpoint skip/OCR/embedding/ASR 质量通过**。
+- **成本（分列不双算）**：product SDK token/账单 **unknown**（不当 0）；开发 pi metadata（私有 `LG032-SHARED-PI-COST-AUDIT.md`，
+  snapshot `2026-10-15T21:24:34Z`）LG032 可靠映射 26 logs/1574 turns/input 1,678,454+output 517,978/cacheRead 124,136,832，
+  边界/共享 unassigned 单列不硬分 arm，`toolpriceestimate 9.728773` 非账单/币种不推断，晚于 snapshot 不包含、**不能称最终全成本**；
+  脱敏摘要 [`FINAL-CHECKPOINT/LG032-COST-APPENDIX.md`](probes/batch-20261016/FINAL-CHECKPOINT/LG032-COST-APPENDIX.md)。
+  旧 031 86 / 023 65 / core unknown / 全部 pi QA 修复失败开销分列，不双算。
+- **LG-035 `in-progress`**：`prep/lg035-real-truth@9ad8315` 备**两份严格配对真实中文样本**（Z1 PD 书页扫描 + Wikisource 人工
+  ProofreadPage level-3；Z2 PD 表格 PDF 18 页纯扫描无 text layer，p2 同 file/同页 GT；Z2 binary `sha1 fe557252…` 392,964 B
+  private 700/600/ignored，repo 仅合法 manifest/GT/评分协议）。**真实 OCR/embedding/ASR 0 新调用、quality NOT measured**；
+  mixed born-digital+scan 类仍缺；**GET 13/12 超 1 如实保留**，另授权 1 GET 补 Z2 → **累计 14**，预算事件不抹；
+  **XFUND NC 不需用户选择作阻塞依赖**（PD 已有替代路径且 XFUND 未用）。**不能标 035 done 或解锁 040/041**。
+- **外部条件（唯一 block）**：`192.168.8.12:11434` **仍不可达**（latest 私有 `MATERIALS-RECHECK2-HEALTH.md`，`21:13:33Z`：
+  health HTTP 000/curl 7、models HTTP 000/curl 28、**无 TCP**、**0 POST**；协议 llama.cpp/OpenAI-compatible 非 Ollama）；
+  **本包不再探测、不自换 endpoint/model**。恢复后先 health/models/能力/有限预算 freeze → Chinese/table/PDF OCR + embedding 质量门 → **040**；
+  **ASR 独立质量达标才 041**，不阻塞图/PDF 版本。**不因 XFUND NC/普通实现选择要求用户确认**。
+- **状态（CLI 实读）**：backlog 专用根 `validate` **41 tasks/0 diagnostics**、`digest` complete=true → **2 todo / 2 in-progress / 37 done**、
+  `ready=[]`（现有 in-progress 可执行部分已完成、其余为 external blocked/quality gate，**不是未认领 ready**）。
+  实际 JSON 存 [`FINAL-CHECKPOINT/{validate.txt,digest.json,ready.json}`](probes/batch-20261016/FINAL-CHECKPOINT/)（脱敏）。
+  卡状态：**LG-032 `done`**；**LG-035/037 `in-progress`**；**LG-040/041 `todo` 不解锁**；LG-036/038 done 待 040；LG-031 done 保留。
+  契约 **`1.11.0`** / SDK **`0.1.22`** / 自主协作 default **off**；**SDK 是产品 runtime、pi 是开发执行、无常驻编排模型**。
+- **历史缺口如实索引**：METHOD-AUDIT（023）/ PRESERVATION-INCIDENT（TMD/覆盖/预检 dry 删除/旧 store 缺口）报告保留；
+  **不谎称 100% 原件从无缺口**，不以重建冒充原件；report 中旧 **106** 与 **13/12** 预算事件均不隐去。
+  LG-024 本地 review package 只锚 `e0`/contract `1.10`（sha `581f1de…`），**发布准备 done ≠ 发布授权**，**own 公开 LICENSE 未选**，
+  本轮**不普通确认、不擅选许可**。
+- **本包产品真实生成 0、外部服务调用 0**；未 push/deploy/publish；未删 worktree/原始实验/历史失败。**唯一 future block** 见 RESUME §2。
