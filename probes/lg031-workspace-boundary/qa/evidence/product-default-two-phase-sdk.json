@@ -1,0 +1,94 @@
+{
+  "artifacts": {
+    "alpha": {
+      "exists": true,
+      "path": "/tmp/lg031-qa-boundary-probe-wofo066r/ws/.lg-worktrees/run_01M50KF1T5X6H86Z5K8EQZM0S4/alpha/out/alpha.txt"
+    },
+    "beta": {
+      "exists": true,
+      "path": "/tmp/lg031-qa-boundary-probe-wofo066r/ws/.lg-worktrees/run_01M50KF1T5X6H86Z5K8EQZM0S4/beta/out/beta.txt"
+    }
+  },
+  "beta_selected_non_first": true,
+  "execution_phase_requests": 4,
+  "executor_accepts_scratch": true,
+  "failed_gates": [],
+  "finished_at": 1792095522.545471,
+  "nodes": {
+    "alpha": {
+      "acceptance": {
+        "criteria": [
+          "out/alpha.txt exists"
+        ],
+        "evidence_refs": [
+          "out/alpha.txt",
+          "evidence:run_01M50KF1T5X6H86Z5K8EQZM0S4/subtask_01M50KF1W3EWMT804188D7YVPA-lg006-diff.patch@sha256:74e987c20135b019e5f209cd357557de967a64cae6c966cd80b9fd4497ad4d3c"
+        ],
+        "status": "passed"
+      },
+      "fence": null,
+      "owner": null,
+      "state": "passed"
+    },
+    "beta": {
+      "acceptance": {
+        "criteria": [
+          "out/beta.txt exists"
+        ],
+        "evidence_refs": [
+          "out/beta.txt",
+          "evidence:run_01M50KF1T5X6H86Z5K8EQZM0S4/subtask_01M50KF1W332XH4DX8J8AWS2RW-lg006-diff.patch@sha256:aa918c355afd45b5e9769748efd4dce97bc1dd27be355b29e43da4f503a591b7"
+        ],
+        "status": "passed"
+      },
+      "fence": 1,
+      "owner": null,
+      "state": "passed"
+    }
+  },
+  "ok": true,
+  "outcome_state": "succeeded",
+  "probe": "lg031-workspace-boundary/qa/product-default-two-phase-sdk",
+  "product_real_generation": 0,
+  "provider": "local-fake-openai-sse",
+  "provider_substitute": true,
+  "real_sdk_version": "0.1.22",
+  "save_dir_layout": "product-default: <data_dir>/native-sessions/<task> (OUTSIDE workspace_root)",
+  "scratch_inside_root": true,
+  "scratch_not_under_save_dir": true,
+  "sdk_session_count": 4,
+  "sdk_session_ids": [
+    "sess_fbd40232fdd4493e85ff416c28570bad",
+    "sess_f095e563338b4a45bf3c726bbe08cb09",
+    "sess_8bac629b600f43cbb0220850b74d9194",
+    "sess_22355f7ca6054daea0cd12a54269f2c3"
+  ],
+  "selected_keys": [
+    "alpha",
+    "beta"
+  ],
+  "selection_only_restricted_plus_readonly_skill_tools": true,
+  "selection_phase_has_no_product_write_tool": true,
+  "selection_phase_requests": 6,
+  "selection_scratch": "/tmp/lg031-qa-boundary-probe-wofo066r/ws/.lg-worktrees/run_01M50KF1T5X6H86Z5K8EQZM0S4/.lg-pool-selection/slot_qa_0",
+  "selection_tool_names": [
+    "discover_and_request_claim",
+    "list_skills",
+    "lookup_skill",
+    "lookup_skills"
+  ],
+  "stop_confirmation": {
+    "confirmed": true,
+    "problems": [],
+    "proxy_stopped": true,
+    "run_id": "run_01M50KF1T5X6H86Z5K8EQZM0S4",
+    "sessions_stopped": 4,
+    "sessions_total": 4,
+    "unknown_sessions": []
+  },
+  "workspaces": {
+    "alpha": "/tmp/lg031-qa-boundary-probe-wofo066r/ws/.lg-worktrees/run_01M50KF1T5X6H86Z5K8EQZM0S4/alpha",
+    "beta": "/tmp/lg031-qa-boundary-probe-wofo066r/ws/.lg-worktrees/run_01M50KF1T5X6H86Z5K8EQZM0S4/beta"
+  },
+  "writer_collision_into_wrong_node": false
+}

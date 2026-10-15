@@ -1,0 +1,72 @@
+[PASS] 1_scratch_inside_authorized_root /tmp/tmp2_q_b6k0/bot-data/workspaces/.lg-worktrees/run_01QABOUNDARY/.lg-pool-selection/slot_qa_0
+[PASS] 1_scratch_not_under_save_dir /tmp/tmp2_q_b6k0/bot-data/native-sessions/task_qa_boundary
+[PASS] 1_real_executor_accepts_scratch /tmp/tmp2_q_b6k0/bot-data/workspaces/.lg-worktrees/run_01QABOUNDARY/.lg-pool-selection/slot_qa_0
+[PASS] 2_prefix_scratch_still_rejected /tmp/tmp2_q_b6k0/bot-data/native-sessions/task_qa_boundary/.lg-pool-selection/run_01QABOUNDARY/slot_qa_0
+[PASS] 3_data_dir_itself_rejected /tmp/tmp2_q_b6k0/bot-data
+[PASS] 3_sibling_worktrees_root_outside_rejected /tmp/tmp2_q_b6k0/bot-data/other-worktrees/run/n
+[PASS] 3_arbitrary_outside_rejected /tmp/tmp2_q_b6k0/outside/x
+[PASS] 4_no_method_provider_falls_back /tmp/tmp2_q_b6k0/bot-data/workspaces/task-ws
+[PASS] 4_no_method_scratch_root_is_none 
+[PASS] 4_raising_provider_root_is_none 
+[PASS] 4_raising_provider_falls_back 
+[PASS] 4c_dispatcher_does_not_swallow_raw_provider_error True
+[PASS] 4_real_provider_no_manager_returns_none 
+{
+  "ok": true,
+  "real_generation": 0,
+  "provider": "none(real-executor boundary only)",
+  "checks": [
+    {
+      "name": "1_scratch_inside_authorized_root",
+      "passed": true
+    },
+    {
+      "name": "1_scratch_not_under_save_dir",
+      "passed": true
+    },
+    {
+      "name": "1_real_executor_accepts_scratch",
+      "passed": true
+    },
+    {
+      "name": "2_prefix_scratch_still_rejected",
+      "passed": true
+    },
+    {
+      "name": "3_data_dir_itself_rejected",
+      "passed": true
+    },
+    {
+      "name": "3_sibling_worktrees_root_outside_rejected",
+      "passed": true
+    },
+    {
+      "name": "3_arbitrary_outside_rejected",
+      "passed": true
+    },
+    {
+      "name": "4_no_method_provider_falls_back",
+      "passed": true
+    },
+    {
+      "name": "4_no_method_scratch_root_is_none",
+      "passed": true
+    },
+    {
+      "name": "4_raising_provider_root_is_none",
+      "passed": true
+    },
+    {
+      "name": "4_raising_provider_falls_back",
+      "passed": true
+    },
+    {
+      "name": "4c_dispatcher_does_not_swallow_raw_provider_error",
+      "passed": true
+    },
+    {
+      "name": "4_real_provider_no_manager_returns_none",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,347 @@
+{
+  "active_grants": [],
+  "artifact_hashes": {
+    "alpha": "c4f6f95036737fe982da874e53e636818c29818279a4ad898a00cd1df57e422c",
+    "beta": "916c27dff9517028f5c20585050d329cd4c030652e678fb20924fddb323b7a5b"
+  },
+  "artifacts": {
+    "alpha": {
+      "content": "/tmp/lg031-runtime-probe-gdd6o0b2/ws/.lg-worktrees/run_01M50KDEKJMMGBMM2RZ5F78E8V/alpha/out/alpha.txt\n",
+      "exists": true,
+      "path": "/tmp/lg031-runtime-probe-gdd6o0b2/ws/.lg-worktrees/run_01M50KDEKJMMGBMM2RZ5F78E8V/alpha/out/alpha.txt"
+    },
+    "beta": {
+      "content": "/tmp/lg031-runtime-probe-gdd6o0b2/ws/.lg-worktrees/run_01M50KDEKJMMGBMM2RZ5F78E8V/beta/out/beta.txt\n",
+      "exists": true,
+      "path": "/tmp/lg031-runtime-probe-gdd6o0b2/ws/.lg-worktrees/run_01M50KDEKJMMGBMM2RZ5F78E8V/beta/out/beta.txt"
+    }
+  },
+  "beta_selected_non_first": true,
+  "elapsed_seconds": 3.046,
+  "execution_phase_requests": 4,
+  "fake_upstream_records": [
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:discover",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:claim",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:finish",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "execution:write",
+      "selection_phase": false,
+      "tool_names": [
+        "view_file",
+        "write_to_file",
+        "request_peer",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "execution:finish",
+      "selection_phase": false,
+      "tool_names": [
+        "view_file",
+        "write_to_file",
+        "request_peer",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:discover",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:claim",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:finish",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "execution:write",
+      "selection_phase": false,
+      "tool_names": [
+        "view_file",
+        "write_to_file",
+        "request_peer",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "execution:finish",
+      "selection_phase": false,
+      "tool_names": [
+        "view_file",
+        "write_to_file",
+        "request_peer",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:discover",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:discover",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:claim",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:claim",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:discover",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:finish",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:claim",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:discover",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    },
+    {
+      "model": "fake-model",
+      "path": "/v1/chat/completions",
+      "phase": "selection:claim",
+      "selection_phase": true,
+      "tool_names": [
+        "discover_and_request_claim",
+        "list_skills",
+        "lookup_skill",
+        "lookup_skills"
+      ]
+    }
+  ],
+  "finished_at": 1792095471.1653109,
+  "nodes": {
+    "alpha": {
+      "evidence_refs": [
+        "out/alpha.txt",
+        "evidence:run_01M50KDEKJMMGBMM2RZ5F78E8V/subtask_01M50KDENJP1NA3F4C7WRXF9MX-lg006-diff.patch@sha256:5be79dd3a6ccfa3b0a9dd4a744291fdf24e4cd2f07e2fdf54e06085777e2d673"
+      ],
+      "fence": null,
+      "owner": null,
+      "state": "passed",
+      "subtask_ref": "subtask_01M50KDENJP1NA3F4C7WRXF9MX"
+    },
+    "beta": {
+      "evidence_refs": [
+        "out/beta.txt",
+        "evidence:run_01M50KDEKJMMGBMM2RZ5F78E8V/subtask_01M50KDENJPPWJ891J7XYZ1E8F-lg006-diff.patch@sha256:96a38757b122a7e3f1fe80531a81c8e4bc7530cf835abbaca98a8dceeceb2e43"
+      ],
+      "fence": 1,
+      "owner": null,
+      "state": "passed",
+      "subtask_ref": "subtask_01M50KDENJPPWJ891J7XYZ1E8F"
+    }
+  },
+  "outcome_state": "succeeded",
+  "pool_multi_candidate": true,
+  "probe": "lg031-runtime-integration/two-phase-sdk",
+  "product_real_generation": 0,
+  "provider": "local-fake-openai-sse",
+  "provider_substitute": true,
+  "race": {
+    "final_fence": 1,
+    "granted_count": 1,
+    "held_by_other_seen": true,
+    "one_winner": true,
+    "owner_consistent": true,
+    "workers": [
+      {
+        "fence": 1,
+        "member_id": "member-a",
+        "reason": "granted",
+        "redacted": true,
+        "refusal_reasons": [
+          "granted"
+        ],
+        "state": "granted"
+      },
+      {
+        "fence": null,
+        "member_id": "member-a",
+        "reason": "held_by_other",
+        "redacted": true,
+        "refusal_reasons": [
+          "claim_not_permitted",
+          "held_by_other"
+        ],
+        "state": "refused"
+      }
+    ]
+  },
+  "real_sdk_version": "0.1.22",
+  "sdk_session_count": 4,
+  "sdk_session_starts": [
+    "sess_daf121b8620442cc8a1283888ddccac5",
+    "sess_f538b00cc9f04c098420a3c281998418",
+    "sess_f141bd9dc67b4e3fa51b6045ec693707",
+    "sess_e16fed1032004873b5cdcd70ca26ef57"
+  ],
+  "selected_keys": [
+    "alpha",
+    "beta"
+  ],
+  "selection_phase_requests": 6,
+  "started_at": 1792095468.1195762,
+  "stop_confirmation": {
+    "confirmed": true,
+    "problems": [],
+    "proxy_stopped": true,
+    "run_id": "run_01M50KDEKJMMGBMM2RZ5F78E8V",
+    "sessions_stopped": 4,
+    "sessions_total": 4,
+    "unknown_sessions": []
+  },
+  "workspaces": {
+    "alpha": "/tmp/lg031-runtime-probe-gdd6o0b2/ws/.lg-worktrees/run_01M50KDEKJMMGBMM2RZ5F78E8V/alpha",
+    "beta": "/tmp/lg031-runtime-probe-gdd6o0b2/ws/.lg-worktrees/run_01M50KDEKJMMGBMM2RZ5F78E8V/beta"
+  },
+  "writer_collision_into_wrong_node": false
+}

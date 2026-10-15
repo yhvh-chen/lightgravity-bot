@@ -1,0 +1,56 @@
+[PASS] 1_default_workspace_root_is_subdir_of_data_dir /tmp/tmpx3clpy03/bot-data/workspaces
+[PASS] 1_default_workspace_root_inside_data_dir /tmp/tmpx3clpy03/bot-data/workspaces
+[PASS] 1_default_save_dir_layout_outside_root save_dir under /tmp/tmpx3clpy03/bot-data/native-sessions vs root /tmp/tmpx3clpy03/bot-data/workspaces
+[PASS] 2_default_bootstrap_executor_wired []
+[PASS] 2_no_executor_wiring_warning []
+[PASS] 2_bootstrap_wires_graph_workspace_provider 
+[PASS] 2_bootstrap_enables_autonomous_pool_with_decentralized 
+[PASS] 2_bootstrap_scratch_inside_authorized_root /tmp/tmpx3clpy03/bot-data/workspaces/.lg-worktrees/run_01BOOTSTRAPQA/.lg-pool-selection/slot_0
+[PASS] 3_real_executor_accepts_bootstrap_scratch /tmp/tmpx3clpy03/bot-data/workspaces/.lg-worktrees/run_01BOOTSTRAPQA/.lg-pool-selection/slot_0
+[PASS] 3_prefix_save_dir_still_rejected /tmp/tmpx3clpy03/bot-data/native-sessions/task_bootstrap_qa/.lg-pool-selection
+{
+  "ok": true,
+  "real_generation": 0,
+  "checks": [
+    {
+      "name": "1_default_workspace_root_is_subdir_of_data_dir",
+      "passed": true
+    },
+    {
+      "name": "1_default_workspace_root_inside_data_dir",
+      "passed": true
+    },
+    {
+      "name": "1_default_save_dir_layout_outside_root",
+      "passed": true
+    },
+    {
+      "name": "2_default_bootstrap_executor_wired",
+      "passed": true
+    },
+    {
+      "name": "2_no_executor_wiring_warning",
+      "passed": true
+    },
+    {
+      "name": "2_bootstrap_wires_graph_workspace_provider",
+      "passed": true
+    },
+    {
+      "name": "2_bootstrap_enables_autonomous_pool_with_decentralized",
+      "passed": true
+    },
+    {
+      "name": "2_bootstrap_scratch_inside_authorized_root",
+      "passed": true
+    },
+    {
+      "name": "3_real_executor_accepts_bootstrap_scratch",
+      "passed": true
+    },
+    {
+      "name": "3_prefix_save_dir_still_rejected",
+      "passed": true
+    }
+  ]
+}
