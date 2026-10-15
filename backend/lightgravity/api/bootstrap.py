@@ -39,6 +39,7 @@ from ..adapter import AntigravityExecutor, DirectoryArtifactSink, ResourceCompil
 from ..adapter.compiler import ConnectionPin
 from ..config import Settings
 from ..coordinator import GraphDispatcher
+from ..workspaces import GraphWorkspaceProvider, WorktreeManager
 from ..coordinator.dialogue import (
     ModelDialogue,
     make_sync_responder,
@@ -344,6 +345,7 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
                 catalog=catalog,
                 compiler=compiler,
                 connections=connection_pins,
+                workspaces=GraphWorkspaceProvider(WorktreeManager(settings.workspace_root)),
             )
             log(
                 "executor wired: antigravity/openai-compat via loopback auth proxy"
