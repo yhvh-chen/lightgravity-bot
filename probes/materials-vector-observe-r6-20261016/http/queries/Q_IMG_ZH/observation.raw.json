@@ -1,0 +1,23 @@
+{
+  "q": "Q_IMG_ZH",
+  "text": "老子 道德經 註解 學說",
+  "type": "positive_crossmodal_image",
+  "relevant": [
+    "M_IMG_ZH"
+  ],
+  "source": "R5 frozen corpus (verbatim)",
+  "text_bytes": 30,
+  "error": null,
+  "latency": 30.0402,
+  "vector_index_status": "index_unavailable",
+  "vector_model": "embeddinggemma-2-Q8_0",
+  "product_hits": [],
+  "product_hit_fields": [],
+  "product_stale": [],
+  "product_skipped": [],
+  "full_ranking": [],
+  "independent_recompute": [],
+  "independent_order_matches_product": null,
+  "target_rank_info": null,
+  "embedding_record": {}
+}

@@ -1,0 +1,21 @@
+{
+  "q": "Q_NEG_ZH",
+  "text": "量子色動力學 膠子 強相互作用",
+  "type": "negative_control",
+  "relevant": [],
+  "source": "R5 frozen corpus old negative",
+  "text_bytes": 41,
+  "error": null,
+  "latency": 30.0303,
+  "vector_index_status": "index_unavailable",
+  "vector_model": "embeddinggemma-2-Q8_0",
+  "product_hits": [],
+  "product_hit_fields": [],
+  "product_stale": [],
+  "product_skipped": [],
+  "full_ranking": [],
+  "independent_recompute": [],
+  "independent_order_matches_product": null,
+  "target_rank_info": null,
+  "embedding_record": {}
+}
