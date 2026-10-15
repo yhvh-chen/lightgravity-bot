@@ -1,0 +1,77 @@
+{
+  "checks": {
+    "body_capability_not_authorizing": {
+      "granted": true,
+      "persisted_fence": 1,
+      "persisted_owner": "w1",
+      "reason": "granted",
+      "status": 200
+    },
+    "body_owner_impersonation": {
+      "persisted_owner": null,
+      "raw": "{\"error\": {\"code\": \"claim_refused\", \"details\": {\"authenticated\": \"w1\", \"reason\": \"identity_mismatch\"}, \"message\": \"request owner does not match the program-authenticated principal\", \"request_id\": null, \"retryable\": false}}",
+      "reason": "identity_mismatch",
+      "status": 409
+    },
+    "cross_run_refused": {
+      "reason": "identity_mismatch",
+      "status": 409
+    },
+    "discoverable_limited_to_grant": {
+      "authorized": [
+        "subtask_01M50DRV3AF8S5J8FE33PDPFEX"
+      ],
+      "items": [],
+      "raw": "{\"considered\": 2, \"enabled\": true, \"excluded\": {\"state_not_claimable\": 1}, \"items\": [], \"owner\": \"w1\", \"run_ref\": \"run_01M50DRV302SA058NJMHP1CPXC\"}",
+      "status": 200
+    },
+    "no_grant_default_deny": {
+      "persisted_owner": null,
+      "raw": "{\"error\": {\"code\": \"claim_refused\", \"details\": {\"reason\": \"unauthenticated\"}, \"message\": \"no active program execution grant was presented\", \"request_id\": null, \"retryable\": false}}",
+      "reason": "unauthenticated",
+      "status": 409
+    },
+    "node_outside_grant": {
+      "reason": "not_discoverable",
+      "status": 409
+    },
+    "peer_body_identity_default_deny": {
+      "reason": "feature_disabled",
+      "status": 200
+    },
+    "peer_cannot_steal_lease": {
+      "reason": "not_owner",
+      "status": 200
+    },
+    "renew_body_member_mismatch": {
+      "reason": "identity_mismatch",
+      "status": 409
+    },
+    "renew_frozen_owner_ok": {
+      "body": {
+        "fence": 1,
+        "lease_expires_at": null,
+        "owner": "graph-dispatcher:a",
+        "reason": "not_owner",
+        "renewed": false,
+        "subtask_ref": "subtask_01M50DRV3AF8S5J8FE33PDPFEX"
+      },
+      "status": 200
+    },
+    "renew_stale_fence_refused": {
+      "reason": "fence_mismatch",
+      "status": 409
+    }
+  },
+  "probe": "lg032-r1/gate2-http-identity",
+  "product_real_generation": 0,
+  "summary": {
+    "body_capability_ignored": true,
+    "cross_run_refused": true,
+    "impersonation_refused": true,
+    "no_grant_denied": true,
+    "out_of_grant_refused": true,
+    "peer_default_deny": true,
+    "stale_fence_refused": true
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "count_after_worker": 1,
+  "elapsed_seconds": 1.01,
+  "finished_at": 1792089759.1341877,
+  "ledger_limit": 1,
+  "ledger_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-runtime-r1/qa/lg032/runtime-r1/fixtures/gate3b/data/generation/generation.jsonl",
+  "probe": "lg032-r1/gate3b-reviewer-ledger",
+  "product_real_generation": 0,
+  "provider": "local-fake-openai-sse-loopback",
+  "provider_substitute": true,
+  "reviewer_forwarded": 0,
+  "reviewer_proxy_substituted": true,
+  "reviewer_refusal": "AntigravityExecutionError: HTTP request failed with status 429: {\"error\":{\"message\":\"local auth proxy call budget exhausted\"}}",
+  "reviewer_shares_shared_ledger": true,
+  "reviewer_text": "",
+  "reviewer_usage": {},
+  "started_at": 1792089758.1237395,
+  "worker_failure_code": "execution_error",
+  "worker_forwarded": 1,
+  "worker_state": "failed"
+}

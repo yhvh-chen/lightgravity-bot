@@ -1,0 +1,67 @@
+{
+  "alpha_owner": "graph-dispatcher:race-b",
+  "beta_owner": "graph-dispatcher:race-a",
+  "cross_member_node_refused": {
+    "granted": false,
+    "other_member_node_owner": null,
+    "other_member_node_state": "pending",
+    "reason": "node_not_in_candidate_pool"
+  },
+  "loser_claims_remaining": {
+    "binding_key": "beta",
+    "fence": 1,
+    "granted": true
+  },
+  "out_of_pool_refused": {
+    "granted": false,
+    "reason": "node_not_in_candidate_pool"
+  },
+  "probe": "lg032-r1/gate2b-race",
+  "product_real_generation": 0,
+  "race_same_node": {
+    "fence": 1,
+    "granted_count": 1,
+    "loser_reasons": [
+      "held_by_other"
+    ],
+    "one_winner": true,
+    "owners": [
+      "member-a"
+    ],
+    "receipts_redacted": true,
+    "res_a": {
+      "granted": false,
+      "reason": "held_by_other",
+      "request_id": "req-a"
+    },
+    "res_b": {
+      "binding": {
+        "capability": "implementation",
+        "key": "alpha",
+        "member_ref": "member-a",
+        "node_ref": "subtask_01M50E6ZY1X5VV7GQXN5HP6GMH",
+        "objective": "Write alpha",
+        "workspace_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-runtime-r1/qa/lg032/runtime-r1/fixtures/gate2b/ws",
+        "write": true
+      },
+      "fence": 1,
+      "granted": true,
+      "lease_expires_at": "2026-10-15T18:51:53.753Z",
+      "reason": "granted",
+      "request_id": "req-b"
+    }
+  },
+  "single_dispatcher_race": {
+    "both_granted": true,
+    "fences": [
+      1,
+      1
+    ],
+    "final_fence": 1,
+    "reasons": [
+      "already_owned",
+      "granted"
+    ],
+    "single_fence_increment": true
+  }
+}

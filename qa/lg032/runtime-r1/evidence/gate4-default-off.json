@@ -1,0 +1,15 @@
+{
+  "custom_tools_empty": true,
+  "custom_tools_seen": [],
+  "fences": {
+    "only": null
+  },
+  "has_discover_and_request_claim": false,
+  "node_states": {
+    "only": "passed"
+  },
+  "outcome_state": "succeeded",
+  "plan_source": "rules",
+  "probe": "lg032-r1/gate4-default-off",
+  "product_real_generation": 0
+}

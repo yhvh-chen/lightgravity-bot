@@ -1,0 +1,10 @@
+# Raw runtime originals (persistent on disk, private 700, not committed).
+#
+# These are the create-only SoT originals the R1 probes produced: real FileStore
+# data roots, real git worktrees, SDK session dirs and artifacts.  They are kept
+# on disk (project-adjacent, persistent, never auto-deleted) for audit, but they
+# are machine-local runtime state (nested git repos, large trees) and are NOT part
+# of the repo.  Only redacted JSON summaries/hashes under evidence/** are committed.
+fixtures/
+probes/__pycache__/
+*.pyc
