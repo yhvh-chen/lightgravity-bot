@@ -1,0 +1,351 @@
+{
+  "active_grants": [],
+  "artifacts": {
+    "alpha": {
+      "content": "alpha",
+      "exists": true,
+      "in_own_worktree": true,
+      "other_present": false,
+      "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof/probes/lg031/REAL-PROOF/fixtures/formal/workspaces/.lg-worktrees/run_01M50F8XGQTQB6JVBM1YAVZ401/alpha/out/alpha.txt",
+      "sha256": "b6a98d9ce9a2d9149288fa3df42d377c3e42737afdcdaf714e33c0a100b51060"
+    },
+    "beta": {
+      "content": "beta",
+      "exists": true,
+      "in_own_worktree": true,
+      "other_present": false,
+      "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof/probes/lg031/REAL-PROOF/fixtures/formal/workspaces/.lg-worktrees/run_01M50F8XGQTQB6JVBM1YAVZ401/beta/out/beta.txt",
+      "sha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad"
+    }
+  },
+  "dry_fake": false,
+  "elapsed_seconds": 56.495,
+  "event_type_counts": {
+    "adapter.error": 1,
+    "adapter.execution_finished": 6,
+    "adapter.execution_started": 6,
+    "adapter.session_requested": 6,
+    "adapter.session_started": 6,
+    "adapter.text": 1097,
+    "adapter.tool_call": 22
+  },
+  "events": [
+    {
+      "at": "2026-10-15T19:05:25Z",
+      "type": "adapter.execution_started"
+    },
+    {
+      "at": "2026-10-15T19:05:25Z",
+      "type": "adapter.session_requested"
+    },
+    {
+      "at": "2026-10-15T19:05:26Z",
+      "session_id": "sess_f7976a3784954ff78c421bff803ef5c2",
+      "type": "adapter.session_started"
+    },
+    {
+      "at": "2026-10-15T19:05:27Z",
+      "name": "discover_and_request_claim",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:27Z",
+      "name": "skill_lookup",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:28Z",
+      "name": "skill_lookup",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:30Z",
+      "name": "discover_and_request_claim",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:33Z",
+      "type": "adapter.execution_finished"
+    },
+    {
+      "at": "2026-10-15T19:05:33Z",
+      "type": "adapter.execution_started"
+    },
+    {
+      "at": "2026-10-15T19:05:33Z",
+      "type": "adapter.session_requested"
+    },
+    {
+      "at": "2026-10-15T19:05:33Z",
+      "session_id": "sess_bcc0b5db04784f23af3ebf18c84d830c",
+      "type": "adapter.session_started"
+    },
+    {
+      "at": "2026-10-15T19:05:34Z",
+      "name": "edit_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:36Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:40Z",
+      "name": "edit_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:41Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:44Z",
+      "name": "skill_lookup",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:46Z",
+      "type": "adapter.execution_finished"
+    },
+    {
+      "at": "2026-10-15T19:05:46Z",
+      "type": "adapter.execution_started"
+    },
+    {
+      "at": "2026-10-15T19:05:46Z",
+      "type": "adapter.session_requested"
+    },
+    {
+      "at": "2026-10-15T19:05:46Z",
+      "session_id": "sess_b80a91ac0d5d4f34a4921b0e2c496346",
+      "type": "adapter.session_started"
+    },
+    {
+      "at": "2026-10-15T19:05:47Z",
+      "name": "discover_and_request_claim",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:49Z",
+      "name": "discover_and_request_claim",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:51Z",
+      "type": "adapter.execution_finished"
+    },
+    {
+      "at": "2026-10-15T19:05:51Z",
+      "type": "adapter.execution_started"
+    },
+    {
+      "at": "2026-10-15T19:05:51Z",
+      "type": "adapter.session_requested"
+    },
+    {
+      "at": "2026-10-15T19:05:51Z",
+      "session_id": "sess_85d3dabaeda84c18ab47521b2005e00c",
+      "type": "adapter.session_started"
+    },
+    {
+      "at": "2026-10-15T19:05:53Z",
+      "name": "edit_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:53Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:05:57Z",
+      "type": "adapter.execution_finished"
+    },
+    {
+      "at": "2026-10-15T19:05:58Z",
+      "type": "adapter.execution_started"
+    },
+    {
+      "at": "2026-10-15T19:05:58Z",
+      "type": "adapter.session_requested"
+    },
+    {
+      "at": "2026-10-15T19:05:58Z",
+      "session_id": "sess_047a75e5c6254c5bb22b43df1221751b",
+      "type": "adapter.session_started"
+    },
+    {
+      "at": "2026-10-15T19:05:59Z",
+      "name": "discover_and_request_claim",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:06:01Z",
+      "name": "discover_and_request_claim",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:06:04Z",
+      "type": "adapter.execution_finished"
+    },
+    {
+      "at": "2026-10-15T19:06:04Z",
+      "type": "adapter.execution_started"
+    },
+    {
+      "at": "2026-10-15T19:06:04Z",
+      "type": "adapter.session_requested"
+    },
+    {
+      "at": "2026-10-15T19:06:04Z",
+      "session_id": "sess_2d2865d607874625be8007599934b419",
+      "type": "adapter.session_started"
+    },
+    {
+      "at": "2026-10-15T19:06:08Z",
+      "name": "skill_lookup",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:06:09Z",
+      "name": "skill_lookup",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:06:10Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:06:12Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:06:17Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:06:17Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:06:21Z",
+      "name": "view_file",
+      "type": "adapter.tool_call"
+    },
+    {
+      "at": "2026-10-15T19:06:21Z",
+      "error": "AntigravityExecutionError",
+      "message": "HTTP request failed with status 429: {\"error\":{\"message\":\"local auth proxy call budget exhausted\"}}",
+      "type": "adapter.error"
+    },
+    {
+      "at": "2026-10-15T19:06:21Z",
+      "type": "adapter.execution_finished"
+    }
+  ],
+  "events_note": "redacted: model text/prompt/args stripped; raw private copy retained on disk",
+  "finished_at": 1792091181.825632,
+  "frozen_plan_keys": [
+    "alpha",
+    "beta",
+    "verify"
+  ],
+  "initial_commit": "6cf81ea38456b7a0c3c2536b48985d7af3a55f11",
+  "ledger_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof/probes/lg031/REAL-PROOF/fixtures/formal/data/generation/generation.jsonl",
+  "ledger_snapshot": {
+    "corrupt": false,
+    "count": 24,
+    "limit": 24,
+    "persistent": true,
+    "remaining": 0
+  },
+  "machine_gate": {
+    "all_nodes_passed": false,
+    "alpha_exact": true,
+    "beta_exact": true,
+    "no_cross_contamination": true,
+    "pass": false,
+    "verify_has_two_handoffs": true,
+    "verify_no_write": true
+  },
+  "max_real_calls": 24,
+  "nodes": {
+    "alpha": {
+      "assignee_member_ref": "member_01M50F8XM01R8QESVKG5TNNZ7G",
+      "capability": "implementation",
+      "fence": 1,
+      "owner": null,
+      "state": "passed",
+      "subtask_ref": "subtask_01M50F8XM0DEA3KERSSMFJB0D6",
+      "upstream_artifact_refs": [],
+      "write": true
+    },
+    "beta": {
+      "assignee_member_ref": "member_01M50F8XM01R8QESVKG5TNNZ7G",
+      "capability": "implementation",
+      "fence": 1,
+      "owner": null,
+      "state": "passed",
+      "subtask_ref": "subtask_01M50F8XM01G8P8SW0K4TXXSNS",
+      "upstream_artifact_refs": [],
+      "write": true
+    },
+    "verify": {
+      "assignee_member_ref": "member_01M50F8XM0CD5PYN7VWKS18030",
+      "capability": "verification",
+      "fence": 1,
+      "owner": null,
+      "state": "failed",
+      "subtask_ref": "subtask_01M50F8XM08QQDBG8XHYGGYJ8K",
+      "upstream_artifact_refs": [
+        "subtask_01M50F8XM0DEA3KERSSMFJB0D6@02a10f017597bd56e60ee3d752dda62e867db6ee7df3cd7616eefa06448c5e1f:out/alpha.txt",
+        "subtask_01M50F8XM0DEA3KERSSMFJB0D6@02a10f017597bd56e60ee3d752dda62e867db6ee7df3cd7616eefa06448c5e1f:evidence:run_01M50F8XGQTQB6JVBM1YAVZ401/subtask_01M50F8XM0DEA3KERSSMFJB0D6-lg006-diff.patch@sha256:6f94ea5f7a5dbd1f78261475c4703398d39aed468a3e5edcce87e2b92ac5bf25",
+        "subtask_01M50F8XM01G8P8SW0K4TXXSNS@29921ee94127c2f3c08f599c298c45bfc8ce7f340b0737538f175eaab1b8f036:out/beta.txt",
+        "subtask_01M50F8XM01G8P8SW0K4TXXSNS@29921ee94127c2f3c08f599c298c45bfc8ce7f340b0737538f175eaab1b8f036:evidence:run_01M50F8XGQTQB6JVBM1YAVZ401/subtask_01M50F8XM01G8P8SW0K4TXXSNS-lg006-diff.patch@sha256:a975a8c5c4fd38766f3532d6f971c643db1e43b2d36252fe2b1ed96bca3f4e2b"
+      ],
+      "write": false
+    }
+  },
+  "outcome_reason": null,
+  "outcome_state": "failed",
+  "output_limit": 12000,
+  "plan_source": "rules",
+  "probe": "lg031-real-proof/formal",
+  "product_real_generation": true,
+  "provider": "deepseek",
+  "provider_substitute": false,
+  "real_base_url": "https://api.deepseek.com/v1",
+  "real_model": "deepseek-v4-flash",
+  "run_session_refs_count": 6,
+  "sdk_session_count": 6,
+  "sessions_in_run_refs": true,
+  "started_at": 1792091125.1593788,
+  "stop_confirmation": {
+    "confirmed": true,
+    "problems": [],
+    "proxy_stopped": true,
+    "run_id": "run_01M50F8XGQTQB6JVBM1YAVZ401",
+    "sessions_stopped": 6,
+    "sessions_total": 6,
+    "unknown_sessions": []
+  },
+  "validated_plan_hash": "37e5c771a7e1c9c41543180e71b79e08de79205fa687cfcca3385a00137b8e8e",
+  "validated_plan_keys": [
+    "alpha",
+    "beta",
+    "verify"
+  ],
+  "verify_upstream_handoffs": [
+    "subtask_01M50F8XM0DEA3KERSSMFJB0D6@02a10f017597bd56e60ee3d752dda62e867db6ee7df3cd7616eefa06448c5e1f:out/alpha.txt",
+    "subtask_01M50F8XM0DEA3KERSSMFJB0D6@02a10f017597bd56e60ee3d752dda62e867db6ee7df3cd7616eefa06448c5e1f:evidence:run_01M50F8XGQTQB6JVBM1YAVZ401/subtask_01M50F8XM0DEA3KERSSMFJB0D6-lg006-diff.patch@sha256:6f94ea5f7a5dbd1f78261475c4703398d39aed468a3e5edcce87e2b92ac5bf25",
+    "subtask_01M50F8XM01G8P8SW0K4TXXSNS@29921ee94127c2f3c08f599c298c45bfc8ce7f340b0737538f175eaab1b8f036:out/beta.txt",
+    "subtask_01M50F8XM01G8P8SW0K4TXXSNS@29921ee94127c2f3c08f599c298c45bfc8ce7f340b0737538f175eaab1b8f036:evidence:run_01M50F8XGQTQB6JVBM1YAVZ401/subtask_01M50F8XM01G8P8SW0K4TXXSNS-lg006-diff.patch@sha256:a975a8c5c4fd38766f3532d6f971c643db1e43b2d36252fe2b1ed96bca3f4e2b"
+  ],
+  "work_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof/probes/lg031/REAL-PROOF/fixtures/formal"
+}
