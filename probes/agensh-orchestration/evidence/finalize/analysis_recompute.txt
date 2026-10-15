@@ -1,0 +1,21 @@
+### recompute metrics from raw usage with the original driver ###
+run_utc: 2026-10-15T05:34:37Z
+command: python3 driver/analyze_results.py --out /tmp/analysis_recomputed.json
+analyze exit=0
+
+### compare fresh recompute against stored evidence/pilot/analysis.json ###
+RESULT: IDENTICAL (stored analysis.json faithfully derives from runs/*/raw/*.json)
+
+sha256 fresh:   a31b21e31838d0946185c9f25de086c6f24c84bd59f914f9810b6a1099d31dcb
+sha256 stored:  a31b21e31838d0946185c9f25de086c6f24c84bd59f914f9810b6a1099d31dcb
+
+decision_rules:
+{
+  "candidate_de_orchestration": false,
+  "candidate_on_demand_initial_planning": true,
+  "retain_planning_for_dependency_change": "T3 (change task): C all-fail while B full-pass -> retain",
+  "token_improve_c_vs_a": 0.5205,
+  "time_improve_c_vs_a": 0.5518,
+  "token_improve_b_vs_a": 0.2928,
+  "time_improve_b_vs_a": 0.3555
+}

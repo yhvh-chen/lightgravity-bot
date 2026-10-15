@@ -1,0 +1,443 @@
+{
+  "state": "succeeded",
+  "summary": "succeeded: {'findings': ['src/geometry.py and src/report.py already satisfy the frozen shape contract exactly; no edits were required or permitted (no file lease held).', 'geometry.area/perimeter handle rect (w*h, 2*(w+h)) and circle (math.pi*r**2, 2*math.pi*r) and raise ValueError for unknown kinds.', 'report.describe delegates to geometry.area/perimeter, emits exactly f\"{kind}: area={..:.2f} perimeter={..:.2f}\" with no local math, and lets ValueError propagate.'], 'summary': 'Verified read-only that src/geometry.py and src/report.py conform exactly to the frozen dict-shape contract; no write",
+  "stop_reason": "StopReason.UNSPECIFIED",
+  "stop_confirmed": null,
+  "failure": null,
+  "usage": {
+    "prompt_tokens": 11726,
+    "candidates_tokens": 773,
+    "total_tokens": 12499,
+    "thought_tokens": 0,
+    "cached_tokens": 5504,
+    "unknown": []
+  },
+  "model": "deepseek-v4-flash",
+  "upstream_model": "deepseek-flash",
+  "elapsed_seconds": 4.775,
+  "tool_calls": [
+    {
+      "name": "view_file",
+      "args": {
+        "file_path": "/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r2/w1/src/geometry.py",
+        "start_line": 0,
+        "end_line": 799
+      }
+    },
+    {
+      "name": "view_file",
+      "args": {
+        "file_path": "/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r2/w1/src/report.py",
+        "start_line": 0,
+        "end_line": 799
+      }
+    },
+    {
+      "name": "finish",
+      "args": {
+        "output_string": "{\"findings\": [\"src/geometry.py and src/report.py already satisfy the frozen shape contract exactly; no edits were required or permitted (no file lease held).\", \"geometry.area/perimeter handle rect (w*h, 2*(w+h)) and circle (math.pi*r**2, 2*math.pi*r) and raise ValueError for unknown kinds.\", \"report.describe delegates to geometry.area/perimeter, emits exactly f\\\"{kind}: area={..:.2f} perimeter={..:.2f}\\\" with no local math, and lets ValueError propagate.\"], \"summary\": \"Verified read-only that src/geometry.py and src/report.py conform exactly to the frozen dict-shape contract; no writes made.\"}"
+      }
+    }
+  ],
+  "tool_call_names": [
+    "view_file",
+    "view_file",
+    "finish"
+  ],
+  "captured_calls": [
+    {
+      "name": "view_file",
+      "args": {
+        "AbsolutePath": "/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r2/w1/src/geometry.py"
+      },
+      "canonical_path": null,
+      "step_id": "ebbaddffbecc76b6e2ad06215fc5ac22:2",
+      "id": "call_00_5uEjGpPHwwhb9KSJfXf81287"
+    },
+    {
+      "name": "view_file",
+      "args": {
+        "AbsolutePath": "/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r2/w1/src/report.py"
+      },
+      "canonical_path": null,
+      "step_id": "ebbaddffbecc76b6e2ad06215fc5ac22:3",
+      "id": "call_01_I1djk5RPjeLGyG5ZClLj3088"
+    },
+    {
+      "name": "finish",
+      "args": {
+        "findings": [
+          "src/geometry.py and src/report.py already satisfy the frozen shape contract exactly; no edits were required or permitted (no file lease held).",
+          "geometry.area/perimeter handle rect (w*h, 2*(w+h)) and circle (math.pi*r**2, 2*math.pi*r) and raise ValueError for unknown kinds.",
+          "report.describe delegates to geometry.area/perimeter, emits exactly f\"{kind}: area={..:.2f} perimeter={..:.2f}\" with no local math, and lets ValueError propagate."
+        ],
+        "summary": "Verified read-only that src/geometry.py and src/report.py conform exactly to the frozen dict-shape contract; no writes made."
+      },
+      "canonical_path": null,
+      "step_id": "ebbaddffbecc76b6e2ad06215fc5ac22:5",
+      "id": "call_00_6hkvS4JWksZxZpe0Hfto7375"
+    }
+  ],
+  "captured_call_names": [
+    "view_file",
+    "view_file",
+    "finish"
+  ],
+  "finish_payload": {
+    "findings": [
+      "src/geometry.py and src/report.py already satisfy the frozen shape contract exactly; no edits were required or permitted (no file lease held).",
+      "geometry.area/perimeter handle rect (w*h, 2*(w+h)) and circle (math.pi*r**2, 2*math.pi*r) and raise ValueError for unknown kinds.",
+      "report.describe delegates to geometry.area/perimeter, emits exactly f\"{kind}: area={..:.2f} perimeter={..:.2f}\" with no local math, and lets ValueError propagate."
+    ],
+    "summary": "Verified read-only that src/geometry.py and src/report.py conform exactly to the frozen dict-shape contract; no writes made."
+  },
+  "finish_source": "hook",
+  "finish_parse_error": null,
+  "finish_payload_chars": 600,
+  "finish_payload_sha256": "fc644b173c17e4547a3a6571a0840ea5388d5958168d5f8cfd12f03de35c365f",
+  "emitted_finish_payload": {
+    "findings": [
+      "src/geometry.py and src/report.py already satisfy the frozen shape contract exactly; no edits were required or permitted (no file lease held).",
+      "geometry.area/perimeter handle rect (w*h, 2*(w+h)) and circle (math.pi*r**2, 2*math.pi*r) and raise ValueError for unknown kinds.",
+      "report.describe delegates to geometry.area/perimeter, emits exactly f\"{kind}: area={..:.2f} perimeter={..:.2f}\" with no local math, and lets ValueError propagate."
+    ],
+    "summary": "Verified read-only that src/geometry.py and src/report.py conform exactly to the frozen dict-shape contract; no writes made."
+  },
+  "emitted_finish_chars": 600,
+  "emitted_truncated": false,
+  "session_db_finish_chars": 600,
+  "session_db_matches_hook": true,
+  "structured_repr": "{'findings': ['src/geometry.py and src/report.py already satisfy the frozen shape contract exactly; no edits were required or permitted (no file lease held).', 'geometry.area/perimeter handle rect (w*h, 2*(w+h)) and circle (math.pi*r**2, 2*math.pi*r) and raise ValueError for unknown kinds.', 'report.describe delegates to geometry.area/perimeter, emits exactly f\"{kind}: area={..:.2f} perimeter={..:.2f}\" with no local math, and lets ValueError propagate.'], 'summary': 'Verified read-only that src/",
+  "check_records": [
+    {
+      "name": "sandbox",
+      "status": "passed",
+      "detail": ""
+    },
+    {
+      "name": "auth_proxy_stopped",
+      "status": "passed",
+      "detail": "loopback proxy socket closed"
+    },
+    {
+      "name": "model_identity",
+      "status": "passed",
+      "detail": "deepseek-v4-flash"
+    },
+    {
+      "name": "diff",
+      "status": "unknown",
+      "detail": "0 chars"
+    },
+    {
+      "name": "structured_output",
+      "status": "passed",
+      "detail": "{'findings': ['src/geometry.py and src/report.py already satisfy the frozen shape contract exactly; no edits were required or permitted (no file lease held).', 'geometry.area/perimeter handle rect (w*h, 2*(w+h)) and circle (math.pi*r**2, 2*math.pi*r) and raise ValueError for unknown kinds.', 'report.describe delegates to geometry.area/perimeter, emits exactly f\"{kind}: area={..:.2f} perimeter={..:.2f}\" with no local math, and lets ValueError propagate.'], 'summary': 'Verified read-only that src/"
+    }
+  ],
+  "text": "I'll verify the two files match the frozen contract.Both files already conform exactly to the frozen contract; no edits are possible (no lease) or needed.\n\n- [`geometry.area`](file:///tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r2/w1/src/geometry.py#L12-L18): rect → `w*h`, circle → `math.pi*r**2`, else `ValueError`.\n- [`geometry.perimeter`](file:///tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r2/w1/src/geometry.py#L21-L28): rect → `2*(w+h)`, circle → `2*math.pi*r`, else `ValueError`.\n- [`report.describe`](file:///tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r2/w1/src/report.py#L5-L15): imports `area`/`perimeter` from `.geometry`, returns exactly the required f-string with `:.2f`, no local `math`, `ValueError` propagates.Finished",
+  "hook_decisions": [
+    {
+      "tool": "view_file",
+      "paths": [
+        "/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r2/w1/src/geometry.py"
+      ],
+      "allow": true,
+      "reason": "allowed",
+      "lease_paths": []
+    },
+    {
+      "tool": "view_file",
+      "paths": [
+        "/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r2/w1/src/report.py"
+      ],
+      "allow": true,
+      "reason": "allowed",
+      "lease_paths": []
+    },
+    {
+      "tool": "finish",
+      "paths": [],
+      "allow": true,
+      "reason": "allowed",
+      "lease_paths": []
+    }
+  ],
+  "tool_observations": [
+    {
+      "name": "view_file",
+      "error": false,
+      "exception": false
+    },
+    {
+      "name": "view_file",
+      "error": false,
+      "exception": false
+    }
+  ],
+  "stop_evidence": {
+    "proxy_stop_events": [
+      {
+        "returned": true,
+        "is_running_after": false
+      },
+      {
+        "returned": true,
+        "is_running_after": false
+      }
+    ],
+    "proxy_port": 35127,
+    "port_open_after": false,
+    "auth_proxy_stopped_check": {
+      "name": "auth_proxy_stopped",
+      "status": "passed",
+      "detail": "loopback proxy socket closed"
+    },
+    "stop_confirmed_field": null,
+    "agent_close_observed": true,
+    "agent_close_returns": [
+      true,
+      true
+    ],
+    "harness_pids_before": [],
+    "harness_pids_after": [],
+    "harness_gone_after": true,
+    "workspace": "/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r2/w1",
+    "write_lease": null,
+    "positive": true,
+    "status": "confirmed"
+  },
+  "session_ref": {
+    "session_id": "sess_81facad68d6f49238301509f142ac7d9",
+    "conversation_id": "ebbaddffbecc76b6e2ad06215fc5ac22",
+    "state": "created",
+    "save_dir": "/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/sessions/r2-edit-w1"
+  },
+  "model_sent": "deepseek-v4-flash",
+  "plan_id": "90f6ff1397b83d05",
+  "plan_injected": true,
+  "stop_positive": true,
+  "logical": "r2-edit-w1",
+  "relay_calls": [
+    {
+      "seq": 22,
+      "started_at": "2026-10-15T07:08:18Z",
+      "path": "/v1/chat/completions",
+      "duration_s": 1.653,
+      "request_before": {
+        "model": "deepseek-v4-flash",
+        "max_tokens": null,
+        "max_completion_tokens": 65535,
+        "output_limit_fields": [
+          "max_completion_tokens"
+        ],
+        "thinking": null,
+        "temperature": null,
+        "top_p": null,
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "response_format": null,
+        "has_tools": true,
+        "tool_names": [
+          "finish",
+          "replace_file_content",
+          "view_file",
+          "write_to_file"
+        ],
+        "message_count": 2,
+        "message_roles": [
+          "system",
+          "user"
+        ]
+      },
+      "request_after": {
+        "model": "deepseek-v4-flash",
+        "max_tokens": 8192,
+        "max_completion_tokens": null,
+        "output_limit_fields": [
+          "max_tokens"
+        ],
+        "thinking": {
+          "type": "disabled"
+        },
+        "temperature": null,
+        "top_p": null,
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "response_format": null,
+        "has_tools": true,
+        "tool_names": [
+          "finish",
+          "replace_file_content",
+          "view_file",
+          "write_to_file"
+        ],
+        "message_count": 2,
+        "message_roles": [
+          "system",
+          "user"
+        ]
+      },
+      "rewrites": {
+        "max_completion_tokens": {
+          "from": 65535,
+          "to": null,
+          "action": "removed"
+        },
+        "max_tokens": {
+          "from": null,
+          "to": 8192
+        },
+        "thinking": {
+          "from": null,
+          "to": {
+            "type": "disabled"
+          }
+        }
+      },
+      "message_count": 2,
+      "tool_names": [
+        "finish",
+        "replace_file_content",
+        "view_file",
+        "write_to_file"
+      ],
+      "response_status": 200,
+      "response_model": "deepseek-flash",
+      "finish_reasons": [
+        "tool_calls"
+      ],
+      "usage": {
+        "prompt_tokens": 5321,
+        "completion_tokens": 265,
+        "total_tokens": 5586,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 5321
+      },
+      "reasoning_content_seen": false,
+      "response_bytes": 62882,
+      "error": null
+    },
+    {
+      "seq": 23,
+      "started_at": "2026-10-15T07:08:20Z",
+      "path": "/v1/chat/completions",
+      "duration_s": 2.883,
+      "request_before": {
+        "model": "deepseek-v4-flash",
+        "max_tokens": null,
+        "max_completion_tokens": 65535,
+        "output_limit_fields": [
+          "max_completion_tokens"
+        ],
+        "thinking": null,
+        "temperature": null,
+        "top_p": null,
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "response_format": null,
+        "has_tools": true,
+        "tool_names": [
+          "finish",
+          "replace_file_content",
+          "view_file",
+          "write_to_file"
+        ],
+        "message_count": 5,
+        "message_roles": [
+          "system",
+          "user",
+          "assistant",
+          "tool",
+          "tool"
+        ]
+      },
+      "request_after": {
+        "model": "deepseek-v4-flash",
+        "max_tokens": 8192,
+        "max_completion_tokens": null,
+        "output_limit_fields": [
+          "max_tokens"
+        ],
+        "thinking": {
+          "type": "disabled"
+        },
+        "temperature": null,
+        "top_p": null,
+        "stream": true,
+        "stream_options": {
+          "include_usage": true
+        },
+        "response_format": null,
+        "has_tools": true,
+        "tool_names": [
+          "finish",
+          "replace_file_content",
+          "view_file",
+          "write_to_file"
+        ],
+        "message_count": 5,
+        "message_roles": [
+          "system",
+          "user",
+          "assistant",
+          "tool",
+          "tool"
+        ]
+      },
+      "rewrites": {
+        "max_completion_tokens": {
+          "from": 65535,
+          "to": null,
+          "action": "removed"
+        },
+        "max_tokens": {
+          "from": null,
+          "to": 8192
+        },
+        "thinking": {
+          "from": null,
+          "to": {
+            "type": "disabled"
+          }
+        }
+      },
+      "message_count": 5,
+      "tool_names": [
+        "finish",
+        "replace_file_content",
+        "view_file",
+        "write_to_file"
+      ],
+      "response_status": 200,
+      "response_model": "deepseek-flash",
+      "finish_reasons": [
+        "tool_calls"
+      ],
+      "usage": {
+        "prompt_tokens": 6405,
+        "completion_tokens": 508,
+        "total_tokens": 6913,
+        "prompt_tokens_details": {
+          "cached_tokens": 5504
+        },
+        "prompt_cache_hit_tokens": 5504,
+        "prompt_cache_miss_tokens": 901
+      },
+      "reasoning_content_seen": false,
+      "response_bytes": 143928,
+      "error": null
+    }
+  ],
+  "relay_http": 2,
+  "reported_tokens": 12499
+}

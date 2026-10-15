@@ -1,0 +1,2898 @@
+{
+  "r2_root": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2",
+  "runs": [
+    {
+      "run": "t1_independent__B__r0",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r0/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t1_independent__B__r0",
+            "task": "t1_independent",
+            "group": "B",
+            "fixture_initial_hash": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r0/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t1_independent__B__r0",
+            "group": "B",
+            "repeat": 0,
+            "first_worker": "w1",
+            "current_round": 2,
+            "base_revision": "39700ba1d5cad2f6d154baacec982582527623d9e41f7e4606c3ea6d5c7650c9",
+            "status": "completed",
+            "orchestration_scope": "initial_plan_only",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r0/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__B__r0::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "lease_path": "src/slugs.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r0/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__B__r0::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "lease_path": "src/ranges.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r0/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__B__r0::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "39700ba1d5cad2f6d154baacec982582527623d9e41f7e4606c3ea6d5c7650c9",
+            "lease_path": "src/slugs.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r0/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__B__r0::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "39700ba1d5cad2f6d154baacec982582527623d9e41f7e4606c3ea6d5c7650c9",
+            "lease_path": "src/ranges.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t1_independent__B__r1",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r1/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t1_independent__B__r1",
+            "task": "t1_independent",
+            "group": "B",
+            "fixture_initial_hash": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r1/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t1_independent__B__r1",
+            "group": "B",
+            "repeat": 1,
+            "first_worker": "w2",
+            "current_round": 2,
+            "base_revision": "0201ad13e69fadeb07865dc733a437a40db7e360197cc73ec154fdf82dbcaa8d",
+            "status": "completed",
+            "orchestration_scope": "initial_plan_only",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r1/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__B__r1::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "lease_path": "src/slugs.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r1/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__B__r1::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "lease_path": "src/ranges.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r1/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__B__r1::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "0201ad13e69fadeb07865dc733a437a40db7e360197cc73ec154fdf82dbcaa8d",
+            "lease_path": "src/slugs.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r1/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__B__r1::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "0201ad13e69fadeb07865dc733a437a40db7e360197cc73ec154fdf82dbcaa8d",
+            "lease_path": "src/ranges.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t1_independent__B__r2",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r2/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t1_independent__B__r2",
+            "task": "t1_independent",
+            "group": "B",
+            "fixture_initial_hash": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r2/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t1_independent__B__r2",
+            "group": "B",
+            "repeat": 2,
+            "first_worker": "w1",
+            "current_round": 2,
+            "base_revision": "1429b2c2f746c221d0cdc60f1396e2c4f23d1d76b367c9f002e8f66ba4c4d72a",
+            "status": "completed",
+            "orchestration_scope": "initial_plan_only",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r2/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__B__r2::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "lease_path": "src/slugs.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r2/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__B__r2::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "lease_path": "src/ranges.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r2/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__B__r2::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "1429b2c2f746c221d0cdc60f1396e2c4f23d1d76b367c9f002e8f66ba4c4d72a",
+            "lease_path": "src/slugs.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__B__r2/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__B__r2::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "1429b2c2f746c221d0cdc60f1396e2c4f23d1d76b367c9f002e8f66ba4c4d72a",
+            "lease_path": "src/ranges.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t1_independent__C__r0",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r0/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t1_independent__C__r0",
+            "task": "t1_independent",
+            "group": "C",
+            "fixture_initial_hash": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r0/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t1_independent__C__r0",
+            "group": "C",
+            "repeat": 0,
+            "first_worker": "w1",
+            "current_round": 2,
+            "base_revision": "95c02516cde4364960c731ff452689cba394e2afdc64458f53cdf711bd60eaf1",
+            "status": "completed",
+            "orchestration_scope": "none",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r0/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__C__r0::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "lease_path": "src/slugs.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r0/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__C__r0::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "lease_path": "src/ranges.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r0/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__C__r0::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "95c02516cde4364960c731ff452689cba394e2afdc64458f53cdf711bd60eaf1",
+            "lease_path": "src/slugs.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r0/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__C__r0::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "95c02516cde4364960c731ff452689cba394e2afdc64458f53cdf711bd60eaf1",
+            "lease_path": "src/ranges.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t1_independent__C__r1",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r1/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t1_independent__C__r1",
+            "task": "t1_independent",
+            "group": "C",
+            "fixture_initial_hash": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r1/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t1_independent__C__r1",
+            "group": "C",
+            "repeat": 1,
+            "first_worker": "w2",
+            "current_round": 2,
+            "base_revision": "12c379e5170bafe63f6944af976331b83cfbdc7743f103b473b449d35141d654",
+            "status": "completed",
+            "orchestration_scope": "none",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r1/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__C__r1::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "lease_path": "src/ranges.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r1/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__C__r1::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "lease_path": "src/slugs.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r1/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__C__r1::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "12c379e5170bafe63f6944af976331b83cfbdc7743f103b473b449d35141d654",
+            "lease_path": "src/ranges.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r1/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__C__r1::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "12c379e5170bafe63f6944af976331b83cfbdc7743f103b473b449d35141d654",
+            "lease_path": "src/slugs.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t1_independent__C__r2",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r2/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t1_independent__C__r2",
+            "task": "t1_independent",
+            "group": "C",
+            "fixture_initial_hash": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r2/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t1_independent__C__r2",
+            "group": "C",
+            "repeat": 2,
+            "first_worker": "w1",
+            "current_round": 2,
+            "base_revision": "3ddeb0bb2b5176eebc2a3a4f9efb5f968041192f59fe160bda768987c892941b",
+            "status": "completed",
+            "orchestration_scope": "none",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r2/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__C__r2::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "lease_path": "src/slugs.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r2/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__C__r2::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf",
+            "lease_path": "src/ranges.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r2/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__C__r2::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "3ddeb0bb2b5176eebc2a3a4f9efb5f968041192f59fe160bda768987c892941b",
+            "lease_path": "src/slugs.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t1_independent__C__r2/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t1_independent__C__r2::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "3ddeb0bb2b5176eebc2a3a4f9efb5f968041192f59fe160bda768987c892941b",
+            "lease_path": "src/ranges.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t2_interface__B__r0",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r0/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t2_interface__B__r0",
+            "task": "t2_interface",
+            "group": "B",
+            "fixture_initial_hash": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r0/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t2_interface__B__r0",
+            "group": "B",
+            "repeat": 0,
+            "first_worker": "w1",
+            "current_round": 2,
+            "base_revision": "339e9462b32710e1a8dfa6b1f69c00aae776bd1cc0eed4769f1d339be75ccf30",
+            "status": "completed",
+            "orchestration_scope": "initial_plan_only",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r0/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__B__r0::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "lease_path": "src/geometry.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r0/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__B__r0::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "lease_path": "src/report.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r0/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__B__r0::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "339e9462b32710e1a8dfa6b1f69c00aae776bd1cc0eed4769f1d339be75ccf30",
+            "lease_path": "src/geometry.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r0/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__B__r0::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "339e9462b32710e1a8dfa6b1f69c00aae776bd1cc0eed4769f1d339be75ccf30",
+            "lease_path": "src/report.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t2_interface__B__r1",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r1/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t2_interface__B__r1",
+            "task": "t2_interface",
+            "group": "B",
+            "fixture_initial_hash": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r1/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t2_interface__B__r1",
+            "group": "B",
+            "repeat": 1,
+            "first_worker": "w2",
+            "current_round": 2,
+            "base_revision": "160c2dfeb54f8492e36b8f5376f5232e49f0a27ce59ad19ca2912c84deedbfa2",
+            "status": "completed",
+            "orchestration_scope": "initial_plan_only",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r1/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__B__r1::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "lease_path": "src/geometry.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r1/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__B__r1::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "lease_path": "src/report.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r1/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__B__r1::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "160c2dfeb54f8492e36b8f5376f5232e49f0a27ce59ad19ca2912c84deedbfa2",
+            "lease_path": "src/geometry.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r1/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__B__r1::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "160c2dfeb54f8492e36b8f5376f5232e49f0a27ce59ad19ca2912c84deedbfa2",
+            "lease_path": "src/report.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t2_interface__B__r2",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r2/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t2_interface__B__r2",
+            "task": "t2_interface",
+            "group": "B",
+            "fixture_initial_hash": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r2/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t2_interface__B__r2",
+            "group": "B",
+            "repeat": 2,
+            "first_worker": "w1",
+            "current_round": 2,
+            "base_revision": "160c2dfeb54f8492e36b8f5376f5232e49f0a27ce59ad19ca2912c84deedbfa2",
+            "status": "completed",
+            "orchestration_scope": "initial_plan_only",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r2/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__B__r2::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "lease_path": "src/geometry.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r2/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__B__r2::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "lease_path": "src/report.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r2/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__B__r2::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "160c2dfeb54f8492e36b8f5376f5232e49f0a27ce59ad19ca2912c84deedbfa2",
+            "lease_path": "src/geometry.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__B__r2/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__B__r2::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "160c2dfeb54f8492e36b8f5376f5232e49f0a27ce59ad19ca2912c84deedbfa2",
+            "lease_path": "src/report.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t2_interface__C__r0",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r0/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t2_interface__C__r0",
+            "task": "t2_interface",
+            "group": "C",
+            "fixture_initial_hash": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r0/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t2_interface__C__r0",
+            "group": "C",
+            "repeat": 0,
+            "first_worker": "w1",
+            "current_round": 2,
+            "base_revision": "f5b28be8a38241b7a89582af268128e88d9b338188fd4f84d243d455a4c39ca2",
+            "status": "completed",
+            "orchestration_scope": "none",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r0/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__C__r0::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "lease_path": "src/geometry.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r0/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__C__r0::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "lease_path": "src/report.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r0/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__C__r0::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "f5b28be8a38241b7a89582af268128e88d9b338188fd4f84d243d455a4c39ca2",
+            "lease_path": "src/geometry.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r0/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__C__r0::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "f5b28be8a38241b7a89582af268128e88d9b338188fd4f84d243d455a4c39ca2",
+            "lease_path": "src/report.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t2_interface__C__r1",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r1/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t2_interface__C__r1",
+            "task": "t2_interface",
+            "group": "C",
+            "fixture_initial_hash": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r1/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t2_interface__C__r1",
+            "group": "C",
+            "repeat": 1,
+            "first_worker": "w2",
+            "current_round": 2,
+            "base_revision": "7e056220d66b940b0dc8e6a9d85089a7c334791ab607b56c625db83139ef2677",
+            "status": "completed",
+            "orchestration_scope": "none",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r1/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__C__r1::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "lease_path": "src/report.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r1/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__C__r1::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "lease_path": "src/geometry.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r1/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__C__r1::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "7e056220d66b940b0dc8e6a9d85089a7c334791ab607b56c625db83139ef2677",
+            "lease_path": "src/report.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r1/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__C__r1::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "7e056220d66b940b0dc8e6a9d85089a7c334791ab607b56c625db83139ef2677",
+            "lease_path": "src/geometry.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t2_interface__C__r2",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r2/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t2_interface__C__r2",
+            "task": "t2_interface",
+            "group": "C",
+            "fixture_initial_hash": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r2/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t2_interface__C__r2",
+            "group": "C",
+            "repeat": 2,
+            "first_worker": "w1",
+            "current_round": 2,
+            "base_revision": "23143f82bd7817df258f9d3728185ba5d5b432e75dd85ad8b7f7a5e90c2dfe13",
+            "status": "completed",
+            "orchestration_scope": "none",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r2/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__C__r2::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "lease_path": "src/geometry.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r2/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__C__r2::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+            "lease_path": "src/report.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r2/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__C__r2::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "23143f82bd7817df258f9d3728185ba5d5b432e75dd85ad8b7f7a5e90c2dfe13",
+            "lease_path": "src/geometry.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t2_interface__C__r2/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t2_interface__C__r2::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "23143f82bd7817df258f9d3728185ba5d5b432e75dd85ad8b7f7a5e90c2dfe13",
+            "lease_path": "src/report.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t3_evolving__B__r0",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r0/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t3_evolving__B__r0",
+            "task": "t3_evolving",
+            "group": "B",
+            "fixture_initial_hash": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r0/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t3_evolving__B__r0",
+            "group": "B",
+            "repeat": 0,
+            "first_worker": "w1",
+            "current_round": 2,
+            "base_revision": "6ea6d2e9cd22c5127e303f414b0d05fb7365ad6be252cefcd85c3660dcca2e29",
+            "status": "completed",
+            "orchestration_scope": "initial_plan_only",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r0/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t3_evolving__B__r0::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+            "lease_path": "src/stats.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r0/subtasks/r1-w2.md",
+          "ok": false,
+          "error": "invalid YAML frontmatter: block sequence entries are not allowed in this context\n  in \"<file>\", line 5, column 13",
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r0/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t3_evolving__B__r0::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "63809b09aff1dc5f7d7ab5531dc2d3b331579bef68c268cc85aa52a722d91f54",
+            "lease_path": "src/stats.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r0/subtasks/r2-w2.md",
+          "ok": false,
+          "error": "invalid YAML frontmatter: block sequence entries are not allowed in this context\n  in \"<file>\", line 5, column 13",
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t3_evolving__B__r1",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r1/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t3_evolving__B__r1",
+            "task": "t3_evolving",
+            "group": "B",
+            "fixture_initial_hash": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r1/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t3_evolving__B__r1",
+            "group": "B",
+            "repeat": 1,
+            "first_worker": "w2",
+            "current_round": 2,
+            "base_revision": "b0138bddfcf9f23c36a66b82b3a256d60dc40275682cf2b9909fc391aee2f562",
+            "status": "completed",
+            "orchestration_scope": "initial_plan_only",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r1/subtasks/r1-w1.md",
+          "ok": false,
+          "error": "invalid YAML frontmatter: block sequence entries are not allowed in this context\n  in \"<file>\", line 5, column 13",
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r1/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t3_evolving__B__r1::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+            "lease_path": "src/stats.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r1/subtasks/r2-w1.md",
+          "ok": false,
+          "error": "invalid YAML frontmatter: block sequence entries are not allowed in this context\n  in \"<file>\", line 5, column 13",
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r1/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t3_evolving__B__r1::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "8a6ebec9887770328bc011a3f1aff54c334df71afa6dc2f9dade35353f1858d3",
+            "lease_path": "src/stats.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t3_evolving__B__r2",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r2/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t3_evolving__B__r2",
+            "task": "t3_evolving",
+            "group": "B",
+            "fixture_initial_hash": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r2/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t3_evolving__B__r2",
+            "group": "B",
+            "repeat": 2,
+            "first_worker": "w1",
+            "current_round": 2,
+            "base_revision": "85c6c3269a630c4b3745ea1290d360c07a6c597d758c6e48c4ac451d51518381",
+            "status": "completed",
+            "orchestration_scope": "initial_plan_only",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r2/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t3_evolving__B__r2::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+            "lease_path": "src/stats.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r2/subtasks/r1-w2.md",
+          "ok": false,
+          "error": "invalid YAML frontmatter: block sequence entries are not allowed in this context\n  in \"<file>\", line 5, column 13",
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r2/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t3_evolving__B__r2::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "f507ecc079a8869bd54d67111da0ee0be95facfe88dfcff4a49d29154ffb48d9",
+            "lease_path": "src/stats.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__B__r2/subtasks/r2-w2.md",
+          "ok": false,
+          "error": "invalid YAML frontmatter: block sequence entries are not allowed in this context\n  in \"<file>\", line 5, column 13",
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t3_evolving__C__r0",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r0/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t3_evolving__C__r0",
+            "task": "t3_evolving",
+            "group": "C",
+            "fixture_initial_hash": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r0/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t3_evolving__C__r0",
+            "group": "C",
+            "repeat": 0,
+            "first_worker": "w1",
+            "current_round": 2,
+            "base_revision": "d7c84ac3253c2acfef781206f0d37ec0cb3adbff58d907039bd37c1474f52baf",
+            "status": "completed",
+            "orchestration_scope": "none",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r0/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t3_evolving__C__r0::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+            "lease_path": "src/stats.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r0/subtasks/r1-w2.md",
+          "ok": false,
+          "error": "invalid YAML frontmatter: block sequence entries are not allowed in this context\n  in \"<file>\", line 5, column 13",
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r0/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t3_evolving__C__r0::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "63809b09aff1dc5f7d7ab5531dc2d3b331579bef68c268cc85aa52a722d91f54",
+            "lease_path": "src/stats.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r0/subtasks/r2-w2.md",
+          "ok": false,
+          "error": "invalid YAML frontmatter: block sequence entries are not allowed in this context\n  in \"<file>\", line 5, column 13",
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t3_evolving__C__r1",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r1/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t3_evolving__C__r1",
+            "task": "t3_evolving",
+            "group": "C",
+            "fixture_initial_hash": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r1/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t3_evolving__C__r1",
+            "group": "C",
+            "repeat": 1,
+            "first_worker": "w2",
+            "current_round": 2,
+            "base_revision": "2f97acab74c38e764c52f3248fce6629d2e2f22e396bf3e2d26f423f6a307628",
+            "status": "completed",
+            "orchestration_scope": "none",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r1/subtasks/r1-w1.md",
+          "ok": false,
+          "error": "invalid YAML frontmatter: block sequence entries are not allowed in this context\n  in \"<file>\", line 5, column 13",
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r1/subtasks/r1-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t3_evolving__C__r1::r1::w2",
+            "worker": "w2",
+            "round": 1,
+            "base_revision": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+            "lease_path": "src/stats.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r1/subtasks/r2-w1.md",
+          "ok": false,
+          "error": "invalid YAML frontmatter: block sequence entries are not allowed in this context\n  in \"<file>\", line 5, column 13",
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r1/subtasks/r2-w2.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t3_evolving__C__r1::r2::w2",
+            "worker": "w2",
+            "round": 2,
+            "base_revision": "af3a7a99a57c763486cd7ca351662ee83ea0f599d1eb33fe52f994a2d5dac46a",
+            "lease_path": "src/stats.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        }
+      ]
+    },
+    {
+      "run": "t3_evolving__C__r2",
+      "files": [
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r2/TASK.md",
+          "ok": true,
+          "keys": [
+            "control_writer",
+            "experiment_schema",
+            "fixture_initial_hash",
+            "group",
+            "run_id",
+            "task"
+          ],
+          "frontmatter": {
+            "run_id": "t3_evolving__C__r2",
+            "task": "t3_evolving",
+            "group": "C",
+            "fixture_initial_hash": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+            "experiment_schema": "agensh-orchestration-r2/v0 (experiment-only)",
+            "control_writer": "driver"
+          },
+          "kind": "TASK.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r2/RUN.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "control_writer",
+            "current_round",
+            "first_worker",
+            "group",
+            "orchestration_scope",
+            "repeat",
+            "run_id",
+            "status"
+          ],
+          "frontmatter": {
+            "run_id": "t3_evolving__C__r2",
+            "group": "C",
+            "repeat": 2,
+            "first_worker": "w1",
+            "current_round": 2,
+            "base_revision": "8ca9d13f64a25a6130aee3515ede7245cf9016525bc44180ef97e39aca40f64d",
+            "status": "completed",
+            "orchestration_scope": "none",
+            "control_writer": "driver"
+          },
+          "kind": "RUN.md"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r2/subtasks/r1-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t3_evolving__C__r2::r1::w1",
+            "worker": "w1",
+            "round": 1,
+            "base_revision": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+            "lease_path": "src/stats.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r2/subtasks/r1-w2.md",
+          "ok": false,
+          "error": "invalid YAML frontmatter: block sequence entries are not allowed in this context\n  in \"<file>\", line 5, column 13",
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r2/subtasks/r2-w1.md",
+          "ok": true,
+          "keys": [
+            "base_revision",
+            "claim_reason",
+            "lease_path",
+            "lease_state",
+            "round",
+            "status",
+            "subtask",
+            "worker",
+            "worker_writes_control_state"
+          ],
+          "frontmatter": {
+            "subtask": "t3_evolving__C__r2::r2::w1",
+            "worker": "w1",
+            "round": 2,
+            "base_revision": "63809b09aff1dc5f7d7ab5531dc2d3b331579bef68c268cc85aa52a722d91f54",
+            "lease_path": "src/stats.py",
+            "lease_state": "granted",
+            "claim_reason": "granted",
+            "status": "claimed",
+            "worker_writes_control_state": false
+          },
+          "kind": "subtasks"
+        },
+        {
+          "path": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/runs/t3_evolving__C__r2/subtasks/r2-w2.md",
+          "ok": false,
+          "error": "invalid YAML frontmatter: block sequence entries are not allowed in this context\n  in \"<file>\", line 5, column 13",
+          "kind": "subtasks"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "runs": 18,
+    "files_audited": 108,
+    "invalid_files": 12,
+    "invalid_by_kind": {
+      "TASK.md": {
+        "ok": 18
+      },
+      "RUN.md": {
+        "ok": 18
+      },
+      "subtasks": {
+        "ok": 60,
+        "invalid": 12
+      }
+    },
+    "invalid_reasons": {
+      "invalid YAML frontmatter": 12
+    }
+  },
+  "claim_authority_agreement": {
+    "all_agree": true,
+    "rows": [
+      {
+        "run": "t1_independent__B__r0",
+        "parsed_granted_leases": {
+          "src/slugs.py": "w1",
+          "src/ranges.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/slugs.py": "w1",
+          "src/ranges.py": "w2"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t1_independent__B__r1",
+        "parsed_granted_leases": {
+          "src/slugs.py": "w1",
+          "src/ranges.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/ranges.py": "w2",
+          "src/slugs.py": "w1"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t1_independent__B__r2",
+        "parsed_granted_leases": {
+          "src/slugs.py": "w1",
+          "src/ranges.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/slugs.py": "w1",
+          "src/ranges.py": "w2"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t1_independent__C__r0",
+        "parsed_granted_leases": {
+          "src/slugs.py": "w1",
+          "src/ranges.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/slugs.py": "w1",
+          "src/ranges.py": "w2"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t1_independent__C__r1",
+        "parsed_granted_leases": {
+          "src/ranges.py": "w1",
+          "src/slugs.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/slugs.py": "w2",
+          "src/ranges.py": "w1"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t1_independent__C__r2",
+        "parsed_granted_leases": {
+          "src/slugs.py": "w1",
+          "src/ranges.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/slugs.py": "w1",
+          "src/ranges.py": "w2"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t2_interface__B__r0",
+        "parsed_granted_leases": {
+          "src/geometry.py": "w1",
+          "src/report.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/geometry.py": "w1",
+          "src/report.py": "w2"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t2_interface__B__r1",
+        "parsed_granted_leases": {
+          "src/geometry.py": "w1",
+          "src/report.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/report.py": "w2",
+          "src/geometry.py": "w1"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t2_interface__B__r2",
+        "parsed_granted_leases": {
+          "src/geometry.py": "w1",
+          "src/report.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/geometry.py": "w1",
+          "src/report.py": "w2"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t2_interface__C__r0",
+        "parsed_granted_leases": {
+          "src/geometry.py": "w1",
+          "src/report.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/geometry.py": "w1",
+          "src/report.py": "w2"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t2_interface__C__r1",
+        "parsed_granted_leases": {
+          "src/report.py": "w1",
+          "src/geometry.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/geometry.py": "w2",
+          "src/report.py": "w1"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t2_interface__C__r2",
+        "parsed_granted_leases": {
+          "src/geometry.py": "w1",
+          "src/report.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/geometry.py": "w1",
+          "src/report.py": "w2"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t3_evolving__B__r0",
+        "parsed_granted_leases": {
+          "src/stats.py": "w1"
+        },
+        "event_granted_leases": {
+          "src/stats.py": "w1"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t3_evolving__B__r1",
+        "parsed_granted_leases": {
+          "src/stats.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/stats.py": "w2"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t3_evolving__B__r2",
+        "parsed_granted_leases": {
+          "src/stats.py": "w1"
+        },
+        "event_granted_leases": {
+          "src/stats.py": "w1"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t3_evolving__C__r0",
+        "parsed_granted_leases": {
+          "src/stats.py": "w1"
+        },
+        "event_granted_leases": {
+          "src/stats.py": "w1"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t3_evolving__C__r1",
+        "parsed_granted_leases": {
+          "src/stats.py": "w2"
+        },
+        "event_granted_leases": {
+          "src/stats.py": "w2"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      },
+      {
+        "run": "t3_evolving__C__r2",
+        "parsed_granted_leases": {
+          "src/stats.py": "w1"
+        },
+        "event_granted_leases": {
+          "src/stats.py": "w1"
+        },
+        "agree": true,
+        "event_json_invalid_lines": 0
+      }
+    ]
+  }
+}

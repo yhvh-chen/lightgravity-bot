@@ -7,13 +7,17 @@ updated: "2026-10-15"
 
 # LightGravity Bot
 
-> 更新：2026-10-15。设计与 27 项首版开发任务已落盘，首版接口契约（docs/08，契约版本 1.5.0）已冻结；用户已确认首版先用 DeepSeek，首版真实执行后端为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek，此前的 Gemini 认证阻塞已解除。LG-001～012、LG-014、LG-015、LG-020、LG-025、LG-026 共 17 项已完成并整合到 `main`（均为**待版本 QA**，其中 LG-010 已通过独立版本 QA）：工程骨架可运行、SDK 探针、存储层、资源配置编译、左侧导航壳层、正式 executor + loopback 认证代理、常驻消息路由与 Task 队列、自动组队与依赖调度、模型设置与凭证后端、产物验证与人工验收、查询 API 与持久事件订阅、Settings 模型接入页面、Team/Resources 管理视图与受控资源写入、本地启动/停止与一体分发入口。集成后已把验证服务与资源停止接口注入 `create_app`，accept/reject 合并进 API actions，并新增只读 `GET /tasks/{id}/acceptance` 与单例全局对话 `GET/POST /api/v1/conversations/global/messages`。主前端构建现已挂载 Settings、Files、Team 与 Resources 视图，分别接线 `/api/v1/settings*`、`/api/v1/files*`、`/api/v1/team/*` 与 `/api/v1/resources/*`；Files 上传复用 LG-026 运行时 token helper 注入 `X-LG-Token`，无 token 时上传如实返回 `unauthorized`。Team/Resources 受控修改经 Task 对话提议：`POST /api/v1/tasks/{id}/messages` 携带 `resource_proposal` 时执行 sensitive 授权，`message_id` 幂等、`expected_revision` 版本检查，实际结果写回同一 Task 对话；该路径不创建 Run、不等待代码 worker，也不热替换活跃 Member 配置（docs/08 1.4.0 登记 `PATCH /resources/{kind}/{id}`、`GET /team/available`、`GET /team/members`）。LG-020 已提供 `lightgravity start/stop/status/init` 与一体分发：默认 loopback、`data/workspace/secret/dist` 隔离、首个启动在内存握手运行时 token 并注入 `index.html`（`__LG_RUNTIME_TOKEN__`，前端 `auth.ts` 读取后自动带 `X-LG-Token`），敏感写默认拒绝、缺认证可读历史/设置；首次启动幂等种子 `lg-default-worker`（仅 `view-file`/`create-file`/`edit-file` 三个 workspace 受限工具，无 `run-command`/web 无边界工具），Settings-only 建连接/存凭证/静态测试/设 worker 默认后新 Task 可用默认 worker，Run/Member 在招募时冻结非秘密 `connection_pin`（docs/08 1.5.0）。同时注册 canonical evidence 产物在 Task 产物 API 的预览/下载：`GET /tasks/{id}/artifacts`、`.../artifacts/content`、`.../artifacts/download`，仅接受 `evidence:<run_id>/<name>@sha256:<hex>` 并经 Task/Run evidence resolver 授权，拒绝原始绝对路径/跨 Task/跨 Run/摘要不符。敏感写仍由后端 `LocalAccessPolicy` 默认拒绝，Chat/Board 仍为占位/未接入，不宣称全部页面可用。LG-006 以真实 DeepSeek（实际发送 `deepseek-v4-flash`，上游返回 `deepseek-flash`）在临时授权工作区跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消，真实模型调用总数 12（硬上限 12），进程无残留；证据见 [tests/adapter/evidence](tests/adapter/evidence/README.md)。LG-009/LG-012 的真实 SDK 端到端已在 LG-010 完成，浏览器验收仍留 LG-021/LG-022。LG-010 最小真实开发闭环经独立版本 QA 判定 **pass/done**：首轮报告的 executor 绝对 `diff_ref` 误判与交付后未自动触发验证两项阻断已返修，第 2 轮复验又发现携带 `target_run_id` 的重复 ack 非幂等，已按 Task 作用域幂等键返修并由独立 QA 复核确认消除（`probes/lg010/reports/lg010-qa-r2-after-refix.md`）。真实 DeepSeek 链路证据基点 `ffe7a63`（交付后自动到 `awaiting_acceptance`、真实文件/diff/usage、停止释放、绑定版本 accept、stale 拒绝），累计真实调用 12（硬上限 14，`within_cumulative_cap_14=true`）；QA 候选核心证据 `ffe7a63`/`ed014c5`、复现脚本 `lg010_accept_repro_r1.py`/`r2.py` 与 `lg010_check_repro_r1.py`。**此 QA 只覆盖契约 1.3.1 core 的最小后端闭环，并非 1.5 全功能 QA**：LG-015/020 的新资源/启动功能仍未验收，分别留 LG-027 与 LG-021/LG-022；未部署。
+> 更新：2026-10-15。设计与 27 项首版开发任务已落盘（2026-10-15 新增 14 项扩展任务，共 41 项，见 [BACKLOG](BACKLOG.md)），首版接口契约（docs/08，契约版本 1.5.0）已冻结；用户已确认首版先用 DeepSeek，首版真实执行后端为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek，此前的 Gemini 认证阻塞已解除。LG-001～012、LG-014、LG-015、LG-020、LG-025、LG-026 共 17 项已完成并整合到 `main`（均为**待版本 QA**，其中 LG-010 已通过独立版本 QA）：工程骨架可运行、SDK 探针、存储层、资源配置编译、左侧导航壳层、正式 executor + loopback 认证代理、常驻消息路由与 Task 队列、自动组队与依赖调度、模型设置与凭证后端、产物验证与人工验收、查询 API 与持久事件订阅、Settings 模型接入页面、Team/Resources 管理视图与受控资源写入、本地启动/停止与一体分发入口。集成后已把验证服务与资源停止接口注入 `create_app`，accept/reject 合并进 API actions，并新增只读 `GET /tasks/{id}/acceptance` 与单例全局对话 `GET/POST /api/v1/conversations/global/messages`。主前端构建现已挂载 Settings、Files、Team 与 Resources 视图，分别接线 `/api/v1/settings*`、`/api/v1/files*`、`/api/v1/team/*` 与 `/api/v1/resources/*`；Files 上传复用 LG-026 运行时 token helper 注入 `X-LG-Token`，无 token 时上传如实返回 `unauthorized`。Team/Resources 受控修改经 Task 对话提议：`POST /api/v1/tasks/{id}/messages` 携带 `resource_proposal` 时执行 sensitive 授权，`message_id` 幂等、`expected_revision` 版本检查，实际结果写回同一 Task 对话；该路径不创建 Run、不等待代码 worker，也不热替换活跃 Member 配置（docs/08 1.4.0 登记 `PATCH /resources/{kind}/{id}`、`GET /team/available`、`GET /team/members`）。LG-020 已提供 `lightgravity start/stop/status/init` 与一体分发：默认 loopback、`data/workspace/secret/dist` 隔离、首个启动在内存握手运行时 token 并注入 `index.html`（`__LG_RUNTIME_TOKEN__`，前端 `auth.ts` 读取后自动带 `X-LG-Token`），敏感写默认拒绝、缺认证可读历史/设置；首次启动幂等种子 `lg-default-worker`（仅 `view-file`/`create-file`/`edit-file` 三个 workspace 受限工具，无 `run-command`/web 无边界工具），Settings-only 建连接/存凭证/静态测试/设 worker 默认后新 Task 可用默认 worker，Run/Member 在招募时冻结非秘密 `connection_pin`（docs/08 1.5.0）。同时注册 canonical evidence 产物在 Task 产物 API 的预览/下载：`GET /tasks/{id}/artifacts`、`.../artifacts/content`、`.../artifacts/download`，仅接受 `evidence:<run_id>/<name>@sha256:<hex>` 并经 Task/Run evidence resolver 授权，拒绝原始绝对路径/跨 Task/跨 Run/摘要不符。敏感写仍由后端 `LocalAccessPolicy` 默认拒绝，Chat/Board 仍为占位/未接入，不宣称全部页面可用。LG-006 以真实 DeepSeek（实际发送 `deepseek-v4-flash`，上游返回 `deepseek-flash`）在临时授权工作区跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消，真实模型调用总数 12（硬上限 12），进程无残留；证据见 [tests/adapter/evidence](tests/adapter/evidence/README.md)。LG-009/LG-012 的真实 SDK 端到端已在 LG-010 完成，浏览器验收仍留 LG-021/LG-022。LG-010 最小真实开发闭环经独立版本 QA 判定 **pass/done**：首轮报告的 executor 绝对 `diff_ref` 误判与交付后未自动触发验证两项阻断已返修，第 2 轮复验又发现携带 `target_run_id` 的重复 ack 非幂等，已按 Task 作用域幂等键返修并由独立 QA 复核确认消除（`probes/lg010/reports/lg010-qa-r2-after-refix.md`）。真实 DeepSeek 链路证据基点 `ffe7a63`（交付后自动到 `awaiting_acceptance`、真实文件/diff/usage、停止释放、绑定版本 accept、stale 拒绝），累计真实调用 12（硬上限 14，`within_cumulative_cap_14=true`）；QA 候选核心证据 `ffe7a63`/`ed014c5`、复现脚本 `lg010_accept_repro_r1.py`/`r2.py` 与 `lg010_check_repro_r1.py`。**此 QA 只覆盖契约 1.3.1 core 的最小后端闭环，并非 1.5 全功能 QA**：LG-015/020 的新资源/启动功能仍未验收，分别留 LG-027 与 LG-021/LG-022；未部署。
 
-**按需组队的 AI 任务助手。**
+**个人 AI 工作助手（执行型 Agent）：把资料和目标交给它，它帮你整理、查找并完成工作，过程与成果保存在你掌握的文件中。**
 
-LightGravity Bot 接收问题和目标：简单问答直接处理，需要交付时创建任务并按需组队，执行、验证、保存成果；进入待验收时释放临时队伍，常驻服务继续等待指令。
+LightGravity Bot 接收资料、问题和目标：简单问答直接处理，需要交付时创建任务并按需组队，执行、验证、保存成果；Chat 统一接资料、提目标、看结果，Files 负责整理、归档、预览与来源追溯；进入待验收时释放临时队伍，常驻服务继续等待指令。
 
-长期定位是通用 AI 助手，首版聚焦开发任务：在一个明确的项目工作区里完成小型代码修改，留下代码差异、检查结果与交付说明。
+统一目标定位由原开发任务助手扩展而来：资料整理检索与任务执行验收衔接；原件、正式内容与元数据仍以文件为事实源，词法与可选向量索引只作可重建缓存。**用户掌握文件不等于所有推理都在本地运行**——模型与后端仍走已验收的接入路径。
+
+内部编排不因定位扩展而反转：仍由程序控制权限、状态、预算与调度，worker 按需协作，默认不存在独立常驻模型编排 agent；不声称已实现完整的自主领取或点对点协作。本定位不引入 AIOS、全自动无人值守、外部聊天渠道或企业组织平台，不增加额外承诺。
+
+首版仍以开发任务验证交付闭环：在一个明确的项目工作区里完成小型代码修改，留下代码差异、检查结果与交付说明。资料摄取与检索**待实现、接口未冻结**（方向见 [docs/09](docs/09-source-intake-and-retrieval.md)），中文 ASR 尚未打通，Office 等格式未实测；不宣称当前已全面具备上述能力。
 
 ## 为什么重新设计
 
@@ -62,6 +66,8 @@ Task 是主要操作入口：一项任务一个目录、一份 TASK.md、一条�
 
 - 上述 done 为执行者局部证据，**除 LG-010 外均不是版本 QA 结论**；LG-003 已实测的 DeepSeek（OpenAI-compatible）路径是 docs/08 v1.5.0 确定的首版真实后端，LG-006 已在该路径上实现正式 executor + 产品侧 loopback 认证代理。LG-010 已通过独立版本 QA（最小后端闭环），但其收尾是**基于契约 1.3.1 core**、不覆盖 1.5 新资源/启动功能；LG-015、LG-020 仍待 LG-027 与 LG-021/LG-022 版本 QA 门集中验证。
 - 下一步：LG-013（接入 Task Chat 与真实看板）、LG-016（暂停取消与中断恢复）、LG-027（验收模型设置与凭证生命周期）依赖已满足，为当前就绪项；LG-015 与 LG-020 仍待 LG-027 与 LG-021/LG-022 版本 QA，**当前资源/启动的新功能仍待验收**。
+- **计划标记（资料接入与检索）**：方向已确认并落盘到 [docs/09](docs/09-source-intake-and-retrieval.md)，2026-10-15 已正式排入资料线 [LG-033～041](BACKLOG.md)，但**未实现、接口未冻结**；其中中文 ASR 先由 LG-039 做质量验证，达标后再由 LG-041 条件接入，且不作为 LG-040 的硬依赖；图片/PDF、词法、可选向量与 Chat/Files 统一由 LG-040 集中 QA。实施前须按 [docs/08 §13](docs/08-interface-contract.md) 变更控制冻结接口并升版；不改变现有 LG 任务状态与优先级。
+- **计划标记（去中心化协作）**：[LG-028～032](BACKLOG.md) 已正式排期（契约 → 原子领取/租约 → 同伴交接 → 隔离执行与 QA/返修整合 → 集中版本验收），但**完整自主协作尚未实现、接口未冻结**；不改变现有任务状态，也不把已有“无独立编排”QA 当作去中心化验收。
 
 ## 本地运行与检查（工程骨架）
 
@@ -114,10 +120,11 @@ make frontend-build   # 前端生产构建
 - 项目开发技能位于 `.agents/skills/`：已安装 Olav Tasks 的 6 个技能，来源版本与文件哈希见 [.agents/skills/olav-tasks-source.json](.agents/skills/olav-tasks-source.json)，许可证见 [.agents/skills/OLAV-TASKS-LICENSE](.agents/skills/OLAV-TASKS-LICENSE)。
 - [开发约束](agent.md)：项目范围、架构、SDK 接入、状态写入、验证与交付规则；[AGENTS.md](AGENTS.md) 提供自动发现入口。
 - [前端约束](design.md)：视觉 tokens、左侧多栏布局、组件、页面交互、响应式与浏览器验收。
-- [开发看板](BACKLOG.md)：27 项首版开发任务，使用 `olav.tasks/v1` 管理。
+- [开发看板](BACKLOG.md)：41 项开发任务（27 项首版 + 新增 14 项扩展 LG-028～041），使用 `olav.tasks/v1` 管理。
 - [滚动排期](docs/06-roadmap.md)：阶段、依赖、验收门与当前未定的日历安排。
 - [模型设置](docs/07-settings-and-models.md)：Settings、Connection 事实源、凭证、分层测试和默认模型。
-- [首版接口与状态契约](docs/08-interface-contract.md)：冻结的最小技术栈、API/事件/实体状态、Store/Adapter 边界、错误语义、工作区授权与后续文件归属（契约版本 1.5.0）。
+- [首版接口与状态契约](docs/08-interface-contract.md)：冻结的最小技术栈、API/事件/实体状态、Store/Adapter 边界、错误语义、工作区授权与后续文件归属（契约版本 1.5.0；1.5.0 **未新增**资料/知识库 schema、摄取/检索/邮箱 API）。
+- [资料接入与检索设计](docs/09-source-intake-and-retrieval.md)：**方向已确认、待实现**；Chat 为唯一常规资料接入入口、原件/派生/缓存分层、处理与检索生命周期、分阶段验收与实测局限。API/schema **未冻结**，实施前须按 docs/08 §13 冻结接口并升版。
 - [项目手册](PROJECT.md)：目标、优先级、完成定义和已确认决策。
 - [产品与架构设计](docs/01-design.md)：调度器、executor、组队、文件事实源、状态与首版交付顺序。
 - [Task 与 SDK 资源契约](docs/02-task-and-sdk-resources.md)：任务目录、对话、frontmatter 渲染及 Agent／Connections／Conversation／Hooks／MCP／Tools／Triggers 的映射。
@@ -132,9 +139,12 @@ make frontend-build   # 前端生产构建
 - agency-agents 作为候选角色内容来源，从少量开发角色开始。
 - 使用 SDK 原生 skills 加载与基础文件、命令、网页工具；按成员绑定角色、技能、工具权限与工作区，不重建通用技能执行层。首版为 `google-antigravity==0.1.22` 的 OpenAI-compatible（`LocalOpenAIAgentConfig`）→ DeepSeek 路径（LG-003 已实测，LG-006 实现产品侧代理）；`search_web` 标记不可用；Gemini/Vertex 未验收，待各自探针通过后开放。
 - 临时角色实例随运行创建和释放，项目与产物长期保存。
+- **默认不存在独立常驻编排模型**，也不要求每次 Task/Run 先调用模型规划：明确目标由程序生成最小合法计划后直接交 worker；模型拆解是有界按需能力（可注入提议接口保留、**真实模型后端未接线**），仅在显式记录触发原因时采纳，候选计划仍经同一程序校验。程序原子写/租约、文件事实源、机器验证与独立复核、人工验收、停止确认均保留；worker 不写控制态；SDK 内部委派仍关闭。
+- 规划/编排取舍的成本按同一验收门下的全交付生命周期（执行＋验证＋返修＋复验＋失败尝试）评估；未完成样本不计作已交付成本，也不用失败高成本样本的中位数推断完整收益。
 - 人工最终验收；worker 自报完成只能进入待验证。
 - 单用户本地网页入口，简单问答不组队；后台执行独立于浏览器连接，支持 Task 队列与网页未读通知。云端入口、外部聊天渠道和自主触发另行推进。
 - 先实现必要的文件树、预览、上传、下载和任务产物关联。
+- 资料接入方向已确认：**Chat 是唯一常规资料接入入口**（上传/拖拽/粘贴链接），Files 负责预览/来源追溯/归档调整/校订/重处理/下载；上传处理是**受控摄取作业**，不自动创建交付 Task/Run/团队。现有 Files 上传 API/UI 属历史实现，交互收拢**尚未迁移**；目标设计见 [docs/09](docs/09-source-intake-and-retrieval.md)，**未实现、接口未冻结**。
 
 ## 参考与参赛边界
 

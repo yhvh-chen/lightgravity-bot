@@ -1,0 +1,20 @@
+{
+  "produced": [
+    "_check_stats.py"
+  ],
+  "modified": [
+    "src/stats.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/stats.py": "\"\"\"Statistics helpers.\"\"\"\n\n\ndef mean(nums):\n    \"\"\"Return the arithmetic mean of ``nums``.\n\n    Raises ``ValueError`` if ``nums`` is empty.\n    \"\"\"\n    nums = list(nums)\n    if not nums:\n        raise ValueError(\"mean() requires at least one value\")\n    return sum(nums) / len(nums)\n\n\ndef median(nums):\n    \"\"\"Return the median of ``nums``.\n\n    Raises ``ValueError`` if ``nums`` is empty. For an odd number of\n    values the middle one of the sorted sequence is returned; for an\n    even number the average of the two middle values is returned.\n    \"\"\"\n    nums = sorted(nums)\n    if not nums:\n        raise ValueError(\"median() requires at least one value\")\n    n = len(nums)\n    mid = n // 2\n    if n % 2 == 1:\n        return nums[mid]\n    return (nums[mid - 1] + nums[mid]) / 2\n\n\ndef mode(nums):\n    \"\"\"Return the most frequently occurring value in ``nums``.\n\n    Raises ``ValueError`` if ``nums`` is empty. If several values share\n    the highest count the smallest of them is returned.\n    \"\"\"\n    nums = list(nums)\n    if not nums:\n        raise ValueError(\"mode() requires at least one value\")\n    counts = {}\n    for value in nums:\n        counts[value] = counts.get(value, 0) + 1\n    best_count = max(counts.values())\n    return min(value for value, count in counts.items() if count == best_count)\n\n\ndef stdev(nums):\n    \"\"\"Return the population standard deviation of ``nums``.\n\n    Raises ``ValueError`` if ``nums`` is empty. The variance is the mean\n    of the squared deviations from the arithmetic mean (i.e. divided by\n    ``n``), and the standard deviation is its square root.\n    \"\"\"\n    nums = list(nums)\n    if not nums:\n        raise ValueError(\"stdev() requires at least one value\")\n    n = len(nums)\n    mu = sum(nums) / n\n    variance = sum((x - mu) ** 2 for x in nums) / n\n    return variance ** 0.5\n"
+  },
+  "overreach": [
+    {
+      "path": "_check_stats.py",
+      "reason": "no_lease_for_path",
+      "lease": "src/stats.py"
+    }
+  ],
+  "invalid": []
+}

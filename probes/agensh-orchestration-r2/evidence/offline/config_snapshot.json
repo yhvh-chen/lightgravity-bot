@@ -1,0 +1,72 @@
+{
+  "model": "deepseek-v4-flash",
+  "max_tokens": 8192,
+  "temperature": 0.0,
+  "first_event_timeout": 30.0,
+  "total_timeout": 90.0,
+  "thinking": {
+    "type": "disabled"
+  },
+  "order_seed": 20261015,
+  "repeats": 3,
+  "max_normal_calls": 153,
+  "max_retries": 9,
+  "max_http": 162,
+  "max_total_tokens": 600000,
+  "wall_seconds": 1500,
+  "max_edit_bytes": 20000,
+  "message_max_chars": 240,
+  "findings_max_items": 3,
+  "finding_max_chars": 160,
+  "first_worker_by_repeat": {
+    "0": "w1",
+    "1": "w2",
+    "2": "w1"
+  },
+  "all_tasks": [
+    "t1_independent",
+    "t2_interface",
+    "t3_evolving"
+  ],
+  "all_groups": [
+    "B",
+    "C"
+  ],
+  "writable_exclude_basenames": [
+    "__init__.py"
+  ],
+  "goals": {
+    "t1_independent": {
+      "goal1": "实现 src/slugs.py 和 src/ranges.py 中的函数（不要修改其他文件）：\n- slugify(title): 把 title 转小写；把每一段连续的非字母数字字符（a-z、0-9 之外）替换成单个 \"-\"；去掉结果首尾的 \"-\"。\n- clamp(value, lo, hi): value < lo 时返回 lo；value > hi 时返回 hi；否则返回 value。\n- in_range(value, lo, hi): 当 lo <= value <= hi 时返回 True，否则返回 False。",
+      "goal2": "实现 src/slugs.py 和 src/ranges.py 中的函数（不要修改其他文件）：\n- slugify(title): 把 title 转小写；把每一段连续的非字母数字字符（a-z、0-9 之外）替换成单个 \"-\"；去掉结果首尾的 \"-\"。\n- clamp(value, lo, hi): value < lo 时返回 lo；value > hi 时返回 hi；否则返回 value。\n- in_range(value, lo, hi): 当 lo <= value <= hi 时返回 True，否则返回 False。"
+    },
+    "t2_interface": {
+      "goal1": "实现 src/geometry.py 和 src/report.py，二者必须遵守同一个 shape 接口（不要修改其他文件）：\n- shape 是 dict：kind 为 \"rect\" 时含 width、height；kind 为 \"circle\" 时含 radius。\n- geometry.area(shape): rect 返回 width*height；circle 返回 math.pi*radius**2；未知 kind 抛 ValueError。\n- geometry.perimeter(shape): rect 返回 2*(width+height)；circle 返回 2*math.pi*radius；未知 kind 抛 ValueError。\n- report.describe(shape): 使用 geometry 的 area/perimeter，返回 f\"{shape['kind']}: area={area(shape):.2f} perimeter={perimeter(shape):.2f}\"。",
+      "goal2": "实现 src/geometry.py 和 src/report.py，二者必须遵守同一个 shape 接口（不要修改其他文件）：\n- shape 是 dict：kind 为 \"rect\" 时含 width、height；kind 为 \"circle\" 时含 radius。\n- geometry.area(shape): rect 返回 width*height；circle 返回 math.pi*radius**2；未知 kind 抛 ValueError。\n- geometry.perimeter(shape): rect 返回 2*(width+height)；circle 返回 2*math.pi*radius；未知 kind 抛 ValueError。\n- report.describe(shape): 使用 geometry 的 area/perimeter，返回 f\"{shape['kind']}: area={area(shape):.2f} perimeter={perimeter(shape):.2f}\"。"
+    },
+    "t3_evolving": {
+      "goal1": "实现 src/stats.py（不要修改其他文件）：\n- mean(nums): 空列表抛 ValueError，否则返回算术平均。\n- median(nums): 空列表抛 ValueError；奇数长度返回排序后的中间值；偶数长度返回中间两个数的平均。",
+      "goal2": "实现 src/stats.py（不要修改其他文件）：\n- mean(nums): 空列表抛 ValueError，否则返回算术平均。\n- median(nums): 空列表抛 ValueError；奇数长度返回排序后的中间值；偶数长度返回中间两个数的平均。\n\n用户在本轮开始前新增的明确要求（所有组同样适用）：\n- 新增 mode(nums): 返回出现次数最多的值；若平局返回最小的那个值；空列表抛 ValueError。\n- 新增 stdev(nums): 返回总体标准差（即 sqrt(方差)，方差按除以 n 计算）；空列表抛 ValueError。\n- 必须保持 mean/median 对空列表抛 ValueError 的既有行为。"
+    }
+  },
+  "program_rules": "程序规则（两组完全相同，由 driver 强制执行，模型只能提议）：\n- 你只能通过返回 JSON 提议，不能直接写文件、不能修改 TASK/RUN/SUBTASK/events/测试/验收。\n- 每轮每名 worker 最多持有 1 个可写文件的租约（程序原子检查/授予，先到先得）。\n- 已被他人认领的文件不能再认领；拿不到租约时你可以复核并在 message/findings 留言。\n- 编辑只能针对你本轮持有租约的文件，并携带该文件当前 sha256（base_sha256）。越权/base 不符/语法错误会被程序拒绝。\n- 本轮编辑都基于同一个冻结 base，提交后由程序整合并运行验收。\n",
+  "acceptance_hashes": {
+    "t1_independent": "1d4705504baddaca3076cec4fa454e6c0db86f84e54883cf1b369ada0b523bfd",
+    "t2_interface": "7968e56342cb59490bb2ec626615cd6013bd692e931dce57e550dfc9d9881fc9",
+    "t3_evolving": "f1e70e8cc8d3f7b09b90cca7d7dba0cf663dbb9fa79ef35d10a6bcd03e8a1e33"
+  },
+  "goals_hashes": {
+    "t1_independent": {
+      "goal1": "a7ecbc46367dbd7fffa8b5d568827f961924dae791c028a5ac3a73dd0411a3f0",
+      "goal2": "a7ecbc46367dbd7fffa8b5d568827f961924dae791c028a5ac3a73dd0411a3f0"
+    },
+    "t2_interface": {
+      "goal1": "0364a58f687ab543ff2a3270dbda7bb96b6aea99cfb311843b53fb1c19123d9c",
+      "goal2": "0364a58f687ab543ff2a3270dbda7bb96b6aea99cfb311843b53fb1c19123d9c"
+    },
+    "t3_evolving": {
+      "goal1": "5752f4b223a01e7b213b9a409cb863d5ff286b51d81ea6a1ecfe4347a181616c",
+      "goal2": "8f18d51ecf37f44c51373b22baa89e18290fa30f14a20843206f44bee9667735"
+    }
+  }
+}

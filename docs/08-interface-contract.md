@@ -18,6 +18,8 @@ updated: "2026-10-15"
 
 本版不包含：具体规划/组队算法、UI 视觉实现、SDK 真实能力结论（LG-003 探针）、模型与凭证存储实现（LG-025）、部署与云端、多后端、多用户、外部渠道与自主触发。
 
+资料/知识库接入也不在本版内：`1.5.0` **没有**新增资料或摄取 schema、检索/搜索 API、索引/向量服务、邮件/邮箱连接器；现有文件上传/下载端点（§4.3）是其唯一相关实现，语义不变。资料接入、归属、派生层与检索的**方向已确认但待实现**，见 [资料接入与检索设计](09-source-intake-and-retrieval.md)；实现前必须按第 13 节冻结接口并升版，不得把设计字段/状态/端点当作已冻结语义。
+
 组件边界（仅示意，不是部署图）：
 
 ```text
@@ -411,7 +413,7 @@ fail_reason: null
 ```
 
 - 一个 Task 同时最多一个非终止 Run（`active_run`）。
-- `plan`/`plan_hash`/`plan_source` 为加性可选字段：计划先经程序校验，校验通过的完整计划（含每个子任务的 `key`/`objective`/`capability`/`acceptance`/`depends_on`/`write`/`order`）才写入 `plan`，`plan_hash` 为该内容的规范化 SHA-256，`plan_source` 只记录来源、不赋予额外权限；未通过校验的提议不落盘。既有 `plan_ref`（计划文件引用）语义不变。
+- `plan`/`plan_hash`/`plan_source` 为加性可选字段：计划先经程序校验，校验通过的完整计划（含每个子任务的 `key`/`objective`/`capability`/`acceptance`/`depends_on`/`write`/`order`）才写入 `plan`，`plan_hash` 为该内容的规范化 SHA-256，`plan_source` 只记录来源、不赋予额外权限；未通过校验的提议不落盘。既有 `plan_ref`（计划文件引用）语义不变。默认计划由程序按明确目标生成（`plan_source=rules`，确定性最小计划、无模型调用）；可选的模型拆解提议是**有界按需**能力，当前未接线、无默认装配，仅在显式记录触发原因时采纳，候选计划仍经同一程序校验；该按需提议的**单 Run** 调用上限由程序按内部请求预算落实（失败尝试计入，重复派发同一 Run 不新开模型循环），不使用跨 Run 的实例全局计数。此为默认策略澄清，不新增字段/端点/事件，不改变本版既有语义。
 - `connection_pin` 为加性可选字段（1.5.0）：Run 招募团队时解析一次当前默认 worker 连接并按 `{connection_id, revision, content_hash, credential_version}` 冻结，供该 Run 的所有 Subtask 复用；活跃 Run 内默认连接或凭证轮换不得在下一 Subtask 静默换用，检测到漂移按 `config_invalid` 失败，新 Run 才重新解析。该字段**永不包含秘密**，不改变既有连接选择优先级（显式模板 `connection_ref` 仍优先）。
 - `completed` 与 `cancelled`/`failed` 是不同终态；team cleanup 状态独立记录，清理失败不得掩盖交付成功。
 - `cancelling` → `cancelled` 仅在 adapter 确认停止后。

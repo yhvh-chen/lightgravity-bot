@@ -1,0 +1,60 @@
+--- a/_check_geom.py
++++ b/_check_geom.py
+@@ -0,0 +1,16 @@
++import math, sys
++sys.path.insert(0, "src")
++from geometry import area, perimeter
++
++assert area({"kind": "rect", "width": 3, "height": 4}) == 12
++assert perimeter({"kind": "rect", "width": 3, "height": 4}) == 14
++assert math.isclose(area({"kind": "circle", "radius": 2}), math.pi * 4)
++assert math.isclose(perimeter({"kind": "circle", "radius": 2}), 4 * math.pi)
++for f in (area, perimeter):
++    try:
++        f({"kind": "hex"})
++    except ValueError:
++        pass
++    else:
++        raise AssertionError("expected ValueError")
++print("geometry OK")
+--- a/src/geometry.py
++++ b/src/geometry.py
+@@ -1,9 +1,35 @@
+-"""Geometry (initial stub — not implemented)."""
++"""Geometry helpers for shape dicts.
++
++Shape interface (shared with ``report``):
++- ``{"kind": "rect", "width": <num>, "height": <num>}``
++- ``{"kind": "circle", "radius": <num>}``
++"""
++import math
+ 
+ 
+ def area(shape):
+-    raise NotImplementedError
++    """Return the area of ``shape``.
++
++    Raises:
++        ValueError: if ``shape["kind"]`` is not ``"rect"`` or ``"circle"``.
++    """
++    kind = shape["kind"]
++    if kind == "rect":
++        return shape["width"] * shape["height"]
++    if kind == "circle":
++        return math.pi * shape["radius"] ** 2
++    raise ValueError(f"unknown shape kind: {kind!r}")
+ 
+ 
+ def perimeter(shape):
+-    raise NotImplementedError
++    """Return the perimeter (circumference) of ``shape``.
++
++    Raises:
++        ValueError: if ``shape["kind"]`` is not ``"rect"`` or ``"circle"``.
++    """
++    kind = shape["kind"]
++    if kind == "rect":
++        return 2 * (shape["width"] + shape["height"])
++    if kind == "circle":
++        return 2 * math.pi * shape["radius"]
++    raise ValueError(f"unknown shape kind: {kind!r}")

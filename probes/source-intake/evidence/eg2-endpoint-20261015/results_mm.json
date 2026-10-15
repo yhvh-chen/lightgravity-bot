@@ -1,0 +1,337 @@
+{
+  "probes": [
+    {
+      "tag": "img_text_control",
+      "info": {
+        "tag": "img_text_control",
+        "status": 200,
+        "elapsed_s": 0.03,
+        "bytes": 16519,
+        "error": null,
+        "n_vectors": 1,
+        "usage": {
+          "prompt_tokens": 4,
+          "total_tokens": 4
+        },
+        "model": "embeddinggemma-2-Q8_0",
+        "dims": [
+          768
+        ],
+        "stats": [
+          {
+            "dim": 768,
+            "finite": true,
+            "l2_norm": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "tag": "image_text",
+      "info": {
+        "tag": "image_text",
+        "status": 200,
+        "elapsed_s": 0.542,
+        "bytes": 16494,
+        "error": null,
+        "n_vectors": 1,
+        "usage": {
+          "prompt_tokens": 87,
+          "total_tokens": 87
+        },
+        "model": "embeddinggemma-2-Q8_0",
+        "dims": [
+          768
+        ],
+        "stats": [
+          {
+            "dim": 768,
+            "finite": true,
+            "l2_norm": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "tag": "audio_text_control",
+      "info": {
+        "tag": "audio_text_control",
+        "status": 200,
+        "elapsed_s": 0.008,
+        "bytes": 16462,
+        "error": null,
+        "n_vectors": 1,
+        "usage": {
+          "prompt_tokens": 4,
+          "total_tokens": 4
+        },
+        "model": "embeddinggemma-2-Q8_0",
+        "dims": [
+          768
+        ],
+        "stats": [
+          {
+            "dim": 768,
+            "finite": true,
+            "l2_norm": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "tag": "audio_text",
+      "info": {
+        "tag": "audio_text",
+        "status": 200,
+        "elapsed_s": 0.823,
+        "bytes": 16489,
+        "error": null,
+        "n_vectors": 1,
+        "usage": {
+          "prompt_tokens": 56,
+          "total_tokens": 56
+        },
+        "model": "embeddinggemma-2-Q8_0",
+        "dims": [
+          768
+        ],
+        "stats": [
+          {
+            "dim": 768,
+            "finite": true,
+            "l2_norm": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "tag": "video_text",
+      "info": {
+        "tag": "video_text",
+        "status": 200,
+        "elapsed_s": 0.24,
+        "bytes": 16478,
+        "error": null,
+        "n_vectors": 1,
+        "usage": {
+          "prompt_tokens": 347,
+          "total_tokens": 347
+        },
+        "model": "embeddinggemma-2-Q8_0",
+        "dims": [
+          768
+        ],
+        "stats": [
+          {
+            "dim": 768,
+            "finite": true,
+            "l2_norm": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "tag": "invalid_image",
+      "info": {
+        "tag": "invalid_image",
+        "status": 500,
+        "elapsed_s": 0.047,
+        "bytes": 91,
+        "error": "HTTPError",
+        "n_vectors": 0,
+        "usage": null,
+        "model": null,
+        "error_body": {
+          "code": 500,
+          "message": "Failed to load image or audio file",
+          "type": "server_error"
+        },
+        "dims": [],
+        "stats": []
+      }
+    },
+    {
+      "tag": "invalid_audio",
+      "info": {
+        "tag": "invalid_audio",
+        "status": 500,
+        "elapsed_s": 0.047,
+        "bytes": 91,
+        "error": "HTTPError",
+        "n_vectors": 0,
+        "usage": null,
+        "model": null,
+        "error_body": {
+          "code": 500,
+          "message": "Failed to load image or audio file",
+          "type": "server_error"
+        },
+        "dims": [],
+        "stats": []
+      }
+    }
+  ],
+  "samples": {
+    "png_bytes": 153,
+    "wav_bytes": 64044,
+    "wav_seconds": 2.0,
+    "png_b64_len": 204,
+    "wav_b64_len": 85392,
+    "mp4_bytes": 1911
+  },
+  "interpretation": {
+    "image_changed_vs_control": {
+      "cos": 0.76542,
+      "consumed_or_differs": true
+    },
+    "audio_changed_vs_control": {
+      "cos": 0.930606,
+      "consumed_or_differs": true
+    },
+    "invalid_image_rejected": true,
+    "invalid_image_status": 500,
+    "invalid_audio_rejected": true,
+    "invalid_audio_status": 500,
+    "video_changed_vs_control": {
+      "cos": 0.715811,
+      "consumed_or_differs": true
+    }
+  },
+  "embed_http_count": 7,
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "started_utc": "2026-10-15T10:56:05Z",
+      "body_summary": {
+        "model": "embeddinggemma-2-Q8_0",
+        "input": "list[content[text(len=12)]]",
+        "encoding_format": "float"
+      },
+      "status": 200,
+      "elapsed_s": 0.03,
+      "error": null,
+      "bytes": 16519,
+      "response_keys": [
+        "data",
+        "model",
+        "object",
+        "usage"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "started_utc": "2026-10-15T10:56:05Z",
+      "body_summary": {
+        "model": "embeddinggemma-2-Q8_0",
+        "input": "list[content[image_url(len=226),text(len=12)]]",
+        "encoding_format": "float"
+      },
+      "status": 200,
+      "elapsed_s": 0.542,
+      "error": null,
+      "bytes": 16494,
+      "response_keys": [
+        "data",
+        "model",
+        "object",
+        "usage"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "started_utc": "2026-10-15T10:56:05Z",
+      "body_summary": {
+        "model": "embeddinggemma-2-Q8_0",
+        "input": "list[content[text(len=11)]]",
+        "encoding_format": "float"
+      },
+      "status": 200,
+      "elapsed_s": 0.008,
+      "error": null,
+      "bytes": 16462,
+      "response_keys": [
+        "data",
+        "model",
+        "object",
+        "usage"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "started_utc": "2026-10-15T10:56:05Z",
+      "body_summary": {
+        "model": "embeddinggemma-2-Q8_0",
+        "input": "list[content[input_audio(len=85392),text(len=11)]]",
+        "encoding_format": "float"
+      },
+      "status": 200,
+      "elapsed_s": 0.823,
+      "error": null,
+      "bytes": 16489,
+      "response_keys": [
+        "data",
+        "model",
+        "object",
+        "usage"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "started_utc": "2026-10-15T10:56:06Z",
+      "body_summary": {
+        "model": "embeddinggemma-2-Q8_0",
+        "input": "list[content[input_video(len=2548),text(len=11)]]",
+        "encoding_format": "float"
+      },
+      "status": 200,
+      "elapsed_s": 0.24,
+      "error": null,
+      "bytes": 16478,
+      "response_keys": [
+        "data",
+        "model",
+        "object",
+        "usage"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "started_utc": "2026-10-15T10:56:06Z",
+      "body_summary": {
+        "model": "embeddinggemma-2-Q8_0",
+        "input": "list[content[image_url(len=150),text(len=12)]]",
+        "encoding_format": "float"
+      },
+      "status": 500,
+      "elapsed_s": 0.047,
+      "error": "HTTPError",
+      "bytes": 91,
+      "response_keys": [
+        "error"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "started_utc": "2026-10-15T10:56:06Z",
+      "body_summary": {
+        "model": "embeddinggemma-2-Q8_0",
+        "input": "list[content[input_audio(len=1368),text(len=11)]]",
+        "encoding_format": "float"
+      },
+      "status": 500,
+      "elapsed_s": 0.047,
+      "error": "HTTPError",
+      "bytes": 91,
+      "response_keys": [
+        "error"
+      ]
+    }
+  ]
+}

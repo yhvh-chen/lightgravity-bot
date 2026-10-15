@@ -1,0 +1,12 @@
+{
+  "produced": [],
+  "modified": [
+    "src/report.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/report.py": "\"\"\"Report rendering (initial stub — depends on geometry).\"\"\"\nfrom .geometry import area, perimeter\n\n\ndef describe(shape):\n    \"\"\"Render a human-readable description of ``shape``.\n\n    Uses :func:`geometry.area` and :func:`geometry.perimeter` so the numeric\n    contract stays owned by the geometry module; an unknown ``kind`` raises\n    ``ValueError`` which propagates unchanged.\n    \"\"\"\n    return (\n        f\"{shape['kind']}: area={area(shape):.2f} \"\n        f\"perimeter={perimeter(shape):.2f}\"\n    )\n"
+  },
+  "overreach": [],
+  "invalid": []
+}

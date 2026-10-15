@@ -1,0 +1,6 @@
+consistent=True
+group_counts={'B': 9, 'C': 9}
+raw_attempts=153
+raw_token_sum=179851
+state_total_tokens=179851
+issues=[]

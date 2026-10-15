@@ -1,0 +1,47 @@
+--- a/_verify_slugs.py
++++ b/_verify_slugs.py
+@@ -0,0 +1,25 @@
++import sys
++
++sys.path.insert(0, "/tmp/lightgravity-worktrees/agensh-sdk-20261015/probes/agensh-orchestration-sdk/runs/formal/t1_independent__C__r0/staging/r1/w1")
++
++from src.slugs import slugify
++
++cases = [
++    ("Hello World", "hello-world"),
++    ("Hello, World!", "hello-world"),
++    ("  Multiple   Spaces  ", "multiple-spaces"),
++    ("Already-Slugged", "already-slugged"),
++    ("--Edge--", "edge"),
++    ("", ""),
++    ("...", ""),
++    ("a_b_c", "a-b-c"),
++    ("CamelCase", "camelcase"),
++    ("UPPER lower 123", "upper-lower-123"),
++    ("MiXeD\tTabs\nAnd Spaces", "mixed-tabs-and-spaces"),
++    ("123", "123"),
++    ("a---b", "a-b"),
++]
++for inp, want in cases:
++    got = slugify(inp)
++    assert got == want, (inp, got, want)
++print("all", len(cases), "cases passed")
+--- a/src/slugs.py
++++ b/src/slugs.py
+@@ -1,5 +1,14 @@
+-"""Slug helpers (initial stub — not implemented)."""
++"""Slug helpers."""
++
++import re
++
++_NON_ALNUM = re.compile(r"[^a-z0-9]+")
+ 
+ 
+ def slugify(title: str) -> str:
+-    raise NotImplementedError
++    """Convert ``title`` into a lowercase, hyphen-separated slug.
++
++    Lowercasing happens first so that uppercase letters are folded into their
++    ASCII lowercase counterparts instead of being treated as separators.
++    """
++    return _NON_ALNUM.sub("-", title.lower()).strip("-")

@@ -1,0 +1,17 @@
+--- a/src/report.py
++++ b/src/report.py
+@@ -3,4 +3,13 @@
+ 
+ 
+ def describe(shape):
+-    raise NotImplementedError
++    """Render a human-readable description of ``shape``.
++
++    Uses :func:`geometry.area` and :func:`geometry.perimeter` so the numeric
++    contract stays owned by the geometry module; an unknown ``kind`` raises
++    ``ValueError`` which propagates unchanged.
++    """
++    return (
++        f"{shape['kind']}: area={area(shape):.2f} "
++        f"perimeter={perimeter(shape):.2f}"
++    )

@@ -1,0 +1,12 @@
+{
+  "produced": [],
+  "modified": [
+    "src/ranges.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/ranges.py": "\"\"\"Range helpers.\"\"\"\n\n\ndef clamp(value, lo, hi):\n    \"\"\"Return value bounded to the inclusive range [lo, hi].\"\"\"\n    if value < lo:\n        return lo\n    if value > hi:\n        return hi\n    return value\n\n\ndef in_range(value, lo, hi) -> bool:\n    \"\"\"Return True when lo <= value <= hi, else False.\"\"\"\n    return lo <= value <= hi\n"
+  },
+  "overreach": [],
+  "invalid": []
+}

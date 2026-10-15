@@ -1,0 +1,21 @@
+--- a/src/ranges.py
++++ b/src/ranges.py
+@@ -1,9 +1,15 @@
+-"""Range helpers (initial stub — not implemented)."""
++"""Range helpers."""
+ 
+ 
+ def clamp(value, lo, hi):
+-    raise NotImplementedError
++    """Return ``lo`` when ``value < lo``, ``hi`` when ``value > hi``, else ``value``."""
++    if value < lo:
++        return lo
++    if value > hi:
++        return hi
++    return value
+ 
+ 
+ def in_range(value, lo, hi) -> bool:
+-    raise NotImplementedError
++    """Return ``True`` iff ``lo <= value <= hi``."""
++    return lo <= value <= hi

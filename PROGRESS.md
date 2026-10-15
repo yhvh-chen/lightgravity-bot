@@ -85,3 +85,26 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - 内部 Git 远端：`http://192.168.8.50:3000/admin/lightgravity-bot.git`。本批新增开发成果仍未推送；推送时使用现有 env 的受控凭证，不放进 URL、命令参数或 Git 配置。
 
 保存工作只更新文档、备份与 Git 检查点，不认领新任务、不改任务状态、不启动实施/服务/部署。
+
+---
+
+## 本轮补充：资料接入与检索方向文档落盘（2026-10-15）
+
+由单一文档执行者完成；**未改产品代码/依赖，未跑新模型请求，未提交/发布，未改任务状态，未写 `PROJECT.md`**。
+
+- **新增设计**：[docs/09-source-intake-and-retrieval.md](docs/09-source-intake-and-retrieval.md)（方向已确认、**未实现**；API/schema/事件/状态**未冻结**；实施前须按 docs/08 §13 冻结并升版）。含 Chat 唯一常规入口、摄入生命周期与回执、文件/派生/缓存分层、索引与检索边界、分阶段验收、实测与局限、参考。
+- **入口同步**：README（文档入口 + 计划标记 + 首版边界）、docs/01（架构链接）、docs/02（文件/资料边界）、docs/04（摄取写边界，摄取不自动建交付 Task/Run）、docs/05（Chat/Files 目标与当前实现差异）、docs/08（1.5.0 **无**新资料 schema/API/search/email，后续见 09）、agent.md（设计入口与摄取原则）。`design.md` 视觉 tokens **未改**。
+- **证据归档**：[probes/source-intake/](probes/source-intake/README.md)，含两个探针 REPORT、原始 `DOC_CORRECTION.md`、指标/查询与重建 JSON、原始 OCR 响应、ASR 失败结果、必要合成 fixtures、真实提取 MD 的**逐字节副本**与 [MANIFEST.json](probes/source-intake/evidence/MANIFEST.json)（28 条、952781 字节、目标 sha256 全部一致、≤3 MiB）。`/tmp` 原件保留未动，未归档脚本代码。
+- **检查**：[probes/source-intake/DOC_CHECKS.md](probes/source-intake/DOC_CHECKS.md)（Markdown 相对链接/frontmatter、入口与 SoT/Task 边界一致、归档 sha256 与大小、`git diff --check`）。**未跑**后端/前端测试、构建或真实推理。
+- **范围**：不改 `CONTRACT_VERSION`（仍 1.5.0），不新增 API/枚举，不改现有端点语义，不新增 backlog 任务或改旧状态。
+- **关键限制**：证据 A/B 均为合成小样本/隔离原型，只证明“**已测 Qwen 的 OCR 成功、已测 embedding 模型的转写失败**”，`gemma4-mtp` 等其它模型与 reader 接线未测；原型运行在系统 Python 3.14 + 临时脚本，**不是**产品 Python 3.12 依赖验收或 adapter 接入。
+- **本仓库当前 dirty 的 no-orchestrator 代码/文档改动与其他旧证据均已保留**，未覆盖、未提交。
+
+
+## 本轮补充：去中心化与 Embedding 正式排期（2026-10-15）
+
+- 用户要求排期；新增 LG-028～041 共 14 项 todo，总计 41 项，既有任务状态与验收证据保留。
+- 去中心化 LG-028～032：契约、原子领取/租约、受控同伴交接、真实执行与 QA/返修整合、集中验收与全生命周期成本对比。
+- 资料与 Embedding LG-033～040：契约、原件摄取、图片/PDF OCR、词法索引、可选多模态向量、Chat/Files、中文 ASR 验证与集中验收；LG-041 在 ASR 质量达标后实施并集中验收中文转写扩展。
+- 更新 [滚动排期](docs/06-roadmap.md) 第 6 节、[任务入口](BACKLOG.md) 与 PROJECT 决策。两线契约可并行准备；保留首版集中验收顺序与程序权限边界，不引入常驻模型编排 agent 或独立向量数据库。
+- backlog 目录专项校验：41 项、无诊断；未修改代码、任务旧状态、凭证或当前 1.5.0 接口版本，未开始实施、模型实验或提交发布。日历日期未约定，当前为依赖与版本门排期。

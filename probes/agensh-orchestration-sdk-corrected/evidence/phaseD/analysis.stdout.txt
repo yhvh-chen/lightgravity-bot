@@ -1,0 +1,53 @@
+{
+  "by_group": {
+    "B": {
+      "n": 3,
+      "all_passed": 2,
+      "sum_final_passed": 17,
+      "sum_final_total": 21,
+      "median_tokens": 144758,
+      "median_relay_tokens": 144758,
+      "median_elapsed": 57.653,
+      "sum_http": 79,
+      "sum_tokens": 441700,
+      "sum_relay_tokens": 441700,
+      "sum_elapsed": 187.577,
+      "median_turn_states": {
+        "budget_exhausted": 1,
+        "succeeded": 8
+      }
+    },
+    "C": {
+      "n": 3,
+      "all_passed": 3,
+      "sum_final_passed": 21,
+      "sum_final_total": 21,
+      "median_tokens": 126961,
+      "median_relay_tokens": 131961,
+      "median_elapsed": 55.829,
+      "sum_http": 75,
+      "sum_tokens": 395526,
+      "sum_relay_tokens": 403523,
+      "sum_elapsed": 184.066,
+      "median_turn_states": {
+        "failed": 0,
+        "budget_exhausted": 1,
+        "succeeded": 7
+      }
+    }
+  },
+  "metrics": {
+    "tokens_improvement_pct": 8.84,
+    "budget_tokens_improvement_pct": 12.29,
+    "elapsed_improvement_pct": 3.16
+  },
+  "validity": {
+    "all_b_plans_valid": true,
+    "all_b_plans_injected": true,
+    "all_stops_positive": true,
+    "all_finishes_lossless_when_present": true,
+    "zero_length_truncations": true,
+    "all_sot_clean": true,
+    "all_real_writes": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "produced": [],
+  "modified": [
+    "src/report.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/report.py": "\"\"\"Report rendering (depends on geometry).\"\"\"\nfrom .geometry import area, perimeter\n\n\ndef describe(shape):\n    \"\"\"Return a formatted summary of *shape*.\n\n    Delegates measurement to :mod:`geometry` so the reporting layer holds no\n    geometry logic of its own; any unknown-kind error propagates from there.\n    \"\"\"\n    return (\n        f\"{shape['kind']}: \"\n        f\"area={area(shape):.2f} perimeter={perimeter(shape):.2f}\"\n    )\n"
+  },
+  "overreach": [],
+  "invalid": []
+}

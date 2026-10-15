@@ -1,0 +1,51 @@
+{
+  "logical": "planner",
+  "state": "succeeded",
+  "stop_reason": "StopReason.UNSPECIFIED",
+  "http": 3,
+  "tokens": 11497,
+  "usage": {
+    "prompt_tokens": 9504,
+    "candidates_tokens": 1993,
+    "total_tokens": 11497,
+    "thought_tokens": 0,
+    "cached_tokens": 6016,
+    "unknown": []
+  },
+  "tool_call_names": [
+    "view_file",
+    "view_file",
+    "view_file",
+    "finish"
+  ],
+  "finish_parse_error": "no_finish_output",
+  "hook_decisions": [
+    {
+      "tool": "view_file",
+      "paths": [],
+      "allow": true,
+      "reason": "allowed"
+    },
+    {
+      "tool": "view_file",
+      "paths": [],
+      "allow": true,
+      "reason": "allowed"
+    },
+    {
+      "tool": "view_file",
+      "paths": [],
+      "allow": true,
+      "reason": "allowed"
+    },
+    {
+      "tool": "finish",
+      "paths": [],
+      "allow": true,
+      "reason": "allowed"
+    }
+  ],
+  "model_sent": "deepseek-v4-flash",
+  "upstream_model": "deepseek-flash",
+  "elapsed_seconds": 14.132
+}

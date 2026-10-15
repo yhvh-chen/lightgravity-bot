@@ -1,0 +1,52 @@
+{
+  "doc_image": {
+    "gt_chars": 76,
+    "extracted_chars": 76,
+    "edit_distance": 0,
+    "CER": 0.0,
+    "char_accuracy": 1.0,
+    "exact_full_match": true,
+    "fields": {
+      "编号": {
+        "ground_truth": "LG-2026-1015-007",
+        "extracted": "LG-2026-1015-007",
+        "exact": true
+      },
+      "日期": {
+        "ground_truth": "2026年10月15日",
+        "extracted": "2026年10月15日",
+        "exact": true
+      },
+      "金额": {
+        "ground_truth": "8,765.42",
+        "extracted": "8,765.42",
+        "exact": true
+      }
+    }
+  },
+  "doc_pdf": {
+    "gt_chars": 87,
+    "extracted_chars": 87,
+    "edit_distance": 0,
+    "CER": 0.0,
+    "char_accuracy": 1.0,
+    "exact_full_match": true,
+    "fields": {
+      "发票号码": {
+        "ground_truth": "25337000000098765432",
+        "extracted": "25337000000098765432",
+        "exact": true
+      },
+      "开票日期": {
+        "ground_truth": "2026年10月14日",
+        "extracted": "2026年10月14日",
+        "exact": true
+      },
+      "价税合计": {
+        "ground_truth": "1,234.56",
+        "extracted": "1,234.56",
+        "exact": true
+      }
+    }
+  }
+}

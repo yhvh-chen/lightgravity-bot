@@ -1,0 +1,9 @@
+--- a/src/hello.py
++++ b/src/hello.py
+@@ -1,2 +1,6 @@
+ def greet(name):
+     return "hi " + name
++
++
++def shout(name):
++    return greet(name).upper()

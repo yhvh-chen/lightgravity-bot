@@ -1,0 +1,76 @@
+{
+  "calls": [
+    {
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "started_utc": "2026-10-15T10:55:49Z",
+      "body_summary": {
+        "model": "embeddinggemma-2-Q8_0",
+        "input": "list[str(len=22); str(len=29); str(len=19); str(len=9)]",
+        "encoding_format": "float"
+      },
+      "status": 200,
+      "elapsed_s": 0.064,
+      "error": null,
+      "bytes": 65466,
+      "response_keys": [
+        "data",
+        "model",
+        "object",
+        "usage"
+      ]
+    }
+  ],
+  "embed_http_count": 1,
+  "text_sims": {
+    "en_anchor_vs_en_near(cat/kitten)": 0.780507,
+    "en_anchor_vs_zh_unrelated(qcd)": 0.566027,
+    "zh_near_vs_en_anchor(cat)": 0.870215,
+    "en_near_vs_zh_unrelated": 0.527143,
+    "zh_near_vs_en_near": 0.725799,
+    "zh_unrelated_vs_en_anchor": 0.566027
+  },
+  "all": {
+    "text": {
+      "tag": "text_batch",
+      "status": 200,
+      "elapsed_s": 0.064,
+      "bytes": 65466,
+      "error": null,
+      "n_vectors": 4,
+      "usage": {
+        "prompt_tokens": 41,
+        "total_tokens": 41
+      },
+      "model": "embeddinggemma-2-Q8_0",
+      "dims": [
+        768,
+        768,
+        768,
+        768
+      ],
+      "stats": [
+        {
+          "dim": 768,
+          "finite": true,
+          "l2_norm": 1.0
+        },
+        {
+          "dim": 768,
+          "finite": true,
+          "l2_norm": 1.0
+        },
+        {
+          "dim": 768,
+          "finite": true,
+          "l2_norm": 1.0
+        },
+        {
+          "dim": 768,
+          "finite": true,
+          "l2_norm": 1.0
+        }
+      ]
+    }
+  }
+}

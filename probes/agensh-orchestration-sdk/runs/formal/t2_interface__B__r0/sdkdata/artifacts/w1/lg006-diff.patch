@@ -1,0 +1,115 @@
+--- a/src/geometry.py
++++ b/src/geometry.py
+@@ -1,9 +1,36 @@
+-"""Geometry (initial stub — not implemented)."""
++"""Geometry helpers for shape dicts.
++
++A shape is represented as a plain ``dict`` whose ``"kind"`` key selects the
++variant:
++
++* ``{"kind": "rect", "width": ..., "height": ...}``
++* ``{"kind": "circle", "radius": ...}``
++
++Only the two kinds above are supported; anything else raises ``ValueError``.
++"""
++import math
++
++# Canonical ``kind`` tags. Shared with report so that the two modules cannot
++# drift apart on spelling.
++KIND_RECT = "rect"
++KIND_CIRCLE = "circle"
+ 
+ 
+ def area(shape):
+-    raise NotImplementedError
++    """Return the area of ``shape`` (``math.pi * r**2`` for circles)."""
++    kind = shape["kind"]
++    if kind == KIND_RECT:
++        return shape["width"] * shape["height"]
++    if kind == KIND_CIRCLE:
++        return math.pi * shape["radius"] ** 2
++    raise ValueError(f"unknown shape kind: {kind!r}")
+ 
+ 
+ def perimeter(shape):
+-    raise NotImplementedError
++    """Return the perimeter/circumference of ``shape``."""
++    kind = shape["kind"]
++    if kind == KIND_RECT:
++        return 2 * (shape["width"] + shape["height"])
++    if kind == KIND_CIRCLE:
++        return 2 * math.pi * shape["radius"]
++    raise ValueError(f"unknown shape kind: {kind!r}")
+--- a/verify_geometry.py
++++ b/verify_geometry.py
+@@ -0,0 +1,70 @@
++"""Throwaway contract check for src/geometry.py (not part of the deliverable)."""
++import math
++import sys
++
++from src.geometry import area, perimeter
++
++fails = []
++
++
++def check(label, got, want, tol=1e-9):
++    ok = abs(got - want) <= tol
++    print(f"{'OK  ' if ok else 'FAIL'} {label}: got={got!r} want={want!r}")
++    if not ok:
++        fails.append(label)
++
++
++# --- rect ---
++check("rect area 3x4", area({"kind": "rect", "width": 3, "height": 4}), 12)
++check("rect perim 3x4", perimeter({"kind": "rect", "width": 3, "height": 4}), 14)
++check("rect area 0", area({"kind": "rect", "width": 0, "height": 5}), 0)
++check("rect area float", area({"kind": "rect", "width": 2.5, "height": 4}), 10.0)
++
++# --- circle ---
++check("circle area r=1", area({"kind": "circle", "radius": 1}), math.pi)
++check("circle area r=2", area({"kind": "circle", "radius": 2}), math.pi * 4)
++check("circle perim r=1", perimeter({"kind": "circle", "radius": 1}), 2 * math.pi)
++check("circle perim r=0", perimeter({"kind": "circle", "radius": 0}), 0.0)
++
++# --- unknown kind raises ValueError ---
++for fn, name in ((area, "area"), (perimeter, "perimeter")):
++    try:
++        fn({"kind": "triangle", "base": 1})
++    except ValueError as exc:
++        print(f"OK   {name} unknown-kind raises ValueError: {exc}")
++    except Exception as exc:  # noqa: BLE001
++        print(f"FAIL {name} wrong exception type: {type(exc).__name__}")
++        fails.append(f"{name} exc type")
++    else:
++        print(f"FAIL {name} did not raise")
++        fails.append(f"{name} no raise")
++
++# isinstance check: ValueError must be the concrete type, not a subclass mismatch
++try:
++    area({"kind": "hexagon"})
++except ValueError:
++    pass
++
++# --- report.describe round-trip (w2 may still be a stub; tolerate that) ---
++try:
++    from src.report import describe
++
++    print("report.describe rect  ->", describe({"kind": "rect", "width": 3, "height": 4}))
++    print("report.describe circle->", describe({"kind": "circle", "radius": 1}))
++    want = "rect: area=12.00 perimeter=14.00"
++    got = describe({"kind": "rect", "width": 3, "height": 4})
++    if got != want:
++        print(f"FAIL describe rect: got={got!r} want={want!r}")
++        fails.append("describe rect")
++    else:
++        print("OK   describe rect matches spec format")
++except NotImplementedError:
++    print("SKIP report.describe still a stub (owned by w2)")
++except ImportError as exc:
++    print(f"SKIP report import failed: {exc}")
++
++print()
++if fails:
++    print(f"FAILURES: {fails}")
++    sys.exit(1)
++print("ALL GEOMETRY CHECKS PASSED")

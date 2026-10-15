@@ -1,0 +1,27 @@
+{
+  "source": "/tmp/lightgravity-worktrees/agensh-sdk-20261015/probes/agensh-orchestration-sdk",
+  "dest": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-sdk",
+  "files_copied": 511,
+  "excluded_count": 5,
+  "excluded_sample": [
+    "driver/__pycache__/experiment.cpython-312.pyc",
+    "driver/__pycache__/hooks.cpython-312.pyc",
+    "driver/__pycache__/host.cpython-312.pyc",
+    "driver/__pycache__/relay.cpython-312.pyc",
+    "driver/__pycache__/sotyaml.cpython-312.pyc"
+  ],
+  "hash_mismatches": [],
+  "exclude_rules": [
+    "__pycache__/",
+    "*.pyc",
+    "*.db-shm",
+    "*.db-wal"
+  ],
+  "post_copy_updates": {
+    "PROGRESS.md": {
+      "source_sha256": "d8ee31d0afd627b374a65a028dd12f253836eb4a929567a05867e8d937de26e4",
+      "dest_sha256": "d8ee31d0afd627b374a65a028dd12f253836eb4a929567a05867e8d937de26e4"
+    }
+  },
+  "post_copy_all_match": true
+}

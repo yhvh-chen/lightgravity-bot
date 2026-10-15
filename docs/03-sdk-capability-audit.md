@@ -34,7 +34,7 @@ updated: "2026-10-15"
 | MCP 服务与输出大小 | 已有，补充限制 | MCP＋capabilities | 建立实际 stdio/HTTP 连接，长输出引用文件 | 按任务需要启用 |
 | 工具可见性与调用策略 | 已有，补充区别 | Agent capabilities＋Hooks/policies | 隐藏工具与运行时拒绝分开 | 接入 |
 | 人机问答与批准 | 已有，补充 SDK 桥接 | Hooks：question/approval handler；Agent behavior | 转成 Task Chat 待决项，回复回传会话 | 接入 |
-| 结构化输出 | 补充 | Agent：response_schema_ref | 注册 Pydantic/JSON Schema，程序验证结果 | Planner、outcome 优先 |
+| 结构化输出 | 补充 | Agent：response_schema_ref | 注册 Pydantic/JSON Schema，程序验证结果 | 计划/结果记录优先 |
 | session 预算与停止原因 | 泛化，现补充 | Agent：budget_config | 调用/令牌上限，展示 usage 与 stop reason | 接入 |
 | API/模型输出重试 | 未展开 | Agent：retry_config | SDK 有限重试，记录实际行为 | 接入 |
 | 上下文压缩 | 未展开 | Conversation：compaction_config | SDK 压缩历史，用户原始消息保留 | 可选，验证后启用 |

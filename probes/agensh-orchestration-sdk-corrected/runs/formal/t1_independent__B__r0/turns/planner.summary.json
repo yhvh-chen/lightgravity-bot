@@ -1,0 +1,74 @@
+{
+  "logical": "planner",
+  "state": "succeeded",
+  "stop_reason": "StopReason.UNSPECIFIED",
+  "http": 1,
+  "tokens": 3442,
+  "usage": {
+    "prompt_tokens": 3007,
+    "candidates_tokens": 435,
+    "total_tokens": 3442,
+    "thought_tokens": 0,
+    "cached_tokens": 0,
+    "unknown": []
+  },
+  "tool_call_names": [
+    "finish"
+  ],
+  "captured_call_names": [
+    "finish"
+  ],
+  "finish_parse_error": null,
+  "finish_source": "hook",
+  "finish_payload_chars": 1523,
+  "emitted_finish_chars": 1523,
+  "emitted_truncated": false,
+  "session_db_matches_hook": true,
+  "plan_id": null,
+  "plan_injected": null,
+  "stop_positive": true,
+  "stop_evidence": {
+    "proxy_stop_events": [
+      {
+        "returned": true,
+        "is_running_after": false
+      },
+      {
+        "returned": true,
+        "is_running_after": false
+      }
+    ],
+    "proxy_port": 42833,
+    "port_open_after": false,
+    "auth_proxy_stopped_check": {
+      "name": "auth_proxy_stopped",
+      "status": "passed",
+      "detail": "loopback proxy socket closed"
+    },
+    "stop_confirmed_field": null,
+    "agent_close_observed": true,
+    "agent_close_returns": [
+      true,
+      true
+    ],
+    "harness_pids_before": [],
+    "harness_pids_after": [],
+    "harness_gone_after": true,
+    "workspace": "/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t1_independent__B__r0/workspace",
+    "write_lease": null,
+    "positive": true,
+    "status": "confirmed"
+  },
+  "hook_decisions": [
+    {
+      "tool": "finish",
+      "paths": [],
+      "allow": true,
+      "reason": "allowed",
+      "lease_paths": []
+    }
+  ],
+  "model_sent": "deepseek-v4-flash",
+  "upstream_model": "deepseek-flash",
+  "elapsed_seconds": 2.923
+}

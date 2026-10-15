@@ -1,0 +1,12 @@
+{"type": "start", "task": "t3_evolving", "group": "C", "fixture_initial_hash": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046", "goal": "实现 src/stats.py（不要修改其他文件）：\n- mean(nums): 空列表抛 ValueError，否则返回算术平均。\n- median(nums): 空列表抛 ValueError；奇数长度返回排序后的中间值；偶数长度返回中间两个数的平均。", "ts": "2026-10-15T05:29:04Z", "run": "t3_evolving__C"}
+{"type": "apply", "round": 1, "applied": [], "conflicts": [{"path": "src/stats.py", "workers": ["w1", "w2"]}], "duplicate_edits": [{"path": "src/stats.py", "workers": ["w1", "w2"]}], "invalid": [], "ts": "2026-10-15T05:29:09Z", "run": "t3_evolving__C"}
+{"type": "finding", "round": 1, "worker": "w1", "text": "本轮没有提供计划或任务分解，但目标明确且只允许修改 src/stats.py。", "ts": "2026-10-15T05:29:09Z", "run": "t3_evolving__C"}
+{"type": "finding", "round": 1, "worker": "w1", "text": "按需求实现：空列表抛出 ValueError；median 先排序，奇数长度取中间元素，偶数长度取中间两数平均。", "ts": "2026-10-15T05:29:09Z", "run": "t3_evolving__C"}
+{"type": "finding", "round": 1, "worker": "w1", "text": "未修改 src/__init__.py、控制文件或其他计划外文件。", "ts": "2026-10-15T05:29:09Z", "run": "t3_evolving__C"}
+{"type": "finding", "round": 1, "worker": "w2", "text": "本轮没有计划或任务分解，因此自行决定完成唯一明确要求的实现工作：stats.py 的两个统计函数。", "ts": "2026-10-15T05:29:09Z", "run": "t3_evolving__C"}
+{"type": "finding", "round": 1, "worker": "w2", "text": "mean 对空序列抛出 ValueError，否则返回 sum/len；median 对空序列抛出 ValueError，奇数长度返回排序后中点，偶数长度返回中间两数平均。", "ts": "2026-10-15T05:29:09Z", "run": "t3_evolving__C"}
+{"type": "finding", "round": 1, "worker": "w2", "text": "未改动 src/__init__.py 或其他文件。", "ts": "2026-10-15T05:29:09Z", "run": "t3_evolving__C"}
+{"type": "acceptance", "round": 1, "stage": 1, "passed": 0, "total": 5, "failed": ["mean.basic", "mean.empty", "median.odd", "median.even", "median.empty"], "ts": "2026-10-15T05:29:09Z", "run": "t3_evolving__C"}
+{"type": "apply", "round": 2, "applied": [], "conflicts": [], "duplicate_edits": [], "invalid": [{"worker": "w1", "reason": "no_valid_json"}, {"worker": "w2", "reason": "no_valid_json"}], "ts": "2026-10-15T05:29:19Z", "run": "t3_evolving__C"}
+{"type": "acceptance", "round": 2, "stage": 2, "passed": 0, "total": 9, "failed": ["mean.basic", "mean.empty", "median.odd", "median.even", "median.empty", "mode.basic", "mode.tie.min", "stdev.basic", "stdev.empty"], "ts": "2026-10-15T05:29:19Z", "run": "t3_evolving__C"}
+{"type": "complete", "final_passed": 0, "final_total": 9, "ts": "2026-10-15T05:29:19Z", "run": "t3_evolving__C"}

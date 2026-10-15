@@ -1,0 +1,47 @@
+{
+  "mode": "calibration-no-skills-probe",
+  "state": "succeeded",
+  "stop_reason": "StopReason.UNSPECIFIED",
+  "tool_call_names": [
+    "finish"
+  ],
+  "finish_payload": {
+    "claim": "src/a.py",
+    "message": "probe"
+  },
+  "usage": {
+    "prompt_tokens": 2358,
+    "candidates_tokens": 76,
+    "total_tokens": 2434,
+    "thought_tokens": 0,
+    "cached_tokens": 0,
+    "unknown": []
+  },
+  "http": 1,
+  "tokens": 2434,
+  "wall": 1.75,
+  "tools_in_request": [
+    "finish",
+    "view_file"
+  ],
+  "rewrites": {
+    "max_tokens": {
+      "from": null,
+      "to": 8192
+    },
+    "thinking": {
+      "from": null,
+      "to": {
+        "type": "disabled"
+      }
+    }
+  },
+  "finish_reasons": [
+    [
+      "tool_calls"
+    ]
+  ],
+  "reasoning_seen": [
+    false
+  ]
+}

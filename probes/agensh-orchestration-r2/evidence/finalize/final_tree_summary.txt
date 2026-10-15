@@ -1,0 +1,12 @@
+final tree manifest regenerated after integration notes
+generated_utc: 2026-10-15T05:59:32Z
+groups: B 9 runs, C 9 runs (t1/t2/t3 x3 each)
+freeze_manifest_sha256: a9fba8f02cc05b09aaa6ae258c6fb20cf333fc7ad0be74fc10cd8797484a9311
+protocol_pre_run_sha256: 8b580fdf9a414ce4c270ac3d5d74b53fdd94e826f04703b2ed1a86373b4d3a7f
+protocol_post_run_sha256: e5101a1eb13b86396c28ed874205f96410cd0887c2c512117f31e3579ec1be54
+analysis: C all 9/9; B 8/9; candidate_independent_orchestration_removable=true
+budget: normal 153/153, retries 0/9, http 153/162, total_tokens 179851/600000, wall ~195s/1500s
+final_tree_files: 741
+dest_size: 6.0M
+runs_mock_present: no
+pipeline: B 8/9 (candidate retain planning), C 9/9 (candidate independent orchestration removable)

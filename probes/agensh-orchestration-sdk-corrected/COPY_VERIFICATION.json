@@ -1,0 +1,20 @@
+{
+  "source": "/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected",
+  "dest": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-sdk-corrected",
+  "copied_at_utc": "2026-10-15T07:16:29Z",
+  "branch": "experiment/agensh-sdk-corrected-20261015",
+  "base_commit": "9987d4f643b3ad02618d0c45fa35f8eb6ae84eef",
+  "files_copied": 470,
+  "exclude_rules": [
+    "__pycache__/",
+    "*.pyc",
+    "*.db-shm",
+    "*.db-wal"
+  ],
+  "hash_manifest": "evidence/EVIDENCE.sha256",
+  "hash_matches": 470,
+  "symlinks": 0,
+  "real_key_occurrences": 0,
+  "generic_sk_occurrences": 2,
+  "note": "bounded copy into main workspace; old probes/PROJECT untouched; no commit/merge/push/deploy"
+}

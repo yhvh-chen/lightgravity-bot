@@ -1,0 +1,51 @@
+{
+  "doc_type": "usage_reconciliation",
+  "experiment_id": "agensh-sdk-corrected-20261015",
+  "method": "pure offline arithmetic over existing raw; no driver code read/changed, no rerun, no new model samples",
+  "authoritative_source": "relay reported usage (relay_calls[].usage.total_tokens)",
+  "example_turn": {
+    "path": "runs/formal/t2_interface__C__r0/turns/r1-edit-w2.json",
+    "relay_calls_count": 6,
+    "relay_reported_total_tokens": [5085, 5919, 6734, 7063, 7997, 8344],
+    "relay_sum": 41142,
+    "sdk_usage_total_tokens": 33145,
+    "difference": 7997
+  },
+  "totals": {
+    "relay_total_tokens": 845223,
+    "driver_budget_total_tokens": 837226,
+    "difference": 7997,
+    "source": "evidence/phaseD/analysis.json"
+  },
+  "unknown_check": {
+    "tokens_unknown_calls_per_run": {
+      "t1_independent__B__r0": 0,
+      "t1_independent__C__r0": 0,
+      "t2_interface__B__r0": 0,
+      "t2_interface__C__r0": 0,
+      "t3_evolving__B__r0": 0,
+      "t3_evolving__C__r0": 0
+    },
+    "usage_is_unknown_estimate": false
+  },
+  "final_benefit_basis": {
+    "relay_reported": {
+      "B_median_relay_tokens": 144758,
+      "C_median_relay_tokens": 131961,
+      "tokens_improvement_pct": 8.84,
+      "B_median_elapsed_s": 57.653,
+      "C_median_elapsed_s": 55.829,
+      "elapsed_improvement_pct": 3.16
+    },
+    "driver_snapshot_not_final": {
+      "B_median_tokens": 144758,
+      "C_median_tokens": 126961,
+      "budget_tokens_improvement_pct": 12.29,
+      "used_as_final_benefit": false
+    }
+  },
+  "difference_root_cause": {
+    "verified_this_round": false,
+    "note": "root cause (cache/retry/late accounting) NOT verified this round; no speculation recorded"
+  }
+}

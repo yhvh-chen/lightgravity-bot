@@ -1,0 +1,32 @@
+### finalizer offline recheck (no network, no model calls) — final run after all doc edits ###
+run_utc: 2026-10-15T05:35:54Z
+
+[PASS] raw call files == 45 :: 45
+[PASS] recomputed total_tokens == 106949 :: 106949
+[PASS] recomputed retry raw calls == 0 :: 0
+[PASS] recomputed usage_unknown calls == 0 :: 0
+[PASS] recomputed truncated calls == 6 :: 6
+[PASS] reasoning 24966 / completion 55199 :: 24966/55199
+[PASS] summary normal_calls == 45 :: 45
+[PASS] summary http_requests == 45 :: 45
+[PASS] summary total_tokens == 106949 :: 106949
+[PASS] summary retry_calls == 0 :: 0
+[PASS] summary usage_unknown_calls == 0 :: 0
+[PASS] raw sum == summary total_tokens
+[PASS] group A: all_passed=2/3, final=17/21, tokens=48907 :: all=2, final=17/21, tokens=48907, worker_calls=12, orch_calls=6, truncated=3
+[PASS] group B: all_passed=3/3, final=21/21, tokens=34589 :: all=3, final=21/21, tokens=34589, worker_calls=12, orch_calls=3, truncated=0
+[PASS] group C: all_passed=1/3, final=6/21, tokens=23453 :: all=1, final=6/21, tokens=23453, worker_calls=12, orch_calls=0, truncated=3
+[PASS] 9 run dirs :: 9
+[PASS] SoT consistency/links 9/9 (no issues) :: 9/9 clean
+[PASS] summary -> per-run file links :: all present
+[PASS] markdown local links resolve :: all resolve
+[PASS] evidence/pilot/run_stdout.log present :: 1954 bytes
+[PASS] sensitive-info scan of runs/ evidence/ fixtures/ (leak patterns) :: no leaks
+[PASS] raw request fields allowlisted (no auth headers/keys) :: all clean
+[PASS] t1_independent acceptance items == 6 :: 6: ['clamp.high', 'clamp.low', 'in_range', 'slug.case', 'slug.multi', 'slug.trim']
+[PASS] t2_interface acceptance items == 6 :: 6: ['geo.bad.kind', 'geo.circle.area', 'geo.rect.area', 'geo.rect.perimeter', 'report.circle', 'report.rect']
+[PASS] t3 stage1 acceptance items == 5 :: 5
+[PASS] t3 stage2 total == 9 (5 + 4 new) :: 5+4
+
+RECHECK RESULT: ALL CHECKS PASSED
+EXIT=0

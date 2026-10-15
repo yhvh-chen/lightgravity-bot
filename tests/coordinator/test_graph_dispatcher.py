@@ -20,7 +20,10 @@ from lightgravity.adapter import (
 from lightgravity.coordinator import (
     DispatchContext,
     GraphDispatcher,
+    ModelPlanner,
     PlanProposal,
+    PlanningRequest,
+    PlanningTrigger,
     RawSubtask,
     RoleCatalog,
 )
@@ -60,8 +63,40 @@ class StaticPlanner:
         return PlanProposal(subtasks=tuple(self._subtasks), source="test")
 
 
+class CountingPlanner(StaticPlanner):
+    """On-demand proposal stub that counts how often it is consulted."""
+
+    def __init__(self, subtasks: list[RawSubtask]) -> None:
+        super().__init__(subtasks)
+        self.calls = 0
+
+    async def plan(self, context: DispatchContext) -> PlanProposal:
+        self.calls += 1
+        return await super().plan(context)
+
+
 def no_sink(_event: dict[str, object]) -> None:
     return None
+
+
+def _single_node_propose(calls: list[str]):
+    """A real ``ModelPlanner.propose`` fake (no model/SDK); records run ids."""
+
+    def propose(context: DispatchContext) -> dict[str, object]:
+        calls.append(context.run_id)
+        return {
+            "subtasks": [
+                {
+                    "key": "deliver",
+                    "objective": "implement",
+                    "capability": "implementation",
+                    "acceptance": ["ok"],
+                    "write": True,
+                }
+            ]
+        }
+
+    return propose
 
 
 def member_states(store: FileStore) -> list[str]:
@@ -289,7 +324,12 @@ async def test_read_only_nodes_run_in_parallel_up_to_limit(store: FileStore) -> 
         ]
     )
     dispatcher = GraphDispatcher(store, executor, catalog=TWO_AGENT, planner=planner, max_parallel=2)
-    _task_id, _run_id, controller, context = make_dispatch_setup(store)
+    _task_id, _run_id, controller, context = make_dispatch_setup(
+        store,
+        planning_request=PlanningRequest(
+            trigger=PlanningTrigger.USER_REQUEST, reason="split two independent steps"
+        ),
+    )
 
     dispatch_task = asyncio.ensure_future(dispatcher.dispatch(context, controller, no_sink))
     assert await _wait_for(lambda: len(executor.requests) == 2)
@@ -313,7 +353,12 @@ async def test_same_workspace_write_nodes_serialize(store: FileStore) -> None:
         ]
     )
     dispatcher = GraphDispatcher(store, executor, catalog=TWO_AGENT, planner=planner, max_parallel=2)
-    _task_id, _run_id, controller, context = make_dispatch_setup(store)
+    _task_id, _run_id, controller, context = make_dispatch_setup(
+        store,
+        planning_request=PlanningRequest(
+            trigger=PlanningTrigger.AMBIGUOUS_REQUIREMENT, reason="two writer steps"
+        ),
+    )
 
     outcome = await dispatcher.dispatch(context, controller, no_sink)
 
@@ -366,3 +411,171 @@ async def test_coordinator_integration_reaches_verifying(store: FileStore) -> No
     snapshot = coordinator.status(created.task_id)
     assert snapshot["phase"] == "verifying"
     assert snapshot["queue"]["state"] == "not_queued"
+
+
+async def test_injected_model_planner_is_on_demand_only(store: FileStore) -> None:
+    """An injected proposal interface is never a per-Run prerequisite.
+
+    Without an explicit :class:`PlanningRequest` the dispatcher builds the
+    program-side minimal plan and never consults the planner.  With one, the
+    proposal is consulted exactly once and its trigger/reason are frozen into
+    the validated plan snapshot; there is no hidden automatic planning loop.
+    """
+
+    build_environment(store)
+    executor = FakeGraphExecutor()
+    planner = CountingPlanner(
+        [
+            RawSubtask(
+                key="deliver",
+                objective="implement",
+                capability="implementation",
+                acceptance=("ok",),
+                write=True,
+            )
+        ]
+    )
+    dispatcher = GraphDispatcher(store, executor, catalog=ONE_AGENT, planner=planner)
+
+    _task, run_id, controller, context = make_dispatch_setup(store)
+    outcome = await dispatcher.dispatch(context, controller, no_sink)
+    assert outcome.state == "succeeded"
+    assert planner.calls == 0  # default path is program-side, model-free
+    run = store.read("run", run_id).entity
+    assert run["plan"]["source"] == "rules"
+    assert all("on-demand" not in note for note in run["plan"]["notes"])
+
+    request = PlanningRequest(
+        trigger=PlanningTrigger.USER_REQUEST, reason="split the delivery into steps"
+    )
+    _task2, run_id2, controller2, context2 = make_dispatch_setup(
+        store, planning_request=request
+    )
+    outcome2 = await dispatcher.dispatch(context2, controller2, no_sink)
+    assert outcome2.state == "succeeded"
+    assert planner.calls == 1  # bounded: one proposal per Run, no loop
+    run2 = store.read("run", run_id2).entity
+    assert run2["plan"]["source"] == "test"
+    assert any(
+        "trigger=user_request" in note and "split the delivery into steps" in note
+        for note in run2["plan"]["notes"]
+    )
+
+
+async def test_default_dispatcher_has_no_model_planner(store: FileStore) -> None:
+    build_environment(store)
+    dispatcher = GraphDispatcher(store, FakeGraphExecutor(), catalog=TWO_AGENT)
+    assert dispatcher.planner is None  # no resident orchestration model wired
+    # Even a context-level request cannot reach a model when none is injected.
+    _task2, run_id2, controller2, context2 = make_dispatch_setup(
+        store,
+        planning_request=PlanningRequest(
+            trigger=PlanningTrigger.BLOCKED, reason="needs decomposition"
+        ),
+    )
+    assert context2.planning_request is not None
+    outcome = await dispatcher.dispatch(context2, controller2, no_sink)
+    assert outcome.state == "succeeded"
+    assert store.read("run", run_id2).entity["plan"]["source"] == "rules"
+
+
+async def test_real_model_planner_budget_is_per_run_when_shared(store: FileStore) -> None:
+    """QA-1: one shared real ``ModelPlanner`` is not capped across Runs.
+
+    Each Run carrying its own explicit ``PlanningRequest`` gets its own bounded
+    proposal; the budget is enforced by the dispatcher, not by a process-global
+    instance counter.
+    """
+
+    build_environment(store)
+    calls: list[str] = []
+    planner = ModelPlanner(_single_node_propose(calls))  # default: no ceiling
+    dispatcher = GraphDispatcher(store, FakeGraphExecutor(), catalog=ONE_AGENT, planner=planner)
+
+    for index in (1, 2):
+        request = PlanningRequest(
+            trigger=PlanningTrigger.USER_REQUEST,
+            reason=f"explicit decomposition {index}",
+        )
+        _task, run_id, controller, context = make_dispatch_setup(
+            store, planning_request=request
+        )
+        outcome = await dispatcher.dispatch(context, controller, no_sink)
+        assert outcome.state == "succeeded", outcome.summary
+        assert store.read("run", run_id).entity["plan"]["source"] == "model"
+
+    assert len(calls) == 2
+    assert planner.calls == 2
+
+
+async def test_real_model_planner_same_run_redispatch_does_not_loop(store: FileStore) -> None:
+    """QA-1: re-dispatching the same Run cannot open a new model loop."""
+
+    build_environment(store)
+    calls: list[str] = []
+    planner = ModelPlanner(_single_node_propose(calls))
+    dispatcher = GraphDispatcher(store, FakeGraphExecutor(), catalog=ONE_AGENT, planner=planner)
+    request = PlanningRequest(
+        trigger=PlanningTrigger.BLOCKED, reason="needs decomposition"
+    )
+    _task, _run, controller, context = make_dispatch_setup(store, planning_request=request)
+
+    first = await dispatcher.dispatch(context, controller, no_sink)
+    assert first.state == "succeeded"
+
+    second = await dispatcher.dispatch(context, controller, no_sink)
+    assert second.state == "failed"  # clean DispatchOutcome, not an exception
+    assert second.failure_code
+    assert len(calls) == 1
+    assert planner.calls == 1
+
+
+async def test_real_model_planner_failed_attempts_consume_run_budget(store: FileStore) -> None:
+    """QA-1: failed proposal attempts count against ``PlanningRequest.max_calls``."""
+
+    build_environment(store)
+    attempts: list[str] = []
+
+    def propose(context: DispatchContext) -> dict[str, object]:
+        attempts.append(context.run_id)
+        raise RuntimeError("model backend exploded")
+
+    planner = ModelPlanner(propose)
+    dispatcher = GraphDispatcher(store, FakeGraphExecutor(), catalog=ONE_AGENT, planner=planner)
+    request = PlanningRequest(
+        trigger=PlanningTrigger.REPAIR_CAP, reason="bounded retry", max_calls=2
+    )
+    _task, _run, controller, context = make_dispatch_setup(store, planning_request=request)
+
+    first = await dispatcher.dispatch(context, controller, no_sink)
+    assert first.state == "failed"
+    second = await dispatcher.dispatch(context, controller, no_sink)
+    assert second.state == "failed"
+
+    # The third dispatch is refused by the program *before* calling the model
+    # again, because the two failed attempts consumed the max_calls=2 budget.
+    third = await dispatcher.dispatch(context, controller, no_sink)
+    assert third.state == "failed"
+    assert "budget exhausted" in (third.summary or "")
+    assert len(attempts) == 2
+
+
+async def test_dispatch_wraps_plan_request_recording_errors(
+    store: FileStore, monkeypatch
+) -> None:
+    """QA-2: a malformed request/recording bug cannot escape as a raw exception."""
+
+    build_environment(store)
+    planner = ModelPlanner(_single_node_propose([]))
+    dispatcher = GraphDispatcher(store, FakeGraphExecutor(), catalog=ONE_AGENT, planner=planner)
+
+    def boom(_proposal: PlanProposal, _request: PlanningRequest) -> PlanProposal:
+        raise AttributeError("'str' object has no attribute 'value'")
+
+    monkeypatch.setattr(dispatcher, "_record_planning_request", boom)
+    request = PlanningRequest(trigger=PlanningTrigger.USER_REQUEST, reason="valid request")
+    _task, _run, controller, context = make_dispatch_setup(store, planning_request=request)
+
+    outcome = await dispatcher.dispatch(context, controller, no_sink)
+    assert outcome.state == "failed"
+    assert outcome.failure_code == "internal_error"

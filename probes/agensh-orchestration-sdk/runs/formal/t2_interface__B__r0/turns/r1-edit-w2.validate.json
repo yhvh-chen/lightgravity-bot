@@ -1,0 +1,20 @@
+{
+  "produced": [
+    "_verify_report_check.py"
+  ],
+  "modified": [
+    "src/report.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/report.py": "\"\"\"Report rendering (initial stub — depends on geometry).\"\"\"\nfrom .geometry import area, perimeter\n\n\ndef describe(shape):\n    \"\"\"Render a one-line human-readable description of *shape*.\n\n    Delegates all shape math to :mod:`src.geometry` (``area`` / ``perimeter``),\n    so any unsupported ``kind`` raises the ``ValueError`` defined there.\n    \"\"\"\n    return (\n        f\"{shape['kind']}: \"\n        f\"area={area(shape):.2f} perimeter={perimeter(shape):.2f}\"\n    )\n"
+  },
+  "overreach": [
+    {
+      "path": "_verify_report_check.py",
+      "reason": "no_lease_for_path",
+      "lease": "src/report.py"
+    }
+  ],
+  "invalid": []
+}

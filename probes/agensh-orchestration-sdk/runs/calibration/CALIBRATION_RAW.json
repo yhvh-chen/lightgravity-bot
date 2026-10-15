@@ -1,0 +1,1263 @@
+{
+  "mode": "calibration",
+  "goal": "confirm real SDK tool loop + measure per-turn cost",
+  "bounds": {
+    "max_turns": 6,
+    "max_http": 24,
+    "max_tokens": 100000,
+    "wall_seconds": 300.0
+  },
+  "turns_run": 6,
+  "http_used": 19,
+  "tokens_used": 91224,
+  "tokens_unknown_calls": 0,
+  "wall_used": 37.129,
+  "abort": null,
+  "per_turn": [
+    {
+      "logical": null,
+      "state": "succeeded",
+      "http": 2,
+      "tokens": 7969,
+      "tool_call_names": [
+        "skill_lookup",
+        "view_file",
+        "view_file",
+        "finish"
+      ],
+      "finish_payload": null,
+      "usage": {
+        "prompt_tokens": 6977,
+        "candidates_tokens": 992,
+        "total_tokens": 7969,
+        "thought_tokens": 0,
+        "cached_tokens": 3328,
+        "unknown": []
+      },
+      "stop_reason": "StopReason.UNSPECIFIED",
+      "hook_decisions": [
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "finish",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        }
+      ],
+      "relay_rewrites": [
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        }
+      ],
+      "relay_request_before": [
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "view_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 2,
+          "message_roles": [
+            "system",
+            "user"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "view_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 6,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool",
+            "tool"
+          ]
+        }
+      ],
+      "finish_reasons": [
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ]
+      ],
+      "reasoning_seen": [
+        false,
+        false
+      ]
+    },
+    {
+      "logical": null,
+      "state": "budget_exhausted",
+      "http": 4,
+      "tokens": 15499,
+      "tool_call_names": [
+        "view_file",
+        "view_file",
+        "skill_lookup",
+        "skill_lookup",
+        "view_file"
+      ],
+      "finish_payload": null,
+      "usage": {
+        "prompt_tokens": 15007,
+        "candidates_tokens": 492,
+        "total_tokens": 15499,
+        "thought_tokens": 0,
+        "cached_tokens": 11008,
+        "unknown": []
+      },
+      "stop_reason": "StopReason.MAX_MODEL_CALLS_EXCEEDED",
+      "hook_decisions": [
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        }
+      ],
+      "relay_rewrites": [
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        }
+      ],
+      "relay_request_before": [
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "view_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 2,
+          "message_roles": [
+            "system",
+            "user"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "view_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 5,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "view_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 7,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool",
+            "assistant",
+            "tool"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "view_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 9,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool",
+            "assistant",
+            "tool",
+            "assistant",
+            "tool"
+          ]
+        }
+      ],
+      "finish_reasons": [
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ]
+      ],
+      "reasoning_seen": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "logical": null,
+      "state": "budget_exhausted",
+      "http": 4,
+      "tokens": 16025,
+      "tool_call_names": [
+        "view_file",
+        "view_file",
+        "skill_lookup",
+        "view_file",
+        "finish"
+      ],
+      "finish_payload": {
+        "claim": "src/mathx.py",
+        "message": "Claiming src/mathx.py (hello.py already claimed by w1). double(x) will return x * 2. Please take src/hello.py: greet(name) must return 'hi ' + name.",
+        "findings": [
+          "src/hello.py is claimed by w1 and its greet(name) is a stub returning \"TODO\".",
+          "src/mathx.py is unclaimed; its double(x) is a stub returning 0 and must return x * 2."
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 15358,
+        "candidates_tokens": 667,
+        "total_tokens": 16025,
+        "thought_tokens": 0,
+        "cached_tokens": 11392,
+        "unknown": []
+      },
+      "stop_reason": "StopReason.MAX_MODEL_CALLS_EXCEEDED",
+      "hook_decisions": [
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "finish",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        }
+      ],
+      "relay_rewrites": [
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        }
+      ],
+      "relay_request_before": [
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "view_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 2,
+          "message_roles": [
+            "system",
+            "user"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "view_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 5,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "view_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 7,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool",
+            "assistant",
+            "tool"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "view_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 9,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool",
+            "assistant",
+            "tool",
+            "assistant",
+            "tool"
+          ]
+        }
+      ],
+      "finish_reasons": [
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ]
+      ],
+      "reasoning_seen": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "logical": null,
+      "state": "succeeded",
+      "http": 3,
+      "tokens": 17303,
+      "tool_call_names": [
+        "view_file",
+        "view_file",
+        "edit_file",
+        "finish"
+      ],
+      "finish_payload": {
+        "findings": [
+          "src/hello.py implemented: `greet(name)` returns `'hi ' + name`.",
+          "src/mathx.py intentionally NOT modified — it is outside my lease (I hold only src/hello.py); its `double(x)` still returns 0 and must be implemented by the leaseholder of that file.",
+          "src/__init__.py left untouched as specified."
+        ],
+        "summary": "Wrote the requested change to my leased file src/hello.py, replacing the `\"TODO\"` placeholder with `return \"hi \" + name`. I did not touch src/mathx.py or src/__init__.py, since my lease covers only src/hello.py and the instructions say not to modify other files. src/mathx.py therefore remains unimplemented (`double(x)` still returns 0) and needs the mathx leaseholder to complete it."
+      },
+      "usage": {
+        "prompt_tokens": 16529,
+        "candidates_tokens": 774,
+        "total_tokens": 17303,
+        "thought_tokens": 0,
+        "cached_tokens": 10880,
+        "unknown": []
+      },
+      "stop_reason": "StopReason.UNSPECIFIED",
+      "hook_decisions": [
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "edit_file",
+          "paths": [
+            "/tmp/lightgravity-worktrees/agensh-sdk-20261015/probes/agensh-orchestration-sdk/runs/calibration/staging/r1-w1/src/hello.py"
+          ],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "finish",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        }
+      ],
+      "relay_rewrites": [
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        }
+      ],
+      "relay_request_before": [
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 2,
+          "message_roles": [
+            "system",
+            "user"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 5,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 7,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool",
+            "assistant",
+            "tool"
+          ]
+        }
+      ],
+      "finish_reasons": [
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ]
+      ],
+      "reasoning_seen": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "logical": null,
+      "state": "succeeded",
+      "http": 2,
+      "tokens": 11144,
+      "tool_call_names": [
+        "view_file",
+        "view_file",
+        "finish"
+      ],
+      "finish_payload": {
+        "summary": "Operating under a view-only lease (no write permission), I inspected the two target files and made no modifications.\n\n- src/hello.py: greet(name) already returns \"hi \" + name — requirement met, no change needed.\n- src/mathx.py: double(x) still returns 0, not x * 2 — requirement NOT met. Fixing it requires a file write, which my lease explicitly prohibits, so I left it untouched.\n\nNet result: 1 of 2 files verified correct; src/mathx.py remains unfixed pending a worker with a write lease.",
+        "findings": [
+          "src/hello.py greet(name) already returns 'hi ' + name — requirement satisfied.",
+          "src/mathx.py double(x) returns 0 instead of x * 2 — requirement unsatisfied.",
+          "No lease held, so no writes were performed; src/mathx.py needs a write-capable worker to set `return x * 2`.",
+          "No other files were touched."
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 10469,
+        "candidates_tokens": 675,
+        "total_tokens": 11144,
+        "thought_tokens": 0,
+        "cached_tokens": 5120,
+        "unknown": []
+      },
+      "stop_reason": "StopReason.UNSPECIFIED",
+      "hook_decisions": [
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "finish",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        }
+      ],
+      "relay_rewrites": [
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        }
+      ],
+      "relay_request_before": [
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 2,
+          "message_roles": [
+            "system",
+            "user"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 5,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool"
+          ]
+        }
+      ],
+      "finish_reasons": [
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ]
+      ],
+      "reasoning_seen": [
+        false,
+        false
+      ]
+    },
+    {
+      "logical": null,
+      "state": "budget_exhausted",
+      "http": 4,
+      "tokens": 23284,
+      "tool_call_names": [
+        "skill_lookup",
+        "view_file",
+        "edit_file",
+        "view_file",
+        "finish"
+      ],
+      "finish_payload": {
+        "summary": "Added shout(name) to src/hello.py, returning greet(name).upper(). No changes made to src/mathx.py or src/__init__.py.",
+        "findings": [
+          "src/hello.py now has greet(name) and shout(name); shout returns greet(name).upper(), e.g. shout('bob') == 'HI BOB'.",
+          "src/__init__.py is empty and requires no change.",
+          "src/mathx.py still has double(x) returning 0 and lacks triple(x) -- it is outside my lease (I hold only src/hello.py), so I intentionally did not edit it; the mathx.py lease holder must add triple(x) -> x * 3.",
+          "Verified the final file contents after writing (7 lines, 91 bytes)."
+        ]
+      },
+      "usage": {
+        "prompt_tokens": 22406,
+        "candidates_tokens": 878,
+        "total_tokens": 23284,
+        "thought_tokens": 0,
+        "cached_tokens": 16512,
+        "unknown": []
+      },
+      "stop_reason": "StopReason.MAX_MODEL_CALLS_EXCEEDED",
+      "hook_decisions": [
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "edit_file",
+          "paths": [
+            "/tmp/lightgravity-worktrees/agensh-sdk-20261015/probes/agensh-orchestration-sdk/runs/calibration/staging/r2-w1/src/hello.py"
+          ],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "view_file",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        },
+        {
+          "tool": "finish",
+          "paths": [],
+          "allow": true,
+          "reason": "allowed"
+        }
+      ],
+      "relay_rewrites": [
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        },
+        {
+          "max_tokens": {
+            "from": null,
+            "to": 8192
+          },
+          "thinking": {
+            "from": null,
+            "to": {
+              "type": "disabled"
+            }
+          }
+        }
+      ],
+      "relay_request_before": [
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 2,
+          "message_roles": [
+            "system",
+            "user"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 5,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 7,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool",
+            "assistant",
+            "tool"
+          ]
+        },
+        {
+          "model": "deepseek-v4-flash",
+          "max_tokens": null,
+          "max_completion_tokens": 65535,
+          "thinking": null,
+          "temperature": null,
+          "top_p": null,
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "response_format": null,
+          "has_tools": true,
+          "tool_names": [
+            "finish",
+            "replace_file_content",
+            "view_file",
+            "write_to_file",
+            "list_skills",
+            "lookup_skill",
+            "lookup_skills"
+          ],
+          "message_count": 9,
+          "message_roles": [
+            "system",
+            "user",
+            "assistant",
+            "tool",
+            "tool",
+            "assistant",
+            "tool",
+            "assistant",
+            "tool"
+          ]
+        }
+      ],
+      "finish_reasons": [
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ],
+        [
+          "tool_calls"
+        ]
+      ],
+      "reasoning_seen": [
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  ],
+  "evidence": {
+    "hello_written_by_sdk": true,
+    "mathx_written_by_sdk": false,
+    "reviewer_overreach": [],
+    "acceptance_stage1": {
+      "passed": false,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nAssertionError: 0\n"
+    },
+    "acceptance_stage2": {
+      "passed": false,
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nImportError: cannot import name 'triple' from 'src.mathx' (/tmp/lightgravity-worktrees/agensh-sdk-20261015/probes/agensh-orchestration-sdk/runs/calibration/workspace/src/mathx.py)\n"
+    }
+  }
+}

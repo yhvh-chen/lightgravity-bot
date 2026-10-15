@@ -1,0 +1,182 @@
+{
+  "probe": "followup_media_content_contrast",
+  "note": "Second valid media samples, same endpoint/model/schema/text/field order. Compares against saved original media vectors. Input consumption only; not recognition, not ASR, not quality.",
+  "timestamp_utc": "2026-10-15T10:58:43Z",
+  "target": "http://192.168.8.12:11434",
+  "model": "embeddinggemma-2-Q8_0",
+  "schema": {
+    "endpoint": "/v1/embeddings",
+    "encoding_format": "float",
+    "media_field_then_text": true
+  },
+  "samples": {
+    "png_original_bytes": 153,
+    "png_second_bytes": 159,
+    "png_dims_second": [
+      64,
+      64
+    ],
+    "wav_original_bytes": 64044,
+    "wav_second_bytes": 64044,
+    "wav_seconds_second": 2.0,
+    "wav_rate_second": 16000,
+    "wav_freq_second_hz": 880.0,
+    "wav_freq_original_hz": 440.0
+  },
+  "new_probes": [
+    {
+      "tag": "image2_text",
+      "http": {
+        "tag": "image2_text",
+        "status": 200,
+        "elapsed_s": 0.099,
+        "bytes": 16462,
+        "error": null,
+        "n_vectors": 1,
+        "usage": {
+          "prompt_tokens": 87,
+          "total_tokens": 87
+        },
+        "model": "embeddinggemma-2-Q8_0",
+        "dims": [
+          768
+        ],
+        "stats": [
+          {
+            "dim": 768,
+            "finite": true,
+            "l2_norm": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "tag": "audio2_text",
+      "http": {
+        "tag": "audio2_text",
+        "status": 200,
+        "elapsed_s": 0.027,
+        "bytes": 16503,
+        "error": null,
+        "n_vectors": 1,
+        "usage": {
+          "prompt_tokens": 56,
+          "total_tokens": 56
+        },
+        "model": "embeddinggemma-2-Q8_0",
+        "dims": [
+          768
+        ],
+        "stats": [
+          {
+            "dim": 768,
+            "finite": true,
+            "l2_norm": 1.0
+          }
+        ]
+      }
+    }
+  ],
+  "comparisons": {
+    "new_image_vs_original_image": {
+      "cos": 0.888551,
+      "maxabsdelta": 0.08408853,
+      "same_vector_exact": false,
+      "dim": 768,
+      "finite": true,
+      "l2_norm": 1.0
+    },
+    "new_image_vs_original_textonly_control": {
+      "cos": 0.753193,
+      "maxabsdelta": 0.15463112,
+      "same_vector_exact": false,
+      "dim": 768,
+      "finite": true,
+      "l2_norm": 1.0
+    },
+    "new_audio_vs_original_audio": {
+      "cos": 0.978952,
+      "maxabsdelta": 0.03421662,
+      "same_vector_exact": false,
+      "dim": 768,
+      "finite": true,
+      "l2_norm": 1.0
+    },
+    "new_audio_vs_original_textonly_control": {
+      "cos": 0.913134,
+      "maxabsdelta": 0.06500307,
+      "same_vector_exact": false,
+      "dim": 768,
+      "finite": true,
+      "l2_norm": 1.0
+    },
+    "new_image_vs_new_audio_sanity": {
+      "cos": 0.678792,
+      "maxabsdelta": 0.14562944,
+      "same_vector_exact": false,
+      "dim": 768,
+      "finite": true,
+      "l2_norm": 1.0
+    }
+  },
+  "embed_http_count_this_round": 2,
+  "embed_http_count_original": 8,
+  "embed_http_count_cumulative": 10,
+  "target_http_calls_this_round": [
+    {
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "status": 200,
+      "elapsed_s": 0.099
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "status": 200,
+      "elapsed_s": 0.027
+    }
+  ],
+  "elapsed_total_s": 0.149,
+  "embed_call_records": [
+    {
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "started_utc": "2026-10-15T10:58:43Z",
+      "body_summary": {
+        "model": "embeddinggemma-2-Q8_0",
+        "input": "list[content[image_url(len=234),text(len=12)]]",
+        "encoding_format": "float"
+      },
+      "status": 200,
+      "elapsed_s": 0.099,
+      "error": null,
+      "bytes": 16462,
+      "response_keys": [
+        "data",
+        "model",
+        "object",
+        "usage"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/v1/embeddings",
+      "started_utc": "2026-10-15T10:58:43Z",
+      "body_summary": {
+        "model": "embeddinggemma-2-Q8_0",
+        "input": "list[content[input_audio(len=85392),text(len=11)]]",
+        "encoding_format": "float"
+      },
+      "status": 200,
+      "elapsed_s": 0.027,
+      "error": null,
+      "bytes": 16503,
+      "response_keys": [
+        "data",
+        "model",
+        "object",
+        "usage"
+      ]
+    }
+  ]
+}

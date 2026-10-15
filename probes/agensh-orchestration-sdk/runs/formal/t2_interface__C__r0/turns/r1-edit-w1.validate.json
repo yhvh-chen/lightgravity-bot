@@ -1,0 +1,20 @@
+{
+  "produced": [
+    "_check_geom.py"
+  ],
+  "modified": [
+    "src/geometry.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/geometry.py": "\"\"\"Geometry helpers for shape dicts.\n\nShape interface (shared with ``report``):\n- ``{\"kind\": \"rect\", \"width\": <num>, \"height\": <num>}``\n- ``{\"kind\": \"circle\", \"radius\": <num>}``\n\"\"\"\nimport math\n\n\ndef area(shape):\n    \"\"\"Return the area of ``shape``.\n\n    Raises:\n        ValueError: if ``shape[\"kind\"]`` is not ``\"rect\"`` or ``\"circle\"``.\n    \"\"\"\n    kind = shape[\"kind\"]\n    if kind == \"rect\":\n        return shape[\"width\"] * shape[\"height\"]\n    if kind == \"circle\":\n        return math.pi * shape[\"radius\"] ** 2\n    raise ValueError(f\"unknown shape kind: {kind!r}\")\n\n\ndef perimeter(shape):\n    \"\"\"Return the perimeter (circumference) of ``shape``.\n\n    Raises:\n        ValueError: if ``shape[\"kind\"]`` is not ``\"rect\"`` or ``\"circle\"``.\n    \"\"\"\n    kind = shape[\"kind\"]\n    if kind == \"rect\":\n        return 2 * (shape[\"width\"] + shape[\"height\"])\n    if kind == \"circle\":\n        return 2 * math.pi * shape[\"radius\"]\n    raise ValueError(f\"unknown shape kind: {kind!r}\")\n"
+  },
+  "overreach": [
+    {
+      "path": "_check_geom.py",
+      "reason": "no_lease_for_path",
+      "lease": "src/geometry.py"
+    }
+  ],
+  "invalid": []
+}

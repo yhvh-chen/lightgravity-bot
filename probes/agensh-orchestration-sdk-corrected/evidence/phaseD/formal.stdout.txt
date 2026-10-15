@@ -1,0 +1,53 @@
+[exp] running t2_interface__B__r0 ...
+[exp]   final 6/6 all_passed=True elapsed=57.653s http=25 tokens=144758
+[exp] running t2_interface__C__r0 ...
+WARNING:root:System step error (HTTP 0): Agent cannot write to file:///tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__C__r0/staging/r1/w2/src/report.py which already exists. ("model output error: invalid tool call error (invalid_args) /tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__C__r0/staging/r1/w2/src/report.py already exists and its contents were not overwritten with your code contents.  If you intend to overwrite the file, make the same call with Overwrite set to true. If you want to edit this file, please view its contents first then use a code edit tool. Otherwise, create a new file with a different name.")
+WARNING:root:System step error (HTTP 2): Agent execution terminated due to error. ("agent executor error: HTTP request failed with status 429: {\"error\":{\"message\":\"local auth proxy call budget exhausted\"}}")
+[exp]   final 6/6 all_passed=True elapsed=55.282s http=24 tokens=123964
+[exp] running t3_evolving__B__r0 ...
+WARNING:root:System step error (HTTP 0): The model produced an invalid tool call. ("model output error: invalid tool call error (invalid_args) argument Overwrite not found")
+[exp]   final 5/9 all_passed=False elapsed=73.956s http=30 tokens=170348
+[exp] running t3_evolving__C__r0 ...
+[exp]   final 9/9 all_passed=True elapsed=72.955s http=27 tokens=144601
+[exp] running t1_independent__C__r0 ...
+[exp]   final 6/6 all_passed=True elapsed=55.829s http=24 tokens=126961
+[exp] running t1_independent__B__r0 ...
+[exp]   final 6/6 all_passed=True elapsed=55.968s http=24 tokens=126594
+{
+  "mode": "formal",
+  "by_group": {
+    "B": {
+      "samples": 3,
+      "completed": 3,
+      "all_passed_samples": 2,
+      "valid_plans": 3,
+      "plan_injection_all_true": 3,
+      "stop_all_positive": 3,
+      "finish_lossless": 1,
+      "sum_final_passed": 17,
+      "sum_final_total": 21,
+      "sum_http": 79,
+      "sum_tokens": 441700,
+      "sum_elapsed": 187.577,
+      "sot_issue_runs": 0
+    },
+    "C": {
+      "samples": 3,
+      "completed": 3,
+      "all_passed_samples": 3,
+      "valid_plans": 0,
+      "plan_injection_all_true": 0,
+      "stop_all_positive": 3,
+      "finish_lossless": 1,
+      "sum_final_passed": 21,
+      "sum_final_total": 21,
+      "sum_http": 75,
+      "sum_tokens": 395526,
+      "sum_elapsed": 184.066,
+      "sot_issue_runs": 0
+    }
+  },
+  "abort_reason": null,
+  "relay_total_calls": 154,
+  "relay_total_tokens": 845223
+}

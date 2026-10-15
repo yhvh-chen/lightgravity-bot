@@ -1,0 +1,12 @@
+{
+  "produced": [],
+  "modified": [
+    "src/stats.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/stats.py": "\"\"\"Statistics helpers.\"\"\"\n\n\ndef mean(nums):\n    \"\"\"Return the arithmetic mean of ``nums``.\n\n    Raises ValueError for an empty sequence.\n    \"\"\"\n    values = list(nums)\n    if not values:\n        raise ValueError(\"mean() requires at least one value\")\n    return sum(values) / len(values)\n\n\ndef median(nums):\n    \"\"\"Return the median of ``nums``.\n\n    Raises ValueError for an empty sequence. For an odd number of values the\n    sorted middle value is returned; for an even number the mean of the two\n    middle values is returned.\n    \"\"\"\n    values = sorted(nums)\n    if not values:\n        raise ValueError(\"median() requires at least one value\")\n    n = len(values)\n    mid = n // 2\n    if n % 2 == 1:\n        return values[mid]\n    return (values[mid - 1] + values[mid]) / 2\n\n\ndef mode(nums):\n    \"\"\"Return the most frequently occurring value in ``nums``.\n\n    Raises ValueError for an empty sequence. When several values tie for the\n    highest frequency, the smallest of those values is returned.\n    \"\"\"\n    values = list(nums)\n    if not values:\n        raise ValueError(\"mode() requires at least one value\")\n    counts = {}\n    for value in values:\n        counts[value] = counts.get(value, 0) + 1\n    best_count = max(counts.values())\n    return min(value for value, count in counts.items() if count == best_count)\n\n\ndef stdev(nums):\n    \"\"\"Return the population standard deviation of ``nums``.\n\n    The variance is computed as the mean of the squared deviations from the\n    arithmetic mean (i.e. divided by ``n``, not ``n - 1``); the result is its\n    square root. Raises ValueError for an empty sequence.\n    \"\"\"\n    values = list(nums)\n    if not values:\n        raise ValueError(\"stdev() requires at least one value\")\n    n = len(values)\n    avg = sum(values) / n\n    variance = sum((value - avg) ** 2 for value in values) / n\n    # sqrt(variance) can land a hair below the exact answer when variance is a\n    # perfect square (e.g. 2.25 -> 1.4999999999999998), so snap those cases.\n    root = variance ** 0.5\n    rounded = round(root)\n    if rounded >= 0 and rounded * rounded == variance:\n        return float(rounded)\n    return root\n"
+  },
+  "overreach": [],
+  "invalid": []
+}

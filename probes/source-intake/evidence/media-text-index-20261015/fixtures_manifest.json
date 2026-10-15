@@ -1,0 +1,23 @@
+{
+  "generated_utc_note": "see PROGRESS.md for actual UTC",
+  "doc_image": {
+    "text": "收款通知\n编号：LG-2026-1015-007\n日期：2026年10月15日\n金额：人民币 8,765.42 元\n事由：资料整理服务费\n备注：请在三个工作日内确认。",
+    "source": "fixtures/screenshot.png",
+    "sha256": "74025921f66ef88a4105020848e6941cd6886512e7b44a69da29603d3194308d"
+  },
+  "doc_pdf": {
+    "text": "电子发票\n发票号码：25337000000098765432\n开票日期：2026年10月14日\n价税合计：人民币 1,234.56 元\n项目：文本索引服务\n校验码：4821 9037 5566",
+    "source": "fixtures/scanned.pdf",
+    "rendered_page": "fixtures/scanned_page-1.png",
+    "sha256_pdf": "bd2045bdd892d436c32bd518a34607d745799fd1b4e8c2c1f95519b675b903b5",
+    "sha256_rendered": "04c3c4aa7019c6b94112d246b14d9f3c7f3483b7a93b86006ffe3bdba4838afd"
+  },
+  "audio": {
+    "text": "录音测试。编号B九八七六五四。日期二零二六年十月十五日。金额人民币一千二百三十四元五角六分。",
+    "source": "fixtures/audio.wav",
+    "sha256": "580761a61c33ffa68cb5d33bb684cc9a9af1b592dd4070bc4e2d7e91e628d343",
+    "sample_rate": 22050,
+    "duration_s": 11.875,
+    "synthesis": "espeak-ng cmn (ctypes), synthetic"
+  }
+}

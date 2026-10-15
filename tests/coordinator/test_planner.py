@@ -165,11 +165,14 @@ async def test_model_planner_proposal_is_parsed_then_validated() -> None:
     assert plan.order == ("deliver",)
 
 
-async def test_model_planner_rejects_malformed_and_caps_calls() -> None:
+async def test_model_planner_rejects_malformed_and_honors_optional_instance_ceiling() -> None:
     planner = ModelPlanner(lambda _: {"subtasks": "nope"})  # type: ignore[arg-type,return-value]
     with pytest.raises(ModelProposalError):
         await planner.plan(context())
 
+    # ``max_calls`` is an optional defensive instance-lifetime ceiling for
+    # direct callers; the per-Run budget is ``PlanningRequest.max_calls`` and is
+    # enforced by the dispatcher (see test_graph_dispatcher.py).
     planner = ModelPlanner(lambda _: {"subtasks": []}, max_calls=1)
     empty = await planner.plan(context())
     assert empty.subtasks == ()
@@ -177,6 +180,22 @@ async def test_model_planner_rejects_malformed_and_caps_calls() -> None:
         PlanValidator().validate(empty, workspace_path="/tmp/ws")
     with pytest.raises(ModelProposalError):
         await planner.plan(context())
+
+
+async def test_model_planner_default_has_no_instance_ceiling() -> None:
+    """QA-1: a default ``ModelPlanner`` is not globally capped across contexts."""
+
+    planner = ModelPlanner(lambda _: {"subtasks": []})
+    first = DispatchContext(
+        task_id="task_a", run_id="run_a", attempt=1, objective="x", workspace_path="/tmp/ws"
+    )
+    second = DispatchContext(
+        task_id="task_b", run_id="run_b", attempt=1, objective="x", workspace_path="/tmp/ws"
+    )
+    assert (await planner.plan(first)).subtasks == ()
+    assert (await planner.plan(second)).subtasks == ()
+    assert planner.calls == 2
+    assert planner.max_calls is None
 
 
 def test_plan_hash_is_stable_and_structure_sensitive() -> None:

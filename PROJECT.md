@@ -7,13 +7,15 @@ updated: "2026-10-15"
 
 # LightGravity Bot 项目手册
 
-> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 当前 1.5.0：1.1.0 将首版真实后端定为 DeepSeek，1.2.0 登记 LG-008 加性控制字段，1.3.0 登记 LG-009 验收字段/端点与全局对话，1.3.1 将 LG-014 文件上传/下载标为已实现并澄清证据引用语义，1.4.0 登记 LG-015 受控资源写入/Team 端点与 Task 消息 `resource_proposal` 字段，1.5.0 登记 LG-020 的 `connection_pin` 加性字段与 canonical evidence 预览/下载端点），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层、LG-005 角色/SDK 资源配置编译（已将 `google-antigravity==0.1.22` 锁定为产品依赖）、LG-006 正式 executor + 产品侧 loopback 认证代理（真实 DeepSeek 验证：文件/diff、结构化结果、用量、预算、会话恢复、确认取消；真实调用 12，进程无残留）、LG-007 消息路由与 Task 队列、LG-008 自动组队与依赖调度、LG-009 产物验证与人工验收、LG-011 前端壳层、LG-012 查询 API 与持久事件订阅、LG-025 模型设置与凭证后端、LG-026 Settings 模型接入页面、LG-014 Files 上传/下载与任务证据预览、LG-015 Team/Resources 管理视图与受控资源写入、LG-020 本地启动/停止与一体分发入口均已完成并整合到 `main`；其中 **LG-010 最小真实开发闭环已通过独立版本 QA（pass/done）**，其余 16 项均**待版本 QA**。主前端构建现已挂载 Settings、Files、Team 与 Resources 视图，分别接线 `/api/v1/settings*`、`/api/v1/files*`、`/api/v1/team/*` 与 `/api/v1/resources/*`；Files 上传复用 LG-026 运行时 token helper 注入 `X-LG-Token`，无 token 时上传如实返回 `unauthorized`；Team/Resources 受控修改经 Task 对话 `resource_proposal` 提议（sensitive 授权、`message_id` 幂等、`expected_revision` 版本检查，结果写回同一 Task 对话，不创建 Run/不等 worker、不热替换活跃 Member 配置）。LG-020 提供 `lightgravity start/stop/status/init`、默认 loopback、token 内存握手与 `index.html` 注入、Host/Origin 守卫、敏感写默认拒绝、缺认证可读历史/设置；首启幂等种子 `lg-default-worker`（有界文件工具 `view-file`/`create-file`/`edit-file`，无 `run-command`/web 无边界工具），Settings-only 建连接/存凭证/静态测试/设默认后新 Task 可达 executor，Run/Member 固定非秘密 `connection_pin`；canonical evidence 产物经 Task 产物 API（`GET /tasks/{id}/artifacts`、`.../artifacts/content`、`.../artifacts/download`）由 Task/Run evidence resolver 授权预览/下载，拒绝原始绝对路径/跨 Task/跨 Run/摘要不符。敏感写仍由 `LocalAccessPolicy` 默认拒绝，Chat/Board 仍为占位，不宣称全部页面可用。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek。集成后 `create_app` 已装配 Store/Coordinator/VerificationService 并挂载 `/api/v1` 路由；accept/reject 合并进 API actions，只读 `GET /tasks/{id}/acceptance` 独立挂载，新增单例全局对话 `GET/POST /api/v1/conversations/global/messages`；默认执行器仍是诚实的 `UnavailableExecutor`（未伪装可执行）。真实 SDK 端到端、浏览器验收分别留 LG-010、LG-021/022；LG-010 最小真实开发闭环已经独立版本 QA 复核 **pass/done**（`probes/lg010/reports/lg010-qa-r2-after-refix.md`）：首轮两项阻断（executor 绝对 `diff_ref` 被机器检查误判、交付完成后未自动触发验证）已返修，第 2 轮复验发现的重复 ack(`target_run_id`) 非幂等问题已按 Task 作用域幂等键返修并经独立复验确认消除，`status: done`、`blocked_by` 已移除。**该 QA 只覆盖契约 1.3.1 core 的最小后端闭环（真模型证据基点 `ffe7a63`，真实调用累计 12/14），并非 1.5 全功能 QA**：LG-015/LG-020 的新资源/启动功能仍未验收，分别留 LG-027 与 LG-021/LG-022。27 项任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
+> 更新：2026-10-15。阶段：LG-001 契约已冻结（docs/08 当前 1.5.0：1.1.0 将首版真实后端定为 DeepSeek，1.2.0 登记 LG-008 加性控制字段，1.3.0 登记 LG-009 验收字段/端点与全局对话，1.3.1 将 LG-014 文件上传/下载标为已实现并澄清证据引用语义，1.4.0 登记 LG-015 受控资源写入/Team 端点与 Task 消息 `resource_proposal` 字段，1.5.0 登记 LG-020 的 `connection_pin` 加性字段与 canonical evidence 预览/下载端点），LG-002 工程骨架可运行，LG-003 SDK 探针完成（核心能力经真实 DeepSeek 实测通过；Gemini/Vertex 未验收，`search_web` 不可用），LG-004 存储层、LG-005 角色/SDK 资源配置编译（已将 `google-antigravity==0.1.22` 锁定为产品依赖）、LG-006 正式 executor + 产品侧 loopback 认证代理（真实 DeepSeek 验证：文件/diff、结构化结果、用量、预算、会话恢复、确认取消；真实调用 12，进程无残留）、LG-007 消息路由与 Task 队列、LG-008 自动组队与依赖调度、LG-009 产物验证与人工验收、LG-011 前端壳层、LG-012 查询 API 与持久事件订阅、LG-025 模型设置与凭证后端、LG-026 Settings 模型接入页面、LG-014 Files 上传/下载与任务证据预览、LG-015 Team/Resources 管理视图与受控资源写入、LG-020 本地启动/停止与一体分发入口均已完成并整合到 `main`；其中 **LG-010 最小真实开发闭环已通过独立版本 QA（pass/done）**，其余 16 项均**待版本 QA**。主前端构建现已挂载 Settings、Files、Team 与 Resources 视图，分别接线 `/api/v1/settings*`、`/api/v1/files*`、`/api/v1/team/*` 与 `/api/v1/resources/*`；Files 上传复用 LG-026 运行时 token helper 注入 `X-LG-Token`，无 token 时上传如实返回 `unauthorized`；Team/Resources 受控修改经 Task 对话 `resource_proposal` 提议（sensitive 授权、`message_id` 幂等、`expected_revision` 版本检查，结果写回同一 Task 对话，不创建 Run/不等 worker、不热替换活跃 Member 配置）。LG-020 提供 `lightgravity start/stop/status/init`、默认 loopback、token 内存握手与 `index.html` 注入、Host/Origin 守卫、敏感写默认拒绝、缺认证可读历史/设置；首启幂等种子 `lg-default-worker`（有界文件工具 `view-file`/`create-file`/`edit-file`，无 `run-command`/web 无边界工具），Settings-only 建连接/存凭证/静态测试/设默认后新 Task 可达 executor，Run/Member 固定非秘密 `connection_pin`；canonical evidence 产物经 Task 产物 API（`GET /tasks/{id}/artifacts`、`.../artifacts/content`、`.../artifacts/download`）由 Task/Run evidence resolver 授权预览/下载，拒绝原始绝对路径/跨 Task/跨 Run/摘要不符。敏感写仍由 `LocalAccessPolicy` 默认拒绝，Chat/Board 仍为占位，不宣称全部页面可用。首版唯一真实执行路径为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek。集成后 `create_app` 已装配 Store/Coordinator/VerificationService 并挂载 `/api/v1` 路由；accept/reject 合并进 API actions，只读 `GET /tasks/{id}/acceptance` 独立挂载，新增单例全局对话 `GET/POST /api/v1/conversations/global/messages`；默认执行器仍是诚实的 `UnavailableExecutor`（未伪装可执行）。真实 SDK 端到端、浏览器验收分别留 LG-010、LG-021/022；LG-010 最小真实开发闭环已经独立版本 QA 复核 **pass/done**（`probes/lg010/reports/lg010-qa-r2-after-refix.md`）：首轮两项阻断（executor 绝对 `diff_ref` 被机器检查误判、交付完成后未自动触发验证）已返修，第 2 轮复验发现的重复 ack(`target_run_id`) 非幂等问题已按 Task 作用域幂等键返修并经独立复验确认消除，`status: done`、`blocked_by` 已移除。**该 QA 只覆盖契约 1.3.1 core 的最小后端闭环（真模型证据基点 `ffe7a63`，真实调用累计 12/14），并非 1.5 全功能 QA**：LG-015/LG-020 的新资源/启动功能仍未验收，分别留 LG-027 与 LG-021/LG-022。原 27 项首版任务及新增 14 项扩展任务见 BACKLOG.md；人员、预算、日历日期与部署目标未确定。代码仓库已于 2026-10-14 初始化 Git 并推送 `main` 到内部 Gitea。
 
 ## 目标
 
-做一个比 Olav OS 更轻量的 AI 任务助手：用户通过对话提出目标，系统按需组队、执行、验证、交付，在项目目录中保存可复核的结果。
+做一个以用户文件为事实源的**个人 AI 工作助手**：用户通过 Chat 交付资料和提出目标，系统整理、查找资料，并按需执行任务、验证和交付，在用户掌握的文件中保存过程与可复核的成果。
 
-首版用开发任务验证闭环；研究、文档和运维是后续扩展方向，不作为当前已支持能力。
+对外介绍：**把资料和目标交给它，它帮你整理、查找并完成工作，过程与成果保存在你掌握的文件中。**
+
+这是目标定位，首版仍用开发任务验证交付闭环；资料接入与检索按 [docs/09](docs/09-source-intake-and-retrieval.md) 分阶段建设，尚未实现，中文转写仍待验证。研究、文档和运维也是后续扩展方向，不作为当前已支持能力。文件由用户掌握，不代表模型推理全部在本地运行。
 
 ## 优先级原则
 
@@ -40,6 +42,93 @@ updated: "2026-10-15"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-15：排入去中心化协作与 Embedding 资料工作线
+
+- 用户要求两条工作线正式排期。新增 LG-028～041 共 14 项 todo，连同原 27 项共 41 项；不修改既有任务状态、负责人和验收记录，不自动开始实施。
+- 去中心化按契约 → 原子领取/租约 → 同伴交接 → 隔离执行与 QA/返修整合 → 集中版本验收推进（LG-028～032）。模型提议和领取请求必须经程序授权，不引入常驻模型编排 agent，不放弃文件 SoT、权限、预算与人工验收。
+- 资料线按契约 → 原件摄取 → 图片/PDF OCR → 词法索引 → 可选 EmbeddingGemma 2 → Chat/Files 整合与集中验收推进（LG-033～040）。中文 ASR 先独立验证（LG-039），达标再接入及验收（LG-041）；不以向量代替文字，不要求独立向量数据库。
+- 契约和 ASR 验证可先准备，独立实现按真实依赖并行，共享 Store/Coordinator/API 由单 owner 串行集成；两个新版本的最终验收在既有 LG-022 首版验收后开展。LG-032 必须比较相同验收门下执行、QA、返修、复验与失败尝试的完整成本，不预先承诺收益。
+- 排期为阶段、依赖与验收门顺序，未承诺日历日期；中文 ASR 不达标不阻塞图片/PDF 与检索版本。邮箱、文件夹增量、网页抓取、Office 完整支持暂缓，不隐含纳入这次交付。当前接口保持 1.5.0，实施冻结契约后再升版，详见 [滚动排期](docs/06-roadmap.md)。
+
+### 2026-10-15：产品定位扩展为个人 AI 工作助手
+
+- 用户确认将产品类型与定位写入文档：从以开发交付验证闭环的 AI 任务助手，扩展为能使用用户资料完成任务的个人 AI 工作助手。核心价值包括资料整理、查找与任务执行、验收，资料接入服务于后续工作，不止于保存和检索。
+- Chat 统一承接资料、目标与结果反馈，Files 负责整理归档与来源追溯；原件、正式内容与元数据保持文件 SoT，索引为可重建派生。资料接入不自动创建交付 Task/Run，执行仍遵授权与验收边界。
+- 去中心化编排属于内部执行架构方向，不替代面向用户的产品定位；保持程序控制权限、状态、预算与调度，worker 按需协作，默认不设独立常驻模型编排 agent。完整的自主领取、发现与点对点协作尚未产品化，不因定位调整而宣称已实现。
+- 本次只同步定位文档，不扩大首版已验证能力，不改变接口契约、开发任务状态或实施优先级。资料接入与检索仍待实现，首版开发任务交付闭环及既有验收范围保持原定义。
+
+### 2026-10-15：Chat 统一接入资料，文件保持 SoT，Files 负责整理与追溯
+
+- 用户确认以 Chat 统一管理资料接入，并要求开始写文档。上传、拖拽、粘贴链接，以及未来文件夹/邮箱接入都由对话发起；选择器或授权页返回同一对话。Files 用于浏览、预览、校订、归档调整、来源追溯与重新处理，不让用户在多个页面重复上传。现有 Files 上传接口与界面尚未迁移，本条是目标交互决策，不将目标描述为已实现。
+- 资料接入先受控保存原件，再提取内容、确定归属、形成正式文件、建立索引并回执。沿用明确的 Task/Project 范围；全局无归属资料先进入会话关联的受控收件区，不为保存资料强建交付 Task。存在实质归属歧义才询问；模型给建议，程序校验授权并落实。接收资料不自动创建交付 Run/团队；用户要求据此修改工程时，仍走已有 Task/Run、验证和人工验收。
+- 原始媒体、资料 frontmatter 与正式内容文件保留事实和来源，JSONL 保留历史；机器提取、页图、片段与索引均有明确的派生关系。人工校订保存为正式文件版本，重处理不得覆盖。词法索引及可选向量只作可重建缓存，不保存独有权限、归属或控制状态；命中后回源核对存在性、内容哈希、版本和访问范围，撤销/删除来源使旧命中失效。
+- 索引不要求独立向量数据库服务，也不增加常驻编排 agent。文字 OCR/转写与媒体直接向量检索是不同能力，可以按需组合；不将向量输出当成文字提取。邮箱和文件夹接入是后续资料连接器，不复用现有模型 Connection 的冻结配置语义，不默认全邮箱同步或自动执行邮件内容。
+- 已有隔离探针仅证明：两份干净合成中文截图/扫描页经 qwen3.8-27b OCR，归一化后与原文一致，并已生成 Markdown、完成词法检索/索引重建/过期来源拒绝；EmbeddingGemma 2 的语义查询只得到小样本排序证据。已测 Qwen 与 embedding 模型的音频成文均未打通，其他生成模型未测试，中文 ASR/Reader 后端仍待验证与接入。不得将上述结果扩展为生产级 OCR、中文转写或完整产品已交付。
+- 本轮已完成 [资料接入与检索设计](docs/09-source-intake-and-retrieval.md)，同步 README、agent.md、docs/01、02、04、05、08 与进展记录。补清了摄取目录写入授权、跨来源/跨 Task 去重不合并权限、接入请求幂等和来源版本更新的区别。新增资料实体/schema/API 尚未冻结；当前接口契约保持 1.5.0，后续实现前须按变更控制补齐契约。
+- 已将两个既有探针的 28 项报告、指标与必要样本逐字节归档（952,781 字节），[证据入口](probes/source-intake/README.md) 标明原型与转写验证局限，[清单](probes/source-intake/evidence/MANIFEST.json) 保存来源与 SHA-256。文档执行者复核 125 条相对链接、frontmatter、归档摘要及 diff 空白检查通过，见 [检查记录](probes/source-intake/DOC_CHECKS.md)。本轮未改代码、依赖、模型配置，未启动连接器或新推理实验，未新增或改动开发任务状态，未提交或发布；文档检查不代表功能或版本 QA 通过。
+
+### 2026-10-15：无独立编排改动独立 QA 通过，首轮接口缺陷已返修复验
+
+- 用户要求对刚集成的退役改动做 QA，本次范围为该改动，不替代全产品版本 QA。独立 pi 执行者只读候选代码并独立复现，结果为 **FAIL**，详见 [首轮 QA 报告](probes/no-orchestrator-adoption/qa-r1/REPORT.md)。
+- 发现：ModelPlanner 的实例级调用计数跨 Run 共用，第二个显式规划请求会失败，且请求上限未实际落实；PlanningRequest 未完整校验 trigger/requested_by，可能在派发时产生未捕获异常。原新增测试未覆盖这些边界。
+- 默认无模型编排路径、计划校验及既有验收闭环检查通过；独立重跑为 397 passed、1 skipped，mypy 通过，但测试全绿不覆盖上述缺陷。本次无产品真实 SDK 新调用。
+- pi 已在新隔离 worktree 返修并精确集成，详见 [返修记录](probes/no-orchestrator-adoption/fix-r1/REPORT.md)：程序按 run_id 检查和消耗 PlanningRequest.max_calls，调用失败也计数；不同 Run 各自计数，默认共享 ModelPlanner 不再设置实例级调用上限。合法 trigger 字符串规范化，非法 trigger/requested_by 在构造时拒绝，记录步骤异常转为明确失败结果。新增真实 ModelPlanner 配合本地假提议函数的边界回归。
+- 第二个独立 pi 执行者只读复核当前候选并补充负向/并发复现，最终判定 **PASS（仅本次改动及返修范围）**，见 [第二轮 QA 报告](probes/no-orchestrator-adoption/qa-r2/REPORT.md)。跨 Run/并发计数隔离、同 Run 超限与失败尝试计数、非法请求拒绝、无效计划不落盘、计划哈希一致及默认程序路径均通过。首轮原复现脚本未修改，复跑退出码 0；审查前后候选哈希一致。
+- 独立复跑：聚焦 45 passed，契约 7 passed，全量后端 416 passed、1 skipped，mypy 86 个源文件通过。唯一 skip 为真实 DeepSeek 门控测试；本次 QA/返修产品真实 SDK 新调用为 0，未提交或发布，首轮失败证据保留。
+- 限制：按需模型后端与用户触发端点未实现；调用预算只覆盖每 Run 的提议次数，不等同 Task 完整 token/费用预算；请求和计数仅存于进程内、不持久化，计数尚未清理。独立 QA 另记录了 HEAD 已存在的自定义 planner 返回非法结构时的异常处理缺口，与本次默认路径无关，不将其当本次回归。结论不扩展到全产品版本 QA、新真实 SDK E2E 或成本收益证明。
+
+### 2026-10-15：采用无独立编排方案，淘汰常驻模型编排与必经初始模型规划
+
+- 用户明确决定采用新方案并淘汰旧方案。本条取代下列实验阶段“暂不改变产品默认行为”的临时处理：产品默认不设置独立常驻编排 agent，不把初始模型规划作为每次交付的前置步骤。程序 Coordinator、Scheduler、Store、计划校验、权限/预算与验收闭环继续保留；开发本项目仍按 agent.md 通过 pi 派工，与产品角色退役无关。
+- 明确目标由 worker 执行，程序维护最小执行记录与合法计划快照。规划保留为按需能力：提议需要程序校验，不自行取得控制状态写入权，也不形成隐形常驻编排循环。实际已实现能力与设计预留须分开说明。
+- pi 现状调查确认：正式 bootstrap 原本使用确定性的 RuleBasedPlanner，并没有常驻编排模型；ModelPlanner 只是未接线的可注入接口。因此本次淘汰主要落实为架构规范退役与调用边界调整，不虚称删除了原本不存在的运行进程，也不将原有程序最小计划误作待删模型能力。
+- 决策依据是现有小任务可行性与用户对复杂度/完整交付成本的取舍，并非已经证明全生命周期成本改善 15%。纠正版固定轮次实验中 B 消耗 441,700 reported tokens、代码验收通过 2/3；C 消耗 403,523、通过 3/3。有规划组尚有未交付任务，后续 QA、返修与复验成本未测量；无规划组也未经过新增的同标准独立 QA。失败后仍需支出的成本不能视为零。
+- 后续成本评估采用同一验收门下执行、QA、返修、复验与失败尝试的完整成本；未完成样本单独报告，不当作已交付样本。原先固定轮次中位数门限只保留为历史实验判据，不能代替完整交付成本。
+- pi 已在隔离 worktree 完成调查、实施及精确白名单集成：默认使用程序最小计划；即使注入 planner，也只有携带触发原因的显式 PlanningRequest 才在单次派发中调用一次，采纳结果经原有计划校验并保存原因快照。首轮实施将 ModelPlanner 实例上限设为 1，后经上述 QA 返修改为默认无实例上限，由程序按 Run 落实请求调用预算（默认 1），失败尝试也计数；无隐形模型编排循环。真实按需模型后端及用户触发端点尚未实现，当前只保留内部提议接口，不宣称已有完整按需模型规划功能。
+- agent.md、README 与 docs/01、02、03、04、08 已同步；无公开 API/schema/事件变更，契约保持 1.5.0。集成后执行者自检：全量后端 pytest 为 397 passed、1 skipped，mypy 86 个源文件无问题；聚焦规划/调度测试 18 passed、契约 7 passed、验证与 API 集成 52 passed。详情见 [退役实施报告](probes/no-orchestrator-adoption/REPORT.md) 与 [局部检查日志](probes/no-orchestrator-adoption/logs/main-integration.log)。
+- 本包产品真实 SDK 新调用为 0，未追加对比实验，未提交或发布，未改写既有实验原始证据；既有 r2 原始 YAML 诊断保留。原实施自检之后已按用户要求完成上述变更范围独立 QA；全产品仍待现有里程碑版本 QA，不将局部或旧版 QA 结论自动扩展为全产品验收。
+
+### 2026-10-15：真实 SDK 纠正版对比完成，无编排可运行但收益未达到删除门槛
+
+- 用户授权的真实 SDK 验证及必要返修已完成。首轮 SDK 的无效对比保留在 `probes/agensh-orchestration-sdk/`；纠正版独立保存在 [实验入口](probes/agensh-orchestration-sdk-corrected/README.md)、[协议](probes/agensh-orchestration-sdk-corrected/PROTOCOL.md) 与 [结果报告](probes/agensh-orchestration-sdk-corrected/REPORT.md)。冻结时间为 `2026-10-15T07:07:11Z`，正式执行 `07:07:30Z–07:13:42Z`。两个批次不混入同一对比统计。
+- 有效性修复：3/3 B 计划通过严格 schema 且实际注入各自 8 个 worker turn；完整 finish 从 SDK 原生钩子取回并与 session DB 交叉核对；识别真实 `AbsolutePath`/`TargetFile`，未知文件参数拒绝；实际发送删除冲突的 `max_completion_tokens`，只保留 `max_tokens=8192`；51/51 turn 有实验侧正向停止观测。未修改产品 executor 源码，也没有把正常返回的 `stop_confirmed=null` 假写成 true。
+- 结果（每类每组 1 次，共 6 个新样本）：B 仅初始规划全部代码验收通过 2/3（17/21 条目），C 无独立编排 3/3（21/21）。三类均有真实 SDK 文件读写与 diff；B 在需求变更任务的 writer 触及每 turn 模型调用限额，新增功能未交付（5/9），不能推断为规划普遍有害。部分 SDK turn 失败或预算耗尽仍计入数据，不把代码验收通过等同所有 turn 均成功。
+- 最终成本口径采用中继实际 upstream reported usage：B/C 中位样本 tokens 为 144,758/131,961，C 减少 8.84%；耗时中位数为 57.653s/55.829s，减少 3.16%，均未达到预先设定的 15% 收益门。驱动/SDK 快照少计一个失败 turn 中已发生的 7,997-token 请求，因此不采用该快照计算的 12.29% 节省比例；差异根因未进一步验证，不猜测。
+- 用量：纠正版校准 2 turn、6 HTTP、26,628 reported tokens、12.17s；正式 51 turn、154 HTTP、845,223 reported tokens、约 372s；合计 160 HTTP、871,851 tokens，在纠正包预算内。初始校准 helper 误检查两个文件，已对原有单租约产物离线复核，未追加模型样本且原始失败记录保留。旧 SDK 包校准/正式另计；pi 开发与调查代理用量不包含在上述实验指标中，费用未知。
+- 权限/SoT：15 次非租约或授权根外的访问尝试在工具执行前被拒绝，未观测到实际越界读写或未授权整合；本轮状态文件标准 YAML/重复键及状态引用检查通过。此结论只覆盖实验检查范围，不等于操作系统沙箱或完整产品安全验收。
+- 当前判断：对这三类明确目标的小任务，无独立编排的 SDK 路径可行；但该小样本未达到成本删除门，不支持据此直接删除所有规划能力。建议保留程序 Coordinator/Scheduler/Store，模型规划作为按需能力；本轮只交付实验与证据，不更改产品默认行为，不声称 UI/完整产品运行时端到端、长会话/恢复取消或版本 QA 已通过。
+
+### 2026-10-15：真实 SDK 首轮路径已跑通，但对比失效；修复测量后单独重跑
+
+- 用户要求开始真实 SDK 验证，先由 pi 调查现有 `google-antigravity==0.1.22`、正式 executor 与 loopback 认证代理的可复用接口，再冻结协议与预算。被测 worker 必须真实运行 SDK agent loop 和文件工具，不以 direct HTTP JSON 编辑或开发 pi 代理替代。对比仍为 B 仅初始规划与 C 无独立编排模型，两组共享程序认领、消息、文件 SoT、权限及验收；本轮不提前改产品默认行为。
+- 核对第二轮原始文件时发现：未认领的部分 Subtask 写成 `lease_path: -`，标准 YAML 语法无效（例：[r1-w2 原始记录](probes/agensh-orchestration-r2/runs/t3_evolving__B__r0/subtasks/r1-w2.md)）。docs 检索报告 `invalid-frontmatter`；上一轮自定义一致性检查未覆盖标准 YAML 解析。因此先前“18/18 SoT 一致”只代表该自定义检查的范围，不代表全部 frontmatter 可被标准解析器接受。代码验收与原始 token 指标不因本项自动失效，但严格的完整 SoT 候选门尚未证实。
+- 原始第二轮文件保留不覆盖；本轮须验证所有 frontmatter 的标准 YAML 解析、重复键与当前状态/租约一致性，未认领路径用合法 `null` 或明确的字符串。新实验归属仅 `probes/agensh-orchestration-sdk/`，当前处于隔离准备与接口调查阶段，尚无真实 SDK 对比结果。
+- 接口调查已完成：复用正式 executor/认证代理及 SDK 文件工具；openai-compat 配置缺少输出上限/thinking 参数，采用新实验目录内的上游计量中继统一参数，不修改产品代理。调查尚未进行模型校准，不能把源码与旧证据等同本轮结果。
+- 已派实施/校准/执行包：校准硬界为 6 次逻辑 SDK turn、24 次上游请求、100,000 reported tokens、5 分钟；正式预算为至多 350 次上游请求、1,500,000 reported tokens、30 分钟。校准后按预算预测优先选择 12 个正式样本（3 类×2 组×2 重复），超出预算则在正式前缩为 6 个，仍不可行就停止报告；样本数与全部输入在正式前冻结。校准与正式统计分开，SDK 内部请求与重试均计量，pi 开发用量另计。
+- 首次 SDK 实测已交付：[报告](probes/agensh-orchestration-sdk/REPORT.md)。正式采用 6 个样本，B/C 均 3/3 代码验收通过，有真实 SDK 文件工具、diff 与原生会话证据；正式 158 次上游请求、837,630 reported tokens、约 405 秒。校准实际 7 次逻辑 turn、20 请求、93,658 tokens，**超过预定 6-turn 硬上限 1 次**；原报告称其 soft cap 不准确，偏差保留，不事后软化。
+- 对比有效性阻断：B 的 3 份计划均未生效，worker 实际收到与 C 相同的无计划文本。根因包括 schema 未约束计划项字段、从 2,000 字符截断的 emitted 工具事件提取完整计划。此次数据只能证明 SDK 无编排路径可完成这些小任务，不能用于比较有效规划的收益。另有 13 次 staging 内非租约临时校验脚本写入被拒绝整合，不能混同为工具调用前已拦截。
+- 只读调查进一步确认：真实 `view_file` 使用 `AbsolutePath` 参数，而路径钩子未识别，导致 `paths=[]` 时仍放行；本次未观测到越界读取，但读防护未被证实。中继也未清除原 `max_completion_tokens=65535`，不能只凭新增 `max_tokens=8192` 声称唯一上限已固定。精确冻结时刻与逐 turn 停止确认仍有记录缺口；不得用手填进度时间补造。原始 SDK 数据保留。
+- 已派纠正包，归属仅新目录 `probes/agensh-orchestration-sdk-corrected/`：修复无损结构化结果提取、严格计划 schema 与实际注入证据、真实工具参数解析/未知参数拒绝、单一输出上限、逐 turn 正向停止证据与精确冻结记录。校准上限 2 次逻辑 SDK turn/12 HTTP/60,000 tokens/3 分钟；正式 6 个新样本，上限 51 turn/220 HTTP/1,300,000 tokens/15 分钟；旧新数据分开，产品文件与默认行为不改。纠正包尚无运行结果。
+
+### 2026-10-15：完成第二轮编排角色对比，无独立编排进入产品 SDK 验证候选
+
+- 用户要求继续，启动第二轮受控代码编辑实验：B 仅初始规划与 C 无独立编排模型均获得相同的程序原子认领、同轮消息传递、文件 SoT、权限及验收。每类任务每组独立重复 3 次，3 类共 18 个样本；每样本 2 名 worker、2 轮，编排、认领与编辑调用均计入组内总开销。
+- 纠正首轮混淆：显式关闭模型 thinking，输出上限统一为 8,192 tokens，记录 finish_reason 与 reasoning usage；有截断则如实计入失败并保留混淆，不事后补跑。worker 提议认领，由程序检查并更新 Markdown 中的租约；不按 worker 身份写死语义分工。
+- 正式请求预算：正常调用至多 153 次、基础设施重试至多 9 次、HTTP 至多 162 次、reported total tokens 至多 600,000、首个正式请求起墙钟至多 25 分钟；pi 开发代理用量另计。协议须在正式运行前记录真实冻结时间与输入哈希。文件归属仅限新目录 `probes/agensh-orchestration-r2/`，第一轮成果与其他代理工作保留。
+- 预注册去编排候选门：C 的 9 个样本全部通过、每类质量不低于 B，无额外 SoT/越权问题且无截断；C 的中位样本 tokens 或耗时较 B 改善至少 15%，另一指标中位数不恶化超过 10%。这只是下一轮产品 SDK 验证的候选门，不自动删除角色、不声称统计非劣或产品验收。
+- 实测：18 个样本均已运行；B 全部验收通过 8/9（60/63 条目），C 9/9（63/63 条目）。正式调用 153 次、0 重试，provider reported total tokens 合计 179,851，约 195 秒；B/C 各自总 tokens 为 99,451/80,400，组内样本总耗时 106.613s/87.931s。样本 tokens 中位数为 11,114/9,081（C 减少 18.3%），耗时中位数为 11.911s/9.865s（C 减少 17.2%）。这些指标不含 pi 开发代理用量，费用未知。
+- 证据：两组共 153 次响应均 `finish_reason=stop`、reasoning tokens 为 0；0 截断、0 认领/编辑冲突、0 越权，18/18 样本 SoT 一致性检查通过。精确冻结时间 `2026-10-15T05:53:15Z`，首个正式请求为 `05:53:56Z`，冻结清单与原始响应保留。入口见 [第二轮实验](probes/agensh-orchestration-r2/README.md)、[协议](probes/agensh-orchestration-r2/PROTOCOL.md)、[报告](probes/agensh-orchestration-r2/REPORT.md)。
+- 判定：C 满足全部预注册候选门，列为“独立编排可移除”的产品 SDK 验证候选。B 唯一失败发生在单文件需求变更任务：初始计划把同一文件的不同函数分给不同 worker，与每文件单 writer 规则不兼容，最终漏做 median。这不证明规划普遍有害，也不能把两轮实验间的差异只归因于认领机制（本轮同时改变了输出参数与协作流程）。
+- 当前处理：实验已完成并保存，产品默认行为与首版运行契约保持现状。结果只覆盖三类明确目标的小任务、每类每组 3 次重复和有界结构化编辑，不覆盖完整 SDK 工具循环、长会话、恢复取消、模糊需求或真实工程规模；下一步建议在真实产品 SDK 中复核，不自动删除规划能力，不声称统计非劣或版本 QA 通过。
+
+### 2026-10-15：先做编排角色消融实验，产品角色暂不移除
+
+- 用户要求先通过实验比较编排 agent 的价值，再决定是否淘汰。首轮为隔离的受控代码编辑 pilot，比较 A 全程编排、B 仅初始规划、C 无编排模型；三组均保留程序调度、文件 SoT 与验收，2 名 worker、2 轮执行，3 类任务各运行一次，共 9 个样本。协议及结果见 [实验入口](probes/agensh-orchestration/README.md)、[协议](probes/agensh-orchestration/PROTOCOL.md) 与 [报告](probes/agensh-orchestration/REPORT.md)。
+- 基准 `9987d4f643b3ad02618d0c45fa35f8eb6ae84eef`；正式实验 45 次 DeepSeek 请求、0 次重试，provider reported total tokens 为 106,949。A/B/C 全部验收通过的样本分别为 2/3、3/3、1/3；组内样本总耗时分别为 86.04s、55.45s、38.56s，总 tokens 分别为 48,907、34,589、23,453。以上只计 pilot，不包含 pi 开发/收尾代理用量；费用未知。
+- 解释限制：每种条件每类任务只有一个样本；6 次输出被 2,048-token 上限截断。C 没有同轮编辑前的协商/认领往返，且整文件内容不同即拒绝整合，出现 7 次冲突；不是完整 Agensh 自组织实验。结果不能证明中央编排模型不可替代，也不能证明重新规划本身有害。
+- 当前处理：不移除产品编排/规划能力、不修改运行契约或默认配置。B 仅作为下一轮优先复测的候选；后续比较需消除输出截断，给无编排组提供程序原子认领/同伴协商，并在真实 SDK 与重复样本上复核。这些是建议，尚未启动下一轮。
+- 实验 schema 与 driver 仅用于 probes，不代表产品已支持共享发现或运行中计划修订；局部检查不作为版本 QA 或产品验收。原始实验 worktree 保留，未提交、未发布。
 
 ### 2026-10-15：整合 LG-010 独立重验链（QA 判定 pass/done）
 

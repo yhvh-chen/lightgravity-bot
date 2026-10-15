@@ -1,0 +1,701 @@
+diff --git a/README.md b/README.md
+index c2f409b..3858102 100644
+--- a/README.md
++++ b/README.md
+@@ -132,6 +132,8 @@ make frontend-build   # 前端生产构建
+ - agency-agents 作为候选角色内容来源，从少量开发角色开始。
+ - 使用 SDK 原生 skills 加载与基础文件、命令、网页工具；按成员绑定角色、技能、工具权限与工作区，不重建通用技能执行层。首版为 `google-antigravity==0.1.22` 的 OpenAI-compatible（`LocalOpenAIAgentConfig`）→ DeepSeek 路径（LG-003 已实测，LG-006 实现产品侧代理）；`search_web` 标记不可用；Gemini/Vertex 未验收，待各自探针通过后开放。
+ - 临时角色实例随运行创建和释放，项目与产物长期保存。
++- **默认不存在独立常驻编排模型**，也不要求每次 Task/Run 先调用模型规划：明确目标由程序生成最小合法计划后直接交 worker；模型拆解是有界按需能力（可注入提议接口保留、**真实模型后端未接线**），仅在显式记录触发原因时采纳，候选计划仍经同一程序校验。程序原子写/租约、文件事实源、机器验证与独立复核、人工验收、停止确认均保留；worker 不写控制态；SDK 内部委派仍关闭。
++- 规划/编排取舍的成本按同一验收门下的全交付生命周期（执行＋验证＋返修＋复验＋失败尝试）评估；未完成样本不计作已交付成本，也不用失败高成本样本的中位数推断完整收益。
+ - 人工最终验收；worker 自报完成只能进入待验证。
+ - 单用户本地网页入口，简单问答不组队；后台执行独立于浏览器连接，支持 Task 队列与网页未读通知。云端入口、外部聊天渠道和自主触发另行推进。
+ - 先实现必要的文件树、预览、上传、下载和任务产物关联。
+diff --git a/agent.md b/agent.md
+index eb747d3..9a7d434 100644
+--- a/agent.md
++++ b/agent.md
+@@ -41,7 +41,7 @@ updated: "2026-10-15"
+ 
+ - Task 是用户工作单元和主要对话入口；Subtask 是 executor 派发节点；Run 是执行尝试；Project 是可选共享背景。
+ - 每个 Task 独立目录、TASK.md 与用户对话。补充、恢复、返修保留 Task ID；是否新建 Run 由协调器根据真实执行状态决定。
+-- Coordinator 管理消息路由与上下文；Planner 提出计划；Recruiter 选择最小必要团队；Scheduler 控制依赖和执行；Executor Adapter 调用 SDK；Verifier 检查产物；Store 管理持久写入。
++- Coordinator 管理消息路由与上下文；默认由**程序**按明确目标生成最小合法执行计划（确定性、无模型调用），可选的有界按需模型提议只作候选且必经同一程序校验；Recruiter 选择最小必要团队；Scheduler 控制依赖和执行；Executor Adapter 调用 SDK；Verifier 检查产物；Store 管理持久写入。
+ - worker 不直接领取任务或修改控制状态。模型提议必须经程序校验，不能直接授予权限或判定验收。
+ - SDK 内部委派默认关闭；启用前必须纳入同一预算、事件与调度边界，避免两套调度同时不受控地派发。
+ - 不依赖参考仓库的内部服务、临时克隆或开发机绝对路径才能运行；移植组件前追踪依赖和许可证。
+@@ -75,6 +75,7 @@ updated: "2026-10-15"
+ - 一个 Task 同时最多一个非终止 Run；代码并行写入使用独立 worktree，QA 验证整合候选版本。文件白名单不替代隔离。
+ - 依赖通过时传递相关产物与版本，不能只传完成信号。
+ - worker 成功返回进入验证，不直接成为 done。任务验收分机器检查、独立复核与用户最终决定。
++- 交付成本按**同一验收门下的全交付生命周期**评估：执行＋验证＋返修＋复验＋失败尝试；未完成样本不得计作已交付成本，也不用失败高成本样本的中位数推断完整收益。规划/编排取舍必须引用真实完成样本，不把局部或失败样本洗成整体收益。
+ - 验证完成、进入待验收前确认 worker 停止并释放空闲执行资源；候选成果和历史保留。人工验收不占 worker 等待。
+ - 暂停、取消、断连、会话关闭、运行完成分别处理；必须确认真实停止后才写终止状态。未知副作用的中断不能自动重放。
+ - 浏览器断线不取消常驻后端工作；消息与事件持久保存后广播，重连按游标补齐。
+diff --git a/backend/lightgravity/coordinator/__init__.py b/backend/lightgravity/coordinator/__init__.py
+index ec1091c..e06e29d 100644
+--- a/backend/lightgravity/coordinator/__init__.py
++++ b/backend/lightgravity/coordinator/__init__.py
+@@ -56,6 +56,7 @@ from .planner import (
+     RuleBasedPlanner,
+     SubtaskSpec,
+ )
++from .planning import PlanningRequest, PlanningTrigger
+ from .recruiter import (
+     CandidateAgent,
+     MemberPlan,
+@@ -106,6 +107,8 @@ __all__ = [
+     "RawSubtask",
+     "RuleBasedPlanner",
+     "SubtaskSpec",
++    "PlanningRequest",
++    "PlanningTrigger",
+     "CandidateAgent",
+     "MemberPlan",
+     "RecruitError",
+diff --git a/backend/lightgravity/coordinator/dispatcher.py b/backend/lightgravity/coordinator/dispatcher.py
+index b88bb99..5b6ac2a 100644
+--- a/backend/lightgravity/coordinator/dispatcher.py
++++ b/backend/lightgravity/coordinator/dispatcher.py
+@@ -33,6 +33,7 @@ from lightgravity.adapter import (
+ from lightgravity.adapter.execution import EventSink
+ from lightgravity.contracts import TaskPhase
+ 
++from .planning import PlanningRequest
+ from .state import RunController
+ 
+ #: Adapter outcome states mapped to Task/Run phases by the coordinator.
+@@ -74,6 +75,10 @@ class DispatchContext:
+     timeout_seconds: float | None = None
+     save_dir: str | None = None
+     conversation_id: str | None = None
++    #: Optional, bounded, reasoned request for a model plan proposal.  ``None``
++    #: (the default) means the dispatcher uses the program-side minimal plan
++    #: instead of consulting any injected model planner.
++    planning_request: PlanningRequest | None = None
+ 
+     def to_execute_request(self) -> ExecuteRequest:
+         """Build the frozen adapter request from this context."""
+diff --git a/backend/lightgravity/coordinator/graph.py b/backend/lightgravity/coordinator/graph.py
+index 72e37d0..998b491 100644
+--- a/backend/lightgravity/coordinator/graph.py
++++ b/backend/lightgravity/coordinator/graph.py
+@@ -6,7 +6,7 @@ Task/Run lifecycle; this dispatcher only decides *how* one dispatched Run turns
+ into a validated Subtask graph, a minimal temporary team and a dependency-ordered
+ execution:
+ 
+-1. a planner proposes nodes (rules or a bounded model proposal);
++1. a plan is produced program-side (minimal legal plan for an explicit target) or, only when an explicit on-demand ``PlanningRequest`` records why, proposed by an injected bounded model planner;
+ 2. the program validates the graph (references, acyclicity, capabilities,
+    acceptance, workspace boundary);
+ 3. the recruiter resolves required capabilities to executable ``agent``
+@@ -53,11 +53,13 @@ from .planner import (
+     Plan,
+     PlanInvalid,
+     Planner,
++    PlanProposal,
+     PlanValidator,
+     RuleBasedPlanner,
+     SubtaskSpec,
+     stable_hash,
+ )
++from .planning import PlanningRequest
+ from .recruiter import MemberPlan, RecruitError, Recruiter, RoleCatalog, TeamPlan
+ from .scheduler import (
+     ArtifactHandoff,
+@@ -137,7 +139,13 @@ class GraphDispatcher:
+             raise ValueError("max_parallel must be >= 1")
+         self._store = store
+         self._executor = executor
+-        self._planner: Planner = planner or RuleBasedPlanner()
++        #: Program-side minimal plan builder.  Used for every Run unless an
++        #: explicit on-demand request selects the optional model planner.
++        self._program_planner: Planner = RuleBasedPlanner()
++        #: Optional injected model proposal interface.  ``None`` (the default)
++        #: means planning is program-side only; it is never constructed by the
++        #: default assembly.
++        self._planner: Planner | None = planner
+         self._recruiter = recruiter
+         self._catalog = catalog
+         self._validator = validator or PlanValidator(
+@@ -158,6 +166,12 @@ class GraphDispatcher:
+     def executor(self) -> ExecutorAdapter:
+         return self._executor
+ 
++    @property
++    def planner(self) -> Planner | None:
++        """The optional injected model proposal interface (``None`` by default)."""
++
++        return self._planner
++
+     # --------------------------------------------------------------- dispatch
+     async def dispatch(
+         self,
+@@ -183,13 +197,25 @@ class GraphDispatcher:
+         controller: RunController,
+         emit: Callable[[dict[str, Any]], Any],
+     ) -> DispatchOutcome:
+-        # 1. Propose + validate the plan (planning phase already entered).
++        # 1. Produce + validate the plan.  The default is the program-side
++        #    minimal plan.  An injected model planner is consulted only when an
++        #    explicit on-demand request (trigger + reason, one call per Run)
++        #    records why; there is no hidden automatic planning loop.
++        planning_request = context.planning_request
++        on_demand = planning_request is not None and self._planner is not None
++        planner: Planner = self._planner if on_demand and self._planner is not None else self._program_planner
+         try:
+-            proposal = await self._planner.plan(context)
++            proposal = await planner.plan(context)
+         except AppError as exc:
+-            return self._plan_failure(controller, "planner", exc)
++            return self._plan_failure(
++                controller, "plan_on_demand" if on_demand else "program_plan", exc
++            )
+         except Exception as exc:  # noqa: BLE001 - planner crash is a real failure
+-            return self._crash_failure(controller, "planner", exc)
++            return self._crash_failure(
++                controller, "plan_on_demand" if on_demand else "program_plan", exc
++            )
++        if on_demand and planning_request is not None:
++            proposal = self._record_planning_request(proposal, planning_request)
+         try:
+             plan = self._validator.validate(proposal, workspace_path=context.workspace_path)
+         except PlanInvalid as exc:
+@@ -259,6 +285,28 @@ class GraphDispatcher:
+         return outcome
+ 
+     # ----------------------------------------------------------- materialize
++    @staticmethod
++    def _record_planning_request(
++        proposal: PlanProposal, request: PlanningRequest
++    ) -> PlanProposal:
++        """Attach the on-demand trigger/reason to the validated plan snapshot.
++
++        The reason is recorded on the plan the program validates and freezes, so
++        an on-demand proposal is auditable without adding a hidden control loop
++        or a new wire field.
++        """
++
++        note = (
++            "on-demand planning: "
++            f"trigger={request.trigger.value} reason={request.reason!r} "
++            f"requested_by={request.requested_by} max_calls={request.max_calls}"
++        )
++        return PlanProposal(
++            subtasks=proposal.subtasks,
++            source=proposal.source,
++            notes=(*proposal.notes, note),
++        )
++
+     def _resolve_run_pin(self) -> ConnectionPin | None:
+         """Resolve the current default worker connection once per Run."""
+ 
+diff --git a/backend/lightgravity/coordinator/planner.py b/backend/lightgravity/coordinator/planner.py
+index 782bcf9..5bf63fa 100644
+--- a/backend/lightgravity/coordinator/planner.py
++++ b/backend/lightgravity/coordinator/planner.py
+@@ -1,17 +1,25 @@
+-"""Planner: propose a Subtask graph, then validate it program-side (LG-008).
+-
+-The planner is the *proposal* boundary.  A planner (rule-based or model-backed)
+-only proposes Subtask structure; it can never grant tools, connections or
+-budgets.  :class:`PlanValidator` is the *program* boundary: a proposal only
+-becomes an executable :class:`Plan` after passing graph, reference, capability,
+-acceptance and workspace checks.  This keeps docs/01 §4's "模型提出计划和组队
+-建议，程序校验并实施" boundary real.
+-
+-The default :class:`RuleBasedPlanner` derives its nodes from the Task input
+-(objective + acceptance criteria).  It is deliberately minimal and honest about
+-being rule-driven; richer decomposition is delegated to :class:`ModelPlanner`,
+-whose proposal is validated by the same validator.  The capability -> agent
+-selection is owned by :mod:`~lightgravity.coordinator.recruiter`.
++"""Plan proposal + program-side validation (docs/01 §4, default architecture).
++
++The **default** execution plan is program-side and model-free:
++:class:`RuleBasedPlanner` deterministically derives a minimal Subtask graph from
++the Task input (one write node, plus a dependent verify node when acceptance
++criteria exist).  It is not a resident orchestration agent and makes no model
++call.
++
++:class:`PlanValidator` is the *program* boundary: no proposal - rule-based or
++model-backed - becomes an executable :class:`Plan` until it passes graph,
++reference, capability, acceptance and workspace checks.  This keeps docs/01
++§4's "模型提出计划和组队建议，程序校验并实施" boundary real.
++
++:class:`ModelPlanner` is an **optional, bounded, on-demand** model proposal
++interface.  It is not wired into the default assembly and no real model backend
++is implemented; a caller injects a ``propose`` callable explicitly, and the
++dispatcher only consults it when an explicit
++:class:`~lightgravity.coordinator.planning.PlanningRequest` records why.  Its
++output is parsed structurally and validated by the same
++:class:`PlanValidator`, so it can never add tools, connections, budgets or
++capabilities.  The capability -> agent selection is owned by
++:mod:`~lightgravity.coordinator.recruiter`.
+ """
+ 
+ from __future__ import annotations
+@@ -27,6 +35,7 @@ from typing import Any, Protocol, runtime_checkable
+ from lightgravity.contracts import AppError, ErrorCode
+ 
+ from .dispatcher import DispatchContext
++from .planning import PlanningRequest, PlanningTrigger
+ from .scheduler import DependencyGraph, GraphError, GraphNode
+ 
+ _KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
+@@ -265,13 +274,15 @@ class ModelProposalError(AppError):
+ 
+ 
+ class RuleBasedPlanner:
+-    """Deterministic minimal planner derived from the Task input.
+-
+-    It always emits one implementation node.  When the Task declares acceptance
+-    criteria it adds a dependent verification node so the first-version minimum
+-    team is "developer + verifier"; otherwise a single developer node runs.  This
+-    is a rule, not a hardcoded fixed plan: the node set changes with the Task
+-    input, and the recruiter selects the actual agents.
++    """Program-side minimal plan builder for an explicit target (default).
++
++    It is deterministic and model-free: it always emits one implementation node,
++    and when the Task declares acceptance criteria it adds a dependent
++    verification node so the first-version minimum team is "developer +
++    verifier"; otherwise a single developer node runs.  This is a rule, not a
++    hardcoded fixed plan: the node set changes with the Task input, and the
++    recruiter selects the actual agents.  It is **not** an orchestration agent
++    and makes no model call.
+     """
+ 
+     name = "rules"
+@@ -318,18 +329,23 @@ ProposeFn = Callable[[DispatchContext], "Mapping[str, Any] | Awaitable[Mapping[s
+ 
+ 
+ class ModelPlanner:
+-    """Planner that accepts a model proposal but never trusts it as authority.
+-
+-    ``propose`` returns a ``{"subtasks": [...]}`` mapping in the same shape as
+-    :class:`RawSubtask`.  The mapping is parsed structurally and then validated
+-    by :class:`PlanValidator`; the model cannot add tools, connections, budgets
+-    or capabilities beyond what the recruiter's agent catalog exposes.  The call
+-    budget is capped (default 2) so a model is used sparingly.
++    """Optional, bounded, on-demand model plan proposal interface (not wired).
++
++    No real model backend is implemented by this package and no default
++    assembly constructs a ``ModelPlanner``.  A caller may inject a ``propose``
++    callable explicitly; the dispatcher consults it only when an explicit
++    :class:`~lightgravity.coordinator.planning.PlanningRequest` is present, so
++    planning is never a per-Task/Run prerequisite.  ``propose`` returns a
++    ``{"subtasks": [...]}`` mapping in the same shape as :class:`RawSubtask`.
++    The mapping is parsed structurally and then validated by
++    :class:`PlanValidator`; the model cannot add tools, connections, budgets or
++    capabilities beyond what the recruiter's agent catalog exposes.  The call
++    budget is capped (default 1) so a model is used at most once per request.
+     """
+ 
+     name = "model"
+ 
+-    def __init__(self, propose: ProposeFn, *, max_calls: int = 2) -> None:
++    def __init__(self, propose: ProposeFn, *, max_calls: int = 1) -> None:
+         if max_calls <= 0:
+             raise ValueError("max_calls must be > 0")
+         self._propose = propose
+@@ -401,6 +417,8 @@ __all__ = [
+     "PlanProposal",
+     "PlanValidator",
+     "Planner",
++    "PlanningRequest",
++    "PlanningTrigger",
+     "ProposeFn",
+     "RawSubtask",
+     "RuleBasedPlanner",
+diff --git a/docs/01-design.md b/docs/01-design.md
+index 694ba98..e22de09 100644
+--- a/docs/01-design.md
++++ b/docs/01-design.md
+@@ -15,7 +15,7 @@ LightGravity Bot 接收用户目标，创建或继续一项 Task，为其执行
+ 
+ 首版服务小型开发需求，例如在一个指定仓库中修复问题或实现有限功能。通用能力通过后续任务类型扩展，不在首版承诺任意需求都能自动完成。
+ 
+-对比单 agent 的价值需要实测：在相同任务与资源约束下，观察完成率、耗时、模型成本、人工修正和返工。角色数量与看板效果不能替代交付证据。
++对比单 agent 的价值需要实测：在相同任务与资源约束下，观察完成率、耗时、模型成本、人工修正和返工。成本按同一验收门下的**全交付生命周期**统计：执行＋验证＋返修＋复验＋失败尝试；未完成样本不得当作已交付成本，也不用失败高成本样本的中位数推算完整收益。角色数量与看板效果不能替代交付证据。
+ 
+ ## 2. 与 Olav OS 的关系
+ 
+@@ -37,8 +37,9 @@ LightGravity Bot 接收用户目标，创建或继续一项 Task，为其执行
+ ```mermaid
+ flowchart TD
+     UI[左侧 Chat / Board / Files / Team / Resources] --> C[Bot Coordinator]
+-    C --> P[Planner]
+-    P --> V[计划校验]
++    C --> P[程序计划构建<br/>默认最小合法计划]
++    P --> V[程序计划校验]
++    OM[可选：有界按需模型提议<br/>未接线] -.-> V
+     V --> R[Recruiter]
+     R --> S[Scheduler]
+     S --> E[Executor Adapter]
+@@ -62,14 +63,14 @@ flowchart TD
+ 
+ | 模块 | 职责 | 不应承担的职责 |
+ |---|---|---|
+-| Planner | 分析目标，提出任务图、验收条件和能力需求 | 直接授予权限或把任务标记完成 |
++| 计划构建（默认程序） | 由程序按明确目标生成最小任务图、依赖与验收边界；可选的有界按需模型提议只作候选，不是常驻编排模型 | 常驻模型编排、直接授予权限或把任务标记完成 |
+ | Recruiter | 从角色目录选择成员，绑定 SDK、工具、上下文与预算 | 创建不必要的长期组织实体 |
+ | Scheduler | 依赖、领取、并发、超时、暂停、取消与返修调度 | 以自然语言回复代替验收 |
+ | Executor Adapter | 执行一个任务，规范化事件、结果、取消与关闭 | 控制整个团队生命周期 |
+ | Verifier | 检查实际产物和运行结果，发起复核 | 只相信 worker 的自评 |
+ | Run Store | 统一写入持久文件，提供事件和查询视图 | 维护另一套冲突的业务状态 |
+ 
+-模型提出计划和组队建议，程序校验并实施。计划校验至少检查依赖无环、引用任务存在、角色存在、验收条件非空、权限与预算有效，以及并行任务的工作区边界。
++默认由程序生成最小合法计划并实施；任何候选计划（包括可选的模型提议）都必须经同一程序校验。计划校验至少检查依赖无环、引用任务存在、角色存在、验收条件非空、权限与预算有效，以及并行任务的工作区边界。
+ 
+ ## 5. 自动组队
+ 
+@@ -144,7 +145,7 @@ worker 成功只表示执行返回，不代表任务验收通过。首版只实
+ ## 7. 调度与验收闭环
+ 
+ 1. 保存用户指令和运行标识。
+-2. 生成并校验计划，保存计划版本。
++2. 程序按目标生成最小执行计划并校验，保存计划版本；仅在有明确记录触发原因时按需采纳有界的模型候选。
+ 3. 创建临时成员并保存团队记录。
+ 4. 找到依赖已通过验证的任务，检查额度和工作区冲突。
+ 5. 原子领取任务，记录执行尝试，再调用 executor。
+diff --git a/docs/02-task-and-sdk-resources.md b/docs/02-task-and-sdk-resources.md
+index 1f9cae9..24e34c4 100644
+--- a/docs/02-task-and-sdk-resources.md
++++ b/docs/02-task-and-sdk-resources.md
+@@ -70,7 +70,7 @@ Board 和活动统计按 phase、有效执行租约及实际停止结果计算
+ 
+ Subtask、Run、Member 使用各自 schema 的状态枚举，不强迫所有实体复用同一状态机。若接入 Olav Tasks，需做显式格式转换；本文件不能宣称其 CLI 已支持 `lightgravity.bot/v1`。
+ 
+-计划只在 PLAN.md 声明目标、任务引用、角色与约束；每个 Subtask 的依赖、状态、分配与验收条件以 SUBTASK.md 为权威，计划不重复维护第二份任务图。执行前固定计划和各子任务版本，运行中的修改走协调器。
++计划只在 PLAN.md 声明目标、任务引用、角色与约束；每个 Subtask 的依赖、状态、分配与验收条件以 SUBTASK.md 为权威，计划不重复维护第二份任务图。执行前固定计划和各子任务版本，运行中的修改走协调器。默认计划由程序按明确目标生成（确定性、无模型调用）；可选的模型拆解提议是**有界按需**能力，仅在显式记录触发原因时采纳，候选计划仍经同一程序校验，不构成每次交付的必经前置。
+ 
+ ## 4. 目录与对话
+ 
+diff --git a/docs/03-sdk-capability-audit.md b/docs/03-sdk-capability-audit.md
+index 9e473b8..50e7699 100644
+--- a/docs/03-sdk-capability-audit.md
++++ b/docs/03-sdk-capability-audit.md
+@@ -34,7 +34,7 @@ updated: "2026-10-15"
+ | MCP 服务与输出大小 | 已有，补充限制 | MCP＋capabilities | 建立实际 stdio/HTTP 连接，长输出引用文件 | 按任务需要启用 |
+ | 工具可见性与调用策略 | 已有，补充区别 | Agent capabilities＋Hooks/policies | 隐藏工具与运行时拒绝分开 | 接入 |
+ | 人机问答与批准 | 已有，补充 SDK 桥接 | Hooks：question/approval handler；Agent behavior | 转成 Task Chat 待决项，回复回传会话 | 接入 |
+-| 结构化输出 | 补充 | Agent：response_schema_ref | 注册 Pydantic/JSON Schema，程序验证结果 | Planner、outcome 优先 |
++| 结构化输出 | 补充 | Agent：response_schema_ref | 注册 Pydantic/JSON Schema，程序验证结果 | 计划/结果记录优先 |
+ | session 预算与停止原因 | 泛化，现补充 | Agent：budget_config | 调用/令牌上限，展示 usage 与 stop reason | 接入 |
+ | API/模型输出重试 | 未展开 | Agent：retry_config | SDK 有限重试，记录实际行为 | 接入 |
+ | 上下文压缩 | 未展开 | Conversation：compaction_config | SDK 压缩历史，用户原始消息保留 | 可选，验证后启用 |
+diff --git a/docs/04-bot-behavior.md b/docs/04-bot-behavior.md
+index 545abf8..e543f33 100644
+--- a/docs/04-bot-behavior.md
++++ b/docs/04-bot-behavior.md
+@@ -11,7 +11,7 @@ updated: "2026-10-15"
+ 
+ ## 1. 常驻 Bot 与临时执行
+ 
+-常驻的是服务、消息入口、协调器与持久任务队列，不是一直占用模型的 SDK 会话。空闲时不做模型轮询；新消息到达后按需调用模型。临时 worker 完成、暂停、失败或取消后，确认停止并关闭会话，留下恢复记录与产物。
++常驻的是服务、消息入口、协调器与持久任务队列，不是一直占用模型的 SDK 会话。空闲时不做模型轮询；新消息到达后按需调用模型。默认不存在独立常驻编排模型：交付 Run 由程序按明确目标生成最小合法计划并直接派发，模型拆解是可选的有界按需能力，不是每次 Task/Run 的前置。临时 worker 完成、暂停、失败或取消后，确认停止并关闭会话，留下恢复记录与产物。
+ 
+ Bot 在同一身份下接收指令、回答问题、维护 Task 上下文和汇报执行结果。用户不必了解 Run、SDK session 或资源配置文件即可使用。
+ 
+@@ -40,7 +40,7 @@ Bot 在同一身份下接收指令、回答问题、维护 Task 上下文和汇
+ 2. **有界工具问答**：一个 agent，限制调用和时长，只读取获准数据或执行搜索；结束即释放。输出说明来源或实际调用结果，不承诺完成工程交付。
+ 3. **交付执行**：Task/Run → 单 worker 或最小必要团队 → Subtask → 验证 → 候选交付 → 人工验收。独立 QA 可以顺序启动，不必与开发者同时驻留。
+ 
+-Planner 可以建议执行规模，程序落实预算与权限。不把“创建 Task”与“必须启动 swarm”绑定。路径升级时保存原因与已有输入；用户交付指令足够明确时自动执行获准工作，不为每次普通操作增加统一确认门。缺失输入和实际越出授权的动作才等待决定。
++默认由程序按明确目标生成最小执行计划；可选的有界按需模型拆解提议只能作为候选，经程序校验后才落实预算与权限。不把“创建 Task”与“必须启动 swarm”绑定。路径升级时保存原因与已有输入；用户交付指令足够明确时自动执行获准工作，不为每次普通操作增加统一确认门。缺失输入和实际越出授权的动作才等待决定。
+ 
+ ## 4. 全局对话与 Task 对话
+ 
+diff --git a/docs/08-interface-contract.md b/docs/08-interface-contract.md
+index fda45e3..d3bbd80 100644
+--- a/docs/08-interface-contract.md
++++ b/docs/08-interface-contract.md
+@@ -411,7 +411,7 @@ fail_reason: null
+ ```
+ 
+ - 一个 Task 同时最多一个非终止 Run（`active_run`）。
+-- `plan`/`plan_hash`/`plan_source` 为加性可选字段：计划先经程序校验，校验通过的完整计划（含每个子任务的 `key`/`objective`/`capability`/`acceptance`/`depends_on`/`write`/`order`）才写入 `plan`，`plan_hash` 为该内容的规范化 SHA-256，`plan_source` 只记录来源、不赋予额外权限；未通过校验的提议不落盘。既有 `plan_ref`（计划文件引用）语义不变。
++- `plan`/`plan_hash`/`plan_source` 为加性可选字段：计划先经程序校验，校验通过的完整计划（含每个子任务的 `key`/`objective`/`capability`/`acceptance`/`depends_on`/`write`/`order`）才写入 `plan`，`plan_hash` 为该内容的规范化 SHA-256，`plan_source` 只记录来源、不赋予额外权限；未通过校验的提议不落盘。既有 `plan_ref`（计划文件引用）语义不变。默认计划由程序按明确目标生成（`plan_source=rules`，确定性最小计划、无模型调用）；可选的模型拆解提议是**有界按需**能力，当前未接线、无默认装配，仅在显式记录触发原因时采纳，候选计划仍经同一程序校验。此为默认策略澄清，不新增字段/端点/事件，不改变本版既有语义。
+ - `connection_pin` 为加性可选字段（1.5.0）：Run 招募团队时解析一次当前默认 worker 连接并按 `{connection_id, revision, content_hash, credential_version}` 冻结，供该 Run 的所有 Subtask 复用；活跃 Run 内默认连接或凭证轮换不得在下一 Subtask 静默换用，检测到漂移按 `config_invalid` 失败，新 Run 才重新解析。该字段**永不包含秘密**，不改变既有连接选择优先级（显式模板 `connection_ref` 仍优先）。
+ - `completed` 与 `cancelled`/`failed` 是不同终态；team cleanup 状态独立记录，清理失败不得掩盖交付成功。
+ - `cancelling` → `cancelled` 仅在 adapter 确认停止后。
+diff --git a/tests/coordinator/graph_helpers.py b/tests/coordinator/graph_helpers.py
+index b897676..a3fd7ed 100644
+--- a/tests/coordinator/graph_helpers.py
++++ b/tests/coordinator/graph_helpers.py
+@@ -22,6 +22,7 @@ from lightgravity.adapter import (
+     adapter_capabilities,
+ )
+ from lightgravity.coordinator import DispatchContext, RunController
++from lightgravity.coordinator.planning import PlanningRequest
+ from lightgravity.coordinator.state import StateWriter
+ from lightgravity.store import FileStore, new_id
+ 
+@@ -105,6 +106,7 @@ def make_dispatch_setup(
+     agent_ref: str | None = "developer",
+     allowed_tools: tuple[str, ...] | None = None,
+     budget: Mapping[str, int] | None = None,
++    planning_request: PlanningRequest | None = None,
+ ) -> tuple[str, str, RunController, DispatchContext]:
+     """Create a Task+Run already in the ``planning`` phase and a RunController."""
+ 
+@@ -184,6 +186,7 @@ def make_dispatch_setup(
+         allowed_tools=allowed_tools,
+         agent_ref=agent_ref,
+         budget=dict(budget or {}),
++        planning_request=planning_request,
+     )
+     return task_id, run_id, controller, context
+ 
+diff --git a/tests/coordinator/test_graph_dispatcher.py b/tests/coordinator/test_graph_dispatcher.py
+index 6c7a70b..f77ef85 100644
+--- a/tests/coordinator/test_graph_dispatcher.py
++++ b/tests/coordinator/test_graph_dispatcher.py
+@@ -21,6 +21,8 @@ from lightgravity.coordinator import (
+     DispatchContext,
+     GraphDispatcher,
+     PlanProposal,
++    PlanningRequest,
++    PlanningTrigger,
+     RawSubtask,
+     RoleCatalog,
+ )
+@@ -60,6 +62,18 @@ class StaticPlanner:
+         return PlanProposal(subtasks=tuple(self._subtasks), source="test")
+ 
+ 
++class CountingPlanner(StaticPlanner):
++    """On-demand proposal stub that counts how often it is consulted."""
++
++    def __init__(self, subtasks: list[RawSubtask]) -> None:
++        super().__init__(subtasks)
++        self.calls = 0
++
++    async def plan(self, context: DispatchContext) -> PlanProposal:
++        self.calls += 1
++        return await super().plan(context)
++
++
+ def no_sink(_event: dict[str, object]) -> None:
+     return None
+ 
+@@ -289,7 +303,12 @@ async def test_read_only_nodes_run_in_parallel_up_to_limit(store: FileStore) ->
+         ]
+     )
+     dispatcher = GraphDispatcher(store, executor, catalog=TWO_AGENT, planner=planner, max_parallel=2)
+-    _task_id, _run_id, controller, context = make_dispatch_setup(store)
++    _task_id, _run_id, controller, context = make_dispatch_setup(
++        store,
++        planning_request=PlanningRequest(
++            trigger=PlanningTrigger.USER_REQUEST, reason="split two independent steps"
++        ),
++    )
+ 
+     dispatch_task = asyncio.ensure_future(dispatcher.dispatch(context, controller, no_sink))
+     assert await _wait_for(lambda: len(executor.requests) == 2)
+@@ -313,7 +332,12 @@ async def test_same_workspace_write_nodes_serialize(store: FileStore) -> None:
+         ]
+     )
+     dispatcher = GraphDispatcher(store, executor, catalog=TWO_AGENT, planner=planner, max_parallel=2)
+-    _task_id, _run_id, controller, context = make_dispatch_setup(store)
++    _task_id, _run_id, controller, context = make_dispatch_setup(
++        store,
++        planning_request=PlanningRequest(
++            trigger=PlanningTrigger.AMBIGUOUS_REQUIREMENT, reason="two writer steps"
++        ),
++    )
+ 
+     outcome = await dispatcher.dispatch(context, controller, no_sink)
+ 
+@@ -366,3 +390,69 @@ async def test_coordinator_integration_reaches_verifying(store: FileStore) -> No
+     snapshot = coordinator.status(created.task_id)
+     assert snapshot["phase"] == "verifying"
+     assert snapshot["queue"]["state"] == "not_queued"
++
++
++async def test_injected_model_planner_is_on_demand_only(store: FileStore) -> None:
++    """An injected proposal interface is never a per-Run prerequisite.
++
++    Without an explicit :class:`PlanningRequest` the dispatcher builds the
++    program-side minimal plan and never consults the planner.  With one, the
++    proposal is consulted exactly once and its trigger/reason are frozen into
++    the validated plan snapshot; there is no hidden automatic planning loop.
++    """
++
++    build_environment(store)
++    executor = FakeGraphExecutor()
++    planner = CountingPlanner(
++        [
++            RawSubtask(
++                key="deliver",
++                objective="implement",
++                capability="implementation",
++                acceptance=("ok",),
++                write=True,
++            )
++        ]
++    )
++    dispatcher = GraphDispatcher(store, executor, catalog=ONE_AGENT, planner=planner)
++
++    _task, run_id, controller, context = make_dispatch_setup(store)
++    outcome = await dispatcher.dispatch(context, controller, no_sink)
++    assert outcome.state == "succeeded"
++    assert planner.calls == 0  # default path is program-side, model-free
++    run = store.read("run", run_id).entity
++    assert run["plan"]["source"] == "rules"
++    assert all("on-demand" not in note for note in run["plan"]["notes"])
++
++    request = PlanningRequest(
++        trigger=PlanningTrigger.USER_REQUEST, reason="split the delivery into steps"
++    )
++    _task2, run_id2, controller2, context2 = make_dispatch_setup(
++        store, planning_request=request
++    )
++    outcome2 = await dispatcher.dispatch(context2, controller2, no_sink)
++    assert outcome2.state == "succeeded"
++    assert planner.calls == 1  # bounded: one proposal per Run, no loop
++    run2 = store.read("run", run_id2).entity
++    assert run2["plan"]["source"] == "test"
++    assert any(
++        "trigger=user_request" in note and "split the delivery into steps" in note
++        for note in run2["plan"]["notes"]
++    )
++
++
++async def test_default_dispatcher_has_no_model_planner(store: FileStore) -> None:
++    build_environment(store)
++    dispatcher = GraphDispatcher(store, FakeGraphExecutor(), catalog=TWO_AGENT)
++    assert dispatcher.planner is None  # no resident orchestration model wired
++    # Even a context-level request cannot reach a model when none is injected.
++    _task2, run_id2, controller2, context2 = make_dispatch_setup(
++        store,
++        planning_request=PlanningRequest(
++            trigger=PlanningTrigger.BLOCKED, reason="needs decomposition"
++        ),
++    )
++    assert context2.planning_request is not None
++    outcome = await dispatcher.dispatch(context2, controller2, no_sink)
++    assert outcome.state == "succeeded"
++    assert store.read("run", run_id2).entity["plan"]["source"] == "rules"
+diff --git a/backend/lightgravity/coordinator/planning.py b/backend/lightgravity/coordinator/planning.py
+new file mode 100644
+index 0000000..50eb979
+--- /dev/null
++++ b/backend/lightgravity/coordinator/planning.py
+@@ -0,0 +1,67 @@
++"""Bounded on-demand planning request (docs/01 §4, default architecture).
++
++Planning is **not** a mandatory per-Task/Run step and **not** a resident
++orchestration agent.  For an explicit target the coordinator builds a minimal
++legal plan program-side (see :class:`~lightgravity.coordinator.planner.RuleBasedPlanner`)
++and validates it with :class:`~lightgravity.coordinator.planner.PlanValidator`.
++A model-backed decomposition proposal is an *optional, bounded, on-demand*
++capability: it may only be consulted when an explicit :class:`PlanningRequest`
++records **why** it is needed, and it must stay inside the same Task/Run budget
++and call cap.  Candidate plans are always program-validated; a request never
++grants tools, connections or acceptance authority.
++
++This module deliberately implements only the request/trigger contract.  No real
++model planner is wired and no user-facing endpoint is added: the injectable
++:class:`~lightgravity.coordinator.planner.ModelPlanner` proposal interface
++remains the integration seam and is documented as not implemented.
++"""
++
++from __future__ import annotations
++
++from dataclasses import dataclass
++from enum import StrEnum
++from typing import Any
++
++
++class PlanningTrigger(StrEnum):
++    """Why an on-demand planning proposal is being requested.
++
++    These are the design triggers from the product decision.  Recognising a
++    trigger only records the reason; it never starts a hidden planning loop and
++    never calls a model on its own.
++    """
++
++    USER_REQUEST = "user_request"
++    AMBIGUOUS_REQUIREMENT = "ambiguous_requirement"
++    BLOCKED = "blocked"
++    REPAIR_CAP = "repair_cap"
++
++
++@dataclass(frozen=True, slots=True)
++class PlanningRequest:
++    """A bounded, reasoned, single-Run request for a model plan proposal."""
++
++    trigger: PlanningTrigger
++    reason: str
++    requested_by: str = "user"
++    #: Maximum proposal calls for this request; the dispatcher never loops.
++    max_calls: int = 1
++
++    def __post_init__(self) -> None:
++        if not isinstance(self.reason, str) or not self.reason.strip():
++            raise ValueError("planning reason must be a non-empty string")
++        if not isinstance(self.max_calls, int) or isinstance(self.max_calls, bool):
++            raise ValueError("max_calls must be an integer")
++        if self.max_calls < 1:
++            raise ValueError("max_calls must be >= 1")
++
++    def to_dict(self) -> dict[str, Any]:
++        return {
++            "trigger": self.trigger.value,
++            "reason": self.reason,
++            "requested_by": self.requested_by,
++            "max_calls": self.max_calls,
++        }
++
++
++__all__ = ["PlanningRequest", "PlanningTrigger"]
+diff --git a/tests/coordinator/test_planning.py b/tests/coordinator/test_planning.py
+new file mode 100644
+index 0000000..a7b0aba
+--- /dev/null
++++ b/tests/coordinator/test_planning.py
+@@ -0,0 +1,44 @@
++"""Bounded on-demand planning request contract (no model is called)."""
++
++from __future__ import annotations
++
++import pytest
++
++from lightgravity.coordinator import PlanningRequest, PlanningTrigger
++
++
++def test_planning_request_records_trigger_and_reason() -> None:
++    request = PlanningRequest(
++        trigger=PlanningTrigger.AMBIGUOUS_REQUIREMENT,
++        reason="the objective has two possible interpretations",
++        requested_by="user",
++    )
++    assert request.to_dict() == {
++        "trigger": "ambiguous_requirement",
++        "reason": "the objective has two possible interpretations",
++        "requested_by": "user",
++        "max_calls": 1,
++    }
++
++
++def test_all_design_triggers_are_recognized() -> None:
++    assert {trigger.value for trigger in PlanningTrigger} == {
++        "user_request",
++        "ambiguous_requirement",
++        "blocked",
++        "repair_cap",
++    }
++
++
++@pytest.mark.parametrize("reason", ["", "   "])
++def test_planning_request_requires_a_reason(reason: str) -> None:
++    with pytest.raises(ValueError):
++        PlanningRequest(trigger=PlanningTrigger.USER_REQUEST, reason=reason)
++
++
++@pytest.mark.parametrize("max_calls", [0, -1])
++def test_planning_request_is_bounded(max_calls: int) -> None:
++    with pytest.raises(ValueError):
++        PlanningRequest(
++            trigger=PlanningTrigger.BLOCKED, reason="blocked dependency", max_calls=max_calls
++        )

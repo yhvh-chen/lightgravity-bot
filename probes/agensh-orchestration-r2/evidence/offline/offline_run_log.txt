@@ -1,0 +1,92 @@
+### fixture initial hashes
+t1_independent/initial: 9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf
+t1_independent/reference: e5e16b2e951d30e8502f728545701c2306a20f5373d266dfd0c9aacf99e577e7
+t2_interface/initial: 1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c
+t2_interface/reference: 0996564e4d14c4591f091412e327e15d75558b703490707fb43aa6401b2c07d5
+t3_evolving/initial: 4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046
+t3_evolving/reference: da4d39591a9b47e1cca9e6e36542a4289cba9d5407011dfb4bab8763e9ecfe4f
+=== validate_fixtures.py (initial must fail, reference must pass) ===
+t1_independent stage=None initial: 0/6 passed (expected 0) -> OK
+t1_independent stage=None reference: 6/6 passed (expected all) -> OK
+t2_interface stage=None initial: 0/6 passed (expected 0) -> OK
+t2_interface stage=None reference: 6/6 passed (expected all) -> OK
+t3_evolving stage=1 initial: 0/5 passed (expected 0) -> OK
+t3_evolving stage=1 reference: 5/5 passed (expected all) -> OK
+t3_evolving stage=2 initial: 0/9 passed (expected 0) -> OK
+t3_evolving stage=2 reference: 9/9 passed (expected all) -> OK
+t3_evolving round1-only: stage1=5/5 stage2=5/9 (expect stage1 all, stage2 partial) -> OK
+
+fixture validation: ALL OK
+=== protocol_selftest.py (claims/messages/leases/recovery/env) ===
+claim.mutex: OK {'path': 'src/slugs.py', 'state': 'granted', 'reason': 'granted'} {'path': None, 'state': 'rejected', 'reason': 'already_claimed_by_w1'}
+claim.unwritable: OK {'path': None, 'state': 'rejected', 'reason': 'invalid_or_unwritable_path'}
+writable.set: OK ['src/ranges.py', 'src/slugs.py']
+msg.order: OK first cannot see; second can see first claim+message
+msg.edit.visible: OK edit phase sees both messages
+edit.unclaimed.rejected: OK [{'path': 'src/slugs.py', 'reason': 'no_lease_for_path', 'lease': None}]
+edit.overreach.other_lease: OK [{'path': 'src/ranges.py', 'reason': 'no_lease_for_path', 'lease': 'src/slugs.py'}]
+edit.basehash: OK [{'path': 'src/slugs.py', 'reason': 'base_sha256_mismatch'}]
+edit.syntax: OK [{'path': 'src/slugs.py', 'reason': 'syntax_error: invalid syntax (slugs.py, line 1)'}]
+edit.valid: OK 
+run.completed: OK final=6/6
+state.version: OK subtask=9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf round=9a704d7cd0f772c96c93e318233fed90171d33c342c84082c1d20fe4a86faacf
+run.no_sot: OK []
+recovery.no_duplicate_request: OK new HTTP calls=0 (was 10 on first run)
+recovery.same_result: OK 
+env.no_secret: OK ['HOME', 'LANG', 'LC_ALL', 'PATH', 'PYTHONDONTWRITEBYTECODE', 'PYTHONIOENCODING']
+raw.no_auth_leak: OK leaked=[]
+
+protocol self-test: ALL OK
+=== offline_llm_selftest.py (SSE bounds, usage, thinking payload) ===
+normal: OK finish=stop model=deepseek-v4-flash
+nousage: OK estimated=4
+stall: OK elapsed=1.61s
+http500: OK 
+http400: OK 
+reasoning: OK rtok=4
+length: OK 
+thinking.payload: OK thinking={'type': 'disabled'} max_tokens=8192
+no-auth-in-payload: OK auth header never serialized into the request body; header itself was sent
+auth.header.sent: OK authorization header present on 7 requests
+json: OK 
+
+offline llm self-test: ALL OK
+=== mock full experiment (18 samples) ===
+  "by_group": {
+    "B": {
+      "samples": 9,
+      "all_passed_samples": 9,
+      "sum_final_passed": 63,
+      "sum_final_total": 63,
+      "sum_total_elapsed": 3.599,
+      "sum_worker_calls": 72,
+      "sum_planner_calls": 9,
+      "sum_retries": 1
+    },
+    "C": {
+      "samples": 9,
+      "all_passed_samples": 9,
+      "sum_final_passed": 63,
+      "sum_final_total": 63,
+      "sum_total_elapsed": 1.569,
+      "sum_worker_calls": 72,
+      "sum_planner_calls": 0,
+      "sum_retries": 0
+    }
+  },
+  "abort_reason": null,
+  "fatal_protocol": null
+}
+=== mock resume (must add no calls) ===
+http before resume: 154 after: 154
+budget: {'http_requests': 154, 'normal_calls': 153, 'retry_calls': 1, 'total_tokens': 22960, 'usage_unknown_calls': 1, 'reserved_tokens': 0}
+per-sample final: {'t1_independent__B__r2': '6/6', 't2_interface__C__r2': '6/6', 't1_independent__C__r2': '6/6', 't1_independent__B__r1': '6/6', 't3_evolving__C__r0': '9/9', 't1_independent__C__r1': '6/6', 't2_interface__C__r1': '6/6', 't3_evolving__C__r1': '9/9', 't2_interface__B__r2': '6/6', 't1_independent__C__r0': '6/6', 't2_interface__C__r0': '6/6', 't3_evolving__B__r0': '9/9', 't3_evolving__B__r1': '9/9', 't1_independent__B__r0': '6/6', 't2_interface__B__r1': '6/6', 't3_evolving__B__r2': '9/9', 't3_evolving__C__r2': '9/9', 't2_interface__B__r0': '6/6'}
+sot issues: {}
+=== mock analysis (recomputed from raw) ===
+    "candidate_independent_orchestration_removable": false,
+    "candidate_retain_planning": false,
+    "note": "candidate only for a next-round product SDK check; NOT an automatic removal"
+  }
+}
+
+OFFLINE CHECKS DONE

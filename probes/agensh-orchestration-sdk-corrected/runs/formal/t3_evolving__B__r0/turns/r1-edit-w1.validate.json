@@ -1,0 +1,12 @@
+{
+  "produced": [],
+  "modified": [
+    "src/stats.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/stats.py": "\"\"\"Statistics helpers for computing simple summary measures.\"\"\"\n\n\ndef mean(nums):\n    \"\"\"Return the arithmetic mean of ``nums``.\n\n    Raises ``ValueError`` if ``nums`` is empty.\n    \"\"\"\n    if not nums:\n        raise ValueError(\"mean() arg is an empty sequence\")\n    return sum(nums) / len(nums)\n\n\ndef median(nums):\n    \"\"\"Return the median of ``nums``.\n\n    For an odd-length sequence this is the middle value of the sorted\n    sequence; for an even-length sequence it is the average of the two\n    middle values.  Raises ``ValueError`` if ``nums`` is empty.\n    \"\"\"\n    if not nums:\n        raise ValueError(\"median() arg is an empty sequence\")\n    ordered = sorted(nums)\n    n = len(ordered)\n    mid = n // 2\n    if n % 2 == 1:\n        return ordered[mid]\n    return (ordered[mid - 1] + ordered[mid]) / 2\n"
+  },
+  "overreach": [],
+  "invalid": []
+}

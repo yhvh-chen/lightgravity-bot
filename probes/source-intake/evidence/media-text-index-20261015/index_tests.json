@@ -1,0 +1,128 @@
+{
+  "initial_docs": [
+    "audio-001",
+    "doc-image-001",
+    "doc-pdf-001"
+  ],
+  "index_token_count": 178,
+  "queries": {
+    "服务": [
+      {
+        "doc_id": "doc-image-001",
+        "md": "docs/doc_image.md",
+        "line": 7,
+        "source_ref": "fixtures/screenshot.png",
+        "locator": {
+          "image_ref": "fixtures/screenshot.png",
+          "page": null,
+          "time_s": null
+        },
+        "score": 3,
+        "accepted": true
+      },
+      {
+        "doc_id": "doc-pdf-001",
+        "md": "docs/doc_pdf.md",
+        "line": 7,
+        "source_ref": "fixtures/scanned_page-1.png",
+        "locator": {
+          "image_ref": "fixtures/scanned_page-1.png",
+          "page": 1,
+          "time_s": null
+        },
+        "score": 3,
+        "accepted": true
+      }
+    ],
+    "LG-2026-1015-007": [
+      {
+        "doc_id": "doc-image-001",
+        "md": "docs/doc_image.md",
+        "line": 4,
+        "source_ref": "fixtures/screenshot.png",
+        "locator": {
+          "image_ref": "fixtures/screenshot.png",
+          "page": null,
+          "time_s": null
+        },
+        "score": 1,
+        "accepted": true
+      }
+    ],
+    "8,765.42": [
+      {
+        "doc_id": "doc-image-001",
+        "md": "docs/doc_image.md",
+        "line": 6,
+        "source_ref": "fixtures/screenshot.png",
+        "locator": {
+          "image_ref": "fixtures/screenshot.png",
+          "page": null,
+          "time_s": null
+        },
+        "score": 1,
+        "accepted": true
+      }
+    ],
+    "25337000000098765432": [
+      {
+        "doc_id": "doc-pdf-001",
+        "md": "docs/doc_pdf.md",
+        "line": 4,
+        "source_ref": "fixtures/scanned_page-1.png",
+        "locator": {
+          "image_ref": "fixtures/scanned_page-1.png",
+          "page": 1,
+          "time_s": null
+        },
+        "score": 1,
+        "accepted": true
+      }
+    ],
+    "紫水晶矩阵": [],
+    "紫水晶项目": []
+  },
+  "cross_material_query_服务_docs": [
+    "doc-image-001",
+    "doc-pdf-001"
+  ],
+  "negative_control_紫水晶矩阵_hits": 0,
+  "negative_control_紫水晶项目_hits": 0,
+  "token_overlap_note": "`紫水晶项目` shares token `项目` with doc-pdf; after substring verification it is correctly 0. Shows token-union alone caused a false positive.",
+  "rebuild": {
+    "postings_and_docs_identical": true,
+    "all_source_hashes_unchanged": true,
+    "query_results_identical": true
+  },
+  "stale_test": {
+    "before_mutation": [
+      {
+        "doc_id": "doc-image-001",
+        "line": 7,
+        "accepted": true
+      },
+      {
+        "doc_id": "doc-pdf-001",
+        "line": 7,
+        "accepted": true
+      }
+    ],
+    "after_mutation": [
+      {
+        "doc_id": "doc-pdf-001",
+        "line": 7,
+        "accepted": true,
+        "stale_hash": false,
+        "reject_reason": null
+      },
+      {
+        "doc_id": "doc-image-001",
+        "line": 7,
+        "accepted": false,
+        "stale_hash": true,
+        "reject_reason": "recorded source_sha256 != current source file hash"
+      }
+    ],
+    "stale_hits_rejected": true
+  }
+}

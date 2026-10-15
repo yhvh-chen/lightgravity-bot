@@ -1,0 +1,34 @@
+{
+  "model": "embeddinggemma-2-Q8_0",
+  "http_status": 200,
+  "elapsed_s": 0.076,
+  "names": [
+    "doc_image",
+    "doc_pdf",
+    "semantic_query",
+    "exact_number_query",
+    "negative_query"
+  ],
+  "usage": {
+    "prompt_tokens": 192,
+    "total_tokens": 192
+  },
+  "dim": 768,
+  "all_finite": true,
+  "norms": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "cosine": {
+    "semantic_vs_doc_image": 0.6568276286125183,
+    "semantic_vs_doc_pdf": 0.6091768145561218,
+    "exact_number_vs_doc_pdf": 0.7250445485115051,
+    "exact_number_vs_doc_image": 0.677738606929779,
+    "negative_vs_doc_image": 0.5682795643806458,
+    "negative_vs_doc_pdf": 0.578474223613739,
+    "doc_image_vs_doc_pdf": 0.776005208492279
+  }
+}

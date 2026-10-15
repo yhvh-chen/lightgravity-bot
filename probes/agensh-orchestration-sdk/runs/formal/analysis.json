@@ -1,0 +1,326 @@
+{
+  "formal_runs": 6,
+  "groups": {
+    "B": {
+      "samples": 3,
+      "all_passed": 3,
+      "tokens_sum": 428085,
+      "tokens_median": 132376,
+      "http_sum": 82,
+      "elapsed_median": 67.717,
+      "overreach_events": 6,
+      "invalid_edits": 0,
+      "length_truncated": 0,
+      "budget_exhausted_turns": 1,
+      "failed_turns": 1,
+      "yaml_issue_runs": 0,
+      "sot_issue_runs": 0
+    },
+    "C": {
+      "samples": 3,
+      "all_passed": 3,
+      "tokens_sum": 409545,
+      "tokens_median": 137124,
+      "http_sum": 76,
+      "elapsed_median": 64.79,
+      "overreach_events": 7,
+      "invalid_edits": 0,
+      "length_truncated": 0,
+      "budget_exhausted_turns": 3,
+      "failed_turns": 0,
+      "yaml_issue_runs": 0,
+      "sot_issue_runs": 0
+    }
+  },
+  "classes": {
+    "t1_independent": {
+      "B": {
+        "all_passed": 1,
+        "tokens": [
+          132376
+        ],
+        "elapsed": [
+          66.263
+        ]
+      },
+      "C": {
+        "all_passed": 1,
+        "tokens": [
+          137124
+        ],
+        "elapsed": [
+          68.181
+        ]
+      }
+    },
+    "t2_interface": {
+      "B": {
+        "all_passed": 1,
+        "tokens": [
+          167820
+        ],
+        "elapsed": [
+          79.723
+        ]
+      },
+      "C": {
+        "all_passed": 1,
+        "tokens": [
+          133881
+        ],
+        "elapsed": [
+          57.908
+        ]
+      }
+    },
+    "t3_evolving": {
+      "B": {
+        "all_passed": 1,
+        "tokens": [
+          127889
+        ],
+        "elapsed": [
+          67.717
+        ]
+      },
+      "C": {
+        "all_passed": 1,
+        "tokens": [
+          138540
+        ],
+        "elapsed": [
+          64.79
+        ]
+      }
+    }
+  },
+  "improvement": {
+    "tokens_pct": -3.59,
+    "elapsed_pct": 4.32
+  },
+  "gate": {
+    "C_all_pass": true,
+    "C_quality_ge_B": true,
+    "zero_overreach": false,
+    "zero_yaml_sot": true,
+    "zero_length_truncation": true,
+    "improve_ge_15pct": false,
+    "other_metric_not_worse_10pct": true,
+    "all_classes_real_tool_evidence": true,
+    "PASS": false
+  },
+  "validity": {
+    "b_planner_recovery": {
+      "t1_independent__B__r0": {
+        "recovered": true,
+        "program_valid": false,
+        "program_issues": [
+          "plan_files_missing_or_not_list",
+          "plan_files_missing_or_not_list",
+          "plan_bad_worker:None"
+        ]
+      },
+      "t2_interface__B__r0": {
+        "recovered": true,
+        "program_valid": false,
+        "program_issues": [
+          "plan_bad_worker:None",
+          "plan_bad_worker:None"
+        ]
+      },
+      "t3_evolving__B__r0": {
+        "recovered": true,
+        "program_valid": false,
+        "program_issues": [
+          "plan_files_missing_or_not_list",
+          "plan_files_missing_or_not_list"
+        ]
+      }
+    },
+    "b_arm_valid": false,
+    "b_arm_note": "all B planner outputs were program-invalid (wrong field names and/or 2000-char event truncation), so workers received no plan: B was effectively C plus one discarded planner call",
+    "finish_parse_errors_total": 5
+  },
+  "runs": [
+    {
+      "run_id": "t1_independent__B__r0",
+      "task": "t1_independent",
+      "group": "B",
+      "all_passed": true,
+      "final": "6/6",
+      "round1": "6/6",
+      "tokens": 132376,
+      "http": 26,
+      "elapsed": 66.263,
+      "plan_valid": false,
+      "overreach_events": 2,
+      "invalid_edits": 0,
+      "writer_utilization": "2/2",
+      "reviewer_turns": 2,
+      "length_truncated": 0,
+      "budget_exhausted_turns": 0,
+      "failed_turns": 1,
+      "read_tools": [
+        "view_file"
+      ],
+      "write_tools": [
+        "edit_file"
+      ],
+      "relay_write_tools": [],
+      "finish_calls": 7,
+      "yaml_issues": [],
+      "sot_issues": [],
+      "finish_parse_errors": 2
+    },
+    {
+      "run_id": "t1_independent__C__r0",
+      "task": "t1_independent",
+      "group": "C",
+      "all_passed": true,
+      "final": "6/6",
+      "round1": "6/6",
+      "tokens": 137124,
+      "http": 26,
+      "elapsed": 68.181,
+      "plan_valid": null,
+      "overreach_events": 2,
+      "invalid_edits": 0,
+      "writer_utilization": "2/2",
+      "reviewer_turns": 2,
+      "length_truncated": 0,
+      "budget_exhausted_turns": 1,
+      "failed_turns": 0,
+      "read_tools": [
+        "view_file"
+      ],
+      "write_tools": [
+        "edit_file"
+      ],
+      "relay_write_tools": [],
+      "finish_calls": 7,
+      "yaml_issues": [],
+      "sot_issues": [],
+      "finish_parse_errors": 1
+    },
+    {
+      "run_id": "t2_interface__B__r0",
+      "task": "t2_interface",
+      "group": "B",
+      "all_passed": true,
+      "final": "6/6",
+      "round1": "6/6",
+      "tokens": 167820,
+      "http": 30,
+      "elapsed": 79.723,
+      "plan_valid": false,
+      "overreach_events": 2,
+      "invalid_edits": 0,
+      "writer_utilization": "2/2",
+      "reviewer_turns": 2,
+      "length_truncated": 0,
+      "budget_exhausted_turns": 1,
+      "failed_turns": 0,
+      "read_tools": [
+        "view_file"
+      ],
+      "write_tools": [
+        "edit_file"
+      ],
+      "relay_write_tools": [],
+      "finish_calls": 8,
+      "yaml_issues": [],
+      "sot_issues": [],
+      "finish_parse_errors": 0
+    },
+    {
+      "run_id": "t2_interface__C__r0",
+      "task": "t2_interface",
+      "group": "C",
+      "all_passed": true,
+      "final": "6/6",
+      "round1": "6/6",
+      "tokens": 133881,
+      "http": 25,
+      "elapsed": 57.908,
+      "plan_valid": null,
+      "overreach_events": 2,
+      "invalid_edits": 0,
+      "writer_utilization": "2/2",
+      "reviewer_turns": 2,
+      "length_truncated": 0,
+      "budget_exhausted_turns": 1,
+      "failed_turns": 0,
+      "read_tools": [
+        "view_file"
+      ],
+      "write_tools": [
+        "edit_file"
+      ],
+      "relay_write_tools": [],
+      "finish_calls": 7,
+      "yaml_issues": [],
+      "sot_issues": [],
+      "finish_parse_errors": 1
+    },
+    {
+      "run_id": "t3_evolving__B__r0",
+      "task": "t3_evolving",
+      "group": "B",
+      "all_passed": true,
+      "final": "9/9",
+      "round1": "5/5",
+      "tokens": 127889,
+      "http": 26,
+      "elapsed": 67.717,
+      "plan_valid": false,
+      "overreach_events": 2,
+      "invalid_edits": 0,
+      "writer_utilization": "2/2",
+      "reviewer_turns": 2,
+      "length_truncated": 0,
+      "budget_exhausted_turns": 0,
+      "failed_turns": 0,
+      "read_tools": [
+        "view_file"
+      ],
+      "write_tools": [
+        "edit_file"
+      ],
+      "relay_write_tools": [],
+      "finish_calls": 8,
+      "yaml_issues": [],
+      "sot_issues": [],
+      "finish_parse_errors": 1
+    },
+    {
+      "run_id": "t3_evolving__C__r0",
+      "task": "t3_evolving",
+      "group": "C",
+      "all_passed": true,
+      "final": "9/9",
+      "round1": "5/5",
+      "tokens": 138540,
+      "http": 25,
+      "elapsed": 64.79,
+      "plan_valid": null,
+      "overreach_events": 3,
+      "invalid_edits": 0,
+      "writer_utilization": "2/2",
+      "reviewer_turns": 2,
+      "length_truncated": 0,
+      "budget_exhausted_turns": 1,
+      "failed_turns": 0,
+      "read_tools": [
+        "view_file"
+      ],
+      "write_tools": [
+        "edit_file"
+      ],
+      "relay_write_tools": [],
+      "finish_calls": 8,
+      "yaml_issues": [],
+      "sot_issues": [],
+      "finish_parse_errors": 0
+    }
+  ]
+}

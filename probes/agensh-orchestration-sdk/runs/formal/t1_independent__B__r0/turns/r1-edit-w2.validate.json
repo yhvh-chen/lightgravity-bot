@@ -1,0 +1,20 @@
+{
+  "produced": [
+    "_check_slugs.py"
+  ],
+  "modified": [
+    "src/slugs.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/slugs.py": "\"\"\"Slug helpers.\"\"\"\n\nimport re\n\n_NON_ALNUM_RUN = re.compile(r\"[^a-z0-9]+\")\n\n\ndef slugify(title: str) -> str:\n    \"\"\"Convert a title into a URL-friendly slug.\n\n    Lowercases the title, replaces every run of characters outside\n    ``[a-z0-9]`` with a single ``'-'``, then strips leading/trailing ``'-'``.\n    \"\"\"\n    return _NON_ALNUM_RUN.sub(\"-\", title.lower()).strip(\"-\")\n"
+  },
+  "overreach": [
+    {
+      "path": "_check_slugs.py",
+      "reason": "no_lease_for_path",
+      "lease": "src/slugs.py"
+    }
+  ],
+  "invalid": []
+}

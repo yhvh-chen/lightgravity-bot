@@ -1,0 +1,20 @@
+{
+  "produced": [
+    "verify_stats.py"
+  ],
+  "modified": [
+    "src/stats.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/stats.py": "\"\"\"Statistics helpers.\n\nContract:\n- ``mean(nums)``: arithmetic mean; raises ``ValueError`` on empty input.\n- ``median(nums)``: middle value of the sorted data (average of the two\n  middle values for even-length input); raises ``ValueError`` on empty input.\n- ``mode(nums)``: most frequent value, ties broken by choosing the smallest\n  such value; raises ``ValueError`` on empty input.\n- ``stdev(nums)``: population standard deviation (``sqrt`` of the variance\n  computed by dividing by ``n``); raises ``ValueError`` on empty input.\n\"\"\"\n\nimport math\n\n__all__ = [\"mean\", \"median\", \"mode\", \"stdev\"]\n\n\ndef mean(nums):\n    \"\"\"Return the arithmetic mean of ``nums``.\n\n    Raises ValueError when ``nums`` is empty.\n    \"\"\"\n    values = list(nums)\n    if not values:\n        raise ValueError(\"mean() requires a non-empty sequence\")\n    return sum(values) / len(values)\n\n\ndef median(nums):\n    \"\"\"Return the median of ``nums``.\n\n    Raises ValueError when ``nums`` is empty. Odd-length input returns the\n    middle element of the sorted data; even-length input returns the average\n    of the two middle elements.\n    \"\"\"\n    values = list(nums)\n    if not values:\n        raise ValueError(\"median() requires a non-empty sequence\")\n    ordered = sorted(values)\n    n = len(ordered)\n    mid = n // 2\n    if n % 2 == 1:\n        return ordered[mid]\n    return (ordered[mid - 1] + ordered[mid]) / 2\n\n\ndef mode(nums):\n    \"\"\"Return the most frequent value in ``nums``.\n\n    Ties are broken by returning the smallest of the tied values. Raises\n    ValueError when ``nums`` is empty.\n    \"\"\"\n    values = list(nums)\n    if not values:\n        raise ValueError(\"mode() requires a non-empty sequence\")\n    counts = {}\n    for value in values:\n        counts[value] = counts.get(value, 0) + 1\n    # max count wins; ties resolved towards the smallest value.\n    return min(counts, key=lambda value: (-counts[value], value))\n\n\ndef stdev(nums):\n    \"\"\"Return the population standard deviation of ``nums``.\n\n    The variance is computed by dividing the sum of squared deviations by\n    ``n`` (population variance), and the standard deviation is its square\n    root. Raises ValueError when ``nums`` is empty.\n    \"\"\"\n    values = list(nums)\n    if not values:\n        raise ValueError(\"stdev() requires a non-empty sequence\")\n    n = len(values)\n    avg = sum(values) / n\n    variance = sum((value - avg) ** 2 for value in values) / n\n    return math.sqrt(variance)\n"
+  },
+  "overreach": [
+    {
+      "path": "verify_stats.py",
+      "reason": "no_lease_for_path",
+      "lease": "src/stats.py"
+    }
+  ],
+  "invalid": []
+}

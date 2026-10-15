@@ -1,0 +1,22 @@
+{
+  "source": "/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected",
+  "dest": "/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-sdk-corrected",
+  "verified_at_utc": "2026-10-15T07:20:00Z",
+  "branch": "experiment/agensh-sdk-corrected-20261015",
+  "base_commit": "9987d4f643b3ad02618d0c45fa35f8eb6ae84eef",
+  "scope": "final tree after DOC_CORRECTION (REPORT.md expression correction + appended doc-correction evidence/manifest)",
+  "doc_correction": "evidence/phaseE/DOC_CORRECTION.json",
+  "hash_manifest": "evidence/EVIDENCE.sha256",
+  "files_total": 477,
+  "hash_manifest_files": 476,
+  "hash_matches": 476,
+  "exclude_rules": [
+    "__pycache__/",
+    "*.pyc",
+    "*.db-shm",
+    "*.db-wal"
+  ],
+  "symlinks": 0,
+  "supersedes": "COPY_VERIFICATION.json",
+  "note": "initial COPY_VERIFICATION.json covers only the pre-doc-correction 470-file tree; this final verification covers the doc-corrected tree; no commit/merge/push/deploy"
+}

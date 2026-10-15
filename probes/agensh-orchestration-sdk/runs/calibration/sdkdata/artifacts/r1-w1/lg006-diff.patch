@@ -1,0 +1,6 @@
+--- a/src/hello.py
++++ b/src/hello.py
+@@ -1,2 +1,2 @@
+ def greet(name):
+-    return "TODO"
++    return "hi " + name

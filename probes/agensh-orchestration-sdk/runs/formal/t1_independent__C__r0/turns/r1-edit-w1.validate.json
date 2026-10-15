@@ -1,0 +1,20 @@
+{
+  "produced": [
+    "_verify_slugs.py"
+  ],
+  "modified": [
+    "src/slugs.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/slugs.py": "\"\"\"Slug helpers.\"\"\"\n\nimport re\n\n_NON_ALNUM = re.compile(r\"[^a-z0-9]+\")\n\n\ndef slugify(title: str) -> str:\n    \"\"\"Convert ``title`` into a lowercase, hyphen-separated slug.\n\n    Lowercasing happens first so that uppercase letters are folded into their\n    ASCII lowercase counterparts instead of being treated as separators.\n    \"\"\"\n    return _NON_ALNUM.sub(\"-\", title.lower()).strip(\"-\")\n"
+  },
+  "overreach": [
+    {
+      "path": "_verify_slugs.py",
+      "reason": "no_lease_for_path",
+      "lease": "src/slugs.py"
+    }
+  ],
+  "invalid": []
+}

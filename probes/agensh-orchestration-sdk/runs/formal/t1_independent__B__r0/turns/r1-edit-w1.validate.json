@@ -1,0 +1,20 @@
+{
+  "produced": [
+    "_verify_ranges.py"
+  ],
+  "modified": [
+    "src/ranges.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/ranges.py": "\"\"\"Range helpers.\"\"\"\n\n\ndef clamp(value, lo, hi):\n    \"\"\"Clamp ``value`` into the inclusive range ``[lo, hi]``.\n\n    Returns ``lo`` when ``value < lo``, ``hi`` when ``value > hi``,\n    otherwise ``value`` unchanged.\n    \"\"\"\n    if value < lo:\n        return lo\n    if value > hi:\n        return hi\n    return value\n\n\ndef in_range(value, lo, hi) -> bool:\n    \"\"\"Return True when ``lo <= value <= hi`` (bounds inclusive).\"\"\"\n    return lo <= value <= hi\n"
+  },
+  "overreach": [
+    {
+      "path": "_verify_ranges.py",
+      "reason": "no_lease_for_path",
+      "lease": "src/ranges.py"
+    }
+  ],
+  "invalid": []
+}

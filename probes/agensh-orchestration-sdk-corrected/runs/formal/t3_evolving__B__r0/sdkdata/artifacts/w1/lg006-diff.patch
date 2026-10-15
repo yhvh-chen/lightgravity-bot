@@ -1,0 +1,9 @@
+--- a/src/stats.py
++++ b/src/stats.py
+@@ -1,4 +1,6 @@
+ """Statistics helpers for computing simple summary measures."""
++
++import math
+ 
+ 
+ def mean(nums):

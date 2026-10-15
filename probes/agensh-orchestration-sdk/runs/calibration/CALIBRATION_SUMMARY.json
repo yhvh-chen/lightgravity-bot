@@ -1,0 +1,50 @@
+{
+  "main_calibration": {
+    "turns_run": 6,
+    "http_used": 19,
+    "tokens_used": 91224,
+    "wall_used": 37.129,
+    "abort": null,
+    "bounds": {
+      "max_turns": 6,
+      "max_http": 24,
+      "max_tokens": 100000,
+      "wall_seconds": 300.0
+    }
+  },
+  "no_skills_probe": {
+    "state": "succeeded",
+    "http": 1,
+    "tokens": 2434,
+    "wall": 1.75,
+    "tool_call_names": [
+      "finish"
+    ],
+    "finish_payload": {
+      "claim": "src/a.py",
+      "message": "probe"
+    },
+    "tools_in_request": [
+      "finish",
+      "view_file"
+    ]
+  },
+  "combined": {
+    "logical_turns": 7,
+    "http": 20,
+    "tokens": 93658,
+    "wall_seconds": 38.879
+  },
+  "deviation": {
+    "turn_cap": 6,
+    "combined_logical_turns": 7,
+    "note": "1 no-skills revalidation turn exceeded the 6-turn soft cap; HTTP/tokens/wall stayed within cap"
+  },
+  "decision": {
+    "formal_runs": 6,
+    "repeats_per_class_group": 1,
+    "max_model_calls_per_turn": 6,
+    "max_tool_calls_per_turn": 8,
+    "rationale": "skills-attached calibration averaged ~15.2k reported tokens/turn; a 12-run/102-turn projection (~1.55M) exceeds the 1.5M cap before the 30% margin, so the pre-registered fallback of 6 runs is selected. HTTP and wall remain well within limits."
+  }
+}

@@ -1,0 +1,33 @@
+
+=== validate_fixtures.py ===
+t1_independent stage=None initial: 0/6 passed (expected 0) -> OK
+t1_independent stage=None reference: 6/6 passed (expected all) -> OK
+t2_interface stage=None initial: 0/6 passed (expected 0) -> OK
+t2_interface stage=None reference: 6/6 passed (expected all) -> OK
+t3_evolving stage=1 initial: 0/5 passed (expected 0) -> OK
+t3_evolving stage=1 reference: 5/5 passed (expected all) -> OK
+t3_evolving stage=2 initial: 0/9 passed (expected 0) -> OK
+t3_evolving stage=2 reference: 9/9 passed (expected all) -> OK
+t3_evolving round1-only: stage1=5/5 stage2=5/9 (expect stage1 all, stage2 partial) -> OK
+
+fixture validation: ALL OK
+=== offline_llm_selftest.py ===
+normal: OK content='{"a": 1}' usage={'prompt_tokens': 11, 'completion_tokens': 7, 'total_tokens': 18}
+nousage: OK estimated=4
+stall: OK elapsed=1.61s error=no SSE data event within 2s (keep-alive only?)
+http500: OK status=500
+json: OK j1={'summary': 'x', 'edits': [{'path': 'a'}]} j2={'a': {'b': '}'}}
+
+offline llm self-test: ALL OK
+=== mock pilot (full 9 samples, exercises retry + conflict) ===
+      "conflicts": 1
+    }
+  },
+  "abort_reason": null
+}
+=== mock resume (must add no calls) ===
+mock budget: {'http_requests': 46, 'normal_calls': 45, 'retry_calls': 1, 'total_tokens': 6760, 'usage_unknown_calls': 1}
+mock per-sample final: {'t1_independent__B': '6/6', 't1_independent__C': '6/6', 't2_interface__C': '6/6', 't2_interface__B': '6/6', 't1_independent__A': '6/6', 't3_evolving__A': '5/9', 't3_evolving__B': '5/9', 't3_evolving__C': '5/9', 't2_interface__A': '6/6'}
+mock sot issues: {'t1_independent__B': [], 't1_independent__C': [], 't2_interface__C': [], 't2_interface__B': [], 't1_independent__A': [], 't3_evolving__A': [], 't3_evolving__B': [], 't3_evolving__C': [], 't2_interface__A': []}
+
+OFFLINE CHECKS DONE

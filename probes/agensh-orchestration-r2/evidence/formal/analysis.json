@@ -1,0 +1,642 @@
+{
+  "budget_state": {
+    "formal_start_epoch": 1792043636.836163,
+    "completed": {
+      "t1_independent__B__r2": {
+        "all_passed": true,
+        "final_passed": 6,
+        "final_total": 6,
+        "round1_passed": 6,
+        "round1_total": 6,
+        "total_elapsed": 12.364
+      },
+      "t2_interface__C__r2": {
+        "all_passed": true,
+        "final_passed": 6,
+        "final_total": 6,
+        "round1_passed": 6,
+        "round1_total": 6,
+        "total_elapsed": 9.894
+      },
+      "t1_independent__C__r2": {
+        "all_passed": true,
+        "final_passed": 6,
+        "final_total": 6,
+        "round1_passed": 6,
+        "round1_total": 6,
+        "total_elapsed": 9.589
+      },
+      "t1_independent__B__r1": {
+        "all_passed": true,
+        "final_passed": 6,
+        "final_total": 6,
+        "round1_passed": 6,
+        "round1_total": 6,
+        "total_elapsed": 11.914
+      },
+      "t3_evolving__C__r0": {
+        "all_passed": true,
+        "final_passed": 9,
+        "final_total": 9,
+        "round1_passed": 5,
+        "round1_total": 5,
+        "total_elapsed": 10.036
+      },
+      "t1_independent__C__r1": {
+        "all_passed": true,
+        "final_passed": 6,
+        "final_total": 6,
+        "round1_passed": 6,
+        "round1_total": 6,
+        "total_elapsed": 9.22
+      },
+      "t2_interface__C__r1": {
+        "all_passed": true,
+        "final_passed": 6,
+        "final_total": 6,
+        "round1_passed": 6,
+        "round1_total": 6,
+        "total_elapsed": 9.865
+      },
+      "t3_evolving__C__r1": {
+        "all_passed": true,
+        "final_passed": 9,
+        "final_total": 9,
+        "round1_passed": 5,
+        "round1_total": 5,
+        "total_elapsed": 10.331
+      },
+      "t2_interface__B__r2": {
+        "all_passed": true,
+        "final_passed": 6,
+        "final_total": 6,
+        "round1_passed": 6,
+        "round1_total": 6,
+        "total_elapsed": 11.663
+      },
+      "t1_independent__C__r0": {
+        "all_passed": true,
+        "final_passed": 6,
+        "final_total": 6,
+        "round1_passed": 6,
+        "round1_total": 6,
+        "total_elapsed": 8.954
+      },
+      "t2_interface__C__r0": {
+        "all_passed": true,
+        "final_passed": 6,
+        "final_total": 6,
+        "round1_passed": 6,
+        "round1_total": 6,
+        "total_elapsed": 10.181
+      },
+      "t3_evolving__B__r0": {
+        "all_passed": true,
+        "final_passed": 9,
+        "final_total": 9,
+        "round1_passed": 5,
+        "round1_total": 5,
+        "total_elapsed": 11.67
+      },
+      "t3_evolving__B__r1": {
+        "all_passed": true,
+        "final_passed": 9,
+        "final_total": 9,
+        "round1_passed": 3,
+        "round1_total": 5,
+        "total_elapsed": 12.07
+      },
+      "t1_independent__B__r0": {
+        "all_passed": true,
+        "final_passed": 6,
+        "final_total": 6,
+        "round1_passed": 6,
+        "round1_total": 6,
+        "total_elapsed": 11.911
+      },
+      "t2_interface__B__r1": {
+        "all_passed": true,
+        "final_passed": 6,
+        "final_total": 6,
+        "round1_passed": 6,
+        "round1_total": 6,
+        "total_elapsed": 11.421
+      },
+      "t3_evolving__B__r2": {
+        "all_passed": false,
+        "final_passed": 6,
+        "final_total": 9,
+        "round1_passed": 2,
+        "round1_total": 5,
+        "total_elapsed": 12.447
+      },
+      "t3_evolving__C__r2": {
+        "all_passed": true,
+        "final_passed": 9,
+        "final_total": 9,
+        "round1_passed": 5,
+        "round1_total": 5,
+        "total_elapsed": 9.861
+      },
+      "t2_interface__B__r0": {
+        "all_passed": true,
+        "final_passed": 6,
+        "final_total": 6,
+        "round1_passed": 6,
+        "round1_total": 6,
+        "total_elapsed": 11.153
+      }
+    },
+    "http_requests": 153,
+    "normal_calls": 153,
+    "retry_calls": 0,
+    "total_tokens": 179851,
+    "reserved_tokens": 0,
+    "usage_unknown_calls": 0,
+    "fatal_protocol": null,
+    "abort_reason": null,
+    "plan_freeze": null
+  },
+  "group_metrics": {
+    "B": {
+      "samples": 9,
+      "all_passed": 8,
+      "sum_final_passed": 60,
+      "sum_final_total": 63,
+      "sum_round1_passed": 46,
+      "sum_round1_total": 51,
+      "worker_calls": 72,
+      "planner_calls": 9,
+      "claim_calls": 36,
+      "edit_calls": 36,
+      "retries": 0,
+      "truncated_calls": 0,
+      "parse_failures": 0,
+      "total_tokens": 99451,
+      "input_tokens": 82333,
+      "output_tokens": 17118,
+      "reasoning_tokens": 0,
+      "cache_hit_tokens": 34048,
+      "worker_tokens": 91986,
+      "planner_tokens": 7465,
+      "claim_tokens": 41500,
+      "edit_tokens": 50486,
+      "total_elapsed": 106.61300000000001,
+      "first_pass_elapsed": 44.243,
+      "claim_conflicts": 0,
+      "edit_conflicts": 0,
+      "overreach": 0,
+      "invalid_edits": 0,
+      "unclaimed_writes": 0,
+      "writer_rounds": 30,
+      "writer_rounds_with_edit": 27,
+      "reviewer_rounds": 6,
+      "sot_issues": 0
+    },
+    "C": {
+      "samples": 9,
+      "all_passed": 9,
+      "sum_final_passed": 63,
+      "sum_final_total": 63,
+      "sum_round1_passed": 51,
+      "sum_round1_total": 51,
+      "worker_calls": 72,
+      "planner_calls": 0,
+      "claim_calls": 36,
+      "edit_calls": 36,
+      "retries": 0,
+      "truncated_calls": 0,
+      "parse_failures": 0,
+      "total_tokens": 80400,
+      "input_tokens": 66420,
+      "output_tokens": 13980,
+      "reasoning_tokens": 0,
+      "cache_hit_tokens": 29440,
+      "worker_tokens": 80400,
+      "planner_tokens": 0,
+      "claim_tokens": 36146,
+      "edit_tokens": 44254,
+      "total_elapsed": 87.93100000000001,
+      "first_pass_elapsed": 43.20399999999999,
+      "claim_conflicts": 0,
+      "edit_conflicts": 0,
+      "overreach": 0,
+      "invalid_edits": 0,
+      "unclaimed_writes": 0,
+      "writer_rounds": 30,
+      "writer_rounds_with_edit": 23,
+      "reviewer_rounds": 6,
+      "sot_issues": 0
+    }
+  },
+  "group_tokens": {
+    "B": {
+      "run_tokens": [
+        10825,
+        11114,
+        11958,
+        10069,
+        10186,
+        11144,
+        12180,
+        10075,
+        11900
+      ],
+      "run_elapsed": [
+        12.364,
+        11.914,
+        11.663,
+        11.67,
+        12.07,
+        11.911,
+        11.421,
+        12.447,
+        11.153
+      ]
+    },
+    "C": {
+      "run_tokens": [
+        9489,
+        9081,
+        8101,
+        9242,
+        9640,
+        8017,
+        9065,
+        9688,
+        8077
+      ],
+      "run_elapsed": [
+        9.894,
+        9.589,
+        10.036,
+        9.22,
+        9.865,
+        10.331,
+        8.954,
+        10.181,
+        9.861
+      ]
+    }
+  },
+  "per_cell": {
+    "t1_independent__B": {
+      "task": "t1_independent",
+      "group": "B",
+      "samples": 3,
+      "all_passed": 3,
+      "final_passed": 18,
+      "final_total": 18
+    },
+    "t2_interface__C": {
+      "task": "t2_interface",
+      "group": "C",
+      "samples": 3,
+      "all_passed": 3,
+      "final_passed": 18,
+      "final_total": 18
+    },
+    "t1_independent__C": {
+      "task": "t1_independent",
+      "group": "C",
+      "samples": 3,
+      "all_passed": 3,
+      "final_passed": 18,
+      "final_total": 18
+    },
+    "t3_evolving__C": {
+      "task": "t3_evolving",
+      "group": "C",
+      "samples": 3,
+      "all_passed": 3,
+      "final_passed": 27,
+      "final_total": 27
+    },
+    "t2_interface__B": {
+      "task": "t2_interface",
+      "group": "B",
+      "samples": 3,
+      "all_passed": 3,
+      "final_passed": 18,
+      "final_total": 18
+    },
+    "t3_evolving__B": {
+      "task": "t3_evolving",
+      "group": "B",
+      "samples": 3,
+      "all_passed": 2,
+      "final_passed": 24,
+      "final_total": 27
+    }
+  },
+  "per_class": {
+    "t1_independent": {
+      "B_all_passed": 3,
+      "B_samples": 3,
+      "C_all_passed": 3,
+      "C_samples": 3
+    },
+    "t2_interface": {
+      "B_all_passed": 3,
+      "B_samples": 3,
+      "C_all_passed": 3,
+      "C_samples": 3
+    },
+    "t3_evolving": {
+      "B_all_passed": 2,
+      "B_samples": 3,
+      "C_all_passed": 3,
+      "C_samples": 3
+    }
+  },
+  "per_sample": [
+    {
+      "run_id": "t1_independent__B__r2",
+      "task": "t1_independent",
+      "group": "B",
+      "repeat": 2,
+      "first_worker": "w1",
+      "round1": "6/6",
+      "final": "6/6",
+      "all_passed": true,
+      "run_tokens": 10825,
+      "total_elapsed": 12.364,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t2_interface__C__r2",
+      "task": "t2_interface",
+      "group": "C",
+      "repeat": 2,
+      "first_worker": "w1",
+      "round1": "6/6",
+      "final": "6/6",
+      "all_passed": true,
+      "run_tokens": 9489,
+      "total_elapsed": 9.894,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t1_independent__C__r2",
+      "task": "t1_independent",
+      "group": "C",
+      "repeat": 2,
+      "first_worker": "w1",
+      "round1": "6/6",
+      "final": "6/6",
+      "all_passed": true,
+      "run_tokens": 9081,
+      "total_elapsed": 9.589,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t1_independent__B__r1",
+      "task": "t1_independent",
+      "group": "B",
+      "repeat": 1,
+      "first_worker": "w2",
+      "round1": "6/6",
+      "final": "6/6",
+      "all_passed": true,
+      "run_tokens": 11114,
+      "total_elapsed": 11.914,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t3_evolving__C__r0",
+      "task": "t3_evolving",
+      "group": "C",
+      "repeat": 0,
+      "first_worker": "w1",
+      "round1": "5/5",
+      "final": "9/9",
+      "all_passed": true,
+      "run_tokens": 8101,
+      "total_elapsed": 10.036,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t1_independent__C__r1",
+      "task": "t1_independent",
+      "group": "C",
+      "repeat": 1,
+      "first_worker": "w2",
+      "round1": "6/6",
+      "final": "6/6",
+      "all_passed": true,
+      "run_tokens": 9242,
+      "total_elapsed": 9.22,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t2_interface__C__r1",
+      "task": "t2_interface",
+      "group": "C",
+      "repeat": 1,
+      "first_worker": "w2",
+      "round1": "6/6",
+      "final": "6/6",
+      "all_passed": true,
+      "run_tokens": 9640,
+      "total_elapsed": 9.865,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t3_evolving__C__r1",
+      "task": "t3_evolving",
+      "group": "C",
+      "repeat": 1,
+      "first_worker": "w2",
+      "round1": "5/5",
+      "final": "9/9",
+      "all_passed": true,
+      "run_tokens": 8017,
+      "total_elapsed": 10.331,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t2_interface__B__r2",
+      "task": "t2_interface",
+      "group": "B",
+      "repeat": 2,
+      "first_worker": "w1",
+      "round1": "6/6",
+      "final": "6/6",
+      "all_passed": true,
+      "run_tokens": 11958,
+      "total_elapsed": 11.663,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t1_independent__C__r0",
+      "task": "t1_independent",
+      "group": "C",
+      "repeat": 0,
+      "first_worker": "w1",
+      "round1": "6/6",
+      "final": "6/6",
+      "all_passed": true,
+      "run_tokens": 9065,
+      "total_elapsed": 8.954,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t2_interface__C__r0",
+      "task": "t2_interface",
+      "group": "C",
+      "repeat": 0,
+      "first_worker": "w1",
+      "round1": "6/6",
+      "final": "6/6",
+      "all_passed": true,
+      "run_tokens": 9688,
+      "total_elapsed": 10.181,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t3_evolving__B__r0",
+      "task": "t3_evolving",
+      "group": "B",
+      "repeat": 0,
+      "first_worker": "w1",
+      "round1": "5/5",
+      "final": "9/9",
+      "all_passed": true,
+      "run_tokens": 10069,
+      "total_elapsed": 11.67,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t3_evolving__B__r1",
+      "task": "t3_evolving",
+      "group": "B",
+      "repeat": 1,
+      "first_worker": "w2",
+      "round1": "3/5",
+      "final": "9/9",
+      "all_passed": true,
+      "run_tokens": 10186,
+      "total_elapsed": 12.07,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t1_independent__B__r0",
+      "task": "t1_independent",
+      "group": "B",
+      "repeat": 0,
+      "first_worker": "w1",
+      "round1": "6/6",
+      "final": "6/6",
+      "all_passed": true,
+      "run_tokens": 11144,
+      "total_elapsed": 11.911,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t2_interface__B__r1",
+      "task": "t2_interface",
+      "group": "B",
+      "repeat": 1,
+      "first_worker": "w2",
+      "round1": "6/6",
+      "final": "6/6",
+      "all_passed": true,
+      "run_tokens": 12180,
+      "total_elapsed": 11.421,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t3_evolving__B__r2",
+      "task": "t3_evolving",
+      "group": "B",
+      "repeat": 2,
+      "first_worker": "w1",
+      "round1": "2/5",
+      "final": "6/9",
+      "all_passed": false,
+      "run_tokens": 10075,
+      "total_elapsed": 12.447,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t3_evolving__C__r2",
+      "task": "t3_evolving",
+      "group": "C",
+      "repeat": 2,
+      "first_worker": "w1",
+      "round1": "5/5",
+      "final": "9/9",
+      "all_passed": true,
+      "run_tokens": 8077,
+      "total_elapsed": 9.861,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    },
+    {
+      "run_id": "t2_interface__B__r0",
+      "task": "t2_interface",
+      "group": "B",
+      "repeat": 0,
+      "first_worker": "w1",
+      "round1": "6/6",
+      "final": "6/6",
+      "all_passed": true,
+      "run_tokens": 11900,
+      "total_elapsed": 11.153,
+      "truncated": 0,
+      "sot_issues": [],
+      "status": "completed"
+    }
+  ],
+  "medians": {
+    "B_tokens": 11114,
+    "C_tokens": 9081,
+    "B_elapsed": 11.911,
+    "C_elapsed": 9.865,
+    "token_improve_C_vs_B": 0.1829,
+    "time_improve_C_vs_B": 0.1718
+  },
+  "decision_rules": {
+    "C_all_9_pass": true,
+    "C_each_class_ge_B": true,
+    "C_zero_sot_or_overreach": true,
+    "C_zero_truncation": true,
+    "improvement_rule_met": true,
+    "candidate_independent_orchestration_removable": true,
+    "candidate_retain_planning": false,
+    "note": "candidate only for a next-round product SDK check; NOT an automatic removal"
+  }
+}

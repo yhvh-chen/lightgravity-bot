@@ -1,0 +1,35 @@
+{
+  "note": "offline re-check of the single 2-turn calibration attempt; no new model samples",
+  "raw_http_used": 6,
+  "raw_tokens_used": 26628,
+  "raw_turns_run": 2,
+  "lease": "src/alpha.py",
+  "acceptance_recheck": {
+    "passed": true,
+    "lease": "src/alpha.py",
+    "stdout": "CAL_OK\n",
+    "stderr": ""
+  },
+  "checks": {
+    "bounds_turns_le_2": true,
+    "bounds_http_le_12": true,
+    "bounds_tokens_le_60000": true,
+    "bounds_wall_le_180": true,
+    "planner_plan_valid": true,
+    "planner_payload_present": true,
+    "planner_finish_source_hook": true,
+    "planner_session_db_matches_hook": true,
+    "edit_payload_present": true,
+    "edit_not_emitted_truncated": true,
+    "edit_finish_source_hook": true,
+    "edit_session_db_matches_hook": true,
+    "single_output_limit_upstream": true,
+    "edit_plan_injected": true,
+    "edit_read_path_nonempty": true,
+    "edit_write_path_nonempty": true,
+    "planner_stop_confirmed": true,
+    "edit_stop_confirmed": true,
+    "leased_file_written_and_correct": true
+  },
+  "all_passed": true
+}

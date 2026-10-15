@@ -33,6 +33,7 @@ from lightgravity.adapter import (
 from lightgravity.adapter.execution import EventSink
 from lightgravity.contracts import TaskPhase
 
+from .planning import PlanningRequest
 from .state import RunController
 
 #: Adapter outcome states mapped to Task/Run phases by the coordinator.
@@ -74,6 +75,10 @@ class DispatchContext:
     timeout_seconds: float | None = None
     save_dir: str | None = None
     conversation_id: str | None = None
+    #: Optional, bounded, reasoned request for a model plan proposal.  ``None``
+    #: (the default) means the dispatcher uses the program-side minimal plan
+    #: instead of consulting any injected model planner.
+    planning_request: PlanningRequest | None = None
 
     def to_execute_request(self) -> ExecuteRequest:
         """Build the frozen adapter request from this context."""

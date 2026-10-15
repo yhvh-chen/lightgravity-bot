@@ -1,0 +1,14 @@
+### copy fidelity verification (source worktree -> main workspace) ###
+run_utc: 2026-10-15T05:35:15Z
+source:      /tmp/lightgravity-worktrees/agensh-ablation-20261015/probes/agensh-orchestration
+destination: /home/yhvh/code/lightgravity-bot/probes/agensh-orchestration
+excluded:    __pycache__/, *.pyc, runs_mock/
+
+file count source: 242
+file count dest:   242
+
+RESULT: all copied files byte-identical (242/242) immediately after copy.
+
+### post-doc-edit re-verification ###
+Non-doc copied files still byte-identical to source: yes (239/239)
+Only REPORT.md / README.md / PROTOCOL.md differ from source (intentional documentation edits, see doc_edits.txt).

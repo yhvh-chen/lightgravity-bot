@@ -1,0 +1,17 @@
+[cal] planner: state=succeeded http=2 tokens=6515 finish_chars=882 stop=confirmed
+[cal] edit-w1: state=succeeded http=4 tokens=20113 finish_chars=861 stop=confirmed
+{
+  "turns_run": 2,
+  "http_used": 6,
+  "tokens_used": 26628,
+  "wall_used": 12.169,
+  "abort": null,
+  "gaps": [],
+  "passed": false,
+  "plan_id": "fd3a2a8f6135d226",
+  "acceptance": {
+    "passed": false,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\nAssertionError: None\n"
+  }
+}

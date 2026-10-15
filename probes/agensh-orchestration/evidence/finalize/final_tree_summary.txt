@@ -1,0 +1,9 @@
+### final integrated tree ###
+run_utc: 2026-10-15T05:36:02Z
+root: /home/yhvh/code/lightgravity-bot/probes/agensh-orchestration
+files (incl. finalize evidence): 251
+size: 2.2M
+excluded from copy: __pycache__/, *.pyc, runs_mock/
+runs_mock rebuild: python3 driver/run_pilot.py --mock --runs-dir runs_mock
+
+final manifest sha256: ea8218d0feb465c507da2f24836d20ac7afd66c38ca837b7816a260aa629ad32

@@ -1,0 +1,6 @@
+--- a/src/alpha.py
++++ b/src/alpha.py
+@@ -1,2 +1,2 @@
+ def add(a, b):
+-    return None
++    return a + b

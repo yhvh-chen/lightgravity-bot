@@ -6,7 +6,7 @@ Task/Run lifecycle; this dispatcher only decides *how* one dispatched Run turns
 into a validated Subtask graph, a minimal temporary team and a dependency-ordered
 execution:
 
-1. a planner proposes nodes (rules or a bounded model proposal);
+1. a plan is produced program-side (minimal legal plan for an explicit target) or, only when an explicit on-demand ``PlanningRequest`` records why, proposed by an injected bounded model planner;
 2. the program validates the graph (references, acyclicity, capabilities,
    acceptance, workspace boundary);
 3. the recruiter resolves required capabilities to executable ``agent``
@@ -50,14 +50,17 @@ from lightgravity.store import Store, new_id
 
 from .dispatcher import DispatchContext, DispatchOutcome
 from .planner import (
+    ModelProposalError,
     Plan,
     PlanInvalid,
     Planner,
+    PlanProposal,
     PlanValidator,
     RuleBasedPlanner,
     SubtaskSpec,
     stable_hash,
 )
+from .planning import PlanningRequest
 from .recruiter import MemberPlan, RecruitError, Recruiter, RoleCatalog, TeamPlan
 from .scheduler import (
     ArtifactHandoff,
@@ -137,7 +140,13 @@ class GraphDispatcher:
             raise ValueError("max_parallel must be >= 1")
         self._store = store
         self._executor = executor
-        self._planner: Planner = planner or RuleBasedPlanner()
+        #: Program-side minimal plan builder.  Used for every Run unless an
+        #: explicit on-demand request selects the optional model planner.
+        self._program_planner: Planner = RuleBasedPlanner()
+        #: Optional injected model proposal interface.  ``None`` (the default)
+        #: means planning is program-side only; it is never constructed by the
+        #: default assembly.
+        self._planner: Planner | None = planner
         self._recruiter = recruiter
         self._catalog = catalog
         self._validator = validator or PlanValidator(
@@ -153,10 +162,22 @@ class GraphDispatcher:
         self._inflight: dict[str, set[asyncio.Task[ExecutorResult]]] = {}
         self._active_refs: dict[str, list[ExecutionRef]] = {}
         self._explicit_cancel: set[str] = set()
+        #: Per-Run on-demand proposal attempts, keyed by run id.  The program
+        #: (not a shared instance counter) owns this budget, so sharing one
+        #: planner across Runs is safe and re-dispatching the same Run cannot
+        #: open a new model loop.  Only Runs that carried an explicit
+        #: ``PlanningRequest`` get an entry, kept for the process lifetime.
+        self._on_demand_calls: dict[str, int] = {}
 
     @property
     def executor(self) -> ExecutorAdapter:
         return self._executor
+
+    @property
+    def planner(self) -> Planner | None:
+        """The optional injected model proposal interface (``None`` by default)."""
+
+        return self._planner
 
     # --------------------------------------------------------------- dispatch
     async def dispatch(
@@ -183,13 +204,48 @@ class GraphDispatcher:
         controller: RunController,
         emit: Callable[[dict[str, Any]], Any],
     ) -> DispatchOutcome:
-        # 1. Propose + validate the plan (planning phase already entered).
+        # 1. Produce + validate the plan.  The default is the program-side
+        #    minimal plan.  An injected model planner is consulted only when an
+        #    explicit on-demand request (trigger + reason) records why, and only
+        #    within that request's per-Run call budget (``PlanningRequest.max_calls``).
+        #    The budget is tracked per Run by the program, not by a shared
+        #    instance counter, so one planner can be shared across Runs and a
+        #    repeated dispatch of the same Run cannot start a new model loop.
+        #    Every attempt counts, including a failed proposal call.
+        planning_request = context.planning_request
+        model_planner = self._planner
+        on_demand = planning_request is not None and model_planner is not None
+        stage = "plan_on_demand" if on_demand else "program_plan"
+        if on_demand and planning_request is not None and model_planner is not None:
+            used = self._on_demand_calls.get(context.run_id, 0)
+            if used >= planning_request.max_calls:
+                return self._plan_failure(
+                    controller,
+                    stage,
+                    ModelProposalError(
+                        "model planner call budget exhausted for this run",
+                        problems=[
+                            f"max_calls={planning_request.max_calls}",
+                            f"attempts={used}",
+                        ],
+                    ),
+                )
+            # Count before the call so a failed attempt also consumes budget.
+            self._on_demand_calls[context.run_id] = used + 1
+            planner: Planner = model_planner
+        else:
+            planner = self._program_planner
         try:
-            proposal = await self._planner.plan(context)
+            proposal = await planner.plan(context)
         except AppError as exc:
-            return self._plan_failure(controller, "planner", exc)
+            return self._plan_failure(controller, stage, exc)
         except Exception as exc:  # noqa: BLE001 - planner crash is a real failure
-            return self._crash_failure(controller, "planner", exc)
+            return self._crash_failure(controller, stage, exc)
+        if on_demand and planning_request is not None:
+            try:
+                proposal = self._record_planning_request(proposal, planning_request)
+            except Exception as exc:  # noqa: BLE001 - never let a bad request escape
+                return self._crash_failure(controller, stage, exc)
         try:
             plan = self._validator.validate(proposal, workspace_path=context.workspace_path)
         except PlanInvalid as exc:
@@ -259,6 +315,28 @@ class GraphDispatcher:
         return outcome
 
     # ----------------------------------------------------------- materialize
+    @staticmethod
+    def _record_planning_request(
+        proposal: PlanProposal, request: PlanningRequest
+    ) -> PlanProposal:
+        """Attach the on-demand trigger/reason to the validated plan snapshot.
+
+        The reason is recorded on the plan the program validates and freezes, so
+        an on-demand proposal is auditable without adding a hidden control loop
+        or a new wire field.
+        """
+
+        note = (
+            "on-demand planning: "
+            f"trigger={request.trigger.value} reason={request.reason!r} "
+            f"requested_by={request.requested_by} max_calls={request.max_calls}"
+        )
+        return PlanProposal(
+            subtasks=proposal.subtasks,
+            source=proposal.source,
+            notes=(*proposal.notes, note),
+        )
+
     def _resolve_run_pin(self) -> ConnectionPin | None:
         """Resolve the current default worker connection once per Run."""
 

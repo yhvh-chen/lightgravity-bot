@@ -1,0 +1,503 @@
+{
+  "relay_total_http": 154,
+  "relay_total_tokens": 845223,
+  "driver_budget_total_tokens": 837226,
+  "runs": {
+    "t1_independent__B__r0": {
+      "task": "t1_independent",
+      "group": "B",
+      "status": "completed",
+      "plan_valid": true,
+      "plan_injection": {
+        "checked": 8,
+        "all_true": true
+      },
+      "round1": [
+        6,
+        6
+      ],
+      "final": [
+        6,
+        6
+      ],
+      "all_passed": true,
+      "turns_total": 9,
+      "turns_by_phase": {
+        "planner": 1,
+        "claim": 4,
+        "edit": 4
+      },
+      "turn_states": {
+        "succeeded": 9
+      },
+      "http": 24,
+      "tokens": 126594,
+      "relay_tokens": 126594,
+      "relay_tokens_by_phase": {
+        "planner": 3442,
+        "claim": 41642,
+        "edit": 81510
+      },
+      "relay_cache_tokens": 76416,
+      "relay_calls": 24,
+      "tokens_unknown_calls": 0,
+      "elapsed": 55.968,
+      "tokens_by_phase": {
+        "planner": 3442,
+        "claim": 41642,
+        "edit": 81510
+      },
+      "http_by_phase": {
+        "planner": 1,
+        "claim": 10,
+        "edit": 13
+      },
+      "finish_turns": 9,
+      "finish_lossless_when_present": true,
+      "finish_no_call_turns": [],
+      "length_truncations": 0,
+      "finish_reasons": [
+        "tool_calls"
+      ],
+      "cache_tokens": 76416,
+      "reasoning_seen": 0,
+      "hook_decisions": 31,
+      "hook_denials": 2,
+      "hook_denial_reasons": [
+        "write '/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t1_independent__B__r0/staging/r1/w1/_check_slugs.py' denied: not the held lease ['/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t1_independent__B__r0/staging/r1/w1/src/slugs.py']",
+        "write '/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t1_independent__B__r0/staging/r1/w2/_w2_selftest.py' denied: not the held lease ['/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t1_independent__B__r0/staging/r1/w2/src/ranges.py']"
+      ],
+      "actual_overreach": 0,
+      "overreach_detail": [],
+      "invalid_edits": [],
+      "accepted_writes": 2,
+      "stop_all_positive": true,
+      "sot_issues": [],
+      "first_worker": "w1",
+      "plan_id": "668a22a4875bdfde"
+    },
+    "t1_independent__C__r0": {
+      "task": "t1_independent",
+      "group": "C",
+      "status": "completed",
+      "plan_valid": null,
+      "plan_injection": null,
+      "round1": [
+        6,
+        6
+      ],
+      "final": [
+        6,
+        6
+      ],
+      "all_passed": true,
+      "turns_total": 8,
+      "turns_by_phase": {
+        "planner": 0,
+        "claim": 4,
+        "edit": 4
+      },
+      "turn_states": {
+        "budget_exhausted": 2,
+        "succeeded": 6
+      },
+      "http": 24,
+      "tokens": 126961,
+      "relay_tokens": 126961,
+      "relay_tokens_by_phase": {
+        "planner": 0,
+        "claim": 29588,
+        "edit": 97373
+      },
+      "relay_cache_tokens": 82304,
+      "relay_calls": 24,
+      "tokens_unknown_calls": 0,
+      "elapsed": 55.829,
+      "tokens_by_phase": {
+        "planner": 0,
+        "claim": 29588,
+        "edit": 97373
+      },
+      "http_by_phase": {
+        "planner": 0,
+        "claim": 8,
+        "edit": 16
+      },
+      "finish_turns": 7,
+      "finish_lossless_when_present": true,
+      "finish_no_call_turns": [
+        "r1-edit-w2"
+      ],
+      "length_truncations": 0,
+      "finish_reasons": [
+        "tool_calls"
+      ],
+      "cache_tokens": 82304,
+      "reasoning_seen": 0,
+      "hook_decisions": 30,
+      "hook_denials": 3,
+      "hook_denial_reasons": [
+        "write '/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t1_independent__C__r0/staging/r1/w1/_check_slugs.py' denied: not the held lease ['/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t1_independent__C__r0/staging/r1/w1/src/slugs.py']",
+        "path '/proc/937544/fd/pipe:[938356996]' escapes the authorized root",
+        "write '/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t1_independent__C__r0/staging/r1/w2/_check_ranges.py' denied: not the held lease ['/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t1_independent__C__r0/staging/r1/w2/src/ranges.py']"
+      ],
+      "actual_overreach": 0,
+      "overreach_detail": [],
+      "invalid_edits": [],
+      "accepted_writes": 2,
+      "stop_all_positive": true,
+      "sot_issues": [],
+      "first_worker": "w1",
+      "plan_id": null
+    },
+    "t2_interface__B__r0": {
+      "task": "t2_interface",
+      "group": "B",
+      "status": "completed",
+      "plan_valid": true,
+      "plan_injection": {
+        "checked": 8,
+        "all_true": true
+      },
+      "round1": [
+        6,
+        6
+      ],
+      "final": [
+        6,
+        6
+      ],
+      "all_passed": true,
+      "turns_total": 9,
+      "turns_by_phase": {
+        "planner": 1,
+        "claim": 4,
+        "edit": 4
+      },
+      "turn_states": {
+        "budget_exhausted": 1,
+        "succeeded": 8
+      },
+      "http": 25,
+      "tokens": 144758,
+      "relay_tokens": 144758,
+      "relay_tokens_by_phase": {
+        "planner": 3469,
+        "claim": 38000,
+        "edit": 103289
+      },
+      "relay_cache_tokens": 91008,
+      "relay_calls": 25,
+      "tokens_unknown_calls": 0,
+      "elapsed": 57.653,
+      "tokens_by_phase": {
+        "planner": 3469,
+        "claim": 38000,
+        "edit": 103289
+      },
+      "http_by_phase": {
+        "planner": 1,
+        "claim": 9,
+        "edit": 15
+      },
+      "finish_turns": 8,
+      "finish_lossless_when_present": true,
+      "finish_no_call_turns": [
+        "r1-edit-w2"
+      ],
+      "length_truncations": 0,
+      "finish_reasons": [
+        "tool_calls"
+      ],
+      "cache_tokens": 91008,
+      "reasoning_seen": 0,
+      "hook_decisions": 33,
+      "hook_denials": 3,
+      "hook_denial_reasons": [
+        "write '/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r1/w1/_verify.py' denied: not the held lease ['/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r1/w1/src/geometry.py']",
+        "path '/tmp/check_report_w2.py' escapes the authorized root",
+        "write '/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r1/w2/_check_report_w2.py' denied: not the held lease ['/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__B__r0/staging/r1/w2/src/report.py']"
+      ],
+      "actual_overreach": 0,
+      "overreach_detail": [],
+      "invalid_edits": [],
+      "accepted_writes": 2,
+      "stop_all_positive": true,
+      "sot_issues": [],
+      "first_worker": "w1",
+      "plan_id": "90f6ff1397b83d05"
+    },
+    "t2_interface__C__r0": {
+      "task": "t2_interface",
+      "group": "C",
+      "status": "completed",
+      "plan_valid": null,
+      "plan_injection": null,
+      "round1": [
+        6,
+        6
+      ],
+      "final": [
+        6,
+        6
+      ],
+      "all_passed": true,
+      "turns_total": 8,
+      "turns_by_phase": {
+        "planner": 0,
+        "claim": 4,
+        "edit": 4
+      },
+      "turn_states": {
+        "failed": 1,
+        "succeeded": 7
+      },
+      "http": 24,
+      "tokens": 123964,
+      "relay_tokens": 131961,
+      "relay_tokens_by_phase": {
+        "planner": 0,
+        "claim": 35545,
+        "edit": 96416
+      },
+      "relay_cache_tokens": 84480,
+      "relay_calls": 24,
+      "tokens_unknown_calls": 0,
+      "elapsed": 55.282,
+      "tokens_by_phase": {
+        "planner": 0,
+        "claim": 35545,
+        "edit": 96416
+      },
+      "http_by_phase": {
+        "planner": 0,
+        "claim": 9,
+        "edit": 15
+      },
+      "finish_turns": 7,
+      "finish_lossless_when_present": true,
+      "finish_no_call_turns": [
+        "r1-edit-w2"
+      ],
+      "length_truncations": 0,
+      "finish_reasons": [
+        "tool_calls"
+      ],
+      "cache_tokens": 84480,
+      "reasoning_seen": 0,
+      "hook_decisions": 31,
+      "hook_denials": 2,
+      "hook_denial_reasons": [
+        "write '/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__C__r0/staging/r1/w1/check_geometry.py' denied: not the held lease ['/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__C__r0/staging/r1/w1/src/geometry.py']",
+        "write '/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__C__r0/staging/r1/w2/check_report.py' denied: not the held lease ['/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t2_interface__C__r0/staging/r1/w2/src/report.py']"
+      ],
+      "actual_overreach": 0,
+      "overreach_detail": [],
+      "invalid_edits": [],
+      "accepted_writes": 2,
+      "stop_all_positive": true,
+      "sot_issues": [],
+      "first_worker": "w1",
+      "plan_id": null
+    },
+    "t3_evolving__B__r0": {
+      "task": "t3_evolving",
+      "group": "B",
+      "status": "completed",
+      "plan_valid": true,
+      "plan_injection": {
+        "checked": 8,
+        "all_true": true
+      },
+      "round1": [
+        5,
+        5
+      ],
+      "final": [
+        5,
+        9
+      ],
+      "all_passed": false,
+      "turns_total": 9,
+      "turns_by_phase": {
+        "planner": 1,
+        "claim": 4,
+        "edit": 4
+      },
+      "turn_states": {
+        "budget_exhausted": 2,
+        "succeeded": 7
+      },
+      "http": 30,
+      "tokens": 170348,
+      "relay_tokens": 170348,
+      "relay_tokens_by_phase": {
+        "planner": 3179,
+        "claim": 35327,
+        "edit": 131842
+      },
+      "relay_cache_tokens": 116736,
+      "relay_calls": 30,
+      "tokens_unknown_calls": 0,
+      "elapsed": 73.956,
+      "tokens_by_phase": {
+        "planner": 3179,
+        "claim": 35327,
+        "edit": 131842
+      },
+      "http_by_phase": {
+        "planner": 1,
+        "claim": 9,
+        "edit": 20
+      },
+      "finish_turns": 8,
+      "finish_lossless_when_present": true,
+      "finish_no_call_turns": [
+        "r2-edit-w1"
+      ],
+      "length_truncations": 0,
+      "finish_reasons": [
+        "tool_calls"
+      ],
+      "cache_tokens": 116736,
+      "reasoning_seen": 0,
+      "hook_decisions": 35,
+      "hook_denials": 3,
+      "hook_denial_reasons": [
+        "path '/tmp/stats_check.py' escapes the authorized root",
+        "write '/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t3_evolving__B__r0/staging/r1/w1/stats_check_tmp.py' denied: not the held lease ['/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t3_evolving__B__r0/staging/r1/w1/src/stats.py']",
+        "write '/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t3_evolving__B__r0/staging/r2/w2/verify_review.py' denied: caller holds no lease"
+      ],
+      "actual_overreach": 0,
+      "overreach_detail": [],
+      "invalid_edits": [],
+      "accepted_writes": 2,
+      "stop_all_positive": true,
+      "sot_issues": [],
+      "first_worker": "w1",
+      "plan_id": "92c72e2babaf8987"
+    },
+    "t3_evolving__C__r0": {
+      "task": "t3_evolving",
+      "group": "C",
+      "status": "completed",
+      "plan_valid": null,
+      "plan_injection": null,
+      "round1": [
+        5,
+        5
+      ],
+      "final": [
+        9,
+        9
+      ],
+      "all_passed": true,
+      "turns_total": 8,
+      "turns_by_phase": {
+        "planner": 0,
+        "claim": 4,
+        "edit": 4
+      },
+      "turn_states": {
+        "budget_exhausted": 1,
+        "succeeded": 7
+      },
+      "http": 27,
+      "tokens": 144601,
+      "relay_tokens": 144601,
+      "relay_tokens_by_phase": {
+        "planner": 0,
+        "claim": 42688,
+        "edit": 101913
+      },
+      "relay_cache_tokens": 96000,
+      "relay_calls": 27,
+      "tokens_unknown_calls": 0,
+      "elapsed": 72.955,
+      "tokens_by_phase": {
+        "planner": 0,
+        "claim": 42688,
+        "edit": 101913
+      },
+      "http_by_phase": {
+        "planner": 0,
+        "claim": 11,
+        "edit": 16
+      },
+      "finish_turns": 8,
+      "finish_lossless_when_present": true,
+      "finish_no_call_turns": [],
+      "length_truncations": 0,
+      "finish_reasons": [
+        "tool_calls"
+      ],
+      "cache_tokens": 96000,
+      "reasoning_seen": 0,
+      "hook_decisions": 34,
+      "hook_denials": 2,
+      "hook_denial_reasons": [
+        "write '/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t3_evolving__C__r0/staging/r1/w1/_verify.py' denied: not the held lease ['/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t3_evolving__C__r0/staging/r1/w1/src/stats.py']",
+        "write '/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t3_evolving__C__r0/staging/r2/w1/_check_w1.py' denied: not the held lease ['/tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected/runs/formal/t3_evolving__C__r0/staging/r2/w1/src/stats.py']"
+      ],
+      "actual_overreach": 0,
+      "overreach_detail": [],
+      "invalid_edits": [],
+      "accepted_writes": 2,
+      "stop_all_positive": true,
+      "sot_issues": [],
+      "first_worker": "w1",
+      "plan_id": null
+    }
+  },
+  "by_group": {
+    "B": {
+      "n": 3,
+      "all_passed": 2,
+      "sum_final_passed": 17,
+      "sum_final_total": 21,
+      "median_tokens": 144758,
+      "median_relay_tokens": 144758,
+      "median_elapsed": 57.653,
+      "sum_http": 79,
+      "sum_tokens": 441700,
+      "sum_relay_tokens": 441700,
+      "sum_elapsed": 187.577,
+      "median_turn_states": {
+        "budget_exhausted": 1,
+        "succeeded": 8
+      }
+    },
+    "C": {
+      "n": 3,
+      "all_passed": 3,
+      "sum_final_passed": 21,
+      "sum_final_total": 21,
+      "median_tokens": 126961,
+      "median_relay_tokens": 131961,
+      "median_elapsed": 55.829,
+      "sum_http": 75,
+      "sum_tokens": 395526,
+      "sum_relay_tokens": 403523,
+      "sum_elapsed": 184.066,
+      "median_turn_states": {
+        "failed": 0,
+        "budget_exhausted": 1,
+        "succeeded": 7
+      }
+    }
+  },
+  "metrics": {
+    "tokens_improvement_pct": 8.84,
+    "budget_tokens_improvement_pct": 12.29,
+    "elapsed_improvement_pct": 3.16
+  },
+  "validity": {
+    "all_b_plans_valid": true,
+    "all_b_plans_injected": true,
+    "all_stops_positive": true,
+    "all_finishes_lossless_when_present": true,
+    "zero_length_truncations": true,
+    "all_sot_clean": true,
+    "all_real_writes": true
+  }
+}

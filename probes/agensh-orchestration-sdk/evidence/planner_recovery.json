@@ -1,0 +1,113 @@
+{
+  "note": "offline recovery from SDK native session store; not the executed plan",
+  "runs": [
+    {
+      "run_id": "t1_independent__B__r0",
+      "task": "t1_independent",
+      "recovered": true,
+      "payload_top_keys": [
+        "findings",
+        "interface_notes",
+        "plan"
+      ],
+      "plan_item_keys": [
+        [
+          "assigned_files",
+          "deliverable",
+          "exclusive_write_scope",
+          "round",
+          "tasks",
+          "validation",
+          "worker"
+        ],
+        [
+          "assigned_files",
+          "deliverable",
+          "exclusive_write_scope",
+          "round",
+          "tasks",
+          "validation",
+          "worker"
+        ],
+        [
+          "conflict_avoidance",
+          "coordination",
+          "integration",
+          "ownership_rule",
+          "round"
+        ]
+      ],
+      "program_valid": false,
+      "program_issues": [
+        "plan_files_missing_or_not_list",
+        "plan_files_missing_or_not_list",
+        "plan_bad_worker:None"
+      ]
+    },
+    {
+      "run_id": "t2_interface__B__r0",
+      "task": "t2_interface",
+      "recovered": true,
+      "payload_top_keys": [
+        "findings",
+        "interface_notes",
+        "plan"
+      ],
+      "plan_item_keys": [
+        [
+          "assignee",
+          "files",
+          "interface",
+          "task"
+        ],
+        [
+          "assignee",
+          "files",
+          "interface",
+          "task"
+        ]
+      ],
+      "program_valid": false,
+      "program_issues": [
+        "plan_bad_worker:None",
+        "plan_bad_worker:None"
+      ]
+    },
+    {
+      "run_id": "t3_evolving__B__r0",
+      "task": "t3_evolving",
+      "recovered": true,
+      "payload_top_keys": [
+        "coordination_notes",
+        "findings",
+        "interface_notes",
+        "plan"
+      ],
+      "plan_item_keys": [
+        [
+          "acceptance_criteria",
+          "interface_contract",
+          "non_overlap_rationale",
+          "owns_files",
+          "role",
+          "tasks",
+          "worker"
+        ],
+        [
+          "acceptance_criteria",
+          "interface_contract",
+          "non_overlap_rationale",
+          "owns_files",
+          "role",
+          "tasks",
+          "worker"
+        ]
+      ],
+      "program_valid": false,
+      "program_issues": [
+        "plan_files_missing_or_not_list",
+        "plan_files_missing_or_not_list"
+      ]
+    }
+  ]
+}

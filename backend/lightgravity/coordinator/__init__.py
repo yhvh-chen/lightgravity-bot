@@ -56,6 +56,7 @@ from .planner import (
     RuleBasedPlanner,
     SubtaskSpec,
 )
+from .planning import PlanningRequest, PlanningTrigger
 from .recruiter import (
     CandidateAgent,
     MemberPlan,
@@ -106,6 +107,8 @@ __all__ = [
     "RawSubtask",
     "RuleBasedPlanner",
     "SubtaskSpec",
+    "PlanningRequest",
+    "PlanningTrigger",
     "CandidateAgent",
     "MemberPlan",
     "RecruitError",

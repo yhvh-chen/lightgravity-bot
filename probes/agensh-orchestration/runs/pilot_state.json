@@ -1,0 +1,129 @@
+{
+  "pilot_start_epoch": 1792042000.1176445,
+  "order": [
+    [
+      "t1_independent",
+      "B"
+    ],
+    [
+      "t1_independent",
+      "C"
+    ],
+    [
+      "t2_interface",
+      "C"
+    ],
+    [
+      "t2_interface",
+      "B"
+    ],
+    [
+      "t1_independent",
+      "A"
+    ],
+    [
+      "t3_evolving",
+      "A"
+    ],
+    [
+      "t3_evolving",
+      "B"
+    ],
+    [
+      "t3_evolving",
+      "C"
+    ],
+    [
+      "t2_interface",
+      "A"
+    ]
+  ],
+  "completed": {
+    "t1_independent__B": {
+      "all_passed": true,
+      "final_passed": 6,
+      "final_total": 6,
+      "round1_passed": 3,
+      "round1_total": 6,
+      "total_elapsed": 17.978,
+      "orchestration_elapsed": 6.89
+    },
+    "t1_independent__C": {
+      "all_passed": false,
+      "final_passed": 0,
+      "final_total": 6,
+      "round1_passed": 0,
+      "round1_total": 6,
+      "total_elapsed": 9.78,
+      "orchestration_elapsed": 0.0
+    },
+    "t2_interface__C": {
+      "all_passed": true,
+      "final_passed": 6,
+      "final_total": 6,
+      "round1_passed": 0,
+      "round1_total": 6,
+      "total_elapsed": 14.492,
+      "orchestration_elapsed": 0.0
+    },
+    "t2_interface__B": {
+      "all_passed": true,
+      "final_passed": 6,
+      "final_total": 6,
+      "round1_passed": 6,
+      "round1_total": 6,
+      "total_elapsed": 15.226,
+      "orchestration_elapsed": 7.312
+    },
+    "t1_independent__A": {
+      "all_passed": true,
+      "final_passed": 6,
+      "final_total": 6,
+      "round1_passed": 6,
+      "round1_total": 6,
+      "total_elapsed": 27.237,
+      "orchestration_elapsed": 14.594
+    },
+    "t3_evolving__A": {
+      "all_passed": false,
+      "final_passed": 5,
+      "final_total": 9,
+      "round1_passed": 5,
+      "round1_total": 5,
+      "total_elapsed": 37.805,
+      "orchestration_elapsed": 17.941
+    },
+    "t3_evolving__B": {
+      "all_passed": true,
+      "final_passed": 9,
+      "final_total": 9,
+      "round1_passed": 5,
+      "round1_total": 5,
+      "total_elapsed": 22.247,
+      "orchestration_elapsed": 6.653
+    },
+    "t3_evolving__C": {
+      "all_passed": false,
+      "final_passed": 0,
+      "final_total": 9,
+      "round1_passed": 0,
+      "round1_total": 5,
+      "total_elapsed": 14.292,
+      "orchestration_elapsed": 0.0
+    },
+    "t2_interface__A": {
+      "all_passed": true,
+      "final_passed": 6,
+      "final_total": 6,
+      "round1_passed": 6,
+      "round1_total": 6,
+      "total_elapsed": 20.998,
+      "orchestration_elapsed": 12.743
+    }
+  },
+  "http_requests": 45,
+  "normal_calls": 45,
+  "retry_calls": 0,
+  "total_tokens": 106949,
+  "usage_unknown_calls": 0
+}

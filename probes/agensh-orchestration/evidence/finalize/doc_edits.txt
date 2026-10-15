@@ -1,0 +1,16 @@
+### intentional documentation edits applied in the main copy (source worktree left untouched) ###
+run_utc: 2026-10-15T05:35:47Z
+
+file         source_hash (unchanged)                                            main_pre_edit_hash                                                 main_post_edit_hash
+REPORT.md    bd48436044b961037841e99c6ba39a685965ac180abd3c3d02dede0797bce814   bd48436044b961037841e99c6ba39a685965ac180abd3c3d02dede0797bce814   555bc7688498a41d3b3c6bc3c52db19200fc79f548eddae10978dd6bd06b490a
+README.md    ce6fbdd4dec9917cec20adb3cc0543f8a28b2947844a8a894d2562913122f965   ce6fbdd4dec9917cec20adb3cc0543f8a28b2947844a8a894d2562913122f965   d40bb18315008ec6f936ce7ec4b8a56472a4db51d8b872047c18ad1706a3dcd8
+PROTOCOL.md  b01e9a35a6deb6937f7734afcf32e218d9c1a67ff98bce56dcc29bba77fbccfc   b01e9a35a6deb6937f7734afcf32e218d9c1a67ff98bce56dcc29bba77fbccfc   92592e927fe52e8df63b5d2acce72447149ee3cc04d360d02800284cabc3ccc9
+
+pre-edit main hash equals source hash for each file: yes (copy was faithful).
+post-edit differs only for these 3 documentation files; no result/test/API/protocol-rule file was changed.
+
+### git-level scope in main repo ###
+untracked (new): probes/agensh-orchestration/
+concurrent non-finalizer change observed: M PROJECT.md (NOT made by this finalizer)
+   M PROJECT.md
+  ?? probes/agensh-orchestration/

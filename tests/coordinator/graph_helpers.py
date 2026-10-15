@@ -22,6 +22,7 @@ from lightgravity.adapter import (
     adapter_capabilities,
 )
 from lightgravity.coordinator import DispatchContext, RunController
+from lightgravity.coordinator.planning import PlanningRequest
 from lightgravity.coordinator.state import StateWriter
 from lightgravity.store import FileStore, new_id
 
@@ -105,6 +106,7 @@ def make_dispatch_setup(
     agent_ref: str | None = "developer",
     allowed_tools: tuple[str, ...] | None = None,
     budget: Mapping[str, int] | None = None,
+    planning_request: PlanningRequest | None = None,
 ) -> tuple[str, str, RunController, DispatchContext]:
     """Create a Task+Run already in the ``planning`` phase and a RunController."""
 
@@ -184,6 +186,7 @@ def make_dispatch_setup(
         allowed_tools=allowed_tools,
         agent_ref=agent_ref,
         budget=dict(budget or {}),
+        planning_request=planning_request,
     )
     return task_id, run_id, controller, context
 

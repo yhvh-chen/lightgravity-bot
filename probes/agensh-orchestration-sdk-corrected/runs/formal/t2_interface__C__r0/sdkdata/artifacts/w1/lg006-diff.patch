@@ -1,0 +1,33 @@
+--- a/src/geometry.py
++++ b/src/geometry.py
+@@ -1,9 +1,27 @@
+-"""Geometry (initial stub — not implemented)."""
++"""Geometry helpers for rect/circle shapes.
++
++Shape interface (shared contract):
++- dict with "kind"
++  - "rect": has "width" and "height"
++  - "circle": has "radius"
++Unknown kind raises ValueError.
++"""
++import math
+ 
+ 
+ def area(shape):
+-    raise NotImplementedError
++    kind = shape["kind"]
++    if kind == "rect":
++        return shape["width"] * shape["height"]
++    if kind == "circle":
++        return math.pi * shape["radius"] ** 2
++    raise ValueError(f"unknown shape kind: {kind!r}")
+ 
+ 
+ def perimeter(shape):
+-    raise NotImplementedError
++    kind = shape["kind"]
++    if kind == "rect":
++        return 2 * (shape["width"] + shape["height"])
++    if kind == "circle":
++        return 2 * math.pi * shape["radius"]
++    raise ValueError(f"unknown shape kind: {kind!r}")

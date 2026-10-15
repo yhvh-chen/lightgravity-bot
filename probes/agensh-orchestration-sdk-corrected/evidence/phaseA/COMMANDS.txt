@@ -1,0 +1,12 @@
+# Phase A — offline repair verification (0 model calls)
+# cwd: /tmp/lightgravity-worktrees/agensh-sdk-corrected-20261015/probes/agensh-orchestration-sdk-corrected
+# python: /home/yhvh/code/lightgravity-bot/.venv/bin/python  (google-antigravity==0.1.22)
+
+$PY -m py_compile driver/hooks.py driver/host.py driver/relay.py driver/sessiondb.py driver/experiment.py driver/sotyaml.py
+$PY driver/selftest_offline.py            # -> evidence/phaseA/selftest_offline.stdout.txt  (ALL PASSED)
+$PY driver/audit_offline.py               # -> evidence/phaseA/offline_replay.stdout.txt / offline_replay.json
+                                          #    recovers 6110/1196/7690-char full planner payloads from source SDK session DB
+                                          #    and shows the corrected strict PlanSchema rejects all three old reports
+
+# Source (read-only) never modified:
+#   /tmp/lightgravity-worktrees/agensh-sdk-20261015/probes/agensh-orchestration-sdk

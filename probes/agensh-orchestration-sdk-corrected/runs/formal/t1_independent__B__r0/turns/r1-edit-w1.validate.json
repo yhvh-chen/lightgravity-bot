@@ -1,0 +1,12 @@
+{
+  "produced": [],
+  "modified": [
+    "src/slugs.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/slugs.py": "\"\"\"Slug helpers.\"\"\"\n\nimport re\n\n_NON_ALNUM_RUN = re.compile(r\"[^a-z0-9]+\")\n\n\ndef slugify(title: str) -> str:\n    \"\"\"Return an ASCII slug for ``title``.\n\n    The title is lowercased, every maximal run of characters outside\n    ``[a-z0-9]`` is collapsed into a single ``-``, and any leading or\n    trailing ``-`` is removed.\n    \"\"\"\n    lowered = title.lower()\n    collapsed = _NON_ALNUM_RUN.sub(\"-\", lowered)\n    return collapsed.strip(\"-\")\n"
+  },
+  "overreach": [],
+  "invalid": []
+}

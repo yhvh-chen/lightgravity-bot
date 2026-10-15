@@ -1,0 +1,115 @@
+{
+  "note": "offline replay of first-attempt B planner outputs vs corrected strict schema",
+  "source": "/tmp/lightgravity-worktrees/agensh-sdk-20261015/probes/agensh-orchestration-sdk",
+  "runs": [
+    {
+      "run_id": "t1_independent__B__r0",
+      "task": "t1_independent",
+      "full_chars": 6110,
+      "emitted_chars": null,
+      "emitted_parse_error": "no_finish_output",
+      "emitted_truncated": false,
+      "old_plan_item_keys": [
+        [
+          "assigned_files",
+          "deliverable",
+          "exclusive_write_scope",
+          "round",
+          "tasks",
+          "validation",
+          "worker"
+        ],
+        [
+          "assigned_files",
+          "deliverable",
+          "exclusive_write_scope",
+          "round",
+          "tasks",
+          "validation",
+          "worker"
+        ],
+        [
+          "conflict_avoidance",
+          "coordination",
+          "integration",
+          "ownership_rule",
+          "round"
+        ]
+      ],
+      "new_schema_program_valid": false,
+      "new_schema_issues": [
+        "plan_schema_invalid:ValidationError",
+        "Field required",
+        "Extra inputs are not permitted",
+        "Extra inputs are not permitted",
+        "Extra inputs are not permitted"
+      ]
+    },
+    {
+      "run_id": "t2_interface__B__r0",
+      "task": "t2_interface",
+      "full_chars": 1196,
+      "emitted_chars": 1196,
+      "emitted_parse_error": null,
+      "emitted_truncated": false,
+      "old_plan_item_keys": [
+        [
+          "assignee",
+          "files",
+          "interface",
+          "task"
+        ],
+        [
+          "assignee",
+          "files",
+          "interface",
+          "task"
+        ]
+      ],
+      "new_schema_program_valid": false,
+      "new_schema_issues": [
+        "plan_schema_invalid:ValidationError",
+        "Field required",
+        "Field required",
+        "Extra inputs are not permitted",
+        "Extra inputs are not permitted"
+      ]
+    },
+    {
+      "run_id": "t3_evolving__B__r0",
+      "task": "t3_evolving",
+      "full_chars": 7690,
+      "emitted_chars": null,
+      "emitted_parse_error": "no_finish_output",
+      "emitted_truncated": false,
+      "old_plan_item_keys": [
+        [
+          "acceptance_criteria",
+          "interface_contract",
+          "non_overlap_rationale",
+          "owns_files",
+          "role",
+          "tasks",
+          "worker"
+        ],
+        [
+          "acceptance_criteria",
+          "interface_contract",
+          "non_overlap_rationale",
+          "owns_files",
+          "role",
+          "tasks",
+          "worker"
+        ]
+      ],
+      "new_schema_program_valid": false,
+      "new_schema_issues": [
+        "plan_schema_invalid:ValidationError",
+        "Field required",
+        "Extra inputs are not permitted",
+        "Extra inputs are not permitted",
+        "Extra inputs are not permitted"
+      ]
+    }
+  ]
+}

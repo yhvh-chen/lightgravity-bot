@@ -1,17 +1,25 @@
-"""Planner: propose a Subtask graph, then validate it program-side (LG-008).
+"""Plan proposal + program-side validation (docs/01 §4, default architecture).
 
-The planner is the *proposal* boundary.  A planner (rule-based or model-backed)
-only proposes Subtask structure; it can never grant tools, connections or
-budgets.  :class:`PlanValidator` is the *program* boundary: a proposal only
-becomes an executable :class:`Plan` after passing graph, reference, capability,
-acceptance and workspace checks.  This keeps docs/01 §4's "模型提出计划和组队
-建议，程序校验并实施" boundary real.
+The **default** execution plan is program-side and model-free:
+:class:`RuleBasedPlanner` deterministically derives a minimal Subtask graph from
+the Task input (one write node, plus a dependent verify node when acceptance
+criteria exist).  It is not a resident orchestration agent and makes no model
+call.
 
-The default :class:`RuleBasedPlanner` derives its nodes from the Task input
-(objective + acceptance criteria).  It is deliberately minimal and honest about
-being rule-driven; richer decomposition is delegated to :class:`ModelPlanner`,
-whose proposal is validated by the same validator.  The capability -> agent
-selection is owned by :mod:`~lightgravity.coordinator.recruiter`.
+:class:`PlanValidator` is the *program* boundary: no proposal - rule-based or
+model-backed - becomes an executable :class:`Plan` until it passes graph,
+reference, capability, acceptance and workspace checks.  This keeps docs/01
+§4's "模型提出计划和组队建议，程序校验并实施" boundary real.
+
+:class:`ModelPlanner` is an **optional, bounded, on-demand** model proposal
+interface.  It is not wired into the default assembly and no real model backend
+is implemented; a caller injects a ``propose`` callable explicitly, and the
+dispatcher only consults it when an explicit
+:class:`~lightgravity.coordinator.planning.PlanningRequest` records why.  Its
+output is parsed structurally and validated by the same
+:class:`PlanValidator`, so it can never add tools, connections, budgets or
+capabilities.  The capability -> agent selection is owned by
+:mod:`~lightgravity.coordinator.recruiter`.
 """
 
 from __future__ import annotations
@@ -27,6 +35,7 @@ from typing import Any, Protocol, runtime_checkable
 from lightgravity.contracts import AppError, ErrorCode
 
 from .dispatcher import DispatchContext
+from .planning import PlanningRequest, PlanningTrigger
 from .scheduler import DependencyGraph, GraphError, GraphNode
 
 _KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
@@ -265,13 +274,15 @@ class ModelProposalError(AppError):
 
 
 class RuleBasedPlanner:
-    """Deterministic minimal planner derived from the Task input.
+    """Program-side minimal plan builder for an explicit target (default).
 
-    It always emits one implementation node.  When the Task declares acceptance
-    criteria it adds a dependent verification node so the first-version minimum
-    team is "developer + verifier"; otherwise a single developer node runs.  This
-    is a rule, not a hardcoded fixed plan: the node set changes with the Task
-    input, and the recruiter selects the actual agents.
+    It is deterministic and model-free: it always emits one implementation node,
+    and when the Task declares acceptance criteria it adds a dependent
+    verification node so the first-version minimum team is "developer +
+    verifier"; otherwise a single developer node runs.  This is a rule, not a
+    hardcoded fixed plan: the node set changes with the Task input, and the
+    recruiter selects the actual agents.  It is **not** an orchestration agent
+    and makes no model call.
     """
 
     name = "rules"
@@ -318,21 +329,36 @@ ProposeFn = Callable[[DispatchContext], "Mapping[str, Any] | Awaitable[Mapping[s
 
 
 class ModelPlanner:
-    """Planner that accepts a model proposal but never trusts it as authority.
+    """Optional, bounded, on-demand model plan proposal interface (not wired).
 
-    ``propose`` returns a ``{"subtasks": [...]}`` mapping in the same shape as
-    :class:`RawSubtask`.  The mapping is parsed structurally and then validated
-    by :class:`PlanValidator`; the model cannot add tools, connections, budgets
-    or capabilities beyond what the recruiter's agent catalog exposes.  The call
-    budget is capped (default 2) so a model is used sparingly.
+    No real model backend is implemented by this package and no default
+    assembly constructs a ``ModelPlanner``.  A caller may inject a ``propose``
+    callable explicitly; the dispatcher consults it only when an explicit
+    :class:`~lightgravity.coordinator.planning.PlanningRequest` is present, so
+    planning is never a per-Task/Run prerequisite.  ``propose`` returns a
+    ``{"subtasks": [...]}`` mapping in the same shape as :class:`RawSubtask`.
+    The mapping is parsed structurally and then validated by
+    :class:`PlanValidator`; the model cannot add tools, connections, budgets or
+    capabilities beyond what the recruiter's agent catalog exposes.
+
+    The authoritative **per-Run** call budget is
+    :attr:`~lightgravity.coordinator.planning.PlanningRequest.max_calls`, and it
+    is enforced by :class:`~lightgravity.coordinator.graph.GraphDispatcher`
+    (failed attempts count).  This class does **not** cap calls per instance by
+    default, so one instance may be shared safely across Runs.  The optional
+    ``max_calls`` constructor argument is a defensive *instance-lifetime ceiling*
+    for direct callers only (default ``None`` = no ceiling); it must not be used
+    as the per-Run budget.
     """
 
     name = "model"
 
-    def __init__(self, propose: ProposeFn, *, max_calls: int = 2) -> None:
-        if max_calls <= 0:
-            raise ValueError("max_calls must be > 0")
+    def __init__(self, propose: ProposeFn, *, max_calls: int | None = None) -> None:
+        if max_calls is not None and max_calls <= 0:
+            raise ValueError("max_calls must be > 0 when set")
         self._propose = propose
+        #: Optional instance-lifetime ceiling (``None`` = uncapped); the per-Run
+        #: budget lives on ``PlanningRequest`` and is enforced by the dispatcher.
         self._max_calls = max_calls
         self._calls = 0
 
@@ -340,10 +366,14 @@ class ModelPlanner:
     def calls(self) -> int:
         return self._calls
 
+    @property
+    def max_calls(self) -> int | None:
+        return self._max_calls
+
     async def plan(self, context: DispatchContext) -> PlanProposal:
-        if self._calls >= self._max_calls:
+        if self._max_calls is not None and self._calls >= self._max_calls:
             raise ModelProposalError(
-                "model planner call budget exhausted",
+                "model planner instance call ceiling reached",
                 problems=[f"max_calls={self._max_calls}"],
             )
         self._calls += 1
@@ -401,6 +431,8 @@ __all__ = [
     "PlanProposal",
     "PlanValidator",
     "Planner",
+    "PlanningRequest",
+    "PlanningTrigger",
     "ProposeFn",
     "RawSubtask",
     "RuleBasedPlanner",

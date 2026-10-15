@@ -1,0 +1,245 @@
+{
+  "run_id": "t3_evolving__C",
+  "task": "t3_evolving",
+  "group": "C",
+  "fixture_initial_hash": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+  "goal_round1": "实现 src/stats.py（不要修改其他文件）：\n- mean(nums): 空列表抛 ValueError，否则返回算术平均。\n- median(nums): 空列表抛 ValueError；奇数长度返回排序后的中间值；偶数长度返回中间两个数的平均。",
+  "goal_round2": "实现 src/stats.py（不要修改其他文件）：\n- mean(nums): 空列表抛 ValueError，否则返回算术平均。\n- median(nums): 空列表抛 ValueError；奇数长度返回排序后的中间值；偶数长度返回中间两个数的平均。\n\n用户在本轮开始前新增的明确要求（所有组同样适用）：\n- 新增 mode(nums): 返回出现次数最多的值；若平局返回最小的那个值；空列表抛 ValueError。\n- 新增 stdev(nums): 返回总体标准差（即 sqrt(方差)，方差按除以 n 计算）；空列表抛 ValueError。\n- 必须保持 mean/median 对空列表抛 ValueError 的既有行为。",
+  "completed": true,
+  "status": "completed",
+  "round1": {
+    "passed": 0,
+    "total": 5,
+    "checks": [
+      {
+        "name": "mean.basic",
+        "passed": false,
+        "detail": "NotImplementedError: "
+      },
+      {
+        "name": "mean.empty",
+        "passed": false,
+        "detail": "AssertionError: expected ValueError, got NotImplementedError: "
+      },
+      {
+        "name": "median.odd",
+        "passed": false,
+        "detail": "NotImplementedError: "
+      },
+      {
+        "name": "median.even",
+        "passed": false,
+        "detail": "NotImplementedError: "
+      },
+      {
+        "name": "median.empty",
+        "passed": false,
+        "detail": "AssertionError: expected ValueError, got NotImplementedError: "
+      }
+    ],
+    "orchestration_used": false,
+    "orchestration_elapsed": 0.0,
+    "worker_calls": 2,
+    "conflicts": [
+      {
+        "path": "src/stats.py",
+        "workers": [
+          "w1",
+          "w2"
+        ]
+      }
+    ],
+    "duplicate_edits": [
+      {
+        "path": "src/stats.py",
+        "workers": [
+          "w1",
+          "w2"
+        ]
+      }
+    ],
+    "invalid": [],
+    "retries": 0,
+    "proposals": [
+      {
+        "worker": "w1",
+        "summary": "实现 src/stats.py 中的 mean 与 median，覆盖空列表、奇数长度和偶数长度行为；未改动其他文件。",
+        "findings": [
+          "本轮没有提供计划或任务分解，但目标明确且只允许修改 src/stats.py。",
+          "按需求实现：空列表抛出 ValueError；median 先排序，奇数长度取中间元素，偶数长度取中间两数平均。",
+          "未修改 src/__init__.py、控制文件或其他计划外文件。"
+        ],
+        "parse_error": null,
+        "valid_edits": [
+          "src/stats.py"
+        ],
+        "attempts": 1
+      },
+      {
+        "worker": "w2",
+        "summary": "实现 src/stats.py 中的 mean 和 median，按用户目标处理空列表、奇偶长度中位数计算；未修改其他文件。",
+        "findings": [
+          "本轮没有计划或任务分解，因此自行决定完成唯一明确要求的实现工作：stats.py 的两个统计函数。",
+          "mean 对空序列抛出 ValueError，否则返回 sum/len；median 对空序列抛出 ValueError，奇数长度返回排序后中点，偶数长度返回中间两数平均。",
+          "未改动 src/__init__.py 或其他文件。"
+        ],
+        "parse_error": null,
+        "valid_edits": [
+          "src/stats.py"
+        ],
+        "attempts": 1
+      }
+    ],
+    "feedback": "程序检查结果：0/5 项通过。\n- 未通过 mean.basic: NotImplementedError: \n- 未通过 mean.empty: AssertionError: expected ValueError, got NotImplementedError: \n- 未通过 median.odd: NotImplementedError: \n- 未通过 median.even: NotImplementedError: \n- 未通过 median.empty: AssertionError: expected ValueError, got NotImplementedError: ",
+    "elapsed": 4.822
+  },
+  "round2": {
+    "passed": 0,
+    "total": 9,
+    "checks": [
+      {
+        "name": "mean.basic",
+        "passed": false,
+        "detail": "NotImplementedError: "
+      },
+      {
+        "name": "mean.empty",
+        "passed": false,
+        "detail": "AssertionError: expected ValueError, got NotImplementedError: "
+      },
+      {
+        "name": "median.odd",
+        "passed": false,
+        "detail": "NotImplementedError: "
+      },
+      {
+        "name": "median.even",
+        "passed": false,
+        "detail": "NotImplementedError: "
+      },
+      {
+        "name": "median.empty",
+        "passed": false,
+        "detail": "AssertionError: expected ValueError, got NotImplementedError: "
+      },
+      {
+        "name": "mode.basic",
+        "passed": false,
+        "detail": "AttributeError: module 'src.stats' has no attribute 'mode'"
+      },
+      {
+        "name": "mode.tie.min",
+        "passed": false,
+        "detail": "AttributeError: module 'src.stats' has no attribute 'mode'"
+      },
+      {
+        "name": "stdev.basic",
+        "passed": false,
+        "detail": "AttributeError: module 'src.stats' has no attribute 'stdev'"
+      },
+      {
+        "name": "stdev.empty",
+        "passed": false,
+        "detail": "AssertionError: expected ValueError, got AttributeError: module 'src.stats' has no attribute 'stdev'"
+      }
+    ],
+    "orchestration_used": false,
+    "orchestration_elapsed": 0.0,
+    "worker_calls": 2,
+    "conflicts": [],
+    "duplicate_edits": [],
+    "invalid": [
+      {
+        "worker": "w1",
+        "reason": "no_valid_json"
+      },
+      {
+        "worker": "w2",
+        "reason": "no_valid_json"
+      }
+    ],
+    "retries": 0,
+    "proposals": [
+      {
+        "worker": "w1",
+        "summary": "",
+        "findings": [],
+        "parse_error": "no_valid_json",
+        "valid_edits": [],
+        "attempts": 1
+      },
+      {
+        "worker": "w2",
+        "summary": "",
+        "findings": [],
+        "parse_error": "no_valid_json",
+        "valid_edits": [],
+        "attempts": 1
+      }
+    ],
+    "feedback": "程序检查结果：0/9 项通过。\n- 未通过 mean.basic: NotImplementedError: \n- 未通过 mean.empty: AssertionError: expected ValueError, got NotImplementedError: \n- 未通过 median.odd: NotImplementedError: \n- 未通过 median.even: NotImplementedError: \n- 未通过 median.empty: AssertionError: expected ValueError, got NotImplementedError: \n- 未通过 mode.basic: AttributeError: module 'src.stats' has no attribute 'mode'\n- 未通过 mode.tie.min: AttributeError: module 'src.stats' has no attribute 'mode'\n- 未通过 stdev.basic: AttributeError: module 'src.stats' has no attribute 'stdev'\n- 未通过 stdev.empty: AssertionError: expected ValueError, got AttributeError: module 'src.stats' has no attribute 'stdev'",
+    "elapsed": 9.419
+  },
+  "round1_passed": 0,
+  "round1_total": 5,
+  "final_passed": 0,
+  "final_total": 9,
+  "final_acceptance": {
+    "checks": [
+      {
+        "name": "mean.basic",
+        "passed": false,
+        "detail": "NotImplementedError: "
+      },
+      {
+        "name": "mean.empty",
+        "passed": false,
+        "detail": "AssertionError: expected ValueError, got NotImplementedError: "
+      },
+      {
+        "name": "median.odd",
+        "passed": false,
+        "detail": "NotImplementedError: "
+      },
+      {
+        "name": "median.even",
+        "passed": false,
+        "detail": "NotImplementedError: "
+      },
+      {
+        "name": "median.empty",
+        "passed": false,
+        "detail": "AssertionError: expected ValueError, got NotImplementedError: "
+      },
+      {
+        "name": "mode.basic",
+        "passed": false,
+        "detail": "AttributeError: module 'src.stats' has no attribute 'mode'"
+      },
+      {
+        "name": "mode.tie.min",
+        "passed": false,
+        "detail": "AttributeError: module 'src.stats' has no attribute 'mode'"
+      },
+      {
+        "name": "stdev.basic",
+        "passed": false,
+        "detail": "AttributeError: module 'src.stats' has no attribute 'stdev'"
+      },
+      {
+        "name": "stdev.empty",
+        "passed": false,
+        "detail": "AssertionError: expected ValueError, got AttributeError: module 'src.stats' has no attribute 'stdev'"
+      }
+    ],
+    "passed": 0,
+    "total": 9
+  },
+  "all_passed": false,
+  "total_elapsed": 14.292,
+  "orchestration_elapsed": 0.0,
+  "worker_calls": 4,
+  "orchestration_calls": 0,
+  "retries": 0,
+  "sot_issues": []
+}

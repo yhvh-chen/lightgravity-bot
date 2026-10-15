@@ -1,0 +1,42 @@
+import importlib.util, math, pathlib
+
+spec = importlib.util.spec_from_file_location("stats", pathlib.Path("src/stats.py"))
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+
+results = []
+def check(name, cond):
+    results.append((name, cond))
+
+check("mean basic", m.mean([1, 2, 3, 4]) == 2.5)
+check("median odd", m.median([3, 1, 2]) == 2)
+check("median even", m.median([4, 1, 3, 2]) == 2.5)
+
+for fn in (m.mean, m.median):
+    try:
+        fn([])
+        check(f"{fn.__name__} empty -> ValueError", False)
+    except ValueError:
+        check(f"{fn.__name__} empty -> ValueError", True)
+
+# New requirements from this round
+check("has mode", hasattr(m, "mode"))
+check("has stdev", hasattr(m, "stdev"))
+if hasattr(m, "mode"):
+    check("mode tie -> smallest", m.mode([1, 1, 2, 2]) == 1)
+    try:
+        m.mode([]); check("mode empty -> ValueError", False)
+    except ValueError:
+        check("mode empty -> ValueError", True)
+if hasattr(m, "stdev"):
+    check("stdev population", abs(m.stdev([2, 4, 4, 4, 5, 5, 7, 9]) - 2.0) < 1e-9)
+    try:
+        m.stdev([]); check("stdev empty -> ValueError", False)
+    except ValueError:
+        check("stdev empty -> ValueError", True)
+
+check("__all__ includes mode+stdev", set(m.__all__) >= {"mean", "median", "mode", "stdev"})
+
+for n, c in results:
+    print(("PASS" if c else "FAIL"), n)
+print("total", sum(c for _, c in results), "/", len(results))

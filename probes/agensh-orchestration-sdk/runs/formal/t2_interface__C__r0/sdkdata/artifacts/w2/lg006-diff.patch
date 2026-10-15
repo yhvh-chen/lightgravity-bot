@@ -1,0 +1,74 @@
+--- a/_verify_report.py
++++ b/_verify_report.py
+@@ -0,0 +1,54 @@
++import math
++import sys
++import types
++
++from src import geometry, report
++
++# If geometry is still a stub (w1 may not have landed), install a spec-conformant
++# reference implementation so we can validate report.describe's formatting/logic.
++def _area(shape):
++    if shape["kind"] == "rect":
++        return shape["width"] * shape["height"]
++    if shape["kind"] == "circle":
++        return math.pi * shape["radius"] ** 2
++    raise ValueError(f"unknown kind: {shape['kind']!r}")
++
++
++def _perimeter(shape):
++    if shape["kind"] == "rect":
++        return 2 * (shape["width"] + shape["height"])
++    if shape["kind"] == "circle":
++        return 2 * math.pi * shape["radius"]
++    raise ValueError(f"unknown kind: {shape['kind']!r}")
++
++
++geometry_stub = False
++try:
++    geometry.area({"kind": "rect", "width": 2, "height": 3})
++except NotImplementedError:
++    geometry_stub = True
++    geometry.area = _area
++    geometry.perimeter = _perimeter
++    report.area = _area
++    report.perimeter = _perimeter
++
++print(f"geometry stub in place: {geometry_stub}")
++
++# rect
++assert report.describe({"kind": "rect", "width": 3, "height": 4}) == \
++    "rect: area=12.00 perimeter=14.00"
++# circle
++c = report.describe({"kind": "circle", "radius": 2})
++assert c == f"circle: area={math.pi * 4:.2f} perimeter={2 * math.pi * 2:.2f}", c
++# rounding
++r = report.describe({"kind": "circle", "radius": 1})
++assert r == "circle: area=3.14 perimeter=6.28", r
++# unknown kind propagates ValueError
++try:
++    report.describe({"kind": "triangle"})
++except ValueError:
++    pass
++else:
++    raise AssertionError("expected ValueError for unknown kind")
++
++print("all report.describe assertions passed")
+--- a/src/report.py
++++ b/src/report.py
+@@ -3,4 +3,13 @@
+ 
+ 
+ def describe(shape):
+-    raise NotImplementedError
++    """Render a human-readable summary line for a shape dict.
++
++    Delegates all shape-specific logic to ``geometry`` so this module stays a
++    pure consumer of the shared area/perimeter interface. Unknown kinds raise
++    ValueError via geometry.
++    """
++    return (
++        f"{shape['kind']}: area={area(shape):.2f} "
++        f"perimeter={perimeter(shape):.2f}"
++    )

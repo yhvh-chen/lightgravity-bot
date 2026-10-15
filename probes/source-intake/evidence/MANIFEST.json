@@ -1,0 +1,212 @@
+{
+  "schema_note": "Archival manifest for probes/source-intake/evidence. Byte-identical copies of read-only /tmp probe evidence; no scripts, no /tmp runtime dependency.",
+  "generated_from": {
+    "eg2": "/tmp/lightgravity-eg2-endpoint-20261015",
+    "media_text_index": "/tmp/lightgravity-media-text-index-20261015"
+  },
+  "verification": {
+    "all_byte_identical": true,
+    "entry_count": 28,
+    "total_source_bytes": 952781,
+    "total_archived_bytes": 952781,
+    "under_3mb": true
+  },
+  "entries": [
+    {
+      "source": "/tmp/lightgravity-eg2-endpoint-20261015/REPORT.md",
+      "target": "probes/source-intake/evidence/eg2-endpoint-20261015/REPORT.md",
+      "bytes": 16908,
+      "sha256": "b3d5891d96b5d05ca909d614fd4072cf056e9e9f352ab4b3adf0c1dd3b1bc9e8",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-eg2-endpoint-20261015/PROGRESS.md",
+      "target": "probes/source-intake/evidence/eg2-endpoint-20261015/PROGRESS.md",
+      "bytes": 4667,
+      "sha256": "c50e601467f612cec0f417540940482968bbe1b7c763bfa6cf0c4484d13cc77c",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-eg2-endpoint-20261015/DOC_CORRECTION.md",
+      "target": "probes/source-intake/evidence/eg2-endpoint-20261015/DOC_CORRECTION.md",
+      "bytes": 8356,
+      "sha256": "8125e6ba426c45b0745d870750364ab40c8ea7cf893fc637b7a0ed204bed373b",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-eg2-endpoint-20261015/results_text.json",
+      "target": "probes/source-intake/evidence/eg2-endpoint-20261015/results_text.json",
+      "bytes": 1589,
+      "sha256": "9ae94522e13e76a9dfbb2dcb8809c874dc81c53081459e9ed944d02ec9590225",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-eg2-endpoint-20261015/results_mm.json",
+      "target": "probes/source-intake/evidence/eg2-endpoint-20261015/results_mm.json",
+      "bytes": 7480,
+      "sha256": "eb436406b0121a1697fc4e3994b71e8ded0fbf60eba9fbe875562d500f8a5e72",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-eg2-endpoint-20261015/evidence_followup/results_followup.json",
+      "target": "probes/source-intake/evidence/eg2-endpoint-20261015/results_followup.json",
+      "bytes": 4299,
+      "sha256": "4c8fddf1bca00652d75c1e3752cae1f7f218796f882db4c5bef3ddc39e84d42d",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/REPORT.md",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/REPORT.md",
+      "bytes": 12652,
+      "sha256": "15024856fde211729c63ca0900b4c409316a839b2d97d1f33944dad97a674aaa",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/PROGRESS.md",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/PROGRESS.md",
+      "bytes": 7248,
+      "sha256": "5f7700dad1ba876fc12888d8a14676134588482a8b2ea86af0ed32d927441f5b",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/ocr_metrics.json",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/ocr_metrics.json",
+      "bytes": 1174,
+      "sha256": "9c0bf54f5dbf491c905242c85c387973e88aa6c541f53e404d0feec26a7618fc",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/index_tests.json",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/index_tests.json",
+      "bytes": 3111,
+      "sha256": "d3bb35de6c45f00c143f5c28605492d61eff43700bf83ecefe44206ace9a5d61",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/embed_summary.json",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/embed_summary.json",
+      "bytes": 726,
+      "sha256": "05a1c892325e491702f58fcabb28846efc2e49a51057daee19bc4e2e3b95c60f",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/http_log.jsonl",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/http_log.jsonl",
+      "bytes": 2087,
+      "sha256": "7befa4a95dec6dd27ca927e46c197b7c8273a6bccc8e537bd66c7106f137e1c1",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/asr_results.json",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/asr_results.json",
+      "bytes": 818,
+      "sha256": "1ca4162522be0e151ed2eea41f6a66187580d3e88ae1817a02885040b769aaa8",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/fixtures_manifest.json",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/fixtures_manifest.json",
+      "bytes": 1270,
+      "sha256": "1ecf321e92bdcf56b6667d9e0db7590b59c41065f801b56742e8775a0cefc84b",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/ocr_doc_image_raw_response.json",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/ocr_doc_image_raw_response.json",
+      "bytes": 802,
+      "sha256": "ae5bed22ffc20310a48b128f7b31ec0fb26c4959373fdb1ba9fabd20b879423b",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/ocr_doc_pdf_raw_response.json",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/ocr_doc_pdf_raw_response.json",
+      "bytes": 812,
+      "sha256": "724e67b9ef873c08518b77cbcf99a7c2e13ccc14c906b2a6615568af0fb1d2f4",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/ocr_doc_image_extracted.txt",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/ocr_doc_image_extracted.txt",
+      "bytes": 172,
+      "sha256": "8083d2d62c35eae76848f6a941f5c50c54b252cf619dcd3a60b84abc75a45609",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/ocr_doc_pdf_extracted.txt",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/ocr_doc_pdf_extracted.txt",
+      "bytes": 175,
+      "sha256": "2de470de427fc738cc28c1e09bce7399c8be07673ac08ef68ddb77d090a0fa6e",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/docs/doc_image.md",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/docs/doc_image.md",
+      "bytes": 935,
+      "sha256": "b7521707abaa028b58c375fef34333d23fea9b4c34b0cb0b6fc648cadc33a45c",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/docs/doc_pdf.md",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/docs/doc_pdf.md",
+      "bytes": 975,
+      "sha256": "92e63ed69b91784214c0f6600f43c710bea93a7e52bd9baca9e0ae7e65083da0",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/docs/audio.md",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/docs/audio.md",
+      "bytes": 1723,
+      "sha256": "c0fc476787afe3dc9d762b9743ae5e5715ea81d84bad177b70b4df3b186d61ef",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/fixtures/screenshot.png",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/fixtures/screenshot.png",
+      "bytes": 49940,
+      "sha256": "74025921f66ef88a4105020848e6941cd6886512e7b44a69da29603d3194308d",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/fixtures/scanned.pdf",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/fixtures/scanned.pdf",
+      "bytes": 50067,
+      "sha256": "bd2045bdd892d436c32bd518a34607d745799fd1b4e8c2c1f95519b675b903b5",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/fixtures/scanned_page-1.png",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/fixtures/scanned_page-1.png",
+      "bytes": 250599,
+      "sha256": "04c3c4aa7019c6b94112d246b14d9f3c7f3483b7a93b86006ffe3bdba4838afd",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/fixtures/audio.wav",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/fixtures/audio.wav",
+      "bytes": 523712,
+      "sha256": "580761a61c33ffa68cb5d33bb684cc9a9af1b592dd4070bc4e2d7e91e628d343",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/ground_truth/doc_image.txt",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/ground_truth/doc_image.txt",
+      "bytes": 172,
+      "sha256": "8083d2d62c35eae76848f6a941f5c50c54b252cf619dcd3a60b84abc75a45609",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/ground_truth/doc_pdf.txt",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/ground_truth/doc_pdf.txt",
+      "bytes": 175,
+      "sha256": "2de470de427fc738cc28c1e09bce7399c8be07673ac08ef68ddb77d090a0fa6e",
+      "matches_source": true
+    },
+    {
+      "source": "/tmp/lightgravity-media-text-index-20261015/ground_truth/audio.txt",
+      "target": "probes/source-intake/evidence/media-text-index-20261015/ground_truth/audio.txt",
+      "bytes": 137,
+      "sha256": "bad89082c30755c65da3f7650f044be21854b5ffd0e43e2825d0ffe2e331fd08",
+      "matches_source": true
+    }
+  ]
+}

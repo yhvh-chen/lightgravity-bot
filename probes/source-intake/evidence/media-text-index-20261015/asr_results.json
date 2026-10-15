@@ -1,0 +1,14 @@
+{
+  "transcriptions_qwen3.8-27b": {
+    "http_status": 501,
+    "elapsed_s": 0.02,
+    "body": "{\"error\":{\"code\":501,\"message\":\"The current model does not support audio input.\",\"type\":\"not_supported_error\"}}"
+  },
+  "chat_input_audio_qwen3.8-27b": {
+    "http_status": 500,
+    "elapsed_s": 0.023,
+    "body": "{\"error\":{\"code\":500,\"message\":\"audio input is not supported - hint: if this is unexpected, you may need to provide the mmproj\",\"type\":\"server_error\"}}"
+  },
+  "ground_truth_transcript": "录音测试。编号B九八七六五四。日期二零二六年十月十五日。金额人民币一千二百三十四元五角六分。",
+  "note": "Chinese synthetic espeak-ng audio; ground truth NOT sent in requests. No ASR-capable model is installed (only embedding model declares audio)."
+}

@@ -1,0 +1,213 @@
+{
+  "run_id": "t2_interface__A",
+  "task": "t2_interface",
+  "group": "A",
+  "fixture_initial_hash": "1862b291f11ccd793e10fe833d4c6204a22be195c616d5e4b1433b72c45ad31c",
+  "goal_round1": "实现 src/geometry.py 和 src/report.py，二者必须遵守同一个 shape 接口（不要修改其他文件）：\n- shape 是 dict：kind 为 \"rect\" 时含 width、height；kind 为 \"circle\" 时含 radius。\n- geometry.area(shape): rect 返回 width*height；circle 返回 math.pi*radius**2；未知 kind 抛 ValueError。\n- geometry.perimeter(shape): rect 返回 2*(width+height)；circle 返回 2*math.pi*radius；未知 kind 抛 ValueError。\n- report.describe(shape): 使用 geometry 的 area/perimeter，返回 f\"{shape['kind']}: area={area(shape):.2f} perimeter={perimeter(shape):.2f}\"。",
+  "goal_round2": "实现 src/geometry.py 和 src/report.py，二者必须遵守同一个 shape 接口（不要修改其他文件）：\n- shape 是 dict：kind 为 \"rect\" 时含 width、height；kind 为 \"circle\" 时含 radius。\n- geometry.area(shape): rect 返回 width*height；circle 返回 math.pi*radius**2；未知 kind 抛 ValueError。\n- geometry.perimeter(shape): rect 返回 2*(width+height)；circle 返回 2*math.pi*radius；未知 kind 抛 ValueError。\n- report.describe(shape): 使用 geometry 的 area/perimeter，返回 f\"{shape['kind']}: area={area(shape):.2f} perimeter={perimeter(shape):.2f}\"。",
+  "completed": true,
+  "status": "completed",
+  "round1": {
+    "passed": 6,
+    "total": 6,
+    "checks": [
+      {
+        "name": "geo.rect.area",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "geo.circle.area",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "geo.rect.perimeter",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "geo.bad.kind",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "report.rect",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "report.circle",
+        "passed": true,
+        "detail": ""
+      }
+    ],
+    "orchestration_used": true,
+    "orchestration_elapsed": 6.422,
+    "worker_calls": 2,
+    "conflicts": [],
+    "duplicate_edits": [],
+    "invalid": [],
+    "retries": 0,
+    "proposals": [
+      {
+        "worker": "w1",
+        "summary": "实现 src/geometry.py 的 area()/perimeter()，按冻结契约支持 rect/circle，未知 kind 抛 ValueError；保留模块 docstring 与函数签名，顶部新增 import math。report.py 归 w2，本轮不改动。",
+        "findings": [
+          "src/geometry.py 原为 stub（docstring 'Geometry (initial stub — not implemented).'，area/perimeter 均 raise NotImplementedError），本轮替换为真实实现并保留函数名与签名 area(shape)/perimeter(shape)。",
+          "circle 分支需要 math.pi，因此新增 `import math`；此前模块无该导入。",
+          "未知 kind 统一抛 ValueError，消息为 f\"unknown shape kind: {shape.get('kind')!r}\"；shape 为 dict 时 .get 可用，且不改变缺失键的 KeyError 语义（缺失键在已知分支中仍会自然 KeyError，符合分工说明的职责边界）。",
+          "遵守文件所有权：仅修改 src/geometry.py，未触碰 src/report.py、src/__init__.py 或任何测试；report.py 的 `from .geometry import area, perimeter` 相对导入保持不变，可继续复用本模块。",
+          "base_sha256 与提供的 src/geometry.py 哈希逐字符一致：93a838a5fc03de7c73e645d4cb7897adf0eae75b9e5184b956fd2bf3df841023。"
+        ],
+        "parse_error": null,
+        "valid_edits": [
+          "src/geometry.py"
+        ],
+        "attempts": 1
+      },
+      {
+        "worker": "w2",
+        "summary": "实现 src/report.py 的 describe(shape)，保留相对导入 from .geometry import area, perimeter 并复用几何计算，返回规格要求的两位小数格式化字符串；未改动其他文件。",
+        "findings": [
+          "src/report.py 现有 `from .geometry import area, perimeter` 与契约一致，保持不变（相对导入，包方式导入可用）。",
+          "describe 直接调用 area(shape)/perimeter(shape)，不内联几何公式；未知 kind 由 geometry 抛出的 ValueError 自然向上传播，无捕获或包装。",
+          "输出字符串严格为 f\"{shape['kind']}: area={area(shape):.2f} perimeter={perimeter(shape):.2f}\"（两位小数，'area=' 与 'perimeter=' 之间单个空格），采用隐式字符串拼接以免超长行，结果字符串完全一致。",
+          "仅更新模块 docstring 去掉 'initial stub' 措辞，属本 worker 拥有的文件内部改动，不影响契约。",
+          "src/geometry.py 本轮由 w1 负责，仍为 stub；report.py 已按冻结契约写好，待 geometry 实现后集成即满足验收。",
+          "src/__init__.py、测试及控制文件均未改动。"
+        ],
+        "parse_error": null,
+        "valid_edits": [
+          "src/report.py"
+        ],
+        "attempts": 1
+      }
+    ],
+    "feedback": "程序检查结果：6/6 项通过。\n- 全部检查通过。",
+    "elapsed": 10.233
+  },
+  "round2": {
+    "passed": 6,
+    "total": 6,
+    "checks": [
+      {
+        "name": "geo.rect.area",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "geo.circle.area",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "geo.rect.perimeter",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "geo.bad.kind",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "report.rect",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "report.circle",
+        "passed": true,
+        "detail": ""
+      }
+    ],
+    "orchestration_used": true,
+    "orchestration_elapsed": 6.321,
+    "worker_calls": 2,
+    "conflicts": [],
+    "duplicate_edits": [],
+    "invalid": [],
+    "retries": 0,
+    "proposals": [
+      {
+        "worker": "w1",
+        "summary": "本轮核对 src/geometry.py（以及作为依赖契约的 src/report.py），确认 area/perimeter 已严格符合冻结接口，无需修改；未改动任何文件。",
+        "findings": [
+          "src/geometry.py（sha256=83f84f757f85e8f3c11018f1c686227404c0471549ba4161b70faeef176787b7）已是完整实现：顶部 `import math`；area() 对 rect 返回 width*height，对 circle 返回 math.pi*radius**2；perimeter() 对 rect 返回 2*(width+height)，对 circle 返回 2*math.pi*radius；两个函数在其它 kind 时均执行 `raise ValueError(f\"unknown shape kind: {shape.get('kind')!r}\")`，消息含 'unknown shape kind'，符合规格。",
+          "逐项验证（基于源码静态推导 + 包内相对导入路径可解析）：rect {'kind':'rect','width':3,'height':4} → area=12, perimeter=14；circle {'kind':'circle','radius':2} → area=4π≈12.56637, perimeter=4π≈12.56637；未知 kind 如 {'kind':'tri'} → ValueError（消息含 'unknown shape kind'）。缺失必需键（如 rect 无 height）仍走自然 KeyError，未被擅自改为 ValueError，符合 interface_notes。",
+          "未新增/重命名/删除任何公开函数，函数签名 area(shape)/perimeter(shape) 保持原样；模块 docstring 未被改动。",
+          "src/report.py 未触碰（归 w2）。其 describe 通过 `from .geometry import area, perimeter` 复用几何计算，无内联公式、无 try/except 捕获，因此 geometry 的 ValueError 会自然传播；格式化输出与规格 f\"{shape['kind']}: area={area(shape):.2f} perimeter={perimeter(shape):.2f}\" 逐字符一致，依赖的 geometry 侧接口（area/perimeter 的公开签名与语义）本轮未变。",
+          "未修改 src/__init__.py、测试、控制文件或任何计划外文件；改动集为空，无 diff。",
+          "结论：无需修改。后续若有人改动 geometry 侧公式、异常类型或异常消息，需同步复核 report.describe 的传播路径与输出格式（当前 sha256 下两者一致）。"
+        ],
+        "parse_error": null,
+        "valid_edits": [],
+        "attempts": 1
+      },
+      {
+        "worker": "w2",
+        "summary": "已核对 src/report.py，实现符合规格，无需修改。",
+        "findings": [
+          "src/report.py 当前 sha256 为 73e92edc1f1d67ef8aaa80d3a21b39cbeda7a19e972b24da0f09aed69fc7de2f，与 base 一致。",
+          "describe(shape) 保留相对导入 `from .geometry import area, perimeter`，未内联几何公式，也未捕获或包装异常。",
+          "返回字符串由两个 f-string 隐式拼接而成，等价于 `f\"{shape['kind']}: area={area(shape):.2f} perimeter={perimeter(shape):.2f}\"`：'area=' 与 'perimeter=' 之间为单个空格，数值格式为两位小数。",
+          "按静态核对，rect 3x4 会得到 `rect: area=12.00 perimeter=14.00`；radius=1 的 circle 会得到 `circle: area=3.14 perimeter=6.28`；未知 kind 时 geometry 抛出的 ValueError 会原样向上传播。",
+          "本轮未发现偏差，因此不修改 src/report.py，也不触碰 src/geometry.py、src/__init__.py 或控制/测试文件。"
+        ],
+        "parse_error": null,
+        "valid_edits": [],
+        "attempts": 1
+      }
+    ],
+    "feedback": "程序检查结果：6/6 项通过。\n- 全部检查通过。",
+    "elapsed": 10.714
+  },
+  "round1_passed": 6,
+  "round1_total": 6,
+  "final_passed": 6,
+  "final_total": 6,
+  "final_acceptance": {
+    "checks": [
+      {
+        "name": "geo.rect.area",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "geo.circle.area",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "geo.rect.perimeter",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "geo.bad.kind",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "report.rect",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "report.circle",
+        "passed": true,
+        "detail": ""
+      }
+    ],
+    "passed": 6,
+    "total": 6
+  },
+  "all_passed": true,
+  "total_elapsed": 20.998,
+  "orchestration_elapsed": 12.743,
+  "worker_calls": 4,
+  "orchestration_calls": 2,
+  "retries": 0,
+  "sot_issues": []
+}

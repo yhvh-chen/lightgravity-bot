@@ -1,0 +1,20 @@
+{
+  "produced": [
+    "_verify_report.py"
+  ],
+  "modified": [
+    "src/report.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/report.py": "\"\"\"Report rendering (initial stub — depends on geometry).\"\"\"\nfrom .geometry import area, perimeter\n\n\ndef describe(shape):\n    \"\"\"Render a human-readable summary line for a shape dict.\n\n    Delegates all shape-specific logic to ``geometry`` so this module stays a\n    pure consumer of the shared area/perimeter interface. Unknown kinds raise\n    ValueError via geometry.\n    \"\"\"\n    return (\n        f\"{shape['kind']}: area={area(shape):.2f} \"\n        f\"perimeter={perimeter(shape):.2f}\"\n    )\n"
+  },
+  "overreach": [
+    {
+      "path": "_verify_report.py",
+      "reason": "no_lease_for_path",
+      "lease": "src/report.py"
+    }
+  ],
+  "invalid": []
+}

@@ -1,0 +1,81 @@
+--- a/_check_stats.py
++++ b/_check_stats.py
+@@ -0,0 +1,40 @@
++import math
++
++from src.stats import mean, median, mode, stdev
++
++# empty -> ValueError for all four
++for fn in (mean, median, mode, stdev):
++    try:
++        fn([])
++    except ValueError:
++        pass
++    else:
++        raise AssertionError(f"{fn.__name__}([]) did not raise ValueError")
++
++assert mean([1, 2, 3]) == 2
++assert mean([1, 2]) == 1.5
++assert median([3, 1, 2]) == 2
++assert median([4, 1, 3, 2]) == 2.5
++assert median([1]) == 1
++
++# mode: most frequent
++assert mode([1, 2, 2, 3]) == 2
++# mode tie -> smallest
++assert mode([1, 2, 1, 2]) == 1
++assert mode([5, 5, 4, 4, 4, 5]) == 4  # 5 appears 3x? no: 5->3, 4->3 -> smallest 4
++assert mode([3]) == 3
++assert mode([-1, -1, 2, 2]) == -1
++
++# stdev: population (divide by n)
++assert stdev([2, 4, 4, 4, 5, 5, 7, 9]) == 2.0
++assert stdev([1]) == 0.0
++assert stdev([1, 3]) == 1.0
++assert math.isclose(stdev([1, 2, 3]), math.sqrt(2 / 3))
++
++# generators/iterables accepted
++assert mean(iter([1, 2, 3])) == 2
++assert mode(iter([1, 1, 2])) == 1
++assert stdev(iter([1, 1])) == 0.0
++assert median(iter([1, 2, 3, 4])) == 2.5
++
++print("all checks passed")
+--- a/src/stats.py
++++ b/src/stats.py
+@@ -27,3 +27,35 @@
+     if n % 2 == 1:
+         return nums[mid]
+     return (nums[mid - 1] + nums[mid]) / 2
++
++
++def mode(nums):
++    """Return the most frequently occurring value in ``nums``.
++
++    Raises ``ValueError`` if ``nums`` is empty. If several values share
++    the highest count the smallest of them is returned.
++    """
++    nums = list(nums)
++    if not nums:
++        raise ValueError("mode() requires at least one value")
++    counts = {}
++    for value in nums:
++        counts[value] = counts.get(value, 0) + 1
++    best_count = max(counts.values())
++    return min(value for value, count in counts.items() if count == best_count)
++
++
++def stdev(nums):
++    """Return the population standard deviation of ``nums``.
++
++    Raises ``ValueError`` if ``nums`` is empty. The variance is the mean
++    of the squared deviations from the arithmetic mean (i.e. divided by
++    ``n``), and the standard deviation is its square root.
++    """
++    nums = list(nums)
++    if not nums:
++        raise ValueError("stdev() requires at least one value")
++    n = len(nums)
++    mu = sum(nums) / n
++    variance = sum((x - mu) ** 2 for x in nums) / n
++    return variance ** 0.5

@@ -1,0 +1,12 @@
+{
+  "produced": [],
+  "modified": [
+    "src/slugs.py"
+  ],
+  "removed": [],
+  "accepted": {
+    "src/slugs.py": "\"\"\"Slug helpers.\"\"\"\n\nimport re\n\n_NON_ALNUM = re.compile(r\"[^a-z0-9]+\")\n\n\ndef slugify(title: str) -> str:\n    \"\"\"Lowercase ``title`` and collapse runs of non-alphanumerics to ``-``.\"\"\"\n    return _NON_ALNUM.sub(\"-\", title.lower()).strip(\"-\")\n"
+  },
+  "overreach": [],
+  "invalid": []
+}

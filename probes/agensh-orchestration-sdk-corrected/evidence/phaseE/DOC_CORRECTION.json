@@ -1,0 +1,91 @@
+{
+  "doc_type": "doc_correction",
+  "experiment_id": "agensh-sdk-corrected-20261015",
+  "corrected_at_utc": "2026-10-15T07:20:00Z",
+  "offline_only": true,
+  "new_model_samples": 0,
+  "reruns": 0,
+  "raw_or_driver_or_fixture_modified": false,
+  "product_code_modified": false,
+  "credentials_read": false,
+  "env_printed": false,
+  "commit_push_merge_deploy": false,
+  "project_md_modified": false,
+  "changed_files": [
+    {
+      "path": "REPORT.md",
+      "change": "doc expression correction only",
+      "sha256_before": "30e081c042ed31076351a16634e65b014548924f18b578a1400030607482dec0",
+      "sha256_after": "d369f0f9771fbe2db91405b86a9d01f1e041cf900da76cb760a599d415626bb1"
+    }
+  ],
+  "added_evidence": [
+    "evidence/phaseE/DOC_CORRECTION.md",
+    "evidence/phaseE/DOC_CORRECTION.json",
+    "evidence/phaseE/USAGE_RECONCILIATION.json",
+    "evidence/phaseE/REPORT.pre_doc_correction.md",
+    "evidence/EVIDENCE.initial.sha256",
+    "evidence/EVIDENCE.sha256",
+    "COPY_VERIFICATION.final.json"
+  ],
+  "corrections": [
+    {
+      "id": "correction_1_section9_direction",
+      "reason": "measured quantity is the benefit of REMOVING the independent planner (C relative to B), not 'planner brings no benefit'",
+      "old_claim": "independent planner 'did not bring >=15% token or time benefit'",
+      "new_claim": "removing independent planner (C vs B) yields 8.84% median relay-token and 3.16% median wall improvement, both < 15%, gate not met",
+      "clarification": "B 2/3 and C 3/3 are run-level code acceptance (all_passed_samples) obtained while some turns were budget_exhausted (51 formal turns: 44 succeeded, 7 budget_exhausted/failed); NOT all SDK turns succeeded; do NOT conclude production can delete independent orchestration",
+      "report_gate": null
+    },
+    {
+      "id": "correction_2_usage_reconciliation",
+      "reason": "add complete offline usage reconciliation; relay reported usage is authoritative",
+      "example_turn": "runs/formal/t2_interface__C__r0/turns/r1-edit-w2.json",
+      "relay_reported_total_tokens": [5085, 5919, 6734, 7063, 7997, 8344],
+      "relay_sum": 41142,
+      "sdk_usage_total_tokens": 33145,
+      "turn_difference": 7997,
+      "relay_total_tokens": 845223,
+      "driver_budget_total_tokens": 837226,
+      "total_difference": 7997,
+      "usage_is_unknown_estimate": false,
+      "tokens_unknown_calls_zero_all_runs": true,
+      "difference_root_cause_verified": false,
+      "do_not_speculate": ["cache", "retry", "late accounting"],
+      "driver_snapshot_12_29_pct_used_as_final": false,
+      "final_benefit_basis": "relay reported usage: 8.84% tokens / 3.16% elapsed"
+    },
+    {
+      "id": "correction_3_first_round_calibration",
+      "reason": "first-round calibration HTTP/token were not 'unknown'; read-only source is authoritative",
+      "source_read_only": "probes/agensh-orchestration-sdk/runs/calibration/CALIBRATION_SUMMARY.json",
+      "known": {
+        "logical_turns": 7,
+        "http": 20,
+        "tokens": 93658,
+        "wall_seconds": 38.879,
+        "main_calibration": {"turns": 6, "http": 19, "tokens": 91224, "wall": 37.129},
+        "no_skills_probe": {"turns": 1, "http": 1, "tokens": 2434, "wall": 1.75}
+      },
+      "cap_classification": "7/6 hard cap violation",
+      "called_soft": false,
+      "first_round_raw_modified": false
+    }
+  ],
+  "hash_records": {
+    "pre_doc_correction_copy": "evidence/phaseE/REPORT.pre_doc_correction.md",
+    "pre_report_sha256": "30e081c042ed31076351a16634e65b014548924f18b578a1400030607482dec0",
+    "post_report_sha256": "d369f0f9771fbe2db91405b86a9d01f1e041cf900da76cb760a599d415626bb1",
+    "initial_manifest_preserved": "evidence/EVIDENCE.initial.sha256",
+    "initial_manifest_sha256": "ee424532e90fe76977bd612ab8016d2efe388e0b2017a21457ff9618c7985872",
+    "final_manifest": "evidence/EVIDENCE.sha256",
+    "final_copy_verification": "COPY_VERIFICATION.final.json",
+    "initial_copy_verification_covers_final_tree": false,
+    "note": "initial COPY_VERIFICATION.json covers only the pre-doc-correction 470-file tree; final tree coverage is COPY_VERIFICATION.final.json plus recomputed EVIDENCE.sha256"
+  },
+  "arithmetic_checks": {
+    "relay_sum_minus_sdk": 7997,
+    "relay_total_minus_driver_total": 7997,
+    "verified": true
+  }
+}

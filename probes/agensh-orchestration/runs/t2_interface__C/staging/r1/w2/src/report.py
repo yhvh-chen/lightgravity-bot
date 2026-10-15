@@ -1,0 +1,10 @@
+"""Report rendering for supported shape dictionaries."""
+from .geometry import area, perimeter
+
+
+def describe(shape):
+    return (
+        f"{shape['kind']}: "
+        f"area={area(shape):.2f} "
+        f"perimeter={perimeter(shape):.2f}"
+    )

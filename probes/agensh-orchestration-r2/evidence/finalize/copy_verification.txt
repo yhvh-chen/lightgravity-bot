@@ -1,0 +1,32 @@
+copy_verification (round-2 integration)
+date_utc: 2026-10-15T05:59:19Z
+source: /tmp/lightgravity-worktrees/agensh-r2-20261015/probes/agensh-orchestration-r2
+dest:   /home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2
+excluded: runs_mock/ (2.7M mock outputs), __pycache__/, *.pyc
+files_hashed_and_verified: 737
+mismatches_or_missing: 0
+file_sets_identical: yes
+
+rebuild mock outputs (optional, offline):
+  cd probes/agensh-orchestration-r2 && python3 driver/run_experiment.py --mock --runs-dir runs_mock
+
+sensitive scan of copied tree:
+/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/evidence/finalize/finalize_checks.py
+/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/README.md
+/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/REPORT.md
+/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/driver/run_experiment.py
+/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/driver/protocol_selftest.py
+/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/driver/offline_llm_selftest.py
+/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/driver/llm_client.py
+/home/yhvh/code/lightgravity-bot/probes/agensh-orchestration-r2/PROTOCOL.md
+
+precise sensitive scan:
+  runs/ files containing 'Bearer '/'Authorization': 0 (expected 0)
+  runs/+formal/ files containing a long sk- token: 0 (expected 0)
+  note: driver/*.py and docs mention the literal header/key names by design; no key value is stored.
+
+post-copy note (2026-10-15T06:00:11Z):
+  - evidence/offline mock logs regenerated with the final (post-fix) analyze_results.py; sync'd to dest.
+  - final_tree_manifest.sha256 covers 741 files (includes integration artifacts).
+  - freeze_manifest.sha256 matches all frozen inputs except driver/analyze_results.py (offline-only fix, see PROTOCOL §13).
+  - no commit/merge/push/deploy performed; original probes/agensh-orchestration and PROJECT.md untouched.

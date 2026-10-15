@@ -1,0 +1,242 @@
+{
+  "run_id": "t3_evolving__B",
+  "task": "t3_evolving",
+  "group": "B",
+  "fixture_initial_hash": "4af564b8e01944032d559891c7bc77953375d08338809eb9ab2b35762235f046",
+  "goal_round1": "实现 src/stats.py（不要修改其他文件）：\n- mean(nums): 空列表抛 ValueError，否则返回算术平均。\n- median(nums): 空列表抛 ValueError；奇数长度返回排序后的中间值；偶数长度返回中间两个数的平均。",
+  "goal_round2": "实现 src/stats.py（不要修改其他文件）：\n- mean(nums): 空列表抛 ValueError，否则返回算术平均。\n- median(nums): 空列表抛 ValueError；奇数长度返回排序后的中间值；偶数长度返回中间两个数的平均。\n\n用户在本轮开始前新增的明确要求（所有组同样适用）：\n- 新增 mode(nums): 返回出现次数最多的值；若平局返回最小的那个值；空列表抛 ValueError。\n- 新增 stdev(nums): 返回总体标准差（即 sqrt(方差)，方差按除以 n 计算）；空列表抛 ValueError。\n- 必须保持 mean/median 对空列表抛 ValueError 的既有行为。",
+  "completed": true,
+  "status": "completed",
+  "round1": {
+    "passed": 5,
+    "total": 5,
+    "checks": [
+      {
+        "name": "mean.basic",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "mean.empty",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "median.odd",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "median.even",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "median.empty",
+        "passed": true,
+        "detail": ""
+      }
+    ],
+    "orchestration_used": true,
+    "orchestration_elapsed": 6.653,
+    "worker_calls": 2,
+    "conflicts": [],
+    "duplicate_edits": [],
+    "invalid": [],
+    "retries": 0,
+    "proposals": [
+      {
+        "worker": "w1",
+        "summary": "实现 src/stats.py 中的 mean 与 median：空输入抛 ValueError，median 基于副本排序且不修改调用方输入。",
+        "findings": [
+          "src/stats.py 原为 NotImplementedError 桩实现，本轮按规格整体替换。",
+          "mean 与 median 均先将输入转为列表副本，兼容 list/tuple 等可迭代序列，并避免 median 原地排序影响调用方。",
+          "未新增依赖、未修改函数名，也未改动其他文件。"
+        ],
+        "parse_error": null,
+        "valid_edits": [
+          "src/stats.py"
+        ],
+        "attempts": 1
+      },
+      {
+        "worker": "w2",
+        "summary": "只读验证轮：本轮无工具执行能力（worker 无工具），无法实际运行 python -c 脚本，因此不能声称用例已通过。基于对 src/stats.py 当前 base 内容（sha256 1fe36ee8…39e0）的静态审查，该文件仍是未实现的 stub，两个函数体均为 raise NotImplementedError，故任务要求的 (a)–(e) 全部用例在静态语义下都会失败。未做任何修改，edits 为空；建议 w1 先落地实现后，由具备执行能力的轮次重新复验。",
+        "findings": [
+          "【执行能力声明】本 worker 无工具、无会话记忆，无法运行 python -c / stdin 脚本，也未收到上一轮程序检查反馈。因此下列结论为静态审查推断，不是实测结果，不应被记作“用例通过”。",
+          "【当前状态】src/stats.py 的 base_sha256 为 1fe36ee88f538e9f6b4c2b3f7f66f75c48146f77800b13621ccf705e46e039e0，与共享发现中记录的 stub 哈希一致，说明 w1 的实现尚未落盘（或未在本次 base 中体现）。文件内容仍为：def mean(nums): raise NotImplementedError / def median(nums): raise NotImplementedError。",
+          "【用例 (a) 预期失败】mean([]) 与 median([]) 当前抛出 NotImplementedError，而非规格要求的 ValueError。最小复现：python -c \"from src.stats import mean, median; mean([])\" → NotImplementedError；期望：ValueError。median([]) 同理。类型精确检查（type(exc) is ValueError，而非其子类或其他）在当前实现下不成立。",
+          "【用例 (b) 预期失败】mean([1,2,3])==2 → 实际抛 NotImplementedError，期望 2；mean([1.5,2.5])==2.0 → 期望 2.0（浮点相等成立）；mean([-1,1])==0 → 期望 0。三条均因 stub 未实现而失败。",
+          "【用例 (c) 预期失败】median([3,1,2])==2（奇数长度取排序后中位）；median([1,2,3,4])==2.5（偶数长度取 (sorted[mid-1]+sorted[mid])/2）；median([5])==5（单元素）；median([2,2])==2（偶数长度且两中位相同）。四条均因 stub 未实现而失败。",
+          "【用例 (d) 预期失败且无法评估】因函数未实现，无法评估“传入乱序列表后原输入顺序未被修改”。接口约定要求 median 必须在副本上排序（sorted(nums) 或 nums.copy() 后 sort），不得原地 sort 调用方列表；实现落地后需以 orig = list(data); median(data); assert data == orig 复验。",
+          "【用例 (e) 预期失败且无法评估】传入 tuple 也应正常（索引与 sorted() 对 tuple 均合法，无需可变性）。当前 stub 抛 NotImplementedError，无法评估；实现落地后需用 median((3,1,2))==2、mean((1,2,3))==2 复验。",
+          "【风险提示 — 接口一致性】仅 src/stats.py 可写，src/__init__.py 为空（sha256 e3b0c442…b855）且无需改动。实现须满足：len(nums)==0 统一抛 ValueError（不得泄漏 ZeroDivisionError/IndexError）；元素类型不做显式校验，非数值输入按 Python 原生 TypeError 自然传播（与共享发现一致，勿新增自定义异常以免偏离验收期望）；不新增依赖。",
+          "【结论】本轮无需（也不允许）写入：edits 为空。建议编排在下一轮把 w1 的实现作为新 base 下发，并由可执行环境跑上述 (a)–(e) 断言后回报逐条通过/失败；若届时仍有失败项，附最小复现片段与期望值对比再交 w1 修复。"
+        ],
+        "parse_error": null,
+        "valid_edits": [],
+        "attempts": 1
+      }
+    ],
+    "feedback": "程序检查结果：5/5 项通过。\n- 全部检查通过。",
+    "elapsed": 13.188
+  },
+  "round2": {
+    "passed": 9,
+    "total": 9,
+    "checks": [
+      {
+        "name": "mean.basic",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "mean.empty",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "median.odd",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "median.even",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "median.empty",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "mode.basic",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "mode.tie.min",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "stdev.basic",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "stdev.empty",
+        "passed": true,
+        "detail": ""
+      }
+    ],
+    "orchestration_used": false,
+    "orchestration_elapsed": 0.0,
+    "worker_calls": 2,
+    "conflicts": [],
+    "duplicate_edits": [],
+    "invalid": [],
+    "retries": 0,
+    "proposals": [
+      {
+        "worker": "w1",
+        "summary": "在 src/stats.py 中保留既有 mean/median 实现（空列表抛 ValueError、median 基于副本排序），并按本轮新增需求补充 mode(nums) 与 stdev(nums)（均为空列表抛 ValueError；mode 平局取最小值；stdev 为总体标准差，方差除以 n 后取平方根）。未改动其他文件。",
+        "findings": [
+          "当前 src/stats.py（base sha256 4a7bfa6d…7ebd8）已包含可用的 mean/median 实现，本轮只需追加 mode/stdev 并保持既有行为不变。",
+          "mode 使用字典计数，先取最大频次，再在并列候选中取最小值，满足『出现次数最多、平局取最小』且对 int/float 混用安全。",
+          "stdev 采用总体标准差：先求算术平均，再以 (x-avg)**2 求和除以 n，最后 math.sqrt；n>=1 时不会出现除零。",
+          "三个新增/保留函数在空序列时统一抛 ValueError，与既有 mean/median 行为一致，不抛 ZeroDivisionError/IndexError。",
+          "median 仍先 list(nums) 复制再排序，不修改调用方传入的列表；所有函数均兼容 list/tuple 等任意可迭代对象。",
+          "无第三方依赖，仅使用标准库 math；未修改 src/__init__.py 或任何控制/验收文件。"
+        ],
+        "parse_error": null,
+        "valid_edits": [
+          "src/stats.py"
+        ],
+        "attempts": 1
+      },
+      {
+        "worker": "w2",
+        "summary": "w2 只读复验轮：本轮分工 files=[]，我无写入权限且无工具执行能力，故未修改任何文件（edits 为空）。基于对 src/stats.py 当前 base（sha256 4a7bfa6d…ebd8）的静态语义审查，既有 mean/median 对用例 (a)–(e) 均满足要求；但本轮用户新增的 mode/stdev 在该文件中完全不存在，新需求 (f)(g) 静态判定为失败，需交由 w1 落地后由具备执行能力的轮次复验。",
+        "findings": [
+          "静态审查 src/stats.py：mean 先 list(nums) 复制，空序列 raise ValueError，否则 sum/len —— 满足 (a) mean([]) 抛 ValueError、(b) mean([1,2,3])==2、mean([1.5,2.5])==2.0、mean([-1,1])==0、(e) tuple 可迭代传入正常。",
+          "静态审查 median：先 list(nums) 复制，空序列 raise ValueError，对副本 sort，奇数返回 values[mid]，偶数返回 (values[mid-1]+values[mid])/2 —— 满足 (a) median([]) 抛 ValueError、(c) median([3,1,2])==2、median([1,2,3,4])==2.5、median([5])==5、median([2,2])==2、(e) tuple 正常。",
+          "静态审查 (d) 输入不被修改：mean 与 median 都对入参做 list() 复制（median 排序的是副本），调用方原列表顺序不会改变，通过。",
+          "静态审查异常类型：空输入路径显式 raise ValueError，不会退化为 ZeroDivisionError/IndexError，通过。",
+          "失败项 (f)：本源文件未定义 mode。最小复现（供 w1 修复后由可执行轮次运行）：python -c \"import src.stats as s; print(s.mode([1,2,2,3]))\"；期望 2，实际 AttributeError: module 'src.stats' has no attribute 'mode'。规格要求：返回出现次数最多的值，平局取最小值，空列表抛 ValueError（如 mode([3,3,1,1]) 期望 1，mode([]) 期望 ValueError）。",
+          "失败项 (g)：本源文件未定义 stdev。最小复现：python -c \"import src.stats as s; print(s.stdev([2,4,4,4,5,5,7,9]))\"；期望 2.0（总体标准差，方差除以 n），实际 AttributeError: module 'src.stats' has no attribute 'stdev'。规格要求：空列表抛 ValueError。",
+          "说明：我本轮无工具，不能实际运行上述 python -c，以上均为静态语义判定，不声称任何用例已真实执行通过；(a)–(e) 的结论同样基于源码静态阅读。",
+          "结论与交接：唯一可写文件 src/stats.py 应新增 mode 与 stdev（建议 stdev 用 math.sqrt，仅标准库，不引入新依赖；mode 平局取最小值可用 sorted 后按 (-count, value) 取首元素或等价逻辑），并保持 mean/median 对空列表的 ValueError 行为不变；本轮我未做任何写入，edits 为空。"
+        ],
+        "parse_error": null,
+        "valid_edits": [],
+        "attempts": 1
+      }
+    ],
+    "feedback": "程序检查结果：9/9 项通过。\n- 全部检查通过。",
+    "elapsed": 9.007
+  },
+  "round1_passed": 5,
+  "round1_total": 5,
+  "final_passed": 9,
+  "final_total": 9,
+  "final_acceptance": {
+    "checks": [
+      {
+        "name": "mean.basic",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "mean.empty",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "median.odd",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "median.even",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "median.empty",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "mode.basic",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "mode.tie.min",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "stdev.basic",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "stdev.empty",
+        "passed": true,
+        "detail": ""
+      }
+    ],
+    "passed": 9,
+    "total": 9
+  },
+  "all_passed": true,
+  "total_elapsed": 22.247,
+  "orchestration_elapsed": 6.653,
+  "worker_calls": 4,
+  "orchestration_calls": 1,
+  "retries": 0,
+  "sot_issues": []
+}
