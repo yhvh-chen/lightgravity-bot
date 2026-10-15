@@ -1,0 +1,23 @@
+{
+  "defect_id": "cohort2-D1-phase-ledger-not-unified",
+  "severity": "protocol/harness (NOT product)",
+  "detected_during": "formal attempt 1 (s1_independent__A)",
+  "frozen_requirement": "one persistent PHASE ledger shared by worker/reviewer/repair/verify/failure, reserved before forward",
+  "observed": {
+    "env_set_LIGHTGRAVITY_GENERATION_LEDGER_DIR": "lg023-cohort2-data (phase root)",
+    "actual_ledger_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2-data/attempts/s1_independent__A/data/generation/generation.jsonl",
+    "actual_count_file": "attempts/s1_independent__A/data/generation/generation.count.json",
+    "count": 4,
+    "phase_root_generation_dir_exists": false
+  },
+  "root_cause": "backend/lightgravity/api/bootstrap.py:build_runtime calls configure_generation_ledger(settings.data_dir) unconditionally, which sets _GLOBAL_GENERATION_COUNTER to a ledger rooted at settings.data_dir and thus overrides the LIGHTGRAVITY_GENERATION_LEDGER_DIR env override the driver set. Each attempt therefore gets its own per-attempt ledger instead of the single phase ledger.",
+  "minimal_repro": "LIGHTGRAVITY_GENERATION_LEDGER_DIR=<phase> LIGHTGRAVITY_DATA_DIR=<phase> build_runtime(StartupOptions(settings=Settings(data_dir=<attempt>))); global_generation_counter().snapshot() roots the ledger at <attempt>/generation, not <phase>/generation.",
+  "why_no_fix_and_rerun": "PM/owner stop rule: any sampling-time harness/measurement defect stops the whole cohort and preserves the partial. No fix-and-rerun of the same attempt; remaining budget is not permission to repeat the attempt.",
+  "attempts_completed": 1,
+  "attempts_remaining_unrun": 3,
+  "real_generation_this_cohort": 4,
+  "artifact_hashes": {
+    "attempt_result.json": "06bab9ed5c0e1e9835f8cfa6fa6882ead22892603efdb990e2a6904c777d1625",
+    "attempt_ledger": "abd1a3375cf9c6754edb275762680ae316a731b848bbd78589f66faf7588f08c"
+  }
+}

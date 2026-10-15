@@ -146,4 +146,19 @@ worker 提示模板、初始内容树 hash、权限、SDK 版本、验收门。
 
 ## 12. 偏差与失败记录（采样后只追加）
 
-（暂无真实采样）
+- **2026-10-16：正式 attempt 1（`s1_independent__A`）完成后发现 harness 计量缺陷，整个 cohort 立即停止。**
+  - **现象**：attempt 1 完整跑通（机器门 6/6、真 session refs、reviewer teardown confirmed、
+    **accept 绑定**、plan hash 与冻结合法 plan 一致），真实生成 **4**。**但**持久 ledger 落在
+    `lg023-cohort2-data/attempts/s1_independent__A/data/generation/`，**不是**冻结要求的单一 phase ledger
+    `lg023-cohort2-data/generation/`。
+  - **根因（harness，非产品）**：`backend/lightgravity/api/bootstrap.py:build_runtime` 无条件调用
+    `configure_generation_ledger(settings.data_dir)`，覆盖了 driver 设置的
+    `LIGHTGRAVITY_GENERATION_LEDGER_DIR` 环境变量，导致每次 attempt 各自一个 ledger，
+    **未满足「全 stage 同一持久 phase ledger」**。
+  - **处置**：按停止规则**立即停止整个 cohort**，保留 partial；**不**修复后重跑同一 attempt，
+    **不**用剩余预算重复该 attempt，**不**偷偷新增 attempt。剩余 3 attempts **未运行**。
+  - **保留**：`runs/s1_independent__A/**`（result.json + candidate.diff + guard）、
+    attempt ledger、`evidence/cohort2-D1.json`（缺陷 + 最小 repro + 哈希）。
+  - 结论：**本 cohort 不满足「冻结协议完整执行」**；attempt 1 的真实交付结果**有效**（机器门 + 独立 reviewer +
+    真实停止门 + 绑定 accept），但**计量口径不符合冻结的单一 phase ledger**，故**不宣称 LG-023 done**。
+    下一 phase 须先修 driver 的 ledger 统一（在 `build_runtime` 之后重新 pin 到 phase 根）并重新离线证实。
