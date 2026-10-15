@@ -281,38 +281,47 @@ async def test_graph_records_each_node_session_to_member_and_run(store: FileStor
 
 
 async def test_resume_hands_each_node_its_own_native_session(store: FileStore) -> None:
-    """A resumed Run hands each node *its own* prior native session.
+    """A resumed Run hands its in-flight node *its own* prior native session.
 
     This drives the exact ``GraphDispatcher`` dispatch a resumed Run performs:
     the previous Run entity (with ``node_sessions``) is supplied as
     ``context.prior_run`` (what ``Coordinator._build_context`` sets for a
-    ``resume`` decision), and every node's ``ExecuteRequest`` must carry that
-    node's own ``conversation_id``/``save_dir`` with native ``resume`` — proving
-    the parameters actually reach the request the graph builds, not merely that
+    ``resume`` decision).  Only a node that had **not** completed may be
+    re-dispatched, and its ``ExecuteRequest`` must carry that node's own
+    ``conversation_id``/``save_dir`` with native ``resume`` — proving the
+    parameters actually reach the request the graph builds, not merely that
     ``member.session_ref`` is non-null.
+
+    The first node (``deliver``) completes and writes; the second (``verify``)
+    is held in flight and then stopped.  On resume, ``deliver`` must **not** be
+    re-executed (its side effect already happened); only ``verify`` reattaches.
     """
 
     build_environment(store)
-    first_executor = SessionExecutor()
+    gate = asyncio.Event()
+    first_executor = SecondNodeGateExecutor(gate)
     first_dispatcher = GraphDispatcher(store, first_executor, catalog=TWO_AGENT)
     task_id, first_run_id, _, context = make_dispatch_setup(store)
-    outcome = await first_dispatcher.dispatch(context, _controller(store, task_id, first_run_id), no_sink)
-    assert outcome.state == "succeeded"
+    first_controller = _controller(store, task_id, first_run_id)
+    dispatch_task = asyncio.ensure_future(first_dispatcher.dispatch(context, first_controller, no_sink))
+    assert await _wait_for(lambda: first_executor.blocked_started.is_set())
+    assert await _wait_for(
+        lambda: bool(store.read("run", first_run_id).entity.get("node_sessions"))
+    )
+    # Stop the first Run while ``verify`` is still in flight.
+    await first_dispatcher.cancel(task_id, first_run_id)
+    gate.set()
+    try:
+        await dispatch_task
+    except Exception:  # noqa: BLE001 - stopping is expected to interrupt the graph
+        pass
 
     first_run = dict(store.read("run", first_run_id).entity)
     prior_sessions = first_run.get("node_sessions") or {}
-    assert len(prior_sessions) == 2
-    # The coordinator records a Run-level continuation from the adapter; for a
-    # direct-dispatcher test we synthesize it from a node session so the resumed
-    # context mirrors the real one.
-    sample = next(iter(prior_sessions.values()))
-    first_run["continuation"] = {
-        "conversation_id": sample["conversation_id"],
-        "save_dir": sample["save_dir"],
-        "continuation_mode": "create_only",
-        "decision": "fresh",
-        "config_version": "lg016.1",
-    }
+    # Only the completed ``deliver`` node recorded a session; ``verify`` was
+    # still in flight and produced none.
+    prior_by_key = {entry["key"]: entry for entry in prior_sessions.values()}
+    assert "deliver" in prior_by_key
 
     # A resumed Run is a *new* Run (fresh members).  Mirror the coordinator with
     # a second task/run setup, then hand it the prior Run entity exactly as
@@ -328,8 +337,8 @@ async def test_resume_hands_each_node_its_own_native_session(store: FileStore) -
         workspace_path=context2.workspace_path,
         allowed_tools=context2.allowed_tools,
         agent_ref=context2.agent_ref,
-        save_dir=first_run["continuation"]["save_dir"],
-        conversation_id=first_run["continuation"]["conversation_id"],
+        save_dir=context2.save_dir,
+        conversation_id=context2.conversation_id,
         continuation_mode="resume",
         prior_run=first_run,
     )
@@ -341,20 +350,11 @@ async def test_resume_hands_each_node_its_own_native_session(store: FileStore) -
     )
     assert outcome2.state == "succeeded"
 
-    # Every node reattached to its OWN prior conversation, not the run-level one.
-    prior_by_key = {entry["key"]: entry for entry in prior_sessions.values()}
-    seen_keys: set[str] = set()
-    for request in second_executor.requests:
-        entry = _entry_for_request(prior_by_key, request)
-        assert entry is not None, "each request matches one prior node session"
-        assert request.continuation_mode == "resume"
-        assert request.conversation_id == entry["conversation_id"]
-        assert request.save_dir == entry["save_dir"]
-        seen_keys.add(_request_key(store, request.subtask_id))
-    assert seen_keys == {"deliver", "verify"}
-    # The two nodes had distinct native conversations, so this is genuinely
-    # per-node — a single run-level conversation could not satisfy both.
-    assert len({entry["conversation_id"] for entry in prior_sessions.values()}) == 2
+    # The completed write node ``deliver`` was **not** re-executed; only the
+    # in-flight ``verify`` node was dispatched.
+    dispatched_keys = {_request_key(store, request.subtask_id) for request in second_executor.requests}
+    assert "deliver" not in dispatched_keys
+    assert "verify" in dispatched_keys
 
 
 def _controller(store: FileStore, task_id: str, run_id: str) -> Any:
@@ -417,14 +417,14 @@ class SecondNodeGateExecutor(SessionExecutor):
 
 
 async def test_coordinator_resume_reaches_graph_per_node_resume(store: FileStore) -> None:
-    """End-to-end: Coordinator pause→resume drives per-node native resume.
+    """End-to-end: Coordinator pause→resume never replays a completed write node.
 
-    The first Run lets the ``verify`` node stay in flight after ``deliver`` has
-    recorded its native session; a confirmed pause then stops it.  The resumed
-    Run must pass ``deliver`` its own prior native coordinates with
-    ``continuation_mode == 'resume'`` into the ``ExecuteRequest`` the graph
-    builds — the scheduler-level proof the report requires, not merely a non-null
-    ``member.session_ref``.
+    The first Run lets ``deliver`` complete (recording a write handoff) while the
+    ``verify`` node stays in flight; a confirmed pause stops it.  On resume the
+    completed ``deliver`` node must be reused from its verified checkpoint (its
+    side effect already happened) and must **not** be re-executed.  Only the
+    never-completed ``verify`` node is dispatched again.  This is the
+    scheduler-level anti-replay proof.
     """
 
     build_environment(store)
@@ -445,7 +445,7 @@ async def test_coordinator_resume_reaches_graph_per_node_resume(store: FileStore
     try:
         assert await _wait_for(lambda: executor.blocked_started.is_set())
         first_run_id = store.read("task", task_id).entity["active_run"]
-        # ``deliver`` (the only other node) recorded its native session.
+        # ``deliver`` (the only other node) recorded its native session + handoff.
         assert await _wait_for(
             lambda: bool(store.read("run", first_run_id).entity.get("node_sessions"))
         )
@@ -475,22 +475,247 @@ async def test_coordinator_resume_reaches_graph_per_node_resume(store: FileStore
         assert second_run["continuation"]["decision"] == "resume"
         assert second_run["continuation"]["source_run_id"] == first_run_id
 
-        prior_by_key = {entry["key"]: entry for entry in first_run["node_sessions"].values()}
-        deliver_prior = prior_by_key["deliver"]
-        # The deliver node's resumed request carries its own prior conversation.
-        deliver_req = None
-        for _ in range(200):
-            for request in executor.requests:
-                if _request_key(store, request.subtask_id) == "deliver":
-                    deliver_req = request
-                    break
-            if deliver_req is not None:
+        # The completed write node ``deliver`` is never re-dispatched on resume.
+        resumed_keys = {
+            _request_key(store, request.subtask_id) for request in executor.requests
+        }
+        assert "deliver" not in resumed_keys
+        # ``deliver`` is recorded passed on the resumed Run via checkpoint reuse
+        # (its side effect already happened), not re-executed.
+        deliver_reused = None
+        for ref in second_run.get("subtask_refs", []):
+            entity = store.read("subtask", ref).entity
+            if entity.get("key") == "deliver":
+                deliver_reused = entity
+                break
+        assert deliver_reused is not None
+        assert deliver_reused.get("state") == "passed"
+        assert "reused" in str(deliver_reused.get("skip_reason", ""))
+    finally:
+        gate.set()
+        await coordinator.stop()
+
+
+# ------------------------------------------------ stable reuse identity (LG-016)
+class _SingleNodePlanner:
+    """Deterministic one-node plan for stable-identity integration checks."""
+
+    name = "single-node"
+
+    async def plan(self, context: DispatchContext) -> PlanProposal:
+        return PlanProposal(
+            subtasks=(
+                RawSubtask(
+                    key="deliver",
+                    objective="write the change",
+                    capability="implementation",
+                    acceptance=("done",),
+                    write=True,
+                ),
+            ),
+            source="test",
+        )
+
+
+async def _run_single_node(
+    store: FileStore, *, conversation_id: str, save_dir: str
+) -> str:
+    """Dispatch the one-node plan and return the persisted ``reuse_identity``."""
+
+    task_id, run_id, controller, base = make_dispatch_setup(store)
+    context = DispatchContext(
+        task_id=task_id,
+        run_id=run_id,
+        attempt=1,
+        objective=base.objective,
+        acceptance_criteria=base.acceptance_criteria,
+        instructions=base.instructions,
+        workspace_path=base.workspace_path,
+        allowed_tools=base.allowed_tools,
+        agent_ref=base.agent_ref,
+        save_dir=save_dir,
+        conversation_id=conversation_id,
+    )
+    dispatcher = GraphDispatcher(
+        store, SessionExecutor(), planner=_SingleNodePlanner(), catalog=TWO_AGENT
+    )
+    outcome = await dispatcher.dispatch(context, controller, no_sink)
+    assert outcome.state == "succeeded"
+    run = store.read("run", run_id).entity
+    subtask_id = run["subtask_refs"][0]
+    entity = store.read("subtask", subtask_id).entity
+    return str(entity["reuse_identity"])
+
+
+async def test_reuse_identity_stable_across_conversation_coordinate_change(
+    store: FileStore,
+) -> None:
+    """Real compiler: a resume-coordinate change is NOT a config drift.
+
+    The member's compiled ``config_hash`` folds in the session profile's
+    ``conversation_id`` (``CompiledAgentConfig``), so it necessarily changes on
+    every resume — comparing it can *never* prove reuse.  The persisted stable
+    ``reuse_identity`` must be unchanged when only the continuation coordinate
+    moves, while a genuine permission change must still change it.  This drives
+    the real ``GraphDispatcher`` + real ``ResourceCompiler``; a fake compiler
+    with a fixed hash would hide the bug.
+    """
+
+    build_environment(store)
+    identity_a = await _run_single_node(
+        store, conversation_id="conv-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", save_dir="/tmp/native/a"
+    )
+    identity_b = await _run_single_node(
+        store, conversation_id="conv-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", save_dir="/tmp/native/b"
+    )
+    assert identity_a
+    assert identity_a == identity_b, "moving only the resume coordinate must not drift the identity"
+
+    # A genuine permission/config change *does* change the identity.  Use a
+    # separate store so the narrowed tool policy is a fresh, clean environment.
+    import tempfile
+    from pathlib import Path as _Path
+
+    other_root = _Path(tempfile.mkdtemp())
+    narrowed_store = FileStore(other_root / "data", other_root / "ws")
+    build_environment(narrowed_store, tool_refs=("view-file",))
+    identity_narrowed = await _run_single_node(
+        narrowed_store,
+        conversation_id="conv-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        save_dir="/tmp/native/a",
+    )
+    assert identity_narrowed != identity_a, "a permission change must change the identity"
+
+
+async def test_no_trusted_reuse_blocks_resume_without_redispatch(store: FileStore) -> None:
+    """A completed write node with no trusted reuse fails closed, never replays.
+
+    The prior Run recorded ``deliver`` as ``passed`` but with no persisted
+    artifact handoff (e.g. an interrupted/unknown-side-effect write).  Resume
+    must neither silently re-execute ``deliver`` (replaying a possibly-written
+    side effect) nor pretend it succeeded via an untrusted fresh Run: it fails
+    with an explicit ``recovery_required`` decision and dispatches nothing.
+    """
+
+    build_environment(store)
+    gate = asyncio.Event()
+    executor = SecondNodeGateExecutor(gate)
+    first_dispatcher = GraphDispatcher(store, executor, catalog=TWO_AGENT)
+    task_id, first_run_id, _, context = make_dispatch_setup(store)
+    dispatch_task = asyncio.ensure_future(
+        first_dispatcher.dispatch(context, _controller(store, task_id, first_run_id), no_sink)
+    )
+    assert await _wait_for(lambda: executor.blocked_started.is_set())
+    assert await _wait_for(
+        lambda: bool(store.read("run", first_run_id).entity.get("node_sessions"))
+    )
+    await first_dispatcher.cancel(task_id, first_run_id)
+    gate.set()
+    try:
+        await dispatch_task
+    except Exception:  # noqa: BLE001 - stopping interrupts the graph
+        pass
+
+    first_run = dict(store.read("run", first_run_id).entity)
+    # Strip the trusted handoff from the completed write node's record so reuse
+    # cannot be proven (the pre-LG-016 / unknown-side-effect case).
+    node_sessions = dict(first_run.get("node_sessions") or {})
+    for entry in node_sessions.values():
+        entry.pop("handoff", None)
+    first_run["node_sessions"] = node_sessions
+
+    task2, second_run_id, controller2, base2 = make_dispatch_setup(store)
+    resumed_context = DispatchContext(
+        task_id=task2,
+        run_id=second_run_id,
+        attempt=2,
+        objective=base2.objective,
+        acceptance_criteria=base2.acceptance_criteria,
+        instructions=base2.instructions,
+        workspace_path=base2.workspace_path,
+        allowed_tools=base2.allowed_tools,
+        agent_ref=base2.agent_ref,
+        save_dir=base2.save_dir,
+        conversation_id=base2.conversation_id,
+        continuation_mode="resume",
+        prior_run=first_run,
+    )
+    second_executor = SessionExecutor()
+    second_dispatcher = GraphDispatcher(store, second_executor, catalog=TWO_AGENT)
+    outcome = await second_dispatcher.dispatch(resumed_context, controller2, no_sink)
+
+    assert outcome.state == "recovery_required"
+    assert outcome.failure_code == "recovery_required"
+    # No node — especially not the completed write node ``deliver`` — was run.
+    assert second_executor.requests == []
+
+
+async def test_coordinator_resume_without_trusted_reuse_fails_closed(
+    store: FileStore,
+) -> None:
+    """End-to-end: an unpovavable completed write node blocks the resume.
+
+    First Run: ``deliver`` completes (writes) while ``verify`` is in flight; a
+    confirmed pause stops the Run.  The completed node's trusted handoff is then
+    removed (simulating a pre-LG-016 record / unknown side effect).  Resume must
+    fail closed with an explicit ``recovery_required`` decision and must not
+    re-dispatch ``deliver``.
+    """
+
+    build_environment(store)
+    gate = asyncio.Event()
+    executor = SecondNodeGateExecutor(gate)
+    dispatcher = GraphDispatcher(store, executor, catalog=TWO_AGENT)
+    coordinator = Coordinator(store, dispatcher=dispatcher)
+    created = coordinator.create_task(
+        "req-guard",
+        "Guard resume",
+        "implement",
+        acceptance_criteria=("ok",),
+        workspace_ref="task-ws",
+    )
+    assert created.task_id is not None
+    task_id = created.task_id
+    coordinator.start()
+    try:
+        assert await _wait_for(lambda: executor.blocked_started.is_set())
+        first_run_id = store.read("task", task_id).entity["active_run"]
+        assert await _wait_for(
+            lambda: bool(store.read("run", first_run_id).entity.get("node_sessions"))
+        )
+        first_run = dict(store.read("run", first_run_id).entity)
+
+        # Remove the trusted handoff from the completed write node's record.
+        # ``Store.write`` deep-merges, so explicitly blank the handoff fields
+        # (an empty content hash / no artifact refs cannot prove reuse).
+        node_sessions = dict(first_run.get("node_sessions") or {})
+        for subtask_ref, entry in node_sessions.items():
+            if isinstance(entry, dict):
+                entry["handoff"] = {"content_hash": "", "artifacts": []}
+        StateWriter(store, actor="test").write_run(
+            first_run_id, {"node_sessions": node_sessions}
+        )
+
+        pause = await coordinator.request_control(task_id, "pause", request_id="req-pause")
+        assert pause.data["confirmed"] is True
+
+        executor.requests.clear()
+        gate.set()
+        executor.blocked_started.clear()
+        resume = await coordinator.request_control(task_id, "resume", request_id="req-resume")
+        assert resume.data["confirmed"] is True
+
+        # The resumed Run ends in an explicit recovery decision; Task is parked.
+        for _ in range(300):
+            task = store.read("task", task_id).entity
+            if task.get("phase") == "recovery_required":
                 break
             await asyncio.sleep(0.02)
-        assert deliver_req is not None, "deliver node was dispatched on resume"
-        assert deliver_req.continuation_mode == "resume"
-        assert deliver_req.conversation_id == deliver_prior["conversation_id"]
-        assert deliver_req.save_dir == deliver_prior["save_dir"]
+        assert store.read("task", task_id).entity.get("phase") == "recovery_required"
+        # No node (especially not the completed write node) was re-executed.
+        assert all(
+            _request_key(store, r.subtask_id) != "deliver" for r in executor.requests
+        ), "the completed write node must never be re-dispatched"
     finally:
         gate.set()
         await coordinator.stop()

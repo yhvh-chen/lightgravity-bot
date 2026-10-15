@@ -92,6 +92,7 @@ from .session_flow import (
     extract_node_session,
     node_session_for_resume,
     record_node_session,
+    reusable_completed_node,
 )
 from .resource_commands import (
     ResourceProposal,
@@ -173,6 +174,7 @@ __all__ = [
     "RecoveryScanner",
     "NodeSession",
     "completed_keys",
+    "reusable_completed_node",
     "extract_node_session",
     "node_session_for_resume",
     "record_node_session",

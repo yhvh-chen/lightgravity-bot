@@ -1229,7 +1229,12 @@ class Coordinator:
             reason=outcome.failure_message,
         )
         self._writer.transition_task(task_id, task_phase, run_ref=run_id)
-        if run_state in TERMINAL_RUN_STATES:
+        if run_state in TERMINAL_RUN_STATES or run_state == "recovery_required":
+            # recovery_required frees the execution slot and drops the active_run
+            # pointer so the Task is cleanly parked for a human decision (it is
+            # not a silent replay Run); ``_open_run`` still refuses to reopen it.
+            if run_state == "recovery_required":
+                self._writer.write_run(run_id, {"cleanup": {"status": "done"}})
             self._writer.set_active_run(task_id, None)
         if outcome.failure_message:
             self._writer.emit(

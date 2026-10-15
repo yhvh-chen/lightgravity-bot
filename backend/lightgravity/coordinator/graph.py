@@ -68,9 +68,11 @@ from .scheduler import (
 )
 from .session_flow import (
     NodeSession,
+    completed_keys,
     extract_node_session,
     node_session_for_resume,
     record_node_session,
+    reusable_completed_node,
 )
 from .state import RunController, StateWriter
 
@@ -395,6 +397,14 @@ class GraphDispatcher:
                             "member_config_hash": member.config_hash,
                         }
                     ),
+                    # Stable reuse identity (LG-016): the same plan spec + effective
+                    # member role/tools/skills/connection-pin/permission/template
+                    # config, deliberately **excluding** the per-Run continuation
+                    # coordinates (conversation_id/save_dir).  ``config_hash`` above
+                    # folds in ``conversation_id`` (CompiledAgentConfig), so it can
+                    # never match across a resume; this value can, and is what the
+                    # anti-replay guard compares.
+                    "reuse_identity": self._reuse_identity(spec, member, context),
                     "acceptance": {
                         "status": "pending",
                         "criteria": list(spec.acceptance),
@@ -437,6 +447,21 @@ class GraphDispatcher:
         claimer = SubtaskClaimer(
             writer, task_id=context.task_id, run_id=context.run_id
         )
+
+        # Anti-replay guard (LG-016).  On a resumed Run the prior Run may have
+        # already executed and *passed* nodes with write side effects.  Such a
+        # node must never be silently re-executed: it is either provably
+        # reusable from a persisted checkpoint/handoff (skipped) or the resume
+        # fails closed with an explicit ``recovery_required`` decision.  A fresh
+        # Run (``prior_run is None``) is unaffected.
+        prior_run = getattr(context, "prior_run", None)
+        if prior_run is not None:
+            skips, guard_failure = self._plan_resume_reuse(prior_run, nodes, controller)
+            if guard_failure is not None:
+                return guard_failure, failures
+            for key, handoff in skips.items():
+                states[key] = "passed"
+                memory.handoffs[key] = handoff
 
         while True:
             if context.run_id in self._explicit_cancel:
@@ -498,6 +523,213 @@ class GraphDispatcher:
                     failures[key] = result
 
         return self._final_outcome(states, failures, forced_cancel=False), failures
+
+    def _plan_resume_reuse(
+        self,
+        prior_run: Mapping[str, Any],
+        nodes: Sequence[_Node],
+        controller: RunController,
+    ) -> tuple[dict[str, ArtifactHandoff], DispatchOutcome | None]:
+        """Decide how a resumed Run treats the prior Run's completed nodes.
+
+        Returns ``(skips, failure)``.  When ``failure`` is not ``None`` the Run
+        must not dispatch **any** node: a completed node could neither be proven
+        reusable nor safely re-executed, so the resume is blocked with an
+        explicit ``recovery_required`` decision instead of replaying side
+        effects (docs/08 §9, agent.md §6).
+
+        A completed node is *reused* (skipped, its frozen artifacts handed to
+        dependents) only when :func:`reusable_completed_node` proves: the same
+        plan key + the same **stable reuse identity** + stable member/role
+        identity and a persisted artifact handoff with a content hash and
+        artifact refs.  The comparison uses the stable identity, never the raw
+        ``config_hash`` (which folds in the continuation ``conversation_id`` and
+        so can never match across a resume).  Any drift, a missing/closed
+        session, or a plan that no longer contains the completed key fails
+        closed.
+        """
+
+        done = completed_keys(prior_run)
+        if not done:
+            return {}, None
+        by_key = {node.key: node for node in nodes}
+        skips: dict[str, ArtifactHandoff] = {}
+        for key in sorted(done):
+            node = by_key.get(key)
+            if node is None:
+                reason = (
+                    f"resumed plan no longer contains completed node {key!r}; "
+                    "cannot prove its side effects are reusable"
+                )
+                return {}, self._resume_blocked(controller, key, reason)
+            identity = self._subtask_reuse_identity(node)
+            session, reuse_reason = reusable_completed_node(
+                prior_run,
+                key=key,
+                reuse_identity=identity,
+                role_ref=node.member.role_ref,
+                member_ref=node.member_id,
+            )
+            if session is None or session.handoff is None:
+                return {}, self._resume_blocked(controller, key, reuse_reason)
+            handoff = self._handoff_from_session(node, session)
+            if handoff is None:
+                return {}, self._resume_blocked(
+                    controller, key, f"completed node {key!r} handoff is not usable"
+                )
+            self._mark_node_reused(node, controller, handoff, source_run=prior_run)
+            skips[key] = handoff
+        return skips, None
+
+    def _subtask_reuse_identity(self, node: _Node) -> str | None:
+        """The frozen *stable* reuse identity persisted for this node."""
+
+        try:
+            value = self._store.read("subtask", node.subtask_id).entity.get("reuse_identity")
+        except Exception:  # noqa: BLE001 - absent identity means "cannot prove reuse"
+            return None
+        return value if isinstance(value, str) and value else None
+
+    def _reuse_identity(
+        self, spec: SubtaskSpec, member: MemberPlan, context: DispatchContext
+    ) -> str:
+        """Compute a node's stable reuse identity (LG-016).
+
+        The identity folds in the plan node and the *effective* member config —
+        role, tools, skills, connection pin, permissions (allowed tools) and
+        template version — but deliberately excludes the per-Run continuation
+        coordinates (``conversation_id``/``save_dir``).  The member's compiled
+        ``config_hash`` cannot be used directly: ``CompiledAgentConfig`` includes
+        the session profile's ``conversation_id``, which changes on every resume
+        (a resumed Run uses its own conversation coordinates), so it would make
+        *every* reuse comparison fail even when nothing about the node changed.
+
+        Recompiling with a neutral (``conversation_id=None``) session profile
+        yields the same permission/connection/tool/skill/template identity the
+        Run froze, independent of continuation position.  Any other drift
+        (model, connection, workspace, tools, skills, template) still changes
+        this value, so it cannot mask a genuine configuration change.
+        """
+
+        pin = self._run_pins.get(context.run_id)
+
+        def neutral_hash() -> str:
+            if self._compiler is None:  # pragma: no cover - compiler always set in graph
+                return member.candidate.config_hash
+            constraints = CompileConstraints(
+                allowed_tools=frozenset(member.candidate.tool_refs),
+                workspace_path=context.workspace_path or None,
+                # No continuation coordinate: this is the whole point.
+                conversation_id=None,
+                connection_pin=pin,
+            )
+            try:
+                compiled = self._compiler.compile_agent(member.role_ref, constraints=constraints)
+            except AppError:
+                # Fall back to the frozen candidate fields (still excludes the
+                # continuation coordinate) rather than coupling reuse to a
+                # transient compile failure.
+                return member.candidate.config_hash
+            return compiled.config_hash
+
+        return stable_hash(
+            {
+                "key": spec.key,
+                "objective": spec.objective,
+                "capability": spec.capability,
+                "acceptance": list(spec.acceptance),
+                "depends_on": list(spec.depends_on),
+                "write": spec.write,
+                "order": spec.order,
+                "role_ref": member.role_ref,
+                "template_version": member.candidate.template_version,
+                "connection_ref": member.candidate.connection_ref,
+                "skill_refs": sorted(member.candidate.skill_refs),
+                "tool_refs": sorted(member.candidate.tool_refs),
+                "capabilities": sorted(member.capabilities),
+                "neutral_member_config_hash": neutral_hash(),
+            }
+        )
+
+    def _handoff_from_session(
+        self, node: _Node, session: NodeSession
+    ) -> ArtifactHandoff | None:
+        """Rebuild a trusted handoff from a completed node's persisted record."""
+
+        raw = session.handoff or {}
+        content_hash = raw.get("content_hash")
+        artifacts = raw.get("artifacts")
+        revision = raw.get("revision")
+        if not isinstance(content_hash, str) or not content_hash:
+            return None
+        if not isinstance(artifacts, (list, tuple)) or not artifacts:
+            return None
+        refs = tuple(str(item) for item in artifacts if isinstance(item, str) and item)
+        if not refs:
+            return None
+        return ArtifactHandoff(
+            subtask_ref=node.subtask_id,
+            revision=revision if isinstance(revision, int) else 0,
+            content_hash=content_hash,
+            artifacts=refs,
+        )
+
+    def _mark_node_reused(
+        self,
+        node: _Node,
+        controller: RunController,
+        handoff: ArtifactHandoff,
+        *,
+        source_run: Mapping[str, Any],
+    ) -> None:
+        """Mark a resumed subtask ``passed`` from a proven prior artifact.
+
+        No executor is invoked and no new write occurs: the subtask is recorded
+        as skipped-from-checkpoint and its frozen artifact refs are preserved.
+        """
+
+        controller.transition_subtask(
+            node.subtask_id,
+            "passed",
+            extra={"skip_reason": "reused completed node from prior Run checkpoint"},
+            acceptance={
+                "status": "passed",
+                "criteria": list(node.spec.acceptance),
+                "evidence_refs": list(handoff.artifacts),
+            },
+            reason="completed node reused from verified prior checkpoint",
+        )
+        controller.record_artifact(node.subtask_id, handoff.artifacts, handoff.to_dict())
+        controller.emit(
+            EventType.ARTIFACT_PRODUCED,
+            {
+                "mode": "resume_skip",
+                "subtask_ref": node.subtask_id,
+                "source_run_id": source_run.get("id") or source_run.get("run_id"),
+                "content_hash": handoff.content_hash,
+                "artifact_refs": list(handoff.artifacts),
+            },
+        )
+
+    def _resume_blocked(
+        self, controller: RunController, key: str, reason: str
+    ) -> DispatchOutcome:
+        """Fail closed: block the resume instead of replaying a write node."""
+
+        message = (
+            f"cannot safely reuse completed node {key!r} on resume: {reason}; "
+            "refusing to re-execute a possibly-written node"
+        )
+        controller.emit(
+            EventType.ERROR_RECORDED,
+            {"mode": "resume_guard", "code": "recovery_required", "message": message},
+        )
+        return DispatchOutcome(
+            state="recovery_required",
+            summary=message,
+            failure_code="recovery_required",
+            failure_message=message,
+        )
 
     def _final_outcome(
         self, states: Mapping[str, str], failures: Mapping[str, NodeResult], *, forced_cancel: bool
@@ -658,6 +890,12 @@ class GraphDispatcher:
             artifacts=evidence,
         )
         controller.record_artifact(subtask_id, evidence, handoff.to_dict())
+        # Persist the frozen handoff with the node session so a later resumed Run
+        # can *prove* this completed write node is reusable (anti-replay guard).
+        # The recorded ``node_state`` is the authoritative subtask state.
+        self._record_node_session(
+            node, controller, result, handoff=handoff, node_state="passed"
+        )
         return NodeResult(
             key=node.key,
             subtask_id=subtask_id,
@@ -667,33 +905,52 @@ class GraphDispatcher:
         )
 
     def _record_node_session(
-        self, node: _Node, controller: RunController, result: ExecutorResult
+        self,
+        node: _Node,
+        controller: RunController,
+        result: ExecutorResult,
+        handoff: ArtifactHandoff | None = None,
+        *,
+        node_state: str | None = None,
     ) -> None:
         """Persist a node's native session to Member + Run mapping (LG-016).
 
-        The node's frozen ``config_hash`` (subtask entity) is captured so a later
-        resume only reattaches when the node configuration and member identity
-        are unchanged.  Nothing is written when the SDK reported no conversation.
+        The node's frozen **stable reuse identity** (subtask entity) is captured
+        so a later resume only reattaches/reuses when the node configuration and
+        member identity are unchanged — independent of the per-Run continuation
+        coordinates.  The raw ``config_hash`` is still recorded for
+        observability/back-compat.  Nothing is written when the SDK reported no
+        conversation.  ``node_state`` overrides the default (the executor result
+        state) so a completed node records the authoritative **subtask** state
+        ``passed`` — the value :func:`~.session_flow.completed_keys` uses to
+        detect replay.
         """
 
         try:
-            subtask_config_hash = self._store.read("subtask", node.subtask_id).entity.get(
-                "config_hash"
-            )
+            subtask_entity = self._store.read("subtask", node.subtask_id).entity
+            subtask_config_hash = subtask_entity.get("config_hash")
+            subtask_reuse_identity = subtask_entity.get("reuse_identity")
         except Exception:  # noqa: BLE001 - absence must not abort the node outcome
             subtask_config_hash = None
+            subtask_reuse_identity = None
         session = extract_node_session(
             result,
             key=node.key,
             subtask_id=node.subtask_id,
             member_ref=node.member_id,
             role_ref=node.member.role_ref,
-            node_state=result.state,
+            node_state=node_state or result.state,
             config_hash=(
                 str(subtask_config_hash)
                 if isinstance(subtask_config_hash, str) and subtask_config_hash
                 else node.member.candidate.config_hash
             ),
+            reuse_identity=(
+                str(subtask_reuse_identity)
+                if isinstance(subtask_reuse_identity, str) and subtask_reuse_identity
+                else None
+            ),
+            handoff=handoff.to_dict() if handoff is not None else None,
         )
         if session is None:
             return
@@ -713,21 +970,23 @@ class GraphDispatcher:
         prior_run = getattr(context, "prior_run", None)
         if prior_run is None:
             return None
-        # Compare the *subtask* config hash (node definition + member config),
-        # the same value persisted with the node session, so a reconfigured node
-        # is dispatched fresh rather than reattached to a stale conversation.
+        # Compare the *stable reuse identity* (node definition + effective member
+        # config, excluding the per-Run continuation coordinates) with the value
+        # persisted with the node session, so a reconfigured node is dispatched
+        # fresh rather than reattached to a stale conversation — while a resume
+        # whose only change is the conversation coordinate still reattaches.
         try:
-            subtask_config_hash = self._store.read(
+            subtask_reuse_identity = self._store.read(
                 "subtask", node.subtask_id
-            ).entity.get("config_hash")
-        except Exception:  # noqa: BLE001 - absent hash means "do not continue"
+            ).entity.get("reuse_identity")
+        except Exception:  # noqa: BLE001 - absent identity means "do not continue"
             return None
-        if not isinstance(subtask_config_hash, str) or not subtask_config_hash:
+        if not isinstance(subtask_reuse_identity, str) or not subtask_reuse_identity:
             return None
         return node_session_for_resume(
             prior_run,
             key=node.key,
-            config_hash=subtask_config_hash,
+            reuse_identity=subtask_reuse_identity,
             member_ref=node.member_id,
             role_ref=node.member.role_ref,
         )

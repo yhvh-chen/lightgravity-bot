@@ -19,10 +19,10 @@ This module is the single place that:
   plus the opaque ``run.session_refs`` stop-gate list;
 * resolves, on a later (resumed) Run, the per-node native coordinates to pass
   into that node's :class:`~lightgravity.adapter.ExecuteRequest` — but only when
-  the plan key, the node ``config_hash`` and the member/credential authorization
-  all still match.  A node whose identity cannot be proven is dispatched
-  *fresh* (a new conversation), never attached to a stale one and never used to
-  silently replay a completed write.
+  the plan key, the node's **stable reuse identity** and the member/credential
+  authorization all still match.  A node whose identity cannot be proven is
+  dispatched *fresh* (a new conversation), never attached to a stale one and
+  never used to silently replay a completed write.
 
 No secret ever enters these records: only native IDs, directories and version
 tags.  ``conversation_id``/``save_dir`` are exactly what the LG-006/016 adapter
@@ -71,11 +71,24 @@ class NodeSession:
     #: Node config+member hash at execution time; continuation requires an exact
     #: match so a reconfigured node never reattaches to an old conversation.
     config_hash: str | None = None
+    #: Stable reuse identity at execution time: the same plan spec + effective
+    #: member role/tools/skills/connection-pin/permission/template config, but
+    #: **excluding** the per-Run continuation coordinates
+    #: (``conversation_id``/``save_dir``).  ``config_hash`` above folds in
+    #: ``conversation_id`` (CompiledAgentConfig), so it can never match across a
+    #: resume; this value can, and is what reuse/continuation compares (LG-016).
+    reuse_identity: str | None = None
     credential_ref: str | None = None
     #: Stable role identity (survives the per-Run member id churn).  Used to
     #: re-check authorization; an ephemeral member id cannot be compared across
     #: Runs because a resumed Run recruits fresh members.
     role_ref: str | None = None
+    #: For a completed (``passed``) node: the frozen artifact handoff
+    #: (revision + content hash + artifact refs).  A resumed Run may only *skip*
+    #: reuse a completed node when this handoff is present and its config/member
+    #: identity still matches; otherwise the resume fails closed rather than
+    #: re-executing the node (LG-016 anti-replay guard).
+    handoff: dict[str, Any] | None = None
 
     def to_member_payload(self) -> dict[str, Any]:
         """The complete non-secret ``SessionRef`` for ``member.session_ref``."""
@@ -109,8 +122,12 @@ class NodeSession:
             payload["role_ref"] = self.role_ref
         if self.config_hash:
             payload["config_hash"] = self.config_hash
+        if self.reuse_identity:
+            payload["reuse_identity"] = self.reuse_identity
         if self.credential_ref:
             payload["credential_ref"] = self.credential_ref
+        if self.handoff:
+            payload["handoff"] = dict(self.handoff)
         return payload
 
     def to_continuation(self) -> dict[str, Any]:
@@ -132,8 +149,10 @@ def extract_node_session(
     member_ref: str,
     node_state: str | None = None,
     config_hash: str | None = None,
+    reuse_identity: str | None = None,
     credential_ref: str | None = None,
     role_ref: str | None = None,
+    handoff: dict[str, Any] | None = None,
 ) -> NodeSession | None:
     """Build a :class:`NodeSession` from a trusted terminal ``ExecutorResult``.
 
@@ -167,8 +186,10 @@ def extract_node_session(
         source="result",
         node_state=node_state,
         config_hash=config_hash,
+        reuse_identity=reuse_identity,
         credential_ref=credential_ref,
         role_ref=role_ref,
+        handoff=dict(handoff) if handoff else None,
     )
 
 
@@ -184,8 +205,22 @@ def record_node_session(controller: Any, session: NodeSession) -> None:
     run = controller.read_run()
     node_sessions = _as_mapping(run.get("node_sessions"))
     existing = node_sessions.get(session.subtask_id)
-    if not (isinstance(existing, dict) and existing.get("session_id") == session.session_id):
-        node_sessions[session.subtask_id] = session.to_run_payload()
+    same_session = isinstance(existing, dict) and existing.get("session_id") == session.session_id
+    payload = session.to_run_payload()
+    if same_session and isinstance(existing, dict):
+        # Merge: a later report of the same session may add the terminal
+        # ``node_state`` / frozen artifact ``handoff`` a resumed Run needs to
+        # prove a completed node is reusable.  Never drop previously recorded
+        # fields (e.g. an earlier handoff) on a redundant write.
+        merged = dict(existing)
+        for field, value in payload.items():
+            if value is not None and value != "":
+                merged[field] = value
+        if merged != existing:
+            node_sessions[session.subtask_id] = merged
+            controller.update_run({"node_sessions": node_sessions})
+    else:
+        node_sessions[session.subtask_id] = payload
         controller.update_run({"node_sessions": node_sessions})
 
     # 2. Stop-gate opaque session list (only ids; never secrets).
@@ -208,11 +243,36 @@ def _as_mapping(value: Any) -> dict[str, Any]:
     return {}
 
 
+def _identity_matches(
+    entry: Mapping[str, Any], reuse_identity: str | None, config_hash: str | None
+) -> bool:
+    """Whether a prior node record's identity still matches the current node.
+
+    Prefers the stable ``reuse_identity`` (excludes the continuation
+    coordinates).  Falls back to the raw ``config_hash`` only when the current
+    node has no stable identity or the prior record predates it, so records
+    written before the stable identity existed keep their stricter behaviour.
+    """
+
+    recorded_identity = entry.get("reuse_identity")
+    if reuse_identity is not None:
+        if isinstance(recorded_identity, str) and recorded_identity:
+            return recorded_identity == reuse_identity
+        # Legacy record with no stable identity: fall back to config_hash.
+        if config_hash is None:
+            return False
+        return entry.get("config_hash") in (None, config_hash)
+    if config_hash is not None:
+        return entry.get("config_hash") in (None, config_hash)
+    return True
+
+
 def node_session_for_resume(
     prior_run: Mapping[str, Any] | None,
     *,
     key: str,
-    config_hash: str | None,
+    reuse_identity: str | None = None,
+    config_hash: str | None = None,
     member_ref: str | None = None,
     role_ref: str | None = None,
 ) -> NodeSession | None:
@@ -221,8 +281,12 @@ def node_session_for_resume(
     A node may only be continued when **all** of the following hold:
 
     * a prior Run recorded a node session for the same plan ``key``;
-    * the node's ``config_hash`` matches exactly (a reconfigured node gets a fresh
-      conversation; the hash already folds in the member config);
+    * the node's **stable reuse identity** matches exactly (a reconfigured node
+      gets a fresh conversation).  The identity deliberately excludes the
+      per-Run continuation coordinates, so a resume whose only change is the new
+      conversation coordinate still reattaches; a genuine config/permission
+      change does not.  When the prior record predates the stable identity
+      (``reuse_identity`` absent) the raw ``config_hash`` is used as a fallback;
     * the stable ``role_ref`` still matches when recorded (authorization identity);
     * the node's native state proves the SDK attached to a conversation and it is
       not a completed ``passed`` node (a completed write is never replayed);
@@ -242,7 +306,7 @@ def node_session_for_resume(
             continue
         if entry.get("key") != key:
             continue
-        if config_hash is not None and entry.get("config_hash") not in (None, config_hash):
+        if not _identity_matches(entry, reuse_identity, config_hash):
             continue
         if role_ref is not None and entry.get("role_ref") not in (None, role_ref):
             continue
@@ -279,6 +343,11 @@ def node_session_for_resume(
         state=state,
         source=str(match.get("source", "result")),
         config_hash=config_hash,
+        reuse_identity=(
+            str(match.get("reuse_identity"))
+            if isinstance(match.get("reuse_identity"), str)
+            else reuse_identity
+        ),
         role_ref=(
             str(match.get("role_ref")) if isinstance(match.get("role_ref"), str) else role_ref
         ),
@@ -287,6 +356,7 @@ def node_session_for_resume(
             if isinstance(match.get("credential_ref"), str)
             else None
         ),
+        handoff=(dict(match["handoff"]) if isinstance(match.get("handoff"), Mapping) else None),
     )
 
 
@@ -312,10 +382,106 @@ def completed_keys(prior_run: Mapping[str, Any] | None) -> frozenset[str]:
     return frozenset(done)
 
 
+def reusable_completed_node(
+    prior_run: Mapping[str, Any] | None,
+    *,
+    key: str,
+    reuse_identity: str | None = None,
+    config_hash: str | None = None,
+    role_ref: str | None = None,
+    member_ref: str | None = None,
+) -> tuple[NodeSession | None, str]:
+    """Classify a prior *completed* node as trusted-reusable or not.
+
+    Returns ``(session, reason)`` where ``session`` is non-``None`` **only** when
+    the resume may safely *skip* the completed node and reuse its artifact
+    handoff.  That requires **all** of:
+
+    * the prior Run recorded a node for the same plan ``key``;
+    * it reached ``passed`` (``node_state == 'passed'``);
+    * the node's **stable reuse identity** matches exactly (the identity
+      excludes the per-Run continuation coordinates, so a resume whose only
+      change is the new conversation coordinate is still reusable, while a
+      genuine permission/model/connection/template change is not);
+    * the stable ``role_ref`` matches when either side recorded it (member
+      authorization identity);
+    * a frozen artifact handoff with a non-empty ``content_hash`` and at least
+      one artifact ref was persisted with the session.
+
+    Anything else returns ``(None, reason)`` — the caller must **not**
+    re-execute the node (that would replay a possibly-written side effect).  It
+    fails closed to an explicit recovery decision instead.
+    """
+
+    if not isinstance(prior_run, Mapping):
+        return None, "no prior Run to reuse completed nodes from"
+    node_sessions = prior_run.get("node_sessions")
+    if not isinstance(node_sessions, Mapping):
+        return None, "prior Run has no node session records"
+    match: Mapping[str, Any] | None = None
+    for entry in node_sessions.values():
+        if isinstance(entry, Mapping) and entry.get("key") == key:
+            match = entry
+            break
+    if match is None:
+        return None, f"no prior record for completed node {key!r}"
+    if match.get("node_state") not in _COMPLETED_STATES:
+        return None, f"prior node {key!r} is not a completed (passed) node"
+    if not _identity_matches(match, reuse_identity, config_hash):
+        return None, f"completed node {key!r} configuration changed; reuse not provable"
+    recorded_role = match.get("role_ref")
+    if isinstance(recorded_role, str) and role_ref is not None and recorded_role != role_ref:
+        return None, f"completed node {key!r} member authorization changed"
+    if (
+        not isinstance(recorded_role, str)
+        and role_ref is None
+        and member_ref is not None
+        and match.get("member_ref") not in (None, member_ref)
+    ):
+        return None, f"completed node {key!r} member identity changed"
+    handoff = match.get("handoff")
+    if not isinstance(handoff, Mapping):
+        return None, f"completed node {key!r} has no persisted artifact handoff"
+    content_hash = handoff.get("content_hash")
+    artifacts = handoff.get("artifacts")
+    if not isinstance(content_hash, str) or not content_hash.strip():
+        return None, f"completed node {key!r} handoff has no content hash"
+    if not isinstance(artifacts, (list, tuple)) or not artifacts:
+        return None, f"completed node {key!r} handoff has no artifact refs"
+    session = node_session_for_resume(
+        prior_run,
+        key=key,
+        reuse_identity=reuse_identity,
+        config_hash=config_hash,
+        member_ref=member_ref,
+        role_ref=role_ref,
+    )
+    if session is None:
+        return None, f"completed node {key!r} has no resumable native session record"
+    session = NodeSession(
+        key=session.key,
+        subtask_id=session.subtask_id,
+        member_ref=session.member_ref,
+        session_id=session.session_id,
+        conversation_id=session.conversation_id,
+        save_dir=session.save_dir,
+        state=session.state,
+        source=session.source,
+        node_state="passed",
+        config_hash=session.config_hash,
+        reuse_identity=session.reuse_identity,
+        credential_ref=session.credential_ref,
+        role_ref=session.role_ref,
+        handoff={str(k): v for k, v in handoff.items()},
+    )
+    return session, "completed node reuse is provable from the persisted handoff"
+
+
 __all__ = [
     "NodeSession",
     "completed_keys",
     "extract_node_session",
     "node_session_for_resume",
     "record_node_session",
+    "reusable_completed_node",
 ]

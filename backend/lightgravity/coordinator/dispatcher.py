@@ -43,6 +43,9 @@ OUTCOME_TO_RUN_STATE: dict[str, str] = {
     "cancelled": "cancelled",
     "budget_exhausted": "failed",
     "timeout": "failed",
+    # A resume that cannot prove a completed write node is reusable fails closed
+    # to an explicit recovery decision instead of replaying side effects (LG-016).
+    "recovery_required": "recovery_required",
 }
 
 OUTCOME_TO_TASK_PHASE: dict[str, str] = {
@@ -52,6 +55,7 @@ OUTCOME_TO_TASK_PHASE: dict[str, str] = {
     "cancelled": TaskPhase.CANCELLED,
     "budget_exhausted": TaskPhase.FAILED,
     "timeout": TaskPhase.FAILED,
+    "recovery_required": TaskPhase.RECOVERY_REQUIRED,
 }
 
 

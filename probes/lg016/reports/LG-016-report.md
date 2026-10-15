@@ -176,8 +176,61 @@ DEEPSEEK_API_KEY=... .venv/bin/python probes/lg016/lg016_native_continuation.py 
 - **未运行**：未做前端接线（LG-013 等）与逐任务独立 QA；首版 QA 由 027/021/022
   执行。未 push/deploy（本包按用户指令本地 commit）。
 
-## 6. 状态
+## 6. 续作补接线：稳定 reuse identity 与 anti-replay guard（2026-10-15）
 
-按自身验收条件实现（含跨 Run 原生会话续接）并附真实关键路径证据；本轮已本地
-commit（保留中断记录）。标 **in-progress → 待首版 QA**（`awaiting version QA`），
-不宣称版本验收通过。
+上一执行者在 guard 模型请求长时间无输出时被 SIGINT；5 个 dirty 文件完整保留。
+本轮不改 reset/覆盖，先 `git diff` 定位已有部分，再修复其已发现的真实逻辑缺陷并
+完成最小必要闭环。**无新增真实模型调用**（底层 SDK 续接能力已由 §3 证据证实）。
+
+### 6.1 已修复的真实缺陷：`config_hash` 含续接坐标
+
+`CompiledAgentConfig.config_hash` 经 `member_config_hash` 进入 subtask 的
+`config_hash`，而它折入了 session profile 的 `conversation_id`
+（`ResourceCompiler._compile_session` → `CompileConstraints.conversation_id`）。
+恢复时新 Run 的会话坐标与旧 Run 不同，故该 hash **必然**不同，原「按
+`config_hash` 比较复用/续接」永远失配 —— 该失配不能退化成 fresh 重放写副作用。
+
+修复（计划 B，最小面）：为节点计算并持久化**稳定 reuse identity**——由 plan spec
+（key/objective/capability/acceptance/depends_on/write/order）+ 有效 member
+角色/tool/skill/连接 pin/权限（allowed_tools）/capability/模板版本组成，**排除**
+`conversation_id`/`save_dir` 这类续接坐标。实现上用中性
+（`conversation_id=None`）`CompileConstraints` 重编译取值，不改全局
+`compile_agent`/`config_hash` 语义。`NodeSession.reuse_identity` 随 session 持久化，
+`reusable_completed_node`/`node_session_for_resume` 改比较该值（旧记录无该字段时
+回退 `config_hash`，保持严格）。关键字段（模型/连接/workspace/工具/技能/模板/
+权限）漂移**仍**改变 identity，不会被掩盖；Task 总预算仍受约束。
+
+### 6.2 anti-replay guard 语义
+
+恢复 Run 若旧 Run 存在已 `passed` 的写节点：能通过上述稳定 identity + 冻结
+handoff（content hash + artifact refs）证明可复用时，标记跳过复用产物、**不重执行、
+不产生新写**；否则 fail-closed 返回显式 `recovery_required`，且**不派发任何节点**
+（尤其不再 execute 已完成写节点 A）。配置/计划/权限漂移、closed session、缺可信原生
+标识或未知副作用一律不得静默 fresh 重放。fresh 仅用于被证明未执行/用户明确新尝试。
+
+### 6.3 本轮检查（有界、无真实模型调用）
+
+- `uv run mypy` → **Success: no issues found in 89 source files**。
+- `uv run pytest -q` → **434 passed, 4 skipped**（原 431 passed；新增 3 项 guard/identity 集成测试）。
+- `tests/control/test_graph_session_flow.py` → **14 passed**，含两个核心断言：
+  1. `test_reuse_identity_stable_across_conversation_coordinate_change`：用**真实
+     `GraphDispatcher` + 真实 `ResourceCompiler`**（非固定 hash 的 fake）证明仅移动
+     恢复会话坐标时稳定 identity 不变，而权限收窄（`tool_refs=`）时改变；同时断言原始
+     `compiled.config_hash` 随坐标变化（确认所防缺陷真实存在）。
+  2. `test_coordinator_resume_without_trusted_reuse_fails_closed`（端到端 `Coordinator`）
+     与 `test_no_trusted_reuse_blocks_resume_without_redispatch`（dispatcher）：已完成写
+     节点无可信复用时 resume 显式 `recovery_required`，且 A 不被再次 execute。
+- 无新增真实模型调用；控制探针未重跑（路径上轮已过、证据保留）。
+
+### 6.4 明确保守拒绝的剩余功能
+
+完整 checkpoint 复用/节点级 skip 调度仍**未实现**；本轮以保守、显式
+`recovery_required` 拒绝不安全 resume，不等价于通用 checkpoint 复用，也不自称大版本
+QA 通过。安全限制：identity 只覆盖上述关键字段，不覆盖运行期用量/连接凭据版本等
+非配置维度，故仅作**复用准入**用途，不扩大任何权限。
+
+## 7. 状态
+
+按自身验收条件实现（含跨 Run 原生会话续接 + 节点级 anti-replay guard）并附真实
+关键路径证据；本轮已本地 commit（保留中断记录）。标 **in-progress → 待首版 QA**
+（`awaiting version QA`），不宣称版本验收通过。
