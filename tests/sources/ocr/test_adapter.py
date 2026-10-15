@@ -17,14 +17,18 @@ from typing import Any
 import pytest
 
 from lightgravity.sources.ocr import (
+    ENV_OCR_SCALE,
+    MAX_OCR_SCALE,
     OpenAICompatOcrBackend,
     OcrRequest,
+    OcrScaleInvalid,
     OcrServiceError,
     OcrTimeout,
     PdfiumRasterizer,
     UnavailableOcrBackend,
     backend_from_env,
     is_pdf_bytes,
+    parse_scale_env,
 )
 
 
@@ -126,6 +130,41 @@ def test_env_factory_is_unavailable_without_configuration() -> None:
     )
     assert isinstance(configured, OpenAICompatOcrBackend)
     assert configured.model_id == "some-model"
+
+
+def test_scale_env_default_unchanged_and_valid_parsed() -> None:
+    # Absent or empty keeps the default render scale behaviour unchanged.
+    assert parse_scale_env({}, default=2.0) == 2.0
+    assert parse_scale_env({ENV_OCR_SCALE: ""}, default=2.0) == 2.0
+    assert parse_scale_env({ENV_OCR_SCALE: "  "}, default=2.0) == 2.0
+    # A finite positive value at or below the documented safe max is accepted.
+    assert parse_scale_env({ENV_OCR_SCALE: "4.0"}, default=2.0) == 4.0
+    assert parse_scale_env({ENV_OCR_SCALE: "3"}, default=2.0) == 3.0
+    assert parse_scale_env({ENV_OCR_SCALE: str(MAX_OCR_SCALE)}, default=2.0) == MAX_OCR_SCALE
+
+
+@pytest.mark.parametrize(
+    ("raw", "reason_part"),
+    [
+        ("nan", "finite"),
+        ("inf", "finite"),
+        ("-inf", "finite"),
+        ("0", "positive"),
+        ("-1", "positive"),
+        ("4.1", "maximum"),
+        ("abc", "number"),
+        ("1e400", "finite"),
+    ],
+)
+def test_scale_env_invalid_is_rejected_not_clamped(raw: str, reason_part: str) -> None:
+    # An invalid security/quality value must never silently become a pass.
+    with pytest.raises(OcrScaleInvalid) as excinfo:
+        parse_scale_env({ENV_OCR_SCALE: raw}, default=2.0)
+    details = excinfo.value.details
+    assert details["env"] == ENV_OCR_SCALE
+    assert details["value"] == raw
+    assert reason_part in details["reason"]
+    assert details["safe_max"] == MAX_OCR_SCALE
 
 
 def test_pdf_magic_and_rasteriser_multipage() -> None:

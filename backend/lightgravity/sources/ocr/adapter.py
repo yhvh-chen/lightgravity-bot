@@ -39,6 +39,13 @@ DEFAULT_TIMEOUT_SECONDS = 90.0
 #: A first request may trigger a router model load; allow a longer cold bound.
 DEFAULT_COLD_TIMEOUT_SECONDS = 180.0
 
+#: Documented safe upper bound for an explicit OCR render scale.  The default
+#: 2.0 renders ~144 DPI; 4.0 renders ~288 DPI and is the largest value the
+#: product treats as safe for a single bounded page (it stays well below the
+#: 300-DPI native scan of the LG-035 Z2 sample and does not change page/input
+#: limits).  Larger values are rejected, never silently clamped.
+MAX_OCR_SCALE = 4.0
+
 #: Prompt deliberately forbids inference so the model does not invent content.
 OCR_PROMPT = (
     "You are a precise OCR engine. Transcribe only the text that is visibly "
@@ -67,6 +74,21 @@ class OcrUnavailable(AppError):
             details={"reason": detail, "backend": "none"},
         )
         self.detail = detail
+
+
+class OcrScaleInvalid(AppError):
+    """An explicit OCR render-scale env value is not a safe finite positive number."""
+
+    def __init__(self, key: str, raw: str, *, reason: str) -> None:
+        super().__init__(
+            ErrorCode.VALIDATION_FAILED,
+            "OCR render scale configuration is invalid",
+            details={"env": key, "value": raw, "reason": reason,
+                     "safe_max": MAX_OCR_SCALE},
+        )
+        self.key = key
+        self.raw = raw
+        self.reason = reason
 
 
 class OcrTimeout(AppError):
@@ -320,6 +342,13 @@ ENV_OCR_TIMEOUT = "LIGHTGRAVITY_OCR_TIMEOUT_SECONDS"
 ENV_OCR_COLD_TIMEOUT = "LIGHTGRAVITY_OCR_COLD_TIMEOUT_SECONDS"
 ENV_OCR_MAX_TOKENS = "LIGHTGRAVITY_OCR_MAX_TOKENS"
 
+#: Optional PDF page-render scale for the OCR rasteriser.  The PDF user unit is
+#: 1/72 inch, so a scale of ``2.0`` renders at ~144 DPI (the historical default,
+#: documented as "~150 DPI").  This is an optional quality/composition knob and
+#: **not** a secret; it is read only through :func:`backend_from_env`-style code
+#: and never hard-codes a host.  Absent/empty keeps the default unchanged.
+ENV_OCR_SCALE = "LIGHTGRAVITY_OCR_SCALE"
+
 
 def backend_from_env(env: Any = None) -> OcrBackend:
     """Build the configured OCR backend, or an honest unavailable stub.
@@ -369,6 +398,41 @@ def _int_env(source: Any, key: str) -> int | None:
         return None
 
 
+def parse_scale_env(
+    source: Any, key: str = ENV_OCR_SCALE, *, default: float
+) -> float:
+    """Parse an optional, validated OCR render scale from the environment.
+
+    Returns ``default`` when the variable is absent or empty (default behaviour
+    unchanged).  A present-but-invalid value is **not** silently clamped: it
+    raises :class:`OcrScaleInvalid` with an explicit diagnostic so a bad security
+    or quality value cannot slip through as an accidental pass.  The value must
+    be finite, strictly positive and no greater than the documented safe maximum
+    (:data:`MAX_OCR_SCALE`); the existing page/input/memory bounds still apply.
+    """
+
+    import math
+
+    raw = source.get(key)
+    if raw is None or str(raw).strip() == "":
+        return default
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        raise OcrScaleInvalid(
+            key, str(raw), reason="not a number"
+        ) from None
+    if not math.isfinite(value):
+        raise OcrScaleInvalid(key, str(raw), reason="not finite")
+    if value <= 0:
+        raise OcrScaleInvalid(key, str(raw), reason="must be positive")
+    if value > MAX_OCR_SCALE:
+        raise OcrScaleInvalid(
+            key, str(raw), reason=f"above safe maximum {MAX_OCR_SCALE}"
+        )
+    return value
+
+
 __all__ = [
     "OcrBackend",
     "OcrPageResult",
@@ -385,5 +449,9 @@ __all__ = [
     "ENV_OCR_BASE_URL",
     "ENV_OCR_MODEL",
     "ENV_OCR_TOKEN",
+    "ENV_OCR_SCALE",
+    "parse_scale_env",
+    "OcrScaleInvalid",
+    "MAX_OCR_SCALE",
     "OCR_PROMPT",
 ]

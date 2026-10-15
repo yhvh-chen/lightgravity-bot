@@ -784,8 +784,19 @@ def build_source_service(
         from .ocr import backend_from_env
 
         ocr_backend = backend_from_env()
+    from .processing import ProcessingConfig
+
+    # Compose the optional render scale from the environment into the *actual*
+    # product processing path so an explicit ``LIGHTGRAVITY_OCR_SCALE`` reaches
+    # the real ``PdfiumRasterizer`` (not just a standalone backend test).
+    # Absent/empty keeps the default 2.0; an invalid value raises an explicit
+    # diagnostic here instead of silently falling back.
     processing = ProcessingEngine(
-        store, backend=ocr_backend, intake=intake, **processing_kwargs
+        store,
+        backend=ocr_backend,
+        intake=intake,
+        config=ProcessingConfig.from_env(),
+        **processing_kwargs,
     )
     return SourceService(
         store,

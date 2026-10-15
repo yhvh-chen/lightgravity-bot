@@ -15,6 +15,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from lightgravity.sources.intake import ReceiveRequest
 from lightgravity.sources.ocr import OcrServiceError, OcrTimeout, UnavailableOcrBackend
 from lightgravity.sources.processing import ProcessingConfig
@@ -64,6 +66,48 @@ def test_machine_markdown_has_page_backref_and_input_hash(source_store) -> None:
     kinds = {d["kind"] for d in record.entity["derivatives"]}
     assert "machine_markdown" in kinds and "page_map" in kinds
     assert record.status == "extracted"
+
+
+def test_actual_engine_receives_requested_scale(source_store) -> None:
+    """The requested scale reaches the *actual* product processing path/rasteriser.
+
+    This is deliberately not a mirror/standalone-backend test: it drives the
+    real ``ProcessingEngine.process`` over a real PDF and records what scale the
+    engine passes into the rasteriser, and that the explicit env value is what
+    the composed config carries.
+    """
+
+    from lightgravity.sources.ocr import PdfiumRasterizer
+    from lightgravity.sources.processing import ProcessingConfig, ProcessingEngine
+
+    recorded: dict[str, float] = {}
+
+    class RecordingRasterizer(PdfiumRasterizer):
+        def render(self, data, *, scale=2.0, max_pages=100):  # type: ignore[override]
+            recorded["scale"] = scale
+            return super().render(data, scale=scale, max_pages=max_pages)
+
+    source_id = _receive(source_store, "doc.pdf", _two_page_pdf())
+    engine = ProcessingEngine(
+        source_store,
+        backend=ScriptedBackend(script=["A", "B"]),
+        rasterizer=RecordingRasterizer(),
+        config=ProcessingConfig.from_env(env={"LIGHTGRAVITY_OCR_SCALE": "4.0"}),
+    )
+    outcome = engine.process(source_id)
+    assert outcome.status == "succeeded"
+    assert recorded["scale"] == 4.0
+
+    # Default composition (no env) keeps the historical 2.0 render scale.
+    recorded.clear()
+    engine_default = ProcessingEngine(
+        source_store,
+        backend=ScriptedBackend(script=["A", "B"]),
+        rasterizer=RecordingRasterizer(),
+        config=ProcessingConfig.from_env(env={}),
+    )
+    engine_default.process(source_id, force=True)
+    assert recorded["scale"] == 2.0
 
 
 def test_partial_failure_is_honest_and_failed_page_is_not_body(source_store) -> None:
@@ -208,3 +252,14 @@ def _two_page_pdf() -> bytes:
 
 def _json(text: str) -> dict:
     return json.loads(text)
+
+
+def test_invalid_scale_env_raises_explicit_diagnostic_not_silent_clamp() -> None:
+    """A bad explicit scale is reported, never silently coerced into a pass."""
+
+    from lightgravity.sources.ocr import OcrScaleInvalid
+    from lightgravity.sources.processing import ProcessingConfig
+
+    for bad in ("0", "-2", "nan", "inf", "9.9", "not-a-number"):
+        with pytest.raises(OcrScaleInvalid):
+            ProcessingConfig.from_env(env={"LIGHTGRAVITY_OCR_SCALE": bad})

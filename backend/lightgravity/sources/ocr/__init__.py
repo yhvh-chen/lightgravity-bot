@@ -17,15 +17,19 @@ not used here, and a working embedding route never implies OCR support.
 from __future__ import annotations
 
 from .adapter import (
+    ENV_OCR_SCALE,
+    MAX_OCR_SCALE,
     OcrBackend,
     OcrPageResult,
     OcrRequest,
+    OcrScaleInvalid,
     OcrServiceError,
     OcrTimeout,
     OcrUnavailable,
     OpenAICompatOcrBackend,
     UnavailableOcrBackend,
     backend_from_env,
+    parse_scale_env,
 )
 from .pdf import (
     PdfRenderError,
@@ -38,12 +42,16 @@ __all__ = [
     "OcrBackend",
     "OcrPageResult",
     "OcrRequest",
+    "OcrScaleInvalid",
     "OcrServiceError",
     "OcrTimeout",
     "OcrUnavailable",
     "OpenAICompatOcrBackend",
     "UnavailableOcrBackend",
     "backend_from_env",
+    "ENV_OCR_SCALE",
+    "MAX_OCR_SCALE",
+    "parse_scale_env",
     "PdfRenderError",
     "PdfRasterizer",
     "PdfiumRasterizer",
