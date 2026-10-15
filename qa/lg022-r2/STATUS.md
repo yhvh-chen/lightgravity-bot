@@ -28,7 +28,26 @@
 
 - 未宣称本任务累计 ≤20；旧 unknown 单列；未借改代码/重放未知写入。
 
-## 结论
+## 补查收尾（本包，2026-10-16）
 
-**PASS（成功门全满足）** —— 但按 agent.md，QA 只提供独立复验结论，最终 `done` 由主代理/用户决定。
-本包不自改 LG-022 任务状态；如实建议主代理据报告推进。详见 `REPORT.md`。
+> 详见 `SUPPLEMENT.md`（`REPORT.md` 的准确 scope 修正，不覆盖原报告）。本包**真实产品/模型调用 0**。
+
+- **前包 `bounded-uuv5ekyo`**：wall 限 600s，**wall143** 被终止；dispatch log 保留。其真实执行为
+  运行 `review_cancel_sdk_proof.py` 并调试 async（多次 100s 挂），产物 `/tmp/lg022-cancel-sdk.json` 保留。
+  副作用：**无真实 DeepSeek 调用**（主链账本 mtime 03:25 早于前包活动，未被追加）；其 async 调试是否写入
+  产品 data/workspace 为 **unknown**，本包**不重放**。
+- **真实 SDK cancel/stop 补证：仍未证实**。前包脚本 `all_pass=false`（`confirmed_after_real_sdk_stop=false`,
+  `real_sdk_teardown_fact={}`, `upstream_saw_client_gone=false`）。挂起属 **QA harness 未跑成 + SDK 行为 unknown**，
+  **非产品 fail**，也**非** SDK cancel 成功。原 REPORT §4 的 cancel-during-review 仍是 **deterministic-double**（无真实 SDK session）。
+- **主链 7 + light 1 未共用同一账本**：主链 `/tmp/lg022-r2-real`（limit **10**, count 7），
+  light `/tmp/lg022-r2-lightqa`（limit **3**, count 1）。**未统一硬总额**；已知实际 **8** 可核实但不受统一硬限。
+  属 QA 流程缺口，**非**产品 persistent ledger 缺陷（后者已独立证明通过）。
+
+## 结论（scope 修正）
+
+- **已通过**：真实主链（真 worker+reviewer→awaiting→绑定 accept）、停止/完成门产品机制、
+  生成计数器产品机制、D2/D3 确定性/真链、全量 pytest。
+- **仍未满足/未证实**：① 真实 SDK cancel/stop 补证；② 历史实验统一硬总额流程缺口。
+- **是否阻断 022 最终 `done`**：产品机制未见缺陷；但若验收要求真实 SDK cancel 的直接证据，则该项尚未满足，
+  构成**证据完整性阻断**，需补齐或由 PM 明确接受限制。**本包不擅自降门**，门保持原样。
+- 按 agent.md，QA 只提供独立复验结论，最终 `done` 由主代理/用户决定；本包不自改 LG-022 状态。
