@@ -44,7 +44,10 @@ updated: "2026-10-16"
 ## 2. 真实运行数据（`evidence/formal-real2.redacted.json`；私有原始 `fixtures/raw-evidence/formal-real2.raw.json`）
 
 - Run `run_01M50GARZGSWF8KVJM2PVRZWWC`，Task `task_01M50GARZ7FDBC1YR46TCFMM18`。
-- 真实生成请求：**27 / 48**（`ledger_snapshot{count:27,limit:48,remaining:21,persistent:true,corrupt:false}`）。
+- 真实生成请求：**28 / 48**。其中 worker dispatch 阶段 27（harness 在 `result.update` 时快照得
+  `ledger_snapshot{count:27,limit:48,remaining:21}`），随后真实独立 `ModelReviewer` 追加 **1** 次真实调用；
+  持久物理账本 `generation.jsonl` 最终 **28** 条 `reserved`（`count.json=28`），`persistent=true`、`corrupt=false`、
+  `limit=48`、`remaining=20`。**以机器账本为准**。
 - 真实 SDK 会话：**6**（3 选择 + 3 执行：alpha/beta/verify），全部进入真实 Run `session_refs`（`sessions_in_run_refs=true`）。
 - 真实工具调用 **35** 次（含 `discover_and_request_claim`×6、`edit_file`/`view_file`、受限 `request_peer`×3）。
 - `adapter.error` **0** 条（无 429 / 无异常）。
@@ -109,10 +112,10 @@ verify_has_two_handoffs=true, all_nodes_passed=true` ⇒ **`pass=true`**。
 
 ## 8. 计费/计量
 
-- 本包真实生成 **27**（唯一正式运行）；预检/dry-run 均为本地 fake 上游（**0 真实**），fakeRoot/formalRoot 分离。
+- 本包真实生成 **28**（唯一正式运行：27 worker dispatch + 1 reviewer）；预检/dry-run 均为本地 fake 上游（**0 真实**），fakeRoot/formalRoot 分离。
 - known token：SDK 事件未暴露 token 明细，如实记 **unknown**（不当 0）。reviewer usage `{"unknown":["usage"]}`。
 - 旧 LG031 工程 **34（10+14+10）不归零**；上次 proof **24 不归零**；旧实际总数 **58**；旧 phase 剩 6 **不再消费**。
-- 本包 +27 ⇒ 新已知整体工程实际约 **85**；预注册上限 **106**（=58+48），本包未超（remaining 21）。
+- 本包 +28 ⇒ 新已知整体工程实际约 **86**；预注册上限 **106**（=58+48），本包未超（remaining 20）。
 - 非 032 成本对照，不预设省 token。
 
 ## 9. 状态与后续（交 PM）
