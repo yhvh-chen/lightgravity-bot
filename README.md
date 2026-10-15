@@ -86,14 +86,16 @@ Files 只读预览/下载、受控上传（`X-LG-Token`，无 token 时上传如
 
 ## 当前进展（截至 2026-10-16）
 
-> **最新状态（2026-10-16，最终批次收拢）**：任务 CLI（backlog 专用根）`validate` **41 tasks / 0 diagnostics**；
+> **最新状态（2026-10-16，Materials R5 收拢集成）**：任务 CLI（backlog 专用根）`validate` **41 tasks / 0 diagnostics**；
 > `digest` complete=true → **2 todo / 2 in-progress / 37 done**；`ready=[]`。
-> **37 done** 含本轮依据独立封账 PASS 关闭的 **LG-032（仅「评估范围」）**；**in-progress = LG-035（图片/PDF OCR，
-> 真实中文样本已备但质量未测）、LG-037（可选向量，真实质量未达）**；**todo = LG-040（资料/Embedding 集中验收，未解锁）、
+> 本轮仅集成**证据**：OCR r5 产品候选**未证明收益故不合并**（Z2 表格公平段 CER 0.277946 > R4 0.268882、精确行 token 6/15、结构 FAIL；
+> 仅 `probes/materials-ocr-r5-20261016/**` 证据入库，默认提示词与产品分支不变）；向量 r5 probes-only 合并（2 真实音频/2 图片/6 中文文本语料，
+> 17 POST+1 GET，两条音频 rank 1、ZH 图片未进 top-5，**冻结图片门未过**）。**无质量通过**；本轮还记录**向量音频总预算越界 errata**
+> （授权 total ≤30 s，实际 32.048 s，超 2.048 s ≈6.8%；不重跑掩盖）。**in-progress = LG-035（图片/PDF OCR，
+> 真实中文样本已备但表格质量未过）、LG-037（可选向量，真实跨模态质量未达）**；**todo = LG-040（资料/Embedding 集中验收，未解锁）、
 > LG-041（中文 ASR 质量锁，未解锁）**。**协作候选 default off、可回退**；代码契约 **`1.11.0`**、SDK **`0.1.22`**。
-> 唯外部 block：候选资料服务不可达 + ASR 质量门；持续执行与续接见
-> [FINAL-CHECKPOINT/RESUME](probes/batch-20261016/FINAL-CHECKPOINT/RESUME.md) 与
-> [FINAL-BATCH-REPORT](probes/batch-20261016/FINAL-BATCH-REPORT.md)。下方表格为 2026-10-15 历史局部证据，保留不改。
+> **当前下一步**：OCR 改做**程序侧版面分析/列切分**（非再抽提示词），向量需**更大更平衡跨模态语料 + 分数 margin 诊断**（不自动采样、不在冻结 R5 查询上调阈值）。
+> 集成报告 [probes/materials-r5-close-20261016/REPORT.md](probes/materials-r5-close-20261016/REPORT.md)。下方表格为 2026-10-15 历史局部证据，保留不改。
 
 | 任务 | 状态 | 实际证据与限制 |
 |---|---|---|

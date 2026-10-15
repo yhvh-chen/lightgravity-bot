@@ -7,9 +7,40 @@ updated: "2026-10-16"
 
 # 当前进展与续接记录
 
-> **2026-10-16 最新事实见下方「## 2026-10-16 Materials Vector Quality R4 集成检查点」；其下各节（Materials OCR R4 集成、证据集成收拢与 2026-10-15 历史快照）整体标记为历史，保留不改。**
+> **2026-10-16 最新事实见下方「## 2026-10-16 Materials OCR R5 + Vector R5 收拢集成检查点」；其下各节（Materials Vector R4 集成、Materials OCR R4 集成、证据集成收拢与 2026-10-15 历史快照）整体标记为历史，保留不改。**
 
-## 2026-10-16 Materials Vector Quality R4 集成检查点（唯一 main 集成/PM 文档 owner；本集成阶段产品 LAN 调用 0/外部服务 0）
+## 2026-10-16 Materials OCR R5 + Vector R5 收拢集成检查点（唯一 main 集成/PM 文档 owner；本集成阶段产品 LAN 调用 0/外部服务 0）
+
+本节为**当前事实**，覆盖其上历史快照中的相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
+未 reset/clean/覆盖/重复 cherry-pick，未推送/部署/发布。主代理只 PM，无嵌套派工、无网络/模型探针、无新产品代码。
+详细报告 [probes/materials-r5-close-20261016/REPORT.md](probes/materials-r5-close-20261016/REPORT.md)。
+
+- **开工核对（真实，只读）**：本项目根 `main@a2dc40a` clean、无 stash；两条候选分支均以 `a2dc40a` 为基点、worktree clean：
+  `fix/materials-ocr-r5-20261016@1a4759c`（3 commit：`7afe8eb` PLAN+health GET / `06fabd3` **产品指令** / `1a4759c` report）、
+  `test/materials-vector-r5-20261016@c180411`（3 commit：`0ca7a42` FREEZE plan+corpus / `967d97b` harness+dry-run / `c180411` 证据+report）。
+- **既有 bounded wrapper 缺席（不含自身）**：开工时唯一在跑的 `lightgravity-pi-bounded.py`（PID 2799019）为
+  **本集成任务自身**（argv `materials-r5-close-20261016.txt`，其 `pi` 子进程为本 shell 父进程）；两个源 owner wrapper
+  均已自行退出（未被杀）。另有 2026-10-15 起的无关长期 `uvicorn`（PID 3320745/3320750，本机 8123）与无关长期 `pi`，非 materials bounded wrapper，未触碰。**无其它外部 `main` 写入者**（合并前 HEAD 与 `git status` 符合预期）。
+- **PM 决定：OCR r5 通用提示词候选未证明收益 ⇒ 不合并产品分支、不改默认提示词**：Z2 表格公平 token 加权段 CER **0.277946**（R4 为 **0.268882**，更差）、精确人工行 token **6/15**（R4 **8/15**）、机器表行 **0**（协议 §4 结构 FAIL）、Z1 印刷页整页 CER **0.10582**（旧 0.0423，单次非统计；整页数字与 Z2 专属门无关）。
+- **OCR r5 仅证据入库（唯一写动作，精确限定 owned 目录）**：先核对 `probes/materials-ocr-r5-20261016` 在 main **不存在**，再 `git restore --source=fix/materials-ocr-r5-20261016 -- probes/materials-ocr-r5-20261016`；
+  只新增该 **14 个 evidence 文件**（含 `private/.gitignore`），全部与源 git blob 哈希一致；**owned commit `767f1ea`**。
+  **未入库**：`sources/ocr/{adapter,__init__}.py`、`tests/sources/ocr/test_adapter.py`、`docs/09`——产品分支与默认新提示词**不入 main**。冻结 REPORT 字节保留（git blob `41fc061f…`）。源 harness 可 import 候选 `OCR_PROMPT`，**replay 需候选分支 `1a4759c`，main 保留原产品哈希/原默认提示词**。
+- **向量 r5 合并（`--no-ff`，无冲突、无重复 pick）**：`test/materials-vector-r5-20261016` 相对基点 diff **仅 `probes/materials-vector-r5-20261016/**`**（11 文件，非 probe 路径为空、worktree clean）；
+  merge **`d08144c`**。证据（源自源 report，未重跑）：语料 **2 真实图片 + 2 真实音频 + 6 真实中文文本**；
+  **17 POST + 1 health GET**、retry 0、串行；正向 **Q_AUD_LANG rank 1**、**Q_AUD_EARTH rank 1**（第二条真实音频 `File:Zh-地球.ogg`，CC BY-SA 4.0，作者 CanonNi，Commons SHA1 `a8c67e62…` 已核）、
+  **Q_IMG_EN rank 1**、**Q_IMG_ZH 未进 top-5（miss）**、**Q_TXT_ZH rank 1**；向量 **MRR 0.8** / top-1 0.8，词法 0.2；负向各 **5 false hits**（无阈值/弃答、纯 top-k NN 预期，**非 ACL/契约失败**）。
+  **冻结硬门**：音频可达 PASS、图片可达 **FAIL** ⇒ `all_hard_gates_met=false`；**无质量通过**，**LG-037 保持 in-progress**。冻结 REPORT 字节保留（git blob `e92791b1…`）。
+- **产品树前后零 delta（两次核）**：`git diff --stat a2dc40a HEAD -- backend frontend src tests docs contracts pyproject.toml uv.lock Makefile` **空**；
+  `git diff --name-status a2dc40a HEAD` **仅**两个 `probes/materials-{ocr,vector}-r5-20261016/**`（25 文件）。源分支 tip 未变（`1a4759c`/`c180411`），源 worktree 保留。main 收尾 clean。
+- **🚩 预算越界 errata（写入新集成 REPORT，不改源 report 字节）**：向量 r5 **超出授权总音频预算**——授权 **total ≤ 30 s**，实际 首段 **30 s** + 第二段 **2.048 s** = **32.048 s TOTAL**，**超 2.048 s（≈6.8%）**；源报告"每 POST ≤30 s"说法**不是原始 total 上界、无效**。**不宣称在所有预算内**；不重跑掩盖、不追溯改预算。首段原 Vorbis **143.58 s** 存在、嵌入的是 **30 s PCM**；第二段 2.048 s 真实 CC BY-SA 4.0（CanonNi）。重采样/裁剪**非无损**。**R4 旧数字保留**。**无 ASR / 不解锁 LG-041**。公开来源许可与 raw 哈希见源证据。
+- **成本**：本集成阶段产品 LAN 调用 **0**（无 GET/POST/ASR/embedding，无新质量 POST，无新测试——证据/合并不含产品字节变化）；
+  历史计数 OCR r5 **2 POST（均计划内）+1 GET**、向量 r5 **17 POST+1 GET**、retry 0，另 acquisition 单独计。**LAN/端点价格 unknown；pi/DeepSeek 执行成本另计、unknown、非 0**。未 push/deploy/publish。
+- **状态不变**：`validate` 41 tasks、`digest` **2 todo / 2 in-progress / 37 done**、`ready=[]`；**LG-035 `in-progress`（表格质量 FAIL 持续）**、**LG-037 `in-progress`（frozen 图片门未过）**、**LG-040/041 仍 locked**。契约 **`1.11.0`**、SDK **`0.1.22`** 不变。除本包 PM 文档（README/PROGRESS/PROJECT/LG-035/LG-037 正文）外不改任何状态/assignee（LG-035/037 仅追加正文、frontmatter 不变）。
+- **下一步（具体）**：OCR 下次必须做**程序侧版面分析/列切分**（非再抽提示词）；向量需**更大更平衡跨模态语料 + 分数 margin 诊断**，**不自动采样、不在冻结 R5 查询上调阈值**；两者仍归命名的 **LG-040** 版本 QA。
+
+---
+
+## 2026-10-16 Materials Vector Quality R4 集成检查点（历史；唯一 main 集成/PM 文档 owner；本集成阶段产品 LAN 调用 0/外部服务 0）
 
 本节为**当前事实**，覆盖其上历史快照中的相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
 未 reset/clean/覆盖/重复 cherry-pick，未推送/部署/发布。主代理只 PM，无嵌套派工、无网络/模型探针、无新产品代码。

@@ -43,6 +43,14 @@ updated: "2026-10-15"
 
 ## 决策日志
 
+### 2026-10-16：Materials R5 收拢——拒绝默认新 OCR 提示词；向量 r5 仅证据合并；记录音频总预算越界 errata
+
+- **PM 决定（普通技术决定）**：本轮只集成**证据**，**无质量通过、无状态变更**。报告 [probes/materials-r5-close-20261016/REPORT.md](probes/materials-r5-close-20261016/REPORT.md)。
+- **OCR r5 通用提示词候选：拒绝成为默认**。理由——Z2 表格公平 token 加权段 CER **0.277946** 比 R4 **0.268882** 更差、精确人工行 token **6/15**（R4 8/15）、机器表行 **0**（协议 §4 结构 FAIL）；Z1 整页 CER 0.10582（旧 0.0423，单次非统计）。⇒ 产品分支/默认新提示词**不合并**，仅 `probes/materials-ocr-r5-20261016/**` 证据入库（owned commit `767f1ea`）；源分支 `1a4759c` 与 worktree 全保留，main 保留原产品哈希/原提示词。
+- **向量 r5：probes-only 合并**（`--no-ff`，`d08144c`），2 真实音频 + 2 图片 + 6 中文文本如实报告；两侧音频 rank 1、ZH 图片未进 top-5；**冻结图片硬门未过** ⇒ LG-037 保持 `in-progress`。
+- **音频总预算越界 errata（新 REPORT 记录，不改源 report 字节）**：授权 **total ≤ 30 s**，实际 **32.048 s**（30 s + 2.048 s），**超 ≈6.8%**；源报告"每 POST ≤30 s"非原始 total 上界。不重跑掩盖、不追溯改预算；R4 旧数字保留；**无 ASR、不解锁 LG-041**。
+- **不范围外重写**：不新增硬门，不宣 LG-040 ready/pass；LG-035/037 仅追加正文、frontmatter 不变。下一步 OCR 做**版面/列切分**（非提示词抽奖），向量做**更大语料/margin 诊断**。契约 `1.11.0`、SDK `0.1.22` 不变；本集成产品调用 0。
+
 ### 2026-10-16：接口契约冻结 1.11.0（LG-031 runtime/API/SDK 集成公开兼容变化保守 MINOR）
 
 - **PM 普通技术决定**：正式契约由 `1.10.0` 升至 **`1.11.0` MINOR**。依据 R1 独立复验（`qa/lg032-runtime-r1@26ea945`）观察 **O3**：`afcae82` 落地后存在**实际公开兼容变化**——① 四个去中心化端点（`GET /runs/{run_id}/discoverable`、`POST /runs/{run_id}/claim_requests`、`POST /subtasks/{subtask_id}/lease/renew`、`POST /subtasks/{subtask_id}/lease/release`）请求体 `owner` 由 `1.6.0` 冻结时事实采用的 **required/端点采用** 放宽为 **optional/仅一致性校验、不再具有授权含义**；② `ExecutionGrant` 加性新增进程内非持久字段 `lease_owner`。按 docs/08 §13「新增向后兼容字段/语义放宽为 MINOR」**保守**分类为 `1.11.0`，取代此前 `1.10.0` 的“实现说明增补（无版本变化）”口径。
