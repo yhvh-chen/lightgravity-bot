@@ -97,6 +97,11 @@ updated: "2026-10-16"
 
 - **产品真实模型调用 0**（本轮集成；017 的 1 次真实 DeepSeek 复核沿用其原始证据，未重放）。
 - 前端复跑原因：本批**确实**修改了前端（reviewer 默认选择接线），故重跑 tsc/test/build 而非沿用 021/019 旧基点。
+- 已知测试工具隔离怪癖（**非本批引入，不阻断**）：`tests/startup/*` 使用 `from conftest import make_settings`；
+  若在**同一 pytest 会话**里把 `tests/api` 与 `tests/startup` 一起收集，会因 `tests/api/conftest.py` 同名而收集失败。
+  已在 `c138537`（集成前）同样存在；**全量 `uv run pytest -q` 正常（647 passed）**，单目录亦正常，仅 ad-hoc 子集顺序触发。
+- `git diff --check` 报告的尾随空白仅在 **LG-035 gold 真值文件** `probes/lg035/fixtures/8071_093.3B.txt`（真实转写真值，
+  字节保真，不改动）。
 
 ## 6. 任务状态结论（诚实）
 

@@ -154,3 +154,11 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - 状态：**LG-030 → done（待版本 QA LG-032）**（协议安全满足，真实身份/Graph 归 031）；**LG-017 保持 in-progress**（R1+UI 已补齐，仍待 022 及 021 增量独立集中 QA，不自评 pass）；**LG-035 保持 in-progress**（真实中文/表格人工真值质量门阻塞、已授权端点两次不可达，不以合成页当真实品质）；**LG-021 保持 in-progress**（独立 QA 主要路径 31/31 通过但存在证据精度/未测/新 reviewer UI 未覆盖，判定与最小复验清单见其 REPORT）。
 - backlog 专用根校验：**41 项、无诊断**；`tasks ready` **无就绪任务**（LG-022/031/036 前置未真 done）。**未 claim LG-022/031/036，未建其 worktree**（不就绪则不伪造 claim commit）。
 - 未完成质量门：首版集中 QA（LG-021 增量、LG-022 含 LG-017 独立复核真实门）；去中心化（LG-031 真实身份/Graph 接线、LG-032）；资料（LG-036 依赖 035、LG-037/038、LG-040）；LG-035 真实中文/表格质量门 + 已授权 OCR 端点不可达（外部阻塞，主代理已向用户发异步可选样本路径/服务恢复问题，尚无回复）；完整 checkpoint skip 未实现。
+
+### 第三批集成补充事实（准确续接）
+
+- 集成分支已合回 `main`（merge commit），集成前 main `c138537`、集成后 main 见本文件提交时的 `git rev-parse HEAD`；**未推送**。
+- 集成分支 `integrate/batch3` 与来源分支 `fix/lg017-r1` `8fbdedb`、`dev/lg030` `f029152`、`dev/lg035` `d7e4391`、`qa/lg021` `43dc3f1` 全部保留。
+- 未创建 LG-022/031/036 的 claim/worktree：集成后 `tasks ready` 无就绪任务（前置 LG-017/021/035 仍 in-progress），不就绪则不伪造 claim commit。
+- 测试工具隔离怪癖（非本批引入）：`tests/startup/*` 的 `from conftest import make_settings` 在同一会话与 `tests/api` 同收集时冲突；`c138537` 已存在，全量 `pytest -q` 正常。
+- `git diff --check` 仅报 LG-035 gold 真值 fixture 的尾随空白（字节保真，不改）。
