@@ -1,0 +1,34 @@
+{
+  "beta_selected_non_first": true,
+  "executor_accepts_scratch": true,
+  "failed_gates": [],
+  "ok": true,
+  "outcome_state": "succeeded",
+  "product_real_generation": 0,
+  "real_sdk_version": "0.1.22",
+  "save_dir_layout": "product-default: <data_dir>/native-sessions/<task> (OUTSIDE workspace_root)",
+  "scratch_inside_root": true,
+  "scratch_not_under_save_dir": true,
+  "sdk_session_count": 4,
+  "selected_keys": [
+    "alpha",
+    "beta"
+  ],
+  "selection_phase_has_no_product_write_tool": true,
+  "selection_tool_names": [
+    "discover_and_request_claim",
+    "list_skills",
+    "lookup_skill",
+    "lookup_skills"
+  ],
+  "stop_confirmation": {
+    "confirmed": true,
+    "problems": [],
+    "proxy_stopped": true,
+    "run_id": "run_01M50KF1T5X6H86Z5K8EQZM0S4",
+    "sessions_stopped": 4,
+    "sessions_total": 4,
+    "unknown_sessions": []
+  },
+  "writer_collision_into_wrong_node": false
+}

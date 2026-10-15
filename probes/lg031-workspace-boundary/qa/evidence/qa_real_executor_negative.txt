@@ -1,0 +1,31 @@
+[PASS] real_execute_blocks_out_of_root blocked
+[PASS] real_execute_blocks_config_invalid config_invalid
+[PASS] real_execute_message_escapes_authorized_root workspace '/tmp/tmptsr1z3uk/bot-data/native-sessions/task_qa/.lg-pool-selection' escapes the authorized root '/tmp/tmptsr1z3uk/bot-data/workspaces'
+[PASS] real_execute_emitted_blocked_event ['adapter.execution_started', 'adapter.execution_blocked']
+[PASS] real_execute_no_session_started 
+{
+  "ok": true,
+  "real_generation": 0,
+  "checks": [
+    {
+      "name": "real_execute_blocks_out_of_root",
+      "passed": true
+    },
+    {
+      "name": "real_execute_blocks_config_invalid",
+      "passed": true
+    },
+    {
+      "name": "real_execute_message_escapes_authorized_root",
+      "passed": true
+    },
+    {
+      "name": "real_execute_emitted_blocked_event",
+      "passed": true
+    },
+    {
+      "name": "real_execute_no_session_started",
+      "passed": true
+    }
+  ]
+}
