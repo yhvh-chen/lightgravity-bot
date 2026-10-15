@@ -1,0 +1,66 @@
+{
+  "findings": [
+    "truth has a single dialect-marker prefix (`*國/蘇/廣…`) per line: the '3 columns' is a *dialect label* mapping, not a repeated per-row cell grid.",
+    "the page carries NO horizontal and NO vertical ruling; a table with 15 rows x 3 columns would normally show cell borders or at least consistent column gutters.",
+    "measured geometry is not a uniform 3-column page: region column counts = [3, 2, 1, 2].",
+    "the truth flattens reading order (left column block then right column block); the page actually places those blocks side by side, which is why plain OCR merges them onto one line — a reading-order mismatch, not necessarily an OCR miss."
+  ],
+  "measured_geometry": {
+    "column_model": "multi_column_local",
+    "content_box": [
+      109,
+      319,
+      704,
+      1039
+    ],
+    "global_column_count": 3,
+    "has_ruling": false,
+    "horizontal_rules": [],
+    "line_count": 12,
+    "max_region_columns": 3,
+    "region_column_counts": [
+      3,
+      2,
+      1,
+      2
+    ],
+    "vertical_rules": []
+  },
+  "truth_structure": {
+    "content_line_count": 15,
+    "dialect_markers": [
+      "*",
+      "*",
+      "*",
+      "*",
+      "*",
+      "*",
+      "*",
+      "*",
+      "*",
+      "*",
+      "*",
+      "*",
+      "*",
+      "*",
+      "*"
+    ],
+    "frozen_interpretation": {
+      "claimed_columns": 3,
+      "claimed_dialects_per_section": 3,
+      "claimed_rows": 15,
+      "claimed_sections": 5
+    },
+    "lines_per_section": [
+      3,
+      3,
+      3,
+      3,
+      3
+    ],
+    "section_column_counts": [
+      3
+    ],
+    "section_count": 5
+  }
+}

@@ -1,0 +1,601 @@
+{
+  "column_count": 6,
+  "column_model": "multi_column",
+  "columns": [
+    {
+      "gutter_left": null,
+      "gutter_right": [
+        369,
+        381
+      ],
+      "index": 0,
+      "width": 152,
+      "x0": 217,
+      "x1": 368
+    },
+    {
+      "gutter_left": [
+        369,
+        381
+      ],
+      "gutter_right": [
+        486,
+        504
+      ],
+      "index": 1,
+      "width": 104,
+      "x0": 382,
+      "x1": 485
+    },
+    {
+      "gutter_left": [
+        486,
+        504
+      ],
+      "gutter_right": [
+        637,
+        656
+      ],
+      "index": 2,
+      "width": 132,
+      "x0": 505,
+      "x1": 636
+    },
+    {
+      "gutter_left": [
+        637,
+        656
+      ],
+      "gutter_right": [
+        1032,
+        1043
+      ],
+      "index": 3,
+      "width": 375,
+      "x0": 657,
+      "x1": 1031
+    },
+    {
+      "gutter_left": [
+        1032,
+        1043
+      ],
+      "gutter_right": [
+        1223,
+        1242
+      ],
+      "index": 4,
+      "width": 179,
+      "x0": 1044,
+      "x1": 1222
+    },
+    {
+      "gutter_left": [
+        1223,
+        1242
+      ],
+      "gutter_right": null,
+      "index": 5,
+      "width": 167,
+      "x0": 1243,
+      "x1": 1409
+    }
+  ],
+  "content_box": [
+    217,
+    638,
+    1409,
+    2083
+  ],
+  "geometry": {
+    "height_pt": 689.0,
+    "page": 2,
+    "scale": 4.0,
+    "width_pt": 408.0
+  },
+  "has_ruling": false,
+  "height": 2759,
+  "horizontal_rules": [],
+  "ink_threshold": 128,
+  "input_sha256": "2b8327bf14cba890a80f8866c6562734ff16199a8a7438351ada9c27f700c894",
+  "is_multicolumn": true,
+  "kind": "ocr_layout_analysis",
+  "line_count": 14,
+  "lines": [
+    {
+      "index": 0,
+      "ink": 12667,
+      "x0": 322,
+      "x1": 1409,
+      "y0": 638,
+      "y1": 735
+    },
+    {
+      "index": 1,
+      "ink": 11301,
+      "x0": 254,
+      "x1": 1330,
+      "y0": 746,
+      "y1": 803
+    },
+    {
+      "index": 2,
+      "ink": 15,
+      "x0": 362,
+      "x1": 920,
+      "y0": 805,
+      "y1": 810
+    },
+    {
+      "index": 3,
+      "ink": 11151,
+      "x0": 248,
+      "x1": 1353,
+      "y0": 814,
+      "y1": 855
+    },
+    {
+      "index": 4,
+      "ink": 11661,
+      "x0": 253,
+      "x1": 1269,
+      "y0": 867,
+      "y1": 909
+    },
+    {
+      "index": 5,
+      "ink": 10603,
+      "x0": 255,
+      "x1": 1296,
+      "y0": 1101,
+      "y1": 1141
+    },
+    {
+      "index": 6,
+      "ink": 11239,
+      "x0": 232,
+      "x1": 1304,
+      "y0": 1157,
+      "y1": 1197
+    },
+    {
+      "index": 7,
+      "ink": 10053,
+      "x0": 254,
+      "x1": 1352,
+      "y0": 1217,
+      "y1": 1255
+    },
+    {
+      "index": 8,
+      "ink": 13490,
+      "x0": 255,
+      "x1": 1348,
+      "y0": 1441,
+      "y1": 1481
+    },
+    {
+      "index": 9,
+      "ink": 14277,
+      "x0": 256,
+      "x1": 1359,
+      "y0": 1493,
+      "y1": 1539
+    },
+    {
+      "index": 10,
+      "ink": 13524,
+      "x0": 217,
+      "x1": 1391,
+      "y0": 1556,
+      "y1": 1599
+    },
+    {
+      "index": 11,
+      "ink": 24,
+      "x0": 374,
+      "x1": 1128,
+      "y0": 1706,
+      "y1": 1714
+    },
+    {
+      "index": 12,
+      "ink": 46278,
+      "x0": 217,
+      "x1": 1341,
+      "y0": 1749,
+      "y1": 1950
+    },
+    {
+      "index": 13,
+      "ink": 11046,
+      "x0": 717,
+      "x1": 1021,
+      "y0": 1967,
+      "y1": 2078
+    }
+  ],
+  "max_region_columns": 5,
+  "mean_line_height": 58.786,
+  "page": 2,
+  "reason": null,
+  "regions": [
+    {
+      "column_count": 4,
+      "column_crops": [
+        [
+          248,
+          638,
+          401,
+          909
+        ],
+        [
+          450,
+          638,
+          1108,
+          909
+        ],
+        [
+          1122,
+          638,
+          1217,
+          909
+        ],
+        [
+          1322,
+          638,
+          1409,
+          909
+        ]
+      ],
+      "columns": [
+        {
+          "gutter_left": null,
+          "gutter_right": [
+            402,
+            449
+          ],
+          "index": 0,
+          "width": 154,
+          "x0": 248,
+          "x1": 401
+        },
+        {
+          "gutter_left": [
+            402,
+            449
+          ],
+          "gutter_right": [
+            1109,
+            1121
+          ],
+          "index": 1,
+          "width": 659,
+          "x0": 450,
+          "x1": 1108
+        },
+        {
+          "gutter_left": [
+            1109,
+            1121
+          ],
+          "gutter_right": [
+            1218,
+            1321
+          ],
+          "index": 2,
+          "width": 96,
+          "x0": 1122,
+          "x1": 1217
+        },
+        {
+          "gutter_left": [
+            1218,
+            1321
+          ],
+          "gutter_right": null,
+          "index": 3,
+          "width": 88,
+          "x0": 1322,
+          "x1": 1409
+        }
+      ],
+      "crop_box": [
+        248,
+        638,
+        1409,
+        909
+      ],
+      "index": 0,
+      "line_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "y0": 638,
+      "y1": 909
+    },
+    {
+      "column_count": 4,
+      "column_crops": [
+        [
+          232,
+          1101,
+          368,
+          1255
+        ],
+        [
+          385,
+          1101,
+          717,
+          1255
+        ],
+        [
+          806,
+          1101,
+          1267,
+          1255
+        ],
+        [
+          1285,
+          1101,
+          1352,
+          1255
+        ]
+      ],
+      "columns": [
+        {
+          "gutter_left": null,
+          "gutter_right": [
+            369,
+            384
+          ],
+          "index": 0,
+          "width": 137,
+          "x0": 232,
+          "x1": 368
+        },
+        {
+          "gutter_left": [
+            369,
+            384
+          ],
+          "gutter_right": [
+            718,
+            805
+          ],
+          "index": 1,
+          "width": 333,
+          "x0": 385,
+          "x1": 717
+        },
+        {
+          "gutter_left": [
+            718,
+            805
+          ],
+          "gutter_right": [
+            1268,
+            1284
+          ],
+          "index": 2,
+          "width": 462,
+          "x0": 806,
+          "x1": 1267
+        },
+        {
+          "gutter_left": [
+            1268,
+            1284
+          ],
+          "gutter_right": null,
+          "index": 3,
+          "width": 68,
+          "x0": 1285,
+          "x1": 1352
+        }
+      ],
+      "crop_box": [
+        232,
+        1101,
+        1352,
+        1255
+      ],
+      "index": 1,
+      "line_indices": [
+        5,
+        6,
+        7
+      ],
+      "y0": 1101,
+      "y1": 1255
+    },
+    {
+      "column_count": 2,
+      "column_crops": [
+        [
+          217,
+          1441,
+          1272,
+          1599
+        ],
+        [
+          1285,
+          1441,
+          1391,
+          1599
+        ]
+      ],
+      "columns": [
+        {
+          "gutter_left": null,
+          "gutter_right": [
+            1273,
+            1284
+          ],
+          "index": 0,
+          "width": 1056,
+          "x0": 217,
+          "x1": 1272
+        },
+        {
+          "gutter_left": [
+            1273,
+            1284
+          ],
+          "gutter_right": null,
+          "index": 1,
+          "width": 107,
+          "x0": 1285,
+          "x1": 1391
+        }
+      ],
+      "crop_box": [
+        217,
+        1441,
+        1391,
+        1599
+      ],
+      "index": 2,
+      "line_indices": [
+        8,
+        9,
+        10
+      ],
+      "y0": 1441,
+      "y1": 1599
+    },
+    {
+      "column_count": 5,
+      "column_crops": [
+        [
+          217,
+          1706,
+          373,
+          2078
+        ],
+        [
+          387,
+          1706,
+          486,
+          2078
+        ],
+        [
+          510,
+          1706,
+          604,
+          2078
+        ],
+        [
+          629,
+          1706,
+          1231,
+          2078
+        ],
+        [
+          1244,
+          1706,
+          1341,
+          2078
+        ]
+      ],
+      "columns": [
+        {
+          "gutter_left": null,
+          "gutter_right": [
+            374,
+            386
+          ],
+          "index": 0,
+          "width": 157,
+          "x0": 217,
+          "x1": 373
+        },
+        {
+          "gutter_left": [
+            374,
+            386
+          ],
+          "gutter_right": [
+            487,
+            509
+          ],
+          "index": 1,
+          "width": 100,
+          "x0": 387,
+          "x1": 486
+        },
+        {
+          "gutter_left": [
+            487,
+            509
+          ],
+          "gutter_right": [
+            605,
+            628
+          ],
+          "index": 2,
+          "width": 95,
+          "x0": 510,
+          "x1": 604
+        },
+        {
+          "gutter_left": [
+            605,
+            628
+          ],
+          "gutter_right": [
+            1232,
+            1243
+          ],
+          "index": 3,
+          "width": 603,
+          "x0": 629,
+          "x1": 1231
+        },
+        {
+          "gutter_left": [
+            1232,
+            1243
+          ],
+          "gutter_right": null,
+          "index": 4,
+          "width": 98,
+          "x0": 1244,
+          "x1": 1341
+        }
+      ],
+      "crop_box": [
+        217,
+        1706,
+        1341,
+        2078
+      ],
+      "index": 3,
+      "line_indices": [
+        11,
+        12,
+        13
+      ],
+      "y0": 1706,
+      "y1": 2078
+    }
+  ],
+  "schema": "lightgravity.bot/v1",
+  "source": {
+    "page_index": 1,
+    "pdf_name": "LG035-ZH-Z2.pdf",
+    "pdf_sha256": "da50c9f6963f70bc022db55a367b88fd4d6c5be36d899ae5a1d7392aada0eb5a",
+    "raster_bytes": 366217,
+    "raster_png_sha256": "2b8327bf14cba890a80f8866c6562734ff16199a8a7438351ada9c27f700c894",
+    "scale": 4.0
+  },
+  "status": "ok",
+  "vertical_rules": [],
+  "warnings": [
+    "multi-column guard: side-by-side text columns detected without explicit ruling; reported as text columns, not a confirmed table"
+  ],
+  "width": 1633
+}

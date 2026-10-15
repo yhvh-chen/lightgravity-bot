@@ -1,0 +1,401 @@
+{
+  "column_count": 3,
+  "column_model": "multi_column_local",
+  "columns": [
+    {
+      "gutter_left": null,
+      "gutter_right": [
+        197,
+        209
+      ],
+      "index": 0,
+      "width": 88,
+      "x0": 109,
+      "x1": 196
+    },
+    {
+      "gutter_left": [
+        197,
+        209
+      ],
+      "gutter_right": [
+        255,
+        268
+      ],
+      "index": 1,
+      "width": 45,
+      "x0": 210,
+      "x1": 254
+    },
+    {
+      "gutter_left": [
+        255,
+        268
+      ],
+      "gutter_right": null,
+      "index": 2,
+      "width": 436,
+      "x0": 269,
+      "x1": 704
+    }
+  ],
+  "content_box": [
+    109,
+    319,
+    704,
+    1039
+  ],
+  "geometry": {
+    "height_pt": 689.0,
+    "page": 2,
+    "scale": 2.0,
+    "width_pt": 408.0
+  },
+  "has_ruling": false,
+  "height": 1380,
+  "horizontal_rules": [],
+  "ink_threshold": 128,
+  "input_sha256": "15ca62198b90b2effee1ef5933f4104fb3d986637b040a0da0b0d89e7ddf3ac4",
+  "is_multicolumn": true,
+  "kind": "ocr_layout_analysis",
+  "line_count": 12,
+  "lines": [
+    {
+      "index": 0,
+      "ink": 3225,
+      "x0": 164,
+      "x1": 704,
+      "y0": 319,
+      "y1": 367
+    },
+    {
+      "index": 1,
+      "ink": 2826,
+      "x0": 127,
+      "x1": 665,
+      "y0": 379,
+      "y1": 398
+    },
+    {
+      "index": 2,
+      "ink": 2747,
+      "x0": 125,
+      "x1": 676,
+      "y0": 408,
+      "y1": 427
+    },
+    {
+      "index": 3,
+      "ink": 2871,
+      "x0": 126,
+      "x1": 634,
+      "y0": 435,
+      "y1": 454
+    },
+    {
+      "index": 4,
+      "ink": 2640,
+      "x0": 127,
+      "x1": 647,
+      "y0": 550,
+      "y1": 569
+    },
+    {
+      "index": 5,
+      "ink": 2750,
+      "x0": 116,
+      "x1": 651,
+      "y0": 579,
+      "y1": 598
+    },
+    {
+      "index": 6,
+      "ink": 2526,
+      "x0": 127,
+      "x1": 675,
+      "y0": 609,
+      "y1": 627
+    },
+    {
+      "index": 7,
+      "ink": 3359,
+      "x0": 127,
+      "x1": 673,
+      "y0": 721,
+      "y1": 740
+    },
+    {
+      "index": 8,
+      "ink": 3555,
+      "x0": 128,
+      "x1": 675,
+      "y0": 749,
+      "y1": 769
+    },
+    {
+      "index": 9,
+      "ink": 3347,
+      "x0": 127,
+      "x1": 671,
+      "y0": 779,
+      "y1": 798
+    },
+    {
+      "index": 10,
+      "ink": 11564,
+      "x0": 109,
+      "x1": 670,
+      "y0": 875,
+      "y1": 975
+    },
+    {
+      "index": 11,
+      "ink": 2601,
+      "x0": 358,
+      "x1": 510,
+      "y0": 984,
+      "y1": 1039
+    }
+  ],
+  "max_region_columns": 3,
+  "mean_line_height": 32.167,
+  "page": 2,
+  "reason": null,
+  "regions": [
+    {
+      "column_count": 3,
+      "column_crops": [
+        [
+          125,
+          319,
+          200,
+          454
+        ],
+        [
+          225,
+          319,
+          609,
+          454
+        ],
+        [
+          661,
+          319,
+          704,
+          454
+        ]
+      ],
+      "columns": [
+        {
+          "gutter_left": null,
+          "gutter_right": [
+            201,
+            224
+          ],
+          "index": 0,
+          "width": 76,
+          "x0": 125,
+          "x1": 200
+        },
+        {
+          "gutter_left": [
+            201,
+            224
+          ],
+          "gutter_right": [
+            610,
+            660
+          ],
+          "index": 1,
+          "width": 385,
+          "x0": 225,
+          "x1": 609
+        },
+        {
+          "gutter_left": [
+            610,
+            660
+          ],
+          "gutter_right": null,
+          "index": 2,
+          "width": 44,
+          "x0": 661,
+          "x1": 704
+        }
+      ],
+      "crop_box": [
+        125,
+        319,
+        704,
+        454
+      ],
+      "index": 0,
+      "line_indices": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "y0": 319,
+      "y1": 454
+    },
+    {
+      "column_count": 2,
+      "column_crops": [
+        [
+          116,
+          550,
+          358,
+          627
+        ],
+        [
+          403,
+          550,
+          675,
+          627
+        ]
+      ],
+      "columns": [
+        {
+          "gutter_left": null,
+          "gutter_right": [
+            359,
+            402
+          ],
+          "index": 0,
+          "width": 243,
+          "x0": 116,
+          "x1": 358
+        },
+        {
+          "gutter_left": [
+            359,
+            402
+          ],
+          "gutter_right": null,
+          "index": 1,
+          "width": 273,
+          "x0": 403,
+          "x1": 675
+        }
+      ],
+      "crop_box": [
+        116,
+        550,
+        675,
+        627
+      ],
+      "index": 1,
+      "line_indices": [
+        4,
+        5,
+        6
+      ],
+      "y0": 550,
+      "y1": 627
+    },
+    {
+      "column_count": 1,
+      "column_crops": [
+        [
+          127,
+          721,
+          675,
+          798
+        ]
+      ],
+      "columns": [
+        {
+          "gutter_left": null,
+          "gutter_right": null,
+          "index": 0,
+          "width": 549,
+          "x0": 127,
+          "x1": 675
+        }
+      ],
+      "crop_box": [
+        127,
+        721,
+        675,
+        798
+      ],
+      "index": 2,
+      "line_indices": [
+        7,
+        8,
+        9
+      ],
+      "y0": 721,
+      "y1": 798
+    },
+    {
+      "column_count": 2,
+      "column_crops": [
+        [
+          109,
+          875,
+          256,
+          1039
+        ],
+        [
+          269,
+          875,
+          670,
+          1039
+        ]
+      ],
+      "columns": [
+        {
+          "gutter_left": null,
+          "gutter_right": [
+            257,
+            268
+          ],
+          "index": 0,
+          "width": 148,
+          "x0": 109,
+          "x1": 256
+        },
+        {
+          "gutter_left": [
+            257,
+            268
+          ],
+          "gutter_right": null,
+          "index": 1,
+          "width": 402,
+          "x0": 269,
+          "x1": 670
+        }
+      ],
+      "crop_box": [
+        109,
+        875,
+        670,
+        1039
+      ],
+      "index": 3,
+      "line_indices": [
+        10,
+        11
+      ],
+      "y0": 875,
+      "y1": 1039
+    }
+  ],
+  "schema": "lightgravity.bot/v1",
+  "source": {
+    "page_index": 1,
+    "pdf_name": "LG035-ZH-Z2.pdf",
+    "pdf_sha256": "da50c9f6963f70bc022db55a367b88fd4d6c5be36d899ae5a1d7392aada0eb5a",
+    "raster_bytes": 164473,
+    "raster_png_sha256": "15ca62198b90b2effee1ef5933f4104fb3d986637b040a0da0b0d89e7ddf3ac4",
+    "scale": 2.0
+  },
+  "status": "ok",
+  "vertical_rules": [],
+  "warnings": [
+    "multi-column guard: side-by-side text columns detected without explicit ruling; reported as text columns, not a confirmed table"
+  ],
+  "width": 817
+}

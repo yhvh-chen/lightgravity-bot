@@ -1,0 +1,165 @@
+{
+  "column_count": 1,
+  "column_model": "single_column",
+  "columns": [
+    {
+      "gutter_left": null,
+      "gutter_right": null,
+      "index": 0,
+      "width": 419,
+      "x0": 26,
+      "x1": 444
+    }
+  ],
+  "content_box": [
+    26,
+    66,
+    444,
+    259
+  ],
+  "geometry": {
+    "height_pt": 172.0,
+    "page": 1,
+    "scale": 2.0,
+    "width_pt": 230.0
+  },
+  "has_ruling": true,
+  "height": 346,
+  "horizontal_rules": [],
+  "ink_threshold": 128,
+  "input_sha256": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276",
+  "is_multicolumn": false,
+  "kind": "ocr_layout_analysis",
+  "line_count": 8,
+  "lines": [
+    {
+      "index": 0,
+      "ink": 1991,
+      "x0": 26,
+      "x1": 417,
+      "y0": 66,
+      "y1": 87
+    },
+    {
+      "index": 1,
+      "ink": 2072,
+      "x0": 26,
+      "x1": 444,
+      "y0": 91,
+      "y1": 112
+    },
+    {
+      "index": 2,
+      "ink": 755,
+      "x0": 26,
+      "x1": 160,
+      "y0": 115,
+      "y1": 132
+    },
+    {
+      "index": 3,
+      "ink": 2080,
+      "x0": 26,
+      "x1": 420,
+      "y0": 140,
+      "y1": 161
+    },
+    {
+      "index": 4,
+      "ink": 2135,
+      "x0": 27,
+      "x1": 420,
+      "y0": 164,
+      "y1": 186
+    },
+    {
+      "index": 5,
+      "ink": 2057,
+      "x0": 26,
+      "x1": 429,
+      "y0": 189,
+      "y1": 210
+    },
+    {
+      "index": 6,
+      "ink": 1938,
+      "x0": 31,
+      "x1": 403,
+      "y0": 213,
+      "y1": 235
+    },
+    {
+      "index": 7,
+      "ink": 1958,
+      "x0": 27,
+      "x1": 403,
+      "y0": 238,
+      "y1": 259
+    }
+  ],
+  "max_region_columns": 1,
+  "mean_line_height": 21.75,
+  "page": 1,
+  "reason": null,
+  "regions": [
+    {
+      "column_count": 1,
+      "column_crops": [
+        [
+          26,
+          66,
+          444,
+          259
+        ]
+      ],
+      "columns": [
+        {
+          "gutter_left": null,
+          "gutter_right": null,
+          "index": 0,
+          "width": 419,
+          "x0": 26,
+          "x1": 444
+        }
+      ],
+      "crop_box": [
+        26,
+        66,
+        444,
+        259
+      ],
+      "index": 0,
+      "line_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "y0": 66,
+      "y1": 259
+    }
+  ],
+  "schema": "lightgravity.bot/v1",
+  "source": {
+    "page_index": 0,
+    "pdf_name": "clear_real.pdf",
+    "pdf_sha256": "89c6b42242d0aa16efdb7ff814604c4bfc5214e0bbdd040ead67dcf453d9ec0f",
+    "raster_bytes": 34554,
+    "raster_png_sha256": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276",
+    "scale": 2.0
+  },
+  "status": "ok",
+  "vertical_rules": [
+    33,
+    41,
+    217
+  ],
+  "warnings": [
+    "explicit ruling detected; region/border analysis is a later step"
+  ],
+  "width": 461
+}
