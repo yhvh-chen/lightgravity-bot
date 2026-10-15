@@ -33,6 +33,30 @@ async def test_version_reports_runtime_facts(client: httpx.AsyncClient) -> None:
     assert body["platform"]
 
 
+async def test_generation_diagnostics_reports_real_global_count(
+    client: httpx.AsyncClient,
+) -> None:
+    """LG-022 R1: the read-only endpoint reports the process-global counter."""
+
+    from lightgravity.adapter.proxy import GenerationCounter, global_generation_counter
+
+    counter = global_generation_counter()
+    assert counter.reserve() is True
+    before = counter.count
+
+    response = await client.get(f"{API_PREFIX}/diagnostics/generation")
+    assert response.status_code == 200
+    body = response.json()
+    generation = body["generation"]
+    # Real cross-session counter, not a fabricated zero.
+    assert generation["count"] >= before
+    assert set(generation) == {"count", "limit", "remaining"}
+    # Only counts/limit are exposed; never a credential or prompt.
+    assert GenerationCounter is type(counter)
+    assert "credential" not in response.text
+    assert "prompt" not in response.text
+
+
 async def test_unknown_path_returns_error_envelope(
     client: httpx.AsyncClient,
 ) -> None:

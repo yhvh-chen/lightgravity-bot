@@ -1,0 +1,33 @@
+{
+  "probe": "lg022-r1-review-lifecycle",
+  "evidence_kind": "deterministic-double",
+  "real_model_calls": 0,
+  "d1_running_loop": {
+    "raised": null,
+    "value": "ok",
+    "elapsed": 0.0022
+  },
+  "d2_served_during_review": {
+    "result": "reviewed",
+    "loop_scheduled_ticks_while_review_running": 100,
+    "loop_served_latency": 0.5302,
+    "loop_not_blocked": true
+  },
+  "d2_stop": {
+    "confirmed_stop": {
+      "confirmed": true,
+      "state": "confirmed",
+      "task_id": "task_c",
+      "run_id": "run_c",
+      "reason": "reviewer thread stopped; slot released"
+    },
+    "unknown_stop": {
+      "confirmed": false,
+      "state": "unknown",
+      "task_id": "task_u",
+      "run_id": "run_u",
+      "reason": "reviewer did not stop within 0.2s; unknown side effects, slot retained"
+    },
+    "unknown_keeps_slot": true
+  }
+}

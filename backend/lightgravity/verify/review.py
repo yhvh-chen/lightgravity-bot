@@ -33,6 +33,7 @@ mark a Task done.
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Protocol, runtime_checkable
@@ -120,6 +121,11 @@ class ReviewContext:
     store: Store
     #: Evidence refs the program resolved to real, owned files (ref -> path).
     resolved_evidence: dict[str, Path] = field(default_factory=dict)
+    #: LG-022 R1: cooperative stop channel for a long model turn.  The
+    #: coordinator's review lifecycle sets this so pause/cancel can actually
+    #: stop a running reviewer instead of only tracking the worker.  ``None``
+    #: in the sync fixture path.
+    stop_event: Any | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -694,7 +700,7 @@ class ModelReviewer:
         )
         self.model_calls += 1
         try:
-            raw_text, usage = self._run_turn(prompt)
+            raw_text, usage = self._run_turn(prompt, context.stop_event)
         except Exception as exc:  # noqa: BLE001 - a failed turn is unavailable
             self.last_error = f"reviewer turn raised {type(exc).__name__}: {exc}"
             self.last_usage = {"unknown": ["usage"]}
@@ -754,7 +760,9 @@ class ModelReviewer:
             usage=dict(self.last_usage),
         )
 
-    def _run_turn(self, prompt: str) -> tuple[str | None, dict[str, Any]]:
+    def _run_turn(
+        self, prompt: str, stop_event: Any | None = None
+    ) -> tuple[str | None, dict[str, Any]]:
         if self._turn is not None:
             return self._turn(prompt)
         return run_review_turn(
@@ -763,7 +771,76 @@ class ModelReviewer:
             prompt,
             timeout_seconds=self._timeout,
             max_model_calls=self._max_calls,
+            stop_event=stop_event,
         )
+
+
+def _run_coro_sync(coro: Any) -> Any:
+    """Run ``coro`` synchronously, safe inside a running event loop.
+
+    D1 (LG-022 QA): the real coordinator calls the (synchronous) reviewer from
+    inside its running asyncio loop.  ``asyncio.run`` there raises
+    ``RuntimeError: asyncio.run() cannot be called from a running event loop``,
+    which made every real review ``unavailable``.  Mirror the existing
+    :func:`lightgravity.coordinator.dialogue.make_sync_responder` seam: when a
+    loop is already running on this thread, run the coroutine on a *private*
+    loop in a worker thread instead of reusing or nesting the caller's loop.
+
+    The synchronous entry point is kept so existing sync fixtures/probes keep
+    working; the real coordinator now drives the turn off its own loop.
+    """
+
+    import asyncio
+    import concurrent.futures
+
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        # No loop running on this thread: the original behaviour is fine.
+        return asyncio.run(coro)
+
+    def runner() -> Any:
+        loop = asyncio.new_event_loop()
+        try:
+            asyncio.set_event_loop(loop)
+            return loop.run_until_complete(coro)
+        finally:
+            try:
+                loop.close()
+            except Exception:  # noqa: BLE001 - loop teardown is best effort
+                pass
+            asyncio.set_event_loop(None)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(runner).result()
+
+
+async def _await_with_stop(chat: Any, stop_event: Any | None) -> Any:
+    """Await ``chat`` but abort promptly when a cooperative stop is requested.
+
+    The stop event is a :class:`threading.Event` polled from the async loop via
+    small sleeps.  When it fires we cancel the outstanding chat and raise
+    :class:`~lightgravity.verify.review_lifecycle.ReviewStopped` so the lifecycle
+    reports an honest stop instead of a fabricated outcome.  ``None`` means no
+    stop channel (sync fixture path): behave like a plain await.
+    """
+
+    if stop_event is None:
+        return await chat
+    while True:
+        if stop_event.is_set():
+            chat.cancel()
+            try:
+                await chat
+            except BaseException:  # noqa: BLE001 - cancellation is the point
+                pass
+            from .review_lifecycle import ReviewStopped
+
+            raise ReviewStopped("", "")
+        try:
+            return await asyncio.wait_for(asyncio.shield(chat), timeout=0.1)
+        except asyncio.TimeoutError:
+            continue
 
 
 def run_review_turn(
@@ -773,6 +850,7 @@ def run_review_turn(
     *,
     timeout_seconds: float = DEFAULT_REVIEW_TIMEOUT_SECONDS,
     max_model_calls: int = DEFAULT_REVIEW_MODEL_CALLS,
+    stop_event: Any | None = None,
 ) -> tuple[str | None, dict[str, Any]]:
     """One real, tool-less SDK turn on the reviewer connection.
 
@@ -781,6 +859,11 @@ def run_review_turn(
     path are introduced.  Returns ``(text, usage)``; raises only on a setup
     error so the caller can classify it as ``unavailable``.  The credential value
     is never logged or serialized.
+
+    safe to call from inside the coordinator's running event loop (D1 fix):
+    the turn runs on a private loop in a worker thread (see
+    :func:`_run_coro_sync`) rather than nesting ``asyncio.run`` in the caller's
+    loop.
     """
 
     import asyncio
@@ -816,9 +899,10 @@ def run_review_turn(
             nonlocal agent
             agent = Agent(config)
             await agent.__aenter__()
-            response = await asyncio.wait_for(
-                agent.chat(prompt), timeout=timeout_seconds
+            chat = asyncio.ensure_future(
+                asyncio.wait_for(agent.chat(prompt), timeout=timeout_seconds)
             )
+            response = await _await_with_stop(chat, stop_event)
             chunks = []
             async for chunk in response.chunks:
                 chunks.append(chunk)
@@ -828,11 +912,11 @@ def run_review_turn(
             usage = _usage_from_response(response)
             return text, usage
 
-        return asyncio.run(_turn())
+        return _run_coro_sync(_turn())
     finally:
         if agent is not None:
             try:
-                asyncio.run(agent.__aexit__(None, None, None))
+                _run_coro_sync(agent.__aexit__(None, None, None))
             except Exception:  # noqa: BLE001 - best-effort teardown
                 pass
         try:
