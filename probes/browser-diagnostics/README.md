@@ -4,12 +4,46 @@ Scope: evidence only. This directory does not change product code, task state,
 contracts or dependencies. It exists to establish *why* Chrome headless fails
 to load loopback HTTP while `file://` renders, for real-browser acceptance.
 
-## Verdict (root cause)
+## Correction (2025-10-15): real loopback HTTP **works**
 
-Chrome 151.0.7922.71 headless on this host **parks every renderer-initiated
-loopback-HTTP request after `URL_REQUEST_START_JOB` and never advances it to
-the HTTP-stream layer**. This is not a server problem, not a DNS problem, not
-an environment/namespace/proxy problem, and not specific to `Page.navigate`:
+The earlier verdict below (commit 8d27007) generalised "loopback HTTP is
+parked" from two paths that are individually broken for unrelated reasons. A
+third path shows real loopback HTTP working end-to-end on this host:
+
+| path | result |
+|---|---|
+| `Page.navigate` to `http://127.0.0.1:PORT/marker` | hangs; server logs **no** GET; frame script context wedges |
+| `fetch()` from a `data:` shell (opaque origin) | `Failed to fetch` — CORS rejection *after* the response, not a network block |
+| `fetch()` from a `file://` shell | **works** — server logs `GET /marker` + `RESP 200`, page sees `MARKER-OK` |
+| `fetch()` from `about:blank` | **works** — server logs `GET /marker` + `RESP 200` |
+
+Verified on **both** an isolated Chrome for Testing 150.0.7871.124 and the
+system Google Chrome 151.0.7922.71:
+
+```
+path=fetch browser=Chrome/150.0.7871.124 ok=true result="ok:200:MARKER-OK"
+path=fetch browser=Chrome/151.0.7922.71  ok=true result="ok:200:MARKER-OK"
+server: t=1.669 REQ GET /marker ... ; t=1.669 RESP 200
+```
+
+So the system 151 binary was **not** the problem: the prior probe only tested
+`Page.navigate` (which does hang) and `data:`-origin `fetch` (which is
+tripped by CORS). Neither implies "renderer loopback HTTP is blocked".
+
+**Use for acceptance:** load a `file://` shell page and `fetch()` the loopback
+API from it. Do **not** use main-frame `Page.navigate` to `http://` and do
+**not** use a `data:` origin shell.
+
+See `evidence/loopback-http-working-path.txt`.
+
+## Original verdict (8d27007) — superseded
+
+Chrome 151.0.7922.71 headless on this host **parks main-frame `Page.navigate`
+to loopback HTTP after `URL_REQUEST_START_JOB` and never advances it to the
+HTTP-stream layer.** This is not a server problem, not a DNS problem, not an
+environment/namespace/proxy problem — but it is also **not** a general
+renderer→HTTP block: subresource `fetch()` from a `file://`/`about:blank`
+page reaches the server normally (see Correction above).
 
 - `curl` to the same URL: HTTP 200 in <1 ms (see server log below).
 - `Page.navigate` to `file://…` and `data:…`: returns in 5 ms, DOM renders,
@@ -79,31 +113,52 @@ download. System Chrome is the only available binary.
 
 ## Practical guidance for QA
 
-- Do **not** attribute loopback-HTTP hangs to the product, to the app, or to a
-  generic "sandbox". The HTTP load itself never completes inside this Chrome.
-- `file://` rendering is reliable here and is what `frontend/tests/browser/`
-  `shell-check.mjs` already uses; `Target.createTarget` does **not** rescue
-  loopback HTTP (the target stays on `about:blank`).
-- If a real-browser loopback test is required, it must run under a Chrome build
-  or configuration where renderer loopback HTTP is not gated (e.g. a different
-  channel/binary, or a headed session on a working display). Record the exact
-  binary + version + launch flags as the working scheme.
+- Real-browser loopback acceptance **is possible on this host with the system
+  binary**. Use `loopback_smoke.mjs --path fetch`: a `file://` shell page that
+  `fetch()`es the marker, then poll the side-effect flag. Both server-side
+  (request log) and browser-side (marker body) facts are checked.
+- Do **not** attribute `Page.navigate`-to-loopback hangs to the product, to the
+  app, or to a generic "sandbox"; they are a browser main-frame-navigation
+  behaviour here. They are also **not** what `frontend/tests/browser/`
+  `shell-check.mjs` does (`file://` rendering, `Target.createTarget`).
+- An isolated Chrome for Testing build is available under
+  `~/.cache/lightgravity-bot/browsers/` (see `evidence/browser-binary.txt`) if a
+  pinned, non-system binary is wanted for QA. It behaves the same as 151 for
+  the paths above. Pass it with `--chrome` / `CHROME_BIN`; nothing hardcodes it.
 
 ## Files
 
 - `marker_server.py` — dependency-free loopback HTTP marker server; logs every
-  request with a monotonic timestamp; self-terminates on `--lifetime`.
-- `chrome_probe.mjs` — bounded CDP probe comparing `Page.navigate` vs
-  `Target.createTarget`, reads the DOM marker, always bounds each CDP call.
+  request with a monotonic timestamp; `--cors` adds `Access-Control-Allow-Origin: *`
+  so a `file://`/`about:blank` shell can read the marker; self-terminates on
+  `--lifetime`.
+- `loopback_smoke.mjs` — bounded, binary-configurable smoke proving real
+  loopback HTTP. `--path fetch` (recommended) or `--path nav` (characterises the
+  main-frame hang). Event-driven, per-call bounded, own process-group cleanup.
+- `chrome_probe.mjs` — earlier bounded CDP probe comparing `Page.navigate` vs
+  `Target.createTarget`; kept for the historical netlog repro.
 - `evidence/` — captured run outputs and the netlog excerpt.
 
 ## Reproduce (bounded)
 
+Recommended working path (two independent facts: server log + DOM/body):
+
 ```sh
 cd probes/browser-diagnostics
-python3 marker_server.py --port 0 --ready-file /tmp/lgprobe_ready.json --lifetime 60 &
+python3 marker_server.py --port 0 --ready-file /tmp/lgprobe_ready.json \
+  --lifetime 60 --cors > /tmp/lgprobe_srv.log 2>&1 & SRV=$!
 PORT=$(python3 -c "import json;print(json.load(open('/tmp/lgprobe_ready.json'))['port'])")
-curl -s -o /dev/null -w '%{http_code}\n' "http://127.0.0.1:$PORT/marker"   # -> 200
-timeout 25 node chrome_probe.mjs "http://127.0.0.1:$PORT/marker" http --strategy both
-# server log will show the curl request and NO Chrome request
+# real browser loopback HTTP via a file:// shell + fetch()
+node loopback_smoke.mjs --url "http://127.0.0.1:$PORT/marker" --path fetch
+# optional: an isolated pinned binary
+#   --chrome ~/.cache/lightgravity-bot/browsers/150.0.7871.124/chrome-linux64/chrome
+cat /tmp/lgprobe_srv.log   # must show GET /marker + RESP 200 from Chrome's UA
+kill -- -$SRV               # clean up only the server we started (its own group)
+```
+
+Historical main-frame repro (expected to hang; no server GET):
+
+```sh
+node loopback_smoke.mjs --url "http://127.0.0.1:$PORT/marker" --path nav
+# or the older: timeout 25 node chrome_probe.mjs "http://127.0.0.1:$PORT/marker" http --strategy both
 ```

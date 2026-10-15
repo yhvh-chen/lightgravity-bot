@@ -1,0 +1,52 @@
+# Evidence: real loopback HTTP DOES work (corrects the "HTTP is parked" verdict)
+
+Host: Linux yhvh-nas. Date captured alongside commit of this file.
+
+## What was re-tested
+
+The prior probe (commit 8d27007) only exercised two paths and concluded that
+"a renderer->network HTTP gate never resolves". Driving a single target through
+`Page.navigate` (main-frame nav) and through a `data:`-origin `fetch()` is not
+enough to conclude "loopback HTTP is blocked". A third path — a `file://` shell
+page doing `fetch()` — works.
+
+## Direct proof: server-side + browser-side agree
+
+Marker server (with --cors) logged real requests from Chrome, and the page-side
+`fetch()` resolved with the marker body:
+
+  t=  1.669 REQ GET /marker from=127.0.0.1:56098 ua=Mozilla/5.0 (X11; Linux x86_64) AppleWeb
+  t=  1.669 RESP 200 /marker
+  t=  2.945 REQ GET /marker from=127.0.0.1:56110 ua=Mozilla/5.0 (X11; Linux x86_64) AppleWeb
+  t=  2.946 RESP 200 /marker
+
+  CFT150 (Chrome for Testing 150.0.7871.124): path=fetch ok=true result="ok:200:MARKER-OK"
+  system151 (Google Chrome 151.0.7922.71):     path=fetch ok=true result="ok:200:MARKER-OK"
+
+## Shell-origin matrix (fetch from an already-loaded page, no navigation)
+
+  about_blank  "ok:200:MARKER-OK"     <-- reached the server
+  file         "ok:200:MARKER-OK"     <-- reached the server
+  data         "err:Failed to fetch"  <-- opaque origin; CORS rejection AFTER the
+                                          response, NOT a network block
+
+## The narrow real failure: main-frame HTTP navigation
+
+  path=nav (Page.navigate to http://127.0.0.1:PORT/marker): ok=false
+    - server logged NO request for this target
+    - after the nav, `Runtime.evaluate` on that frame also times out
+      (the frame's script context is wedged while the load is pending)
+  Same behaviour seen on CFT 150.0.7871.124 and system Chrome 151.0.7922.71.
+
+`Runtime.evaluate` on a page that was NOT navigated returns immediately
+(verified: "1+1" -> 2 before any navigation), so the renderer is not globally
+wedged; only the main-frame HTTP navigation path hangs on this host.
+
+## Conclusion
+
+- Real loopback HTTP from a real Chrome to a real loopback server works here.
+- Use a `file://` (or about:blank) shell page + `fetch()` for browser acceptance.
+- Do NOT use main-frame `Page.navigate` to http:// for the acceptance path on
+  this host; do NOT use a `data:` origin shell (opaque origin => CORS failure).
+- The earlier "Chrome 151 LNA parks every loopback request" verdict was an
+  over-generalisation from the nav + data: paths; see README "Correction".

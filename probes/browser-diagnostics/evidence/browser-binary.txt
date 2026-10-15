@@ -1,0 +1,30 @@
+# Isolated QA browser binary (local only, not a product dependency)
+
+Source: official Chrome for Testing manifest
+  https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json
+Manifest snapshot sha256 (downloaded 2025-10-15, 5231294 bytes):
+  4f7943c95f7c67a4c79d24baba8f821cb9cc643629bf58c69a9d7256d91b9c80  known-good-versions-with-downloads.json
+
+Selected build (newest linux64 patch of the 150 line, chosen to avoid the
+151 line implicated by the prior diagnosis):
+
+  version:    150.0.7871.124
+  url:        https://storage.googleapis.com/chrome-for-testing-public/150.0.7871.124/linux64/chrome-linux64.zip
+  package:    chrome-linux64.zip (Google Chrome for Testing, linux64)
+  size:       187399727 bytes
+  sha256:     ccb11556d5946fcf15f09d175c34d8e4b4293a8ef2eb7c4efc28cb60ac4d12fd
+  zip check:  `python3 zipfile.testzip()` -> None (all CRCs ok)
+  path check: 308 entries, all under top-level `chrome-linux64/`,
+              no absolute paths, no `..` traversal
+  install:    /home/yhvh/.cache/lightgravity-bot/browsers/150.0.7871.124/chrome-linux64/chrome
+  version check: ./chrome --version -> "Google Chrome for Testing 150.0.7871.124"
+
+Notes:
+- Every file was inside the zip's single `chrome-linux64/` top-level dir; the
+  archive contains no symlinks escaping that dir, so extraction cannot escape
+  the target directory.
+- This is a QA-only binary in a user cache dir. It is NOT referenced by product
+  source or runtime; no source file hardcodes this (or any) absolute path. The
+  smoke helper takes `--chrome` / `CHROME_BIN`.
+- System browser (/usr/bin/google-chrome, 151.0.7922.71), apt, global policy
+  and the user profile were not modified.

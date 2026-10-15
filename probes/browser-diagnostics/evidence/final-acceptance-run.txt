@@ -1,0 +1,33 @@
+# Final bounded acceptance run (one command, two binaries)
+
+## Isolated Chrome for Testing 150.0.7871.124
+$ ./run_loopback_smoke.sh --chrome ~/.cache/lightgravity-bot/browsers/150.0.7871.124/chrome-linux64/chrome --path fetch --deadline-ms 10000
+marker server on 127.0.0.1:36203 (pid group 277556)
+browser: /home/yhvh/.cache/lightgravity-bot/browsers/150.0.7871.124/chrome-linux64/chrome
+path: fetch
+path=fetch browser=Chrome/150.0.7871.124 ok=true result="ok:200:MARKER-OK" fatal=-
+--- server log (Chrome's GET must appear here) ---
+t=   0.019 LISTEN 127.0.0.1:36203 pid=277556
+t=   0.741 REQ GET /marker from=127.0.0.1:35006 ua=Mozilla/5.0 (X11; Linux x86_64) AppleWeb
+t=   0.742 RESP 200 /marker
+exit=0
+
+## System Google Chrome 151.0.7922.71 (not modified)
+$ ./run_loopback_smoke.sh --chrome /usr/bin/google-chrome --path fetch --deadline-ms 10000
+marker server on 127.0.0.1:39859 (pid group 277983)
+browser: /usr/bin/google-chrome
+path: fetch
+path=fetch browser=Chrome/151.0.7922.71 ok=true result="ok:200:MARKER-OK" fatal=-
+--- server log (Chrome's GET must appear here) ---
+t=   0.019 LISTEN 127.0.0.1:39859 pid=277983
+t=   0.720 REQ GET /marker from=127.0.0.1:40098 ua=Mozilla/5.0 (X11; Linux x86_64) AppleWeb
+t=   0.721 RESP 200 /marker
+exit=0
+
+## Process hygiene after both runs
+no marker_server procs
+no cft150 chrome procs
+no leftover tmp dirs
+
+Both runs: server-side GET + RESP 200 AND browser-side MARKER-OK. Single probe
+well under 30s; both runs together well under 120s.
