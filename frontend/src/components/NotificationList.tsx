@@ -1,11 +1,17 @@
 import { EmptyState } from './EmptyState'
-import { MockBadge } from './StatusBadge'
+import { MockBadge, StatusBadge, type StatusKind } from './StatusBadge'
 
 export interface NotificationListItem {
   id: string
   title: string
   at: string
   mock?: boolean
+  /** Accurate Task/Run targeting; a click returns to this exact place. */
+  taskRef?: string | null
+  runRef?: string | null
+  severity?: 'info' | 'success' | 'warning' | 'error'
+  read?: boolean
+  body?: string
 }
 
 export interface NotificationListProps {
@@ -14,10 +20,16 @@ export interface NotificationListProps {
   onSelect?: (item: NotificationListItem) => void
 }
 
+const SEVERITY_TONE: Record<string, StatusKind> = {
+  success: 'success',
+  warning: 'warning',
+  error: 'error',
+  info: 'neutral',
+}
+
 /**
- * Shared NotificationList (design.md §4, §6). The badge count must reflect
- * real unread records; the shell only renders the labelled layout mock or an
- * explicit empty state until LG-019 wires notifications.
+ * Shared NotificationList (design.md §4, §6). The badge count reflects real
+ * unread records from the backend projection; this component only renders.
  */
 export function NotificationList({
   items,
@@ -34,13 +46,25 @@ export function NotificationList({
           <button
             type="button"
             className="lg-notification"
+            data-read={item.read ? 'true' : 'false'}
             onClick={() => onSelect?.(item)}
             disabled={!onSelect}
           >
             <span className="lg-card__meta">
               {item.mock ? <MockBadge /> : null}
+              {item.severity ? (
+                <StatusBadge kind={SEVERITY_TONE[item.severity] ?? 'neutral'}>
+                  {item.severity}
+                </StatusBadge>
+              ) : null}
               <span>{item.title}</span>
             </span>
+            {item.taskRef ? (
+              <span className="lg-notification__meta">
+                {item.taskRef}
+                {item.runRef ? ` · ${item.runRef}` : ''}
+              </span>
+            ) : null}
             <span className="lg-notification__meta">{item.at}</span>
           </button>
         </li>
