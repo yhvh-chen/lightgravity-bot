@@ -91,13 +91,21 @@ def build_sdk_config(
     base_url: str | None = None,
     save_dir: str | None = None,
     response_schema: Any | None = None,
+    continuation_mode: str | None = None,
 ) -> SdkConfigResult:
     """Construct an SDK ``AgentConfig`` for ``compiled`` without executing it.
 
     ``base_url`` overrides the connection endpoint (the executor points the SDK
-    at its loopback auth proxy instead of the real upstream); ``save_dir`` and
-    ``response_schema`` are passed through when provided.  A built config is
-    still *not* an authenticated run.
+    at its loopback auth proxy instead of the real upstream); ``save_dir``,
+    ``continuation_mode`` and ``response_schema`` are passed through when
+    provided.  A built config is still *not* an authenticated run.
+
+    ``continuation_mode`` is an additive runtime override of the compiled
+    session profile's mode.  The coordinator uses it to force the SDK's native
+    ``SessionContinuationMode.RESUME`` for a Run that provably continues a
+    previous paused conversation (docs/02, docs/04 §5); the same RESUME-without-
+    conversation-id guard applies so an under-specified request degrades to
+    ``create_or_resume`` instead of failing the whole build.
 
     Raises :class:`CapabilityUnavailable` when the SDK is missing or the plan
     has no resolvable connection backend.  Missing credentials remain a
@@ -136,11 +144,11 @@ def build_sdk_config(
 
     profile = compiled.session_profile
     conversation_id = profile.conversation_id if profile else None
-    if profile and profile.continuation_mode:
-        mode = profile.continuation_mode
+    mode = continuation_mode or (profile.continuation_mode if profile else None)
+    if mode:
         if mode == "resume" and not conversation_id:
             warnings.append(
-                "session profile requested RESUME without a conversation_id; "
+                "session continuation requested RESUME without a conversation_id; "
                 "downgraded to create_or_resume"
             )
             mode = "create_or_resume"

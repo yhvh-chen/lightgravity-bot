@@ -99,6 +99,48 @@ def test_resume_without_conversation_id_is_downgraded(
     assert any("RESUME" in warning for warning in result.warnings)
 
 
+def test_runtime_continuation_override_applies_native_resume(
+    store: FileStore, compiler: ResourceCompiler
+) -> None:
+    """LG-016 wires native RESUME for a provably-continued Run.
+
+    The coordinator supplies ``conversation_id`` + ``save_dir`` + a
+    ``continuation_mode=resume`` override; the built SDK config must carry the
+    SDK-native ``SessionContinuationMode.RESUME`` and the conversation id so the
+    adapter attaches to the previous session instead of replaying from scratch.
+    """
+
+    from google.antigravity import types as types_mod
+
+    build_basic_environment(store)
+    build_agent(store)
+    conversation_id = "conv-abcdefghijklmnopqrstuvwxyz012345"
+    compiled = compiler.compile_agent(
+        "developer", constraints=CompileConstraints(conversation_id=conversation_id)
+    )
+    result = build_sdk_config(
+        compiled,
+        save_dir="/tmp/lg-native-sessions/task-1",
+        continuation_mode="resume",
+    )
+    assert result.config.session_continuation_mode == types_mod.SessionContinuationMode.RESUME
+    assert result.config.conversation_id == conversation_id
+    assert result.config.save_dir == "/tmp/lg-native-sessions/task-1"
+
+
+def test_runtime_resume_override_without_conversation_downgrades(
+    store: FileStore, compiler: ResourceCompiler
+) -> None:
+    """A resume override with no conversation id must not fail the build."""
+
+    build_basic_environment(store)
+    build_agent(store)
+    compiled = compiler.compile_agent("developer")
+    result = build_sdk_config(compiled, continuation_mode="resume")
+    assert result.config.session_continuation_mode.value == "create_or_resume"
+    assert any("RESUME" in warning for warning in result.warnings)
+
+
 def test_budget_and_compaction_are_forwarded(
     store: FileStore, compiler: ResourceCompiler
 ) -> None:

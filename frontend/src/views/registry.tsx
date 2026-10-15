@@ -1,6 +1,5 @@
 import type { ComponentType } from 'react'
 
-import { MOCK_TASKS } from '../app/layoutMock'
 import type { ViewId } from '../app/navigation'
 import { useShell } from '../app/ShellProvider'
 import { parseSettingsConnectionRef } from '../app/uiState'
@@ -8,6 +7,7 @@ import type { ShellState } from '../app/uiState'
 import type { ContextItem, ContextSection } from '../components/ContextList'
 import { BoardView } from './BoardView'
 import { ChatView } from './ChatView'
+import { TaskRail } from './chat/contextRail'
 import { FilesView } from './files/FilesView'
 import { ResourcesView } from './ResourcesView'
 import { ResourcesContextRail } from './resources/contextRail'
@@ -47,17 +47,6 @@ const RESOURCE_CATEGORIES: readonly ContextItem[] = [
   { id: 'skills', label: 'Skills' },
 ]
 
-function mockTaskItems(): ContextItem[] {
-  return MOCK_TASKS.map((task) => ({
-    id: task.id,
-    label: task.title,
-    meta: `phase: ${task.phase}`,
-    status: { kind: task.statusKind, label: task.status },
-    mock: true,
-    taskRef: task.id,
-  }))
-}
-
 /** Settings main panel with the selected Connection record located by id. */
 function SettingsRoute() {
   const { state } = useShell()
@@ -75,12 +64,13 @@ export const VIEW_DEFINITIONS: Record<ViewId, ViewDefinition> = {
     contextTitle: 'Conversations',
     contextAriaLabel: 'Conversation history',
     Main: ChatView,
-    buildContext: (state) => [
+    Context: TaskRail,
+    buildContext: () => [
       {
         id: 'chat-history',
         title: 'Task history',
-        items: state.showLayoutMock ? mockTaskItems() : [],
-        empty: 'No task history yet. Describe a goal in Chat to create one.',
+        items: [],
+        empty: 'Task history loads from the backend rail.',
       },
     ],
   },
@@ -89,12 +79,13 @@ export const VIEW_DEFINITIONS: Record<ViewId, ViewDefinition> = {
     contextTitle: 'Tasks',
     contextAriaLabel: 'Task scope',
     Main: BoardView,
-    buildContext: (state) => [
+    Context: TaskRail,
+    buildContext: () => [
       {
         id: 'board-tasks',
         title: 'Task scope',
-        items: state.showLayoutMock ? mockTaskItems() : [],
-        empty: 'No tasks yet — create one from Chat.',
+        items: [],
+        empty: 'Task scope loads from the backend rail.',
       },
     ],
   },

@@ -54,6 +54,11 @@ class ExecuteRequest:
     agent_ref: str | None = None
     save_dir: str | None = None
     conversation_id: str | None = None
+    #: Additive runtime continuation override (native SDK SessionContinuationMode
+    #: value: ``resume``/``create_or_resume``/``create_only``).  The coordinator
+    #: sets it to ``resume`` only for a provably safe continuation of a previous
+    #: paused Run; ``None`` keeps the compiled session profile's behavior.
+    continuation_mode: str | None = None
     response_schema: Any | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -75,6 +80,7 @@ class ExecuteRequest:
             "agent_ref": self.agent_ref,
             "save_dir": self.save_dir,
             "conversation_id": self.conversation_id,
+            "continuation_mode": self.continuation_mode,
         }
 
 

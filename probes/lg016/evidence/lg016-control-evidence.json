@@ -1,0 +1,104 @@
+{
+  "task": "LG-016",
+  "kind": "real-sdk-control-and-recovery",
+  "at": "2026-10-14T23:53:23Z",
+  "python": "3.12.13",
+  "platform": "linux-x86_64",
+  "head": "b8251b5c63dbccac0a15d3c513a4cbc70ea1f9aa",
+  "model_requested": "deepseek-v4-flash",
+  "upstream": "https://api.deepseek.com/v1",
+  "credential": {
+    "source": "env:DEEPSEEK_API_KEY",
+    "present": true
+  },
+  "hard_caps": {
+    "max_proxy_calls_per_execution": 2,
+    "model_calls_cap_total": 4,
+    "recovery_new_cap": 4
+  },
+  "findings": [],
+  "limitations": [],
+  "process_check": {
+    "localharness_pids_before": [],
+    "localharness_pids_after": [],
+    "leaked": []
+  },
+  "real_executor_wired": true,
+  "cancel_case": {
+    "action": "cancel",
+    "task_id": "task_01M4YDBG1XT0Y2ZZ4NXT93QR75",
+    "run_id": "run_01M4YDBG3WGZ45PC5FNNVJC8JX",
+    "reached_executing": true,
+    "control_status": 200,
+    "control_body": {
+      "action": "cancel",
+      "state": "confirmed",
+      "confirmed": true,
+      "task_id": "task_01M4YDBG1XT0Y2ZZ4NXT93QR75",
+      "request_id": "lg016-cancel-ctl",
+      "phase": "cancelled",
+      "run_id": "run_01M4YDBG3WGZ45PC5FNNVJC8JX"
+    },
+    "confirmed": true,
+    "final_phase": "cancelled",
+    "final_queue_state": "not_queued",
+    "run_state": null,
+    "run_cleanup": null,
+    "executor_state": null,
+    "executor_stop_confirmed": null,
+    "executor_stop_reason": null,
+    "session_ref": null
+  },
+  "close_case": {
+    "session_ref": {
+      "session_id": "sess_efe18967cb4d4bc4943e160adfa1f20d",
+      "conversation_id": null,
+      "state": "created",
+      "save_dir": null
+    },
+    "close_returned": true,
+    "sessions_tracked_after": 0
+  },
+  "pause_case": {
+    "action": "pause",
+    "task_id": "task_01M4YDBGY48KDVDH0193P9EC6Y",
+    "run_id": "run_01M4YDBGZZP1SE2CGWD9XRYZZG",
+    "reached_executing": true,
+    "control_status": 200,
+    "control_body": {
+      "action": "pause",
+      "state": "confirmed",
+      "confirmed": true,
+      "task_id": "task_01M4YDBGY48KDVDH0193P9EC6Y",
+      "request_id": "lg016-pause-ctl",
+      "phase": "paused",
+      "run_id": "run_01M4YDBGZZP1SE2CGWD9XRYZZG"
+    },
+    "confirmed": true,
+    "final_phase": "paused",
+    "final_queue_state": "not_queued",
+    "run_state": "paused",
+    "run_cleanup": {
+      "status": "done"
+    },
+    "executor_state": null,
+    "executor_stop_confirmed": null,
+    "executor_stop_reason": null,
+    "session_ref": null
+  },
+  "restart_case": {
+    "interrupted_task_id": "task_01M4YDBHE1NPP6RYDWY8S2KRH6",
+    "interrupted_run_id": "run_01M4YDBHE243HB3HR1FJGNR01C",
+    "decision_action": "recovery_required",
+    "decision_alive": false,
+    "decision_reason": "worker process gone after restart; execution interrupted",
+    "phase_after_scan": "recovery_required",
+    "queue_after_scan": "not_queued",
+    "recovery_required": true
+  },
+  "model_calls_this_run": 2,
+  "model_calls_previous_attempts": 2,
+  "model_calls_total": 4,
+  "within_new_recovery_cap": true,
+  "within_worst_case_cap_8": true
+}

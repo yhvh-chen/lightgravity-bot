@@ -70,10 +70,7 @@ class TaskActionRequest(BaseModel):
 
 #: Actions not implemented here; the honest response names the owning task.
 _ACTION_OWNER: dict[str, str] = {
-    ActionName.ENQUEUE.value: "LG-016",
-    ActionName.RESUME.value: "LG-016",
     ActionName.RETRY.value: "LG-016",
-    ActionName.REOPEN.value: "LG-016",
     ActionName.ACCEPT.value: "LG-009",
     ActionName.REJECT.value: "LG-009",
 }
@@ -411,7 +408,14 @@ def build_task_router() -> APIRouter:
                     "target_run_id does not match the Task's active Run",
                     details={"active_run": active, "target_run_id": payload.target_run_id},
                 )
-        if action in {ActionName.PAUSE, ActionName.CANCEL}:
+        if action in {
+            ActionName.PAUSE,
+            ActionName.CANCEL,
+            ActionName.RESUME,
+            ActionName.RETRY,
+            ActionName.REOPEN,
+            ActionName.ENQUEUE,
+        }:
             result = await ctx.coordinator.request_control(
                 task_id, action.value, request_id=payload.request_id
             )
@@ -425,26 +429,31 @@ def build_task_router() -> APIRouter:
                     "confirmed": True,
                     "task_id": task_id,
                     "request_id": payload.request_id,
+                    "phase": result.data.get("phase"),
+                    "run_id": result.data.get("run_id"),
                 }
-            if state == "no_active_run":
+            if state == "unconfirmed":
                 raise AppError(
-                    ErrorCode.NOT_READY,
-                    f"Task {task_id} has no active Run to {action.value}",
-                    details={"action": action.value, "state": state},
-                )
-            if state == "not_pausable":
-                raise AppError(
-                    ErrorCode.ILLEGAL_TRANSITION,
-                    f"Task {task_id} phase does not allow pause",
-                    details={"action": action.value, "state": state},
+                    ErrorCode.CANCELLATION_UNCONFIRMED,
+                    f"Task {task_id} {action.value} was not confirmed stopped",
+                    details={
+                        "action": action.value,
+                        "state": state,
+                        "confirmed": False,
+                        "task_id": task_id,
+                        "request_id": payload.request_id,
+                        "phase": result.data.get("phase"),
+                        "reason": result.data.get("reason"),
+                    },
                 )
             raise AppError(
-                ErrorCode.CANCELLATION_UNCONFIRMED,
-                f"Task {task_id} {action.value} was not confirmed stopped",
+                ErrorCode.NOT_READY,
+                f"Task {task_id} cannot {action.value} in its current phase",
                 details={
                     "action": action.value,
                     "state": state,
-                    "confirmed": False,
+                    "phase": result.data.get("phase"),
+                    "reason": result.data.get("reason"),
                     "task_id": task_id,
                     "request_id": payload.request_id,
                 },

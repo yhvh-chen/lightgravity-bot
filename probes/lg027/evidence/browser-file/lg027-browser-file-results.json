@@ -1,0 +1,61 @@
+{
+  "file_url": "file:///tmp/lg011-inline.html",
+  "chrome": "google-chrome",
+  "note": "file:// rendering only; backend-integrated Settings path is in lg027-settings-path-on.json",
+  "results": [
+    {
+      "name": "desktop: real dist bundle renders app shell",
+      "pass": true
+    },
+    {
+      "name": "desktop: gear opens Settings (Models & Providers)",
+      "pass": true
+    },
+    {
+      "name": "desktop: Settings keeps the current Task scope (query preserved)",
+      "pass": true
+    },
+    {
+      "name": "desktop: missing backend surfaces an explicit load error (no fake data)",
+      "pass": true
+    },
+    {
+      "name": "desktop: typed connection form requires a reachable backend (not reachable on file://)",
+      "pass": true,
+      "detail": false
+    },
+    {
+      "name": "desktop: key string absent from browser storage/url (cookie not probed on file://)",
+      "pass": true,
+      "detail": []
+    },
+    {
+      "name": "desktop: no horizontal overflow at 1440px",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "narrow(390): nav drawer opens from the top bar",
+      "pass": true
+    },
+    {
+      "name": "narrow(390): Settings renders",
+      "pass": true
+    },
+    {
+      "name": "narrow(390): no horizontal overflow",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "narrow(390): single-column error state, no form (no backend on file://)",
+      "pass": true
+    }
+  ],
+  "screenshots": [
+    "/tmp/lg027-browser-file/01-settings-view-1440.png",
+    "/tmp/lg027-browser-file/02-settings-390.png"
+  ],
+  "passed": 11,
+  "failed": 0
+}

@@ -55,6 +55,77 @@ export interface VersionResponse {
   platform: string
 }
 
+/* ------------------------------------------------------- Task wire shapes (docs/08 §6) */
+
+/** Message attachment reference (docs/08 §5.2): a path + media type, no bytes. */
+export interface Attachment {
+  path: string
+  media_type?: string | null
+}
+
+/** Queue projection embedded in a Task summary/detail (docs/08 §6.1). */
+export interface QueueProjection {
+  state: QueueState
+  owner?: string | null
+  lease_expires_at?: string | null
+  order?: number | null
+  queued_at?: string | null
+}
+
+/** `GET /tasks` list item (docs/08 §4.3). */
+export interface TaskSummary {
+  id: string
+  task_id: string
+  title: string
+  status: TaskStatus
+  phase: TaskPhase
+  revision: number
+  etag: string
+  requirements_revision: number
+  queue: QueueProjection
+  archived: boolean
+}
+
+/** Subtask projection within a Task's active Run (docs/08 §6.3). */
+export interface SubtaskSummary {
+  id: string
+  state: SubtaskState
+  objective?: string | null
+  capability?: string | null
+  key?: string | null
+  fail_reason?: string | null
+  acceptance?: { status?: string | null } | null
+  [key: string]: unknown
+}
+
+/** Member projection within a Task's active Run (docs/08 §6.4). */
+export interface MemberSummary {
+  id: string
+  title?: string | null
+  state: MemberState | null
+  role_ref?: string | null
+  [key: string]: unknown
+}
+
+/** Run projection within a Task detail (docs/08 §6.2). */
+export interface RunSummary {
+  id: string
+  state: RunState | string
+  plan_source?: string | null
+  fail_reason?: string | null
+  [key: string]: unknown
+}
+
+/** `GET /tasks/{task_id}` detail (docs/08 §4.3). */
+export interface TaskDetail extends TaskSummary {
+  run: RunSummary | null
+  members: MemberSummary[]
+  subtasks: SubtaskSummary[]
+  body?: string | null
+  acceptance?: Record<string, unknown> | null
+  workspace_ref?: string | null
+}
+
 /* ------------------------------------------------------- Frozen enums (docs/08 §6) */
 
 export type TaskStatus = 'todo' | 'in-progress' | 'done'

@@ -1,0 +1,36 @@
+{
+  "status": "ran",
+  "question": "In one short sentence, what is 2 + 2? Answer with just the number word.",
+  "model_calls_cap": 1,
+  "default_coordinator": "probe-lg013-coordinator",
+  "http_status": 200,
+  "response": {
+    "kind": "direct",
+    "reply": "Four.",
+    "task_id": null,
+    "run_id": null,
+    "conversation_id": "conv_00000000000000000000000000",
+    "queue_state": null,
+    "candidates": [],
+    "data": {
+      "intent": "answer",
+      "bounded_tools": [],
+      "creates_task": false
+    }
+  },
+  "control_files_before": {
+    "task_files": 0,
+    "member_files": 0,
+    "run_files": 0
+  },
+  "control_files_after": {
+    "task_files": 0,
+    "member_files": 0,
+    "run_files": 0
+  },
+  "created_tasks": 0,
+  "created_members": 0,
+  "created_runs": 0,
+  "workspace_files": [],
+  "leak_findings": []
+}

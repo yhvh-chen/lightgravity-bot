@@ -24,7 +24,7 @@ Run with::
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -98,6 +98,10 @@ def create_app(
     tester: ConnectionTester | None = None,
     verification: VerificationService | None = None,
     resource_stopper: ResourceStopper | None = None,
+    #: Optional direct-answer responder (LG-013).  When omitted the coordinator
+    #: keeps its built-in deterministic responder; bootstrap injects a real
+    #: tool-less model handler when a coordinator connection is configured.
+    responder: Callable[[str, Any], str] | None = None,
 ) -> FastAPI:
     """Build the application; every heavy dependency is injectable for tests."""
 
@@ -121,7 +125,10 @@ def create_app(
     if dispatcher is None and coordinator is None:
         dispatcher = SingleSlotDispatcher(executor or UnavailableExecutor())
     resolved_coordinator = coordinator or Coordinator(
-        broadcasting, dispatcher=dispatcher, verification=verification_service
+        broadcasting,
+        dispatcher=dispatcher,
+        verification=verification_service,
+        responder=responder,
     )
     # An injected coordinator must share this app's verification service so the
     # normal POST /tasks delivery path auto-verifies there too, not only in the

@@ -1,0 +1,91 @@
+/*
+ * Board view styles (LG-013). Additive to shell.css tokens.
+ */
+
+.lg-board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-4);
+  padding: var(--lg-space-4);
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.lg-board__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--lg-space-3);
+}
+
+.lg-board__title {
+  margin: 0;
+  font-size: var(--lg-font-size-title);
+  font-weight: 650;
+}
+
+.lg-board__columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: var(--lg-space-3);
+  align-items: start;
+}
+
+.lg-board__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  min-width: 0;
+}
+
+.lg-board__count {
+  color: var(--lg-color-text-subtle);
+  font-weight: 400;
+}
+
+.lg-board__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+}
+
+.lg-board__detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+  padding: var(--lg-space-4);
+  background: var(--lg-color-panel);
+}
+
+.lg-board__detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lg-space-3);
+}
+
+.lg-board__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-2);
+}
+
+.lg-board__subtask,
+.lg-board__evidence-item {
+  display: flex;
+  align-items: center;
+  gap: var(--lg-space-2);
+  flex-wrap: wrap;
+  font-size: var(--lg-font-size-sm);
+}
+
+@media (max-width: 900px) {
+  .lg-board__columns {
+    grid-template-columns: 1fr;
+  }
+}

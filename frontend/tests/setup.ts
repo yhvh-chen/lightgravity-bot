@@ -6,8 +6,8 @@ import '@testing-library/jest-dom/vitest'
  * - jsdom has no matchMedia; default to the wide layout so the shell renders
  *   its in-flow columns. Tests that need compact/mobile call `setViewport`.
  * - The backend is not running under test, so `fetch` is stubbed with a real
- *   `HealthResponse` shape. Tests that exercise the error/not-connected state
- *   override it with `vi.mocked(globalThis.fetch).mockRejectedValueOnce(...)`.
+ *   `HealthResponse` shape and a 404 error envelope for all other routes (which
+ *   the views must render as real empty/error states, never faked data).
  */
 
 export const HEALTH_FIXTURE = {
@@ -36,34 +36,41 @@ function jsonResponse(body: unknown, status = 200): Response {
   } as unknown as Response
 }
 
-globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
+globalThis.fetch = vi.fn(backendFetch) as unknown as typeof fetch
+
+/** Reusable default backend stub; tests can reset to it after overriding. */
+export function backendFetch(input: RequestInfo | URL): Promise<Response> {
   const url =
     typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
   if (url.endsWith('/api/v1/health')) {
-    return jsonResponse(HEALTH_FIXTURE)
+    return Promise.resolve(jsonResponse(HEALTH_FIXTURE))
   }
   if (url.endsWith('/api/v1/version')) {
-    return jsonResponse({
-      contract_version: '1.0.0',
-      schema_version: 'lightgravity.bot/v1',
-      package_version: '0.1.0',
-      python_version: '3.12.13',
-      platform: 'linux-x86_64',
-    })
+    return Promise.resolve(
+      jsonResponse({
+        contract_version: '1.0.0',
+        schema_version: 'lightgravity.bot/v1',
+        package_version: '0.1.0',
+        python_version: '3.12.13',
+        platform: 'linux-x86_64',
+      }),
+    )
   }
-  return jsonResponse(
-    {
-      error: {
-        code: 'not_found',
-        message: 'not implemented',
-        details: {},
-        retryable: false,
-        request_id: null,
+  return Promise.resolve(
+    jsonResponse(
+      {
+        error: {
+          code: 'not_found',
+          message: 'not implemented',
+          details: {},
+          retryable: false,
+          request_id: null,
+        },
       },
-    },
-    404,
+      404,
+    ),
   )
-}) as unknown as typeof fetch
+}
 
 function createMatchMedia(width: number): typeof window.matchMedia {
   return ((query: string) => {

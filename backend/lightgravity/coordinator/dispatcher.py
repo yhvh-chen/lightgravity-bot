@@ -44,6 +44,9 @@ OUTCOME_TO_RUN_STATE: dict[str, str] = {
     "cancelled": "cancelled",
     "budget_exhausted": "failed",
     "timeout": "failed",
+    # A resume that cannot prove a completed write node is reusable fails closed
+    # to an explicit recovery decision instead of replaying side effects (LG-016).
+    "recovery_required": "recovery_required",
 }
 
 OUTCOME_TO_TASK_PHASE: dict[str, str] = {
@@ -53,6 +56,7 @@ OUTCOME_TO_TASK_PHASE: dict[str, str] = {
     "cancelled": TaskPhase.CANCELLED,
     "budget_exhausted": TaskPhase.FAILED,
     "timeout": TaskPhase.FAILED,
+    "recovery_required": TaskPhase.RECOVERY_REQUIRED,
 }
 
 
@@ -79,6 +83,12 @@ class DispatchContext:
     #: (the default) means the dispatcher uses the program-side minimal plan
     #: instead of consulting any injected model planner.
     planning_request: PlanningRequest | None = None
+    continuation_mode: str | None = None
+    #: The previous stopped Run entity (non-secret) when this Run continues a
+    #: confirmed pause.  GraphDispatcher reads ``node_sessions`` from it to give
+    #: each node *its own* native conversation instead of a single run-level one
+    #: (LG-016).  ``None`` for a fresh Run.
+    prior_run: Mapping[str, Any] | None = None
 
     def to_execute_request(self) -> ExecuteRequest:
         """Build the frozen adapter request from this context."""
@@ -100,6 +110,7 @@ class DispatchContext:
             agent_ref=self.agent_ref,
             save_dir=self.save_dir,
             conversation_id=self.conversation_id,
+            continuation_mode=self.continuation_mode,
         )
 
 

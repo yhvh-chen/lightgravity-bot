@@ -1,0 +1,192 @@
+{
+  "mode": "off",
+  "model_call_cap": 1,
+  "base_url": "http://127.0.0.1:60001/v1",
+  "port": 47911,
+  "startup": {
+    "tasks_status": 200,
+    "settings_status": 200,
+    "health_status": 200,
+    "health_body": {
+      "status": "ok",
+      "package_version": "0.1.0",
+      "contract_version": "1.5.0",
+      "schema_version": "lightgravity.bot/v1",
+      "capabilities": {
+        "health": true,
+        "version": true,
+        "store": true,
+        "coordinator": true,
+        "events_sse": true,
+        "settings": true,
+        "files": true,
+        "resources": true,
+        "verification": true,
+        "global_chat": true,
+        "sdk_adapter": true
+      }
+    },
+    "execution": {
+      "execution_ready": false,
+      "reasons": [
+        "no default worker connection configured"
+      ],
+      "default_worker_connection_ref": null,
+      "credential_configured": false,
+      "agent_refs": [
+        "lg-default-worker"
+      ],
+      "token_source": "environment",
+      "frontend_served": false,
+      "frontend_dist": "/tmp/lightgravity-worktrees/lg027/frontend/dist",
+      "warnings": []
+    }
+  },
+  "unauthorized_write": {
+    "status": 401,
+    "body": {
+      "error": {
+        "code": "unauthorized",
+        "message": "missing or invalid local access token",
+        "details": {
+          "header": "X-LG-Token",
+          "endpoint": "/api/v1/settings/connections"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "create_connection": {
+    "status": 201,
+    "leaks_credential": false
+  },
+  "put_credential": {
+    "status": 200,
+    "body": {
+      "ref": "lg027-upstream-key",
+      "configured": true,
+      "source": "secret_store",
+      "version": "cred_3ee5ee0ab6b3"
+    },
+    "leaks_credential": false
+  },
+  "layered_test": {
+    "status": 200,
+    "overall": "not_run",
+    "layers": [
+      {
+        "name": "config_parse",
+        "status": "passed"
+      },
+      {
+        "name": "credential",
+        "status": "passed"
+      },
+      {
+        "name": "capability",
+        "status": "declared"
+      },
+      {
+        "name": "runtime_network",
+        "status": "skipped"
+      },
+      {
+        "name": "tool_probe",
+        "status": "skipped"
+      },
+      {
+        "name": "structured_output",
+        "status": "skipped"
+      }
+    ],
+    "leaks_credential": false
+  },
+  "set_default": {
+    "status": 200,
+    "body": {
+      "revision": 0,
+      "exists": true,
+      "content_hash": "944091b63987181d40134f8ddad9f410fd0ae59b63e01939418387a0c971cb11",
+      "default_coordinator_connection_ref": null,
+      "default_worker_connection_ref": "deepseek-lg027",
+      "defaults": {
+        "coordinator": null,
+        "worker": {
+          "id": "deepseek-lg027",
+          "title": "deepseek-lg027",
+          "enabled": true,
+          "revision": 0,
+          "content_hash": "9c62e2f81f2007e515f91952e4aa1e0d2748f9e5f276e0ae471a5eb71da5d3e2",
+          "backend": "openai-compat",
+          "model": "deepseek-v4-flash",
+          "base_url": "http://127.0.0.1:60001/v1",
+          "credential_ref": "lg027-upstream-key",
+          "resolved": true,
+          "credential": {
+            "ref": "lg027-upstream-key",
+            "configured": true,
+            "source": "secret_store",
+            "version": "cred_3ee5ee0ab6b3"
+          }
+        }
+      }
+    }
+  },
+  "execution_after_default": {
+    "execution_ready": true,
+    "reasons": [],
+    "default_worker_connection_ref": "deepseek-lg027",
+    "credential_configured": true,
+    "agent_refs": [
+      "lg-default-worker"
+    ],
+    "token_source": "environment",
+    "frontend_served": false,
+    "frontend_dist": "/tmp/lightgravity-worktrees/lg027/frontend/dist",
+    "warnings": []
+  },
+  "task": {
+    "status": 200,
+    "task_id": "task_01M4YEWNDTKY482XBCZHW85S1A"
+  },
+  "task_wait": {
+    "waited_seconds": 0.26,
+    "wait_cap_seconds": 25.0,
+    "reached_terminal_phase": true,
+    "observed_phase": "failed"
+  },
+  "members": [
+    {
+      "id": "member_01M4YEWNHZP9TQ9RV9HWACM2W1",
+      "connection_ref": "deepseek-lg027",
+      "connection_pin": {
+        "connection_id": "deepseek-lg027",
+        "role": "worker",
+        "revision": 0,
+        "content_hash": "9c62e2f81f2007e515f91952e4aa1e0d2748f9e5f276e0ae471a5eb71da5d3e2",
+        "backend": "openai-compat",
+        "model": "deepseek-v4-flash",
+        "base_url": "http://127.0.0.1:60001/v1",
+        "credential_ref": "lg027-upstream-key",
+        "credential_version": "cred_3ee5ee0ab6b3",
+        "config_hash": "6e10f944ce3b0cadc138accf00e58ca99a381058692499df85e7056c52d980fb"
+      }
+    }
+  ],
+  "subtasks": [
+    {
+      "id": "subtask_01M4YEWNHZW0RCV3TY5RE30JG7",
+      "state": "failed",
+      "acceptance": "blocked"
+    },
+    {
+      "id": "subtask_01M4YEWNHZZMHAYWXG4ZGFRH6N",
+      "state": "failed",
+      "acceptance": "failed"
+    }
+  ],
+  "task_phase": "failed",
+  "persisted_secret_leaks": [],
+  "server_log_leaks": false
+}

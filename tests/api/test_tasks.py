@@ -209,8 +209,11 @@ async def test_action_verify_owned_and_not_implemented(api: httpx.AsyncClient) -
         json={"action": "resume", "request_id": "req-resume"},
     )
     assert resume.status_code == 409
+    # LG-016 implements resume/retry/reopen/enqueue; a Task that never started
+    # is not resumable, and the error names the real phase rather than an owner.
     assert resume.json()["error"]["code"] == "not_ready"
-    assert resume.json()["error"]["details"]["owner"] == "LG-016"
+    assert resume.json()["error"]["details"]["action"] == "resume"
+    assert resume.json()["error"]["details"]["phase"] == "failed"
 
     unknown = await api.post(
         f"/api/v1/tasks/{task_id}/actions",

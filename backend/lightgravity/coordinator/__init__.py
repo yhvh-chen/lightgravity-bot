@@ -35,6 +35,13 @@ from .classification import (
     MessageIntent,
     classify_message,
 )
+from .dialogue import (
+    DialogueSupport,
+    ModelDialogue,
+    make_sync_responder,
+    resolve_dialogue_support,
+    unavailable_reply,
+)
 from .dispatcher import (
     DispatchContext,
     Dispatcher,
@@ -66,6 +73,28 @@ from .recruiter import (
     TeamPlan,
     member_config_hash,
 )
+from .control import ControlOutcome, ControlService
+from .continuation import (
+    CONTINUATION_CONFIG_VERSION,
+    ContinuationDecision,
+    NativeSessionIdentity,
+    continuation_record,
+    plan_continuation,
+)
+from .recovery import (
+    DefaultProcessProbe,
+    ProcessProbe,
+    RecoveryDecision,
+    RecoveryScanner,
+)
+from .session_flow import (
+    NodeSession,
+    completed_keys,
+    extract_node_session,
+    node_session_for_resume,
+    record_node_session,
+    reusable_completed_node,
+)
 from .resource_commands import (
     ResourceProposal,
     parse_resource_proposal,
@@ -88,6 +117,11 @@ __all__ = [
     "Classification",
     "MessageIntent",
     "classify_message",
+    "DialogueSupport",
+    "ModelDialogue",
+    "make_sync_responder",
+    "resolve_dialogue_support",
+    "unavailable_reply",
     "DispatchContext",
     "Dispatcher",
     "DispatchOutcome",
@@ -130,5 +164,22 @@ __all__ = [
     "Coordinator",
     "CoordinatorResult",
     "CandidateVerifier",
+    "ControlOutcome",
+    "ControlService",
+    "CONTINUATION_CONFIG_VERSION",
+    "ContinuationDecision",
+    "NativeSessionIdentity",
+    "continuation_record",
+    "plan_continuation",
+    "DefaultProcessProbe",
+    "ProcessProbe",
+    "RecoveryDecision",
+    "RecoveryScanner",
+    "NodeSession",
+    "completed_keys",
+    "reusable_completed_node",
+    "extract_node_session",
+    "node_session_for_resume",
+    "record_node_session",
     "build_router",
 ]

@@ -373,6 +373,26 @@ class RunController:
 
         return self._writer.write_run(self._run_id, updates)
 
+    def read_run(self) -> dict[str, Any]:
+        """Read the current Run entity mapping (empty when it vanished)."""
+
+        return self._writer.store.read("run", self._run_id).entity
+
+    def update_member(self, member_id: str, updates: dict[str, Any]) -> Versioned:
+        """Write non-state Member fields (e.g. the resolved ``session_ref``).
+
+        State transitions stay on :meth:`transition_member`; this seam exists so
+        LG-016's node-session flow can attach a non-secret native session record
+        to the member that executed a node without fabricating a state change.
+        """
+
+        return self._writer.write_member(member_id, updates)
+
+    def set_member_session(self, member_id: str, session: dict[str, Any]) -> Versioned:
+        """Attach the non-secret native ``session_ref`` to an executing member."""
+
+        return self.update_member(member_id, {"session_ref": session})
+
     def create_subtask(
         self, subtask_id: str, content: dict[str, Any], *, body: str | None = None
     ) -> Versioned:
