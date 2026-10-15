@@ -26,7 +26,7 @@ from typing import Any, Callable, Protocol
 
 from lightgravity.contracts import AppError, ErrorCode
 from lightgravity.store.clock import to_iso, utcnow
-from lightgravity.store.errors import EntityNotFound
+from lightgravity.store.errors import EntityNotFound, RevisionConflict
 
 from .intake import IntakeService, ReceiveRequest
 from .models import IntakeJobRecord, ReceiptEntry, ReceiveResult, SourceRecord
@@ -70,6 +70,8 @@ class SourceService:
         project_resolver: ProjectResolver | None = None,
         intake: IntakeService | None = None,
         processing: ProcessingEngine | None = None,
+        lexical: Any | None = None,
+        events: Any | None = None,
     ) -> None:
         self._store = store
         self._tasks = task_store
@@ -77,6 +79,8 @@ class SourceService:
         self._projects = project_resolver
         self._intake = intake or IntakeService(store)
         self._processing = processing
+        self._lexical = lexical
+        self._events = events
 
     @property
     def intake(self) -> IntakeService:
@@ -85,6 +89,12 @@ class SourceService:
     @property
     def processing(self) -> ProcessingEngine | None:
         return self._processing
+
+    @property
+    def lexical(self) -> Any | None:
+        """The optional LG-036 lexical index/search service (None when unwired)."""
+
+        return self._lexical
 
     @property
     def store(self) -> SourceStore:
@@ -532,6 +542,7 @@ class SourceService:
             },
             expected_revision=record.revision,
         )
+        self._reindex(source_id)
         return {
             "source_id": source_id,
             "formal": updated.entity.get("formal"),
@@ -582,6 +593,8 @@ class SourceService:
                 },
                 expected_revision=record.revision,
             )
+            # Invalidate old hits: the archived source must not return results.
+            self._invalidate_index(source_id, reason="revoked")
             return {"source_id": source_id, "status": updated.status, "revoked": True}
         if action == "delete":
             if not confirmed:
@@ -590,6 +603,7 @@ class SourceService:
                     "delete must be confirmed",
                     details={"source_id": source_id},
                 )
+            self._invalidate_index(source_id, reason="deleted")
             self._delete_source(source_id)
             return {"source_id": source_id, "deleted": True}
         raise AppError(
@@ -597,6 +611,44 @@ class SourceService:
             f"unsupported action {action!r}; supported: reprocess, cancel, revoke, delete",
             details={"action": action},
         )
+
+    # ---------------------------------------------------- lexical index hooks
+    def _reindex(self, source_id: str) -> None:
+        """Best-effort re-index hook after a human formal edit (LG-036).
+
+        The file SoT is authoritative; a missing/corrupt cache never blocks the
+        formal write, it only means search reports ``index_unavailable``.
+        """
+
+        if self._lexical is None:
+            return
+        try:
+            self._lexical.index_source(source_id)
+        except (AppError, RevisionConflict):
+            # The cache is a派生; a failed/busy index never blocks the file write
+            # (search then honestly reports index_unavailable/not_indexed).
+            return
+
+    def _invalidate_index(self, source_id: str, *, reason: str) -> None:
+        """Drop a source from the lexical cache so old hits cannot be returned."""
+
+        if self._lexical is None:
+            return
+        try:
+            self._lexical.remove(source_id, reason=reason)
+        except (AppError, RevisionConflict):
+            return
+
+    def search(self, request: Any) -> dict[str, Any]:
+        """Run a lexical search (delegates to the LG-036 service when wired)."""
+
+        if self._lexical is None:
+            from .lexical import LexicalSearchService
+
+            self._lexical = LexicalSearchService(
+                self._store, task_store=self._tasks, events=self._events
+            )
+        return self._lexical.search(request)
 
     def _delete_source(self, source_id: str) -> None:
         import shutil
@@ -676,6 +728,13 @@ def build_source_service(
     if clock is not None:
         kwargs["clock"] = clock
     store = SourceStore(data_dir, **kwargs)
+    from .lexical import LexicalSearchService
+
+    lexical = LexicalSearchService(
+        store,
+        task_store=task_store,
+        events=events,
+    )
     intake_kwargs: dict[str, Any] = {}
     if clock is not None:
         intake_kwargs["clock"] = clock
@@ -701,6 +760,8 @@ def build_source_service(
         project_resolver=project_resolver,
         intake=intake,
         processing=processing,
+        lexical=lexical,
+        events=events,
     )
 
 
