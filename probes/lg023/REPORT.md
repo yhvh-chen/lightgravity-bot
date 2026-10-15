@@ -137,3 +137,24 @@ owner: "agent:pi-lg023"
 - harness：`harness/{run_attempt.py,run_all.py,validate_fixtures.py,ledger_proof.py,selftest_offline.py,aggregate.py}`。
 
 **不推送/不部署/不发布。**
+
+---
+
+## 11. 已被审计取代（追加于 2026-10-16，不删除上文任何字节）
+
+> **本 REPORT 的「冻结正式对照完成」口径已被 [METHOD-AUDIT/REPORT.md](METHOD-AUDIT/REPORT.md) 取代。**
+> 按一手原件核实的关键偏差（详见 METHOD-AUDIT）：
+> 1. **§3/§5.4 的协议混淆不是可忽略的 bring-up 细节**：冻结后（采样中）改了 worker 提示与工具集，
+>    并**多次真实重跑 S1/A**，突破了 §2 冻结的 4-attempt / 每 attempt 1 次边界（A1/A2）。
+> 2. **§4/§5.3「版本验收停止门未闭合」的归因不准确**：记录 `unconfirmed` 的 S1/A 结果由**旧 `_accept`**
+>    （未接 `session_confirmer`）产生；`executor=` 接线在其后加入且**从未真实运行**。离线复现证明
+>    停止门在 teardown 事实齐时正确到达 `awaiting_acceptance`，**不是产品 bug**（A7）。
+> 3. **§10/§4「全部失败原件保留」不成立**：`runs/s1_independent__A/**` 被后续重跑覆盖（A3）。
+>    可恢复的失败原件的真实清单见 METHOD-AUDIT §2；原 FileStore 控制状态/候选 worktree 随
+>    `TemporaryDirectory` 删除，记 `unknown`，**不推断补造**（A9）。
+> 4. **§6 逐 attempt 计数不可信**：旧每 attempt 守卫生产 `count=0`（真实缺陷，已离线复现，A8）；
+>    **总 45/48 可核**，保留为 **protocol-deviation 失败成本**，不洗 0、不并入未来 cohort。
+> 5. **§1/§5.1 的可核实观测**（单 worker 机器门 6/6 + 独立 reviewer passed）**仍有效**，但其
+>    **版本验收门结果无效**，且处于已变更协议下；**不支持**任何收益结论。
+> 6. 两 arm 起始 commit hash 不同：**内容层同 tree**，原 commit 对象层 `unknown`（A5）。
+> 未来真实 cohort 须由 **PM 先预注册** budget/样本/门（METHOD-AUDIT REPORT §8）。本包真实生成 **0**。

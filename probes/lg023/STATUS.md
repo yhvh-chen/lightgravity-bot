@@ -37,3 +37,12 @@ owner: "agent:pi-lg023"
 | **本 phase（LG-023）** | **45/48**（剩 3 未用；全部失败/bring-up 保留） | PARTIAL |
 
 - 旧 022/031 成本**单列**保留，**不并入本 48，也不洗 0**。
+
+---
+
+## 已被审计取代（追加于 2026-10-16）
+
+> 本 STATUS 的「PARTIAL / 预算耗尽」记录**保留**（总数 45/48 可核），但**不得**再据此称「冻结正式对照完成」。
+> 方法审计见 [METHOD-AUDIT/REPORT.md](METHOD-AUDIT/REPORT.md)：冻结后改提示/工具集并多次真实重跑 S1/A（A1/A2）、
+> 结果路径被覆盖（A3）、逐 attempt 计数失效（A8）、停止门记录由未接 confirmer 的旧 `_accept` 产生（A7）。
+> LG-023 **保持 `in-progress`**，等待 PM 预注册的下一 phase；本包真实生成 **0**。

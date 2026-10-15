@@ -1,0 +1,73 @@
+{
+  "audit_item": "A1/A2/A3",
+  "source": "/home/yhvh/.cache/lightgravity-bot/dispatch-logs/lightgravity-pi-bounded-ogans7ad.log (owner transcript, read-only)",
+  "real_run_invocations": [
+    {
+      "sample": "s1_independent",
+      "arm": "A",
+      "kind": "dry"
+    },
+    {
+      "sample": "s1_independent",
+      "arm": "A",
+      "kind": "dry"
+    },
+    {
+      "sample": "s1_independent",
+      "arm": "A",
+      "kind": "real"
+    },
+    {
+      "sample": "ALL",
+      "arm": "A+B",
+      "kind": "run_all(4 attempts)"
+    },
+    {
+      "sample": "s1_independent",
+      "arm": "A",
+      "kind": "real"
+    },
+    {
+      "sample": "s1_independent",
+      "arm": "A",
+      "kind": "real"
+    },
+    {
+      "sample": "s1_independent",
+      "arm": "A",
+      "kind": "real"
+    }
+  ],
+  "counts": {
+    "real_s1A_reruns_after_run_all": 4,
+    "run_all_calls": 1
+  },
+  "accept_gate_edits": [
+    {
+      "ts": 1792085247092,
+      "has_confirmer": false,
+      "has_executor_param": false
+    },
+    {
+      "ts": 1792085252663,
+      "has_confirmer": false,
+      "has_executor_param": false
+    },
+    {
+      "ts": 1792085470854,
+      "has_confirmer": false,
+      "has_executor_param": false
+    },
+    {
+      "ts": 1792085511564,
+      "has_confirmer": true,
+      "has_executor_param": true
+    }
+  ],
+  "findings": [
+    "A2: the single run_all.py covered the 4 attempts once, but S1/A was additionally re-run for real 4 more times (pids 2049869/2051391/2052815 and the crashed bring-up), so the frozen '1 run per attempt' / 4-attempt boundary was exceeded by retries on S1/A.",
+    "A1: worker prompt text, tool set (added edit-file), and WORKER_MODEL_CALLS (6->10) were edited after the PLAN/offline-freeze commit 4a8ac0d and DURING sampling; pre/post results are not comparable.",
+    "A3: runs/s1_independent__A/** was overwritten by the later S1/A reruns; the earlier result bytes no longer exist on disk.",
+    "A7: the committed runs/s1_independent__A/result.json was produced by the _accept version at ts 1792085470854 (no session_confirmer). The executor/session_confirmer wiring added at ts 1792085511564 was never exercised by a real request (budget exhausted)."
+  ]
+}

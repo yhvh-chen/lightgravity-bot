@@ -175,3 +175,21 @@ updated: "2026-10-16"
 - **2026-10-16：预算耗尽 → PARTIAL。** 总 48 中已用 **45**，剩 **3**，不足以在最终 harness 下重跑 S1/B 与 S2（A/B）。
   **未完成样本如实计失败/partial**；**不据结果增加额度**；组队 arm 结论待新预算 phase 重跑。
 - **2026-10-16：`usage`/费用部分 `unknown`**，**不当 0**，不据此推断收益。
+
+---
+
+## 13. 已被审计取代（追加于 2026-10-16，不删除上文任何字节）
+
+> **本 PLAN 作为「已冻结的正式对照协议」已被 [METHOD-AUDIT/REPORT.md](METHOD-AUDIT/REPORT.md) 取代。**
+> 本 cohort **不满足「冻结后未改协议」**：本次审计按一手原件证实，冻结 commit `4a8ac0d` 之后、采样期间
+> 编辑了 worker 提示与工具集（`edit-file`、`WORKER_MODEL_CALLS 6→10`、`max_tool_calls 10→16`），
+> 并**多次真实重跑 S1/A**（超过 §5 冻结的「每 attempt 1 次正式 run / 共 4 attempts」），
+> 且覆盖了 `runs/s1_independent__A/**` 路径。因此：
+> - §5 的「4 attempts / 每 attempt 1 次」**在本 cohort 未被执行**；
+> - §6 的逐 attempt 成本**归因不可信**（旧 attempt guard 生产 `count=0`，见 REPORT A8）；
+> - §4/§12「停止门未闭合」的表述**不准确**：记录的 `unconfirmed` 由尚未接 `session_confirmer` 的旧
+>   `_accept` 产生；`executor=` 接线在其后加入且从未真实运行（REPORT A7）。
+> - §5 的**总 48 持久 ledger 总数可核（45/48）**，保留为 **protocol-deviation 失败成本**，不归零、不并入未来 cohort。
+> - §9 的两 arm「同初始 commit」在**内容（tree）层成立**，但**原 commit 对象随 `TemporaryDirectory` 丢失**，
+>   原 commit 对象层记 `unknown`（REPORT A5）。
+> 未来真实 cohort 的预算/样本/门须由 **PM 先预注册**（REPORT §8）。

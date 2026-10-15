@@ -1,0 +1,17 @@
+{
+  "audit_item": "A5",
+  "question": "Do the two arms start from the same Git tree (content), despite different recorded commit hashes?",
+  "method": "Re-create each fixture's initial/ as a git repo (cp -r initial/. ; git add -A ; git commit) and compare blob-tree hashes. The original fixture dirs are the frozen byte source.",
+  "recorded_initial_heads_from_runs": {
+    "s1_independent": {"A": "48419c5869bdf02f529de457063e4775ec918882", "B": "791de14ac14201cff905bcb839689b41c006f23d"},
+    "s2_interface": {"A": "243dd74648dac7529ce779ac2926bd68d78f4cad", "B": "a1c207e988c19125ebafe9999d0a5dd7be4f2f19"}
+  },
+  "reconstruction_tree_hashes": {
+    "s1_independent": {"A": "59d310e07f3e66454bf5404670e043ea15ae5f93", "B": "59d310e07f3e66454bf5404670e043ea15ae5f93"},
+    "s2_interface": {"A": "23165a22005e4b277f05c94dbfc0d10448314c91", "B": "23165a22005e4b277f05c94dbfc0d10448314c91"}
+  },
+  "content_level_conclusion": "identical tree per sample (arms share content)",
+  "original_commit_resolvable": false,
+  "reason_original_unresolvable": "The run's base repo lived in a TemporaryDirectory (e.g. /tmp/tmpcugnc8bx) that was deleted; `git cat-file -t <recorded_head>` fails for all four recorded hashes. The differing commit hashes therefore cannot be independently resolved to trees from surviving data.",
+  "interpretation": "Differing commit hashes are consistent with non-deterministic commit metadata (author/committer timestamp, since each arm created its own git repo at a different wall-clock time). Content-level proof shows the same fixture bytes produce the same tree; but the original commit objects are gone, so the 'same initial version' claim is supported at content level and marked UNKNOWN at the original-commit-object level (not asserted as byte-proven for the deleted run)."
+}
