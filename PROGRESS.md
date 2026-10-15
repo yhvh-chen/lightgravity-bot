@@ -309,3 +309,21 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - **集成检查（真实退出码，绑定 `975afc2`）**：`mypy` exit 0 → **137 files clean**；`pytest -q -p no:randomly` exit 0 → **794 passed, 2 skipped**（82.49s）；backlog 根 `validate` ok **41 tasks/0 diagnostics**、`digest` complete → **33 done / 3 in-progress / 5 todo**。**本包产品真实模型/外部服务调用 0**；UI 未改，未重跑完整前端。
 - **状态如实**：**LG-022 仍 `in-progress`** 待**新独立 QA `qa/lg022-stream`**（新持久 worktree `/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream`，基于最终 main 候选 `975afc2`，**不覆盖旧路径**）；**最新 `cea87ab` 独立调查确认重要缺陷是 stream 阶段没 cancel/deadlock（流式 stop 未接线，不是单纯限制）**，旧 a41 PASS 标题不覆盖新修复。**LG-031 `done`（待 LG-032 独立集中 QA）**。**LG-023/032 `todo` 未 claim**（依赖 022 未 done，保留后续步骤）。**LG-035/037 `in-progress`**；**LG-040/041 不解锁**。自主模式默认 off；不重新引入模型编排。
 - **成本（全部旧失败保留）**：LG-022 首轮 unknown、R1 6/10、`qa/lg022-r2` 真实 8（**两阶段不同账本，未执行统一总额硬限**，非产品账本缺陷）；LG-031 累计 **34/40**（旧 24 + phase4 10，不重放/不归零）。**本包产品真实请求 0**。**契约保持 `1.10.0`，SDK `0.1.22` 不变。**
+
+## 2026-10-16 核心首版 QA 收口检查点（唯一串行验收证据整合/排期 owner）
+
+本节为当前事实；旧实验、worktree、原始 probes、旧 dirty 全部保留，未推送/部署/发布。唯一收口 owner；主代理只 PM，无嵌套派工。
+详细报告见 [probes/batch-20261016/CORE-QA-CLOSE.md](probes/batch-20261016/CORE-QA-CLOSE.md)。**本包产品生成 0**（不执行评估/新探针/不重跑模型或测试）。
+
+- **开工核对（真实）**：`main@e0a8cec` clean；`qa/lg022-stream@49c95f5` clean、**仅 14 个 QA 文件**（纯 `qa/lg022-stream/**`，产品/ docs 零改动）；`fix/lg031-r3@2f04654` 已由 INTEGRATION-8 合入 main。`ps` 仅见本收口 owner 的 bounded pi；**无 022-stream QA owner/源 owner 残留**。旧 `lg031-r1` dirty=8、`/tmp/*experiment*` dirty 全部保留未触碰；未 reset/clean/覆盖/重复 pick、未复制 `.env`；主 worktree uvicorn(:8123) 未 kill/未复用 dataRoot。
+- **独立 QA 退出与结论**：`agent:pi-lg022-stream-qa` 已退出。证据复核（只读不重跑）：`stream-stop-hard-gate.json` **`hard_gate_pass=true`**（真 SDK 0.1.22 + 真产品装配 + 本地 fake SSE；流式 pause/cancel 0.21s/0.22s 真实 confirm；unknown held）；`main-chain-verdict.json` **`ok=true`**（真 DeepSeek 5/10 主链到绑定 accept）。**结论：门内 PASS、无未修重要缺陷**（无 fail ⇒ 可 claim 023）。
+- **merge（仅 QA 证据）**：`git merge --ff-only qa/lg022-stream` → **`main@49c95f5`**（`e0a8cec..49c95f5`，14 文件）。**产品树证明**：`git diff e0a8cec main -- backend/ frontend/ src/ tests/ docs/ pyproject.toml` **为空** ⇒ 产品树与已验候选逐字节相同，故**不重跑全量 pytest**（无新代码）。未推送。
+- **LG-022 → `done`**（仅「首版端到端 + 本次流式停止缺陷独立真实复验」**门内范围**，**不宣称整产品 pass**）。旧错误 PASS 标题仅覆盖持久账本+停止门主链、不覆盖本次流式修复；历史两轮失败（首轮 fail、R1 FAIL、R2 scope 修正）如实保留。
+- **准确门范围/未测保留**：真 SDK+本地 fake SSE 的流式停止 PASS；真 DeepSeek 主链一例 PASS；**未测：真实 DeepSeek 上游下 cancel/pause-during-review、重启后 `verifying`/`repairing → recovery_required`、跨 Run 真实 reject/repair、light/浏览器矩阵（引用 021/027 旧证据）**；**provider-substitute**：流式硬门上游为本地 fake SSE（非 DeepSeek），**SDK 取消已用真 SDK+本地 SSE 证明，不冒充 DeepSeek 故障**。
+- **022 成本（旧 unknown+6+8 与新 phase 分别记录）**：首轮 real **unknown**（含 429 rerun）；R1 **6**；R2 **8**（主链 7 + light 1，**两账本未统一、未执行统一总额硬限**，非产品账本缺陷）；**本 phase 5/10**（唯一持久 ledger）；本收口包 **0**。旧轮不归零/不洗白。
+- **031 已知工程 34/40**（旧 24 + phase4 10，不重放/不归零）；**原运行 SoT 部分字节丢失**（探针 `TemporaryDirectory` 删 `data/store/worktrees`），但 **SDK 原件（3 session DB + 原 stdout）持久备份**于 `~/.cache/lightgravity-bot/checkpoints/2026-10-16-batch/lg031-phase4-survivors/20261016T040115+1100/`（`700`/`600`），**硬条件 4 由只读哈希恢复**；恢复限制（未写回原 store/未补字段/未编造收据）如实保留。031 保持 `done`。
+- **源提交短哈希核准**：流式修复源为 **`7d0510d`**（`git show` 核准）；QA 报告叙事一处 `7d0510c` 为**笔误**，仓库内**不存在** `7d0510c` 提交（tracked 文件亦无该字符串）。本汇总按 git 引用正确哈希并**补注**，**不篡改原 QA 测试证据**。
+- **LG-023 排期（原子 claim + 新 worktree）**：`validate`→**41 tasks/0 diagnostics**、`digest` **complete=true**、LG-023 `ready` 后，**CLI 原子 claim `LG-023 --as agent:pi-lg023`**（不直接绕 claim）；创建**全新持久 worktree** `/home/yhvh/code/lightgravity-bot-worktrees/lg023`（branch `dev/lg023`），基于最终 main/claim commit；路径若存在**先核不覆盖**。**本包不执行评估**。
+- **预算（采样前最终修订，非看结果后改额；样本/门固定 2 任务 × 2 arm × 一次）**：**4 attempts / 总 48 真实 DeepSeek 生成 / 每 attempt 12**；**全 stage 同 phase 持久 ledger**；**output ≤ 16000 / HTTP 120s / retry 0 / 并发 ≤ 2**；**旧 16/24/6 只是未执行草稿、作废**（不构成额度）；按已见真实双 worker 链约 **10 calls**，为**双方 arm 设同样足够 cap**。
+- **LG-032 暂不 claim**（原 ready ≠ 立刻占有；待 023 评估后与 **LG-024** 并行排期）。
+- **状态如实**：**LG-022 `done`（门内）**；**LG-031 `done`（待 032）**；**LG-023 claim 后 `in-progress`**；**LG-032 `todo` 暂不 claim**；**LG-035/037 `in-progress`**、**LG-036/038 `done` 待 040**、**LG-040/041 `todo` 不解锁**。自主模式默认 off。**契约保持 `1.10.0`、SDK `0.1.22` 不变**。本包产品生成 **0**，未推送/部署/发布。

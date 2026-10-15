@@ -132,6 +132,15 @@ SDK 安装/真实测试属于 LG-002/003 后续实施，不包含在此次写排
 > - **状态**：**LG-022 仍 `in-progress`**，待**新独立 QA `qa/lg022-stream`**（新持久 worktree `lg022-qa-stream`，基于 `975afc2`，不覆盖旧路径）；最新独立调查确认**重要缺陷是 stream 阶段没 cancel/deadlock（流式 stop 未接线，非单纯限制）**，旧 a41 PASS 标题不覆盖新修复。**LG-031 `done`（待 LG-032 独立集中 QA）**。**LG-023/032 `todo` 未 claim**（依赖 022 未 done）。**LG-035/037 `in-progress`**；**LG-040/041 不解锁**。**契约保持 `1.10.0`、SDK `0.1.22` 不变**，自主模式默认 off，不重新引入模型编排。
 > - **成本**：LG-022 首轮 unknown、R1 **6/10**、`qa/lg022-r2` 真实 **8**（两阶段不同账本，未执行统一总额硬限，非产品账本缺陷）；LG-031 累计 **34/40**（旧 24 + phase4 10，不重放/不归零）；**本包产品真实请求 0**。
 
+> 2026-10-16 核心首版 QA 收口更新（唯一串行验收证据整合/排期 owner，报告 [probes/batch-20261016/CORE-QA-CLOSE.md](../probes/batch-20261016/CORE-QA-CLOSE.md)）：**本包产品生成 0**（不执行评估/新探针/不重跑模型或测试）。
+> - **独立 QA 退出**：`agent:pi-lg022-stream-qa` 已退出，worktree `qa/lg022-stream@49c95f5` clean、**仅 14 个 QA 文件**（产品/ docs 零改动）；结论**门内 PASS、无未修重要缺陷**（`stream-stop-hard-gate.json` `hard_gate_pass=true`；`main-chain-verdict.json` `ok=true`，真 DeepSeek 5/10 到绑定 accept）。
+> - **merge（仅 QA 证据）**：`git merge --ff-only qa/lg022-stream` → **`main@49c95f5`**（`e0a8cec..49c95f5`）；产品树与 `e0a8cec` **逐字节相同**（`git diff` 产品路径为空）⇒ **不重跑全量 pytest**。旧 worktree/dirty 全保留，未 reset/clean/覆盖/重复 pick、未复制 `.env`。
+> - **LG-022 → `done`（仅门内范围）**：仅「首版端到端 + 本次流式停止缺陷独立真实复验」；**不宣称整产品 pass**，旧错误 PASS 标题不覆盖本次流式修复，历史两轮失败如实保留。**准确门范围**：真 SDK+本地 fake SSE 流式停止 PASS、真 DeepSeek 主链一例 PASS；**未测**：真实 DeepSeek 上游下 cancel/pause-during-review、重启后 `verifying`/`repairing → recovery_required`、跨 Run 真实 reject/repair、light/浏览器矩阵；**SDK 取消已用真 SDK+本地 SSE 证明，不冒充 DeepSeek 故障**。
+> - **成本（不归零）**：022 首轮 **unknown**、R1 **6**、R2 **8**（两账本未统一、未执行统一总额硬限，非产品缺陷）、本 phase **5/10**、本收口包 **0**；031 工程 **34/40**（原运行 SoT 部分字节丢失，但 SDK 原件（3 session DB + stdout）持久备份、硬条件 4 只读哈希恢复，恢复限制保留）。**源哈希核准**：流式修复源为 **`7d0510d`**，QA 报告叙事 `7d0510c` 为笔误（仓库不存在该提交），本汇总按 git 引用正确哈希、不篡改原证据。
+> - **LG-023 排期**：`validate` 41 tasks/0 diagnostics、`digest` complete、LG-023 `ready` 后 **CLI 原子 claim `--as agent:pi-lg023`**，创建全新持久 worktree `lg023`（`dev/lg023`，基于最终 main/claim；路径存在先核不覆盖）；**本包不执行评估**。**预算（采样前最终修订，非看结果后改额；样本/门固定 2 任务×2 arm×一次）**：**4 attempts/总 48/每 attempt 12**，全 stage 同 phase 持久 ledger，**output ≤16000/HTTP 120s/retry 0/并发 ≤2**；**旧 16/24/6 为未执行草稿作废**；按已见真实双 worker 链约 10 calls 为**双方 arm 设同样足够 cap**。
+> - **LG-032 暂不 claim**（原 ready ≠ 立刻占有；待 023 评估后与 LG-024 并行排期）。
+> - **状态**：**LG-022 `done`（门内）**、**LG-031 `done`（待 032）**、**LG-023 claim 后 `in-progress`**、**LG-032 `todo` 暂不 claim**、**LG-035/037 `in-progress`**、**LG-036/038 `done` 待 040**、**LG-040/041 `todo` 不解锁**；自主模式默认 off；**契约保持 `1.10.0`、SDK `0.1.22`**；未推送/部署/发布。
+
 - 当前优先收拢 LG-013、LG-016、LG-027 已有隔离成果，继续 LG-017/018/019 与既有首版集中验收；单独 worktree 的交付不视为 main 已集成。不在本次排期中改变其状态。
 - LG-028 与 LG-033 可独立准备；LG-039 可在 LG-033 后验证。实现以任务 depends_on 为准，两个新版本的 LG-022 依赖是保留首版验收的排序门，非新功能代码依赖。
 - 多条线共享 Store、Coordinator、API 或前端入口时指定单一 owner 串行集成；开发执行仍经 pi，不因排期自动派工，不采用宿主原生子代理替代。

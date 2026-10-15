@@ -43,6 +43,17 @@ updated: "2026-10-15"
 
 ## 决策日志
 
+### 2026-10-16：核心首版 QA 收口——LG-022 流式停止独立复验合入并 done，LG-023 采样前预算最终修订
+
+- **唯一串行验收证据整合/排期 owner，主代理只 PM，无嵌套派工/推送/部署/发布；本包产品生成 0**（不执行评估/新探针/不重跑模型或测试）。详见 [probes/batch-20261016/CORE-QA-CLOSE.md](probes/batch-20261016/CORE-QA-CLOSE.md)。
+- **独立 QA 已退出**：`agent:pi-lg022-stream-qa` 退出，`qa/lg022-stream@49c95f5` clean、**仅 14 个 QA 文件**；结论**门内 PASS、无未修重要缺陷**（硬门 `hard_gate_pass=true`、主链 `ok=true` 真 DeepSeek 5/10 到绑定 accept）。无 fail ⇒ 可 claim 023。
+- **merge 仅 QA 证据**：`git merge --ff-only qa/lg022-stream` → **`main@49c95f5`**；`git diff e0a8cec main -- backend/ frontend/ src/ tests/ docs/ pyproject.toml` **为空** ⇒ 产品树与已验候选逐字节相同，**无新代码故不重跑全量 pytest**。旧 worktree/dirty 全保留，未 reset/clean/覆盖/重复 pick、未复制 `.env`。
+- **LG-022 → `done`（仅门内范围）**：真 SDK 0.1.22 + 真产品装配 + 本地有效 fake SSE 的流式 pause/cancel 真实停止 PASS；真 DeepSeek 主链一例 PASS；持久生成账本 PASS。**不宣称整产品 pass**：**未测**真实 DeepSeek 上游下 cancel/pause-during-review、重启后 `verifying`/`repairing → recovery_required`、跨 Run 真实 reject/repair、light/浏览器矩阵（引用 021/027 旧证据）；**SDK 取消已用真 SDK+本地 SSE 证明，不冒充 DeepSeek 故障**；旧错误 PASS 标题仅覆盖持久账本+停止门主链、**不覆盖**本次流式修复；历史两轮失败保留。
+- **成本不归零**：022 首轮 **unknown**、R1 **6**、R2 **8**（两账本未统一、未执行统一总额硬限，非产品缺陷）、本 phase **5/10**、收口包 **0**；031 工程 **34/40**（原运行 SoT 部分字节丢失，**SDK 原件（3 session DB + 原 stdout）持久备份**、硬条件 4 只读哈希恢复，恢复限制保留）。**源哈希核准**：流式修复源为 **`7d0510d`**，QA 报告叙事 `7d0510c` 为笔误（仓库不存在该提交），本汇总引用正确哈希、不篡改原证据。
+- **LG-023 排期决策**：`validate`/`digest` 确认 complete/无诊断且 LG-023 `ready` 后 **CLI 原子 claim `LG-023 --as agent:pi-lg023`**（不直接绕 claim），基于最终 main/claim commit 创建全新持久 worktree `/home/yhvh/code/lightgravity-bot-worktrees/lg023`（`dev/lg023`，路径存在先核不覆盖）。**本包不执行评估**。
+- **LG-023 预算决定（PM 文档明确；采样前最终修订，非看实验结果后改额）**：样本与成功门**固定为两任务 × 两 arm × 一次**；预算为 **4 attempts / 总 48 真实 DeepSeek 生成 / 每 attempt 12**；**全 stage 同 phase 持久 ledger**（不分账）；**output ≤ 16000 tokens、HTTP 120s、retry 0、并发 ≤ 2**。**旧 16/24/6 只是未执行草稿、作废**，不构成额度；按已见真实双 worker 链约 **10 calls**，为**双方 arm 设同样足够 cap**，不以一方预算不足误判失败。
+- **LG-032 暂不 claim**：原任务 ready ≠ 要立刻占有；待 023 评估后与 **LG-024** 并行排期。**LG-035/037 保持 `in-progress`**、**LG-040/041 不解锁**。**契约保持 `1.10.0`、SDK `0.1.22` 不变**；未推送/部署/发布。
+
 ### 2026-10-16：第七批集成——LG-022 R2 持久停止/账本 + LG-031 R2 自主领取/共享计数整合
 
 - **集成前核对**：`main` `29ffbb6`（clean）；`fix/lg022-r2@e59e12a`、`fix/lg031-r2@3821620` 均 clean，`main` 与其先前合并关系已核。整合候选 `integrate/batch7`：`8a92439` 合 022-r2（无冲突）、`0144eb7` 合 031-r2（2 处文本冲突，逐条保留）。旧分支/worktree/probes/dirty 全部保留，未 reset/clean/覆盖/重复 pick、未复制 `.env`。
