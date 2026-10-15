@@ -48,6 +48,7 @@ from ..coordinator import GraphDispatcher
 from ..collaboration import (
     ClaimPolicyReader,
     CollaborationService,
+    default_registry as default_grant_registry,
     resolve_worker_identity,
 )
 from ..workspaces import GraphWorkspaceProvider, WorktreeManager
@@ -391,6 +392,11 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         warnings.append(warnings_seed)
     executor = None
     dispatcher = None
+    # LG-031 phase3: the process-wide grant registry is the single seam the
+    # graph dispatcher (mint) and the API context (resolve) share.  Wiring the
+    # same instance here means an autonomously claimed node grant is resolvable
+    # by the request identity seam; disabled paths simply never mint a grant.
+    grant_registry = default_grant_registry()
     # LG-022 R2: root the persistent generation-budget ledger at the resolved
     # data dir so the real global upstream cap survives restarts and is shared
     # across worker/reviewer/session.  Configured before any proxy starts.
@@ -418,6 +424,13 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
                 catalog = RoleCatalog(dict(options.role_catalog))
             else:
                 catalog = load_role_catalog(store, settings.data_dir)
+            # LG-031 phase3: read the decentralized switches so the *product*
+            # coordinator path can actually enable the autonomous claim tool
+            # (R2 proved the probe path; the default dispatcher never wired it).
+            # When the switch is off/absent this is identical to the old rules
+            # path: no autonomous tool, no grants, deterministic plan_source.
+            collab_policy = ClaimPolicyReader(store).read()
+            decentralized = bool(getattr(collab_policy, "enabled", False))
             dispatcher = GraphDispatcher(
                 store,
                 executor,
@@ -425,13 +438,18 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
                 compiler=compiler,
                 connections=connection_pins,
                 workspaces=GraphWorkspaceProvider(WorktreeManager(settings.workspace_root)),
-                collaboration=CollaborationService(
-                    store, policy=ClaimPolicyReader(store).read()
-                ),
+                collaboration=CollaborationService(store, policy=collab_policy),
+                grant_registry=grant_registry if decentralized else None,
+                autonomous_claim=decentralized,
             )
             log(
                 "executor wired: antigravity/openai-compat via loopback auth proxy"
                 + ("; capability catalog present" if catalog else "; no catalog")
+                + (
+                    "; decentralized claim enabled (autonomous claim tool active)"
+                    if decentralized
+                    else "; decentralized claim disabled (deterministic path)"
+                )
             )
         except Exception as exc:  # noqa: BLE001 - start degraded, report honestly
             executor = None
