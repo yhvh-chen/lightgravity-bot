@@ -7,9 +7,36 @@ updated: "2026-10-16"
 
 # 当前进展与续接记录
 
-> **2026-10-16 最新事实见下方「## 2026-10-16 Materials OCR R4 集成检查点」；其下各节（含 2026-10-16 证据集成收拢与 2026-10-15 历史快照）整体标记为历史，保留不改。**
+> **2026-10-16 最新事实见下方「## 2026-10-16 Materials Vector Quality R4 集成检查点」；其下各节（Materials OCR R4 集成、证据集成收拢与 2026-10-15 历史快照）整体标记为历史，保留不改。**
 
-## 2026-10-16 Materials OCR R4 集成检查点（唯一 main 集成/PM 文档 owner；本集成阶段产品 LAN 调用 0/外部服务 0）
+## 2026-10-16 Materials Vector Quality R4 集成检查点（唯一 main 集成/PM 文档 owner；本集成阶段产品 LAN 调用 0/外部服务 0）
+
+本节为**当前事实**，覆盖其上历史快照中的相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
+未 reset/clean/覆盖/重复 cherry-pick，未推送/部署/发布。主代理只 PM，无嵌套派工、无网络/模型探针、无新产品代码。
+详细报告 [probes/materials-vector-r4-integration-20261016/REPORT.md](probes/materials-vector-r4-integration-20261016/REPORT.md)。
+
+- **开工核对（真实，只读）**：本项目根 `main@572fd0f` clean；候选 worktree `materials-vector-quality-r4-20261016`
+  （分支 `test/materials-vector-quality-r4-20261016`）clean、tip **`335c87c`**（基点 `71a2041`，线性 2 commit：`ff6615e` 冻结 PLAN/labels + `335c87c` 证据/report）；
+  `575f84a`（OCR R4 集成）仍为 `main` 祖先，其文档与 R4 PM 记录完好。
+- **既有 bounded wrapper 缺席（不含自身）**：开工时唯一在跑的 `lightgravity-pi-bounded.py` 为 **PID 2744813 = 本集成任务自身 wrapper**（`materials-vector-r4-integrate-20261016.txt`，本 `pi` PPID 链确认）；
+  此前观察到的 `materials-ocr-r4-repair-20261016` wrapper **已自行退出**（日志止于 R4 交付文本），**未被本任务杀死**；
+  另有无关联长期 `pi`（PID 2903293，2026-09-04 起）存在，非 materials bounded wrapper，未触碰。**无其它外部 `main` 写入者**（合并前 HEAD 与 `git status` 符合预期）。
+- **集成（唯一写动作，`--no-ff`，无冲突、无重复 cherry-pick）**：`git merge --no-ff test/materials-vector-quality-r4-20261016` →
+  **`bd7fb18`**（parents `572fd0f` + `335c87c`）。进入 main 的仅该分支自有 **9 个 probe 文件**（全在 `probes/materials-vector-quality-r4-20261016/**`）；**产品树 delta = 0**。
+- **产品树前后零 delta（两次核）**：`git diff --stat 71a2041 test/... -- backend/ frontend/ src/ tests/ contracts/ docs/ pyproject.toml uv.lock Makefile backlog/ README.md PROGRESS.md` 空；
+  合并后 `git diff --stat 572fd0f bd7fb18 -- ...（同上路径）` 仍**空**。源 report **字节不变**（`sha256 f4a5b998…` 与分支原件一致）。分支 tip 现为 `main` 祖先（`merge-base --is-ancestor` OK）。
+- **证据要点（相对真实链接，如实）**：真实 **16 embedding POST**（含 **1 次 raw-ogg 失败**）、**1 GET**、**0 retry**、串行；正向 3：text→image **Recall@5=1**（Q_IMG_ZH **rank 5**、Q_IMG_EN **rank 1**）、text→audio **Recall@5=1**（Q_AUD_ZH **rank 1**）；向量 **MRR=0.7333**、top-1=0.6667。
+  **词法 baseline media 命中 0**（media 无 transcript，属**预期**、**不构成向量全面优于词法**）；负向各 **5 false hits**（无阈值/弃答，属 top-k NN 预期，**非 ACL/契约失败**）；
+  **仅 1 条真实音频候选**，**第二条如实记为缺失**不伪造；**未做真实第二模型切换测试**（切换为离线兼容守卫）；音频为 **embedding 而非 ASR**。
+- **源报告语境更正（仅本新集成 REPORT 记录，源 report 字节未改）**：源报告“lossless container/PCM conversion”为**误称**——真实操作 `ffmpeg -ac 1 -ar 16000 -t 30 -c:a pcm_s16le`
+  **重采样 16000Hz 单声道并裁剪前 30s**；**原始 Ogg 143.58s 存在**但**嵌入的是 30s PCM**；音频真值仅 **topic-level 标签（中文/Chinese language）**、**无 transcript**，故**报告置信度受限于主题级**。
+- **成本**：本集成阶段产品 LAN 调用 **0**（无 GET/POST/ASR/embedding，无新质量 POST，无新测试——证据分支仅 probe、产品字节相同）；分支自身历史计数 16 POST/1 GET/0 retry 不变。**LAN/端点价格 unknown；pi/DeepSeek 执行成本另计、unknown、非 0**。未 push/deploy/publish。
+- **状态不变**：`validate` 41 tasks 有效（12 diagnostics 全为**既有** `probes/agensh-orchestration-r2/runs/**` 局部 subtask 文件，`572fd0f` 时已 692 个，本合并新增 **0**）、`digest` **2 todo / 2 in-progress / 37 done**、`ready=[]`；
+  **LG-035 `in-progress`（表格质量 FAIL 持续）**、**LG-037 `in-progress`（partial cross-modal，非 done）**、**LG-040/041 仍 locked**。契约 **`1.11.0`**、SDK **`0.1.22`** 不变。不改任何 status/assignee（LG-037 仅追加正文）。
+
+---
+
+## 2026-10-16 Materials OCR R4 集成检查点（历史；唯一 main 集成/PM 文档 owner；本集成阶段产品 LAN 调用 0/外部服务 0）
 
 本节为**当前事实**。开工核对：本项目根 `main@71a2041` clean；四条既有证据分支确认为 `main` 的真实祖先；
 `fix/materials-ocr-r4-20261016`（基点 `db01cd6`，线性 4 commit：`311c2d4` PLAN / `8337e04` 产品修复 / `e9fd5e5` 重评分 / `3cb68c6` 报告）
