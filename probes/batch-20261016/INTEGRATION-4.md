@@ -84,7 +84,31 @@ updated: "2026-10-16"
   LG-037（依赖 LG-033/**LG-036**，LG-036 仍 in-progress）**未 ready**；LG-038（依赖 LG-013/014/LG-034/**LG-036**）**未 ready**。
 - 据「依赖不满不绕过」：**只 claim 真正 ready 的 LG-022**；**LG-037/LG-038 在 LG-036 完成（含 `api/app.py` 挂载）前不 claim、不建 worktree**。
 
-（§5.1 的确切 CLI 输出与提交 SHA 见 §7，工作记录随本报告提交。）
+实际 CLI 输出（`olav-tasks` v0.1.1，`node dist/cli.js`）：
+
+```
+$ tasks validate backlog           -> OK: 41 tasks, no diagnostics.
+$ tasks ready backlog
+LG-022  tasks/LG-022.md  执行首版端到端与故障验收
+$ tasks claim backlog LG-022 --as agent:pi-lg022
+Claimed LG-022 for agent:pi-lg022 (tasks/LG-022.md)      # exit 0
+$ tasks claim backlog LG-037 --as agent:pi-lg037
+Olav Tasks: LG-037 is not ready: waiting for LG-036.      # 拒绝，未 claim
+$ tasks claim backlog LG-038 --as agent:pi-lg038
+Olav Tasks: LG-038 is not ready: waiting for LG-036.      # 拒绝，未 claim
+```
+
+- claim 提交：`bf7851c`（`backlog/tasks/LG-022.md`：`status: todo` → `in-progress`，`assignee: agent:pi-lg022`）。
+- **LG-037/LG-038 状态与任务卡保持 `todo` 不变**，未建分支/worktree（依赖 LG-036 尚未完成，不绕过）。
+
+### 5.2 持久 worktree 准备（项目旁，无 `.env` 复制）
+
+| 用途 | 分支 | 路径 | 基点 | 状态 | `.env` |
+|---|---|---|---|---|---|
+| LG-022 首版端到端/故障验收 | `qa/lg022` | `/home/yhvh/code/lightgravity-bot-worktrees/lg022` | `bf7851c`（claim 提交） | clean，新建 | 无（未复制） |
+
+- 目标路径/分支**此前均不存在**，核对后新建，未覆盖任何已有目录/分支。
+- **LG-037/LG-038 worktree 未建**：依赖 LG-036 未满足，不先建后绕。
 
 ## 6. 预算与操作诚实
 
@@ -92,7 +116,18 @@ updated: "2026-10-16"
 - 产品真实模型/外部服务调用 **0**；无 push/deploy/发布；无 `/tmp` 新建 worktree、无 `.env` 复制；未知副作用不重放。
 - 唯一 `rm` 类清理为 LG-021 增量 QA 自述已确认无引用的 `/tmp/lg021-incr.*`（发生在其包内，非本包）。
 
-## 7. 待回填（本报告提交时点）
+## 7. 待回填 / 后续交接
 
-- LG-022 claim/commit、worktree 创建与后备 commit SHA。
-- 若 `api/app.py` owner 完成交接，LG-036 挂载后的 `main` HEAD 与复验结果。
+- **LG-022**：`qa/lg022` worktree 就绪（`bf7851c`），实施由主代理另派；本包未实施。
+- **LG-037/LG-038**：未 claim、未建 worktree；待 **LG-036 完成**（含 `api/app.py` 单一 owner 挂载交接）后再就绪。
+- **`api/app.py` owner 交接**：待 LG-031 提交或释放 `api/app.py` 后，由单一 owner 一次性加装 `build_search_router()`（1 import + 1 `include_router`），
+  LG-036 方可满足实际装配、再评估 done 与 docs08 §4.3/§5.1 更新。
+
+## 8. 本包提交（实际 SHA）
+
+- `11c3256` — LG-021 增量 QA `--no-ff` merge（`qa/lg021-r1` `5176edf`）。
+- `10b165f` — LG-036 `--no-ff` merge（`dev/lg036` `ece758c`）。
+- `b0bbfd2` — LG-021 done 状态决定 + LG-036 集成记录 + `probes/batch-20261016/INTEGRATION-4.md` + `PREPARE-4.md` 入库。
+- `7c565fd` — `integrate/batch4` `--no-ff` merge 到 `main`。
+- `bf7851c` — CLI claim LG-022 `agent:pi-lg022`。
+- 本包结束时 `main` HEAD = `bf7851c`（clean）；`probes/batch-20261016/PREPARE-4.md` 已由本包提交（逐字保留原内容）。
