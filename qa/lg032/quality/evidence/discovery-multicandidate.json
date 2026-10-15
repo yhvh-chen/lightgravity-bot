@@ -1,0 +1,29 @@
+{
+  "discovery_when_both_ready": [
+    "subtask_01M50ACGJRBPGGQRZNE7SCAY3Z",
+    "subtask_01M50ACGJWQ1C1BZBPJKRVNS6G"
+  ],
+  "discovery_after_claim_a": [
+    "subtask_01M50ACGJWQ1C1BZBPJKRVNS6G"
+  ],
+  "claim_a": {
+    "granted": true,
+    "subtask_ref": "subtask_01M50ACGJRBPGGQRZNE7SCAY3Z",
+    "subtask_id": "subtask_01M50ACGJRBPGGQRZNE7SCAY3Z",
+    "owner": "qa-owner",
+    "request_id": "req-a",
+    "reason": "granted",
+    "fence": 1,
+    "lease_expires_at": "2026-10-15T17:45:00.249Z",
+    "revision": 1,
+    "idempotent_replay": false
+  },
+  "program_side_guard_present": true,
+  "program_side_refusal_reason": "node_not_scheduled_for_worker",
+  "pool_grant_scope": [
+    "subtask_01M50ACGJRBPGGQRZNE7SCAY3Z",
+    "subtask_01M50ACGJWQ1C1BZBPJKRVNS6G"
+  ],
+  "note": "Discovery is multi-candidate when >1 node is eligible; but the product autonomous handler refuses any node != the one the program scheduled for that worker.",
+  "provider_substitute": "no SDK, no network, no model"
+}

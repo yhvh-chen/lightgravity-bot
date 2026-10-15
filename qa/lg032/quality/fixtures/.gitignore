@@ -1,0 +1,5 @@
+# Fixture runtime state is kept on disk (persistent, create-only) but is not
+# committed: it contains nested real Git repos (git worktree fixtures) and
+# large store/JSONL state. Reproduce deterministically with the probe commands
+# in ../REPORT.md §6, which write into these same directories.
+work/
