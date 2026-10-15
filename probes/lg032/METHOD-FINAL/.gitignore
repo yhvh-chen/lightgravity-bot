@@ -1,0 +1,6 @@
+# METHOD-FINAL audit package: never commit bytecode or raw/non-sanitized artifacts.
+__pycache__/
+*.pyc
+# Formal attempt outputs and any runtime data roots are persisted outside the
+# repo (sibling *-data dirs) and are never committed.
+runs/

@@ -1,0 +1,148 @@
+{
+  "ok": true,
+  "phase_classification_audits": {
+    "s1_units": {
+      "capture": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final/probes/lg032/METHOD-FINAL/evidence/dry_captures/20261015T204044Z-s1_units-B.json",
+      "execution_present": true,
+      "misclassified": [],
+      "ok": true,
+      "phase_counts": {
+        "execution": 4,
+        "review": 1,
+        "selection": 9,
+        "verify": 2
+      },
+      "records": 16,
+      "review_present": true,
+      "selection_present": true,
+      "verify_present": true
+    },
+    "s2_pipeline": {
+      "capture": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final/probes/lg032/METHOD-FINAL/evidence/dry_captures/20261015T204053Z-s2_pipeline-B.json",
+      "execution_present": true,
+      "misclassified": [],
+      "ok": true,
+      "phase_counts": {
+        "execution": 4,
+        "review": 1,
+        "selection": 9,
+        "verify": 2
+      },
+      "records": 16,
+      "review_present": true,
+      "selection_present": true,
+      "verify_present": true
+    }
+  },
+  "probe": "METHOD-FINAL/gateD-independent-B-audit",
+  "real_provider_generation": 0,
+  "result_audits": {
+    "s1_units": {
+      "accept_check_records": [
+        {
+          "check_id": "evidence-present",
+          "detail": "4 evidence ref(s) recorded",
+          "status": "passed"
+        }
+      ],
+      "accept_evidence_refs": [
+        "src/labels.py",
+        "evidence:run_01M50MQFV32RBJ98JNS58QF1FG/subtask_01M50MQFZ125ZPK7MQHSWZC194-lg006-diff.patch@sha256:b571d1ccc4c284eb183c76075e819054f8466af8960c62649c55982cadb1382c",
+        "src/numeric.py",
+        "evidence:run_01M50MQFV32RBJ98JNS58QF1FG/subtask_01M50MQFZ1QM5D1YMS6M47E0EY-lg006-diff.patch@sha256:cb2f260b9bd1e460714cfbf852a67164b83a2506b0faa3e874fc95de6f438ca0"
+      ],
+      "attempt_id": "s1_units__B",
+      "capture_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final/probes/lg032/METHOD-FINAL/evidence/dry_captures/20261015T204044Z-s1_units-B.json",
+      "checks": {
+        "accept_binds_evidence_present_passed": true,
+        "accept_binds_plan_hash": true,
+        "accept_bound_candidate_ref": true,
+        "attempt_requests_within_cap": true,
+        "candidate_diff_count_2": true,
+        "candidate_patch_applied": true,
+        "generation_final_persistent": true,
+        "idempotent_accept_replay": true,
+        "initial_head_equals_seed": true,
+        "machine_gate_full": true,
+        "no_failed_steps": true,
+        "ok_true": true,
+        "phase_machine_truth_not_empty": true,
+        "reached_awaiting_acceptance": true,
+        "real_session_refs": true,
+        "review_validated_passed": true,
+        "reviewer_teardown_confirmed": true,
+        "seed_head_equals_pin": true,
+        "stop_gate_passed_without_cleanup_done": true,
+        "truths_before_accept": true,
+        "wrong_target_rejected": true
+      },
+      "cleanup_status": "pending",
+      "machine_gate": "5/5",
+      "ok": true,
+      "phases_seen": [
+        "awaiting_acceptance",
+        "executing",
+        "verifying"
+      ],
+      "requests": 16,
+      "result_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-data-method-s1B-20261015T204044Z-20261015T204044Z-c74d0f3a/offline_dry_run_output/s1_units__B/result.json",
+      "sample": "s1_units"
+    },
+    "s2_pipeline": {
+      "accept_check_records": [
+        {
+          "check_id": "evidence-present",
+          "detail": "4 evidence ref(s) recorded",
+          "status": "passed"
+        }
+      ],
+      "accept_evidence_refs": [
+        "src/shapes.py",
+        "evidence:run_01M50MQRVCH2V0H6ZWS5WK7N6M/subtask_01M50MQRZAWARW2GDWFR8EJBBR-lg006-diff.patch@sha256:c490778cf381703bb679dd05743ee22ea6de8c72e9caac831fc6ea95e3e1ff1f",
+        "src/report.py",
+        "evidence:run_01M50MQRVCH2V0H6ZWS5WK7N6M/subtask_01M50MQRZABHYR94FCVM0G2YRF-lg006-diff.patch@sha256:88d2aae6976e075e3996eb7637874fc7b174bcd6231ee50db9d86758d9eb036c"
+      ],
+      "attempt_id": "s2_pipeline__B",
+      "capture_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final/probes/lg032/METHOD-FINAL/evidence/dry_captures/20261015T204053Z-s2_pipeline-B.json",
+      "checks": {
+        "accept_binds_evidence_present_passed": true,
+        "accept_binds_plan_hash": true,
+        "accept_bound_candidate_ref": true,
+        "attempt_requests_within_cap": true,
+        "candidate_diff_count_2": true,
+        "candidate_patch_applied": true,
+        "generation_final_persistent": true,
+        "idempotent_accept_replay": true,
+        "initial_head_equals_seed": true,
+        "machine_gate_full": true,
+        "no_failed_steps": true,
+        "ok_true": true,
+        "phase_machine_truth_not_empty": true,
+        "reached_awaiting_acceptance": true,
+        "real_session_refs": true,
+        "review_validated_passed": true,
+        "reviewer_teardown_confirmed": true,
+        "seed_head_equals_pin": true,
+        "stop_gate_passed_without_cleanup_done": true,
+        "truths_before_accept": true,
+        "wrong_target_rejected": true
+      },
+      "cleanup_status": "pending",
+      "machine_gate": "7/7",
+      "ok": true,
+      "phases_seen": [
+        "awaiting_acceptance",
+        "executing",
+        "verifying"
+      ],
+      "requests": 16,
+      "result_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-data-method-s2B-20261015T204053Z-20261015T204053Z-9f270b44/offline_dry_run_output/s2_pipeline__B/result.json",
+      "sample": "s2_pipeline"
+    }
+  },
+  "results_found": [
+    "s1_units",
+    "s2_pipeline"
+  ],
+  "utc": "20261015T204123Z"
+}

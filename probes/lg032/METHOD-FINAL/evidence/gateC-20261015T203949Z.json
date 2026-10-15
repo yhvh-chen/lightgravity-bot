@@ -1,0 +1,83 @@
+{
+  "formal_root_exists": false,
+  "formal_root_untouched": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-data",
+  "machine_truth_binding": {
+    "checks": {
+      "acceptance_binds_real_check_records": false,
+      "empty_checks_vacuously_satisfied": true,
+      "evidence_present_fails_without_evidence": true,
+      "evidence_present_passes_with_evidence": true,
+      "no_evidence_refused_no_acceptance": true,
+      "with_evidence_opens_acceptance": false
+    },
+    "evidence_report_empty": {
+      "authorized": [
+        "evidence-present"
+      ],
+      "registered": [
+        "evidence-present",
+        "artifacts-in-workspace"
+      ],
+      "results": [
+        {
+          "check_id": "evidence-present",
+          "detail": "no artifact or diff evidence recorded; a worker summary alone is not evidence",
+          "status": "failed"
+        }
+      ],
+      "satisfied": false
+    },
+    "evidence_report_ok": {
+      "authorized": [
+        "evidence-present"
+      ],
+      "registered": [
+        "evidence-present",
+        "artifacts-in-workspace"
+      ],
+      "results": [
+        {
+          "check_id": "evidence-present",
+          "detail": "1 evidence ref(s) recorded",
+          "status": "passed"
+        }
+      ],
+      "satisfied": true
+    },
+    "ok": false,
+    "vacuous_hazard_documented": true,
+    "verify_outcomes": {
+      "no_evidence": {
+        "check_records": null,
+        "confirmed": false,
+        "phase": "verifying",
+        "state": "unconfirmed"
+      },
+      "with_evidence": {
+        "check_records": null,
+        "confirmed": false,
+        "phase": "verifying",
+        "state": "unconfirmed"
+      }
+    }
+  },
+  "no_fabrication_static": {
+    "checks": {
+      "accept_gated_on_real_truths": true,
+      "accepts_via_http_actions_endpoint": true,
+      "driver_uses_real_build_runtime": true,
+      "driver_uses_real_coordinator_loop": true,
+      "no_accepted_handwrite": true,
+      "no_cleanup_done_handwrite": true,
+      "no_fakeexecutor": true,
+      "no_monkeypatch_stop_or_root": true,
+      "no_phase_handwrite": true,
+      "widen_exec_root_is_refusal": true
+    },
+    "ok": true
+  },
+  "ok": false,
+  "probe": "METHOD-FINAL/gateC-truth-binding",
+  "real_provider_generation": 0,
+  "utc": "20261015T203949Z"
+}

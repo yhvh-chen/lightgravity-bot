@@ -1,0 +1,204 @@
+{
+  "arm_invariant_profile": {
+    "arm_spec_independent": true,
+    "caps": {
+      "http_timeout": 120,
+      "max_concurrency": 1,
+      "output_token_cap": 16000,
+      "reviewer_model_calls": 1,
+      "sdk_retries": 0,
+      "worker_model_calls": 12,
+      "worker_tool_calls": 32
+    },
+    "note": "these are read from the arm-independent driver constants; check_only_switch_differs proves no arm branch alters them",
+    "ok": true,
+    "role_catalog": {
+      "implementation": [
+        "lg032-worker"
+      ],
+      "verification": [
+        "lg032-verifier"
+      ]
+    },
+    "sample_spec_hashes": {
+      "s1_units": {
+        "acceptance": "b28a90722e1febdb1afce7214ac95c75e47ab1b078e56260d5bfcb797790e218",
+        "files": [
+          "src/labels.py",
+          "src/numeric.py"
+        ],
+        "objective": "f9c336a50a31261de19caae958ee61322797e21fc9bc7696589900c724979d9e",
+        "objective_a": "c44d6d63fa5c44806ecf1aa2dbb108d33bedc7f24d58c9a3a4ab3ef80f8248b6",
+        "objective_b": "56abe23727762c452f50c037c9b17ed8a64a59de3ee1e9fb418d8de35f5f685f"
+      },
+      "s2_pipeline": {
+        "acceptance": "c2b5ddce4ad7f72f079af0fcc2f7339e75bf516bb3a0af11d75669352deed2fc",
+        "files": [
+          "src/shapes.py",
+          "src/report.py"
+        ],
+        "objective": "12c9189bfdae5a79daa54664e66649124338595cbd7622d7c81cd86e473bbe71",
+        "objective_a": "f344647231a6b84655c581310367803c9e6f269f947d5d969bffbfb8cd0cb5d0",
+        "objective_b": "49dbb40a55da35c1e9afe4be622d8efcccb656a413fcf013c71712675c6c60de"
+      }
+    },
+    "truth_script_sha256": {
+      "s1_units": "d39d906c746d8e6a753268e5fc55a16aaddb8e145cc1146482c0245e148169fb",
+      "s2_pipeline": "06e2352f6808969257fcbb1925c756ccadb2ecf08e376b036ec36af387bdca59"
+    },
+    "verifier_tools": [
+      "view-file"
+    ],
+    "verify_prompt_sha256": "fa287ded387f1a26f9a46f296da473dcd597df1956b05f1f752649380804e884",
+    "worker_prompt_sha256": "b5de03247afa5fb8b682d3ba10bc2a44218df2448a28d92f3602bfb2ce79b41c",
+    "worker_tools": [
+      "view-file",
+      "create-file",
+      "edit-file"
+    ]
+  },
+  "ok": true,
+  "only_switch_differs": {
+    "all_are_collaboration_switch": true,
+    "arm_conditional_branches": [
+      {
+        "is_switch": true,
+        "line": 582,
+        "test": "arm == \"B\""
+      },
+      {
+        "is_switch": true,
+        "line": 618,
+        "test": "arm == \"B\""
+      }
+    ],
+    "ok": true,
+    "switch_writer_present": true
+  },
+  "plan_hash_equal": {
+    "ok": true,
+    "samples": {
+      "s1_units": {
+        "A": {
+          "canonical_hash": "4611722753542c1a37247ea72ac0c5f4cd8b40ca4e211e496b21e75f4943d545",
+          "depends_on": {
+            "alpha": [],
+            "beta": [],
+            "verify": [
+              "alpha",
+              "beta"
+            ]
+          },
+          "nodes": [
+            "alpha",
+            "beta",
+            "verify"
+          ],
+          "product_plan_hash": "f73476375c33091d6cbff82a3ef54602ad8fc2585e5f770f5aa21d9043ad664b",
+          "write_nodes": [
+            "alpha",
+            "beta"
+          ]
+        },
+        "B": {
+          "canonical_hash": "4611722753542c1a37247ea72ac0c5f4cd8b40ca4e211e496b21e75f4943d545",
+          "depends_on": {
+            "alpha": [],
+            "beta": [],
+            "verify": [
+              "alpha",
+              "beta"
+            ]
+          },
+          "nodes": [
+            "alpha",
+            "beta",
+            "verify"
+          ],
+          "product_plan_hash": "4301bd0384e9fb23ec96255a852902f3615fb8a1d24d2c30d516dbcc979552dd",
+          "write_nodes": [
+            "alpha",
+            "beta"
+          ]
+        },
+        "canonical_equal": true,
+        "nodes_same": true,
+        "note": "product_plan_hash differs by arm tag only (source/notes); canonical_hash strips exactly that",
+        "product_plan_hash_equal": false
+      },
+      "s2_pipeline": {
+        "A": {
+          "canonical_hash": "df60b54828a6232471b8d1cde6a4e0da9504bc91f02207ab3abce30741f7319d",
+          "depends_on": {
+            "alpha": [],
+            "beta": [],
+            "verify": [
+              "alpha",
+              "beta"
+            ]
+          },
+          "nodes": [
+            "alpha",
+            "beta",
+            "verify"
+          ],
+          "product_plan_hash": "3519527fc0cbf9d778666f1012dd898eb66a3491b1a01b4794b646dd3fc94430",
+          "write_nodes": [
+            "alpha",
+            "beta"
+          ]
+        },
+        "B": {
+          "canonical_hash": "df60b54828a6232471b8d1cde6a4e0da9504bc91f02207ab3abce30741f7319d",
+          "depends_on": {
+            "alpha": [],
+            "beta": [],
+            "verify": [
+              "alpha",
+              "beta"
+            ]
+          },
+          "nodes": [
+            "alpha",
+            "beta",
+            "verify"
+          ],
+          "product_plan_hash": "025cc5d81e0bb7c91858142854872ecaf0acd5c3df3046ff31da6f62c34c7f44",
+          "write_nodes": [
+            "alpha",
+            "beta"
+          ]
+        },
+        "canonical_equal": true,
+        "nodes_same": true,
+        "note": "product_plan_hash differs by arm tag only (source/notes); canonical_hash strips exactly that",
+        "product_plan_hash_equal": false
+      }
+    }
+  },
+  "probe": "METHOD-FINAL/gateA-homogeneity",
+  "product_base_commit": "a29e94f",
+  "product_fix_commit": "0814b80",
+  "real_provider_generation": 0,
+  "seed_reproducible": {
+    "ok": true,
+    "samples": {
+      "s1_units": {
+        "matches_pin": true,
+        "pinned": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1",
+        "recreated_1": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1",
+        "recreated_2": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1",
+        "tree": "119aaa4d093a11a7e8efc05bef89154a0a04cd24"
+      },
+      "s2_pipeline": {
+        "matches_pin": true,
+        "pinned": "6fa0fd006ff058a7299f5e6dc42013fa051303de",
+        "recreated_1": "6fa0fd006ff058a7299f5e6dc42013fa051303de",
+        "recreated_2": "6fa0fd006ff058a7299f5e6dc42013fa051303de",
+        "tree": "bc96ccc48dfa4aab4026f10bba0623c7b1a655e3"
+      }
+    }
+  },
+  "utc": "20261015T203739Z",
+  "worktree": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final"
+}
