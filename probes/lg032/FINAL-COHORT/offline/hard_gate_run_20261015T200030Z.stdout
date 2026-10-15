@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "real_generation": 0,
+  "gate_root": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data-gate-sandbox-20261015T200031Z-8321abb8",
+  "H1_fixtures": {
+    "ok": true
+  },
+  "H2_frozen_plans": {
+    "ok": true
+  },
+  "H5_stopgate": {
+    "ok": true
+  },
+  "H6_save_dir": {
+    "ok": true
+  },
+  "H3_startup": {
+    "ok": true
+  },
+  "H4_ledger": {
+    "ok": true
+  },
+  "H4_attempt_cap": {
+    "ok": true
+  },
+  "H4_total_cap": {
+    "ok": true
+  },
+  "H4_corrupt_failclosed": {
+    "ok": true
+  }
+}

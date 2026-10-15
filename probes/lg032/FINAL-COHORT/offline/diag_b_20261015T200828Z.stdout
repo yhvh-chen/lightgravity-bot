@@ -1,0 +1,13 @@
+[PASS] health_ok {}
+[PASS] execution_ready {'reasons': []}
+[PASS] reviewer_wired_model {'reviewer': {'reviewer': 'model', 'connection_id': 'deepseek-v4-flash', 'credential_configured': True}}
+[PASS] ledger_persistent_single_path {'generation': {'count': 0, 'limit': 192, 'remaining': 192, 'corrupt': False, 'persistent': True}}
+[PASS] counter_ledger_matches_frozen_path {'identity': {'frozen_history_path': '/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data-dry-s1_units-B-20261015T200829Z-eae50fee/generation/generation.jsonl', 'frozen_phase_data_dir': '/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data-dry-s1_units-B-20261015T200829Z-eae50fee', 'counter_is_global': True, 'counter_ledger_history': '/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data-dry-s1_units-B-20261015T200829Z-eae50fee/generation/generation.jsonl', 'counter_ledger_matches_frozen': True, 'physical_history_exists_at_freeze': False}}
+[PASS] task_created {'code': 200, 'task_id': 'task_01M50JWDK7PVJFZPQ2K9CNE712'}
+[FAIL] run_reached_awaiting_acceptance {'phase': 'failed', 'phases_seen': ['executing', 'failed']}
+[FAIL] machine_gate_pass {'machine': {'checks': [{'name': 'labels.slugify.basic', 'passed': False, 'detail': 'NotImplementedError: '}, {'name': 'labels.slugify.runs', 'passed': False, 'detail': 'NotImplementedError: '}, {'name': 'numeric.clamp', 'passed': False, 'detail': 'NotImplementedError: '}, {'name': 'numeric.in_range', 'passed': False, 'detail': 'NotImplementedError: '}, {'name': 'no_write_from_verify', 'passed': True, 'detail': ''}], 'passed': 1, 'total': 5, 'exit_code': 0}}
+[FAIL] real_session_refs_recorded {'session_refs': []}
+[FAIL] reviewer_real_teardown_recorded {'reviewer_cleanup': None}
+[FAIL] accept_confirmed_bound {'code': 409, 'state': None, 'acceptance': {}, 'candidate_ref': None}
+WROTE /home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort-data-dry-s1_units-B-20261015T200829Z-eae50fee/offline_dry_run_output/s1_units__B/result.json
+CAPTURE /home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort/probes/lg032/FINAL-COHORT/offline/dry_captures/20261015T200829Z-s1_units-B.json

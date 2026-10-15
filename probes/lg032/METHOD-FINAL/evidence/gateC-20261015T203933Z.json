@@ -1,0 +1,89 @@
+{
+  "formal_root_exists": false,
+  "formal_root_untouched": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-data",
+  "machine_truth_binding": {
+    "checks": {
+      "acceptance_binds_real_check_records": false,
+      "empty_checks_vacuously_satisfied": true,
+      "evidence_present_fails_without_evidence": false,
+      "evidence_present_passes_with_evidence": true,
+      "no_evidence_refused_no_acceptance": false,
+      "with_evidence_opens_acceptance": true
+    },
+    "evidence_report_empty": {
+      "authorized": [
+        "evidence-present"
+      ],
+      "registered": [],
+      "results": [
+        {
+          "check_id": "evidence-present",
+          "detail": "authorized check is not registered; it was not run",
+          "status": "unconfigured"
+        }
+      ],
+      "satisfied": true
+    },
+    "evidence_report_ok": {
+      "authorized": [
+        "evidence-present"
+      ],
+      "registered": [],
+      "results": [
+        {
+          "check_id": "evidence-present",
+          "detail": "authorized check is not registered; it was not run",
+          "status": "unconfigured"
+        }
+      ],
+      "satisfied": true
+    },
+    "ok": false,
+    "vacuous_hazard_documented": true,
+    "verify_outcomes": {
+      "no_evidence": {
+        "check_records": [
+          {
+            "check_id": "evidence-present",
+            "detail": "authorized check is not registered; it was not run",
+            "status": "unconfigured"
+          }
+        ],
+        "confirmed": true,
+        "phase": "awaiting_acceptance",
+        "state": "confirmed"
+      },
+      "with_evidence": {
+        "check_records": [
+          {
+            "check_id": "evidence-present",
+            "detail": "authorized check is not registered; it was not run",
+            "status": "unconfigured"
+          }
+        ],
+        "confirmed": true,
+        "phase": "awaiting_acceptance",
+        "state": "confirmed"
+      }
+    }
+  },
+  "no_fabrication_static": {
+    "checks": {
+      "accept_gated_on_real_truths": true,
+      "accepts_via_http_actions_endpoint": true,
+      "driver_uses_real_build_runtime": true,
+      "driver_uses_real_coordinator_loop": true,
+      "no_accepted_handwrite": true,
+      "no_cleanup_done_handwrite": true,
+      "no_fakeexecutor": true,
+      "no_monkeypatch_stop_or_root": false,
+      "no_phase_handwrite": true,
+      "widen_exec_root_is_refusal": true
+    },
+    "ok": false
+  },
+  "ok": false,
+  "probe": "METHOD-FINAL/gateC-truth-binding",
+  "real_provider_generation": 0,
+  "utc": "20261015T203933Z"
+}

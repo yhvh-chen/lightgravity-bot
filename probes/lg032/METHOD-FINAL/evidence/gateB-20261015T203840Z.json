@@ -1,0 +1,146 @@
+{
+  "corrupt_failclosed": {
+    "checks": {
+      "direct_corrupt_denied": true,
+      "post_corrupt_refused_429": true,
+      "pre_corrupt_forwarded_ok": true,
+      "snapshot_corrupt_flag": true,
+      "snapshot_count_is_none_not_zero": true
+    },
+    "codes_before_and_after": [
+      [
+        200
+      ],
+      [
+        429
+      ]
+    ],
+    "direct_baseline_reserved": true,
+    "direct_corrupt_denied": true,
+    "ok": true,
+    "root": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-boundary/corrupt-20261015T203840Z",
+    "snapshot_after_corrupt": {
+      "corrupt": true,
+      "count": null,
+      "limit": 192,
+      "persistent": true,
+      "reason": "history line 1 is not valid JSON",
+      "remaining": null
+    }
+  },
+  "fake_upstream_served": 58,
+  "formal_root_exists": false,
+  "formal_root_untouched": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-data",
+  "forward_refusal_48": {
+    "checks": {
+      "count_never_exceeds_limit": true,
+      "guard_used_equals_limit": true,
+      "no_forward_for_denied": true,
+      "over_limit_denied_429": true
+    },
+    "count_after_overrun": 48,
+    "first_429_index": 48,
+    "guard_used": 48,
+    "limit": 48,
+    "ok": true,
+    "physical_lines": 48,
+    "requests": 50,
+    "root": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-boundary/refusal-20261015T203840Z"
+  },
+  "ok": true,
+  "probe": "METHOD-FINAL/gateB-ledger-boundary",
+  "real_injection": {
+    "checks": {
+      "persisted_across_restart": true,
+      "physical_jsonl_grew": true,
+      "restart_traffic_accumulates": true,
+      "reviewer_count_incremented": true,
+      "reviewer_reply_parsed_as_json": true,
+      "same_physical_ledger_all_stages": true,
+      "worker_3_forwarded_ok": true,
+      "worker_count_incremented": true
+    },
+    "ok": true,
+    "physical_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-boundary/real-20261015T203840Z/generation/generation.jsonl",
+    "restart": {
+      "counter_after_start2": {
+        "corrupt": false,
+        "count": 6,
+        "limit": 64,
+        "persistent": true,
+        "remaining": 58
+      },
+      "counter_at_start2": {
+        "corrupt": false,
+        "count": 4,
+        "limit": 64,
+        "persistent": true,
+        "remaining": 60
+      },
+      "physical_lines": 6,
+      "worker_codes_start2": [
+        200,
+        200
+      ]
+    },
+    "reviewer_via_run_review_turn": {
+      "counter_after": {
+        "corrupt": false,
+        "count": 4,
+        "limit": 64,
+        "persistent": true,
+        "remaining": 60
+      },
+      "physical_lines": 4,
+      "reply": "{\"outcome\": \"passed\", \"reason\": \"audit fake: no problems\", \"findings\": []}",
+      "usage": {
+        "unknown": [
+          "usage"
+        ]
+      }
+    },
+    "root": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-boundary/real-20261015T203840Z",
+    "worker_via_executor_make_proxy": {
+      "codes": [
+        200,
+        200,
+        200
+      ],
+      "counter_after": {
+        "corrupt": false,
+        "count": 3,
+        "limit": 64,
+        "persistent": true,
+        "remaining": 61
+      },
+      "counter_id": {
+        "counter_is_module_global": true,
+        "ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-boundary/real-20261015T203840Z/generation/generation.jsonl",
+        "persistent": true
+      },
+      "physical_lines": 3
+    }
+  },
+  "real_provider_generation": 0,
+  "scratch_root": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-boundary",
+  "small_cap": 3,
+  "total_cap_small_equiv": {
+    "checks": {
+      "count_pinned_at_cap": true,
+      "first_over_cap_denied": true
+    },
+    "codes": [
+      200,
+      200,
+      200,
+      429,
+      429
+    ],
+    "count": 3,
+    "limit": 3,
+    "ok": true,
+    "root": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-boundary/total-20261015T203840Z",
+    "small_cap": 3
+  },
+  "utc": "20261015T203840Z"
+}

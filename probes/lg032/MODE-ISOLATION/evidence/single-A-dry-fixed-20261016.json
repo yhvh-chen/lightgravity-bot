@@ -1,0 +1,284 @@
+{
+  "_source": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort-ready-data-dry-s1_units-A-20261015T210041Z-aec7e336/offline_dry_run_output/s1_units__A/result.json",
+  "arm": "A",
+  "attempt_generation_requests": 7,
+  "attempt_id": "s1_units__A",
+  "candidate_diff_count": 2,
+  "elapsed_seconds": 4.44,
+  "final_phase": "awaiting_acceptance",
+  "generation_final": {
+    "corrupt": false,
+    "count": 7,
+    "limit": 192,
+    "persistent": true,
+    "remaining": 185
+  },
+  "initial_head": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1",
+  "machine_gate": {
+    "checks": [
+      {
+        "detail": "",
+        "name": "labels.slugify.basic",
+        "passed": true
+      },
+      {
+        "detail": "",
+        "name": "labels.slugify.runs",
+        "passed": true
+      },
+      {
+        "detail": "",
+        "name": "numeric.clamp",
+        "passed": true
+      },
+      {
+        "detail": "",
+        "name": "numeric.in_range",
+        "passed": true
+      },
+      {
+        "detail": "",
+        "name": "no_write_from_verify",
+        "passed": true
+      }
+    ],
+    "exit_code": 0,
+    "passed": 5,
+    "total": 5
+  },
+  "machine_pass": true,
+  "mode_restore": {
+    "after": {
+      "claim_lease_seconds": 300,
+      "collab_requests_enabled": false,
+      "decentralized_claim_enabled": false,
+      "default_worker_connection_ref": "lg032-worker"
+    },
+    "before": {
+      "claim_lease_seconds": 300,
+      "collab_requests_enabled": false,
+      "decentralized_claim_enabled": false,
+      "default_worker_connection_ref": "lg032-worker"
+    },
+    "restored_off": true
+  },
+  "mode_snapshot_after_bootstrap": {
+    "arm": "A",
+    "congruent": true,
+    "dispatcher_autonomous_claim": false,
+    "dispatcher_autonomous_pool": false,
+    "dispatcher_decentralized_enabled": false,
+    "expected_enabled": false,
+    "mode_snapshot_before": {
+      "after": {
+        "claim_lease_seconds": 300,
+        "collab_requests_enabled": false,
+        "decentralized_claim_enabled": false,
+        "default_worker_connection_ref": "lg032-worker"
+      },
+      "arm": "A",
+      "before": {
+        "claim_lease_seconds": 300,
+        "collab_requests_enabled": false,
+        "decentralized_claim_enabled": false,
+        "default_worker_connection_ref": "lg032-worker"
+      }
+    },
+    "problems": [],
+    "settings_switches": {
+      "claim_lease_seconds": 300,
+      "collab_requests_enabled": false,
+      "decentralized_claim_enabled": false,
+      "default_worker_connection_ref": "lg032-worker"
+    }
+  },
+  "ok": true,
+  "phases_seen": [
+    "awaiting_acceptance",
+    "executing",
+    "verifying"
+  ],
+  "sample": "s1_units",
+  "sample_delivered": true,
+  "seed_head": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1",
+  "session_refs": [
+    "sess_3658ea2a6a664baf833ad73865061d22",
+    "sess_936c99bb6da246b8b9e3ba2ee2da5ce2",
+    "sess_916c14c1082043da8bc572eb35c697dd"
+  ],
+  "steps": [
+    {
+      "name": "health_ok",
+      "ok": true
+    },
+    {
+      "name": "execution_ready",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "name": "reviewer_wired_model",
+      "ok": true,
+      "reviewer": {
+        "connection_id": "deepseek-v4-flash",
+        "credential_configured": true,
+        "reviewer": "model"
+      }
+    },
+    {
+      "generation": {
+        "corrupt": false,
+        "count": 0,
+        "limit": 192,
+        "persistent": true,
+        "remaining": 192
+      },
+      "name": "ledger_persistent_single_path",
+      "ok": true
+    },
+    {
+      "identity": {
+        "counter_is_global": true,
+        "counter_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort-ready-data-dry-s1_units-A-20261015T210041Z-aec7e336/generation/generation.jsonl",
+        "counter_ledger_matches_frozen": true,
+        "frozen_history_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort-ready-data-dry-s1_units-A-20261015T210041Z-aec7e336/generation/generation.jsonl",
+        "frozen_phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort-ready-data-dry-s1_units-A-20261015T210041Z-aec7e336",
+        "physical_history_exists_at_freeze": false
+      },
+      "name": "counter_ledger_matches_frozen_path",
+      "ok": true
+    },
+    {
+      "code": 200,
+      "name": "task_created",
+      "ok": true,
+      "task_id": "task_01M50NW0Z72SAT4CRTG3BS4WMJ"
+    },
+    {
+      "checks": [
+        "evidence-present"
+      ],
+      "name": "task_checks_authorized",
+      "ok": true
+    },
+    {
+      "name": "run_reached_awaiting_acceptance",
+      "ok": true,
+      "phase": "awaiting_acceptance",
+      "phases_seen": [
+        "awaiting_acceptance",
+        "executing",
+        "verifying"
+      ]
+    },
+    {
+      "machine": {
+        "checks": [
+          {
+            "detail": "",
+            "name": "labels.slugify.basic",
+            "passed": true
+          },
+          {
+            "detail": "",
+            "name": "labels.slugify.runs",
+            "passed": true
+          },
+          {
+            "detail": "",
+            "name": "numeric.clamp",
+            "passed": true
+          },
+          {
+            "detail": "",
+            "name": "numeric.in_range",
+            "passed": true
+          },
+          {
+            "detail": "",
+            "name": "no_write_from_verify",
+            "passed": true
+          }
+        ],
+        "exit_code": 0,
+        "passed": 5,
+        "total": 5
+      },
+      "name": "machine_gate_pass",
+      "ok": true
+    },
+    {
+      "name": "real_session_refs_recorded",
+      "ok": true,
+      "session_refs": [
+        "sess_3658ea2a6a664baf833ad73865061d22",
+        "sess_936c99bb6da246b8b9e3ba2ee2da5ce2",
+        "sess_916c14c1082043da8bc572eb35c697dd"
+      ]
+    },
+    {
+      "name": "reviewer_real_teardown_recorded",
+      "ok": true,
+      "reviewer_cleanup": {
+        "agent_closed": true,
+        "confirmed": true,
+        "problems": [],
+        "proxy_stopped": true,
+        "status": "done"
+      }
+    },
+    {
+      "acceptance": {
+        "candidate_plan_hash": "f73476375c33091d6cbff82a3ef54602ad8fc2585e5f770f5aa21d9043ad664b",
+        "candidate_ref": "run_01M50NW11QB3WXTMP9JC3VWA4E",
+        "check_records": [
+          {
+            "check_id": "evidence-present",
+            "detail": "4 evidence ref(s) recorded",
+            "status": "passed"
+          }
+        ],
+        "decided_at": "2026-10-15T21:00:45.943Z",
+        "decision_ref": "lg032-s1_units__A-accept",
+        "deliverable_revision": 1,
+        "evidence_refs": [
+          "src/labels.py",
+          "evidence:run_01M50NW11QB3WXTMP9JC3VWA4E/subtask_01M50NW169B20NX8SQ7B9NZRHV-lg006-diff.patch@sha256:b571d1ccc4c284eb183c76075e819054f8466af8960c62649c55982cadb1382c",
+          "src/numeric.py",
+          "evidence:run_01M50NW11QB3WXTMP9JC3VWA4E/subtask_01M50NW169Q91GSWVF5AMWSB5T-lg006-diff.patch@sha256:cb2f260b9bd1e460714cfbf852a67164b83a2506b0faa3e874fc95de6f438ca0"
+        ],
+        "requirements_revision": 1,
+        "status": "accepted"
+      },
+      "candidate_ref": "run_01M50NW11QB3WXTMP9JC3VWA4E",
+      "code": 200,
+      "name": "accept_confirmed_bound",
+      "ok": true,
+      "state": "confirmed"
+    },
+    {
+      "code": 200,
+      "decision_ref": "lg032-s1_units__A-accept",
+      "name": "accept_same_request_idempotent",
+      "ok": true,
+      "state": "confirmed"
+    },
+    {
+      "body": {
+        "error": {
+          "code": "illegal_transition",
+          "details": {
+            "active_run": null,
+            "target_run_id": "run_0000000000000000000000000"
+          },
+          "message": "target_run_id does not match the Task's active Run",
+          "request_id": null,
+          "retryable": false
+        }
+      },
+      "code": 409,
+      "name": "accept_wrong_target_rejected",
+      "ok": true
+    }
+  ]
+}

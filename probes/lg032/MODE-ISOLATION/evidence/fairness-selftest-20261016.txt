@@ -1,0 +1,45 @@
+{
+  "plan_hash_equal": {
+    "ok": true,
+    "samples": {
+      "s1_units": {
+        "plan_hash_A": "4611722753542c1a37247ea72ac0c5f4cd8b40ca4e211e496b21e75f4943d545",
+        "plan_hash_B": "4611722753542c1a37247ea72ac0c5f4cd8b40ca4e211e496b21e75f4943d545",
+        "nodes": [
+          "alpha",
+          "beta",
+          "verify"
+        ],
+        "equal": true
+      },
+      "s2_pipeline": {
+        "plan_hash_A": "df60b54828a6232471b8d1cde6a4e0da9504bc91f02207ab3abce30741f7319d",
+        "plan_hash_B": "df60b54828a6232471b8d1cde6a4e0da9504bc91f02207ab3abce30741f7319d",
+        "nodes": [
+          "alpha",
+          "beta",
+          "verify"
+        ],
+        "equal": true
+      }
+    }
+  },
+  "only_mode_switch_differs": {
+    "ok": true,
+    "arm_B_gate_count": 2,
+    "all_gates_are_switch": true,
+    "set_mode_present": true,
+    "restore_present": true,
+    "post_bootstrap_assert_present": true,
+    "legacy_b_only_writer_removed": true
+  },
+  "seed_sha_arm_independent": {
+    "ok": true,
+    "seed_head_first": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1",
+    "seed_head_second": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1",
+    "derived_head_A": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1",
+    "derived_head_B": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1"
+  }
+}
+
+FAIRNESS-SELFTEST PASS

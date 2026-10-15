@@ -1,0 +1,69 @@
+{
+  "doc": "LG-032 COHORT2-QA frozen-manifest addendum (independent QA; 0 real provider)",
+  "qa_worktree": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa",
+  "qa_branch": "qa/lg032-cohort2",
+  "base_commit": "80985148999db6f1f4297162964ba82022e1034c",
+  "product_tree_object": "55e4de56b7fe333d81a9bbc7a5e45e19977f9e9f",
+  "note": "Hashes independently recomputed by QA. `sha256` = content hash; `git_blob` = git object id.",
+  "frozen_driver": {
+    "run_attempt.py": {
+      "sha256": "503a807fe987b65236222b734127b21aff70455e3070403fe98fe9f62b286208",
+      "git_blob": "b1cc6c550c0408fa304c2a2c9c5d76160e14b98a",
+      "changed_by_fix": true,
+      "pre_fix_sha256": "d19949480e17d9fe457ac1b87448052f31bdb6edf017f60206ba641933d50d64",
+      "pre_fix_git_blob": "4c564836131a5d142245a9618f5de265bea74084"
+    },
+    "fake_upstream.py": {
+      "sha256": "de9d7a3547dd0a99e615d8cf1f2d899cf31e5d82f34a47fbb482db15a515a045",
+      "changed_by_fix": false
+    },
+    "final_cohort_config.py": {
+      "sha256": "a04a8f309a72626c5b039039198feab03f143966e6634bf1fe5228ff0834a117",
+      "changed_by_fix": false
+    },
+    "hard_gate.py": {
+      "sha256": "0067af1cd9927b26f12f6c33792a2ea435a2cc07f167914f0ebe2df20b7c09d7",
+      "changed_by_fix": false
+    },
+    "run_dry.py": {
+      "sha256": "f792da2842def8edd6accb14fd09eb0a32b8063d7a2186972fbec8da676ac559",
+      "changed_by_fix": false
+    }
+  },
+  "frozen_protocol_inputs": {
+    "truth_s1_units_acceptance_py": "d39d906c746d8e6a753268e5fc55a16aaddb8e145cc1146482c0245e148169fb",
+    "truth_s2_pipeline_acceptance_py": "06e2352f6808969257fcbb1925c756ccadb2ecf08e376b036ec36af387bdca59",
+    "seed_s1_units_sha256": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1",
+    "seed_s2_pipeline_sha256": "6fa0fd006ff058a7299f5e6dc42013fa051303de"
+  },
+  "frozen_caps": {
+    "total_generation_limit": 192,
+    "attempt_generation_limit": 48,
+    "output_token_cap": 16000,
+    "http_timeout_seconds": 120,
+    "sdk_retries": 0,
+    "max_concurrency": 1,
+    "worker_model_calls": 12,
+    "worker_tool_calls": 32,
+    "reviewer_model_calls": 1,
+    "max_reworks_per_attempt": 1
+  },
+  "frozen_identity": {
+    "sdk_version": "0.1.22",
+    "contract_version": "1.11.0",
+    "model": "deepseek-v4-flash",
+    "base_url": "https://api.deepseek.com/v1"
+  },
+  "fixed_formal_attempt_ids": [
+    ["s1_units", "A"],
+    ["s1_units", "B"],
+    ["s2_pipeline", "A"],
+    ["s2_pipeline", "B"]
+  ],
+  "formal_cohort2_root_reserved": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-data",
+  "formal_cohort2_root_created_by_this_package": false,
+  "canonical_plan_hashes_A_equals_B": {
+    "s1_units": "4611722753542c1a37247ea72ac0c5f4cd8b40ca4e211e496b21e75f4943d545",
+    "s2_pipeline": "df60b54828a6232471b8d1cde6a4e0da9504bc91f02207ab3abce30741f7319d"
+  }
+}

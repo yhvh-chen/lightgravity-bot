@@ -1,0 +1,82 @@
+{
+  "doc": "LG-032 METHOD-FINAL independent-audit freeze manifest (recommends Ready for formal 4-attempt; NOT a formal run itself)",
+  "status": "METHOD-FINAL-PASS-RECOMMEND-READY",
+  "formal_run_authorized": false,
+  "real_provider_generation": 0,
+  "experiment_id": "lg032-fair-ablation-20261016",
+  "audit_package": "lg032-method-final",
+  "audit_commit": "bd6bc10eba1bf98bd1a4124d5ddeb3e295c22626",
+  "audit_report": "REPORT-FINAL.md",
+  "audit_status": "STATUS.md",
+  "formal_freeze": "FORMAL-FREEZE.md",
+  "worktree": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final",
+  "branch": "qa/lg032-method-final",
+  "base_commit": "a4b4455ac4d0d0ead1cb6bd60d3bd2f3b1f4e9bd",
+  "product_tree_object": "55e4de56b7fe333d81a9bbc7a5e45e19977f9e9f",
+  "product_equal_to_main_and_0814b80": true,
+  "product_fix_commit": "0814b80a02f22d7b65623dc7f286650ddffdc6ca",
+  "independent_boundary_qa": {
+    "worktree": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-boundary",
+    "commit": "70a0fd598876fe5c3d5a088d32f7fe7c9403039b",
+    "product_tree_object": "55e4de56b7fe333d81a9bbc7a5e45e19977f9e9f"
+  },
+  "harness_source_sha256": {
+    "probes/lg032/FINAL-COHORT/harness/run_attempt.py": "d19949480e17d9fe457ac1b87448052f31bdb6edf017f60206ba641933d50d64",
+    "probes/lg032/FINAL-COHORT/harness/fake_upstream.py": "de9d7a3547dd0a99e615d8cf1f2d899cf31e5d82f34a47fbb482db15a515a045",
+    "probes/lg032/FINAL-COHORT/harness/final_cohort_config.py": "a04a8f309a72626c5b039039198feab03f143966e6634bf1fe5228ff0834a117",
+    "probes/lg032/FINAL-COHORT/harness/hard_gate.py": "0067af1cd9927b26f12f6c33792a2ea435a2cc07f167914f0ebe2df20b7c09d7",
+    "probes/lg032/FINAL-COHORT/harness/run_dry.py": "f792da2842def8edd6accb14fd09eb0a32b8063d7a2186972fbec8da676ac559"
+  },
+  "harness_note": "byte-identical to qa/lg032-cohort-ready@a4b4455 (the only worktree that produced the audited A evidence); method-final adds NO harness logic change.",
+  "driver_protocol_hash": {
+    "scope": "all FINAL-COHORT harness/*.py + fixtures/*/acceptance.py + fixtures/*/initial/src/*.py (every logic/fixture file that affects the protocol), each hashed then folded into one digest",
+    "sha256": "9c97d66ad7394b997a3cf5740b93b09b9923b7910deb5991d7f140c6f8a36036"
+  },
+  "truth_script_sha256": {
+    "s1_units": "d39d906c746d8e6a753268e5fc55a16aaddb8e145cc1146482c0245e148169fb",
+    "s2_pipeline": "06e2352f6808969257fcbb1925c756ccbdb2ecf08e376b036ec36af387bdca59"
+  },
+  "seed_sha256": {
+    "s1_units": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1",
+    "s2_pipeline": "6fa0fd006ff058a7299f5e6dc42013fa051303de",
+    "s1_tree": "119aaa4d093a11a7e8efc05bef89154a0a04cd24",
+    "s2_tree": "bc96ccc48dfa4aab4026f10bba0623c7b1a655e3",
+    "reproducible_from_initial": true
+  },
+  "formal_phase_data_root": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-data",
+  "formal_phase_root_not_yet_created": true,
+  "formal_attempt_ids": ["s1_units__A", "s1_units__B", "s2_pipeline__A", "s2_pipeline__B"],
+  "budget": {"total": 192, "per_attempt": 48, "attempts": 4, "samples": 2, "arms": 2, "max_parallel": 1},
+  "settings": {
+    "output_token_cap": 16000, "http_timeout_seconds": 120, "sdk_retries": 0,
+    "max_concurrency": 1, "worker_model_calls": 12, "worker_tool_calls": 32,
+    "reviewer_model_calls": 1, "max_reworks_per_attempt": 1,
+    "model": "deepseek-v4-flash", "base_url": "https://api.deepseek.com/v1",
+    "sdk_version": "0.1.22", "contract_version": "1.11.0"
+  },
+  "gates": {
+    "A_homogeneity": {"ok": true, "evidence": "evidence/gateA-20261015T203739Z.json"},
+    "B_ledger_boundary_real_injection": {"ok": true, "evidence": "evidence/gateB-20261015T203840Z.json"},
+    "C_truth_binding_no_fabrication": {"ok": true, "evidence": "evidence/gateC-20261015T204020Z.json"},
+    "D_independent_B_0fake": {"ok": true, "evidence": "evidence/gateD-20261015T204123Z.json", "samples": ["s1_units", "s2_pipeline"]},
+    "F_formal_path_freeze": {"ok": true, "evidence": "evidence/gateF-20261015T204144Z.json"}
+  },
+  "A_evidence_reused": {
+    "driver_sha256_matches": true,
+    "cohort_ready_A_attempts": {
+      "s1_units__A": "20261015T203344Z-s1A-fair",
+      "s2_pipeline__A": "20261015T203351Z-s2A-fair"
+    },
+    "note": "A evidence produced by the byte-identical driver (d199494...) and cited; B evidence is NEW (old B plan was the rejected confounded design)."
+  },
+  "unknown_cost_not_zero": {
+    "old_lg031_engineering_generation": 86,
+    "old_lg023_cohort1": 45, "old_lg023_cohort2": 4, "old_lg023_cohort3": 16,
+    "lg023_eval": "65",
+    "core_generation": "unknown",
+    "pi_development_qa_shared_cost": "unknown",
+    "rule": "unknown is NEVER recorded as 0"
+  },
+  "autonomous_switch_default": "off (only arm B enables the candidate-pool switch inside the attempt)",
+  "recommendation": "PM may authorize the formal 4-attempt run; this package does NOT run it and does NOT mark LG-032 done."
+}

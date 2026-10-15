@@ -1,0 +1,35 @@
+{
+  "attempt_immutability": {
+    "attempt_guard_installed": true,
+    "attempt_limit_48": true,
+    "attempts_exactly_4": true,
+    "ok": true,
+    "refuses_existing_attempt_dir": true,
+    "total_cap_env": true,
+    "total_limit_192": true
+  },
+  "frozen_root": {
+    "env_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-data",
+    "env_data_equals_root": true,
+    "env_ledger_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-data",
+    "env_ledger_equals_root": true,
+    "env_max_generation": "192",
+    "ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-data/generation/generation.jsonl",
+    "ok": true,
+    "phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final-data",
+    "phase_root_not_yet_created": true,
+    "runs_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-method-final/probes/lg032/METHOD-FINAL/runs",
+    "runs_dir_under_method_final": true
+  },
+  "no_env_override": {
+    "bootstrap_configures_from_data_dir": true,
+    "driver_passes_phase_root_as_data_dir": true,
+    "driver_sets_env_ledger_to_data_dir": true,
+    "driver_sets_settings_data_dir_to_phase_root": true,
+    "ok": true
+  },
+  "ok": true,
+  "probe": "METHOD-FINAL/gateF-formal-freeze",
+  "real_provider_generation": 0,
+  "utc": "20261015T204245Z"
+}

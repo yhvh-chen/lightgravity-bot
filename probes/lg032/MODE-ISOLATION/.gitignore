@@ -1,0 +1,6 @@
+# MODE-ISOLATION package: never commit bytecode or raw runtime artifacts.
+__pycache__/
+*.pyc
+# Formal/cohort attempt outputs live outside the repo (sibling *-data roots);
+# only sanitized evidence JSON is committed here.
+runs/
