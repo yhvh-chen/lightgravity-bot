@@ -1,0 +1,116 @@
+{
+  "ok": true,
+  "phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data-dry",
+  "frozen_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data-dry/generation/generation.jsonl",
+  "arms": {
+    "A": {
+      "returncode": 1,
+      "final_phase": "waiting_user",
+      "phases_seen": [
+        "executing",
+        "verifying",
+        "waiting_user"
+      ],
+      "steps": {
+        "health_ok": true,
+        "execution_ready": true,
+        "reviewer_wired_model": true,
+        "ledger_persistent_single_path": true,
+        "counter_ledger_matches_frozen_path": true,
+        "diagnostic_path_matches_frozen": true,
+        "task_created": true,
+        "run_reached_awaiting_acceptance": false,
+        "machine_gate_pass": false,
+        "real_session_refs_recorded": true,
+        "reviewer_real_teardown_recorded": true,
+        "accept_confirmed_bound": false
+      },
+      "attempt_generation_requests": 2,
+      "generation_final": {
+        "corrupt": false,
+        "count": 2,
+        "limit": 48,
+        "persistent": true,
+        "remaining": 46
+      },
+      "ledger_identity_at_freeze": {
+        "counter_is_global": true,
+        "counter_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data-dry/generation/generation.jsonl",
+        "counter_ledger_matches_frozen": true,
+        "frozen_history_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data-dry/generation/generation.jsonl",
+        "frozen_phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data-dry",
+        "physical_history_exists_at_freeze": false
+      },
+      "session_refs": [
+        "sess_a50116515b464593902e70d4c6e2bab2"
+      ],
+      "reviewer_cleanup": {
+        "agent_closed": true,
+        "confirmed": true,
+        "problems": [],
+        "proxy_stopped": true,
+        "status": "done"
+      },
+      "stderr_tail": "",
+      "wiring_ok": true
+    },
+    "B": {
+      "returncode": 1,
+      "final_phase": "waiting_user",
+      "phases_seen": [
+        "executing",
+        "verifying",
+        "waiting_user"
+      ],
+      "steps": {
+        "health_ok": true,
+        "execution_ready": true,
+        "reviewer_wired_model": true,
+        "ledger_persistent_single_path": true,
+        "counter_ledger_matches_frozen_path": true,
+        "diagnostic_path_matches_frozen": true,
+        "task_created": true,
+        "run_reached_awaiting_acceptance": false,
+        "machine_gate_pass": false,
+        "real_session_refs_recorded": true,
+        "reviewer_real_teardown_recorded": true,
+        "accept_confirmed_bound": false
+      },
+      "attempt_generation_requests": 3,
+      "generation_final": {
+        "corrupt": false,
+        "count": 5,
+        "limit": 48,
+        "persistent": true,
+        "remaining": 43
+      },
+      "ledger_identity_at_freeze": {
+        "counter_is_global": true,
+        "counter_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data-dry/generation/generation.jsonl",
+        "counter_ledger_matches_frozen": true,
+        "frozen_history_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data-dry/generation/generation.jsonl",
+        "frozen_phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort3-data-dry",
+        "physical_history_exists_at_freeze": true
+      },
+      "session_refs": [
+        "sess_25e27b39146f4f408463d5702668ea29",
+        "sess_d23767cb96464fa7b45a9663efdb2328"
+      ],
+      "reviewer_cleanup": {
+        "agent_closed": true,
+        "confirmed": true,
+        "problems": [],
+        "proxy_stopped": true,
+        "status": "done"
+      },
+      "stderr_tail": "",
+      "wiring_ok": true
+    }
+  },
+  "real_generation": 0,
+  "count_after_A": 2,
+  "count_after_B": 5,
+  "frozen_history_exists": true,
+  "frozen_history_lines": 5,
+  "no_per_attempt_data_dir_ledger": true
+}
