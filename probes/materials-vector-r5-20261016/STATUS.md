@@ -35,5 +35,17 @@ vector path. Report actual LG-037 acceptance coverage without inventing new mand
 ## Rounds
 
 **R1** — setup worktree; read AGENTS/agent/PROJECT/LG-037/LG-040/R4 REPORT/R4 integration REPORT/
-docs08 §4.3/§6.6 vector contract. OCR r5 wrapper alive confirmed. Next: acquire 2nd real audio.
+docs08 §4.3/§6.6 vector contract. OCR r5 wrapper alive confirmed.
+
+**R2** — 2nd real audio acquired: Wikimedia Commons `File:Zh-地球.ogg` (real human pronunciation of
+地球 / Earth), **CC BY-SA 4.0**, author CanonNi, own work 2024-10-07. Metadata via official Commons
+API (`http/commons_zh_diqiu_metadata.raw.json`), ONE direct-upload GET (19,957 B ≤ 5 MiB), download
+SHA1 `a8c67e62…` verified against API-declared SHA1. No TTS. PCM WAV prepped offline (16000 Hz mono,
+2.048 s).
+
+**R3** — FROZEN plan + corpus labels committed **before any inference POST** as `0ca7a42`.
+PLAN `80d063da…`, corpus `9853f9ed…`. Planned POST ≤ 18 (planned 17 + 1 spare).
+
+**R4** — (pending network gate) build/verify R5 harness offline; POST when OCR r5 wrapper exits.
+
 
