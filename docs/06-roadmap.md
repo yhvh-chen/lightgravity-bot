@@ -113,6 +113,15 @@ SDK 安装/真实测试属于 LG-002/003 后续实施，不包含在此次写排
 > - 契约升至 **`1.10.0`（LG-022 第二轮针对性返修 REFIX-R2 的加性 MINOR）**：停止门除 `cleanup=done` 外接受权威适配器真实停止确认（SDK session `__aexit__` / loopback 代理真实关闭，Run 加性新增可选 `reviewer_cleanup`；未知/活跃/失败保持 `unconfirmed` 与 `session_refs`，不伪 `done`）；`GET /api/v1/diagnostics/generation` 加性新增 `persistent`/`corrupt`，全局生成计数改为受控 dataRoot 下持久账本、转发前持久预留、跨重启不归零、损坏绝不当 0。此前 **`1.9.0`（返修后串行集成的加性 MINOR）**：新增 `source.archived` 可逆归档字段与 `archive`/`unarchive` 动作（归档保留检索/打开/权限，区别于使资料不可用的 `revoke`；含可选 `expected_revision`）并挂载可选向量端点（默认禁用、不可用时词法/原件仍可用）。此前 **`1.8.0`（LG-022 首版集中 QA 阻断项 D1/D2 返修 R1 加性 MINOR）**：新增合法迁移方向 `verifying`/`repairing → recovery_required`（复核/返修阶段重启后未知副作用诚实停车、不重放/不假终态）与只读诊断端点 `GET /api/v1/diagnostics/generation`（进程全局上游生成请求计数 `{count,limit,remaining}`，转发前计数，供集中 QA 约束/观测全局硬上限）；D1（reviewer turn 在运行中事件循环内 `asyncio.run` ⇒ 永远 `unavailable`）与 D2（复核阻塞循环、无 reviewer 生命周期）为 reviewer 实现与生命周期修复，不改既有端点/枚举语义。
 > - 就绪任务 CLI claim：LG-037 `agent:pi-lg037`、LG-038 `agent:pi-lg038`（持久 worktree `lg037`/`lg038`，基于同一 claim commit）；LG-022 仍 `in-progress`，保留不重 claim。
 
+> 2026-10-16 第七批集成更新（唯一集成 owner，报告 [probes/batch-20261016/INTEGRATION-7.md](../probes/batch-20261016/INTEGRATION-7.md)）：
+> - **集成前置核对**：`main` `29ffbb6`（clean）；`fix/lg022-r2@e59e12a`（停止门真实停止事实 + 持久生成账本 + QA reverify R1 证据）与 `fix/lg031-r2@3821620`（自主领取时序 + 共享计数注入，partial）均 clean，均自 `29ffbb6`。
+> - **整合候选 `integrate/batch7`**：`8a92439` `--no-ff` 合 022-r2（无冲突）、`0144eb7` `--no-ff` 合 031-r2（`adapter/__init__.py` 与 `docs/08` §9 **两处文本冲突**，逐条保留）。旧分支/worktree/probes/dirty 全部保留，未 reset/clean/覆盖/重复 pick。
+> - **共享装配保持 1.10 持久账本为唯一限额事实源**：`bootstrap` 中 `configure_generation_ledger` 先于 031 的 `generation_budget=global_generation_counter()`，031 注入的是持久账本，不被旧内存计数覆盖。契约**保持 `1.10.0`**（031 未新增版本）。
+> - **集成检查（绑定 `0144eb7`）**：`mypy` exit 0 → **137 files clean**；`pytest -q` exit 0 → **775 passed, 2 skipped**。**本包产品真实调用 0**；UI 未改。
+> - **持久 QA/续接 worktree（基于 `0144eb7`）**：`lg022-qa-r2`（`qa/lg022-r2`）、`lg031-r3`（`fix/lg031-r3`）；**未执行 QA/真模型**，旧 worktree 全保留。
+> - **状态**：**LG-022 仍 `in-progress` 待独立 QA**；**LG-031 仍 `in-progress`**（真 2 worker + 交接 + 候选 review 仍缺，续接 `fix/lg031-r3`）；LG-035/037 `in-progress`；**LG-023/032 `todo` 未 claim**；**LG-040/041 不解锁**。
+> - **成本**：LG-031 累计 **10/10**，主代理新 phase3 另行授权**最多 14**，合计**上限 24**，**非 032 对照实验**；LG-022 首轮 unknown、R1 **6/10**，两轮失败记录均保留。
+
 - 当前优先收拢 LG-013、LG-016、LG-027 已有隔离成果，继续 LG-017/018/019 与既有首版集中验收；单独 worktree 的交付不视为 main 已集成。不在本次排期中改变其状态。
 - LG-028 与 LG-033 可独立准备；LG-039 可在 LG-033 后验证。实现以任务 depends_on 为准，两个新版本的 LG-022 依赖是保留首版验收的排序门，非新功能代码依赖。
 - 多条线共享 Store、Coordinator、API 或前端入口时指定单一 owner 串行集成；开发执行仍经 pi，不因排期自动派工，不采用宿主原生子代理替代。

@@ -43,6 +43,15 @@ updated: "2026-10-15"
 
 ## 决策日志
 
+### 2026-10-16：第七批集成——LG-022 R2 持久停止/账本 + LG-031 R2 自主领取/共享计数整合
+
+- **集成前核对**：`main` `29ffbb6`（clean）；`fix/lg022-r2@e59e12a`、`fix/lg031-r2@3821620` 均 clean，`main` 与其先前合并关系已核。整合候选 `integrate/batch7`：`8a92439` 合 022-r2（无冲突）、`0144eb7` 合 031-r2（2 处文本冲突，逐条保留）。旧分支/worktree/probes/dirty 全部保留，未 reset/clean/覆盖/重复 pick、未复制 `.env`。
+- **持久账本为唯一生成限额事实源**：`api/bootstrap.py` 中 `configure_generation_ledger(settings.data_dir)`（022）先于 `generation_budget=global_generation_counter()`（031）执行，031 注入的是**已被换成持久账本**的全局计数，**不被 031 旧内存计数覆盖**。进程内冒烟（本地替身、无真实模型）`snapshot` 报 `persistent: True`、`reserve` 递增持久 count、`<data_dir>/generation/` 账本文件真实创建。**契约保持 `1.10.0`**（031 未新增版本，不机械升版）。
+- **LG-031 实际修复保留**：`coordinator/graph.py` 自主路径 claim 检查移到**执行后、revoke 前**，程序只授权被排度节点；此前失败的 `test_autonomous_worker_tool_claim_grants_node` 现通过；**未读旧 dirty `fix/lg031-r1` 覆盖当前**。
+- **集成检查（真实退出码，绑定 `0144eb7`）**：`mypy` exit 0 → **137 files clean**；`pytest -q` exit 0 → **775 passed, 2 skipped**。**本包产品真实模型/外部服务调用 0**；UI 未改、未重跑整套前端。
+- **状态如实**：**LG-022 仍 in-progress 待独立 QA（`qa/lg022-r2`）**；**LG-031 仍 in-progress**（真 2 worker+交接+候选 review 仍缺，续接 `fix/lg031-r3`）；LG-035/037 in-progress（质量门/端点不可达）；**LG-023/032 todo 未 claim**；**LG-040/041 不解锁**。
+- **成本账本**：LG-031 累计真实产品请求 **10/10**（原 1 + R1 3 + R2 6）；主代理新 phase3 另行授权**最多 14**，合计**上限 24**，**不是 032 对照实验**；LG-022 首轮 QA 总数 unknown、R1 **6/10**，**两轮失败记录都保留**。报告 [probes/batch-20261016/INTEGRATION-7.md](probes/batch-20261016/INTEGRATION-7.md)。
+
 ### 2026-10-16：第五批集成——031 接线合回、036 词法挂载、031 保持 in-progress（真实缺口）
 
 - **LG-031 安全合回 `main`（`dev/lg031` `d4c0815`，`--no-ff`）**：保留 main 最新 021 状态/036 机制/022 claim；031 owner 已释放共享 `api/app.py`/`bootstrap.py`/docs08，本集成 owner 为唯一 writer，在同一次提交中一并加装 LG-036 `build_search_router()`（1 import + 1 `include_router`），`worker_identity`/`execution_grants` 注入保留，两侧安全接线。新协作默认关闭、程序权限/状态/预算/验收权威、无常驻模型编排。

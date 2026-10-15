@@ -214,3 +214,35 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - **LG-031 续接准备**：新分支 `fix/lg031-r2`（基于 `9698e8a`）已把原 `fix/lg031-r1` 的 tracked 改动 + `probes/lg031/R1_*` untracked 证据**精确 WIP commit**（不 `add -A`）；原 `fix/lg031-r1` dirty 原样留存。**真实产品调用以 `probes/lg031/r1_worker_claim_probe.json` 为准**：R1 = 2 worker + 1 reviewer = **3**；原包 1；**累计 4/10，剩 ≤ 6**（交接日志的 turn_end 114/响应 224 是开发 pi 事件，不算产品请求）。未闭合项：autonomous-claim 定向测试在整合候选与原 base **均失败**（`plan_validation failed: config_invalid`，非整合回归），交下一 owner。
 - **状态如实**：LG-022 in-progress（待独立复验）；LG-017 done 待 022、不制造循环；LG-037/035 不假 done；LG-038 done 待 040；LG-040 不解锁；LG-041 quality gate 不解锁。未领取 023/024/032/040。
 - 本包结束先写持久 REPORT（本文件 + `probes/batch-20261016/INTEGRATION-6.md`），再精确本地 commit；main 未推送。
+
+## 2026-10-16 第七批集成检查点（唯一串行集成 owner，持续执行中）
+
+本节覆盖上文，为当前事实；旧实验、worktree、原始 probes 全部保留，未推送/部署/发布。唯一集成 owner；主代理只 PM。
+详细报告见 [probes/batch-20261016/INTEGRATION-7.md](probes/batch-20261016/INTEGRATION-7.md)。
+
+- **集成前核对**：`main` HEAD `29ffbb6`（clean，主代理本轮无 PM dirty）；无残留执行者占用源 worktree。
+  `fix/lg022-r2@e59e12a` clean、`fix/lg031-r2@3821620` clean；`main` 与其先前合并关系已核（两分支均自 `29ffbb6`）。
+- **整合候选 `integrate/batch7`**（自 `29ffbb6`）：`8a92439` `--no-ff` 合 `fix/lg022-r2`（无冲突，停止门真实停止事实 + `reviewer_cleanup` +
+  持久生成账本，契约 **1.10.0** + QA reverify R1 证据）；`0144eb7` `--no-ff` 合 `fix/lg031-r2`（**2 处文本冲突**，见下）。旧分支/worktree/probes/dirty 全部保留，
+  未 reset/clean/覆盖/重复 pick，未复制 `.env`。
+- **冲突处理（唯一 owner）**：① `adapter/__init__.py` 同时保留 022 `configure_generation_ledger` 与 031 `global_generation_counter` 导出，
+  去掉重复 `GenerationCounter`；② `docs/08` §9 保留 **1.10 持久账本为唯一生成限额事实源**，把 031 说明改写为「执行器共享计数接线（1.10.0，无版本/字段/端点变化）」，
+  **契约保持 `1.10.0`**（031 未新增版本，不机械升版）。
+- **共享装配兼容（关键）**：`api/bootstrap.py` 中 `configure_generation_ledger(settings.data_dir)`（022）先于 `generation_budget=global_generation_counter()`（031）执行，
+  031 注入的是**已被换成持久账本**的全局计数，**不被 031 旧内存计数覆盖**。进程内冒烟（本地替身、无真实模型）：
+  `snapshot={'count':0,'limit':7,'remaining':7,'corrupt':False,'persistent':True}`、`reserve→True`、count=1、`<data_dir>/generation/` 账本文件真实创建。
+- **LG-031 实际修复保留**：`coordinator/graph.py` 自主路径 claim 检查移到**执行后、revoke 前**，程序只授权被排度节点（`node_not_scheduled_for_worker`），
+  `_mint_pool_grant`/`_claim_for_worker`/`_claim_tools_for` 完整并入；此前在整合候选与原 base 均失败的
+  `test_autonomous_worker_tool_claim_grants_node` **现通过**（本包实跑 1 passed）。**未读旧 dirty `fix/lg031-r1` 覆盖当前**，原 dirty 原样留存。
+- **集成检查（真实退出码，绑定 `0144eb7`）**：`uv run mypy` exit 0 → **137 files clean**；`uv run python -m pytest -q` exit 0 → **775 passed, 2 skipped**（79.7s）；
+  定向 adapter/verify/coordinator/contracts/collaboration **274 passed**。**本包产品真实模型/外部服务调用 0**；**UI 未改**，未重复整套前端。
+- **持久 QA/续接 worktree（全新，基于 `0144eb7`）**：`/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-r2`（branch `qa/lg022-r2`）、
+  `/home/yhvh/code/lightgravity-bot-worktrees/lg031-r3`（branch `fix/lg031-r3`）。**未执行 QA/真模型**；旧 worktree 全部保留。
+- **成本与历史账本（准确，不重置/不洗白）**：**LG-031 累计 10/10**（原 1 + R1 3 + R2 6），主代理新 phase3 另行授权**最多 14**，合计**上限 24**，
+  **且不是 032 对照实验**；**LG-022 首轮 QA 实际总数 unknown**、R1 新阶段 **6/10**，**两轮失败记录都保留**（`probes/lg022/REPORT.md`、`probes/lg022/reverify-r1/REPORT.md`）。
+  旧 031 交接日志 `turn_end=114`/响应 224 是开发 pi 事件，不计产品请求。**本包实际产品请求 0**。
+- **状态如实**：**LG-022 仍 in-progress 待独立 QA（`qa/lg022-r2`）**；**LG-031 仍 in-progress**（真 2 worker + 交接 + 候选 review 仍缺，续接 `fix/lg031-r3`）；
+  **LG-035/037 in-progress**（质量门/端点不可达，不假 done）；**LG-023/032 todo 未 claim**（不 claim 依赖未过）；
+  **LG-040 不解锁**；**LG-041 质量门阻塞不解锁**。
+- backlog 专用根：`validate` **41 tasks, no diagnostics**；`digest` complete=true → **32 done / 4 in-progress / 5 todo**。
+- 未完成质量门：LG-022 独立 R2 复验、LG-031 真闭环（新预算内）、LG-035/037 真实质量、LG-040 版本 QA、完整 checkpoint skip。`main` 未推送。
