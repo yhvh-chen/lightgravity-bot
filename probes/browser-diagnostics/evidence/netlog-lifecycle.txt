@@ -1,0 +1,26 @@
+## netlog: main-frame loopback request starts but never completes
+### URL_REQUEST_START_JOB for the loopback main frame (source id 117):
+{"params":{"initiator":"not an origin","load_flags":98560,"method":"GET","network_isolation_key":"http://127.0.0.1 http://127.0.0.1","request_type":"main frame","site_for_cookies":"SiteForCookies: {site=http://127.0.0.1; schemefully_same=true}","url":"http://1
+
+### events for source id 117 (all that exist):
+913:{"params":{"cors_preflight_policy":"consider_preflight","is_revalidating":false,"request_headers":{"headers":["sec-ch-ua: \"Not=A?Brand\";v=\"99\", \"Google
+914:{"params":{"preflight_required":false},"phase":0,"source":{"id":117,"start_time":"6268378000","type":1},"time":"6268378000","type":594},
+915:{"params":{"priority":"HIGHEST","traffic_annotation":63171670,"url":"http://127.0.0.1:36015/marker"},"phase":1,"source":{"id":117,"start_time":"6268378000",
+916:{"phase":1,"source":{"id":117,"start_time":"6268378000","type":1},"time":"6268378001","type":138},
+917:{"phase":2,"source":{"id":117,"start_time":"6268378000","type":1},"time":"6268378001","type":138},
+918:{"params":{"get_sts_state_result":false,"host":"127.0.0.1","host_found_in_hsts_bypass_list":false,"should_upgrade_to_ssl":false},"phase":0,"source":{"id":11
+919:{"params":{"initiator":"not an origin","load_flags":98560,"method":"GET","network_isolation_key":"http://127.0.0.1 http://127.0.0.1","request_type":"main fr
+920:{"phase":1,"source":{"id":117,"start_time":"6268378000","type":1},"time":"6268378001","type":616},
+921:{"params":{"cache_filter":"none","frame_entry":"none","top_frame_primary":"none"},"phase":2,"source":{"id":117,"start_time":"6268378000","type":1},"time":"6
+922:{"params":{"privacy_mode":"disabled"},"phase":0,"source":{"id":117,"start_time":"6268378000","type":1},"time":"6268378001","type":604},
+
+### proof: source 117 has NO phase:2 URL_REQUEST_START_JOB completion,
+### while a google request (source id 40) DOES (line 1332):
+1013:{"phase":2,"source":{"id":7,"start_time":"6268377840","type":1},"time":"6268378004","type":134},
+1260:{"phase":2,"source":{"id":60,"start_time":"6268377863","type":1},"time":"6268378013","type":134},
+1332:{"phase":2,"source":{"id":40,"start_time":"6268377846","type":1},"time":"6268378137","type":134},
+1875:{"phase":2,"source":{"id":40,"start_time":"6268377846","type":1},"time":"6268378151","type":134},
+3867:{"phase":2,"source":{"id":21,"start_time":"6268377841","type":1},"time":"6268378190","type":134},
+4206:{"phase":2,"source":{"id":143,"start_time":"6268387775","type":1},"time":"6268388052","type":134},
+
+### raw JSON objects (values) below are from netlog; no secrets involved.

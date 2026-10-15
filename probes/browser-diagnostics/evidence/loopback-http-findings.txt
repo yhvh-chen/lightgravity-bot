@@ -1,0 +1,17 @@
+# Evidence: server accesses vs Chrome, netlog excerpt
+
+## marker server stderr (curl reaches it; Chrome never does)
+t=   0.019 LISTEN 127.0.0.1:42511 pid=251443
+t=   0.081 REQ GET /marker from=127.0.0.1:37348 ua=curl/8.18.0
+t=   0.081 RESP 200 /marker
+
+## netlog main-frame URL_REQUEST lifecycle (source id 117)
+
+## chrome stderr (baseline run)
+
+DevTools listening on ws://127.0.0.1:40141/devtools/browser/10f86607-c920-430b-855f-ac0da64e5358
+
+## CDP step timings (baseline)
+fetch /json/version 45ms OK; ws open 55ms OK; Target.createTarget 74ms OK;
+attach 78ms OK; Page.enable 83ms OK; Runtime.enable 85ms OK;
+Page.navigate 12089ms TIMEOUT  <-- only the HTTP load hangs
