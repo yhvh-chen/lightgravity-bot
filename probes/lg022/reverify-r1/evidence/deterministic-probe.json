@@ -1,0 +1,42 @@
+{
+  "evidence_kind": "deterministic-double",
+  "real_model_calls": 0,
+  "loop_and_d3": {
+    "reviewing_observed": false,
+    "status_latency_s": 0.016,
+    "status_phase_during_review": "planning",
+    "final_phase": "planning",
+    "run_state": "verifying",
+    "run_cleanup": {
+      "status": "pending"
+    },
+    "session_refs": [],
+    "fail_reason": null,
+    "d3_ok": true
+  },
+  "stopgate": {
+    "run_state": "verifying",
+    "session_refs": [],
+    "cleanup": {
+      "status": "pending"
+    },
+    "stop_report": {
+      "confirmed": true,
+      "run_stopped": true,
+      "sessions_stopped": true,
+      "slot_released": true,
+      "members_released": [],
+      "problems": []
+    },
+    "verify_and_prepare_state": null,
+    "verify_and_prepare_phase": null,
+    "verify_messages": null,
+    "task_phase_after_verify": "planning"
+  },
+  "cancel_during_review": {
+    "confirmed": true,
+    "reviewer_saw_stop": false,
+    "task_phase": "cancelled",
+    "run_state": "cancelled"
+  }
+}

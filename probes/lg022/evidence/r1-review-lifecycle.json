@@ -5,12 +5,12 @@
   "d1_running_loop": {
     "raised": null,
     "value": "ok",
-    "elapsed": 0.0022
+    "elapsed": 0.0023
   },
   "d2_served_during_review": {
     "result": "reviewed",
     "loop_scheduled_ticks_while_review_running": 100,
-    "loop_served_latency": 0.5302,
+    "loop_served_latency": 0.5286,
     "loop_not_blocked": true
   },
   "d2_stop": {
