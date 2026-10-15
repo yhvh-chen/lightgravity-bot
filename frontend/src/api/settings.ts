@@ -77,9 +77,17 @@ export interface GlobalSettingsView {
   content_hash: string
   default_coordinator_connection_ref: string | null
   default_worker_connection_ref: string | null
+  /**
+   * LG-017 additive: the independent reviewer's own default connection/credential
+   * (a separate role from the implementer). `null` means no real reviewer is
+   * configured, so the runtime reports an honest `unavailable` instead of
+   * reviewing with the implementer's connection (docs/08 §6.5).
+   */
+  default_reviewer_connection_ref: string | null
   defaults: {
     coordinator: DefaultDescription | null
     worker: DefaultDescription | null
+    reviewer: DefaultDescription | null
   }
 }
 
@@ -140,6 +148,8 @@ export interface SettingsUpdateInput {
   expected_revision?: number
   default_coordinator_connection_ref?: string | null
   default_worker_connection_ref?: string | null
+  /** LG-017 additive: set/clear the independent reviewer default (null clears). */
+  default_reviewer_connection_ref?: string | null
 }
 
 export interface ConnectionTestInput {

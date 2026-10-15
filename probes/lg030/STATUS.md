@@ -1,8 +1,20 @@
 # LG-030 实施状态
 
 > owner：`agent:pi-lg030`。分支 `dev/lg030`，worktree `/home/yhvh/code/lightgravity-bot-worktrees/lg030`。
-> 性质：**实施记录**（in-progress）。产品模型调用 0；worker 均为程序内替身（真实文件 `FileStore`，
+> 性质：**实施记录**。产品模型调用 0；worker 均为程序内替身（真实文件 `FileStore`，
 > 非 SDK 真模型）。契约版本 `1.6.0`（LG-028 已串行冻结；本轮只实现，不改 docs/08）。
+
+## 集成 owner 更新（2026-10-16，batch3）
+
+- 本包已由唯一集成 owner 合并到 `integrate/batch3`。集成方做了**最小兼容修复**：在
+  `ApiContext` 加程序认证依赖接缝 `worker_identity`，`PeerService.request` 要求
+  `authenticated_member_ref` 与 body 一致，未接缝/不符即**默认拒绝且不落盘**
+  （见 `INTEGRATION.md` §2.3）。真实身份注入（协调器）仍归 LG-031。
+- 因此 **030 协议自身安全满足**，任务由 `in-progress` 转 `done`（待版本 QA LG-032）；
+  Graph 运行时接线与真实 worker 身份注入归 LG-031，不再是 030 的阻塞项。
+- 复现证据（默认 app，真实 HTTP）：`probes/lg030/http_protocol_check.py` →
+  `DENY rejected unauthenticated` / `POST 200 requested True` / `REPLAY True` /
+  `BUDGET rejected budget_exhausted` / `GET 200 ['c1','c2']`。
 
 ## 基点与授权
 

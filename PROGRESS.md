@@ -138,3 +138,19 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - 就绪任务已 claim（不代跑）：LG-021 → `qa/lg021`（基于整合候选，供新上下文独立 QA），LG-035 → `dev/lg035`（持久），LG-030 → `dev/lg030`（持久）。LG-022/023/024、LG-031/032、LG-036～040 仍按依赖推进。
 - backlog 专用根校验：41 项、无诊断；27 done、1 in-progress、13 todo。
 - 未完成质量门：首版集中 QA（021/022）、资料版（035～040）、去中心化版（030～032）；LG-017 独立 QA 缺口（R1 已补齐实现与 1 次真实模型复核，**仍待 022 独立集中 QA**）；LG-029 settings 写入/coordinator LeaseManager/执行身份注入；完整 checkpoint skip。
+
+## 2026-10-16 第三批集成检查点（唯一集成 owner，持续执行中）
+
+本节覆盖上文，为当前事实；旧实验、worktree、原始 probes 全部保留，未推送/部署/发布。
+详细报告见 [probes/batch-20261016/INTEGRATION-3.md](probes/batch-20261016/INTEGRATION-3.md)。
+
+- 集成前 main HEAD `c138537`（与预期一致）；集成分支 `integrate/batch3`。逐分支 `--no-ff` merge，无冲突，
+  未重复 pick、未整树覆盖：`fix/lg017-r1` `8fbdedb` → `dev/lg030` `f029152` → `dev/lg035` `d7e4391` → `qa/lg021` `43dc3f1`（均 clean）。
+- **LG-021 收尾进程**：集成开始时其收尾 pi（`bounded-lfsw8w5a`）仍在运行、`qa/lg021` 有未跟踪 `probes/lg021/`；本 owner **未触碰其 index/工作区**，先收其它三个已结束分支，末尾确认其退出且 commit clean 后方合并。
+- 共享装配：后端三包无文件重叠；`uv sync --frozen` 成功（035 新增 `pypdfium2>=5,<6`，许可 BSD-3-Clause+Apache-2.0，自包含、懒加载、无 poppler）。默认 `create_app()` 实含 sources/intake/inbox/collab 端点（默认关闭）；`/content`/`/download` 仅经 `resolve_path` 读文件，不调用 OCR、不执行外部正文。
+- **最小兼容修复（集成 owner）**：① LG-017 reviewer 默认连接接入 Settings 界面（`settings.ts` 类型 + `DefaultsEditor` 第三角色选择器 + 测试；显式语义，**不静默回退 worker**，不加新表单平台）——补上“无 reviewer→配置→独立复核”闭环；② LG-030 加程序认证接缝 `ApiContext.worker_identity` + `PeerService.request(authenticated_member_ref=...)`，**默认拒绝**（`unauthenticated`/`identity_mismatch`，不落盘），body 自报身份不作认证；真实身份注入/Graph 接线归 031，**不制造 030 永久 in-progress**。
+- 契约：docs/08 保持 **1.7.0**（第三批未新增字段/端点/错误码；030 边界为集成澄清）。§4.3 LG-030/035 行更新为已实现（待 QA），加执行身份边界说明；§5.1 补 035 实际产生 `source.attributed`/`intake.failed`；docs/06 §6.1 加第三批更新。
+- 整合候选检查（真实退出码，本批**确实改前端**故重跑）：后端 `uv run mypy` **124 files clean**、`uv run pytest -q` **647 passed, 1 skipped**；`tests/collaboration` **57 passed**；协议链复现 5 行符合；前端 tsc 0、vitest **83 passed**、vite build 通过。**本轮产品真实模型调用 0**（017 的 1 次真实 DeepSeek 复核沿用原始证据，未重放）。
+- 状态：**LG-030 → done（待版本 QA LG-032）**（协议安全满足，真实身份/Graph 归 031）；**LG-017 保持 in-progress**（R1+UI 已补齐，仍待 022 及 021 增量独立集中 QA，不自评 pass）；**LG-035 保持 in-progress**（真实中文/表格人工真值质量门阻塞、已授权端点两次不可达，不以合成页当真实品质）；**LG-021 保持 in-progress**（独立 QA 主要路径 31/31 通过但存在证据精度/未测/新 reviewer UI 未覆盖，判定与最小复验清单见其 REPORT）。
+- backlog 专用根校验：**41 项、无诊断**；`tasks ready` **无就绪任务**（LG-022/031/036 前置未真 done）。**未 claim LG-022/031/036，未建其 worktree**（不就绪则不伪造 claim commit）。
+- 未完成质量门：首版集中 QA（LG-021 增量、LG-022 含 LG-017 独立复核真实门）；去中心化（LG-031 真实身份/Graph 接线、LG-032）；资料（LG-036 依赖 035、LG-037/038、LG-040）；LG-035 真实中文/表格质量门 + 已授权 OCR 端点不可达（外部阻塞，主代理已向用户发异步可选样本路径/服务恢复问题，尚无回复）；完整 checkpoint skip 未实现。

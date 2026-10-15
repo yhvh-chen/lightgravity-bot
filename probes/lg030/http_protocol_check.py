@@ -38,6 +38,11 @@ async def main() -> None:
         settings.ensure_data_dir()
         app = create_app(settings)
         store = app.state.context.store
+        # Program-authenticated worker identity seam (LG-030/LG-031): the
+        # authenticated member ref comes from the caller's execution identity,
+        # never from the request body.  The real coordinator injection is LG-031;
+        # here it is a header to exercise the default-deny boundary.
+        app.state.context.worker_identity = lambda request: request.headers.get("X-Test-Worker")
 
         task = new_id("task")
         store.create(
@@ -150,6 +155,7 @@ async def main() -> None:
         ref = f"evidence:{run}/diff.patch@sha256:{digest}"
 
         transport = httpx.ASGITransport(app=app)
+        auth = {"X-Test-Worker": "member-a"}
         async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as c:
             payload = {
                 "request_id": "c1",
@@ -162,12 +168,19 @@ async def main() -> None:
                 "correlation_id": "corr_01J00000000000000000000AA",
                 "handoff_refs": [ref],
             }
-            r = await c.post(f"/api/v1/runs/{run}/collab_requests", json=payload)
+            # Unauthenticated body-supplied identity must be refused (default-deny).
+            denied = await c.post(f"/api/v1/runs/{run}/collab_requests", json=payload)
+            print("DENY", denied.json()["state"], denied.json()["reason"])
+            r = await c.post(f"/api/v1/runs/{run}/collab_requests", json=payload, headers=auth)
             print("POST", r.status_code, r.json()["state"], r.json()["produced_refs"] == [ref])
-            r2 = await c.post(f"/api/v1/runs/{run}/collab_requests", json=payload)
+            r2 = await c.post(
+                f"/api/v1/runs/{run}/collab_requests", json=payload, headers=auth
+            )
             print("REPLAY", r2.json()["idempotent_replay"])
             r3 = await c.post(
-                f"/api/v1/runs/{run}/collab_requests", json={**payload, "request_id": "c2"}
+                f"/api/v1/runs/{run}/collab_requests",
+                json={**payload, "request_id": "c2"},
+                headers=auth,
             )
             print("BUDGET", r3.json()["state"], r3.json()["reason"])
             g = await c.get(f"/api/v1/runs/{run}/collab_requests")

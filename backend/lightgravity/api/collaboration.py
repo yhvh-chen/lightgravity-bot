@@ -16,20 +16,23 @@ with ``feature_disabled`` — so the deterministic scheduler path is unchanged
 (docs/08 §6.5).
 
 Worker identity: this router does not accept an arbitrary ``owner`` from a
-browser as an *authorization*.  Until the executor-identity seam is wired by the
-integration owner (see ``probes/lg030/INTEGRATION.md``), the request body carries
-the member identity and the peer service additionally requires that identity to
-be a member of the same Run; the router itself is reachable only through the
-frozen local access policy (``X-LG-Token`` when the runtime injects one), exactly
-like the other control endpoints.  Server-side authentication of the caller is
-LG-031's execution-identity injection, not something this body field can grant.
+browser as an *authorization*.  For the peer (LG-030) endpoints the caller must
+be **program-authenticated** through the execution-identity seam
+(``ApiContext.worker_identity``, wired by LG-031): the body's
+``from_member_ref`` must equal the authenticated identity and is never itself
+trusted as authentication.  Until that seam is wired the resolver returns
+``None`` and peer requests default-deny with ``unauthenticated`` — the
+router remains reachable only through the frozen local access policy
+(``X-LG-Token`` when the runtime injects one), exactly like the other control
+endpoints.  Server-side authentication of the caller is LG-031's
+execution-identity injection, not something a body field can grant.
 """
 
 from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, Depends, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..collaboration import (
@@ -164,8 +167,15 @@ def build_collaboration_router() -> APIRouter:
     def request_collab(
         run_id: str,
         payload: CollabRequestBody,
+        request: Request,
         ctx: Annotated[ApiContext, Depends(get_context)],
     ) -> dict[str, Any]:
+        # Program-authenticated identity only.  The body's ``from_member_ref`` is
+        # not authentication; when no execution-identity seam is wired the
+        # resolver returns ``None`` and the service refuses (default-deny).
+        authenticated = (
+            ctx.worker_identity(request) if ctx.worker_identity is not None else None
+        )
         result = _peer_service(ctx).request(
             run_id,
             request_id=payload.request_id,
@@ -180,6 +190,7 @@ def build_collaboration_router() -> APIRouter:
             handoff_refs=payload.handoff_refs,
             fence=payload.fence,
             timeout_seconds=payload.timeout_seconds,
+            authenticated_member_ref=authenticated,
         )
         return result.to_dict()
 

@@ -359,12 +359,21 @@ class PeerService:
         fence: int | None = None,
         timeout_seconds: int | None = None,
         in_reply_to: str | None = None,
+        authenticated_member_ref: str | None = None,
     ) -> CollabRequestResult:
         """Decide one peer request and persist it; idempotent on ``request_id``.
 
-        Every refusal is a *definite* result, never a wait: feature off, unknown
-        Run/node/peer, cross-Task, capability/permission, budget, capacity and
-        timeout all return a terminal ``state`` with a machine ``reason``.
+        Every refusal is a *definite* result, never a wait: feature off, missing
+        or mismatched program identity, unknown Run/node/peer, cross-Task,
+        capability/permission, budget, capacity and timeout all return a terminal
+        ``state`` with a machine ``reason``.
+
+        ``authenticated_member_ref`` is the **program-authenticated** worker
+        identity injected by the caller's execution seam (LG-031).  A request
+        body's ``from_member_ref`` is *not* authentication: when no authenticated
+        identity is supplied, or it disagrees with the body, the request is
+        refused (default-deny) and nothing is persisted.  This keeps a browser or
+        local caller from acting as an arbitrary run member.
         """
 
         if not self.enabled:
@@ -379,6 +388,37 @@ class PeerService:
                 correlation_id=correlation_id,
                 summary_text=summary,
                 reason="feature_disabled",
+                state="rejected",
+            )
+
+        # Program-authenticated identity binds the caller before any permission
+        # decision; the body's self-reported ref can never grant it.
+        if authenticated_member_ref is None:
+            return self._refuse(
+                run_id=run_id,
+                request_id=request_id,
+                node_ref=node_ref,
+                from_member_ref=from_member_ref,
+                to_member_ref=to_member_ref,
+                mode=mode,
+                message_id=message_id,
+                correlation_id=correlation_id,
+                summary_text=summary,
+                reason="unauthenticated",
+                state="rejected",
+            )
+        if authenticated_member_ref != from_member_ref:
+            return self._refuse(
+                run_id=run_id,
+                request_id=request_id,
+                node_ref=node_ref,
+                from_member_ref=from_member_ref,
+                to_member_ref=to_member_ref,
+                mode=mode,
+                message_id=message_id,
+                correlation_id=correlation_id,
+                summary_text=summary,
+                reason="identity_mismatch",
                 state="rejected",
             )
 
@@ -852,10 +892,15 @@ class PeerService:
             binding=binding,
         )
         # Only persist refusals that are structurally attributable to a real Run;
-        # an unknown Run has nothing to attach the record to.  When we are inside
-        # the per-Run transaction we append through it so the write stays in the
-        # same critical section as the idempotency read.
-        if reason != "unknown_run" and _safe_request_id(request_id):
+        # an unknown Run has nothing to attach the record to.  Unauthenticated or
+        # identity-mismatched attempts are **not** persisted at all: a caller that
+        # cannot authenticate must not be able to write a record (default-deny).
+        # When we are inside the per-Run transaction we append through it so the
+        # write stays in the same critical section as the idempotency read.
+        if (
+            reason not in ("unknown_run", "unauthenticated", "identity_mismatch")
+            and _safe_request_id(request_id)
+        ):
             if txn is not None:
                 txn.append(result.to_dict())
             else:

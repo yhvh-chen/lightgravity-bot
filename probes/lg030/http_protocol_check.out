@@ -1,3 +1,4 @@
+DENY rejected unauthenticated
 POST 200 requested True
 REPLAY True
 BUDGET rejected budget_exhausted

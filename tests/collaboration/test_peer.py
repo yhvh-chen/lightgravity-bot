@@ -73,6 +73,10 @@ def _request(peer: PeerService, run_id: str, node: str, **overrides):
         "summary": "please review the change",
         "message_id": "msg_01J00000000000000000000AA",
         "correlation_id": "corr_01J00000000000000000000AA",
+        # Program-authenticated identity (the execution seam, LG-031).  Callers
+        # that mean an authenticated worker pass the matching ref; the identity
+        # tests below deliberately override it to prove default-deny.
+        "authenticated_member_ref": "member-a",
     }
     payload.update(overrides)
     return peer.request(run_id, **payload)
@@ -86,6 +90,32 @@ def test_peer_disabled_by_default(store: FileStore, clock: FakeClock) -> None:
     assert peer.enabled is False
     assert result.state == "rejected"
     assert result.reason == "feature_disabled"
+
+
+# ------------------------------------------------- program-authenticated identity
+def test_body_identity_without_program_auth_is_refused(
+    store: FileStore, clock: FakeClock
+) -> None:
+    """A self-reported ``from_member_ref`` is not authentication (default-deny)."""
+
+    _, run_id, sub = _seed(store)
+    peer = _peer(store, clock)
+    result = _request(peer, run_id, sub, authenticated_member_ref=None)
+    assert result.state == "rejected"
+    assert result.reason == "unauthenticated"
+    # Nothing persisted for the unauthenticated attempt.
+    assert peer.list_requests(run_id) == []
+
+
+def test_authenticated_identity_must_match_body(store: FileStore, clock: FakeClock) -> None:
+    """An authenticated worker cannot act as a different run member."""
+
+    _, run_id, sub = _seed(store)
+    peer = _peer(store, clock)
+    result = _request(peer, run_id, sub, authenticated_member_ref="member-b")
+    assert result.state == "rejected"
+    assert result.reason == "identity_mismatch"
+    assert peer.list_requests(run_id) == []
 
 
 # ---------------------------------------------------------------- happy path
@@ -164,7 +194,15 @@ def test_unknown_run_is_refused_definitely(store: FileStore, clock: FakeClock) -
 def test_requester_must_be_in_run(store: FileStore, clock: FakeClock) -> None:
     _, run_id, sub = _seed(store)
     peer = _peer(store, clock)
-    result = _request(peer, run_id, sub, from_member_ref="member-outsider")
+    # An authenticated worker that is not a member of this Run is still refused;
+    # the identity matches the body (so it passes the seam) but membership fails.
+    result = _request(
+        peer,
+        run_id,
+        sub,
+        from_member_ref="member-outsider",
+        authenticated_member_ref="member-outsider",
+    )
     assert result.state == "rejected"
     assert result.reason == "requester_not_in_run"
 
