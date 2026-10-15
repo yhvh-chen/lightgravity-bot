@@ -398,22 +398,30 @@ class Coordinator:
         """Return the effective rework orchestrator, building the default once.
 
         The default is a ``ReworkOrchestrator`` over this coordinator's Store
-        whose ``RunSpawner`` is this coordinator, with the deterministic
-        program reviewer (no model call).  It is built lazily so importing the
-        coordinator never constructs it and so an injected orchestrator always
-        wins.
+        whose ``RunSpawner`` is this coordinator, with an explicit
+        :class:`~lightgravity.verify.review.UnavailableReviewer`.
+
+        Honest default (LG-017 R1): a *program-only* machine check is the
+        LG-009 gate, **not** an independent review.  Rather than rename it
+        ``ProgramReviewer`` and call it independent QA, the unreviewed runtime
+        reports ``unavailable`` so acceptance never opens without a real
+        reviewer.  A real (model-backed) reviewer is injected by the runtime
+        assembly when a reviewer connection is configured; an injected
+        orchestrator always wins.  The deterministic ``ProgramReviewer`` is
+        still available as an explicit machine-gate reviewer for callers that
+        want it wired deliberately.
         """
 
         if self._rework is not None:
             return self._rework
         # Local import keeps coordinator import graph free of verify at module
         # load time while still wiring a real default at runtime.
-        from lightgravity.verify.review import ProgramReviewer
+        from lightgravity.verify.review import UnavailableReviewer
         from lightgravity.verify.rework import ReworkOrchestrator
 
         self._rework = ReworkOrchestrator(
             self._store,
-            reviewer=ProgramReviewer(),
+            reviewer=UnavailableReviewer(),
             writer=self._writer,
             spawner=self,
             actor=self._owner,

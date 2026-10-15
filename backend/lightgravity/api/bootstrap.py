@@ -45,10 +45,12 @@ from ..coordinator.dialogue import (
     make_sync_responder,
     resolve_dialogue_support,
 )
+from ..verify.review import resolve_reviewer_support
 from ..coordinator.graph import DEFAULT_CAPABILITIES
 from ..coordinator.recruiter import RoleCatalog
 from ..settings import (
     ROLE_COORDINATOR,
+    ROLE_REVIEWER,
     ConnectionService,
     ConnectionTestLog,
     ConnectionTester,
@@ -121,6 +123,9 @@ class RuntimeState:
     frontend_dist: Path
     #: The wired executor when real execution is enabled (for honest reporting).
     executor: Any | None = None
+    #: LG-017 R1: the assembled reviewer status (``model``/``program``/
+    #: ``unavailable``) so readiness is honest about independent review.
+    reviewer: dict[str, Any] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
 
     def execution_report(self) -> dict[str, object]:
@@ -154,6 +159,7 @@ class RuntimeState:
             "token_source": self.token.source,
             "frontend_served": self.frontend_served,
             "frontend_dist": str(self.frontend_dist),
+            "reviewer": dict(self.reviewer),
             "warnings": list(self.warnings),
         }
 
@@ -233,6 +239,58 @@ def _dialogue_responder(
         "coordinator connection (no team, no write tools)"
     )
     return make_sync_responder(dialogue)
+
+
+def _wire_independent_reviewer(
+    app: FastAPI, connections: ConnectionService, log: LogSink
+) -> dict[str, Any]:
+    """Assemble the LG-017 reviewer from the *reviewer* default connection.
+
+    The reviewer runs on its own default connection/credential (a separate role
+    from the implementer), so its context is genuinely independent.  When no
+    reviewer connection is configured, the coordinator's honest
+    ``UnavailableReviewer`` default stays in place: a program-only machine gate
+    is **not** called independent QA and acceptance never opens without a real
+    review.  Returns a non-secret status dict for the readiness report.
+    """
+
+    coordinator = getattr(app.state, "coordinator", None)
+    if coordinator is None:
+        return {"reviewer": "unavailable", "reason": "no coordinator assembled"}
+    try:
+        pinned = connections.resolve_default(ROLE_REVIEWER)
+    except Exception as exc:  # noqa: BLE001 - startup must never crash here
+        log(f"reviewer not wired: {type(exc).__name__}: {exc}")
+        return {"reviewer": "unavailable", "reason": f"{type(exc).__name__}: {exc}"}
+    support = resolve_reviewer_support(pinned)
+    if support is None:
+        log(
+            "reviewer not wired: no default reviewer connection configured; "
+            "candidates will report an honest 'review unavailable' instead of a "
+            "fake independent pass"
+        )
+        return {"reviewer": "unavailable", "reason": "no default reviewer connection"}
+    from ..verify.review import ModelReviewer
+    from ..verify.rework import ReworkOrchestrator
+
+    reviewer = ModelReviewer(support, connections.credential_resolver.resolve)
+    coordinator.set_rework(
+        ReworkOrchestrator(
+            getattr(app.state, "store", None) or connections.repository.store,
+            reviewer=reviewer,
+            spawner=coordinator,
+            actor="review",
+        )
+    )
+    log(
+        "independent model reviewer wired: one tool-less turn on the default "
+        "reviewer connection (separate role/context from the implementer)"
+    )
+    return {
+        "reviewer": "model",
+        "connection_id": support.model,
+        "credential_configured": reviewer.available(),
+    }
 
 
 def _enabled_agents(store: Store, data_dir: Path) -> tuple[str, ...]:
@@ -395,6 +453,7 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
             )
 
     agents = _enabled_agents(store, settings.data_dir)
+    reviewer_status = _wire_independent_reviewer(app, connections, log)
     state = RuntimeState(
         app=app,
         settings=settings,
@@ -406,6 +465,7 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         frontend_dist=Path(dist),
         executor=executor,
         warnings=warnings,
+        reviewer=reviewer_status,
     )
     if agents:
         log(f"executable agent candidates: {', '.join(agents)}")

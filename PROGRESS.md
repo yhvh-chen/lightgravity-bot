@@ -132,7 +132,9 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - 契约：`docs/08` 保持 `1.6.0`，仅更新 §4.3 的 LG-034/LG-029 状态行与 §5.1 事件实际产生说明。
 - 整合候选检查：后端 `uv run mypy` 109 files clean、`uv run pytest -q` **545 passed, 1 skipped**；前端 tsc 0、vitest **81 passed**、vite build 通过。**产品真实模型调用 0**（mock/Git/HTTP 冒烟非完整 SDK 验收）。
 - 状态：LG-018/019/034/039 与 LG-029 `done`（待版本 QA）；**LG-017 保持 `in-progress`**——默认 `ProgramReviewer` 只是机器检查换名，非独立模型/角色复核，目标未满足，留 LG-022 真实门复验；LG-041 保持 `todo` 并记录 `needs decision`。
+- **LG-017 返修 R1（2026-10-16，branch `fix/lg017-r1`，基点 `c138537`）**：已补齐真实独立复核——新增角色/「默认字段 `default_reviewer_connection_ref`（加性）、真实最小受控 `ModelReviewer`（独立连接/上下文、无工具单轮、经程序 `validate_findings` 绑定可解析候选证据，模型不能判 done）、无 reviewer 时诚实 `UnavailableReviewer` 且阻止 accept；docs/08 加性升 **1.7.0** 并同步 README/PROJECT/agent/docs06。真实命令：`pytest tests/verify tests/settings tests/startup -q` exit 0（135 passed/4 skipped）、`mypy`（改动文件）exit 0；**真实 DeepSeek 探针 1 次调用成功**（`probes/lg017/review_real_probe.json`：`status=ran`/`model_calls=1`/`reviewer_kind=model`/`outcome=validated_outcome=passed`，`usage={"unknown":["usage"]}` 即 **usage unknown/成本部分覆盖**）；本次续接**新增产品模型调用 0**（未重放）。收尾修复 `validate_findings` 丢失 `reviewer_kind`/`model_calls`/`usage` 的 bug + 回归测。**仍 `in-progress`**（待 LG-022 独立集中 QA），本包不自评完整版本 pass；旧交付物/探针/未提交记录全保留。
+- **LG-017 R1 新增检查**：`docs/08` 等文档 1.6.0→1.7.0 同步一致性；R1 相关 `tests/verify tests/coordinator/test_rework_integration.py -q` exit 0（28 passed）。
 - LG-039 报告口径限定“本轮已测模型/路径无可用 ASR、LG-041 不解锁”，未泛化；`done` 仅指有界可行性负结果，不等于完整中文质量验收。
 - 就绪任务已 claim（不代跑）：LG-021 → `qa/lg021`（基于整合候选，供新上下文独立 QA），LG-035 → `dev/lg035`（持久），LG-030 → `dev/lg030`（持久）。LG-022/023/024、LG-031/032、LG-036～040 仍按依赖推进。
 - backlog 专用根校验：41 项、无诊断；27 done、1 in-progress、13 todo。
-- 未完成质量门：首版集中 QA（021/022）、资料版（035～040）、去中心化版（030～032）；LG-017 独立 QA 缺口；LG-029 settings 写入/coordinator LeaseManager/执行身份注入；完整 checkpoint skip。
+- 未完成质量门：首版集中 QA（021/022）、资料版（035～040）、去中心化版（030～032）；LG-017 独立 QA 缺口（R1 已补齐实现与 1 次真实模型复核，**仍待 022 独立集中 QA**）；LG-029 settings 写入/coordinator LeaseManager/执行身份注入；完整 checkpoint skip。

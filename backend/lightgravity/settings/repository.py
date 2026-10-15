@@ -75,6 +75,9 @@ def _settings_from_versioned(versioned: Versioned) -> GlobalSettings:
             data, "default_coordinator_connection_ref"
         ),
         default_worker_connection_ref=_optional_str(data, "default_worker_connection_ref"),
+        default_reviewer_connection_ref=_optional_str(
+            data, "default_reviewer_connection_ref"
+        ),
         exists=True,
         data=dict(data),
     )
@@ -86,6 +89,7 @@ def _empty_settings() -> GlobalSettings:
         content_hash="",
         default_coordinator_connection_ref=None,
         default_worker_connection_ref=None,
+        default_reviewer_connection_ref=None,
         exists=False,
         data={},
     )
@@ -239,12 +243,14 @@ class ConnectionRepository:
         *,
         default_coordinator_connection_ref: str | None,
         default_worker_connection_ref: str | None,
+        default_reviewer_connection_ref: str | None = None,
         actor: str,
         request_id: str,
     ) -> GlobalSettings:
         content = {
             "default_coordinator_connection_ref": default_coordinator_connection_ref,
             "default_worker_connection_ref": default_worker_connection_ref,
+            "default_reviewer_connection_ref": default_reviewer_connection_ref,
         }
         versioned = self._store.create(
             SETTINGS_KIND, SETTINGS_ID, content, actor=actor, request_id=request_id

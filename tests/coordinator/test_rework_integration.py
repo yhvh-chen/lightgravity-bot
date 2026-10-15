@@ -270,3 +270,114 @@ async def test_unavailable_review_never_opens_acceptance(store: FileStore) -> No
     assert task["acceptance"]["status"] != "awaiting"
     assert task["acceptance"]["status"] != "accepted"
     assert task["rework"]["repair_rounds_spent"] == 0
+
+
+async def test_honest_default_reviewer_is_unavailable_and_blocks_accept(
+    store: FileStore,
+) -> None:
+    """The unreviewed default runtime never accepts without a reported reviewer.
+
+    LG-017 R1: a program-only machine check is the LG-009 gate, not independent
+    QA.  With no real reviewer assembled, the coordinator's default is an honest
+    ``UnavailableReviewer``: the candidate parks at ``waiting_user`` and never
+    opens acceptance.
+    """
+
+    from lightgravity.verify import VerificationService
+    from lightgravity.verify.review import UnavailableReviewer
+
+    coordinator, dispatcher = _make(store)
+    # No set_rework call: exercise the real lazy default.
+    coordinator.set_verification(VerificationService(coordinator.store))
+    task_id = _seed_task(coordinator)
+    coordinator.start()
+    try:
+        phase = await wait_for_phase(coordinator, task_id, {"waiting_user"}, timeout=6.0)
+    finally:
+        await coordinator.stop()
+    assert phase == "waiting_user"
+    task = store.read("task", task_id).entity
+    assert task["acceptance"]["status"] != "awaiting"
+    ledger = task["rework"]
+    assert ledger["reviewer_kind"] == "unavailable"
+    assert ledger["repair_rounds_spent"] == 0
+    orchestrator = coordinator._resolved_rework()
+    assert isinstance(orchestrator._reviewer, UnavailableReviewer)
+
+
+async def test_program_reviewer_is_recorded_as_machine_gate(store: FileStore) -> None:
+    """An explicitly wired ProgramReviewer is recorded as ``program``, not model."""
+
+    from lightgravity.verify import VerificationService
+    from lightgravity.verify.review import ProgramReviewer
+    from lightgravity.verify.rework import ReworkOrchestrator
+
+    coordinator, dispatcher = _make(store)
+    coordinator.set_verification(VerificationService(coordinator.store))
+    coordinator.set_rework(
+        ReworkOrchestrator(
+            coordinator.store,
+            reviewer=ProgramReviewer(),
+            spawner=coordinator,
+            actor="test",
+        )
+    )
+    task_id = _seed_task(coordinator)
+    coordinator.start()
+    try:
+        phase = await wait_for_phase(
+            coordinator, task_id, {"awaiting_acceptance", "waiting_user"}, timeout=8.0
+        )
+    finally:
+        await coordinator.stop()
+    task = store.read("task", task_id).entity
+    ledger = task["rework"]
+    assert ledger["reviewer_kind"] == "program"
+    assert ledger["model_usage"].get("unknown") in (["usage"], None)
+
+
+async def test_review_ledger_records_model_kind_and_usage(store: FileStore) -> None:
+    """A model reviewer's kind and real (unknown-preserving) usage are persisted."""
+
+    from lightgravity.verify import REVIEW_PASSED as _PASS
+    from lightgravity.verify import VerificationService
+
+    class UsageReviewer:
+        name = "model-reviewer"
+        kind = "model"
+        model_calls = 1
+        last_usage = {"prompt_tokens": 11, "candidates_tokens": 2}
+
+        def review(self, context):
+            from lightgravity.verify.review import ReviewReport
+
+            return ReviewReport(
+                outcome=_PASS,
+                candidate_ref=context.candidate.candidate_ref,
+                reviewer=self.name,
+                reviewer_kind=self.kind,
+                model_calls=self.model_calls,
+                usage=dict(self.last_usage),
+            )
+
+    coordinator, dispatcher = _make(store)
+    coordinator.set_verification(VerificationService(coordinator.store))
+    coordinator.set_rework(
+        ReworkOrchestrator(
+            coordinator.store,
+            reviewer=UsageReviewer(),
+            spawner=coordinator,
+            actor="test",
+        )
+    )
+    task_id = _seed_task(coordinator)
+    coordinator.start()
+    try:
+        phase = await wait_for_phase(coordinator, task_id, {"awaiting_acceptance"}, timeout=8.0)
+    finally:
+        await coordinator.stop()
+    assert phase == "awaiting_acceptance"
+    ledger = store.read("task", task_id).entity["rework"]
+    assert ledger["reviewer_kind"] == "model"
+    assert ledger["reviewer"] == "model-reviewer"
+    assert ledger["model_usage"] == {"prompt_tokens": 11, "candidates_tokens": 2}
