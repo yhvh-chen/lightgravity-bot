@@ -1,0 +1,9 @@
+{
+  "metric": "page_CER",
+  "truth_chars": 189,
+  "hyp_chars": 193,
+  "edit_distance": 8,
+  "cer": 0.0423,
+  "threshold": 0.15,
+  "verdict": "PASS"
+}
