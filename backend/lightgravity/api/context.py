@@ -14,6 +14,7 @@ from fastapi import Request
 
 from ..config import Settings
 from ..coordinator import Coordinator
+from ..notifications import NotificationService, NotificationStateStore
 from ..settings import ConnectionService, ConnectionTester, FileSecretStore
 from ..store.protocol import Store
 from ..verify import VerificationService
@@ -36,6 +37,7 @@ class ApiContext:
     real_executor: bool = False
     tester: ConnectionTester | None = None
     verification: VerificationService | None = None
+    notifications: NotificationService | None = None
 
     @property
     def data_dir(self) -> Path:
@@ -53,4 +55,17 @@ def get_context(request: Request) -> ApiContext:
     return context
 
 
-__all__ = ["ApiContext", "get_context"]
+def get_notifications(request: Request) -> NotificationService:
+    """Resolve the notification service, building a default when unwired."""
+
+    context = get_context(request)
+    service = context.notifications
+    if service is None:  # pragma: no cover - create_app always wires it
+        service = NotificationService(
+            context.store, NotificationStateStore(context.data_dir)
+        )
+        context.notifications = service
+    return service
+
+
+__all__ = ["ApiContext", "get_context", "get_notifications"]

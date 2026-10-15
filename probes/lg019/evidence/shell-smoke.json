@@ -1,0 +1,33 @@
+{
+  "url": "http://127.0.0.1:59089/",
+  "checks": {
+    "badgeVisible": {
+      "pass": true,
+      "text": "1"
+    },
+    "popoverShowsNotification": {
+      "pass": true,
+      "text": "Notifications\nReconnecting (connecting)\nerror\nTask failed\ntask_01M4ZVR756JQ0Q05YBM964F0SM · run_01J0000000000000000000001\n2026-10-15T13:24:15.150Z\nmock\nTask needs your decision (mock)\n2026-10-15T00:00",
+      "taskRef": "task_01M4ZVR756JQ0Q05YBM964F0SM · run_01J0000000000000000000001"
+    },
+    "returnsToTaskScope": {
+      "pass": true,
+      "url": "?view=chat&task=task_01M4ZVR756JQ0Q05YBM964F0SM&run=run_01J0000000000000000000001"
+    },
+    "readPersistsAcrossReload": {
+      "pass": true,
+      "badge": "null",
+      "apiUnread": "0"
+    },
+    "noHorizontalOverflow": {
+      "pass": true,
+      "sw": 390,
+      "cw": 390
+    }
+  },
+  "ok": true,
+  "browser": "firefox/156.0.1",
+  "debugBellClicked": true,
+  "debugPopoverPresent": true,
+  "debugApiUnreadAfterReload": "0"
+}

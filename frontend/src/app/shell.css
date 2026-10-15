@@ -158,6 +158,23 @@
   border: 1px solid var(--lg-color-panel);
 }
 
+/* Real unread count badge (LG-019): the number is the honest backend count. */
+.lg-icon-button__badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--lg-radius-pill);
+  background: var(--lg-color-error);
+  color: #fff;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  border: 1px solid var(--lg-color-panel);
+}
+
 /* ------------------------------------------------------ Navigation rail */
 
 .lg-rail {
@@ -796,6 +813,34 @@
 .lg-notification__meta {
   font-size: var(--lg-font-size-xs);
   color: var(--lg-color-text-subtle);
+}
+
+.lg-popover__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--lg-space-2);
+  font-size: var(--lg-font-size-sm);
+  font-weight: 600;
+}
+
+.lg-popover__status {
+  font-size: var(--lg-font-size-xs);
+  font-weight: 400;
+  color: var(--lg-color-text-subtle);
+}
+
+.lg-popover__status[data-state='open'] {
+  color: var(--lg-color-success);
+}
+
+.lg-popover__status[data-state='closed'],
+.lg-popover__status[data-state='unavailable'] {
+  color: var(--lg-color-warning);
+}
+
+.lg-notification[data-read='false'] {
+  border-color: var(--lg-color-accent);
 }
 
 /* -------------------------------------------------------------- Drawers */

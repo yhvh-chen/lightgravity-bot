@@ -1,0 +1,28 @@
+{
+  "data_dir": "/tmp/lg019-smoke-n8aftfi8/data",
+  "port": 35201,
+  "checks": {
+    "ready": true,
+    "reached_terminal_phase": true,
+    "got_events": true,
+    "no_duplicate_on_reconnect": true,
+    "has_failed_notification": true,
+    "targets_task": true,
+    "read_persists_across_refresh": true,
+    "unknown_reported": true
+  },
+  "task_id": "task_01M4ZVG3R1VAE82R54R0DJ3FM0",
+  "phase": "failed",
+  "first_event_count": 11,
+  "replay_ids": [],
+  "notification_count": 1,
+  "unread": 1,
+  "notification": {
+    "task_ref": "task_01M4ZVG3R1VAE82R54R0DJ3FM0",
+    "run_ref": "run_01M4ZVG3SEF4XSKGZK3QD8AQ84",
+    "severity": "error",
+    "read": false
+  },
+  "ok": true,
+  "uvicorn_log_tail": "INFO:     Started server process [1535056]\nINFO:     Waiting for application startup.\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://127.0.0.1:35201 (Press CTRL+C to quit)\nINFO:     127.0.0.1:36302 - \"GET /api/v1/health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:36316 - \"POST /api/v1/tasks HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:36328 - \"GET /api/v1/tasks/task_01M4ZVG3R1VAE82R54R0DJ3FM0 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:36342 - \"GET /api/v1/events/stream?cursor=v1:task_01M4ZVG3R1VAE82R54R0DJ3FM0:0 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:40646 - \"GET /api/v1/events/stream HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:55032 - \"GET /api/v1/notifications HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:55036 - \"POST /api/v1/notifications HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:55050 - \"GET /api/v1/notifications HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:55064 - \"POST /api/v1/notifications HTTP/1.1\" 200 OK\nINFO:     Shutting down\nINFO:     Waiting for application shutdown.\nINFO:     Application shutdown complete.\nINFO:     Finished server process [1535056]\n"
+}
