@@ -516,3 +516,13 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 ### PM 更新：LG-031 正常启动边界待修复（2026-10-16）
 
 LG-032 零真实请求预检发现 selector scratch 与 SDK workspace_root 边界不一致，LG-031 已重新标为 in-progress。唯一 pi owner 在 lg031-workspace-boundary-fix 隔离 worktree 返修，待独立复验；原审计及收口证据保留。主分支新增本段及任务状态两份 PM dirty，后续集成须精确保全。当前按状态变更为 35 done / 4 in-progress / 2 todo，最终以任务 CLI 再核。
+
+### 集成：LG-031 BOUNDARY-R1 安全并入并重新 done（2026-10-16，main 整合 owner）
+
+- **安全集成**：先精确提交两份 root-PM dirty（`f9ffaba`：PROGRESS 注记 + LG-031 再开状态），**不丢弃/不覆盖/不 reset**；再 `--no-ff` merge `qa/lg031-boundary@70a0fd5`（含 `fix/lg031-workspace-boundary@0814b80`）→ `8c4c551`。`merge-base(main,qa)=3def2941`，无冲突/无覆盖/无重复 pick；集成后 main clean。
+- **独立门**：`qa/lg031-boundary` 判 **BOUNDARY-R1 PASS**（真 SDK 0.1.22 两阶段产品默认布局、selector scratch 入授权 root、4/4 session stop、越 root 真实拒绝、329 affected tests + targeted mypy）；**真实主 provider 生成 0**（loopback fake SSE）。产品 3 文件 hash 与 QA 报告逐字节一致。
+- **变更面**：产品仅 `coordinator/graph.py`、`workspaces/manager.py`、`workspaces/provider.py` + `tests/collaboration/test_lg031_pool_selection.py` + `probes/lg031-workspace-boundary/**`。**根 1.11.0 的 default-off/API/token/stop/fence/source 机制不变**；`collaboration/**`、`adapter/**` 未触碰。
+- **状态**：**LG-031 mark `done`（仅 BOUNDARY-R1 范围，保留全部历史重开/收口/失败/成本）**；**LG-032 依赖恢复但 `in-progress`、未正式采样**。backlog 根 validate 41 tasks/0 diagnostics、digest complete → **36 done / 3 in-progress / 2 todo**（in-progress 032/035/037，todo 040/041）。
+- **不宣**：**真实 provider 86 仍旧限定门**；**真实 SDK 由 fake 证明默认布局**；**完整 CoordinatorWorkerLoop + 真实模型质量/成本对照仍归 032 未过**，**不宣全产品 pass**。共享 docs/08 无公开契约变化 ⇒ **不升版**（仍 1.11.0）；**release L0 旧 `e0`/1.10 包不动**，不假称最新 source 1.11。
+- **成本**：**本集成包产品真实生成 0**；旧真实工程 **86**（34+24+28）不归零；032 预算固定 **4×48 / 总 192** 但**本包不执行**；provider token/费用 unknown 不当 0。并行 032 harness owner 仅新 worktree 报告，不合未验 harness。未 push/deploy/publish。
+- **证据**：`probes/batch-20261016/LG031-BOUNDARY-INTEGRATION.md`、`probes/lg031-workspace-boundary/qa/{REPORT,STATUS}.md`、`qa/evidence/**`。
