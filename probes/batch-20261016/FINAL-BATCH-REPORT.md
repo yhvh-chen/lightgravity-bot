@@ -18,9 +18,9 @@ updated: "2026-10-16"
 | 开工 main | `5df1956`（clean） |
 | 前置保全 | 无 PM dirty（main 已 clean） |
 | 合入 1（ff-only） | `prep/lg035-real-truth@9ad8315` ← main 为直接祖先 ⇒ main `= 9ad8315` |
-| 合入 2（--no-ff） | `qa/lg032-close-audit@4d175113`（含 `fix/lg032-cohort3-entry@271fefb`）→ merge `d0c0c4e` |
-| 最终 main（产品树） | `d0c0c4e`；`HEAD:backend/lightgravity = 55e4de56b7fe333d81a9bbc7a5e45e19977f9e9f` |
-| 产品路径 diff `5df1956→d0c0c4e` | **空**（backend/frontend/src/tests/docs/pyproject/uv.lock/Makefile） |
+| 合入 2（--no-ff） | `qa/lg032-close-audit@4d175113`（含 `fix/lg032-cohort3-entry@271fefb`）→ 集成合并锚 `d0c0c4e`（仅 merge anchor，非最终 main 头） |
+| 最终 main | **以 `git rev-parse HEAD` 为准**（本报告写入后 HEAD 仍随 PM 文档 commit 前进）；产品树 `HEAD:backend/lightgravity = 55e4de56b7fe333d81a9bbc7a5e45e19977f9e9f` **不变** |
+| 产品路径 diff `5df1956→HEAD` | **空**（backend/frontend/src/tests/docs/pyproject/uv.lock/Makefile）；`d0c0c4e` 亦同此产品树 |
 | 契约 / SDK / 默认 | `1.11.0` / `google-antigravity==0.1.22` / 协作候选 default **off** |
 | 任务 CLI（backlog 专用根） | `validate` 41 tasks/0 diagnostics；`digest` **2 todo / 2 in-progress / 37 done**，complete=true；`ready=[]` |
 
@@ -97,7 +97,9 @@ LG-035 补遗（status in-progress）。
   040 集中 QA 依赖、041 ASR 质量** 均未达、未完成。
 - **不因 XFUND NC / 普通实现选择要求用户确认**；继续需要**原候选服务恢复或授权可达同协议 endpoint**。
 
-## 5. 交付清单（本轮新增/更新，均在 main `d0c0c4e`）
+## 5. 交付清单（本轮新增/更新，已收拢 main）
+
+> 说明：下列产物均已进入 main 分支历史；`d0c0c4e` **仅集成合并锚**，**不 claim** 本报告/交付清单文件存在于 `d0c0c4e`，也**不据此 claim 任务 done**。最终 main 头以 `git rev-parse HEAD` 为准（见 §1）。
 
 - `probes/lg032/**`：METHOD-FINAL / FINAL-COHORT / COHORT2-QA / COHORT3 / MODE-ISOLATION / **CLOSE-AUDIT**
   （`CLOSE-REPORT.md`、`REPORT-v1.md`、`STATUS.md`、`metadata.json`）。
@@ -122,9 +124,9 @@ LG-035 补遗（status in-progress）。
 
 ## 7. 参考
 
-- [LG-032 封账报告](../../lg032/CLOSE-AUDIT/CLOSE-REPORT.md)
-- [LG-032 cohort3 正式报告](../../lg032/COHORT3/COHORT3-FORMAL-REPORT.md)
-- [LG-035 TRUTH-PREP 报告](../../lg035/TRUTH-PREP/REPORT.md) 与 [Z2 补遗](../../lg035/TRUTH-PREP/Z2-BINARY-CLOSE.md)
+- [LG-032 封账报告](../lg032/CLOSE-AUDIT/CLOSE-REPORT.md)
+- [LG-032 cohort3 正式报告](../lg032/COHORT3/COHORT3-FORMAL-REPORT.md)
+- [LG-035 TRUTH-PREP 报告](../lg035/TRUTH-PREP/REPORT.md) 与 [Z2 补遗](../lg035/TRUTH-PREP/Z2-BINARY-CLOSE.md)
 - [LG-031/032 依赖与集成历史](LG031-BOUNDARY-INTEGRATION.md)
 - [RESUME](FINAL-CHECKPOINT/RESUME.md) ｜ [032 成本附录](FINAL-CHECKPOINT/LG032-COST-APPENDIX.md)
-- [滚动排期](../../../docs/06-roadmap.md) ｜ [任务入口](../../../BACKLOG.md) ｜ [开发规则](../../../agent.md)
+- [滚动排期](../../docs/06-roadmap.md) ｜ [任务入口](../../BACKLOG.md) ｜ [开发规则](../../agent.md)

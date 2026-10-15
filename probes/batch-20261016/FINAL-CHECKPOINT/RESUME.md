@@ -8,8 +8,9 @@ updated: "2026-10-16"
 
 # 本轮批次最终检查点与续接
 
-本文件是 2026-10-16 批量推进的**持久续接检查点**。所有结论带本地证据链接；旧实验、worktree、原始失败
-证据全部保留，**未 push / deploy / publish**；无外部消息；**无 nested agent**。
+本文件是 2026-10-16 批量推进的**持久续接检查点**。所有结论带本地证据链接；**保留现存实验、worktree
+及幸存原件，历史缺口见 §4**（不谎称 100% 原件从无缺口），**未 push / deploy / publish**；无外部消息；
+**无 nested agent**。
 
 ## 0. 本轮整合入口（唯一 main 最终整合/PM 文档 owner）
 
@@ -17,9 +18,10 @@ updated: "2026-10-16"
   `qa/lg032-close-audit@4d175113`、`prep/lg035-real-truth@9ad8315`。无残留源 owner 进程。
 - 收拢（唯一写动作，串行、无重复 cherry-pick）：
   1. `git merge --ff-only prep/lg035-real-truth` → main advanced to **`9ad8315`**（main 为直接祖先 ⇒ ff-safe）。
-  2. `git merge --no-ff qa/lg032-close-audit` → merge commit **`d0c0c4e`**（无冲突；merge-base `0814b80`）。
-- **产品树未变**：`git diff 5df1956 d0c0c4e -- backend/ frontend/ src/ tests/ docs/ pyproject.toml uv.lock Makefile`
-  **为空**；`HEAD:backend/lightgravity` = **`55e4de56b7fe333d81a9bbc7a5e45e19977f9e9f`**（=已验证冻结 tree）。
+  2. `git merge --no-ff qa/lg032-close-audit` → 集成合并锚 **`d0c0c4e`**（仅 merge anchor，非最终 main 头；无冲突；merge-base `0814b80`）。
+- **产品树未变**：`git diff 5df1956 HEAD -- backend/ frontend/ src/ tests/ docs/ pyproject.toml uv.lock Makefile`
+  **为空**（`d0c0c4e` 同此产品树）；`HEAD:backend/lightgravity` = **`55e4de56b7fe333d81a9bbc7a5e45e19977f9e9f`**（=已验证冻结 tree）。
+  最终 main 头**以 `git rev-parse HEAD` 为准**，不硬写自引用新 commit 哈希。
   ⇒ 集成只新增 probe/harness/docs/任务元数据，**不重跑产品全套测试**（源机制已由 R1/BOUNDARY-R1/SERIAL-R1 及
   `329 affected tests + mypy` 独立覆盖）。
 - **历史保留**：`--no-ff` 合并保留 main 的 LG-031「BOUNDARY-R1」再开记录与 LG-032「依赖恢复」记录
@@ -66,7 +68,7 @@ backlog 专用根：`node /home/yhvh/code/olav-tasks/dist/cli.js tasks {validate
 - **LG-037 `in-progress`**：可选多模态向量机制/回退已验证；**真实 vectors quality/召回未达**（端点不可达）。
 - **LG-040 `todo`**：依赖 LG-035/036/037/038/022；**未解锁**。
 - **LG-041 `todo`**：中文 ASR 39 负结论质量锁，**不假实施**。
-- 已 done 且保留：LG-013/016/027、017/018/019、核心 QA/评估 023/024、028..032、033..038（含 036/038 待 040 版本 QA）。
+- 已 done 且保留：LG-013/016/027、017/018/019、核心 QA/评估 023/024、028、029、030、031、032，以及 **LG-033/034/036/038**（其中 036/038 待 040 版本 QA）。**LG-035/LG-037 仍 `in-progress`，不在 done 之列**。
 - **代码契约 `1.11.0`、SDK `google-antigravity==0.1.22`、自主协作默认 off**；SDK 是产品 runtime、pi 是开发执行，
   **无常驻模型编排 agent**；正式 1.5→后续变更控制链接 history 按实际，**不改 docs/08 formal contract 或源码**。
 
