@@ -50,6 +50,16 @@ real_generation: 0
 - 真实 Git worktree 不是 OS 安全沙箱（既有真实限制）。
 - `save_dir` 观测在正式 harness 中经既有公开 `context.save_dir` 启用；本预检不写正式 SDK 存储。
 
+## harness 装配注意（非产品缺陷）
+
+- 正式 harness 首次把 `context.save_dir` 放在授权 `workspace_root` **之外**时，产品正确拒绝：
+  选择期 scratch workspace 由 `save_dir` 派生，逃出授权 root ⇒ `config_invalid`（execution_blocked）。
+- 处置：把 `save_dir` 放在**授权 `workspace_root` 内部**（`<workspace_root>/.lg-sdk-sessions`），
+  scratch 仍落在授权 root 内；dry-run 随即 `pass=true`。
+- 这是 **harness 装配**修正（我们放置私有 Root 的位置），**非产品缺陷**：产品对越界 workspace 的拒绝是正确安全行为。
+- 附带观测：设置 `save_dir` 后 SDK **真实生成 6 个 SQLite trajectory DB**（每会话一个，含 `trajectory_meta/steps` 等表），
+  与旧 proof「未设 `save_dir` ⇒ 无 SDK DB」形成**明确 observability 差异**（见正式 REPORT）。
+
 ## 复现
 
 ```bash
