@@ -47,6 +47,7 @@ from lightgravity.adapter import (
 from lightgravity.contracts import AppError, EventType, TaskPhase
 from lightgravity.evidence import EvidenceRefError, import_evidence
 from lightgravity.store import Store, new_id
+from lightgravity.workspaces import WorkspaceProvider
 
 from .dispatcher import DispatchContext, DispatchOutcome
 from .planner import (
@@ -144,6 +145,7 @@ class GraphDispatcher:
         cancel_timeout: float = 15.0,
         compiler: ResourceCompiler | None = None,
         connections: DefaultConnectionResolver | None = None,
+        workspaces: "WorkspaceProvider | None" = None,
     ) -> None:
         if max_parallel < 1:
             raise ValueError("max_parallel must be >= 1")
@@ -167,6 +169,11 @@ class GraphDispatcher:
         self._cancel_timeout = cancel_timeout
         self._compiler = compiler or ResourceCompiler(store)
         self._default_connections = connections
+        #: Optional real worktree isolation (LG-018).  When supplied, every
+        #: ``write`` node executes in its own git worktree at a frozen base
+        #: commit; ``None`` keeps the conservative single-writer behavior.
+        self._workspaces = workspaces
+        self._run_workspaces: dict[str, dict[str, str]] = {}
         self._run_pins: dict[str, ConnectionPin | None] = {}
         self._inflight: dict[str, set[asyncio.Task[ExecutorResult]]] = {}
         self._active_refs: dict[str, list[ExecutionRef]] = {}
@@ -198,12 +205,14 @@ class GraphDispatcher:
         run_id = context.run_id
         self._explicit_cancel.discard(run_id)
         self._run_pins[run_id] = None
+        self._run_workspaces[run_id] = {}
         self._inflight[run_id] = set()
         self._active_refs[run_id] = []
         try:
             return await self._dispatch_graph(context, controller, emit)
         finally:
             self._run_pins.pop(run_id, None)
+            self._run_workspaces.pop(run_id, None)
             self._inflight.pop(run_id, None)
             self._active_refs.pop(run_id, None)
 
@@ -306,6 +315,11 @@ class GraphDispatcher:
         nodes = self._materialize_subtasks(
             plan, key_to_subtask, team, member_ids, member_subtasks, context, controller
         )
+        # Real write isolation (LG-018): give every ``write`` node its own real
+        # git worktree at a frozen base commit *before* scheduling.  Nodes that
+        # cannot be isolated (non-git / unauthorized workspace, or no provider)
+        # keep the conservative same-workspace single-writer serialization.
+        self._isolate_write_nodes(context, nodes)
         controller.update_run(
             {
                 "team_refs": list(member_ids.values()),
@@ -1179,6 +1193,12 @@ class GraphDispatcher:
             save_dir = context.save_dir
             conversation_id = context.conversation_id
             continuation_mode = context.continuation_mode
+        # Real write isolation (LG-018): a write node runs inside its own git
+        # worktree when one was provisioned; the frozen base commit is recorded
+        # in the run workspace metadata.  Read-only nodes keep the shared
+        # workspace path.
+        node_workspace = self.workspace_for_node(context.run_id, node.key)
+        effective_workspace = node_workspace or context.workspace_path
         return ExecuteRequest(
             task_id=context.task_id,
             run_id=context.run_id,
@@ -1188,7 +1208,7 @@ class GraphDispatcher:
             acceptance_criteria=node.spec.acceptance,
             instructions=context.instructions,
             upstream_artifact_refs=tuple(upstream),
-            workspace_path=context.workspace_path,
+            workspace_path=effective_workspace,
             allowed_tools=candidate.tool_refs,
             skill_refs=candidate.skill_refs,
             connection_ref=candidate.connection_ref,
@@ -1204,7 +1224,11 @@ class GraphDispatcher:
         pin = self._run_pins.get(context.run_id)
         constraints = CompileConstraints(
             allowed_tools=frozenset(node.member.candidate.tool_refs),
-            workspace_path=context.workspace_path or None,
+            workspace_path=(
+                self.workspace_for_node(context.run_id, node.key)
+                or context.workspace_path
+                or None
+            ),
             conversation_id=context.conversation_id,
             connection_pin=pin,
         )
@@ -1236,9 +1260,62 @@ class GraphDispatcher:
                 )
         return None
 
+    def isolate_write_nodes(
+        self, context: DispatchContext, nodes: Sequence[_Node]
+    ) -> dict[str, str]:
+        """Give every ``write`` node its own real worktree; return node->path.
+
+        Called before scheduling so the scheduler and the ExecuteRequest both see
+        the isolated directory.  A missing provider, a non-git workspace or an
+        out-of-root workspace yields no entry for a node, so that node keeps the
+        conservative shared-workspace single-writer rule.
+        """
+
+        isolated: dict[str, str] = {}
+        provider = self._workspaces
+        if provider is None:
+            return isolated
+        for node in nodes:
+            if not node.spec.write:
+                continue
+            try:
+                path = provider.isolate(
+                    task_id=context.task_id,
+                    run_id=context.run_id,
+                    node_key=node.key,
+                    subtask_id=node.subtask_id,
+                    base_workspace=context.workspace_path,
+                )
+            except Exception as exc:  # noqa: BLE001 - isolation failure is never fatal
+                del exc
+                path = None
+            if path:
+                isolated[node.key] = path
+        self._run_workspaces[context.run_id] = isolated
+        return isolated
+
+    def _isolate_write_nodes(self, context: DispatchContext, nodes: Sequence[_Node]) -> None:
+        self.isolate_write_nodes(context, nodes)
+
+    def workspace_for_node(self, run_id: str, key: str) -> str | None:
+        """The isolated workspace path for a node, else ``None`` (shared)."""
+
+        return self._run_workspaces.get(run_id, {}).get(key)
+
+    def _run_workspace_map(self, context: DispatchContext) -> dict[str, str]:
+        return self._run_workspaces.setdefault(context.run_id, {})
+
     # ---------------------------------------------------------------- helpers
     def _writer_key(self, node: _Node, context: DispatchContext) -> str:
-        return context.workspace_path if node.spec.write else ""
+        if not node.spec.write:
+            return ""
+        isolated = self.workspace_for_node(context.run_id, node.key)
+        if isolated:
+            # Real per-node worktree: the writer key is the node itself, so two
+            # isolated write nodes may run in parallel (both were provisioned
+            # before scheduling, so the map is complete).
+            return f"node:{node.key}"
+        return context.workspace_path
 
     def _plan_failure(
         self, controller: RunController, stage: str, exc: AppError
@@ -1323,6 +1400,7 @@ def build_graph_dispatcher(
     catalog: RoleCatalog | None = None,
     planner: Planner | None = None,
     max_parallel: int = 1,
+    workspaces: WorkspaceProvider | None = None,
     **kwargs: Any,
 ) -> GraphDispatcher:
     """Convenience factory mirroring the LG-007 dispatcher construction style."""
@@ -1333,6 +1411,7 @@ def build_graph_dispatcher(
         catalog=catalog,
         planner=planner,
         max_parallel=max_parallel,
+        workspaces=workspaces,
         **kwargs,
     )
 
