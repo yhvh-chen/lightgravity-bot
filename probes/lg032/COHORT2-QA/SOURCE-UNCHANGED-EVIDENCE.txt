@@ -1,0 +1,25 @@
+# LG-032 COHORT2 — source/driver unchanged evidence (sanitized)
+
+Generated at cohort2 formal STOP handoff. Repo-committed sanitized summary only;
+no secrets, no raw provider payloads, no absolute private log paths with content.
+
+product_tree_object (backend/lightgravity) = 55e4de56b7fe333d81a9bbc7a5e45e19977f9e9f
+  == base ec69eff == HEAD (unchanged)
+git diff --stat ec69eff HEAD -- backend/lightgravity = (empty)
+
+driver run_attempt.py        sha256 503a807fe987b65236222b734127b21aff70455e3070403fe98fe9f62b286208
+overlay mode_config.py       sha256 df5652919e54830f7af5af8fa8c26a0f2cb527d3ddca2c1811259054acc788bf
+entry run_formal.py          sha256 a7477753d4b016ad2ac8a9e68d1b749b5583ff20fc53a9d8f30bb0ac8c763040
+config final_cohort_config.py sha256 a04a8f309a72626c5b039039198feab03f143966e6634bf1fe5228ff0834a117
+
+driver/overlay git blobs equal fix HEAD 8098514 (lg032-mode-isolation):
+  run_attempt.py        b1cc6c550c0408fa304c2a2c9c5d76160e14b98a
+  final_cohort_config.py 307ea0dda7307ec12c881056ed6a315fc7ba5016
+  mode_config.py        bc36b80b350af195fbeadc26f03d67c7a663fac3
+
+cohort2 formal consumption (single-line, NOT reset/washed):
+  lg032-cohort2-data/generation/generation.jsonl sha256 15a4bb003f844a7095632fa8a4ac97419b6f3a48d53858107b1bc4bf89595fbb (19 lines, all reserved)
+  lg032-cohort2-data/generation/generation.count.json = {"count":19} sha256 be90a0f9606c3c25a422bc22dc637c2b99af3e4d3b9d9179c5aee6aa78658585
+  old cohort1 (lg032-method-final-data) = 87 preserved, untouched.
+
+No source / driver / overlay / caps / prompt / plan / provider bytes changed in this run.
