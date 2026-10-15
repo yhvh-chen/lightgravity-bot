@@ -162,6 +162,11 @@ class ReworkResult:
     max_repair_rounds: int = _DEFAULT_MAX_REPAIR_ROUNDS
     messages: tuple[str, ...] = ()
     request_id: str | None = None
+    #: LG-022 R2: the reviewer's real resource stop fact (agent closed + proxy
+    #: stopped) when a model turn ran; ``None`` when no real reviewer resource
+    #: was used.  The coordinator records it so the stop gate can see the
+    #: reviewer stopped, not only the worker.
+    reviewer_stop_fact: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -176,6 +181,7 @@ class ReworkResult:
             "max_repair_rounds": self.max_repair_rounds,
             "messages": list(self.messages),
             "request_id": self.request_id,
+            "reviewer_stop_fact": self.reviewer_stop_fact,
         }
 
 
@@ -258,6 +264,9 @@ class ReworkOrchestrator:
 
         candidate = load_candidate(self._store, task_id)
         resolved = resolve_candidate_evidence(self._store, candidate)
+        # LG-022 R2: the reviewer records its real resource teardown here so the
+        # coordinator can prove the reviewer stopped, not only the worker.
+        resource_stop_report: dict[str, Any] = {}
         context = ReviewContext(
             task_id=task_id,
             run_id=candidate.run_id,
@@ -265,6 +274,7 @@ class ReworkOrchestrator:
             store=self._store,
             resolved_evidence=resolved,
             stop_event=stop_event,
+            resource_stop_report=resource_stop_report,
         )
         try:
             raw = self._reviewer.review(context)
@@ -299,6 +309,7 @@ class ReworkOrchestrator:
             "reviewer_kind": raw.reviewer_kind,
             "model_calls": raw.model_calls,
             "model_usage": dict(raw.usage),
+            "resource_stop": dict(resource_stop_report),
         }
         return validate_findings(raw, candidate=candidate, resolved_evidence=resolved), candidate
 
@@ -344,8 +355,39 @@ class ReworkOrchestrator:
         self._writer.write_task(task_id, {"rework": updated.to_frontmatter()})
         return updated
 
+    @property
+    def last_reviewer_stop_fact(self) -> dict[str, Any] | None:
+        """The most recent reviewer resource stop fact (LG-022 R2).
+
+        ``None`` until a real reviewer turn reported its teardown; an empty dict
+        means no report was produced (e.g. a program reviewer with no SDK
+        resource), and the coordinator records neither.
+        """
+
+        meta = getattr(self, "_last_review_meta", {}) or {}
+        fact = meta.get("resource_stop")
+        return dict(fact) if isinstance(fact, dict) and fact else None
+
     # ------------------------------------------------------------------ step
     def process(
+        self,
+        task_id: str,
+        *,
+        request_id: str | None = None,
+        note: str | None = None,
+        stop_event: Any | None = None,
+    ) -> ReworkResult:
+        result = self._process(task_id, request_id=request_id, note=note, stop_event=stop_event)
+        fact = self.last_reviewer_stop_fact
+        if fact is not None and result.reviewer_stop_fact is None:
+            # Attach the real reviewer resource stop fact to the returned result
+            # so the coordinator can persist the reviewer stop (LG-022 R2).
+            import dataclasses as _dc
+
+            result = _dc.replace(result, reviewer_stop_fact=fact)
+        return result
+
+    def _process(
         self,
         task_id: str,
         *,

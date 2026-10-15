@@ -65,12 +65,21 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: canonicalized as ``evidence:<run_id>/<name>@sha256:<hex>`` under the Task/Run
 #: evidence root, and raw absolute paths are rejected.
 #:
+#: 1.10.0 (2026-10-16) is the LG-022 second targeted-refix additive MINOR: the
+#: stop gate may confirm a Run's real session/reviewer stop from authoritative
+#: adapter facts (``run.cleanup``/``run.reviewer_cleanup`` stop-confirmation)
+#: instead of requiring a fabricated ``cleanup=done``, and
+#: ``GET /api/v1/diagnostics/generation`` gains additive ``persistent``
+#: (and, on a persistent ledger, ``corrupt``/``reason``) fields -- the global
+#: generation counter is now a durable ledger under the controlled data root.
+#: No new endpoints, enums, transitions or error codes; no secret is exposed.
+#:
 #: 1.3.0 registered LG-009's additive Task ``checks`` authorization and
 #: ``acceptance`` candidate-binding fields (``candidate_ref``/
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.9.0"
+CONTRACT_VERSION = "1.10.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

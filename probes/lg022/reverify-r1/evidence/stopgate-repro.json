@@ -1,0 +1,77 @@
+{
+  "evidence_kind": "local-deterministic-stopgate",
+  "real_model_calls": 0,
+  "note": "Reproduces the real-chain Run shape (session_refs populated, cleanup=pending) to isolate why verify_and_prepare cannot open awaiting_acceptance.",
+  "cases": [
+    {
+      "label": "real_chain_shape",
+      "session_refs": [
+        "sess_a",
+        "sess_b"
+      ],
+      "cleanup_status": "pending",
+      "stop_report": {
+        "confirmed": false,
+        "run_stopped": true,
+        "sessions_stopped": false,
+        "slot_released": true,
+        "members_released": [],
+        "problems": [
+          "2 session(s) not confirmed closed (cleanup='pending')"
+        ]
+      },
+      "verify_state": "unconfirmed",
+      "verify_phase": "verifying",
+      "verify_messages": [
+        "resources not confirmed stopped",
+        "2 session(s) not confirmed closed (cleanup='pending')"
+      ],
+      "verify_confirmed": false,
+      "task_phase_after": "verifying"
+    },
+    {
+      "label": "control_no_sessions",
+      "session_refs": [],
+      "cleanup_status": "pending",
+      "stop_report": {
+        "confirmed": true,
+        "run_stopped": true,
+        "sessions_stopped": true,
+        "slot_released": true,
+        "members_released": [],
+        "problems": []
+      },
+      "verify_state": "confirmed",
+      "verify_phase": "awaiting_acceptance",
+      "verify_messages": [
+        "candidate ready for human acceptance"
+      ],
+      "verify_confirmed": true,
+      "task_phase_after": "awaiting_acceptance"
+    },
+    {
+      "label": "control_cleanup_done",
+      "session_refs": [
+        "sess_a",
+        "sess_b"
+      ],
+      "cleanup_status": "done",
+      "stop_report": {
+        "confirmed": true,
+        "run_stopped": true,
+        "sessions_stopped": true,
+        "slot_released": true,
+        "members_released": [],
+        "problems": []
+      },
+      "verify_state": "confirmed",
+      "verify_phase": "awaiting_acceptance",
+      "verify_messages": [
+        "candidate ready for human acceptance"
+      ],
+      "verify_confirmed": true,
+      "task_phase_after": "awaiting_acceptance"
+    }
+  ],
+  "deadlock_reproduced": true
+}

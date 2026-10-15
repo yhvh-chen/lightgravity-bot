@@ -65,8 +65,11 @@ from .executor import (
 from .proxy import (
     AUTHORIZED_UPSTREAM_HOSTS,
     DEEPSEEK_UPSTREAM_URL,
+    GenerationCounter,
     LocalAuthProxy,
     ProxyCallRecord,
+    configure_generation_ledger,
+    global_generation_counter,
     upstream_chat_completions,
 )
 from .redaction import REDACTED, is_sensitive_key, mask_values, redact, sensitive_paths
@@ -126,8 +129,11 @@ __all__ = [
     # proxy
     "AUTHORIZED_UPSTREAM_HOSTS",
     "DEEPSEEK_UPSTREAM_URL",
+    "GenerationCounter",
     "LocalAuthProxy",
     "ProxyCallRecord",
+    "configure_generation_ledger",
+    "global_generation_counter",
     "upstream_chat_completions",
     # errors
     "AdapterConfigInvalid",

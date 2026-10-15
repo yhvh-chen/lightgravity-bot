@@ -1681,6 +1681,7 @@ class Coordinator:
                     run_ref=run_id,
                 )
                 return
+            self._record_reviewer_stop(run_id, outcome)
             state = str(getattr(outcome, "state", ""))
             if state != "awaiting_acceptance":
                 # rework / unavailable / exhausted: do not open acceptance here.
@@ -1702,6 +1703,33 @@ class Coordinator:
                 task_ref=task_id,
                 run_ref=run_id,
             )
+
+    def _record_reviewer_stop(self, run_id: str, outcome: Any) -> None:
+        """Persist the reviewer's real resource stop fact on the Run (LG-022 R2).
+
+        The reviewer is a separate SDK agent + loopback proxy from the worker.
+        When the real reviewer turn ran, its teardown fact proves the reviewer
+        resource stopped; the stop gate reads it so releasing a candidate never
+        relies on the worker stop alone.  No fact (program reviewer / no real
+        turn) writes nothing -- never a fabricated stop.
+        """
+
+        fact = getattr(outcome, "reviewer_stop_fact", None)
+        if not isinstance(fact, dict) or not fact:
+            return
+        try:
+            task_ref = str(self._store.read("run", run_id).entity.get("task_ref", ""))
+        except EntityNotFound:  # pragma: no cover - run vanished mid-review
+            return
+        status = "done" if fact.get("confirmed") else "pending"
+        self._writer.write_run(run_id, {"reviewer_cleanup": {"status": status, **fact}})
+        self._writer.emit(
+            task_ref,
+            EventType.CLEANUP_UPDATED,
+            {"scope": "reviewer", "status": status, **fact},
+            task_ref=task_ref,
+            run_ref=run_id,
+        )
 
     def spawn_repair_run(
         self,

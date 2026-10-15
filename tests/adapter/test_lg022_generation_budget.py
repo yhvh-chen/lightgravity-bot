@@ -11,7 +11,14 @@ def test_counter_counts_and_enforces_global_limit() -> None:
     counter = GenerationCounter(limit=3)
     assert [counter.reserve() for _ in range(4)] == [True, True, True, False]
     assert counter.count == 3
-    assert counter.snapshot() == {"count": 3, "limit": 3, "remaining": 0}
+    # LG-022 R2: snapshot carries an additive ``persistent`` flag; an in-memory
+    # counter is honestly non-persistent.
+    assert counter.snapshot() == {
+        "count": 3,
+        "limit": 3,
+        "remaining": 0,
+        "persistent": False,
+    }
 
 
 def test_counter_none_limit_counts_without_capping() -> None:

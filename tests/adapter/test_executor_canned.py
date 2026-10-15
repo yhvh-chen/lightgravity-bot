@@ -212,6 +212,18 @@ async def test_executor_runs_canned_session_and_stops_proxy(
     assert _FAKE_SECRET not in serialized
     assert executor.model_calls_made >= 1
 
+    # LG-022 R2: the executor can prove the Run's real session + proxy stopped.
+    session_id = result.session_ref.session_id
+    confirmation = executor.confirm_stopped("run_canned", (session_id,))
+    assert confirmation.confirmed is True
+    assert confirmation.sessions_stopped == 1
+    assert confirmation.proxy_stopped is True
+    assert confirmation.unknown_sessions == ()
+    # An unknown session keeps the confirmation honest, never assumed stopped.
+    unknown = executor.confirm_stopped("run_canned", ("sess_never_opened",))
+    assert unknown.confirmed is False
+    assert unknown.unknown_sessions == ("sess_never_opened",)
+
 
 async def test_executor_confirms_cancel_mid_stream(
     store: FileStore, tmp_path: Path, gated_canned_upstream: tuple[str, _StreamGate]

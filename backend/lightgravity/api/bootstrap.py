@@ -35,7 +35,12 @@ from typing import Any
 
 from fastapi import FastAPI
 
-from ..adapter import AntigravityExecutor, DirectoryArtifactSink, ResourceCompiler
+from ..adapter import (
+    AntigravityExecutor,
+    DirectoryArtifactSink,
+    ResourceCompiler,
+    configure_generation_ledger,
+)
 from ..adapter.compiler import ConnectionPin
 from ..config import Settings
 from ..coordinator import GraphDispatcher
@@ -385,6 +390,10 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         warnings.append(warnings_seed)
     executor = None
     dispatcher = None
+    # LG-022 R2: root the persistent generation-budget ledger at the resolved
+    # data dir so the real global upstream cap survives restarts and is shared
+    # across worker/reviewer/session.  Configured before any proxy starts.
+    configure_generation_ledger(settings.data_dir)
     if options.wire_real_executor:
         try:
             compiler = ResourceCompiler(store, default_connections=connection_pins)

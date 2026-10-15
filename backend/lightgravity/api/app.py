@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
-from typing import Any
+from typing import Any, cast
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -60,7 +60,13 @@ from ..settings import (
 )
 from ..store import FileStore
 from ..store.protocol import Store
-from ..verify import ResourceStopper, VerificationService, build_acceptance_router
+from ..verify import (
+    ResourceStopper,
+    SessionStopConfirmer,
+    StoreResourceStopper,
+    VerificationService,
+    build_acceptance_router,
+)
 
 from .access import AccessPolicy, LocalAccessPolicy, require_access
 from .context import ApiContext
@@ -131,8 +137,19 @@ def create_app(
 
     policy = access_policy or LocalAccessPolicy()
 
+    # The default stop gate may consult the real executor's stop facts (LG-022
+    # R2) so a successful session-bearing Run is released only on a genuine
+    # session/proxy stop, never a fabricated ``cleanup=done``.
+    resolved_stopper = resource_stopper
+    if resolved_stopper is None and executor is not None and hasattr(
+        executor, "confirm_stopped"
+    ):
+        resolved_stopper = StoreResourceStopper(
+            broadcasting, session_confirmer=cast(SessionStopConfirmer, executor)
+        )
+
     verification_service = verification or VerificationService(
-        broadcasting, stopper=resource_stopper
+        broadcasting, stopper=resolved_stopper
     )
 
     if dispatcher is None and coordinator is None:

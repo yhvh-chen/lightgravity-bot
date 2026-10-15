@@ -1,0 +1,315 @@
+{
+  "steps": [
+    {
+      "name": "health_ok",
+      "ok": true,
+      "code": 200
+    },
+    {
+      "name": "worker_default_pinned",
+      "ok": true
+    },
+    {
+      "name": "reviewer_default_pinned",
+      "ok": true
+    },
+    {
+      "name": "protected_write_requires_token",
+      "ok": true,
+      "code": 401
+    },
+    {
+      "name": "execution_ready",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "name": "reviewer_wired_model",
+      "ok": true,
+      "reviewer": {
+        "reviewer": "model",
+        "connection_id": "deepseek-chat",
+        "credential_configured": true
+      }
+    },
+    {
+      "name": "light_qa_no_task_created",
+      "ok": false,
+      "code": 422,
+      "before": 0,
+      "after": 0,
+      "kind": null,
+      "reply": "",
+      "raw_error": {
+        "code": "validation_failed",
+        "message": "request failed schema validation",
+        "details": {
+          "errors": [
+            {
+              "type": "extra_forbidden",
+              "loc": [
+                "body",
+                "conversation_id"
+              ],
+              "msg": "Extra inputs are not permitted",
+              "input": "global"
+            }
+          ]
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    },
+    {
+      "name": "task_created",
+      "ok": true,
+      "code": 200,
+      "task_id": "task_01M5031MGT9A0TTB82S79MG4YP"
+    },
+    {
+      "name": "run_reached_awaiting_acceptance",
+      "ok": false,
+      "phase": "verifying",
+      "phases_seen": [
+        "executing",
+        "verifying"
+      ]
+    },
+    {
+      "name": "status_query_not_blocked_during_run",
+      "ok": true,
+      "max_status_latency": 1.313,
+      "review_phase_observed": true
+    },
+    {
+      "name": "d3_success_run_no_fail_reason",
+      "ok": true,
+      "fail_reason": ""
+    },
+    {
+      "name": "accept_bound_exact_run",
+      "ok": false,
+      "code": 409,
+      "state": null,
+      "acceptance": {},
+      "candidate_ref": null,
+      "target_run_id": "run_01M5031MJ7J6FV1GYW0W3S8GS7"
+    },
+    {
+      "name": "duplicate_accept_idempotent",
+      "ok": false,
+      "code": 409,
+      "candidate_ref": null
+    },
+    {
+      "name": "stale_accept_rejected",
+      "ok": true,
+      "code": 409,
+      "state": null,
+      "error": {
+        "code": "illegal_transition",
+        "message": "target_run_id does not match the Task's active Run",
+        "details": {
+          "active_run": "run_01M5031MJ7J6FV1GYW0W3S8GS7",
+          "target_run_id": "run_does_not_exist"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  ],
+  "generation_readings": [
+    {
+      "at": "after_health",
+      "count": 0,
+      "limit": 10,
+      "remaining": 10
+    },
+    {
+      "at": "after_light_qa",
+      "count": 0,
+      "limit": 10,
+      "remaining": 10
+    },
+    {
+      "at": "after_run_and_review",
+      "count": 6,
+      "limit": 10,
+      "remaining": 4
+    },
+    {
+      "at": "final",
+      "count": 6,
+      "limit": 10,
+      "remaining": 4
+    }
+  ],
+  "gen_limit": 10,
+  "phases_seen": [
+    "executing",
+    "verifying"
+  ],
+  "max_status_latency_s": 1.313,
+  "task_after_run": {
+    "phase": "verifying",
+    "run": {
+      "task_ref": "task_01M5031MGT9A0TTB82S79MG4YP",
+      "attempt": 1,
+      "state": "verifying",
+      "plan_ref": "PLAN.md",
+      "team_refs": [
+        "member_01M5031MN63N3ATZS8SNKTWJNA"
+      ],
+      "subtask_refs": [
+        "subtask_01M5031MN6M4296431MF6BTFZJ",
+        "subtask_01M5031MN6VEWZJ746BPQ30RN4"
+      ],
+      "session_refs": [
+        "sess_57ee21e998c3411889ddebfba03cac09",
+        "sess_a392d9dc258d4fb98df9595c1aed14b1"
+      ],
+      "continuation": {
+        "conversation_id": "0d5d06df56db720b7dbe60927609c995",
+        "save_dir": "/tmp/lg022-rv-real/data/native-sessions/task_01M5031MGT9A0TTB82S79MG4YP",
+        "continuation_mode": "create_only",
+        "config_version": "lg016.1",
+        "decision": "fresh",
+        "primary_node_key": "deliver"
+      },
+      "cleanup": {
+        "status": "pending"
+      },
+      "ended_at": null,
+      "fail_reason": null,
+      "schema": "lightgravity.bot/v1",
+      "kind": "run",
+      "id": "run_01M5031MJ7J6FV1GYW0W3S8GS7",
+      "revision": 13,
+      "plan": {
+        "source": "rules",
+        "notes": [
+          "minimal rule plan: deliver + optional verify"
+        ],
+        "subtasks": [
+          {
+            "key": "deliver",
+            "objective": "Create a file named out/result.txt containing exactly the token LG022_REVERIFY_OK on a single line.",
+            "capability": "implementation",
+            "acceptance": [
+              "out/result.txt exists and contains LG022_REVERIFY_OK"
+            ],
+            "depends_on": [],
+            "write": true,
+            "order": 0
+          },
+          {
+            "key": "verify",
+            "objective": "独立验证：Create a file named out/result.txt containing exactly the token LG022_REVERIFY_OK on a single line.",
+            "capability": "verification",
+            "acceptance": [
+              "out/result.txt exists and contains LG022_REVERIFY_OK"
+            ],
+            "depends_on": [
+              "deliver"
+            ],
+            "write": false,
+            "order": 1
+          }
+        ]
+      },
+      "plan_hash": "6a76344a0246a46520821fa8115fdaa6675d8668df4ca8739ce7547643d31f52",
+      "plan_source": "rules",
+      "connection_pin": {
+        "connection_id": "deepseek-worker-reverify",
+        "role": "worker",
+        "revision": 0,
+        "content_hash": "1ce66bfb371648d4212475cf67e8489e395a3d275f6266573aaffea83cf2a052",
+        "backend": "openai-compat",
+        "model": "deepseek-chat",
+        "base_url": "https://api.deepseek.com/v1",
+        "credential_ref": "deepseek-api-key",
+        "credential_version": null,
+        "config_hash": "d7d880e71fd1de8ee0b71344152b4e3b352a5a5475937670f9dc1db0ba55f505"
+      },
+      "node_sessions": {
+        "subtask_01M5031MN6M4296431MF6BTFZJ": {
+          "key": "deliver",
+          "subtask_ref": "subtask_01M5031MN6M4296431MF6BTFZJ",
+          "member_ref": "member_01M5031MN63N3ATZS8SNKTWJNA",
+          "session_id": "sess_57ee21e998c3411889ddebfba03cac09",
+          "conversation_id": "0d5d06df56db720b7dbe60927609c995",
+          "save_dir": "/tmp/lg022-rv-real/data/native-sessions/task_01M5031MGT9A0TTB82S79MG4YP",
+          "state": "created",
+          "source": "result",
+          "config_version": "lg016.1",
+          "node_state": "passed",
+          "role_ref": "lg-default-worker",
+          "config_hash": "a88e84a2984b36f702f997ae8dbb5597672ddd931b443a4be81eb533e90eaaf7",
+          "reuse_identity": "908d3925f1a2c4c5ec464b2058259d076b0adb7625daf7027bae79846f5b76ac",
+          "handoff": {
+            "subtask_ref": "subtask_01M5031MN6M4296431MF6BTFZJ",
+            "revision": 5,
+            "content_hash": "e3b799761da893d15be5a341b374625b5a1b6b84db28a0da96348997535f4f82",
+            "artifacts": [
+              "out/result.txt",
+              "evidence:run_01M5031MJ7J6FV1GYW0W3S8GS7/subtask_01M5031MN6M4296431MF6BTFZJ-lg006-diff.patch@sha256:1e201b2f3673062417c12b50e19c3d14f2b8cb0bbe85029de9b9f4afb534f6af"
+            ]
+          }
+        },
+        "subtask_01M5031MN6VEWZJ746BPQ30RN4": {
+          "key": "verify",
+          "subtask_ref": "subtask_01M5031MN6VEWZJ746BPQ30RN4",
+          "member_ref": "member_01M5031MN63N3ATZS8SNKTWJNA",
+          "session_id": "sess_a392d9dc258d4fb98df9595c1aed14b1",
+          "conversation_id": "ee400bb569e305ef1487a0164c2ffc97",
+          "save_dir": "/tmp/lg022-rv-real/data/native-sessions/task_01M5031MGT9A0TTB82S79MG4YP",
+          "state": "created",
+          "source": "result",
+          "config_version": "lg016.1",
+          "node_state": "passed",
+          "role_ref": "lg-default-worker",
+          "config_hash": "e75053046af8df16cbaccf797515ea870dd7997c1d2aff8bab54f2bc5e77a7d8",
+          "reuse_identity": "2120385ec496708e8dcc2fd46f91e858e65b8d24ffe510e6104956e64c449d9b",
+          "handoff": {
+            "subtask_ref": "subtask_01M5031MN6VEWZJ746BPQ30RN4",
+            "revision": 5,
+            "content_hash": "d2fc9e29b592f835360e5ea88b065a2de6dc44f8f89b28c5a0118272755404da",
+            "artifacts": []
+          }
+        }
+      },
+      "etag": "\"13\"",
+      "body": "# Run run_01M5031MJ7J6FV1GYW0W3S8GS7\n\nTask: task_01M5031MGT9A0TTB82S79MG4YP\n"
+    },
+    "acceptance": {
+      "status": "pending",
+      "requirements_revision": null,
+      "deliverable_revision": null,
+      "evidence_refs": [],
+      "decided_at": null,
+      "decision_ref": null
+    }
+  },
+  "requirements_revision": 1,
+  "executor_model_calls": 5,
+  "run_md_fail_reason": "",
+  "accept_response": {
+    "error": {
+      "code": "illegal_transition",
+      "message": "task phase 'verifying' has no pending acceptance decision",
+      "details": {
+        "task_id": "task_01M5031MGT9A0TTB82S79MG4YP",
+        "phase": "verifying",
+        "action": "accept"
+      },
+      "retryable": false,
+      "request_id": null
+    }
+  },
+  "final_generation": {
+    "count": 6,
+    "limit": 10,
+    "remaining": 4
+  },
+  "ok": false
+}

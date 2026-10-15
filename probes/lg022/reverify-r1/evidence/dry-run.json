@@ -1,0 +1,63 @@
+{
+  "steps": [
+    {
+      "name": "health_ok",
+      "ok": true,
+      "code": 200
+    },
+    {
+      "name": "worker_default_pinned",
+      "ok": true
+    },
+    {
+      "name": "reviewer_default_pinned",
+      "ok": true
+    },
+    {
+      "name": "protected_write_requires_token",
+      "ok": true,
+      "code": 401
+    },
+    {
+      "name": "execution_ready",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "name": "reviewer_wired_model",
+      "ok": true,
+      "reviewer": {
+        "reviewer": "model",
+        "connection_id": "deepseek-chat",
+        "credential_configured": true
+      }
+    },
+    {
+      "name": "dry_run_skip_model_steps",
+      "ok": true,
+      "note": "no real generation requests"
+    }
+  ],
+  "generation_readings": [
+    {
+      "at": "after_health",
+      "count": 0,
+      "limit": 10,
+      "remaining": 10
+    },
+    {
+      "at": "dry_final",
+      "count": 0,
+      "limit": 10,
+      "remaining": 10
+    }
+  ],
+  "gen_limit": 10,
+  "dry": true,
+  "ok": true,
+  "final_generation": {
+    "count": 0,
+    "limit": 10,
+    "remaining": 10
+  }
+}

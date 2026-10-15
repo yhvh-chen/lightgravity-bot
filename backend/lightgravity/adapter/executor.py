@@ -47,6 +47,7 @@ from .execution import (
     ExecutorResult,
     FailureInfo,
     SessionRef,
+    StopConfirmation,
     Usage,
 )
 from .proxy import LocalAuthProxy, upstream_chat_completions
@@ -330,15 +331,18 @@ class _ExecutionHandle:
     async def ensure_closed(self) -> bool:
         if self.closed:
             return True
-        self.closed = True
         agent = self.agent
         if agent is None:
+            self.closed = True
             return True
         try:
             await agent.__aexit__(None, None, None)
-            return True
         except Exception:  # noqa: BLE001 - close is best-effort but reported
+            # Do NOT mark closed: an Agent whose __aexit__ raised was not
+            # provably stopped, so the stop gate must keep the resource pending.
             return False
+        self.closed = True
+        return True
 
 
 class AntigravityExecutor:
@@ -378,6 +382,13 @@ class AntigravityExecutor:
         self._active: dict[str, _ExecutionHandle] = {}
         self._sessions: dict[str, _ExecutionHandle] = {}
         self._secret_values: list[str] = []
+        #: Durable stop facts (LG-022 R2): session_id -> run_id once the SDK
+        #: agent for that session was provably closed, and the set of runs whose
+        #: loopback proxy was confirmed stopped.  Populated in ``execute``'s
+        #: ``finally`` so a completed Run can be confirmed stopped even after
+        #: the in-flight handle was dropped.  These are non-secret facts only.
+        self._closed_sessions: dict[str, str] = {}
+        self._proxy_stopped_runs: set[str] = set()
 
     # ---------------------------------------------------------- capabilities
     def capabilities(self) -> AdapterCapabilities:
@@ -418,11 +429,57 @@ class AntigravityExecutor:
         try:
             return await self._execute(handle, emit)
         finally:
-            await handle.ensure_closed()
-            self._stop_proxy(handle)
+            closed = await handle.ensure_closed()
+            proxy_ok = self._stop_proxy(handle)
+            run_id = request.run_id
+            if closed and handle.session_ref is not None:
+                self._closed_sessions[handle.session_ref.session_id] = run_id
+            if proxy_ok:
+                self._proxy_stopped_runs.add(run_id)
             self._active.pop(execution.execution_id, None)
             if handle.session_ref is not None:
                 self._sessions.pop(handle.session_ref.session_id, None)
+
+    def confirm_stopped(
+        self, run_id: str, session_refs: tuple[str, ...]
+    ) -> StopConfirmation:
+        """Report the real stop facts for a Run's sessions + proxy (LG-022 R2).
+
+        A session is confirmed stopped only when its SDK agent was provably closed
+        (``ensure_closed`` succeeded and recorded it).  A session that is still in
+        ``_sessions`` (in-flight) or absent from the closed set is reported as
+        unknown and keeps ``confirmed=False``.  The proxy must also be confirmed
+        stopped, otherwise the run is not fully released.
+        """
+
+        unknown: list[str] = []
+        stopped = 0
+        for session_id in session_refs:
+            if session_id in self._sessions:
+                unknown.append(session_id)
+                continue
+            if self._closed_sessions.get(session_id) == run_id:
+                stopped += 1
+                continue
+            unknown.append(session_id)
+        proxy_stopped = run_id in self._proxy_stopped_runs
+        # With no sessions there is nothing to close; the proxy fact still gates.
+        problems: list[str] = []
+        if unknown:
+            problems.append(
+                f"{len(unknown)} session(s) not confirmed closed by the adapter"
+            )
+        if not proxy_stopped:
+            problems.append("loopback auth proxy not confirmed stopped")
+        return StopConfirmation(
+            run_id=run_id,
+            confirmed=not unknown and proxy_stopped,
+            sessions_total=len(session_refs),
+            sessions_stopped=stopped,
+            proxy_stopped=proxy_stopped,
+            unknown_sessions=tuple(unknown),
+            problems=tuple(problems),
+        )
 
     def _stop_proxy(self, handle: _ExecutionHandle) -> bool:
         proxy = handle.proxy
@@ -959,8 +1016,13 @@ class AntigravityExecutor:
         handle = self._sessions.get(session_ref.session_id)
         if handle is None:
             return
-        await handle.ensure_closed()
-        self._stop_proxy(handle)
+        closed = await handle.ensure_closed()
+        proxy_ok = self._stop_proxy(handle)
+        run_id = handle.request.run_id
+        if closed:
+            self._closed_sessions[session_ref.session_id] = run_id
+        if proxy_ok:
+            self._proxy_stopped_runs.add(run_id)
 
     # ------------------------------------------------------------ blocked/failed
     async def _blocked(
