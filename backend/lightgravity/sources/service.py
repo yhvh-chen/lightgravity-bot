@@ -39,6 +39,17 @@ def _now(intake: IntakeService) -> Any:
 
     return utcnow()
 
+
+def _expected(record: SourceRecord, expected_revision: int | None) -> int:
+    """Resolve the optimistic-concurrency revision for an action.
+
+    Callers may pass an explicit ``expected_revision`` (409 on mismatch); when
+    omitted the action uses the revision just read, preserving the existing
+    last-writer-conflict detection under the store lock.
+    """
+
+    return record.revision if expected_revision is None else expected_revision
+
 #: Max bytes for an inline base64 body accepted via ``POST /sources``.
 MAX_INLINE_BYTES = 10_000_000
 #: Max bytes for one inbox attachment (mirrors the LG-014 upload bound).
@@ -556,14 +567,20 @@ class SourceService:
         action: str,
         confirmed: bool = False,
         job_id: str | None = None,
+        expected_revision: int | None = None,
     ) -> dict[str, Any]:
-        """Control actions: ``reprocess``/``cancel``/``revoke``/``delete``.
+        """Control actions: ``reprocess``/``cancel``/``archive``/``unarchive``/``revoke``/``delete``.
 
         ``reprocess`` re-runs OCR into a new machine derivative and never
-        overwrites the formal version.  ``delete``/``revoke`` mark the source
-        and remove its cache directories only with explicit copies of state;
-        the original is preserved for ``revoke`` and removed only for an
-        explicit ``delete``.
+        overwrites the formal version.  ``delete``/``revoke`` make the source
+        unavailable (``status=archived`` + cache/hit invalidation); the original
+        is preserved for ``revoke`` and removed only for an explicit ``delete``.
+
+        ``archive``/``unarchive`` are the **reversible整理** actions: they only
+        toggle the additive ``archived`` flag and never touch ``status``, the
+        index, retrieval or opening.  A reversible archive must **not** be
+        conflated with ``revoke``:撤销 makes the source unavailable, while
+        archiving merely tidies it away from default listings.
         """
 
         record = self._store.read_source(source_id)
@@ -578,6 +595,22 @@ class SourceService:
                 )
             job = self._intake.cancel(job_id, confirmed=confirmed, reason="source cancel")
             return {"source_id": source_id, "job_id": job_id, "status": job.status, "confirmed": True}
+        if action == "archive":
+            # Reversible organizational archive: keeps status/index/retrieval
+            # intact; only sets the additive flag.  Never invalidates hits.
+            updated = self._store.update_source(
+                source_id,
+                {"archived": True, "updated_at": to_iso(_now(self._intake))},
+                expected_revision=_expected(record, expected_revision),
+            )
+            return {"source_id": source_id, "status": updated.status, "archived": True}
+        if action == "unarchive":
+            updated = self._store.update_source(
+                source_id,
+                {"archived": False, "updated_at": to_iso(_now(self._intake))},
+                expected_revision=_expected(record, expected_revision),
+            )
+            return {"source_id": source_id, "status": updated.status, "archived": False}
         if action == "revoke":
             updated = self._store.update_source(
                 source_id,
@@ -608,7 +641,7 @@ class SourceService:
             return {"source_id": source_id, "deleted": True}
         raise AppError(
             ErrorCode.VALIDATION_FAILED,
-            f"unsupported action {action!r}; supported: reprocess, cancel, revoke, delete",
+            f"unsupported action {action!r}; supported: reprocess, cancel, archive, unarchive, revoke, delete",
             details={"action": action},
         )
 
@@ -673,6 +706,7 @@ class SourceService:
             "title": record.title,
             "title_origin": entity.get("title_origin"),
             "status": record.status,
+            "archived": record.archived,
             "revision": record.revision,
             "etag": record.etag,
             "scope": scope.to_dict(),

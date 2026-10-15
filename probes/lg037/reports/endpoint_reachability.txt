@@ -1,0 +1,13 @@
+LG-037 authorized-candidate endpoint reachability check
+=======================================================
+Target (only authorized candidate): http://192.168.8.12:11434
+Date (UTC): 2026-10-15T14:44Z
+Method: single read-only curl; NO retry (budget: health/models total <=3)
+
+$ curl -sS -o /dev/null -w "%{http_code}" --connect-timeout 5 http://192.168.8.12:11434/health
+000curl: (7) Failed to connect to 192.168.8.12 port 11434 after 3069 ms: Could not connect to server
+curl_exit=7
+
+Result: UNREACHABLE (connect failure, exit 7, HTTP 000).
+Consistent with LG-035's two most recent "No route to host" reports.
+=> No real quality metric produced. No new POSTs sent. No service swap, no model install.

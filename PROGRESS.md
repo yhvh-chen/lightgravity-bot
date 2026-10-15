@@ -185,3 +185,32 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - 持久 worktree（项目旁，无 `.env` 复制、不覆盖已有）：`fix/lg031-r1` @ `af6640e`；`dev/lg037`/`dev/lg038` @ **同一 claim commit `dda78f2`**；`main` HEAD `af6640e`（clean）。
 - **累计产品模型预算**：原任务 10、原包已用 1、**本包未新增、剩 9**（未重置旧尝试；031 的 1 次真实调用为其包内既有证据，未重放）。
 - **已知风险（不宣称无害/无缺陷）**：`tests/collaboration/test_claims.py::test_two_owner_race...` 既有 discovery/lease 竞争偶发 `not_discoverable`；本轮全量单跑一次通过、单跑连跑 3 次通过，留 LG-032 固定判定口径。完整 checkpoint skip **仍未实现**；LG-037 向量/LG-038 UI 未实现；LG-035 质量门、LG-040 门未动；main 未推送。
+
+## 2026-10-16 首版集中门失败后的返修检查点（主代理 PM）
+
+本节覆盖旧检查点的最新事实，全部执行仍经 pi + 现有 DeepSeek；未推送/部署/发布，旧 worktree/实验记录均保留。
+
+- main 已合入 LG-021 独立 31 条 + 增量 26 条证据，LG-021 done（仅前端门；headless focus-visible 仍明确未观测）。LG-036 已真实挂载 search，done 待 LG-040。此前 main e61ca70，后因收取 LG-022 失败证据前进到 ca27160（最新以 git 核实）。
+- LG-022 独立候选 bf7851c 首轮 QA FAIL，证据提交 qa/lg022@8e81089，已合 main；见 probes/lg022/REPORT.md。D1：真实 coordinator event loop 中同步 reviewer 调用 asyncio.run 失败，无法进入待验收。D2：review 阻塞状态/控制请求且无真实停止生命周期。D3：成功 Run 仍有伪 fail_reason。全产品首版门未通过，不能以旧单点 reviewer passed 替代。
+- 首轮真实生成请求总数 unknown：代理达到 429 后曾 rerun，未证明在 10 次全局上限内。失败尝试/原始记录保留，不按零计；下一复验必须先验证共享持久实际转发计数，不重置旧成本。
+- LG-022 R1 正在持久 lg022-r1 / fix/lg022-r1 实施（产品模型预算 0），日志 lightgravity-pi-bounded-curntgtw.log，提示词 lg022-refix-r1-20261016.txt。独占 review/控制生命周期文件，后续必须另派独立复验。
+- 为避免共享 runtime 双写，LG-031 R1（lg031-r1 / fix/lg031-r1）已由 R1 owner 精确 SIGINT 保全，原始日志 lightgravity-pi-bounded-26vw_kwk.log，stop reason signal_2、sideEffects unknown。原 dirty、试验/模型调用记录必须先核实，不盲目重放；待核心 reviewer 生命周期修复后等价续接。主线 LG-031 仍 in-progress；原 d4c0815 只真测 reviewer 1 次，并未真测多 worker。
+- LG-037 已结束 dev/lg037@e713ea2：可选向量机制 39 检查通过，真实向量是替身；服务仍不可达，POST 0，Recall/排序未测，保持 in-progress，LG-040 不解锁。
+- LG-038 已结束 dev/lg038@80cbef7：Chat/Files 接入、预览校订检索与浏览器局部检查通过，尚待串行整合；其“归档复用 revoke”存在语义缺口，下一集成包必须区分可逆归档与撤销，不能以撤销充当整理归档完成。真实 OCR/vector/ASR 质量未宣通过。
+- LG-041 主代理已补 blocked_by 明确中文 ASR quality gate，防止因 LG-039 可行性报告 done 而错误 ready；不改变其 todo。该 PM dirty 与本节需由下一 pi 集成 owner 精确提交，禁止覆盖。
+- 当前待续接：结束 R1 → 合并 R1/037/038 并修最小归档语义 → 新独立 lg022-qa-r1 复验 → 核 LG-031 原 dirty/调用/残留进程再续接真实 SDK 闭环。准备提示词均在 ~/.cache/lightgravity-bot/checkpoints/2026-10-15/，原始受保护日志在 dispatch-logs；候选 OCR 服务恢复/授权样本异步问题尚未收到答复，继续其他独立任务。
+
+## 2026-10-16 第六批集成检查点（唯一串行集成 owner）
+
+本节覆盖旧检查点的最新事实；全部执行仍经 pi + 现有 DeepSeek，未推送/部署/发布。唯一集成 owner；主代理只 PM。产品真实模型/外部服务调用 **0**。
+
+- **集成前核对**：LG-022 R1 返修 owner 已结束（无残留 pi 进程）；`fix/lg022-r1@d07a4a6` clean；`dev/lg037@e713ea2`、`dev/lg038@80cbef7` clean。主代理两项授权 PM dirty（`PROGRESS.md`、`LG-041.md`）已先精确提交 `098c7cc`。
+- **整合候选 `integrate/batch6` @ `9698e8a`**（未推送）：`bed3d0c` 合 `fix/lg022-r1`（review 生命周期 D1/D2/D3 + 全局生成计数器）、`cf824be` 合 `dev/lg037`、`0313d04` 合 `dev/lg038`，全部 `--no-ff` 无冲突。旧分支/worktree/probes/dirty **全部保留**，未 reset/clean/覆盖/重复 pick。
+- **向量挂载**：`api/app.py` 加 `build_vector_router`（`/vector/status`、`/vector/search`、`/vector/rebuild`），默认禁用、env 配置、候选回源核对；`/search` 未回退。
+- **LG-038 归档语义修复（实质）**：原“归档复用 revoke”不能作为整理归档完成证据。新增**可逆归档**——`source.archived` 加性字段 + `archive`/`unarchive` 动作（+ 可选 `expected_revision`）；归档**保留**来源/权限/检索/打开，`revoke` 仍使资料不可用且原件保留。真实 HTTP 回归 3 项（归档后仍可查可开、revoke 失效且原件保留、幂等/版本冲突）+ 前端 2 项冒烟（Archive 绝不调 revoke）。tags 未冻结→明确不实现，不挡本项。038 保持 done 待 LG-040，注释如实更新。
+- **契约 `1.8.0 → 1.9.0`**（加性 MINOR，真实变更控制，保留 1.8/1.7/1.6 历史链）：docs08 §4.3/§6.6/§13 + README/agent/docs06/PROJECT 一致。
+- **集成检查（绑定 `9698e8a`）**：`uv run pytest -q` **754 passed, 2 skipped**；`uv run mypy` **136 files clean**；定向 sources/api/contracts **179 passed, 1 skipped**；前端 `tsc` 0 错、`vitest` **98 passed**、`npm run build` 成功。真实产品调用 0（已有结果只引用不重跑）。
+- **独立 QA 准备**：新分支 `qa/lg022-r1`（基于 `9698e8a`）+ 脚手架 `probes/lg022/reverify-r1/`；**本包未执行 QA**、未发真实请求；LG-022 原 claim 保持 in-progress；新 phase 预算 10，须先证明共享 forward 计数器。
+- **LG-031 续接准备**：新分支 `fix/lg031-r2`（基于 `9698e8a`）已把原 `fix/lg031-r1` 的 tracked 改动 + `probes/lg031/R1_*` untracked 证据**精确 WIP commit**（不 `add -A`）；原 `fix/lg031-r1` dirty 原样留存。**真实产品调用以 `probes/lg031/r1_worker_claim_probe.json` 为准**：R1 = 2 worker + 1 reviewer = **3**；原包 1；**累计 4/10，剩 ≤ 6**（交接日志的 turn_end 114/响应 224 是开发 pi 事件，不算产品请求）。未闭合项：autonomous-claim 定向测试在整合候选与原 base **均失败**（`plan_validation failed: config_invalid`，非整合回归），交下一 owner。
+- **状态如实**：LG-022 in-progress（待独立复验）；LG-017 done 待 022、不制造循环；LG-037/035 不假 done；LG-038 done 待 040；LG-040 不解锁；LG-041 quality gate 不解锁。未领取 023/024/032/040。
+- 本包结束先写持久 REPORT（本文件 + `probes/batch-20261016/INTEGRATION-6.md`），再精确本地 commit；main 未推送。

@@ -48,7 +48,7 @@ updated: "2026-10-15"
 - **LG-031 安全合回 `main`（`dev/lg031` `d4c0815`，`--no-ff`）**：保留 main 最新 021 状态/036 机制/022 claim；031 owner 已释放共享 `api/app.py`/`bootstrap.py`/docs08，本集成 owner 为唯一 writer，在同一次提交中一并加装 LG-036 `build_search_router()`（1 import + 1 `include_router`），`worker_identity`/`execution_grants` 注入保留，两侧安全接线。新协作默认关闭、程序权限/状态/预算/验收权威、无常驻模型编排。
 - **LG-036 `in-progress` → `done`（待版本 QA LG-040）**：真实默认 app 上 `GET /api/v1/search` → 200、缺失缓存诚实 `index_unavailable`/`hits=[]`、`POST` → 405（GET 只读）；集成候选 `pytest -q` **693 passed, 1 skipped**、mypy **130 files clean**。装配条件满足故 done；**不降 LG-035 真实 OCR 门、不动 LG-040 门**，无向量（LG-037 未实现）、无 Chat/Files UI（LG-038 未实现）。
 - **LG-031 保持 `in-progress`（真实运行硬条件未满足，非错误等 032 版本门）**：031 的 1 次 DeepSeek 只是**独立 reviewer**，不是 SDK 多 worker；**真实 Git + 进程内 fake executor** 不等于“真实 SDK 两 worker 发现/领取/交接/隔离执行”。不把完整 checkpoint skip 未实现夸大，不扩大恢复重放。预留连续实施分支 `fix/lg031-r1`（保留原 `dev/lg031`）。
-- **契约保持 `1.7.0`**：无新 schema 行为，不机械升版；docs08 §4.3/§5.1 仅同步实际实现状态（`GET /search` 已实现挂载；`source.indexed`/`source.invalidated` 已实际产生）。037 向量与 038 UI 未实现如实标。
+- **契约升至 `1.9.0`（返修后串行集成收拢，加性 MINOR）**：新增 `source.archived` 可逆归档字段与 `archive`/`unarchive` 动作（归档保留来源/检索/打开/权限，不是使资料不可用的 `revoke`；含可选 `expected_revision` 乐观并发），并挂载默认禁用的可选向量端点 `GET /vector/status`、`GET /vector/search`、`POST /vector/rebuild`（后端仅环境变量配置、候选回源核对、不可用时词法/原件仍可用）。此前 **契约升至 `1.8.0`（LG-022 R1，加性 MINOR）**：新增合法迁移方向 `verifying → recovery_required`、`repairing → recovery_required`（复核/返修阶段重启后未知副作用诚实停车，不重放）与只读诊断端点 `GET /api/v1/diagnostics/generation`（进程全局上游生成请求计数，转发前计数，供集中 QA 约束/观测全局硬上限）；D1/D2 为 reviewer 实现与生命周期修复，不改既有端点/枚举语义。037 向量与 038 UI 未实现如实标。
 - **就绪任务 CLI claim**：LG-031 合回后 LG-037（`agent:pi-lg037`）、LG-038（`agent:pi-lg038`）依赖满足，持久 worktree `lg037`/`lg038` 基于同一 claim commit；不复制 `.env`、不覆盖已有；LG-022 仍 `in-progress`，保留不重 claim。
 - **已知风险**：`tests/collaboration/test_claims.py::test_two_owner_race...` 为既有 discovery/lease 竞争偶发 `not_discoverable`；本轮全量单跑一次通过、单跑连跑 3 次通过，**未宣称其无害/无缺陷**，留 LG-032 固定判定口径。
 - 产品模型/外部服务调用 **0**；本项报告 [probes/batch-20261016/INTEGRATION-5.md](probes/batch-20261016/INTEGRATION-5.md)。
@@ -65,7 +65,7 @@ updated: "2026-10-15"
 - 去中心化按契约 → 原子领取/租约 → 同伴交接 → 隔离执行与 QA/返修整合 → 集中版本验收推进（LG-028～032）。模型提议和领取请求必须经程序授权，不引入常驻模型编排 agent，不放弃文件 SoT、权限、预算与人工验收。
 - 资料线按契约 → 原件摄取 → 图片/PDF OCR → 词法索引 → 可选 EmbeddingGemma 2 → Chat/Files 整合与集中验收推进（LG-033～040）。中文 ASR 先独立验证（LG-039），达标再接入及验收（LG-041）；不以向量代替文字，不要求独立向量数据库。
 - 契约和 ASR 验证可先准备，独立实现按真实依赖并行，共享 Store/Coordinator/API 由单 owner 串行集成；两个新版本的最终验收在既有 LG-022 首版验收后开展。LG-032 必须比较相同验收门下执行、QA、返修、复验与失败尝试的完整成本，不预先承诺收益。
-- 排期为阶段、依赖与验收门顺序，未承诺日历日期；中文 ASR 不达标不阻塞图片/PDF 与检索版本。邮箱、文件夹增量、网页抓取、Office 完整支持暂缓，不隐含纳入这次交付。当前契约已升 1.7.0（LG-017 返修 R1 加性：独立复核者设置角色/字段 `default_reviewer_connection_ref`、Task 返修账本 `reviewer`/`reviewer_kind`/`model_usage` 与 review/rework 事件 payload，明确程序机器门不等于独立复核、无 reviewer ⇒ `unavailable` 阻止 accept；1.6.0 的 LG-028 去中心化协作+LG-033 资料摄取/检索均仅接口、未实现），实现以该版为准，详见 [滚动排期](docs/06-roadmap.md)。
+- 排期为阶段、依赖与验收门顺序，未承诺日历日期；中文 ASR 不达标不阻塞图片/PDF 与检索版本。邮箱、文件夹增量、网页抓取、Office 完整支持暂缓，不隐含纳入这次交付。当前契约已升 1.9.0（返修后串行集成收拢加性：可逆归档字段/动作与可选向量端点挂载；1.8.0 LG-022 R1 加性：`verifying`/`repairing → recovery_required` 与全局生成计数诊断端点；1.7.0 为 LG-017 返修 R1 加性：独立复核者设置角色/字段 `default_reviewer_connection_ref`、Task 返修账本 `reviewer`/`reviewer_kind`/`model_usage` 与 review/rework 事件 payload，明确程序机器门不等于独立复核、无 reviewer ⇒ `unavailable` 阻止 accept；1.6.0 的 LG-028 去中心化协作+LG-033 资料摄取/检索均仅接口、未实现），实现以该版为准，详见 [滚动排期](docs/06-roadmap.md)。
 
 ### 2026-10-15：产品定位扩展为个人 AI 工作助手
 

@@ -1,0 +1,45 @@
+[
+  {
+    "name": "chat material intake present",
+    "ok": true,
+    "detail": "{\"hasChat\":true,\"hasMaterials\":true,\"mentionsNoTask\":true,\"hasRecordLink\":true,\"hasSearch\":true}"
+  },
+  {
+    "name": "chat states no delivery Task",
+    "ok": true
+  },
+  {
+    "name": "chat link record + search inputs",
+    "ok": true
+  },
+  {
+    "name": "search returns a real source hit",
+    "ok": true,
+    "detail": "{\"ok\":true,\"text\":\"invoice.txt\\nverified\\nv1\\n\\n…ice.txt page=1 input_sha256=0000000000000000000000000000000000000000000000000000000000000000 --> Invoice LG038-001 total 9,999.00 due 2026-10-16\\n\\nsource_01M500TVXR3AZQBXNACF1EVNJ4\\n#58db9d0"
+  },
+  {
+    "name": "hit shows version + hash",
+    "ok": true,
+    "detail": "invoice.txt\nverified\nv1\n\n…ice.txt page=1 input_sha256=0000000000000000000000000000000000000000000000000000000000000000 --> Invoice LG038-001 total 9,999.00 due 2026-10-16\n\nsource_01M500TVXR3AZQBXNACF1EVNJ4\n#58db9d0b11e5\nbasis: machine\nOpen in Files"
+  },
+  {
+    "name": "Files opens the same source in Materials",
+    "ok": true,
+    "detail": "{\"ok\":true,\"hasMaterials\":true,\"hasFacts\":true,\"mentionsSameSource\":true}"
+  },
+  {
+    "name": "layout 1440px no horizontal overflow",
+    "ok": true,
+    "detail": "{\"w\":1440,\"nav\":true,\"settings\":true,\"overflow\":false}"
+  },
+  {
+    "name": "layout 1024px no horizontal overflow",
+    "ok": true,
+    "detail": "{\"w\":1024,\"nav\":true,\"settings\":true,\"overflow\":false}"
+  },
+  {
+    "name": "layout 390px no horizontal overflow",
+    "ok": true,
+    "detail": "{\"w\":390,\"nav\":true,\"settings\":false,\"overflow\":false}"
+  }
+]

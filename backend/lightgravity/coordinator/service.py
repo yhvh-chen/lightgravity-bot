@@ -165,6 +165,7 @@ class ReworkReviewer(Protocol):
         *,
         request_id: str | None = None,
         note: str | None = None,
+        stop_event: Any | None = None,
     ) -> Any: ...
 
 
@@ -336,6 +337,17 @@ class Coordinator:
         self._loop_task: asyncio.Task[None] | None = None
         self._stopping = False
         self._last_recovery: RecoveryReport | None = None
+        #: LG-022 R1: independent-reviewer lifecycle so a review runs off the
+        #: coordinator event loop and can be stopped with confirmation.  Shared
+        #: with the control service so pause/cancel can stop a running reviewer.
+        from lightgravity.verify.review_lifecycle import ReviewLifecycle
+
+        self._review_lifecycle = ReviewLifecycle()
+        #: Runs whose candidate passed review and still need the machine verify
+        #: step; drained by the worker loop so the loop stays responsive during
+        #: a long independent review (LG-022 D2).
+        self._pending_auto_verify: list[tuple[str, str]] = []
+        self._control.set_review_lifecycle(self._review_lifecycle)
         #: LG-017 bounded rework queue: (task_id, findings) drained by the
         #: worker loop.  Kept in memory because the Task frontmatter already
         #: records ``review_findings``; a restart re-derives rework from the
@@ -371,6 +383,16 @@ class Coordinator:
     @property
     def active_run_id(self) -> str | None:
         return self._active_run_id
+
+    @property
+    def review_lifecycle(self) -> Any:
+        """The independent-reviewer lifecycle (LG-022 R1)."""
+
+        from lightgravity.verify.review_lifecycle import ReviewLifecycle
+
+        if not isinstance(self._review_lifecycle, ReviewLifecycle):  # pragma: no cover
+            self._review_lifecycle = ReviewLifecycle()
+        return self._review_lifecycle
 
     def set_verification(self, verification: CandidateVerifier | None) -> None:
         """Attach/replace the verification port (used by ``create_app`` so an
@@ -1000,6 +1022,14 @@ class Coordinator:
                     raise
 
     async def _process_one(self) -> bool:
+        # LG-022 D2: drain any pending independent-review step first.  The review
+        # runs off this loop (see ``_auto_verify_async``), so status/control are
+        # still served while it is in flight.
+        if self._pending_auto_verify:
+            task_id, run_id = self._pending_auto_verify[0]
+            self._pending_auto_verify.pop(0)
+            await self._auto_verify_async(task_id, run_id)
+            return True
         # LG-017 rework Runs are dispatched directly (the frozen contract allows
         # ``repairing -> executing``, not ``repairing -> queued``), so they are
         # drained here *before* the normal queue.  A rework Run still opens a
@@ -1489,7 +1519,10 @@ class Coordinator:
         run_extra: dict[str, Any] = {}
         if run_state in {"failed", "cancelled"}:
             run_extra["ended_at"] = _now_iso()
-        if outcome.failure_message or outcome.summary:
+        # LG-022 D3: only a real failure/cancellation may carry ``fail_reason``.
+        # A succeeded Run whose summary is just "all N subtask(s) passed" must
+        # not be presented as failed to the Board/UI.
+        if run_state in {"failed", "cancelled"} and (outcome.failure_message or outcome.summary):
             run_extra["fail_reason"] = outcome.failure_message or outcome.summary
         self._writer.transition_run(
             run_id,
@@ -1519,7 +1552,10 @@ class Coordinator:
                 run_ref=run_id,
             )
         if run_state == "verifying":
-            self._auto_verify(task_id, run_id)
+            # LG-022 D2: do not run the (potentially long) independent review
+            # inline on this event loop.  Queue it so the worker loop can drain
+            # it while continuing to serve status/control.
+            self._pending_auto_verify.append((task_id, run_id))
 
     def _auto_verify(self, task_id: str, run_id: str) -> None:
         """Run independent review, then machine verification, after delivery.
@@ -1547,6 +1583,91 @@ class Coordinator:
         if rework is not None:
             try:
                 outcome = rework.process(task_id, request_id=f"auto-review:{run_id}")
+            except Exception as exc:  # noqa: BLE001 - never let review crash the loop
+                self._writer.emit(
+                    task_id,
+                    EventType.ERROR_RECORDED,
+                    {
+                        "mode": "review",
+                        "code": "internal_error",
+                        "message": f"independent review failed: {type(exc).__name__}: {exc}",
+                    },
+                    task_ref=task_id,
+                    run_ref=run_id,
+                )
+                return
+            state = str(getattr(outcome, "state", ""))
+            if state != "awaiting_acceptance":
+                # rework / unavailable / exhausted: do not open acceptance here.
+                return
+
+        if verifier is None:
+            return
+        try:
+            verifier.verify_and_prepare(task_id, request_id=f"auto-verify:{run_id}")
+        except Exception as exc:  # noqa: BLE001 - never let verification crash the loop
+            self._writer.emit(
+                task_id,
+                EventType.ERROR_RECORDED,
+                {
+                    "mode": "verify",
+                    "code": "internal_error",
+                    "message": f"automatic verification failed: {type(exc).__name__}: {exc}",
+                },
+                task_ref=task_id,
+                run_ref=run_id,
+            )
+
+    async def _auto_verify_async(self, task_id: str, run_id: str) -> None:
+        """Non-blocking independent review + machine verify (LG-022 R1 / D2).
+
+        Same order/semantics as :meth:`_auto_verify`, but the (long) synchronous
+        review runs on the reviewer lifecycle's worker thread via the loop's
+        default executor, so the coordinator event loop keeps serving status and
+        control while the review is in flight.  A stop request (pause/cancel)
+        sets the lifecycle stop event; the runner observes it at a safe boundary
+        and raises :class:`ReviewStopped`, which we report honestly without
+        fabricating a review outcome.
+        """
+
+        from lightgravity.verify.review_lifecycle import (
+            ReviewStopped,
+            run_review_off_loop,
+        )
+
+        verifier = self._verification
+        rework = self._resolved_rework()
+        lifecycle = self.review_lifecycle
+        if rework is not None:
+            loop = asyncio.get_running_loop()
+
+            def runner(stop_event: Any) -> Any:
+                return rework.process(
+                    task_id,
+                    request_id=f"auto-review:{run_id}",
+                    stop_event=stop_event,
+                )
+
+            try:
+                outcome = await run_review_off_loop(
+                    loop, lifecycle, task_id, run_id, runner
+                )
+            except ReviewStopped:
+                # Honest stop: the reviewer was asked to stop and did.  Do not
+                # spend a round or open acceptance; the Run/phase is owned by
+                # the control path that requested the stop.
+                self._writer.emit(
+                    task_id,
+                    EventType.ERROR_RECORDED,
+                    {
+                        "mode": "review",
+                        "code": "review_stopped",
+                        "message": "independent review stopped by control request",
+                    },
+                    task_ref=task_id,
+                    run_ref=run_id,
+                )
+                return
             except Exception as exc:  # noqa: BLE001 - never let review crash the loop
                 self._writer.emit(
                     task_id,

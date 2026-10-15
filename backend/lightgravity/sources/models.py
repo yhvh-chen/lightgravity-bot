@@ -195,6 +195,18 @@ class SourceRecord:
         return value if isinstance(value, str) and value else None
 
     @property
+    def archived(self) -> bool:
+        """Reversible organizational archive flag (docs/08 §6.6).
+
+        This is **not** the invalidating ``revoke`` state (which sets
+        ``status=archived``).  An archived source keeps its origin, scope,
+        permissions, retrievability and openability; only ``revoke``/``delete``
+        make it unavailable.  Absent means ``False``.
+        """
+
+        return bool(self.entity.get("archived", False))
+
+    @property
     def etag(self) -> str:
         return f'"{self.revision}"'
 

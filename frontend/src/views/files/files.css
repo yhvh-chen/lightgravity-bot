@@ -271,3 +271,90 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------------------------------------------------------------- materials */
+/* LG-038: Files Materials surface (same source state as Chat). Minimal. */
+
+.lg-files__surface-tabs {
+  display: flex;
+  gap: var(--lg-space-1);
+}
+
+.lg-files__surface-tab {
+  padding: var(--lg-space-1) var(--lg-space-3);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-panel);
+  color: var(--lg-color-text-muted);
+  font: inherit;
+  font-size: var(--lg-font-size-sm);
+  cursor: pointer;
+}
+
+.lg-files__surface-tab.is-active {
+  background: var(--lg-color-accent-soft);
+  color: var(--lg-color-accent);
+  border-color: var(--lg-color-accent);
+}
+
+.lg-files-materials {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+}
+
+.lg-files-materials__body {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) 1fr;
+  gap: var(--lg-space-3);
+}
+
+.lg-files-materials__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-files-materials__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-3);
+  margin: 0;
+}
+
+.lg-files-materials__facts dt {
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-subtle);
+}
+
+.lg-files-materials__facts dd {
+  margin: 0;
+  font-size: var(--lg-font-size-sm);
+  color: var(--lg-color-text);
+}
+
+.lg-files-materials__editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+}
+
+.lg-files-materials__textarea {
+  min-height: 160px;
+  font-family: var(--lg-font-mono, monospace);
+}
+
+.lg-files-materials__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-2);
+}
+
+@media (max-width: 700px) {
+  .lg-files-materials__body {
+    grid-template-columns: 1fr;
+  }
+}

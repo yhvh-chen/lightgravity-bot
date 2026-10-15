@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import http.server
 import json
+import os
 import re
 import secrets
 import threading
@@ -55,6 +56,91 @@ MAX_REQUEST_BYTES = 16 * 1024 * 1024
 _CHAT_SUFFIX = "/chat/completions"
 
 _MODEL_RE = re.compile(rb'"model"\s*:\s*"([^"]+)"')
+
+
+class GenerationCounter:
+    """Process-global hard cap on upstream chat-completion requests (LG-022 R1).
+
+    LG-022 QA could not state a real limit on product model calls because the
+    per-proxy budgets reset for every session/reviewer/retry.  This counter is
+    shared by every :class:`LocalAuthProxy` in the process and is consulted
+    *before* a request is forwarded, so a genuinely global hard cap covers all
+    worker sessions, reviewer turns and SDK retries.  A denied reservation is
+    reported to the caller as the same 429 budget-exhausted response as the
+    per-proxy cap.
+
+    ``reserve`` is thread-safe.  ``None`` as ``limit`` means "count only, no
+    cap" (used when an operator wants observability without a limit).
+    """
+
+    def __init__(self, limit: int | None = None) -> None:
+        if limit is not None and limit < 0:
+            raise ValueError("generation limit must be >= 0 or None")
+        self._limit = limit
+        self._lock = threading.Lock()
+        self._count = 0
+
+    @property
+    def limit(self) -> int | None:
+        return self._limit
+
+    @property
+    def count(self) -> int:
+        with self._lock:
+            return self._count
+
+    def reserve(self) -> bool:
+        """Reserve one global generation slot; ``False`` if the cap is reached."""
+
+        with self._lock:
+            if self._limit is not None and self._count >= self._limit:
+                return False
+            self._count += 1
+            return True
+
+    def snapshot(self) -> dict[str, Any]:
+        with self._lock:
+            return {
+                "count": self._count,
+                "limit": self._limit,
+                "remaining": (
+                    None if self._limit is None else max(0, self._limit - self._count)
+                ),
+            }
+
+
+def _default_generation_counter() -> GenerationCounter:
+    """Return the process-wide counter lazily (no import-time env coupling)."""
+
+    global _GLOBAL_GENERATION_COUNTER
+    if _GLOBAL_GENERATION_COUNTER is None:
+        _GLOBAL_GENERATION_COUNTER = GenerationCounter(_limit_from_env())
+    return _GLOBAL_GENERATION_COUNTER
+
+
+def _limit_from_env() -> int | None:
+    raw = os.environ.get("LIGHTGRAVITY_MAX_GENERATION_CALLS")
+    if raw is None or raw.strip() == "":
+        return None
+    try:
+        value = int(raw)
+    except ValueError:
+        return None
+    return value if value >= 0 else None
+
+
+def global_generation_counter() -> GenerationCounter:
+    """Return the shared process-global generation counter (LG-022 R1).
+
+    QA/status surfaces can read ``count``/``limit``/``remaining`` to obtain a
+    real, cross-session generation count instead of an unknown.
+    """
+
+    return _default_generation_counter()
+
+
+#: Process-global counter shared by all proxies unless one is injected.
+_GLOBAL_GENERATION_COUNTER: GenerationCounter | None = None
 
 
 def _extract_model(payload: bytes) -> str | None:
@@ -117,6 +203,7 @@ class _ProxyState:
         session_token: str,
         max_calls: int,
         timeout: float,
+        generator_budget: "GenerationCounter | None" = None,
     ) -> None:
         self.credential = credential
         self.upstream_url = upstream_url
@@ -128,10 +215,20 @@ class _ProxyState:
         self.records: list[ProxyCallRecord] = []
         self.upstream_model: str | None = None
         self.lock = threading.Lock()
+        #: LG-022 R1: optional process-global generation counter.  When set, every
+        #: chat completion is counted *before* it is forwarded, across all
+        #: proxies (worker sessions, reviewer turns, retries), so an external QA
+        #: can enforce/observe a real global hard cap instead of per-proxy
+        #: unknowns.  ``None`` keeps the legacy per-proxy behaviour.
+        self.generator_budget = generator_budget
 
     def begin_call(self) -> int | None:
         with self.lock:
             if not self.active or self.calls >= self.max_calls:
+                return None
+            # Reserve a global generation slot *before* forwarding.  A denied
+            # global slot is a hard stop and consumes no local call either.
+            if self.generator_budget is not None and not self.generator_budget.reserve():
                 return None
             self.calls += 1
             return self.calls
@@ -325,6 +422,7 @@ class LocalAuthProxy:
         max_calls: int = 64,
         timeout: float = 120.0,
         allow_loopback_upstream: bool = False,
+        generation_budget: GenerationCounter | None = None,
     ) -> None:
         if host not in LOOPBACK_HOSTS or host == "localhost":
             raise CapabilityUnavailable(
@@ -352,12 +450,22 @@ class LocalAuthProxy:
             )
         self._host = host
         self._requested_port = port
+        # LG-022 R1: share the process-global generation counter by default so
+        # worker sessions, reviewer turns and retries all consume one real hard
+        # cap.  A caller may inject its own counter (tests) or ``None`` to keep
+        # only the per-proxy counter.
+        resolved_budget = (
+            generation_budget
+            if generation_budget is not None
+            else _default_generation_counter()
+        )
         self._state = _ProxyState(
             credential=credential,
             upstream_url=upstream_url,
             session_token=session_token or secrets.token_urlsafe(24),
             max_calls=max_calls,
             timeout=timeout,
+            generator_budget=resolved_budget,
         )
         self._server: http.server.ThreadingHTTPServer | None = None
         self._thread: threading.Thread | None = None
@@ -485,7 +593,9 @@ __all__ = [
     "AUTHORIZED_UPSTREAM_HOSTS",
     "DEEPSEEK_UPSTREAM_URL",
     "MAX_REQUEST_BYTES",
+    "GenerationCounter",
     "ProxyCallRecord",
     "LocalAuthProxy",
+    "global_generation_counter",
     "upstream_chat_completions",
 ]

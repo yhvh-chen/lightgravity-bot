@@ -24,7 +24,7 @@ The module never touches files directly: all writes go through
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from lightgravity.contracts import AppError, ErrorCode, EventType, TaskPhase
 from lightgravity.store import EntityNotFound, Store
@@ -32,6 +32,9 @@ from lightgravity.store import EntityNotFound, Store
 from .dispatcher import Dispatcher
 from .queue import TaskQueue
 from .state import StateWriter, TERMINAL_RUN_STATES
+
+if TYPE_CHECKING:  # pragma: no cover - import cycle guard
+    from lightgravity.verify.review_lifecycle import ReviewLifecycle
 
 #: Phases from which a Task may be resumed into the queue.
 RESUMABLE_PHASES: frozenset[str] = frozenset(
@@ -105,6 +108,13 @@ class ControlService:
         self._queue = queue
         self._dispatcher = dispatcher
         self._owner = owner
+        #: LG-022 R1 independent-reviewer lifecycle (set by the coordinator).
+        self._review_lifecycle: "ReviewLifecycle | None" = None
+
+    def set_review_lifecycle(self, lifecycle: "ReviewLifecycle | None") -> None:
+        """Attach the reviewer lifecycle so pause/cancel can stop a review."""
+
+        self._review_lifecycle = lifecycle
 
     # ------------------------------------------------------------------ stop
     async def stop(self, task_id: str, action: str) -> ControlOutcome:
@@ -125,7 +135,7 @@ class ControlService:
                 self._writer.transition_task(
                     task_id, TaskPhase.CANCELLING, run_ref=active_run
                 )
-        else:
+        elif action == "pause":
             if phase == TaskPhase.EXECUTING.value:
                 self._writer.transition_task(
                     task_id, TaskPhase.PAUSING, run_ref=active_run
@@ -134,6 +144,13 @@ class ControlService:
                 self._writer.transition_task(
                     task_id, TaskPhase.PAUSED, run_ref=active_run
                 )
+            elif phase in {TaskPhase.VERIFYING.value, TaskPhase.REPAIRING.value}:
+                # LG-022 R1: the independent reviewer can be the long-running
+                # thing in ``verifying``.  ``verifying -> pausing`` is not a
+                # frozen transition, so a confirmed reviewer stop parks the Task
+                # at ``waiting_user`` and the same action then moves it to
+                # ``paused`` (both legal), preserving the candidate.
+                pass
             else:
                 return ControlOutcome(
                     action=action,
@@ -144,10 +161,58 @@ class ControlService:
                     phase=phase,
                     reason=f"phase {phase!r} does not allow {action}",
                 )
+        else:
+            return ControlOutcome(
+                action=action,
+                state="not_applicable",
+                confirmed=False,
+                task_id=task_id,
+                run_id=active_run,
+                phase=phase,
+                reason=f"phase {phase!r} does not allow {action}",
+            )
 
         cancel_result = await self._dispatcher.cancel(task_id, active_run)
         confirmed = bool(getattr(cancel_result, "confirmed", False))
         reason = getattr(cancel_result, "reason", None) or None
+
+        # LG-022 R1 (D2): an independent review may be the thing that is really
+        # running while the dispatcher's ``_inflight`` is empty.  Stop the
+        # reviewer too and require its real stop confirmation; an unconfirmed
+        # (unknown) reviewer stop keeps the intermediate phase and the slot.
+        reviewing = self._review_lifecycle is not None and self._review_lifecycle.is_reviewing(
+            task_id, active_run
+        )
+        if reviewing:
+            review_stop = await self._review_lifecycle.request_stop_async(  # type: ignore[union-attr]
+                task_id, active_run
+            )
+            if not review_stop.confirmed:
+                self._record_review_stop_unconfirmed(task_id, active_run, action, review_stop.reason)
+                return ControlOutcome(
+                    action=action,
+                    state="unconfirmed",
+                    confirmed=False,
+                    task_id=task_id,
+                    run_id=active_run,
+                    phase=str(self._store.read("task", task_id).entity.get("phase")),
+                    reason=review_stop.reason,
+                )
+            # Reviewer really stopped.  The dispatcher cancel above may have
+            # reported ``not_found`` because the worker had already returned;
+            # the confirmed reviewer stop is sufficient to proceed.
+            confirmed = True
+            reason = reason or review_stop.reason
+        elif not confirmed and phase in {
+            TaskPhase.VERIFYING.value,
+            TaskPhase.REPAIRING.value,
+        }:
+            # Nothing is executing/reviewing; a stop request on an idle
+            # verify/repair phase has nothing left to stop, so the slot release
+            # is confirmed honestly rather than reported as unconfirmed.
+            confirmed = True
+            reason = reason or "no executor or reviewer running; slot released"
+
         if not confirmed:
             self._record_unconfirmed(task_id, active_run, action, reason)
             return ControlOutcome(
@@ -170,6 +235,15 @@ class ControlService:
         else:
             self._writer.transition_run(active_run, "paused", task_ref=task_id, reason=reason)
             cleanup = self._finalize_stop(task_id, active_run)
+            current_phase = str(self._store.read("task", task_id).entity.get("phase"))
+            if current_phase in {TaskPhase.VERIFYING.value, TaskPhase.REPAIRING.value}:
+                # Legal two-step for a pause during independent review: park at
+                # ``waiting_user`` first, then move to ``paused`` (both frozen
+                # directions exist) so the candidate/evidence are retained.
+                self._writer.transition_task(
+                    task_id, TaskPhase.WAITING_USER, run_ref=active_run,
+                    reason="independent review stopped by pause request",
+                )
             self._writer.transition_task(task_id, TaskPhase.PAUSED, run_ref=active_run)
         self._release_claim(task_id)
         return ControlOutcome(
@@ -242,6 +316,28 @@ class ControlService:
                 "code": "cancellation_unconfirmed",
                 "action": action,
                 "message": reason or f"{action} not confirmed within timeout",
+            },
+            task_ref=task_id,
+            run_ref=run_id,
+        )
+
+    def _record_review_stop_unconfirmed(
+        self, task_id: str, run_id: str, action: str, reason: str
+    ) -> None:
+        """Record an unconfirmed independent-reviewer stop (LG-022 D2).
+
+        The task keeps its ``cancelling``/``pausing`` phase and its execution
+        slot; we never fabricate a stop or release the slot on ``unknown``.
+        """
+
+        self._writer.emit(
+            task_id,
+            EventType.ERROR_RECORDED,
+            {
+                "mode": "control",
+                "code": "review_stop_unconfirmed",
+                "action": action,
+                "message": reason,
             },
             task_ref=task_id,
             run_ref=run_id,

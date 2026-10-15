@@ -75,6 +75,7 @@ from .resources import build_resource_router
 from .search import build_search_router
 from .sources import build_sources_router
 from .tasks import build_task_router
+from .vector import build_vector_router
 
 _STATUS_TO_CODE: dict[int, ErrorCode] = {
     400: ErrorCode.INVALID_REQUEST,
@@ -235,6 +236,7 @@ def create_app(
     app.include_router(build_files_router(), prefix=API_PREFIX)
     app.include_router(build_sources_router(), prefix=API_PREFIX)
     app.include_router(build_search_router(), prefix=API_PREFIX)
+    app.include_router(build_vector_router(), prefix=API_PREFIX)
     app.include_router(build_collaboration_router(), prefix=API_PREFIX)
     app.include_router(build_events_router(), prefix=API_PREFIX)
     app.include_router(build_notifications_router(), prefix=API_PREFIX)

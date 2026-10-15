@@ -11,6 +11,7 @@ export type IconName =
   | 'chat'
   | 'board'
   | 'files'
+  | 'link'
   | 'team'
   | 'resources'
   | 'settings'
@@ -28,6 +29,7 @@ const PATHS: Record<IconName, string> = {
   chat: 'M4 5h16v10H8l-4 4V5z',
   board: 'M4 4h5v16H4zM10 4h4v9h-4zM15 4h5v13h-5z',
   files: 'M4 5a1 1 0 0 1 1-1h5l2 2h7a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z',
+  link: 'M10 14a4 4 0 0 1 0-6l1-1a4 4 0 0 1 6 6l-1 1M14 10a4 4 0 0 1 0 6l-1 1a4 4 0 0 1-6-6l1-1',
   team: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20a6 6 0 0 1 12 0M17 11a3 3 0 1 0 0-6M16 20a5 5 0 0 1 5-5',
   resources: 'M12 3l8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9',
   settings:
