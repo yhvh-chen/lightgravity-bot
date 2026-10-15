@@ -1,0 +1,29 @@
+{
+  "N1_unknown_run_refused": {
+    "confirmed": false,
+    "problems": [
+      "recorded stop facts do not cover this run/session set"
+    ]
+  },
+  "N2_unknown_session_refused": {
+    "confirmed": false,
+    "unknown": [
+      "sess_71642b2e0f464386b2d728d0a5eb4fd0",
+      "sess_70d2218f15984a44abe197e03f729cfd",
+      "sess_30a2f91b30104e67ba0d3f953d8190f2",
+      "sess_3ece31f8e8bf4b8389f17444408a2f23",
+      "sess_ee17a17e02e74a0f8f399b14615b2831",
+      "sess_unknown_xxxxxxxx"
+    ]
+  },
+  "N3_alive_origin_refused": {
+    "confirmed": false,
+    "problems": [
+      "loopback auth proxy not confirmed stopped from recorded facts"
+    ]
+  },
+  "N4_binding_mismatch_unavailable": {
+    "outcome": "unavailable",
+    "refusal": "run_id 'run_wrong' != 'run_01M50GARZGSWF8KVJM2PVRZWWC'; plan_hash 'deadbeef' != '85f226e08d87bf60628e553489ab56eb77880a1baee28d1abd9835bcb3ccbc98'; requirements_revision 999 != 1; resolved evidence binding differs: current=[] expected=['evidence:run_01M50GARZGSWF8KVJM2PVRZWWC/subtask_01M50GAS2WDVT8C09BD0TZ7ZKN-lg006-diff.patch@sha256:a975a8c5c4fd38766f3532d6f971c643db1e43b2d36252fe2b1ed96bca3f4e2b', 'evidence:run_01M50GARZGSWF8KVJM2PVRZWWC/subtask_01M50GAS2WDXS97C3XCF25VA2M-lg006-diff.patch@sha256:6f94ea5f7a5dbd1f78261475c4703398d39aed468a3e5edcce87e2b92ac5bf25']"
+  }
+}

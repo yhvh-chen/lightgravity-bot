@@ -1,0 +1,6 @@
+# LG-031 PROOF2-CLOSE: private raw proof data stays on disk (never committed).
+# Only the redacted evidence summaries / manifests / hash anchors are committed.
+fixtures/**
+__pycache__/
+evidence/close-proof2.json
+evidence/negative-controls.json
