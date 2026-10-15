@@ -2,7 +2,8 @@
 title: "LG-032 COHORT2 独立 serial 方法 QA — STATUS"
 doc_type: status
 category: engineering
-status: "round 9–35：SERIAL-R1 门 1/2/3 PASS；门4 部分（缺 cohort2 正式入口 runner）；REPORT 初版已落；0 real provider"
+status: "round 9–36：SERIAL-R1 门 1/2/3 PASS；门4 PARTIAL（缺 cohort2 正式入口 runner）；REPORT 初版已落并 commit 41e0370；0 real provider；本包不采样"
+commit: "41e0370（QA 包 commit）；base 8098514"
 experiment_id: lg032-cohort2-qa-20261016
 worktree: /home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa
 branch: qa/lg032-cohort2
@@ -39,6 +40,14 @@ owner: "agent:pi-lg032-cohort2-qa"
 - [x] QA 独立 overlay `overlay/qa_mode_config.py`（正式 driver 字节只读，仅重定向路径常量）。
 - [x] `qa_serial_chain.py` + `evidence/serial-chain-20261015T210510Z.json`。
 - [x] REPORT 初版 `REPORT-SERIAL-R1.md`。
+
+## 最终（round 36；<70 保存）
+
+- 精确 commit `41e0370`（仅新增 `probes/lg032/COHORT2-QA/**`）；QA worktree clean；fix worktree 未碰。
+- 产品 tree `55e4de56…` 不变；旧 cohort1 证据/报告 byte-identical（`s1_units__A`、`s2_pipeline__A`、`FORMAL-REPORT` blob 同）；
+  旧 87 ledger 保留（`lg032-method-final-data` count=87，未碰）。
+- 未创建 `lg032-cohort2-data`；未 mark 032 done；未 main merge。
+- **不自修 harness**：门 4 缺正式入口 runner 如实上报，QA 不新增正式路径；交 PM 另派作者补齐后冻结。
 
 ## 阶段判断（round 30+；70 round 前保存）
 
