@@ -1,0 +1,886 @@
+{
+  "queries": [
+    {
+      "q": "Q_IMG_ZH",
+      "text": "老子 道德經 註解 學說",
+      "type": "positive_crossmodal_image",
+      "relevant": [
+        "M_IMG_ZH"
+      ],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_1KM4HYBN3MX3SMJPKW617HE622",
+          "D1",
+          null,
+          null
+        ],
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2",
+          null,
+          null
+        ],
+        [
+          "source_5YTYNYNHBEAR59DDZYYK44D9MH",
+          "D3",
+          null,
+          null
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5",
+          null,
+          null
+        ],
+        [
+          "source_70M0207JXW4318R6RSEQ0C6GH3",
+          "T_NORTHWIND",
+          null,
+          null
+        ]
+      ],
+      "lexical_hits": [],
+      "latency": 0.062
+    },
+    {
+      "q": "Q_IMG_EN",
+      "text": "quick brown dog jumped over the lazy fox",
+      "type": "positive_crossmodal_image",
+      "relevant": [
+        "M_IMG_EN"
+      ],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_52Y0FWFPWGJC716BAGKFP0RHA9",
+          "M_IMG_EN",
+          null,
+          null
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6",
+          null,
+          null
+        ],
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2",
+          null,
+          null
+        ],
+        [
+          "source_1KM4HYBN3MX3SMJPKW617HE622",
+          "D1",
+          null,
+          null
+        ],
+        [
+          "source_70M0207JXW4318R6RSEQ0C6GH3",
+          "T_NORTHWIND",
+          null,
+          null
+        ]
+      ],
+      "lexical_hits": [],
+      "latency": 0.059
+    },
+    {
+      "q": "Q_AUD_LANG",
+      "text": "Chinese language 中文 spoken language",
+      "type": "positive_crossmodal_audio",
+      "relevant": [
+        "M_AUD_ZH"
+      ],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_0YG24QWMWTZ7Y1QAN4FZVTGE5Y",
+          "M_AUD_ZH",
+          null,
+          null
+        ],
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2",
+          null,
+          null
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6",
+          null,
+          null
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5",
+          null,
+          null
+        ],
+        [
+          "source_70M0207JXW4318R6RSEQ0C6GH3",
+          "T_NORTHWIND",
+          null,
+          null
+        ]
+      ],
+      "lexical_hits": [],
+      "latency": 0.051
+    },
+    {
+      "q": "Q_AUD_EARTH",
+      "text": "地球 Earth 發音 spoken word",
+      "type": "positive_crossmodal_audio",
+      "relevant": [
+        "M_AUD_DIQIU"
+      ],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_67262NY4ZC3T53H0Y3PCR59Q9H",
+          "M_AUD_DIQIU",
+          null,
+          null
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6",
+          null,
+          null
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5",
+          null,
+          null
+        ],
+        [
+          "source_0YG24QWMWTZ7Y1QAN4FZVTGE5Y",
+          "M_AUD_ZH",
+          null,
+          null
+        ],
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2",
+          null,
+          null
+        ]
+      ],
+      "lexical_hits": [],
+      "latency": 0.061
+    },
+    {
+      "q": "Q_TXT_ZH",
+      "text": "北風 跟 太陽 爭論 誰的本事大",
+      "type": "positive_text_zh",
+      "relevant": [
+        "T_NORTHWIND"
+      ],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_70M0207JXW4318R6RSEQ0C6GH3",
+          "T_NORTHWIND",
+          null,
+          null
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5",
+          null,
+          null
+        ],
+        [
+          "source_67262NY4ZC3T53H0Y3PCR59Q9H",
+          "M_AUD_DIQIU",
+          null,
+          null
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6",
+          null,
+          null
+        ],
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2",
+          null,
+          null
+        ]
+      ],
+      "lexical_hits": [
+        [
+          "source_70M0207JXW4318R6RSEQ0C6GH3",
+          "T_NORTHWIND"
+        ]
+      ],
+      "latency": 0.062
+    },
+    {
+      "q": "Q_NEG_ZH",
+      "text": "量子色動力學 膠子 強相互作用",
+      "type": "negative_control",
+      "relevant": [],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2",
+          null,
+          null
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6",
+          null,
+          null
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5",
+          null,
+          null
+        ],
+        [
+          "source_1KM4HYBN3MX3SMJPKW617HE622",
+          "D1",
+          null,
+          null
+        ],
+        [
+          "source_70M0207JXW4318R6RSEQ0C6GH3",
+          "T_NORTHWIND",
+          null,
+          null
+        ]
+      ],
+      "lexical_hits": [],
+      "latency": 0.052
+    },
+    {
+      "q": "Q_NEG_EN",
+      "text": "2024 annual financial statement net profit",
+      "type": "negative_control",
+      "relevant": [],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2",
+          null,
+          null
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5",
+          null,
+          null
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6",
+          null,
+          null
+        ],
+        [
+          "source_1KM4HYBN3MX3SMJPKW617HE622",
+          "D1",
+          null,
+          null
+        ],
+        [
+          "source_67262NY4ZC3T53H0Y3PCR59Q9H",
+          "M_AUD_DIQIU",
+          null,
+          null
+        ]
+      ],
+      "lexical_hits": [],
+      "latency": 0.05
+    }
+  ],
+  "index": [
+    {
+      "kind": "corpus_text",
+      "source_id": "source_1KM4HYBN3MX3SMJPKW617HE622",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "text"
+      ],
+      "latency": 0.125,
+      "doc": "D1",
+      "text_sha256": "2267f1c6d33c85edff1f7c709c39535efc053b298873e7f3b06a652e99fb1049"
+    },
+    {
+      "kind": "corpus_text",
+      "source_id": "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "text"
+      ],
+      "latency": 0.045,
+      "doc": "D2",
+      "text_sha256": "fe54758ed038143a0cd1a564c692604d6c25f135a5854799e2b6aa95d438d104"
+    },
+    {
+      "kind": "corpus_text",
+      "source_id": "source_5YTYNYNHBEAR59DDZYYK44D9MH",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "text"
+      ],
+      "latency": 0.047,
+      "doc": "D3",
+      "text_sha256": "20e819f328c63c6b5b4ffebee4ffba30784c44fe1b1323ec893705a3a1604f30"
+    },
+    {
+      "kind": "corpus_text",
+      "source_id": "source_70M0207JXW4318R6RSEQ0C6GH3",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "text"
+      ],
+      "latency": 0.053,
+      "doc": "T_NORTHWIND",
+      "text_sha256": "51131e1c123b4cd812d24c8f84aea91a4b4d9b24acda5bb8f63267ed639be502"
+    },
+    {
+      "kind": "corpus_text",
+      "source_id": "source_0JMX817752WK0M51XVDVCYSTFE",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "text"
+      ],
+      "latency": 0.048,
+      "doc": "D5",
+      "text_sha256": "6b1e15be2f75621d86f3717c4924a618623076c40ac22b8f62e0bb2704469f08"
+    },
+    {
+      "kind": "corpus_text",
+      "source_id": "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "text"
+      ],
+      "latency": 0.055,
+      "doc": "D6",
+      "text_sha256": "b0ad3d82ddd30851de782bd1b2aad1ddb9289b91984b444d39af845f65db1604"
+    },
+    {
+      "kind": "media_image",
+      "source_id": "source_4XKMV77VDQ5E6ADJH577VYZME2",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "image"
+      ],
+      "latency": 0.3,
+      "doc": "M_IMG_ZH",
+      "input_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg035-truth-prep/probes/lg035/TRUTH-PREP/samples/private/lg035_truth_zh_laojielao_p10.jpg",
+      "input_sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+      "bytes": 333996,
+      "media_type": "image/jpeg"
+    },
+    {
+      "kind": "media_image",
+      "source_id": "source_52Y0FWFPWGJC716BAGKFP0RHA9",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "image"
+      ],
+      "latency": 0.102,
+      "doc": "M_IMG_EN",
+      "input_path": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/lg035/fixtures/phototest-rotated-L.png",
+      "input_sha256": "f9c80afb481abc07fdc6ff013df3048ef31141e7b1b90ec90ccbee8c3eddbea7",
+      "bytes": 6793,
+      "media_type": "image/png"
+    },
+    {
+      "kind": "media_audio_pcm_wav",
+      "source_id": "source_0YG24QWMWTZ7Y1QAN4FZVTGE5Y",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "audio"
+      ],
+      "latency": 0.267,
+      "doc": "M_AUD_ZH",
+      "input_path": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/materials-vector-r5-20261016/private/real_voice_chinese_language-1.16k.pcm.wav",
+      "input_sha256": "0cf59176de2b58c4386215256af159af94f01ebb4509e89bfbbadac7eac5cc37",
+      "bytes": 960078,
+      "media_type": "audio/wav",
+      "original_ogg": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/lg039/evidence/real_voice_chinese_language-1.ogg"
+    },
+    {
+      "kind": "media_audio_pcm_wav",
+      "source_id": "source_67262NY4ZC3T53H0Y3PCR59Q9H",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "audio"
+      ],
+      "latency": 0.161,
+      "doc": "M_AUD_DIQIU",
+      "input_path": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/materials-vector-r5-20261016/private/Zh-地球.16k.pcm.wav",
+      "input_sha256": "91430d5aa8bec7f6865872e9d863df7208a1cbee82441f54b33f742a77277c51",
+      "bytes": 65614,
+      "media_type": "audio/wav",
+      "original_ogg": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/materials-vector-r5-20261016/private/Zh-地球.ogg"
+    }
+  ],
+  "counters": {
+    "post_used": 17,
+    "post_attempted": 17,
+    "retries": 0,
+    "media_bytes": 1366481,
+    "audio_seconds": 32.048
+  },
+  "base_url": "http://192.168.8.12:11434",
+  "model": "embeddinggemma-2-Q8_0",
+  "media": {
+    "M_IMG_ZH": {
+      "input_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg035-truth-prep/probes/lg035/TRUTH-PREP/samples/private/lg035_truth_zh_laojielao_p10.jpg",
+      "input_sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+      "bytes": 333996,
+      "media_type": "image/jpeg",
+      "license_truth": {
+        "kind": "image",
+        "media_type": "image/jpeg",
+        "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg035-truth-prep/probes/lg035/TRUTH-PREP/samples/private/lg035_truth_zh_laojielao_p10.jpg",
+        "sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+        "bytes": 333996,
+        "license": "Public domain (Wikimedia Commons PD book scan render) + CC BY-SA 4.0 (Wikisource human transcription)",
+        "truth_file": "lg035-truth-prep .../TRUTH-PREP/truth/LG035-ZH-Z1.p10.txt",
+        "truth_kind": "HUMAN proofread transcription (Wikisource ProofreadPage level 3)",
+        "truth_sha256": "9043c2b76ff8c26215b99d99c4a86eb6801207691ac5cd8d15ecf4f304147ea1",
+        "topic_truth": "老解老 / 老子學說 (Laozi commentary), 道德經 註解"
+      }
+    },
+    "M_IMG_EN": {
+      "input_path": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/lg035/fixtures/phototest-rotated-L.png",
+      "input_sha256": "f9c80afb481abc07fdc6ff013df3048ef31141e7b1b90ec90ccbee8c3eddbea7",
+      "bytes": 6793,
+      "media_type": "image/png",
+      "license_truth": {
+        "kind": "image",
+        "media_type": "image/png",
+        "path": "probes/lg035/fixtures/phototest-rotated-L.png",
+        "sha256": "f9c80afb481abc07fdc6ff013df3048ef31141e7b1b90ec90ccbee8c3eddbea7",
+        "bytes": 6793,
+        "license": "Apache-2.0 (tesseract-ocr/test)",
+        "truth_file": "probes/lg035/fixtures/phototest.gold.txt",
+        "truth_kind": "human gold text for the source page (rotated render of phototest)",
+        "truth_sha256": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed",
+        "topic_truth": "quick brown dog jumped over the lazy fox (12 point text OCR test page)"
+      }
+    },
+    "M_AUD_ZH": {
+      "input_path": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/materials-vector-r5-20261016/private/real_voice_chinese_language-1.16k.pcm.wav",
+      "input_sha256": "0cf59176de2b58c4386215256af159af94f01ebb4509e89bfbbadac7eac5cc37",
+      "bytes": 960078,
+      "media_type": "audio/wav",
+      "original_ogg": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/lg039/evidence/real_voice_chinese_language-1.ogg",
+      "license_truth": {
+        "kind": "audio",
+        "media_type_original": "audio/ogg",
+        "original_path": "probes/lg039/evidence/real_voice_chinese_language-1.ogg",
+        "sha256": "1a8df6fbd1cff0ce6c192932cb6d1d5a8e20e551ba915896685544abb0528e9f",
+        "license": "CC BY-SA 3.0 (Wikimedia Commons File:Chinese language-1.ogg; author Audioman at English Wikipedia)",
+        "truth_kind": "real human speech reading the English-Wikipedia 'Chinese language' article opening; TOPIC-level truth = Chinese language / 中文; NO verbatim transcript; NO model transcript used",
+        "topic_truth": "Chinese language / 中文 / 漢語",
+        "transcode": {
+          "rule": "endpoint expectation established in R4: PCM WAV for input_audio. Transform = resample to 16000 Hz mono + clip to first 30 s (NOT lossless). No synthesis, no ASR.",
+          "cmd": "ffmpeg -y -v error -i <ogg> -ac 1 -ar 16000 -t 30 -c:a pcm_s16le <out.wav>",
+          "out_sha256": "0cf59176de2b58c4386215256af159af94f01ebb4509e89bfbbadac7eac5cc37",
+          "seconds": 30.0
+        }
+      }
+    },
+    "M_AUD_DIQIU": {
+      "input_path": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/materials-vector-r5-20261016/private/Zh-地球.16k.pcm.wav",
+      "input_sha256": "91430d5aa8bec7f6865872e9d863df7208a1cbee82441f54b33f742a77277c51",
+      "bytes": 65614,
+      "media_type": "audio/wav",
+      "original_ogg": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/materials-vector-r5-20261016/private/Zh-地球.ogg",
+      "license_truth": {
+        "kind": "audio",
+        "media_type_original": "audio/ogg",
+        "original_path": "probes/materials-vector-r5-20261016/private/Zh-地球.ogg",
+        "sha256": "46781b4e7ed722b7956d7473cd6cb8504e5007b2c8c048f97d6ded3542c628d4",
+        "sha1": "a8c67e62fffce3311c4bbfe4dc5ca281692fe02b",
+        "bytes": 19957,
+        "duration_seconds": 2.048,
+        "license": "CC BY-SA 4.0 (Wikimedia Commons File:Zh-地球.ogg; author Wikimedian CanonNi, own work, 2024-10-07)",
+        "page": "https://commons.wikimedia.org/wiki/File:Zh-地球.ogg",
+        "page_wikitext": "{{Information|description={{pronunciation|地球|lang=zh|translation=Earth}}|date=2024-10-07|source={{own}}|author=CanonNi}} {{self|cc-by-sa-4.0}} [[Category:Chinese pronunciation]]",
+        "attribution": "CanonNi (Wikimedia Commons), File:Zh-地球.ogg, CC BY-SA 4.0",
+        "truth_kind": "real human pronunciation recording of the Chinese word 地球; the file's OWN description page declares translation=Earth. TOPIC-level truth = Earth / 地球; NO model transcript used.",
+        "topic_truth": "地球 / Earth",
+        "acquisition": {
+          "metadata_api_get": "https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo|revisions&iiprop=url|mime|size|sha1|extmetadata|user&rvprop=content&rvslots=main&titles=File:Zh-地球.ogg",
+          "metadata_raw_sha256": "2ccf3bbd9b8af5a67e87b84c9f995b3864628bceaae061a23803bfa01e10da37",
+          "download_get": "https://upload.wikimedia.org/wikipedia/commons/2/29/Zh-%E5%9C%B0%E7%90%83.ogg",
+          "download_sha1_verified_against_api": true,
+          "bytes": 19957
+        },
+        "transcode": {
+          "rule": "same as M_AUD_ZH: resample 16000 Hz mono + clip first 15 s (NOT lossless). No synthesis, no ASR.",
+          "out_sha256": "91430d5aa8bec7f6865872e9d863df7208a1cbee82441f54b33f742a77277c51",
+          "seconds": 2.048
+        }
+      }
+    }
+  },
+  "vector_metrics": {
+    "recall@1": 0.8,
+    "recall@3": 0.8,
+    "recall@5": 0.8,
+    "mrr": 0.8,
+    "top1_accuracy": 0.8,
+    "positive_ranks": {
+      "Q_IMG_ZH": {
+        "type": "positive_crossmodal_image",
+        "relevant_rank": null
+      },
+      "Q_IMG_EN": {
+        "type": "positive_crossmodal_image",
+        "relevant_rank": 1
+      },
+      "Q_AUD_LANG": {
+        "type": "positive_crossmodal_audio",
+        "relevant_rank": 1
+      },
+      "Q_AUD_EARTH": {
+        "type": "positive_crossmodal_audio",
+        "relevant_rank": 1
+      },
+      "Q_TXT_ZH": {
+        "type": "positive_text_zh",
+        "relevant_rank": 1
+      }
+    },
+    "negative_controls": {
+      "Q_NEG_ZH": {
+        "ranked_false_hits": [
+          "D2",
+          "D6",
+          "D5",
+          "D1",
+          "T_NORTHWIND"
+        ],
+        "count": 5
+      },
+      "Q_NEG_EN": {
+        "ranked_false_hits": [
+          "D2",
+          "D5",
+          "D6",
+          "D1",
+          "M_AUD_DIQIU"
+        ],
+        "count": 5
+      }
+    }
+  },
+  "lexical_metrics": {
+    "recall@1": 0.2,
+    "recall@3": 0.2,
+    "recall@5": 0.2,
+    "mrr": 0.2,
+    "top1_accuracy": 0.2,
+    "positive_ranks": {
+      "Q_IMG_ZH": {
+        "type": "positive_crossmodal_image",
+        "relevant_rank": null
+      },
+      "Q_IMG_EN": {
+        "type": "positive_crossmodal_image",
+        "relevant_rank": null
+      },
+      "Q_AUD_LANG": {
+        "type": "positive_crossmodal_audio",
+        "relevant_rank": null
+      },
+      "Q_AUD_EARTH": {
+        "type": "positive_crossmodal_audio",
+        "relevant_rank": null
+      },
+      "Q_TXT_ZH": {
+        "type": "positive_text_zh",
+        "relevant_rank": 1
+      }
+    },
+    "negative_controls": {
+      "Q_NEG_ZH": {
+        "ranked_false_hits": [],
+        "count": 0
+      },
+      "Q_NEG_EN": {
+        "ranked_false_hits": [],
+        "count": 0
+      }
+    }
+  },
+  "id2doc": {
+    "source_1KM4HYBN3MX3SMJPKW617HE622": "D1",
+    "source_12CQTK6VBVC0VVBDTTSSS7MV28": "D2",
+    "source_5YTYNYNHBEAR59DDZYYK44D9MH": "D3",
+    "source_70M0207JXW4318R6RSEQ0C6GH3": "T_NORTHWIND",
+    "source_0JMX817752WK0M51XVDVCYSTFE": "D5",
+    "source_7D6MCNNR17JAHM71SP8J9T9HV6": "D6",
+    "source_4XKMV77VDQ5E6ADJH577VYZME2": "M_IMG_ZH",
+    "source_52Y0FWFPWGJC716BAGKFP0RHA9": "M_IMG_EN",
+    "source_0YG24QWMWTZ7Y1QAN4FZVTGE5Y": "M_AUD_ZH",
+    "source_67262NY4ZC3T53H0Y3PCR59Q9H": "M_AUD_DIQIU"
+  },
+  "labels_authorship": "executor-authored relevance judgements derived from each source file's OWN recorded provenance/description (NOT independent or human review of this run; NOT model output)",
+  "post_log": [
+    {
+      "kind": "corpus_text",
+      "source_id": "source_1KM4HYBN3MX3SMJPKW617HE622",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "text"
+      ],
+      "latency": 0.125,
+      "doc": "D1",
+      "text_sha256": "2267f1c6d33c85edff1f7c709c39535efc053b298873e7f3b06a652e99fb1049"
+    },
+    {
+      "kind": "corpus_text",
+      "source_id": "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "text"
+      ],
+      "latency": 0.045,
+      "doc": "D2",
+      "text_sha256": "fe54758ed038143a0cd1a564c692604d6c25f135a5854799e2b6aa95d438d104"
+    },
+    {
+      "kind": "corpus_text",
+      "source_id": "source_5YTYNYNHBEAR59DDZYYK44D9MH",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "text"
+      ],
+      "latency": 0.047,
+      "doc": "D3",
+      "text_sha256": "20e819f328c63c6b5b4ffebee4ffba30784c44fe1b1323ec893705a3a1604f30"
+    },
+    {
+      "kind": "corpus_text",
+      "source_id": "source_70M0207JXW4318R6RSEQ0C6GH3",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "text"
+      ],
+      "latency": 0.053,
+      "doc": "T_NORTHWIND",
+      "text_sha256": "51131e1c123b4cd812d24c8f84aea91a4b4d9b24acda5bb8f63267ed639be502"
+    },
+    {
+      "kind": "corpus_text",
+      "source_id": "source_0JMX817752WK0M51XVDVCYSTFE",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "text"
+      ],
+      "latency": 0.048,
+      "doc": "D5",
+      "text_sha256": "6b1e15be2f75621d86f3717c4924a618623076c40ac22b8f62e0bb2704469f08"
+    },
+    {
+      "kind": "corpus_text",
+      "source_id": "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "text"
+      ],
+      "latency": 0.055,
+      "doc": "D6",
+      "text_sha256": "b0ad3d82ddd30851de782bd1b2aad1ddb9289b91984b444d39af845f65db1604"
+    },
+    {
+      "kind": "media_image",
+      "source_id": "source_4XKMV77VDQ5E6ADJH577VYZME2",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "image"
+      ],
+      "latency": 0.3,
+      "doc": "M_IMG_ZH",
+      "input_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg035-truth-prep/probes/lg035/TRUTH-PREP/samples/private/lg035_truth_zh_laojielao_p10.jpg",
+      "input_sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+      "bytes": 333996,
+      "media_type": "image/jpeg"
+    },
+    {
+      "kind": "media_image",
+      "source_id": "source_52Y0FWFPWGJC716BAGKFP0RHA9",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "image"
+      ],
+      "latency": 0.102,
+      "doc": "M_IMG_EN",
+      "input_path": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/lg035/fixtures/phototest-rotated-L.png",
+      "input_sha256": "f9c80afb481abc07fdc6ff013df3048ef31141e7b1b90ec90ccbee8c3eddbea7",
+      "bytes": 6793,
+      "media_type": "image/png"
+    },
+    {
+      "kind": "media_audio_pcm_wav",
+      "source_id": "source_0YG24QWMWTZ7Y1QAN4FZVTGE5Y",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "audio"
+      ],
+      "latency": 0.267,
+      "doc": "M_AUD_ZH",
+      "input_path": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/materials-vector-r5-20261016/private/real_voice_chinese_language-1.16k.pcm.wav",
+      "input_sha256": "0cf59176de2b58c4386215256af159af94f01ebb4509e89bfbbadac7eac5cc37",
+      "bytes": 960078,
+      "media_type": "audio/wav",
+      "original_ogg": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/lg039/evidence/real_voice_chinese_language-1.ogg"
+    },
+    {
+      "kind": "media_audio_pcm_wav",
+      "source_id": "source_67262NY4ZC3T53H0Y3PCR59Q9H",
+      "indexed": true,
+      "vector": "indexed",
+      "dim": 768,
+      "vector_model": "embeddinggemma-2-Q8_0",
+      "kinds": [
+        "audio"
+      ],
+      "latency": 0.161,
+      "doc": "M_AUD_DIQIU",
+      "input_path": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/materials-vector-r5-20261016/private/Zh-地球.16k.pcm.wav",
+      "input_sha256": "91430d5aa8bec7f6865872e9d863df7208a1cbee82441f54b33f742a77277c51",
+      "bytes": 65614,
+      "media_type": "audio/wav",
+      "original_ogg": "/home/yhvh/code/lightgravity-bot-worktrees/materials-vector-r5-20261016/probes/materials-vector-r5-20261016/private/Zh-地球.ogg"
+    },
+    {
+      "kind": "query",
+      "q": "Q_IMG_ZH",
+      "error": null,
+      "latency": 0.062,
+      "status": "ok"
+    },
+    {
+      "kind": "query",
+      "q": "Q_IMG_EN",
+      "error": null,
+      "latency": 0.059,
+      "status": "ok"
+    },
+    {
+      "kind": "query",
+      "q": "Q_AUD_LANG",
+      "error": null,
+      "latency": 0.051,
+      "status": "ok"
+    },
+    {
+      "kind": "query",
+      "q": "Q_AUD_EARTH",
+      "error": null,
+      "latency": 0.061,
+      "status": "ok"
+    },
+    {
+      "kind": "query",
+      "q": "Q_TXT_ZH",
+      "error": null,
+      "latency": 0.062,
+      "status": "ok"
+    },
+    {
+      "kind": "query",
+      "q": "Q_NEG_ZH",
+      "error": null,
+      "latency": 0.052,
+      "status": "ok"
+    },
+    {
+      "kind": "query",
+      "q": "Q_NEG_EN",
+      "error": null,
+      "latency": 0.05,
+      "status": "ok"
+    }
+  ],
+  "hard_gate": {
+    "audio_reachable": true,
+    "image_reachable": false,
+    "text_zh_reachable": true,
+    "all_hard_gates_met": false
+  }
+}
