@@ -1,0 +1,32 @@
+[
+  {
+    "name": "health",
+    "url": "http://192.168.8.12:11434/health",
+    "bytes": 15,
+    "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+    "http_status": 200,
+    "utc": "2026-10-15T22:16:48Z",
+    "num_connects": 1,
+    "retries": 0
+  },
+  {
+    "name": "models",
+    "url": "http://192.168.8.12:11434/v1/models",
+    "bytes": 3909,
+    "sha256": "39edaab5380e4eb3b4876c051aaa0517e796896edba2925c18575e1d88ef691a",
+    "http_status": 200,
+    "utc": "2026-10-15T22:16:48Z",
+    "num_connects": 1,
+    "retries": 0
+  },
+  {
+    "name": "props",
+    "url": "http://192.168.8.12:11434/props",
+    "bytes": 239,
+    "sha256": "8fcdb570a5a6a9325a34ab6bc72b24cf8ec6acf4cc4da46b115b6fc1f4b12f7a",
+    "http_status": 200,
+    "utc": "2026-10-15T22:16:52Z",
+    "num_connects": 1,
+    "retries": 0
+  }
+]
