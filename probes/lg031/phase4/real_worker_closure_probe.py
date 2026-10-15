@@ -430,11 +430,34 @@ async def _main() -> int:
         )
 
         events: list[dict[str, Any]] = []
+        request_log: list[dict[str, Any]] = []
 
         async def emit(event: dict[str, Any]) -> None:
             if str(event.get("type", "")).startswith("adapter."):
                 events.append(event)
 
+        # Wrap the executor so the probe can record, per node, the exact
+        # objective and the upstream handoff the program handed the worker.
+        _inner_execute = executor.execute
+
+        async def _capturing_execute(request: Any, emit_cb: Any) -> Any:
+            request_log.append(
+                {
+                    "subtask_id": getattr(request, "subtask_id", None),
+                    "objective": getattr(request, "objective", None),
+                    "upstream_artifact_refs": list(
+                        getattr(request, "upstream_artifact_refs", ()) or ()
+                    ),
+                    "workspace_path": getattr(request, "workspace_path", None),
+                    "has_claim_tool": any(
+                        getattr(t, "__name__", "") == "discover_and_request_claim"
+                        for t in getattr(request, "custom_tools", ()) or ()
+                    ),
+                }
+            )
+            return await _inner_execute(request, emit_cb)
+
+        executor.execute = _capturing_execute  # type: ignore[method-assign]
         outcome = await dispatcher.dispatch(context, controller, emit)
 
         claim_chain: list[dict[str, Any]] = []
@@ -453,12 +476,23 @@ async def _main() -> int:
                         }
                     )
 
+        # Extract the program-recorded dependency handoff.  Subtask entities live
+        # at ``data/subtasks/<id>/SUBTASK.md`` (a subdirectory per entity), so glob
+        # one level down -- phase3's probe globbed ``subtasks/*.md`` and silently
+        # missed every handoff even when the product recorded one.
         handoffs: list[str] = []
         subtasks_dir = store.data_dir / "subtasks"
         if subtasks_dir.is_dir():
-            for path in subtasks_dir.glob("*.md"):
-                entity = store.read("subtask", path.stem).entity
-                handoffs.extend(entity.get("upstream_artifact_refs", []) or [])
+            for sub_dir in sorted(subtasks_dir.iterdir()):
+                subtask_md = sub_dir / "SUBTASK.md"
+                if subtask_md.is_file():
+                    entity = store.read("subtask", sub_dir.name).entity
+                    handoffs.extend(list(entity.get("upstream_artifact_refs", []) or []))
+        # Also record the *request-level* upload view: what the dependent worker
+        # actually received on its own execution request.
+        worker_requests: list[dict[str, Any]] = []
+        for record in request_log:
+            worker_requests.append(record)
 
         # Independent, real ModelReviewer over the program-produced candidate.
         review = await asyncio.to_thread(_review_sync, store, secrets, task_id)
@@ -474,6 +508,7 @@ async def _main() -> int:
             "autonomous_claim_tool_router": "GraphDispatcher._claim_for_worker",
             "autonomous_claim_chain": claim_chain,
             "handoff_refs": sorted(set(handoffs)),
+            "worker_requests": worker_requests,
             "review": review,
             "generation_ledger": before.snapshot(),
             "max_real_calls_budget": MAX_CALLS,

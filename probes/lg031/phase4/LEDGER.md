@@ -17,8 +17,8 @@ owner: "agent:pi-lg031-r3"
 | 项 | 值 |
 |---|---|
 | 旧累计（前三阶段，不归零） | **24**（原包 1 + R1 3 + R2 6 + phase3 14） |
-| 本 phase4 批准新增上限 | **16** |
-| 全局已知工程累计上限 | **40** |
+| 本 phase4 批准新增上限 | **16**（实际用 **10**，剩 6） |
+| 全局已知工程累计上限 | **40**（实际累计 **34**） |
 | SDK/API retry | 0 |
 | 单请求输出上限 | ≤12000 tokens |
 | 单 HTTP 超时 | ≤120s |
@@ -37,14 +37,26 @@ owner: "agent:pi-lg031-r3"
 
 ## 本 phase4 实际转发记录
 
+一次真实产品闭环 attempt（run `run_01M5079F4W8V37RHRTN7W6WWV6`，task
+`task_01M5079F4WRHPVMVHGM1NS7FK9`），共 **10** 次真实转发（pid 1968580）。
+
 | # | 时间(UTC) | 角色/stage | 模型 | 结果 | usage | 备注 |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | — | 尚无真实转发（离线阶段） |
+| 1–6 | 2026-10-16T~03:46Z | deliver worker（自主 discover/claim/create_file 等工具轮） | deepseek-v4-flash | ok | `unknown` | 6 条 `adapter.tool_call`；`discover_and_request_claim` 被真实调用 |
+| 7–9 | 同上 | verify worker（自主 discover/claim + 只读检查轮） | deepseek-v4-flash | ok | `unknown` | 依赖满足后调度；claim 经产品 router |
+| 10 | 同上 | 独立 reviewer | deepseek-v4-flash | **passed**（机器门 `validated_outcome=passed`） | `{"unknown":["usage"]}` | `reviewer_kind=model`，`model_calls=1` |
 
-- 机器账本初值：`count=0, limit=16, remaining=16`（待真实阶段首次预留前建立）。
-- 所有 usage 未知记 `unknown`（不当 0）。
+- 机器账本最终：`count=10, limit=16, remaining=6, corrupt=false, persistent=true`；
+  `generation.jsonl` 共 10 条 `reserved`。
+- 全部 worker/reviewer usage 记 `unknown`（不当 0）。
+- dispatcher `succeeded`；候选完整（reviewer 证据含 `out/deliver.txt` + diff patch
+  `@sha256:820a554a…`）。
+- **未捕获**：真实 `handoff_refs`（探针提取 bug，见 REPORT §4）；**未重跑**（16 上限内已用 10，
+  一次完整 attempt ≈10 超出剩余 6）。
 
 ## 未知项
 
-- 本 phase4 尚未产生真实转发，故无 usage 记录。
-- 部分 SDK 路径的 usage 若不可得，明确 `unknown` 而非估算。
+- 本 phase4 worker usage（SDK 未把 token 明细作为事件暴露）与 reviewer usage 均记 `unknown`，
+  **不当 0**。
+- 真实 handoff 字符串未捕获（探针 bug），不伪称已捕获；机制证据见 `REPORT.md` §4 与
+  `tests/collaboration/test_lg031_r4_real_planner_closure.py`。
