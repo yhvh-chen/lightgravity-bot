@@ -68,3 +68,116 @@
 .lg-notice--error {
   color: var(--lg-color-error);
 }
+
+/* ---------------------------------------------------------------- materials */
+/* LG-038: Chat material intake + source search. Uses only shared tokens. */
+
+.lg-materials,
+.lg-source-search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  padding: var(--lg-space-2) var(--lg-space-3);
+  border-top: 1px solid var(--lg-color-border);
+}
+
+.lg-materials__header,
+.lg-materials__item-head,
+.lg-source-search__hit-head,
+.lg-source-search__hit-meta,
+.lg-materials__item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-2);
+}
+
+.lg-materials__title {
+  font-size: var(--lg-font-size-sm);
+  font-weight: 600;
+  color: var(--lg-color-text);
+}
+
+.lg-materials__scope,
+.lg-materials__hint,
+.lg-materials__empty,
+.lg-materials__detail,
+.lg-materials__flag {
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-muted);
+}
+
+.lg-materials__drop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-2);
+  padding: var(--lg-space-2);
+  border: 1px dashed var(--lg-color-border-strong);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-surface-2);
+}
+
+.lg-materials__drop.is-active {
+  border-color: var(--lg-color-accent);
+  background: var(--lg-color-accent-soft);
+}
+
+.lg-materials__link {
+  display: flex;
+  gap: var(--lg-space-2);
+  align-items: center;
+}
+
+.lg-materials__link .lg-input {
+  flex: 1 1 auto;
+}
+
+.lg-materials__list,
+.lg-source-search__hits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-materials__item,
+.lg-source-search__hit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  padding: var(--lg-space-2);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-panel);
+}
+
+.lg-materials__name {
+  font-size: var(--lg-font-size-sm);
+  font-weight: 600;
+  color: var(--lg-color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40ch;
+}
+
+.lg-materials__item-actions {
+  display: flex;
+  gap: var(--lg-space-2);
+}
+
+.lg-source-search__snippet {
+  margin: 0;
+  font-size: var(--lg-font-size-sm);
+  color: var(--lg-color-text-muted);
+}
+
+.lg-source-search__stale {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-2);
+}

@@ -23,6 +23,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getRuntimeToken } from '../../api/auth'
 import { ApiError } from '../../api/client'
 import {
+  createSourcesApi,
+  type SourcesApi,
+  type SourcesRuntimeConfig,
+} from '../../api/sources'
+import {
   createFilesApi,
   type FileContent,
   type FileEntry,
@@ -36,6 +41,7 @@ import { ErrorState } from '../../components/ErrorState'
 import { MarkdownViewer } from '../../components/MarkdownViewer'
 import { StatusBadge } from '../../components/StatusBadge'
 import { useShell } from '../../app/ShellProvider'
+import { FilesMaterialsPanel } from './FilesMaterialsPanel'
 import './files.css'
 
 const SAFE_IMAGE_TYPES = new Set([
@@ -73,6 +79,10 @@ export interface FilesViewProps {
   runtime?: FilesRuntimeConfig
   /** Injected client (tests / integration); overrides ``runtime``. */
   api?: FilesApi
+  /** Injected sources client for the Materials surface (LG-038). */
+  sourcesApi?: SourcesApi
+  /** Runtime token source for the sources Materials surface (LG-038). */
+  sourcesRuntime?: SourcesRuntimeConfig
   /** Lets the integration owner persist a Task chosen inside the view. */
   onSelectTaskRef?: (taskRef: string | null) => void
 }
@@ -81,7 +91,17 @@ export interface FilesPanelProps {
   taskRef: string | null
   runRef: string | null
   api: FilesApi
+  sourcesApi?: SourcesApi
+  /** Selected item ref; `source:<id>` opens that material (LG-038 deep link). */
+  selectedItemRef?: string | null
   onSelectTaskRef?: (taskRef: string | null) => void
+}
+
+/** Parse a `source:<id>` selection ref (LG-038). */
+export function parseSourceRef(ref: string | null | undefined): string | null {
+  if (!ref || !ref.startsWith('source:')) return null
+  const id = ref.slice('source:'.length)
+  return id || null
 }
 
 export function FilesView(props: FilesViewProps = {}) {
@@ -92,17 +112,33 @@ export function FilesView(props: FilesViewProps = {}) {
     () => props.api ?? createFilesApi(props.runtime ?? { getApiToken: getRuntimeToken }),
     [props.api, props.runtime],
   )
+  const sourcesApi = useMemo(
+    () =>
+      props.sourcesApi ??
+      createSourcesApi(props.sourcesRuntime ?? { getApiToken: getRuntimeToken }),
+    [props.sourcesApi, props.sourcesRuntime],
+  )
   return (
     <FilesPanel
       taskRef={taskRef}
       runRef={runRef}
       api={api}
+      sourcesApi={sourcesApi}
+      selectedItemRef={state.selectedItemRef}
       onSelectTaskRef={props.onSelectTaskRef}
     />
   )
 }
 
-export function FilesPanel({ taskRef, runRef, api, onSelectTaskRef }: FilesPanelProps) {
+export function FilesPanel({
+  taskRef,
+  runRef,
+  api,
+  sourcesApi,
+  selectedItemRef,
+  onSelectTaskRef,
+}: FilesPanelProps) {
+  const [surface, setSurface] = useState<'workspace' | 'materials'>('workspace')
   const [cwd, setCwd] = useState('')
   const [listing, setListing] = useState<FileListing | null>(null)
   const [listError, setListError] = useState<ApiError | null>(null)
@@ -272,6 +308,12 @@ export function FilesPanel({ taskRef, runRef, api, onSelectTaskRef }: FilesPanel
 
   const segments = cwd ? cwd.split('/') : []
   const previewKind = selected ? classify(selected) : null
+  const deepLinkedSource = parseSourceRef(selectedItemRef)
+
+  // A `source:<id>` selection (from Chat hits/attachments) opens Materials.
+  useEffect(() => {
+    if (deepLinkedSource) setSurface('materials')
+  }, [deepLinkedSource])
 
   return (
     <div className="lg-files">
@@ -303,6 +345,26 @@ export function FilesPanel({ taskRef, runRef, api, onSelectTaskRef }: FilesPanel
             Copy path
           </button>
         </div>
+        <div className="lg-files__surface-tabs" role="tablist" aria-label="Files surfaces">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={surface === 'workspace'}
+            className={`lg-files__surface-tab${surface === 'workspace' ? ' is-active' : ''}`}
+            onClick={() => setSurface('workspace')}
+          >
+            Workspace files
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={surface === 'materials'}
+            className={`lg-files__surface-tab${surface === 'materials' ? ' is-active' : ''}`}
+            onClick={() => setSurface('materials')}
+          >
+            Materials
+          </button>
+        </div>
       </header>
 
       {status ? (
@@ -314,6 +376,22 @@ export function FilesPanel({ taskRef, runRef, api, onSelectTaskRef }: FilesPanel
         </p>
       ) : null}
 
+      {surface === 'materials' ? (
+        sourcesApi ? (
+          <FilesMaterialsPanel
+            api={sourcesApi}
+            taskRef={taskRef}
+            openSourceId={deepLinkedSource}
+          />
+        ) : (
+          <EmptyState title="Materials unavailable" compact>
+            No sources client is configured for this runtime.
+          </EmptyState>
+        )
+      ) : null}
+
+      {surface === 'workspace' ? (
+      <>
       {taskRef ? (
         <section className="lg-files__artifacts" aria-label="Task artifacts">
           <h2 className="lg-files__section-title">Task artifacts</h2>
@@ -522,9 +600,12 @@ export function FilesPanel({ taskRef, runRef, api, onSelectTaskRef }: FilesPanel
         </button>
         <span className="lg-files__note">
           Upload is a protected write; without an injected token the backend returns
-          unauthorized and nothing is written.
+          unauthorized and nothing is written. The legacy endpoint and its history are kept; to
+          add material to the archive, use Chat (the single regular intake entry).
         </span>
       </footer>
+      </>
+      ) : null}
     </div>
   )
 }

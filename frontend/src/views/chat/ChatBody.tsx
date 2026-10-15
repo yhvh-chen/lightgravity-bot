@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 
+import { getRuntimeToken } from '../../api/auth'
 import { type ChatApi } from '../../api/chat'
+import {
+  createSourcesApi,
+  type SourcesApi,
+  type SourcesRuntimeConfig,
+} from '../../api/sources'
 import type { Attachment } from '../../api/types'
 import { useShell } from '../../app/ShellProvider'
 import { draftKey } from '../../app/uiState'
@@ -10,7 +16,10 @@ import { ErrorState } from '../../components/ErrorState'
 import { Icon } from '../../components/icons'
 import { MarkdownViewer } from '../../components/MarkdownViewer'
 import { StatusBadge } from '../../components/StatusBadge'
+import { ChatMaterialIntake } from './ChatMaterialIntake'
+import { ChatSourceSearch } from './ChatSourceSearch'
 import { useChat } from './useChat'
+import { useChatMaterials } from './useChatMaterials'
 
 export interface ChatBodyProps {
   /** `main` = Chat view body; `rail` = right column on other views. */
@@ -18,6 +27,10 @@ export interface ChatBodyProps {
   onRequestClose?: () => void
   /** Injectable for tests; defaults to the real `/conversations|/tasks` endpoints. */
   api?: ChatApi
+  /** Injectable sources client; defaults to the real `/sources|/search` endpoints. */
+  sourcesApi?: SourcesApi
+  /** Runtime token source for protected material writes. */
+  sourcesRuntime?: SourcesRuntimeConfig
 }
 
 interface PendingAttachment {
@@ -34,10 +47,14 @@ interface PendingAttachment {
  * endpoints (keeping the draft on failure), and links a delivery reply to its
  * newly created Task so the caller can open the real Board state.
  */
-export function ChatBody({ variant, onRequestClose, api }: ChatBodyProps) {
+export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRuntime }: ChatBodyProps) {
   const { state, dispatch } = useShell()
   const taskRef = state.taskRef
   const chat = useChat({ taskRef }, api)
+  const materials = useChatMaterials(
+    sourcesApi ?? createSourcesApi(sourcesRuntime ?? { getApiToken: getRuntimeToken }),
+  )
+  const [materialNotice, setMaterialNotice] = useState<string | null>(null)
   const key = draftKey(taskRef)
   const draft = state.drafts[key] ?? ''
   const [notice, setNotice] = useState<string | null>(null)
@@ -191,6 +208,36 @@ export function ChatBody({ variant, onRequestClose, api }: ChatBodyProps) {
             {attachmentError}
           </p>
         ) : null}
+        <ChatMaterialIntake
+          materials={materials.materials}
+          busy={materials.busy}
+          scopeLabel={scopeLabel}
+          canWrite
+          notice={materialNotice}
+          onUploadFiles={(files) => {
+            setMaterialNotice(null)
+            void materials.uploadFiles(files, { taskRef })
+          }}
+          onRecordLink={(url) => {
+            setMaterialNotice(null)
+            materials.recordLink(url, { taskRef }).catch((cause: unknown) => {
+              setMaterialNotice(cause instanceof Error ? cause.message : 'Invalid link')
+            })
+          }}
+          onRefresh={(requestId) => void materials.refresh(requestId)}
+          onDismiss={materials.dismiss}
+        />
+        <ChatSourceSearch
+          api={
+            sourcesApi ?? createSourcesApi(sourcesRuntime ?? { getApiToken: getRuntimeToken })
+          }
+          taskRef={taskRef}
+          onOpen={(sourceId) => {
+            // Prefer Files for inspection; keep the Task scope and open the source.
+            dispatch({ type: 'selectItem', itemRef: `source:${sourceId}` })
+            dispatch({ type: 'setView', view: 'files' })
+          }}
+        />
         {attachments.length > 0 ? (
           <ul className="lg-chat__chip-row" aria-label="Pending attachments">
             {attachments.map((attachment, index) => (
