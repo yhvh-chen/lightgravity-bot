@@ -169,33 +169,48 @@ def _assert_controlled(path: Path, *, role: str, parent: Path) -> None:
         )
 
 
-def _assert_no_attempt_artifacts() -> None:
-    """The four frozen attempt ids must not exist before a prepare / attempt.
+def _assert_no_attempt_artifacts(current_attempt_id: str | None = None) -> None:
+    """Refuse a prepare / attempt if the *current* attempt id already exists.
 
-    Also refuses any pre-existing ``result.json`` / attempt dir, so a prepare can
-    never cover (mask) an earlier attempt output.
+    Scope is deliberately limited to the ONE attempt being prepared: a cohort is
+    a *sequential* chain (``s1_units__A`` -> ``s1_units__B`` -> ...), so earlier
+    attempts in the SAME controlled root must be left intact and must NOT block
+    the next one.  Pass ``current_attempt_id=None`` (e.g. ``--prepare-only``) to
+    check nothing -- this only *creates / re-checks* the two root dirs and never
+    touches any historical attempt file.
+
+    For the current id, any pre-existing attempt dir / ``result.json`` /
+    evidence file is a hard refusal, so a prepare can never cover (mask) the
+    attempt's own output.
     """
 
-    for attempt_id in ATTEMPT_IDS:
-        attempt_dir = FORMAL_RUNS_DIR / attempt_id
-        if attempt_dir.exists():
-            raise SystemExit(
-                f"refusing to prepare: frozen attempt dir already exists "
-                f"{attempt_dir} (attempt outputs are immutable)"
-            )
-        result_json = attempt_dir / "result.json"
-        if result_json.exists():
-            raise SystemExit(
-                f"refusing to prepare: attempt result already exists {result_json}"
-            )
-        evidence_json = FORMAL_EVIDENCE_DIR / f"{attempt_id}.json"
-        if evidence_json.exists():
-            raise SystemExit(
-                f"refusing to prepare: attempt evidence already exists {evidence_json}"
-            )
+    if current_attempt_id is None:
+        return
+    if current_attempt_id not in ATTEMPT_IDS:
+        raise SystemExit(
+            f"refusing to prepare: unknown attempt id {current_attempt_id!r} "
+            f"(expected one of {list(ATTEMPT_IDS)})"
+        )
+
+    attempt_dir = FORMAL_RUNS_DIR / current_attempt_id
+    if attempt_dir.exists():
+        raise SystemExit(
+            f"refusing to prepare: attempt dir already exists "
+            f"{attempt_dir} (attempt outputs are immutable)"
+        )
+    result_json = attempt_dir / "result.json"
+    if result_json.exists():
+        raise SystemExit(
+            f"refusing to prepare: attempt result already exists {result_json}"
+        )
+    evidence_json = FORMAL_EVIDENCE_DIR / f"{current_attempt_id}.json"
+    if evidence_json.exists():
+        raise SystemExit(
+            f"refusing to prepare: attempt evidence already exists {evidence_json}"
+        )
 
 
-def prepare_output_roots() -> dict[str, object]:
+def prepare_output_roots(current_attempt_id: str | None = None) -> dict[str, object]:
     """Controlled minimal assembly: pre-create the two COHORT3 output dirs.
 
     This is the ONE new step this repair package adds.  It is deliberately tiny
@@ -206,8 +221,11 @@ def prepare_output_roots() -> dict[str, object]:
       ``exist_ok=True`` (idempotent re-check is allowed) -- **but never touches
       any existing attempt dir / result / evidence file**;
     * refuses unknown/symlinked/outside paths (see :func:`_assert_controlled`);
-    * refuses to proceed if any frozen attempt id / result / evidence already
-      exists (see :func:`_assert_no_attempt_artifacts`);
+    * refuses to proceed only if the **current** attempt id's dir / result /
+      evidence already exists (see :func:`_assert_no_attempt_artifacts`);
+      earlier attempts in the same sequential chain are preserved untouched and
+      do not block the next attempt.  ``--prepare-only`` passes ``None`` and so
+      refuses nothing, keeping the preflight idempotent and history-free.
     * does NOT create the phase data root, does NOT build a runtime, Task,
       proxy or SDK, and sends NO generation.
 
@@ -223,7 +241,7 @@ def prepare_output_roots() -> dict[str, object]:
     # are created under the (then-existing) output root.  Guard the output root
     # BEFORE creating it, then create it, then guard its two children.
     _assert_controlled(FORMAL_OUTPUT_DIR, role="output root", parent=WORKTREES_DIR)
-    _assert_no_attempt_artifacts()
+    _assert_no_attempt_artifacts(current_attempt_id)
 
     created: list[str] = []
     # Assemble the output root first (never symlink-following); ``exist_ok=True``
@@ -256,7 +274,7 @@ def prepare_output_roots() -> dict[str, object]:
             raise SystemExit(
                 f"prepare post-check failed: {path} mode {oct(mode)} != {oct(DIR_MODE)}"
             )
-    _assert_no_attempt_artifacts()
+    _assert_no_attempt_artifacts(current_attempt_id)
 
     return {
         "status": "prepared",
@@ -269,7 +287,8 @@ def prepare_output_roots() -> dict[str, object]:
         "created_now": created,
         "phase_data_dir": str(FORMAL_PHASE_DATA_DIR),
         "phase_data_dir_exists": FORMAL_PHASE_DATA_DIR.exists(),
-        "attempt_ids_absent": True,
+        "current_attempt_id": current_attempt_id,
+        "current_attempt_absent": True,
     }
 
 
@@ -390,7 +409,10 @@ def _prepare_only() -> int:
     """
 
     t0 = time.time()
-    record = prepare_output_roots()
+    # --prepare-only creates / re-checks the two root dirs only: it passes
+    # current_attempt_id=None so it is idempotent and never inspects, refuses or
+    # touches any historical attempt file in either root.
+    record = prepare_output_roots(current_attempt_id=None)
 
     stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
     nonce = secrets.token_hex(6)
@@ -424,7 +446,8 @@ def _prepare_only() -> int:
     print(f"dir_mode         : {record['dir_mode']}")
     print(f"created_now      : {record['created_now']}")
     print(f"phase_data_root  : {record['phase_data_dir']} (exists={record['phase_data_dir_exists']})")
-    print(f"attempt_ids_absent: {record['attempt_ids_absent']}")
+    print(f"current_attempt_id : {record['current_attempt_id']}")
+    print(f"current_attempt_absent: {record['current_attempt_absent']}")
     print("runtime/task/sdk : NOT built (no proxy, no generation, no phase root)")
     print(f"prepare_record   : {out} (synthetic; not formal)")
     print("== end --prepare-only ==")
@@ -464,8 +487,12 @@ def main() -> int:
         ap.error("--sample and --arm are required for a formal attempt")
 
     # Controlled minimal assembly: the SAME function as --prepare-only, so the
-    # driver's evidence write always has an existing parent directory.
-    prepare_output_roots()
+    # driver's evidence write always has an existing parent directory.  The
+    # current attempt id is assembled from the CLI choices (which match the
+    # frozen ATTEMPT_IDS) so the guard refuses only THIS attempt's own output and
+    # leaves earlier attempts in the sequential chain untouched.
+    current_attempt_id = f"{args.sample}__{args.arm}"
+    prepare_output_roots(current_attempt_id=current_attempt_id)
 
     sys.path.insert(0, str(HARNESS_DIR))
     import run_attempt as R  # noqa: PLC0415
