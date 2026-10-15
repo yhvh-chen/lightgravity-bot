@@ -43,6 +43,15 @@ updated: "2026-10-15"
 
 ## 决策日志
 
+### 2026-10-16：Materials R6 集成——OCR 版面原型不合并（scale 不稳）；B/C/D probes-only 合并；接受前瞻协议修正规划；无质量通过
+
+- **PM 决定（普通技术决定）**：本轮只集成**证据**，**无质量通过、无状态变更**。报告 [probes/materials-r6-integration-20261016/REPORT.md](probes/materials-r6-integration-20261016/REPORT.md)。
+- **OCR 版面原型（A）不合并**：`layout.py`/`__init__.py`/`test_layout.py` 留在分支 `dev/materials-ocr-layout-r6-20261016@98df131`，不合并：**scale-sensitive**（同一 Z2 页 gutter 模型在 scale 2.0 与 4.0 计数 **2 vs 4** 不稳定）、未集成默认管线、独立 API 过早。仅 `probes/materials-ocr-layout-r6-20261016/**` **12 个 evidence 文件**经 `git restore --source=...` 精确入库（owned commit `72f7125`，逐文件字节一致）；源分支/worktree 全保留，main 保留原默认管线。**新增集成 erratum**：A wrapper 在 evidence+report commit **之后** 才因 `token_budget_exceeded` `exit 143`（**非正常成功**），且版面计数 **2 vs 4 scale 不稳定**——均为**结构性信号证据、非质量通过**；replay 需 A 产品候选 `d996bef`，main 产品未变。
+- **B/C/D probes-only `--no-ff` 顺序合并**（无冲突、无重复 pick）：B `d189f43`（向量诊断：旧 margin **UNKNOWN**、未证产品排序缺陷）、C `7069ffe`（证据可观测：真实 2 POST 均 30 s `index_unavailable`、health 1 GET 200、**无真实新排名**、stub `order_match` 仅 WEAK PATH）、D `6bef4ed`（协议调查：`15×3` 错分类）。历史报告字节未改（A REPORT `4923cb23…`、B `4296c4fe…`、C `d22d35b6…`、D DECISION `1a60cb7f…`）；源 tip 未变。
+- **接受前瞻协议修正规划**：未支持的 `15×3` 假设**不得作为已证几何真值**；历史 R3/R4/R5 FAIL 维持（段 CER > 0.25 独立成立）、旧协议/JSON 不动、**不宣 Z2 pass**；仍需**真实 grid + 人工 cell 真值 / 新冻结 cohort**，**table cell CER 0.25 / page CER 0.15 阈值不变**；如实记录 **U1（无人眼视觉确认）**、不作实际视觉声明；既有用户授权的普通后续工作**不重新索权、不新增许可阻塞**；**任务状态不变**，真实表格与混合覆盖 UNMET。
+- **LG-037 保持 `in-progress`**：超时下**无实际新排名**，旧 R5 图片硬门 FAIL 不变；区分旧负向 top-k NN 无弃答（预期）与 ACL；**不加新阈值/媒体过滤**。
+- **未范围外重写**：不新增硬门、不改阈值/协议/产品字节、不宣称质量通过；LG-035/037 仅追加正文、frontmatter 不变。契约 `1.11.0`、SDK `0.1.22` 不变；本集成产品 LAN 调用 **0**、音频 **0**。
+
 ### 2026-10-16：Materials R5 收拢——拒绝默认新 OCR 提示词；向量 r5 仅证据合并；记录音频总预算越界 errata
 
 - **PM 决定（普通技术决定）**：本轮只集成**证据**，**无质量通过、无状态变更**。报告 [probes/materials-r5-close-20261016/REPORT.md](probes/materials-r5-close-20261016/REPORT.md)。

@@ -7,9 +7,50 @@ updated: "2026-10-16"
 
 # 当前进展与续接记录
 
-> **2026-10-16 最新事实见下方「## 2026-10-16 Materials OCR R5 + Vector R5 收拢集成检查点」；其下各节（Materials Vector R4 集成、Materials OCR R4 集成、证据集成收拢与 2026-10-15 历史快照）整体标记为历史，保留不改。**
+> **2026-10-16 最新事实见下方「## 2026-10-16 Materials R6 集成检查点」；其下各节（Materials OCR/Vector R5 收拢、Materials Vector R4 集成、Materials OCR R4 集成、证据集成收拢与 2026-10-15 历史快照）整体标记为历史，保留不改。**
 
-## 2026-10-16 Materials OCR R5 + Vector R5 收拢集成检查点（唯一 main 集成/PM 文档 owner；本集成阶段产品 LAN 调用 0/外部服务 0）
+## 2026-10-16 Materials R6 集成检查点（唯一 main 集成/PM 文档 owner；本集成阶段产品 LAN 调用 0/外部服务 0）
+
+本节为**当前事实**，覆盖其上历史快照中的相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
+未 reset/clean/覆盖/重复 cherry-pick，未推送/部署/发布。主代理只 PM，无嵌套派工、无网络/模型探针、无新产品代码。
+详细报告 [probes/materials-r6-integration-20261016/REPORT.md](probes/materials-r6-integration-20261016/REPORT.md)。
+
+- **开工核对（真实，只读）**：本项目根 `main@7c27f18` clean、无 stash；四条源分支均以 `7c27f18` 为基点、tip 如实：
+  A `dev/materials-ocr-layout-r6-20261016@98df131`、B `investigate/materials-vector-diagnosis-r6-20261016@541e318`、
+  C `test/materials-vector-observe-r6-20261016@612fcce`、D `investigate/materials-ocr-protocol-r6-20261016@503ab45`。
+- **既有 bounded wrapper 缺席（不含自身）**：开工时唯一在跑的 `lightgravity-pi-bounded.py`（PID 2859379）为
+  **本集成任务自身**（argv `materials-r6-integrate-20261016.txt`，其 `pi` 子进程为本 shell 父进程）；四个源 owner wrapper
+  均已自行退出（未被杀）。**无其它外部 `main` 写入者**（合并前 HEAD 与 `git status` 符合预期）。
+- **PM 决定 1：OCR 版面产品原型不合并**（scale-sensitive：同一 Z2 页 gutter 模型在 scale 2.0 与 4.0 计数 2 vs 4 不稳定；
+  未集成默认管线；独立 API 过早）。仅 **A 的 evidence 包**经 `git restore --source=dev/materials-ocr-layout-r6-20261016 -- probes/materials-ocr-layout-r6-20261016`
+  精确入库（先核 main 不存在；12 个 owned 文件、逐文件 `cmp` 与源字节一致），**owned commit `72f7125`**；
+  **未入库** `sources/ocr/layout.py`、`sources/ocr/__init__.py`、`tests/sources/ocr/test_layout.py`。分支/worktree 保留。
+  **新增集成 erratum**：A wrapper 在 **evidence+report commit 之后** 才因 `token_budget_exceeded` `exit 143`（**非正常成功**），
+  且版面计数 **2 vs 4 scale 不稳定**——均为**结构性信号证据、非质量通过**；replay 需 A 产品候选 `d996bef`，main 保留未改默认管线。
+- **PM 决定 2：B/C/D 顺序 `--no-ff` 合并**（均 probes-only、无冲突、无重复 pick）：B **`d189f43`**（9 文件）、C **`7069ffe`**（14 文件）、D **`6bef4ed`**（9 文件）。
+  历史报告字节未改：A REPORT `4923cb23…`、B REPORT `4296c4fe…`、C REPORT `d22d35b6…`、D DECISION `1a60cb7f…` 与源 git blob 一致；源 tip 未变。
+- **B（向量诊断）事实**：R4/R5 查询文本一致、媒体文档向量逐位一致（cos 1.0）、同标题文本语料改变；
+  **源 score=null / query 向量缺失 ⇒ 旧 margin UNKNOWN**，无法重算；`full_ranking_q_img_zh.py` **语法错误的草稿（从未运行、JSON 未生成）保留、不可用、未修**；**未证明产品排序缺陷**。
+- **C（证据可观测性）事实**：新记录支持 candidate score 与 outer verified hit 分离（outer 无 score）；
+  真实 2 POST 两条均 30 s `index_unavailable`、health 1 GET 200，**未获得真实 query 向量/真实新排名**；
+  受控 stub 管线 `order_match` 仅证 **WEAK PATH 机制、非质量**；首次失败异常类型未捕获、修复后**未实时重放**——如实保留。
+- **D（协议调查）事实**：`15×3` 溯源于 R4 评分代码 `score_r4.py:227`（`e9fd5e5`）后被 R5 PLAN 硬化，**非原协议/人工真值**；
+  像素推理 + 线性真值支持**疑似协议类缺陷，非绝对证明**；**不确定性 U1：无人眼视觉确认**（模型不能看图）；历史 R3/R4/R5 FAIL 与旧协议/JSON 字节不动。
+- **PM 决定 3：接受前瞻协议修正规划**：未支持的 `15×3` 假设不得作为已证几何真值；**历史 R3/R4/R5 FAIL 维持**（段 CER > 0.25 独立成立）、旧协议/JSON 不动、**不宣 Z2 pass**；
+  仍需**真实 grid + 人工 cell 真值 / 新冻结 cohort**，**table cell CER 0.25 / page CER 0.15 阈值不变**；如实记录 U1、不作实际视觉声明；既有用户授权的普通后续工作**不重新索权、不新增许可阻塞**。**任务状态不变；真实表格与混合覆盖 UNMET。**
+- **PM 决定 4：LG-037 保持 `in-progress`**：超时下**无实际新排名**，旧 R5 图片硬门 FAIL 不变；区分旧负向 top-k NN 无弃答（预期）与 ACL；**不加新阈值/媒体过滤**。
+- **产品树前后零 delta**：`git diff --stat 7c27f18 HEAD -- backend frontend tests docs contracts pyproject.toml uv.lock Makefile src` **空**；
+  `7c27f18..HEAD` 变更路径**仅**四个源 probe 目录 + 本集成包。
+- **Board CLI（真实，绝对根）**：`validate` **41 tasks / 0 diagnostics**；`digest` **37 done / 2 in-progress / 2 todo / ready []**；`ready` **[]**——与预期一致。
+- **成本**：本集成阶段产品 LAN 调用 **0**（无新 POST/GET/ASR/embedding、无新测试、无产品字节变化）；
+  源历史计数 C **2 POST + 1 GET**、B/D/A **0**、retry 0；**LAN/端点价格 unknown；pi/DeepSeek 成本另计、unknown、非 0**；**无音频**。未 push/deploy/publish。
+- **状态不变**：**LG-035 `in-progress`（真实表格/混合覆盖 UNMET）**、**LG-037 `in-progress`（无新排名、R5 图片门 FAIL 不变）**、**LG-040/041 仍 locked**。契约 **`1.11.0`**、SDK **`0.1.22`** 不变。
+- **下一步（具体）**：OCR 需**真实 grid + 人工 cell 真值**并**在冻结新协议/cohort 后进行未来模型调用**；Z2 更宜作多列/并排阅读顺序基准；
+  向量需**更大更平衡跨模态语料 + 分数 margin 诊断**，**不自动采样、不在冻结 R5 查询上调阈值**；两者仍归命名的 **LG-040** 版本 QA。
+
+---
+
+## 2026-10-16 Materials OCR R5 + Vector R5 收拢集成检查点（历史；唯一 main 集成/PM 文档 owner；本集成阶段产品 LAN 调用 0/外部服务 0）
 
 本节为**当前事实**，覆盖其上历史快照中的相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
 未 reset/clean/覆盖/重复 cherry-pick，未推送/部署/发布。主代理只 PM，无嵌套派工、无网络/模型探针、无新产品代码。

@@ -86,16 +86,18 @@ Files 只读预览/下载、受控上传（`X-LG-Token`，无 token 时上传如
 
 ## 当前进展（截至 2026-10-16）
 
-> **最新状态（2026-10-16，Materials R5 收拢集成）**：任务 CLI（backlog 专用根）`validate` **41 tasks / 0 diagnostics**；
+> **最新状态（2026-10-16，Materials R6 集成）**：任务 CLI（backlog 专用根）`validate` **41 tasks / 0 diagnostics**；
 > `digest` complete=true → **2 todo / 2 in-progress / 37 done**；`ready=[]`。
-> 本轮仅集成**证据**：OCR r5 产品候选**未证明收益故不合并**（Z2 表格公平段 CER 0.277946 > R4 0.268882、精确行 token 6/15、结构 FAIL；
-> 仅 `probes/materials-ocr-r5-20261016/**` 证据入库，默认提示词与产品分支不变）；向量 r5 probes-only 合并（2 真实音频/2 图片/6 中文文本语料，
-> 17 POST+1 GET，两条音频 rank 1、ZH 图片未进 top-5，**冻结图片门未过**）。**无质量通过**；本轮还记录**向量音频总预算越界 errata**
-> （授权 total ≤30 s，实际 32.048 s，超 2.048 s ≈6.8%；不重跑掩盖）。**in-progress = LG-035（图片/PDF OCR，
-> 真实中文样本已备但表格质量未过）、LG-037（可选向量，真实跨模态质量未达）**；**todo = LG-040（资料/Embedding 集中验收，未解锁）、
-> LG-041（中文 ASR 质量锁，未解锁）**。**协作候选 default off、可回退**；代码契约 **`1.11.0`**、SDK **`0.1.22`**。
-> **当前下一步**：OCR 改做**程序侧版面分析/列切分**（非再抽提示词），向量需**更大更平衡跨模态语料 + 分数 margin 诊断**（不自动采样、不在冻结 R5 查询上调阈值）。
-> 集成报告 [probes/materials-r5-close-20261016/REPORT.md](probes/materials-r5-close-20261016/REPORT.md)。下方表格为 2026-10-15 历史局部证据，保留不改。
+> 本轮仅集成**证据**，0 新增产品 LAN 调用、0 音频：OCR 版面（A）产品原型**不合并**（scale-sensitive：同一 Z2 页 gutter 计数 2 vs 4 不稳定、未集成默认管线；
+> 仅 `probes/materials-ocr-layout-r6-20261016/**` 证据入库，owned commit `72f7125`；**erratum**：A wrapper 在 commit 之后 `exit 143`（非正常成功），
+> 版面计数 scale 不稳定，本节为结构性信号、**非质量通过**）；向量诊断 B、证据可观测 C、OCR 协议调查 D 三者 probes-only `--no-ff` 合并
+>（B `d189f43` / C `7069ffe` / D `6bef4ed`，历史报告字节未改）。B：查询文本一致、媒体向量稳定、语料改变，**旧 margin UNKNOWN**、未证产品排序缺陷；
+> C：真实 2 POST 均 30 s `index_unavailable`、health 1 GET 200，**无真实新排名**，stub `order_match` 仅 WEAK PATH；D：`15×3` 溯源于 R4 评分代码而非原协议/真值，
+> 支持**疑似协议类缺陷（非绝对证明）**、**U1 无人眼视觉确认**。**无质量通过**；历史 R3/R4/R5 FAIL 维持、旧协议/JSON 与阈值不变、不宣 Z2 pass；
+> 真实 grid + 人工 cell 真值 / 新冻结 cohort 与混合覆盖仍 **UNMET**。**in-progress = LG-035（图片/PDF OCR，真实表格未过）、LG-037（可选向量，无新排名、R5 图片门 FAIL 不变）**；
+> **todo = LG-040（资料/Embedding 集中验收，未解锁）、LG-041（中文 ASR 质量锁，未解锁）**。代码契约 **`1.11.0`**、SDK **`0.1.22`**。
+> **当前下一步**：OCR 需**真实 grid + 人工 cell 真值**并在冻结新协议/cohort 后再做未来模型调用（Z2 更宜作多列/并排阅读顺序基准）；
+> 向量需**更大更平衡跨模态语料 + 分数 margin 诊断**（不自动采样、不在冻结 R5 查询上调阈值）。集成报告 [probes/materials-r6-integration-20261016/REPORT.md](probes/materials-r6-integration-20261016/REPORT.md)。下方表格为 2026-10-15 历史局部证据，保留不改。
 
 | 任务 | 状态 | 实际证据与限制 |
 |---|---|---|
