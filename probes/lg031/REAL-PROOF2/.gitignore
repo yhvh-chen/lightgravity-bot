@@ -1,0 +1,4 @@
+# LG-031 REAL-PROOF2: raw private proof data stays on disk (never committed).
+# Only the redacted evidence summaries / manifests / hash anchors are committed.
+fixtures/**
+__pycache__/
