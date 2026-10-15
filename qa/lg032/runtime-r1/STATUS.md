@@ -16,7 +16,7 @@
 | 6 | 门3 资源/预算/恢复（8 会话真实 session_refs + stopgate held/放行；同一持久账本跨 Run 不归零；corrupt=unknown；reviewer 共账本） | DONE（PASS；1 观察） |
 | 7 | 门4 默认回退 + §13 变更控制 | DONE（PASS；§13 分类 1 咨询项） |
 | 8 | 局部 pytest + mypy（材料性差异） | DONE（mypy 137 clean；全量 813 passed/5 skipped） |
-| 9 | REPORT + 精确 commit | IN PROGRESS |
+| 9 | REPORT + 精确 commit | DONE（commit `925be3b`，仅 18 文件，无 fixtures）|
 
 ## 关键事实
 
@@ -28,6 +28,9 @@
 
 - 门1 PASS；门2 PASS（观察 O1：同 dispatcher 冻结 `lease_owner` 为 worker 实例=dispatcher，两 member 同 owner 时遇同 node 第二者为幂等 `already_owned`，无双重真实授予/双写）；门3 PASS（观察 O2：reviewer 经默认进程全局计数器共用同一持久账本，已被正面证明）；门4 PASS（§13 观察 O3：`body.owner` 公开请求字段语义放松记录为“无版本变化”，可辩护但建议以 MINOR 行或 §4.3 明确标 compat-only）。
 
-## 待补
+## 交付与边界
 
-- REPORT 定稿；精确本地 commit。
+- HEAD：`925be3b8f764ae90d94de46f3da285122095bccc`（branch `qa/lg032-runtime-r1`）。
+- 精确 commit 仅 `qa/lg032/runtime-r1/**`（18 文件）；`fixtures/**` 保留在磁盘（私有 700，gitignored，不自动清除），未提交。
+- 产品/契约/测试树 `git diff afcae82 HEAD` 为空（逐字节同 afcae82）；未合入 main；未 push/deploy/publish；未触碰 8123/别包。
+- 结论：四门 PASS、0 阻断缺陷、3 观察（O1–O3）——见 REPORT.md/FINDINGS.md。
