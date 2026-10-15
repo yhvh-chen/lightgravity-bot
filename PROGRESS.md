@@ -387,3 +387,42 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - **023 新独立 cohort PM 预注册（任何新真实请求前）**：**2 样本×2 arm×1 repeat = 4 attempt，每正式 run 仅 1 次**；**总 48 / 每 12**，全 role/stage 共享单一持久 ledger、**实际 proxy 转发前硬限**；**旧 45 失败另列**，eval 已知总实际上限 **93**。workerprompt/tool/model/SDK budgets/initial commit/accept gate **先离线验证并冻结**，harness 错误**整 cohort 停止、不改后继续**；运行目录/TaskRunSubtask/原件/worktree **持久不自动清理、不可覆盖 attempt 输出**；双方同 **toolcap 32**（旧 10 过低实证，采样前固定）、**modelcall 每 worker≤12 且同 attempt 总≤12**、**output≤16000/HTTP120/retry0/并发≤2**；**必须真正走完整 Coordinator+stopconfirmer**；**旧混淆 45 不得计交付成本也不删**。
 - **证据与限制如实**：**旧 023 运行 SoT/TMD 丢失及 17 SDK DB 私有持久保全真实限制保留**；旧 45 总数可核（ledger 45 行）但逐 attempt 无法可靠归因（旧 guard count=0 + 采样中改动），**不能洗 0**；审计引用准确——**「旧停止门不是产品 bug」**（`fix/lg023-method` A7 离线复现：teardown 齐→`awaiting_acceptance`，旧 `unconfirmed` 来自未接 confirmer 的旧 `_accept`）。旧 022（unknown+6+8+5/10）、031（34/40）单列不归零。
 - 契约 **`1.10.0`**、SDK **`0.1.22`**、自主模式默认 **off** 不动；本包**产品真实生成 0**，**未实施代码/新 QA/新真实 cohort**；结束仅事实交接，**未 push/deploy/publish**。
+
+## 2026-10-16 LG-023 证据/PM 收拢 + LG-024 准备检查点（主代理 PM 独立复核；产品真实生成 0）
+
+本节为当前事实，覆盖上文 LG-023/024 相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
+未 reset/clean/覆盖/重复 pick，未推送/部署/发布。主代理只 PM，无嵌套派工；执行经 pi + 现有 DeepSeek。
+详细报告 [probes/batch-20261016/LG023-CLOSE-LG024-PREP.md](probes/batch-20261016/LG023-CLOSE-LG024-PREP.md)。
+
+- **开工核对（真实）**：`main@834b262` clean；`eval/lg023-cohort3@7e0b702` clean（唯一物理证据）；
+  `integrate/lg031-runtime@c4d4e87` **有产品源 dirty**（`backend/**`、`tests/...` + 未跟踪 `probes/lg031/RUNTIME-AUTH-INTEGRATION/`），
+  **本包未触碰其 branch/文件/index**（该 owner 独占产品源与 docs/08、README、PROJECT、agent、docs/06）。主工作区 uvicorn(:8123) 未 kill/未接线。
+- **安全 merge（仅证据/评估 harness/任务）**：`git merge --ff-only eval/lg023-cohort3` → **`main@7e0b702`**（`834b262..7e0b702`，83 文件，仅 `backlog/`+`probes/`）。
+  **产品树证明**：`git diff e0a8cec HEAD -- backend/ frontend/ src/ tests/ pyproject.toml uv.lock` **为空** ⇒ 逐字节同已验产品锚，**不重跑全量 pytest**。未 push。
+- **LG-023 独立只读复核（非只看 summary 标题）**：protocol hash `c8f83417…` **独立重算 MATCH**；harness 7 文件 + fixtures 24 文件 sha256 **全 MATCH**；
+  **唯一** `generation.jsonl`（16 行、`count=16`、`corrupt=false`、`persistent=true`）；4 份 `result.json` 机器门 **6/6（具名不同检查）**、
+  独立 reviewer **`passed`/findings=0**、真实停止门 **`confirmed`（agent_closed+proxy_stopped）**、**绑定 accept**（`state=confirmed`）、
+  session_refs **1/2/1/2** 与节点数一致；账本 **0→3→8→11→16** 单调累加、**转发前预留**；elapsed 11.95/15.92/13.22/17.51s。
+- **比较目标满足 ⇒ LG-023 `done`（仅评估门内，不是整产品 pass）**：2 样本 × 2 arm × 1 repeat = 4 attempts，每个 1 次；初始 commit/树/工具资源/门由 protocol hash+sha256 绑定；
+  四例 6/6 机器门 + 独立 review + stopgate + 绑定 accept；数据（A 6 请求/25.17s，B 10 请求/33.43s）**不支持这两样本的组队收益**。不删产品编排/评审能力；样本小/单模型/强制计划局限保留。
+- **措辞修正（不覆盖旧原件字节，仅 `EVIDENCE-CLOSE` 补注）**：cohort-3 “cost higher/lower” **仅指已测请求数/elapsed 代理量**；
+  **完整 token/费用/shared 开发-QA 未知**，**不得**引申为完整生命周期成本或货币节省。
+- **usage/token 真实边界（零调用只读）**：`usage/cost=unknown`；只读核对已持久 6 个 SDK session DB 的 `gen_metadata`（protobuf），
+  **仅含 system prompt/step 结构/model_enum，无可核 provider token/费用字段** ⇒ **保持 unknown**（**不逐 attempt 追加 metrics**、**不重跑模型补 token**、
+  **不把估计称 provider 计费 tokens**、不扫无关用户/tmp 全部 session）。未抽取/未持久化任何 prompt/headers/密钥/raw body；敏感原件不入 repo。
+- **旧成本保留、总数 65**：旧 cohort-1 **45**（protocol-deviation 失败，原 ledger 45 行保留）+ cohort-2 **4**（harness D1 停止）**另行单列、不清零、不并入** cohort-3 的 **16**；
+  **总实际 eval = 45+4+16 = 65**（**不得用 16 覆盖旧 49**；**不当作所有旧失败原件都齐**——旧部分运行 SoT 已丢失，METHOD-AUDIT 明示）。
+  **不因无法取得费用阻止合法评估 done**。
+- **LG-024 排期（原子 claim + 新 worktree）**：backlog 专用根 `validate` → **ok 41 tasks/0 diagnostics**、`digest` **complete=true**（33 done/6→5 in-progress/3 todo）、
+  `ready` = LG-024 后，CLI **原子 claim `LG-024 --as agent:pi-lg024`**（不绕 claim）。精确提交 PM/claim **`b7db2c7`**。
+  创建**全新持久 worktree** `/home/yhvh/code/lightgravity-bot-worktrees/lg024`（branch `dev/lg024`，基于 `b7db2c7`；路径/分支先核**不存在**、不覆盖）。
+  > 注：对整个仓库根跑 `validate` 会命中旧实验 `probes/agensh-orchestration-r2/runs/**` 已跟踪样例的重复 frontmatter 键（`b2bd5eb` 既存），非 backlog 任务；backlog 任务根为 0 诊断，此差异如实记录、不在本包修旧实验。
+- **LG-024 阶段 A（已落，`dev/lg024@db84849`）**：**只写 probes/本地产物**——许可与来源清单、启动/安装入口烟测草案、阶段 A 计划。
+  **关键发现**：参考仓库 **Olav 为 Business Source License 1.1（非宽松）** ⇒ 仅方法参考、**不外搬受限实现**；Olav OS/Olav Tasks 为 MIT；运行依赖全为 MIT/BSD-3-Clause/Apache-2.0、无 copyleft 传染项。
+  **阶段 B 等待** `integrate/lg031-runtime` 释放共享 docs 后**串行**落地 README/docs06/PROJECT/agent/docs08 并**绑定届时准确候选**。**LG-024 不提前 done**。
+- **状态如实**：**LG-023 `done`（评估门内）**；**LG-024 `in-progress`（阶段 A，未 done）**；**LG-029/031/032 `in-progress`**（重要返修/QA 不动）；
+  **LG-035/037 `in-progress`**；**LG-040/041 `todo` 不解锁**；**LG-022 `done`（门内）**、**LG-031 `done`（待 032 独立集中 QA）** 保留。
+  **契约 `1.10.0`、SDK `0.1.22`、自主模式默认 off 不变**。**本包产品真实生成 0**，未推送/部署/发布。
+- **handoff/边界**：`main@b7db2c7`（clean）；LG-024 HEAD `db84849`（clean）；metrics 原件边界：cohort-3 唯一物理 ledger `lg023-cohort3-data/generation/generation.jsonl`（16 行）、
+  逐 attempt `probes/lg023/cohort3/runs/**`（不可变）、旧 cohort1 ledger `probes/lg023/ledger/generation/generation.jsonl`（45 行）、cohort2 `lg023-cohort2-data/attempts/**`（4）。
+  退出无残留本包进程；下一步阶段 B 待共享 docs owner 释放。
