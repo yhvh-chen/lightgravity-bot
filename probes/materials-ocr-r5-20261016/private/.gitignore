@@ -1,0 +1,6 @@
+# Originals stay private — mode 0700 dir / 0600 files, never packaged into the repo.
+# The reviewable evidence carries only manifest/sha256 references; the raw
+# original bytes (Z2 PDF, Z1 JPG) and the human truth copies remain private and
+# are reproduced from the upstream TRUTH-PREP package by sha256.
+*
+!.gitignore

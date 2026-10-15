@@ -1,0 +1,15 @@
+{
+  "call": 2,
+  "kind": "ocr_z1_printed_regression",
+  "endpoint": "http://192.168.8.12:11434/v1/chat/completions",
+  "model": "qwen3.8-27b",
+  "scale": null,
+  "page": null,
+  "input_sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+  "input_bytes": 333996,
+  "latency_seconds": 33.093,
+  "finish_reason": "stop",
+  "prompt_tokens": 1445,
+  "completion_tokens": 733,
+  "text": "其功也予生平篤信老氏之學說如此年來因更覃思\n舊業萃古今注老數十百家而遍肄之將以窮其賾而\n會其通乃讀註愈多而理解愈晦在作者非不各竭其\n聰明才力以鑽研淬礪於老氏一言一字之中其實支\n離曼衍去玄之又玄之真際不知幾千萬里然後歎猶\n龍之妙不可方物而絕詣之未易以淺見求也遂乃盡\n棄舊註專致力於經文而有串珠之編由是批郤導窽\n以求之於經如人三萬六千毛孔孔疏達三百六十\n骨節節節靈通雖不加一字詮釋而篇中之八百有四\n老解老[unreadable]自敘"
+}

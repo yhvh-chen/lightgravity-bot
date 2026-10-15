@@ -1,0 +1,9 @@
+{
+  "metric": "z1_printed_page_cer",
+  "cer": 0.10582,
+  "pass_at_0.15": true,
+  "truth_chars": 189,
+  "hyp_chars": 205,
+  "machine_input_sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+  "machine_model": "qwen3.8-27b"
+}
