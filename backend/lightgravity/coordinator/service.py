@@ -53,8 +53,17 @@ from .dispatcher import (
     SingleSlotDispatcher,
     UnavailableExecutor,
 )
+from .continuation import (
+    MODE_CREATE_ONLY,
+    MODE_RESUME,
+    CONTINUATION_CONFIG_VERSION,
+    continuation_record,
+    plan_continuation,
+)
+from .control import ControlService
 from .logs import GlobalConversationLog, IdempotencyLog
 from .queue import TaskQueue
+from .recovery import ProcessProbe, RecoveryReport, RecoveryScanner
 from .state import ACTIVE_TASK_PHASES, TERMINAL_RUN_STATES, StateWriter
 
 _ALLOWED_MESSAGE_ROLES = frozenset({"user", "assistant", "system", "tool"})
@@ -213,6 +222,7 @@ class Coordinator:
         responder: Callable[[str, Classification], str] | None = None,
         verification: CandidateVerifier | None = None,
         resource_service: ResourceService | None = None,
+        process_probe: ProcessProbe | None = None,
     ) -> None:
         self._store = store
         self._owner = owner or f"coordinator:{os.getpid()}"
@@ -240,8 +250,18 @@ class Coordinator:
         self._verification = verification
         self._resource_service = resource_service
         self._resource_dir = resolved_data_dir
+        self._control = ControlService(
+            self._store, self._writer, self._queue, self._dispatcher, owner=self._owner
+        )
+        self._recovery = RecoveryScanner(
+            self._store,
+            self._writer,
+            probe=process_probe,
+            artifact_root=resolved_data_dir,
+        )
         self._loop_task: asyncio.Task[None] | None = None
         self._stopping = False
+        self._last_recovery: RecoveryReport | None = None
         #: Set while a dispatcher call is in flight (exposed for tests/monitoring).
         self._active_run_id: str | None = None
 
@@ -279,12 +299,34 @@ class Coordinator:
         self._verification = verification
 
     def start(self) -> None:
-        """Start the background queue worker (idempotent)."""
+        """Start the background queue worker (idempotent).
+
+        Before the worker loop accepts work, one restart scan runs so a Run
+        interrupted by a previous process never silently occupies the slot or
+        gets replayed.  The scan's findings are exposed via
+        :meth:`recovery_report`.
+        """
 
         if self._loop_task is not None and not self._loop_task.done():
             return
         self._stopping = False
+        self.run_recovery_scan()
         self._loop_task = asyncio.create_task(self._run_loop())
+
+    def run_recovery_scan(self) -> RecoveryReport:
+        """Inspect persisted state after a restart and record the conclusions."""
+
+        report = self._recovery.scan()
+        self._last_recovery = report
+        return report
+
+    @property
+    def recovery_report(self) -> RecoveryReport | None:
+        return self._last_recovery
+
+    @property
+    def control(self) -> ControlService:
+        return self._control
 
     async def stop(self) -> None:
         """Stop the background worker without touching persisted state."""
@@ -681,7 +723,14 @@ class Coordinator:
         *,
         request_id: str | None = None,
     ) -> CoordinatorResult:
-        """Apply a pause/cancel request, awaiting real stop confirmation."""
+        """Apply a control action, awaiting real stop confirmation.
+
+        ``pause``/``cancel`` return ``confirmed=False`` until the dispatcher
+        reports a real stop; ``resume``/``retry``/``reopen``/``enqueue`` only
+        requeue and never create a second writer.  Idempotency is keyed by
+        ``request_id`` so a duplicate control request returns the first
+        outcome without re-invoking the adapter.
+        """
 
         key = f"request:{request_id}" if request_id else None
         if key is not None:
@@ -694,92 +743,51 @@ class Coordinator:
         return result
 
     async def _apply_control(self, task_id: str, action: str) -> CoordinatorResult:
-        task = self._store.read("task", task_id)
-        phase = str(task.entity.get("phase", ""))
-        active_run = task.entity.get("active_run")
-        if action not in {"pause", "cancel"}:
+        if action in {"pause", "cancel"}:
+            outcome = await self._control.stop(task_id, action)
+        elif action in {"resume", "retry", "reopen", "enqueue"}:
+            outcome = self._control.requeue(task_id, action)
+        else:
             raise AppError(
                 ErrorCode.INVALID_REQUEST,
                 f"unsupported control action {action!r}",
                 details={"action": action},
             )
-        if not isinstance(active_run, str) or not active_run:
-            result = self._cancel_without_run(task_id, phase, action)
-            return result
-
-        if action == "cancel":
-            if phase not in {TaskPhase.CANCELLING.value, TaskPhase.AWAITING_ACCEPTANCE.value}:
-                self._writer.transition_task(task_id, TaskPhase.CANCELLING, run_ref=active_run)
-        else:
-            if phase == TaskPhase.EXECUTING.value:
-                self._writer.transition_task(task_id, TaskPhase.PAUSING, run_ref=active_run)
-            elif phase == TaskPhase.WAITING_USER.value:
-                self._writer.transition_task(task_id, TaskPhase.PAUSED, run_ref=active_run)
-            else:
-                return CoordinatorResult(
-                    kind="control",
-                    reply=f"Task {task_id} 当前阶段 {phase} 不支持暂停。",
-                    task_id=task_id,
-                    run_id=active_run,
-                    data={"action": action, "state": "not_pausable", "phase": phase},
-                )
-
-        cancel_result = await self._dispatcher.cancel(task_id, active_run)
-        confirmed = bool(cancel_result.confirmed)
-        if action == "cancel":
-            if confirmed:
-                self._writer.transition_run(
-                    active_run, "cancelled", task_ref=task_id, reason=cancel_result.reason
-                )
-                self._writer.transition_task(task_id, TaskPhase.CANCELLED, run_ref=active_run)
-                self._writer.set_active_run(task_id, None)
-                state = "confirmed"
-            else:
-                state = "unconfirmed"
-        else:
-            if confirmed:
-                self._writer.transition_run(
-                    active_run, "paused", task_ref=task_id, reason=cancel_result.reason
-                )
-                self._writer.transition_task(task_id, TaskPhase.PAUSED, run_ref=active_run)
-                state = "confirmed"
-            else:
-                state = "unconfirmed"
-        reply = (
-            f"Task {task_id} 的 {action} 已确认停止。"
-            if confirmed
-            else f"Task {task_id} 的 {action} 尚未确认停止，保持取消/暂停中间态。"
-        )
+        reply = self._control_reply(outcome)
+        data: dict[str, Any] = {
+            "action": outcome.action,
+            "state": outcome.state,
+            "confirmed": outcome.confirmed,
+        }
+        if outcome.run_id:
+            data["run_id"] = outcome.run_id
+        if outcome.phase:
+            data["phase"] = outcome.phase
+        if outcome.reason:
+            data["reason"] = outcome.reason
+        if outcome.cleanup:
+            data["cleanup"] = outcome.cleanup
         return CoordinatorResult(
             kind="control",
             reply=reply,
             task_id=task_id,
-            run_id=active_run,
-            data={"action": action, "state": state, "confirmed": confirmed},
+            run_id=outcome.run_id,
+            data=data,
         )
 
-    def _cancel_without_run(self, task_id: str, phase: str, action: str) -> CoordinatorResult:
-        if action != "cancel":
-            return CoordinatorResult(
-                kind="control",
-                reply=f"Task {task_id} 当前没有活跃 Run，忽略 pause。",
-                task_id=task_id,
-                data={"action": action, "state": "no_active_run"},
-            )
-        if phase in {TaskPhase.CANCELLED.value, TaskPhase.COMPLETED.value}:
-            return CoordinatorResult(
-                kind="control",
-                reply=f"Task {task_id} 已是 {phase}。",
-                task_id=task_id,
-                data={"action": action, "state": "no_active_run", "phase": phase},
-            )
-        self._writer.transition_task(task_id, TaskPhase.CANCELLED)
-        return CoordinatorResult(
-            kind="control",
-            reply=f"Task {task_id} 已取消（未启动执行）。",
-            task_id=task_id,
-            data={"action": action, "state": "confirmed", "confirmed": True},
-        )
+    @staticmethod
+    def _control_reply(outcome: object) -> str:
+        action = getattr(outcome, "action", "control")
+        task_id = getattr(outcome, "task_id", "")
+        state = getattr(outcome, "state", "")
+        reason = getattr(outcome, "reason", None)
+        if state == "confirmed":
+            if action in {"pause", "cancel"}:
+                return f"Task {task_id} 的 {action} 已确认停止。"
+            return f"Task {task_id} 已接受 {action}，重新进入队列。"
+        if state == "unconfirmed":
+            return f"Task {task_id} 的 {action} 尚未确认停止，保持取消/暂停中间态。"
+        return f"Task {task_id} 的 {action} 未生效：{reason or '当前阶段不允许'}。"
 
     # ---------------------------------------------------------------- status
     def status(self, task_id: str) -> dict[str, Any]:
@@ -901,13 +909,38 @@ class Coordinator:
             self._apply_outcome(task_id, run_id, outcome)
             return True
         finally:
+            # Only release the claim we still hold.  A control requeue (resume)
+            # that ran while this worker was finishing may have moved the Task
+            # back to ``queued``; releasing then would clobber the queued state
+            # and the resumed Run would never be picked up.  ``release`` itself
+            # is idempotent for ``not_queued``.
             try:
-                self._store.release(task_id, self._owner)
+                if self._queue_state(task_id) == "claimed":
+                    self._store.release(task_id, self._owner)
             except LockConflict:
                 pass
 
+    def _queue_state(self, task_id: str) -> str:
+        try:
+            queue = self._store.read("task", task_id).entity.get("queue")
+        except EntityNotFound:
+            return "not_queued"
+        if isinstance(queue, dict):
+            return str(queue.get("state", "not_queued"))
+        return "not_queued"
+
     def _open_run(self, task: Versioned) -> str:
+        # A Task that a restart scan (or an operator) put into recovery_required
+        # must not have a Run opened as a silent replay: its side effects are
+        # unknown.  A human decides via resume/retry/cancel first.
+        if str(task.entity.get("phase", "")) == TaskPhase.RECOVERY_REQUIRED.value:
+            raise AppError(
+                ErrorCode.ILLEGAL_TRANSITION,
+                "task requires a human recovery decision; not opening a replay Run",
+                details={"task_id": task.entity_id},
+            )
         active = task.entity.get("active_run")
+        source_run: dict[str, Any] | None = None
         if isinstance(active, str) and active:
             try:
                 existing = self._store.read("run", active).entity
@@ -919,22 +952,80 @@ class Coordinator:
                     f"task {task.entity_id!r} already has a non-terminal Run {active!r}",
                     details={"task_id": task.entity_id, "active_run": active},
                 )
+            source_run = existing
+        else:
+            # ``active_run`` was cleared by a requeue; the stopped Run is still
+            # discoverable via ``last_run`` so a confirmed pause can be
+            # continued natively instead of replayed from scratch.
+            last = task.entity.get("last_run")
+            if isinstance(last, str) and last:
+                try:
+                    source_run = self._store.read("run", last).entity
+                except EntityNotFound:
+                    source_run = None
+                else:
+                    active = last
+
+        # Decide the native SDK session continuation from the Task's previous
+        # Run *before* opening the new one (docs/02, docs/04 §5, docs/08 §8):
+        # only a provably clean pause continues the same conversation; an
+        # interrupted/unclean Run must not be silently replayed.
+        decision = plan_continuation(
+            task.entity,
+            source_run,
+            active if isinstance(active, str) and active else None,
+        )
+        continuation: dict[str, Any] | None = None
+        if decision.is_resume and decision.identity is not None:
+            identity = decision.identity
+            continuation = {
+                "conversation_id": identity.conversation_id,
+                "save_dir": identity.save_dir,
+                "continuation_mode": MODE_RESUME,
+                "source_run_id": decision.source_run_id,
+                "config_version": CONTINUATION_CONFIG_VERSION,
+                "decision": "resume",
+                "reason": decision.reason,
+            }
+        elif decision.is_recovery_required:
+            # A new Run must not be opened as a silent replay.  Record the
+            # decision and let the human recovery path handle the Task.
+            self._writer.emit(
+                task.entity_id,
+                EventType.ERROR_RECORDED,
+                {
+                    "mode": "continuation",
+                    "code": "recovery_required",
+                    "message": decision.reason,
+                    "source_run_id": decision.source_run_id,
+                },
+                task_ref=task.entity_id,
+                run_ref=decision.source_run_id,
+            )
+            raise AppError(
+                ErrorCode.ILLEGAL_TRANSITION,
+                decision.reason,
+                details={"task_id": task.entity_id, "source_run_id": decision.source_run_id},
+            )
+
         run_id = new_id("run")
+        run_content: dict[str, Any] = {
+            "task_ref": task.entity_id,
+            "attempt": 1,
+            "state": "planning",
+            "plan_ref": "PLAN.md",
+            "team_refs": [],
+            "subtask_refs": [],
+            "session_refs": [],
+            "continuation": continuation,
+            "cleanup": {"status": "pending"},
+            "ended_at": None,
+            "fail_reason": None,
+        }
         cast(_BodyStore, self._store).create(
             "run",
             run_id,
-            {
-                "task_ref": task.entity_id,
-                "attempt": 1,
-                "state": "planning",
-                "plan_ref": "PLAN.md",
-                "team_refs": [],
-                "subtask_refs": [],
-                "session_refs": [],
-                "cleanup": {"status": "pending"},
-                "ended_at": None,
-                "fail_reason": None,
-            },
+            run_content,
             actor=self._owner,
             request_id=f"run:{run_id}",
             body=f"# Run {run_id}\n\nTask: {task.entity_id}\n",
@@ -942,7 +1033,12 @@ class Coordinator:
         self._writer.emit(
             task.entity_id,
             EventType.RUN_CREATED,
-            {"run_id": run_id, "attempt": 1},
+            {
+                "run_id": run_id,
+                "attempt": 1,
+                "continuation": decision.kind,
+                "source_run_id": decision.source_run_id,
+            },
             task_ref=task.entity_id,
             run_ref=run_id,
         )
@@ -959,6 +1055,16 @@ class Coordinator:
         criteria = entity.get("acceptance_criteria") or []
         if not isinstance(criteria, list):
             criteria = []
+        # Carry the planned native continuation (non-secret conversation id +
+        # save_dir) into the ExecuteRequest so the adapter resumes the same SDK
+        # conversation instead of replaying the objective from scratch.
+        conversation_id, save_dir, continuation_mode = self._continuation_for(run_id)
+        if save_dir is None:
+            # Every Task gets one stable native session store so the SDK writes
+            # its trajectory where a later resume can find it.  This is
+            # non-secret and outside the Task Markdown dir (docs/02 §SDK session
+            # 原生格式用于恢复).
+            save_dir = self._native_session_dir(task.entity_id)
         return DispatchContext(
             task_id=task.entity_id,
             run_id=run_id,
@@ -972,8 +1078,36 @@ class Coordinator:
             connection_ref=self._connection_ref,
             budget=self._budget or self._task_budget(entity),
             timeout_seconds=self._timeout_seconds,
-            conversation_id=None,
+            save_dir=save_dir,
+            conversation_id=conversation_id,
+            continuation_mode=continuation_mode,
         )
+
+    def _continuation_for(self, run_id: str) -> tuple[str | None, str | None, str | None]:
+        """Return ``(conversation_id, save_dir, continuation_mode)`` to resume.
+
+        Only a ``decision == 'resume'`` continuation is applied; a fresh Run
+        gets ``(None, None, None)`` so the adapter creates a new native session
+        and never silently replays into a stale conversation.
+        """
+
+        try:
+            run = self._store.read("run", run_id).entity
+        except EntityNotFound:
+            return None, None, None
+        raw = run.get("continuation")
+        if not isinstance(raw, dict) or raw.get("decision") != "resume":
+            return None, None, None
+        conversation_id = raw.get("conversation_id")
+        save_dir = raw.get("save_dir")
+        if not isinstance(conversation_id, str) or not conversation_id.strip():
+            return None, None, None
+        if not isinstance(save_dir, str) or not save_dir.strip():
+            return None, None, None
+        mode = raw.get("continuation_mode")
+        if mode not in {MODE_RESUME, "create_or_resume", MODE_CREATE_ONLY}:
+            mode = MODE_RESUME
+        return conversation_id, save_dir, str(mode)
 
     def _workspace_path(self, entity: dict[str, Any]) -> str:
         ref = entity.get("workspace_ref")
@@ -984,6 +1118,17 @@ class Coordinator:
         except Exception:  # noqa: BLE001 - unresolved workspace is reported as empty
             return ""
         return str(resolved)
+
+    def _native_session_dir(self, task_id: str) -> str:
+        """Stable, non-secret native session storage directory for a Task.
+
+        The directory is created lazily by the SDK when it writes the first
+        trajectory; the coordinator only returns the path.  A resumed Run of the
+        same Task points at the same directory so the SDK's native
+        ``conversation_id`` lookup finds the previous session.
+        """
+
+        return str(self._resource_dir / "native-sessions" / task_id)
 
     @staticmethod
     def _task_budget(entity: dict[str, Any]) -> dict[str, int]:
@@ -997,6 +1142,11 @@ class Coordinator:
         return result
 
     def _apply_outcome(self, task_id: str, run_id: str, outcome: DispatchOutcome) -> None:
+        # Persist the adapter's *final* native session identity.  The SDK only
+        # assigns the native ``conversation_id`` after the turn completes, so the
+        # ``session_started`` event alone cannot carry it; the ``ExecutorResult``
+        # session ref is authoritative (proven by probes/lg016 native evidence).
+        self._record_result_session(run_id, outcome.result)
         state = outcome.state
         stop_confirmed = outcome.stop_confirmed
         if state == "cancelled" and stop_confirmed is False:
@@ -1010,12 +1160,33 @@ class Coordinator:
                 stop_confirmed=False,
             )
         current_phase = str(self._store.read("task", task_id).entity.get("phase", ""))
+        # A control requeue (resume/retry/reopen) may have opened a new Run for
+        # this Task while this (older) dispatch was still finishing.  Applying
+        # the old outcome then would clobber the freshly queued/planned Run and
+        # silently erase the pause.  If the Task already points at a different
+        # active Run, this outcome is stale: keep the Run's stop record and let
+        # the live Run own the Task phase.
+        current_active = self._store.read("task", task_id).entity.get("active_run")
+        if current_active != run_id:
+            self._writer.write_run(run_id, {"cleanup": {"status": "done"}})
+            return
         run_state = DispatchOutcome(state=state).run_state
         task_phase = DispatchOutcome(state=state).task_phase
         if current_phase == TaskPhase.CANCELLING.value and run_state != "cancelled":
             # A cancel was accepted while the dispatcher was still returning.
             run_state = "cancelled"
             task_phase = TaskPhase.CANCELLED
+        elif current_phase in {TaskPhase.PAUSING.value, TaskPhase.PAUSED.value}:
+            # A pause was accepted/confirmed while the dispatcher was still
+            # returning.  Keep the paused Run instead of letting a late
+            # success overwrite it and silently resume execution.
+            run_state = "paused"
+            task_phase = TaskPhase.PAUSED
+            self._writer.transition_run(
+                run_id, run_state, task_ref=task_id, reason="pause accepted"
+            )
+            self._writer.transition_task(task_id, task_phase, run_ref=run_id)
+            return
         run_extra: dict[str, Any] = {}
         if run_state in {"failed", "cancelled"}:
             run_extra["ended_at"] = _now_iso()
@@ -1083,7 +1254,19 @@ class Coordinator:
 
         def sink(event: dict[str, Any]) -> None:
             event_type = event.get("type")
-            if event_type == "adapter.error":
+            if event_type == "adapter.session_started":
+                # Record the real SDK session on the Run so the stop gate can
+                # confirm every session is closed before awaiting acceptance
+                # (docs/08 §6.2/§9).  Idempotent by session_id; never fabricates
+                # a session when the adapter reported none.
+                session = event.get("session")
+                if isinstance(session, dict) and session.get("session_id"):
+                    self._record_session_ref(run_id, str(session["session_id"]))
+                # Persist the non-secret native conversation identity so a later
+                # confirmed-pause resume can continue the same SDK session
+                # (docs/02 SDK 资源; docs/04 §5).  Only IDs/dirs are stored.
+                self._record_continuation(run_id, session)
+            elif event_type == "adapter.error":
                 self._writer.emit(
                     task_id,
                     EventType.ERROR_RECORDED,
@@ -1097,6 +1280,86 @@ class Coordinator:
                 )
 
         return sink
+
+    def _record_result_session(self, run_id: str, result: Any) -> None:
+        """Persist the final adapter ``SessionRef`` (native conversation id + dir).
+
+        Called once per Run after the turn, when the native conversation id is
+        finally known.  Records the opaque session id for the stop gate and the
+        non-secret conversation identity for continuation; a missing id is never
+        fabricated.
+        """
+
+        session_ref = getattr(result, "session_ref", None)
+        if session_ref is None:
+            return
+        session = session_ref.to_dict() if hasattr(session_ref, "to_dict") else None
+        if not isinstance(session, dict):
+            return
+        session_id = session.get("session_id")
+        if session_id:
+            self._record_session_ref(run_id, str(session_id))
+        self._record_continuation(run_id, session)
+
+    def _record_session_ref(self, run_id: str, session_id: str) -> None:
+        """Add ``session_id`` to the Run's ``session_refs`` once (idempotent)."""
+
+        try:
+            run = self._store.read("run", run_id)
+        except EntityNotFound:
+            return
+        raw = run.entity.get("session_refs")
+        existing = [str(item) for item in raw] if isinstance(raw, (list, tuple)) else []
+        if session_id in existing:
+            return
+        self._writer.write_run(run_id, {"session_refs": [*existing, session_id]})
+
+    def _record_continuation(
+        self, run_id: str, session: Any
+    ) -> None:
+        """Persist ``conversation_id``/``save_dir`` for a later native resume.
+
+        The values are non-secret native SDK identifiers (docs/02: 记录会话标识、
+        后端、配置版本与存储引用).  The adapter labels a session ``resumed`` when
+        it attached to an existing conversation; we keep that label so a Run's
+        ``continuation.decision`` reflects whether it continued an earlier
+        native session.  Nothing is written when the adapter reported no native
+        conversation id — a fabricated identity would let a later Run attach to
+        the wrong conversation.
+        """
+
+        if not isinstance(session, dict):
+            return
+        conversation_id = session.get("conversation_id")
+        save_dir = session.get("save_dir")
+        if not isinstance(conversation_id, str) or not conversation_id.strip():
+            return
+        if not isinstance(save_dir, str) or not save_dir.strip():
+            return
+        try:
+            run = self._store.read("run", run_id).entity
+        except EntityNotFound:
+            return
+        raw = run.get("continuation")
+        planned_source = raw.get("source_run_id") if isinstance(raw, dict) else None
+        resumed = str(session.get("state")) == "resumed"
+        record = continuation_record(
+            conversation_id=conversation_id,
+            save_dir=save_dir,
+            continuation_mode=(
+                MODE_RESUME if resumed else MODE_CREATE_ONLY
+            ),
+            source_run_id=(
+                str(planned_source)
+                if isinstance(planned_source, str) and planned_source
+                else None
+            ),
+            resumed=resumed,
+        )
+        if record is None:
+            return
+        record["decision"] = "resume" if resumed else "fresh"
+        self._writer.write_run(run_id, {"continuation": record})
 
     # ------------------------------------------------------------- ambiguity
     def _active_tasks(self) -> list[dict[str, Any]]:

@@ -1,0 +1,52 @@
+{
+  "task": "LG-016",
+  "kind": "real-sdk-native-session-continuation",
+  "at": "2026-10-15T00:10:16Z",
+  "python": "3.12.13",
+  "platform": "linux-x86_64",
+  "head": "b8251b5c63dbccac0a15d3c513a4cbc70ea1f9aa",
+  "model_requested": "deepseek-v4-flash",
+  "upstream": "https://api.deepseek.com/v1",
+  "credential": {
+    "source": "env:DEEPSEEK_API_KEY",
+    "present": true
+  },
+  "hard_caps": {
+    "max_proxy_calls_per_execution": 2,
+    "model_calls_cap_total": 4
+  },
+  "findings": [],
+  "limitations": [],
+  "first_run": {
+    "state": "succeeded",
+    "session": {
+      "session_id": "sess_51ebc526ecae4a2b8f798ec22a0f84ae",
+      "conversation_id": "c982169e32fee87fec61f11ab4d2f7a2",
+      "state": "created",
+      "save_dir": "/tmp/lg016-native-wsw4ng1x/bot-data/native-sessions/task-lg016-native"
+    },
+    "executor_state": "succeeded",
+    "stop_confirmed": null
+  },
+  "second_run": {
+    "state": "succeeded",
+    "session": {
+      "session_id": "sess_7b0a1e0ffe564ab092da3d0029edc449",
+      "conversation_id": "c982169e32fee87fec61f11ab4d2f7a2",
+      "state": "resumed",
+      "save_dir": "/tmp/lg016-native-wsw4ng1x/bot-data/native-sessions/task-lg016-native"
+    },
+    "stop_confirmed": null
+  },
+  "continuation": {
+    "requested_conversation_id": "c982169e32fee87fec61f11ab4d2f7a2",
+    "requested_save_dir": "/tmp/lg016-native-wsw4ng1x/bot-data/native-sessions/task-lg016-native",
+    "requested_continuation_mode": "resume",
+    "reported_session_state": "resumed",
+    "reported_conversation_id": "c982169e32fee87fec61f11ab4d2f7a2",
+    "resumed_same_conversation": true,
+    "same_save_dir": true
+  },
+  "model_calls_this_run": 2,
+  "within_cap": true
+}

@@ -74,6 +74,7 @@ class DispatchContext:
     timeout_seconds: float | None = None
     save_dir: str | None = None
     conversation_id: str | None = None
+    continuation_mode: str | None = None
 
     def to_execute_request(self) -> ExecuteRequest:
         """Build the frozen adapter request from this context."""
@@ -95,6 +96,7 @@ class DispatchContext:
             agent_ref=self.agent_ref,
             save_dir=self.save_dir,
             conversation_id=self.conversation_id,
+            continuation_mode=self.continuation_mode,
         )
 
 

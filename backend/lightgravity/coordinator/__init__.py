@@ -72,6 +72,20 @@ from .recruiter import (
     TeamPlan,
     member_config_hash,
 )
+from .control import ControlOutcome, ControlService
+from .continuation import (
+    CONTINUATION_CONFIG_VERSION,
+    ContinuationDecision,
+    NativeSessionIdentity,
+    continuation_record,
+    plan_continuation,
+)
+from .recovery import (
+    DefaultProcessProbe,
+    ProcessProbe,
+    RecoveryDecision,
+    RecoveryScanner,
+)
 from .resource_commands import (
     ResourceProposal,
     parse_resource_proposal,
@@ -139,5 +153,16 @@ __all__ = [
     "Coordinator",
     "CoordinatorResult",
     "CandidateVerifier",
+    "ControlOutcome",
+    "ControlService",
+    "CONTINUATION_CONFIG_VERSION",
+    "ContinuationDecision",
+    "NativeSessionIdentity",
+    "continuation_record",
+    "plan_continuation",
+    "DefaultProcessProbe",
+    "ProcessProbe",
+    "RecoveryDecision",
+    "RecoveryScanner",
     "build_router",
 ]

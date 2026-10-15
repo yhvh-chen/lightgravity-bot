@@ -1,0 +1,135 @@
+# LG-016 实施记录：暂停、取消与中断恢复
+
+- 日期：2026-10-15（UTC）
+- worktree：`/tmp/lightgravity-worktrees/lg016`，agent `pi-lg016`
+- 基线 commit：`b8251b5c63`（上轮 dirty；本轮已本地 commit，保留中断记录）
+- 环境：Python 3.12.13、`.venv`；真实上游 DeepSeek `api.deepseek.com/v1`
+
+## 0. 环境恢复说明（不是重新开工）
+
+本包上一进程因 `/tmp` 配额耗尽（派工日志 writer `EDQUOT`）中断，**不是功能验收
+失败**。恢复时：清理已完成任务的 gitignored 依赖释放 3.9GB；本 worktree、
+`.venv`、全部 dirty 源改动与证据完整保留；HEAD 仍为 `b8251b5c63`，未提交、未
+reset、未覆盖任何已有证据。日志改写到 home 缓存并过滤重复 delta。
+
+恢复时发现中断残留的**残缺源文件**并如实修复（不是把不完整文件当通过）：
+
+- `backend/lightgravity/coordinator/service.py::_open_run` 调用了**未定义**的
+  `self._continuation_from(...)`，且返回类型注解与实际返回值不一致。该调用会让
+  worker 循环对**所有** Task 抛 `AttributeError`，因而 pause/resume/cancel 的
+  真实路径全部无法运行（`tests/control/test_api_actions.py` 两个用例超时）。
+  已删除该未实现、也不应发明的 SDK continuation 调用，恢复 `_open_run -> str`
+  并让新 Run 以空 `session_refs` 开始。**本轮（2026-10-15）已按已安装 SDK 能力真实实现跨 Run 原生会话续接**（见 §2b）：不是重新引入未定义的调用，而是用已安装 SDK 0.1.22 的 `SessionContinuationMode` + `conversation_id` + `save_dir`，且以专门的 `ContinuationPlanner` 安全判定点驱动。
+
+## 1. 真实模型调用计数（诚实边界）
+
+- 旧（中断进程）的真实调用数**无法完整核实**：中断前未见落盘证据，故按未知处理。
+- 上轮恢复新增硬上限 4；本轮（续作）新增真实调用硬上限 **3**。
+- 上轮实际：新增 4 次真实调用（一次 cancel/pause 真实闭环），证据
+  `lg016-control-evidence.json` 保留。
+- **本轮实际：新增 3 次真实调用**（原生续接探针：首次尝试因 workspace 路径错误
+  为 0 次；第二次 1 次首回合；第三次 2 次首回合+续接回合），在硬上限 3 内。
+  因已达上限，**未重复运行**控制探针（其路径上轮已过且证据保留）。
+- 不主张精确历史总量，也不做不受限重试。
+- 复用 006/010 既有证据：session `resume` 底层能力来自 LG-003 探针结论
+  (`probes/lg003-antigravity/reports/LG-003-report.md` §保存/恢复)，本包未重复
+  验证该底层能力。
+
+## 2. 实现范围
+
+| 文件 | 变更 |
+|---|---|
+| `backend/lightgravity/coordinator/continuation.py` | **新增** `ContinuationPlanner`：持久化非秘密原生会话标识（`conversation_id`+`save_dir`+`continuation_mode`+固定 `config_version`），只对「已确认暂停且 cleanup=done 且有完整原生标识」的旧 Run 判定 `resume`；中断/不确定一律 `recovery_required`，失败/取消/无标识为 `fresh`（新会话，不重放） |
+| `backend/lightgravity/coordinator/control.py` | 新增 `ControlService`：pause/cancel 停确认门、resume/retry/reopen/enqueue 重排队；重排队时把停止的 Run 记到 Task `last_run`，保留可续接的原生会话源 |
+| `backend/lightgravity/coordinator/recovery.py` | 新增 `RecoveryScanner`/`ProcessProbe`：重启核对进程/产物/副作用，不确定进 `recovery_required` |
+| `backend/lightgravity/coordinator/service.py` | `request_control` 委派 `ControlService`；`start()` 先跑一次恢复扫描；`_open_run` 先用 `plan_continuation` 判定并写入新 Run 的 `continuation`；`_build_context` 把 `conversation_id`/`save_dir`/`continuation_mode` 传入 `ExecuteRequest`；Task 用稳定 `native-sessions/<task_id>` 作为原生存储；`_record_result_session` 持久化适配器**回合结束后**才产生的真实 `conversation_id`；`_apply_outcome` 增加陈旧 Run 守卫、保留 late pause 结果 |
+| `backend/lightgravity/adapter/execution.py` | `ExecuteRequest` 新增加性 `continuation_mode` 字段（不改变冻结字段语义） |
+| `backend/lightgravity/adapter/sdk_config.py` | `build_sdk_config` 支持运行时 `continuation_mode` 覆盖（映射到 SDK 原生 `SessionContinuationMode`），保留 RESUME 缺 conversation_id 的降级守卫 |
+| `backend/lightgravity/adapter/executor.py` | 把 `request.continuation_mode` 透传给 SDK 配置；`session_state` 按实际 continuation 标注 |
+| `backend/lightgravity/coordinator/dispatcher.py` | `DispatchContext` 透传 `continuation_mode` 到 `ExecuteRequest` |
+| `backend/lightgravity/coordinator/graph.py` | 节点级 `ExecuteRequest` 同样透传 `continuation_mode` |
+| `backend/lightgravity/api/tasks.py` | actions 接入 pause/resume/cancel/retry/reopen/enqueue；保留已 QA 的 accept/reject 幂等/revision/targetRun 分支 |
+| `backend/lightgravity/coordinator/__init__.py` | 导出 control/recovery/continuation 类型 |
+| `tests/control/**` | 32 项控制/恢复/续接单测（+ `test_continuation.py` 10 项） |
+| `tests/adapter/test_sdk_config.py` | +2 项运行时 `continuation_mode` 覆盖到 SDK 原生 RESUME 的验证 |
+| `tests/api/test_tasks.py` | 最小断言修正：resume 已实现，错误按真实 phase 返回（跨 owner，见 §5） |
+| `probes/lg016/**` | 有界真实 SDK cancel/pause/close 与**原生会话续接**证据 |
+
+## 2b. 跨 Run 原生会话续接（本轮补的实际缺口）
+
+上轮遗留缺口：协调器不持久化 `conversation_id`，新 Run 不能续接同一原生会话，`_open_run` 曾因删除未实现的续接调用而在“newRun”上产生空 `session_refs`。本轮：
+
+- `ContinuationPlanner.plan_continuation` 是唯一判定点，安全规则保守：只从 `paused` 且 `cleanup.status==done` 且带完整非秘密原生标识的 Run 续接；`recovery_required` 或 cleanup 非 done 一律拒绝自动续接；失败/取消/无标识为 `fresh`。
+- 判定结果写入新 Run 的 `continuation`（非秘密：`conversation_id`/`save_dir`/`continuation_mode`/`config_version`/`source_run_id`/`decision`）。
+- `_build_context` 把该三元组透传 `ExecuteRequest`→adapter→SDK 原生 `SessionContinuationMode.RESUME`。
+- SDK 只在回合结束后才分配 `conversation_id`（`agent.conversation_id` 文档与实测一致），所以协调器从 **`ExecutorResult.session_ref`** 记录最终标识（仅 `session_started` 事件会丢失它）；`tests/control/test_continuation.py::test_final_result_session_ref_is_persisted_for_continuation` 固定该行为。
+- 为防控制/worker 竞态导致“暂停丢失并被自动重放”，`_apply_outcome` 增加陈旧 Run 守卫，`_process_one` 仅在仍持有 `claimed` 时释放租约。
+
+## 3. 局部检查（实际结果）
+
+```bash
+.venv/bin/python -m mypy          # Success: no issues found in 88 source files
+.venv/bin/python -m pytest -q     # 420 passed, 4 skipped, 1 warning in 30.0s
+.venv/bin/python -m pytest tests/control -q   # 32 passed
+```
+
+真实路径（bounded，复用上轮 cancel/pause 证据）：
+
+```bash
+# 上轮已完成并保留：真实 cancel→cancelled、pause→paused、真实 session close、无泄漏
+probes/lg016/evidence/lg016-control-evidence.json   # model_calls_this_run=2, total=4, findings=[]
+# 本轮新增：原生会话续接 2 次真实调用
+DEEPSEEK_API_KEY=... .venv/bin/python probes/lg016/lg016_native_continuation.py \
+  --max-proxy-calls 2 --model-calls-cap 4
+# passed=true, model_calls_this_run=2, reported_session_state=resumed,
+# resumed_same_conversation=true, same_save_dir=true
+```
+
+原始证据：`probes/lg016/evidence/lg016-control-evidence.json`、
+`probes/lg016/evidence/lg016-native-continuation-evidence.json`。
+
+### 本轮真实调用计数（诚实边界）
+
+- 旧（中断进程）真实调用数仍无法完整核实，按未知处理；上轮控制探针 2 次为已记录历史。
+- 本轮新增真实调用 **3** 次（原生续接探针两次运行：1 次首回合 + 1 次续接回合；首次尝试因 workspace 路径错误为 0 次），在新模型调用硬上限 3 内。
+- 因此**未重复运行**控制探针（其 cancel/pause/close 路径上轮已通过且证据保留）；控制语义改动由单测覆盖。不主张精确历史总量，也不做不受限重试。
+
+## 4. 验收条件对照
+
+- **暂停/取消确认停止后更新，超时显示未确认及诊断**：真实 cancel→`cancelled`、
+  pause→`paused` 且 `cleanup=done`、槽位 `not_queued`；未确认时保持
+  `cancelling`/`pausing`、保留 Run 与恢复点、写 `cancellation_unconfirmed`
+  诊断，返回 409（单测 + 真实 confirmed 分支）。
+- **重启核对进程/产物/副作用，不确定进入 recovery_required**：`RecoveryScanner`
+  对 dead/unknown worker 一律不自动重放，写 `recovery_required` 并记录原因；
+  存活 worker 不动；终态 Run / 待验收 Run 释放残留 claim（单测 + 真实扫描）。
+- **恢复排队无双 writer，等待/待验收停止后不占槽，清理失败独立记录**：resume
+  经 store lease + `active_run` 守卫，最多一个非终止 Run；awaiting_acceptance/
+  paused 停后释放 claim；cleanup 失败写 Run 字段 + `cleanup.updated(failed)` 事
+  件，不掩盖已确认的停止，也不删除原始 diff/worktree/历史。
+- **恢复同一 Task 的原生会话/剩余工作，不静默从头重放（本轮补齐）**：确认暂停后，
+  新 Run 携带旧 Run 的非秘密 `conversation_id`+`save_dir`+`continuation_mode=resume`，
+  SDK 原生续接同一会话（真实证据 `resumed_same_conversation=true`）；不确定副作用
+  的 Run 不自动续接，保持 `recovery_required` 并保留 Task ID/历史。
+
+## 5. 真实限制与接线需求
+
+- **shutdown 与用户取消区分**：`Coordinator.stop()` 只取消 worker 循环、不写任何
+  Task 终态；中断遗留的 Run 由下次启动扫描判为 `recovery_required`（单测
+  `test_shutdown_is_not_user_cancel`）。
+- **跨 Run 的 SDK 会话续接已实现（本轮补齐）**：协调器现在持久化**非秘密**原生会话标识（`conversation_id`+`save_dir`+`continuation_mode`+固定 `config_version`），并只对可证明安全的「已确认暂停且 cleanup=done」旧 Run 用 SDK 原生 `SessionContinuationMode.RESUME` 续接同一 Task 的原生会话；不静默用初始目标从头重放已执行写副作用。真实证据：原生续接探针 `resumed_same_conversation=true`（§3）。
+- **SDK 原生会话标识的实际语义（实测）**：SDK 在回合结束后才分配 `conversation_id`（`session_started` 时为空），因此协调器从 `ExecutorResult.session_ref` 记录最终标识；`save_dir` 为 SDK 原生 trajectory 存储目录。`conversation_id` 需满足 SDK 校验 `[a-zA-Z0-9-]` 且 ≥32 字符（`LocalOpenAIAgentConfig` 实测），协调器只存储适配器回报的值、不自行编造。
+- **不确定副作用仍不自动恢复**：`recovery_required`/中断 Run/cleanup 未 done 的 Run，`_open_run` 拒绝开新 Run 并保持 `recovery_required`，需人工用 resume/retry/cancel 明确决定，不为 green 自动重放。
+- **GraphDispatcher 节点级 member `session_ref` 仍为 `None`**（LG-008 范围，未越界修改）；但节点级 `ExecuteRequest` 已透传协调器的 `save_dir`/`conversation_id`/`continuation_mode`。
+- **跨 owner 改动**：`tests/api/test_tasks.py` 属 LG-012；因 LG-016 实现了
+  resume，原「resume 未实现」断言失效，做了 5 行最小修正。如需回退接线，请由整
+  合执行者串行处理。
+- **未重复运行**：控制探针（cancel/pause/close）本轮未重跑以避免超新模型调用硬上限 3；上轮真实证据保留，控制语义改动由 32 项控制单测覆盖。
+- **未运行**：未做前端接线（LG-013 等）与逐任务独立 QA；首版 QA 由 027/021/022
+  执行。未 push/deploy（本包按用户指令本地 commit）。
+
+## 6. 状态
+
+按自身验收条件实现（含跨 Run 原生会话续接）并附真实关键路径证据；本轮已本地
+commit（保留中断记录）。标 **in-progress → 待首版 QA**（`awaiting version QA`），
+不宣称版本验收通过。

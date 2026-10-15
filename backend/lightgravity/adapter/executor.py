@@ -535,6 +535,7 @@ class AntigravityExecutor:
                 base_url=proxy.base_url,
                 save_dir=request.save_dir,
                 response_schema=request.response_schema,
+                continuation_mode=request.continuation_mode,
             )
         except CapabilityUnavailable as exc:
             return await self._blocked(handle, emit, code="capability_unavailable", message=str(exc))
@@ -578,7 +579,11 @@ class AntigravityExecutor:
 
         handle.conversation = agent.conversation
         conversation_id = _safe_str(lambda: agent.conversation_id)
-        session_state = "resumed" if request.conversation_id else "created"
+        session_state = (
+            "resumed"
+            if request.continuation_mode == "resume" or request.conversation_id
+            else "created"
+        )
         handle.session_ref = SessionRef(
             session_id=f"sess_{uuid.uuid4().hex}",
             conversation_id=conversation_id,

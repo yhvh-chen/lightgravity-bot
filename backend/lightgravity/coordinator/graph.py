@@ -764,6 +764,7 @@ class GraphDispatcher:
             agent_ref=node.member.role_ref,
             save_dir=context.save_dir,
             conversation_id=context.conversation_id,
+            continuation_mode=context.continuation_mode,
         )
 
     def _config_drift(self, node: _Node, context: DispatchContext) -> str | None:
