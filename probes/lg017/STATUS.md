@@ -48,3 +48,12 @@ preserved, no fake pass when no reviewer is available.
 - Note: docs08 1.6.0 frozen base; additive-only. api/app.py NOT touched (LG-019 owner);
   coordinator lazy default wires review so the default runtime is a real closed loop.
 - Real-model cargo: 0 calls this package (all local/in-process fakes; real SDK E2E is LG-021/022).
+
+## Delivered
+- Commit `99174d8` on `dev/lg017`; working tree clean; base `141809d`.
+- Final verification at commit: `uv run pytest -q` -> 502 passed, 4 skipped;
+  `uv run mypy` -> Success (93 files).
+- Real model calls this package: 0 (unknown=0, not fabricated). All evidence is
+  local/in-process fakes; real SDK/DeepSeek E2E remains LG-021/022.
+- Limits: model-backed reviewer is a port (default is deterministic program
+  reviewer); multi-worker isolation and browser paths not covered here.
