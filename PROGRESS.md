@@ -465,3 +465,33 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - **契约冻结 1.11.0 MINOR**（PM 决定，详见 PROJECT 决策日志）：按 R1 观察 O3 的实际公开兼容变化（四端点 body `owner` required→optional/非授权 + `ExecutionGrant.lease_owner` 加性）保守升 MINOR；先改 `docs/08` §13/§4.3/头部，再同步 `contracts/constants.py`（`CONTRACT_VERSION="1.11.0"`）、`tests/contracts/test_contracts.py` 与 README/PROJECT/agent/docs06 入口。**1.10/e0 首版包与历史证据保持原版本，不重写旧 JSON/PLAN/日志**；**未改任何 runtime 行为**。
 - **局部验证**：`uv run --frozen pytest tests/contracts tests/api/test_health.py -q` → **11 passed**；`uv run --frozen mypy` → **137 files clean**。
 - **状态**：LG-029 待确认为 `done`（R1 正向证据齐）；LG-031 真实 provider 门未做前保持 `in-progress`；LG-032 保持 `in-progress`（阶段 B 暂停）。真实 proof 见 `probes/lg031/REAL-PROOF/**`，本包产品真实生成随时间记录，旧 LG031 累计 34/40 不归零。
+
+## 2026-10-16 串行本地候选收拢：1.11 候选（F1/F2 + 两阶段 SDK）ff-safe 合入 main（唯一串行 PM owner；产品真实生成 0）
+
+本节为当前事实，覆盖上文 LG-031/032 相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
+未 reset/clean/覆盖/重复 pick，未推送/部署/发布。主代理只 PM，无嵌套派工；执行经 pi + 现有 DeepSeek。
+详细报告 [probes/batch-20261016/RUNTIME-CANDIDATE-INTEGRATION.md](probes/batch-20261016/RUNTIME-CANDIDATE-INTEGRATION.md)。
+
+- **开工核对（真实，只读）**：`main@3797964` clean、无 stash；`dev/lg031-real-proof@b819dd3` clean；
+  `git merge-base --is-ancestor main b819dd3` = **YES** ⇒ main 为**直接祖先**，**可 `--ff-only`、无冲突、无需重复 pick**。
+  主工作区 uvicorn(`:8123` PID 3320750) **未触碰**；其余 worktree（含在途 `dev/lg031-real-proof2@475c3b1` 新隔离只 harness）**未碰**。
+- **安全收拢（本包唯一写动作）**：`git merge --ff-only b819dd3` → **`main@b819dd3`**（`3797964..b819dd3`，64 文件：11 产品/测试 + 5 任务/docs + 48 evidence/harness）。
+  **不合**未报告的 `dev/lg031-real-proof2`（b819dd3 的后代，仅 probes/harness，cap 48 尚未实际运行）；**不碰** `integrate/lg031-runtime`、`qa/lg032-runtime-r1` 等分支/worktree/index。
+- **产品树核准（逐字节，PM 独立核）**：`git diff --stat afcae82 HEAD -- backend/ frontend/ src/ tests/ pyproject.toml uv.lock Makefile` 仅
+  `backend/lightgravity/contracts/constants.py`（注释 + `CONTRACT_VERSION`）与 `tests/contracts/test_contracts.py`（版本断言）⇒ **相对 afcae82 仅版本元数据，无新 runtime 逻辑**。
+  **不重跑 full pytest/UI**（无新代码；已有 version 局部 checks `tests/contracts`+`test_health` 11 passed、mypy 137 clean 引用其原证据）。
+- **契约 `1.11.0` MINOR（已冻结落 main）**：按 R1 观察 O3 的两处公开兼容变化保守升版——① 四个去中心化端点请求体 `owner` 由 `1.6.0` 事实采用的 required/端点采用放宽为 **optional/仅一致性校验、不再授权**；② `ExecutionGrant` 加性进程内非持久 `lease_owner`。
+  **`1.10.0`/e0 首版包与历史证据保持原版本**；docs/08 §13 保留“1.10.0 实现说明增补（已被 1.11.0 取代）”历史行，**不重写旧日志**。
+- **首版包锚点复核（未改，PM 独立核）**：`probes/lg024/STAGE-B/dist/lightgravity-bot-L0-e0a8cec-20261015T183958Z.tar.gz`
+  **sha256 = `581f1de603ab8adc6533efa9d4b2ed0506433d17328646b00ab7bbb2761f4de0`**（工作区实体 + `git cat-file blob | sha256sum` 双核一致），**405 文件不变**。
+  README 保留 024 首版历史锚（`e0a8cec`/`1.10.0`）与当前 source（1.11.0）**区别**；**不把 e0/1.10 旧包改称 1.11 最新版**。公开许可证仍**未选定、未授外发布**；本包**不发新 approval 问题**。
+- **门与真实边界**：R1 独立复验（`qa/lg032-runtime-r1@26ea945`，四机制门 PASS、0 阻断、3 观察 O1–O3，产品真实生成 0）已作为**独立机制复验**证据落 main；
+  `dev/lg031-real-proof@b819dd3` 正式真实 DeepSeek 单次 **24/24 cap PARTIAL**（门 1–4/6 PASS；门 5 独立 ModelReviewer 与门 7 绑定 accept 因共享上限在 verify 处 **429 转发前拒绝**未达；**非 runtime 缺陷**）。
+  ⇒ **允许收拢 default-off、已独立机制复验的候选代码，但 031 真实闭环未齐、032 阶段 B 未做**。
+- **状态如实（counts 真实）**：任务 CLI `backlog` 根 `validate` = **41 tasks / 0 diagnostics**、`digest` complete=true（**todo 2 / in-progress 5 / done 34**）、`ready` = **[]**。
+  卡状态：**LG-029 `done`**（R1 门 2 正向确认 F2 返修：四端点程序 grant 认证 + default-deny + 不落盘 + 冻结 `lease_owner` 一致，跨 member 冒用被拒；历史重新打开期证据保留）；
+  **LG-031 `in-progress`**、**LG-032 `in-progress`**（保留，**不 mark done**）；**LG-035/037 `in-progress`**；**LG-040/041 `todo` 不动**；**LG-036/038 `done` 保留**。
+- **成本单列不洗**：**旧 LG031 工程 34** + **新真实 proof 24** = 已知整体工程上限 **58**（`=34+24`，旧 phase 剩 6 不再消费）；与 **LG-023 旧实际 65（45+4+16）分列不合并**；
+  **proof2 新 cap 48 只有上限、尚未实际报告**（**不计 0 完成、不称成功**）；provider token/费用/sharedpiQA **unknown**（不当 0）。
+- **最终 031/032 真实门（未闭合）**：**LG-031 仍需真实 `verify`/reviewer/绑定 accept 的真实 proof**；**LG-032 还需 029/031 返修闭合后的同门全生命周期成本对照**（阶段 B 暂停，另冻结 harness/样本/费用）。**不把局部机制 pass 当产品 pass**。
+- **本包产品真实生成 0、外部服务调用 0**；未创建 B 成本 cohort、未运行 SDK 测试、未调用模型；未 push/deploy/publish。
