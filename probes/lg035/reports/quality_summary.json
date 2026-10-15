@@ -1,0 +1,104 @@
+{
+  "probe": "lg035-ocr-quality",
+  "at_utc": "2026-10-15T13:46:16Z",
+  "base_url_configured": true,
+  "model_configured": "qwen3.8-27b",
+  "dry_run": false,
+  "samples": [
+    {
+      "id": "clear_real_page",
+      "class": "real_clear_page",
+      "fixture_pdf_sha256": "89c6b42242d0aa16efdb7ff814604c4bfc5214e0bbdd040ead67dcf453d9ec0f",
+      "gold_sha256": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed",
+      "gold_chars": 225,
+      "cer": 0.0,
+      "char_accuracy": 1.0,
+      "threshold_cer": 0.05,
+      "pass": true,
+      "machine_text": "This is a lot of 12 point text to test the\nocr code and see if it works on all types\nof file format.\nThe quick brown dog jumped over the\nlazy fox. The quick brown dog jumped\nover the lazy fox. The quick brown dog\njumped over the lazy fox. The quick\nbrown dog jumped over the lazy fox.",
+      "meta": {
+        "latency_s": 5.225,
+        "prompt_tokens": 276,
+        "completion_tokens": 114,
+        "input_sha256": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276",
+        "finish_reason": "stop",
+        "raw_response_file": "/home/yhvh/code/lightgravity-bot-worktrees/lg035/probes/lg035/reports/raw_responses/page_1_1aebdc639db9.json"
+      }
+    },
+    {
+      "id": "multipage_real_pdf",
+      "class": "real_multipage_pdf",
+      "fixture_pdf_sha256": "929fc2aca157540851f24b0f566d9c2cd58d5f6ad27571d94930d7f847849b38",
+      "pages": [
+        {
+          "page": 1,
+          "gold_chars": 225,
+          "cer": 0.0,
+          "char_accuracy": 1.0,
+          "input_sha256": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276",
+          "page_locator_present": true,
+          "machine_text": "This is a lot of 12 point text to test the\nocr code and see if it works on all types\nof file format.\nThe quick brown dog jumped over the\nlazy fox. The quick brown dog jumped\nover the lazy fox. The quick brown dog\njumped over the lazy fox. The quick\nbrown dog jumped over the lazy fox.",
+          "meta": {
+            "latency_s": 4.859,
+            "prompt_tokens": 276,
+            "completion_tokens": 114,
+            "input_sha256": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276",
+            "finish_reason": "stop",
+            "raw_response_file": "/home/yhvh/code/lightgravity-bot-worktrees/lg035/probes/lg035/reports/raw_responses/page_1_1aebdc639db9.json"
+          }
+        },
+        {
+          "page": 2,
+          "gold_chars": 3144,
+          "cer": 0.07633587786259542,
+          "char_accuracy": 0.9236641221374046,
+          "input_sha256": "4a354e57bce464974d0322f11108479b4edb34e2f105627688e8c892741eac2d",
+          "page_locator_present": true,
+          "machine_text": "SHE MOPED. She sighed. She wandered around the house with the look of an injured puppy, sometimes bursting into tears. When her worried parents questioned her, she would answer, \"It's nothing.\" How could she explain she was desperately in love for the first time, and the object of her adoration didn't even know she existed? Finally her father sat down, took her hand and tenderly questioned her until he learned the cause of her sadness. Gently, simply, he talked with her of life and love. He comforted her. She was six years old.\n\"I've never forgotten that moment,\" says Kathleen Kilpatrick, a special assistant in the office of the U.S. Secretary of the Interior. \"How often I've thought back and wondered that he didn't just laugh at me. Instead, he treated me with dignity and concern for how deeply I felt.\"\nRobert Kilpatrick, now retired board chairman of CIGNA Corp., never took a course in parenting. He was simply showing love for his daughter, giving her his time and trying to see the world through her eyes. It would be hard to come up with a better formula for fatherhood.\n\"Fathers bring a unique presence, a special strength to raising children,\" says Ray Guarendi, a clinical psychologist whose book *Back to the Family* examines the long-term experience of 100 successful American families.\n\nListen to the voices of real experience\n\n# What Kids Need Most in a Dad\n\nBY RALPH KINNEY BENNETT\n\nPHOTO: © PAUL BARTON/THE STOCK MARKET\n\nGuarendi's book shows that traditional values, rooted in the bedrock of mutual trust, truth and unconditional love, are still the keys to successful child-rearing. And in this setting, fathers bring special gifts to parenting.\nSometimes fatherly instincts come easily; sometimes they have to be cultivated. But their payoff in lasting, positive effects on growing children is enormous. Here, culled from real-life experience, is what kids need most from a dad:\n*Someone who shows his love for them.* Kenneth Meade, pastor of the Church of Christ at Manor Woods, in Rockville, Md., says one of the most frequently expressed desires in his family counseling comes from children saying, \"I wish Dad would *tell* me or *show* he really loves me.\" Time after time, clergymen, counselors and psychologists encounter variations of this theme—children, often grown men, longing for more expressed affection from their fathers. \"I never doubted my father's love,\" writes author Walt Harrington, \"but even today I can't recall a time he hugged or kissed me or said he loved me.\"\nSuch overt expressions give needed assurance and encouragement. Motivational expert Zig Ziglar had this confirmed in reverse one day when he was trying to assemble a tricycle he had just bought for his then-four-year-old son, Tom. Ziglar became more exasperated by the minute because the proverbial bolt A was not fitting into nut B. He was about to give up when Tom, who was looking on, suddenly blurted, \"I sure do love you, Dad!\" Needless to say, Ziglar finished putting together that tricycle.\nGuarendi found that \"in strong families, fathers who had problems expressing affection made special efforts to show it.\" Some who couldn't say it wrote it in a letter, card or note on the back of one of their children's drawings. One father, adept at composing music, writes songs to his kids to tell them he loves them.\nFathers might also consider a technique used by a mother in Utah. Knowing her children were uncomfortable with public displays of affection, she worked out a secret code, known only to her kids. When one of them was about to participate in a sport or other school activity, she would squeeze the child's shoulder, meaning \"I love you.\"\nAn important \"surrogate\" way for a father to convey affection to a child is through the affection he\n\n93",
+          "meta": {
+            "latency_s": 37.158,
+            "prompt_tokens": 2022,
+            "completion_tokens": 887,
+            "input_sha256": "4a354e57bce464974d0322f11108479b4edb34e2f105627688e8c892741eac2d",
+            "finish_reason": "stop",
+            "raw_response_file": "/home/yhvh/code/lightgravity-bot-worktrees/lg035/probes/lg035/reports/raw_responses/page_2_4a354e57bce4.json"
+          }
+        }
+      ]
+    },
+    {
+      "id": "degraded_rotated_page",
+      "class": "low_quality_page",
+      "scored": false,
+      "note": "recorded honestly; not a pass/fail metric",
+      "machine_text": "This is a lot of 12 point text to test the\nocr code and see if it works on all types\nof file format.\nThe quick brown dog jumped over the\nlazy fox. The quick brown dog jumped\nover the lazy fox. The quick brown dog\njumped over the lazy fox. The quick\nbrown dog jumped over the lazy fox.",
+      "meta": {
+        "latency_s": 10.582,
+        "prompt_tokens": 422,
+        "completion_tokens": 244,
+        "input_sha256": "f9c80afb481abc07fdc6ff013df3048ef31141e7b1b90ec90ccbee8c3eddbea7",
+        "finish_reason": "stop",
+        "raw_response_file": "/home/yhvh/code/lightgravity-bot-worktrees/lg035/probes/lg035/reports/raw_responses/page_image_f9c80afb481a.json"
+      }
+    }
+  ],
+  "budget": {
+    "inference_posts": 4,
+    "max_posts": 10
+  },
+  "criteria_source": "probes/lg035/QUALITY-PLAN.md",
+  "blocked_classes": [
+    {
+      "class": "real_chinese_page_with_human_truth",
+      "reason": "no license-clear Chinese page + human truth under budget/time"
+    },
+    {
+      "class": "table",
+      "reason": "no license-clear table page with human truth under budget/time"
+    },
+    {
+      "class": "mixed_text_and_scan_single_file",
+      "reason": "not obtainable under license here"
+    }
+  ]
+}
