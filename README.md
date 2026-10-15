@@ -109,6 +109,8 @@ make frontend-build   # 前端生产构建
 
 ## 文档入口
 
+- [当前进展与续接记录](PROGRESS.md)：2026-10-15 本地检查点、待合并成果、DeepSeek 阻塞与恢复顺序。
+
 - 项目开发技能位于 `.agents/skills/`：已安装 Olav Tasks 的 6 个技能，来源版本与文件哈希见 [.agents/skills/olav-tasks-source.json](.agents/skills/olav-tasks-source.json)，许可证见 [.agents/skills/OLAV-TASKS-LICENSE](.agents/skills/OLAV-TASKS-LICENSE)。
 - [开发约束](agent.md)：项目范围、架构、SDK 接入、状态写入、验证与交付规则；[AGENTS.md](AGENTS.md) 提供自动发现入口。
 - [前端约束](design.md)：视觉 tokens、左侧多栏布局、组件、页面交互、响应式与浏览器验收。
