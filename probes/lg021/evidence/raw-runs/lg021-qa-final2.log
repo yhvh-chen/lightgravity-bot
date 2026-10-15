@@ -1,0 +1,401 @@
+# tmp=/tmp/lg021-qa.A181YA
+# seeded={
+  "long": "task_01M4ZXRG6CNZ4VTJVNWNYVPQK0",
+  "failed": "task_01M4ZXRG6NFH1XCJRJ2ZPFJP1C",
+  "recovery": "task_01M4ZXRG6RRZSQ2KBB03WG8JRW",
+  "queued": "task_01M4ZXRG6TSXZ22K2VVA99P3ZQ",
+  "cancelled": "task_01M4ZXRG6X301MZVQ56E1R3SDB",
+  "archived": "task_01M4ZXRG6ZKVGP03STRTGX9ED7"
+}
+# port=46691
+# server ready
+# api tasks: {"items":[{"id":"task_01M4ZXRG6CNZ4VTJVNWNYVPQK0","task_id":"task_01M4ZXRG6CNZ4VTJVNWNYVPQK0","title":"Refactor the batch intake pipeline so that every recovered document keeps a stable source revisio
+# api notifications: {"items":[{"notification_id":"notif_FED4682C1A3600435868434366","kind":"task.failed","title":"Task failed","body":"fixture failure #2","at":"2026-10-15T13:59:21.570Z","severity":"error","task_ref":"ta
+  [PASS] fiveWorkEntriesAndSettings
+  [PASS] noHorizontalOverflow1440
+  [PASS] allFiveEntriesRenderRealViews
+  [PASS] settingsAtRailBottom
+  [PASS] boardReadsRealPhases
+  [PASS] boardDistinguishesPhases :: failed label present, no blanket running
+  [PASS] openTaskPreservesScope
+  [PASS] filesListsWorkspaceEntries :: TASK SCOPE
+task_01M4ZXRG6CNZ4VTJVNWNYVPQK0
+PATH
+/
+Copy path
+TASK ARTIFACTS
+
+Task has no workspace_ref; no workspace file
+  [PASS] teamRendersAvailableRecruited :: Team
+Available
+Recruited
+task: task_01M4ZXRG6CNZ4VTJVNWNYVPQK0
+run: active
+current members: 0
+Available
+Recruited (0)
+Built-in default worker
+missing dependency
+  [PASS] resourcesRendersCategories :: Resources
+Connections
+category: connections
+source: resources/connection
+
+Registered adapter, model and credential reference. Edited in Settings.
+
+0 Connections
+  [PASS] settingsTypedSections :: LG
+LightGravity Bot
+Scope
+Run
+4
+Wide layout
+Chat
+Board
+Files
+Team
+Resources
+Settings
+SETTINGS
+Models & Providers
+
+Models & Providers is shown in the main panel.
+
+Settings
+Models & Providers
+section: M
+  [PASS] settingsNoRawYamlBlob
+  [PASS] notificationBadgeFromBackend
+  [PASS] notificationTargetsTaskRun
+  [PASS] notificationReadPersists
+  [PASS] taskScopeSurvivesViewSwitch
+  [PASS] chatDraftSurvivesViewSwitch
+  [PASS] panelsCollapse
+  [PASS] historyFilterSeparatesArchived
+  [PASS] emptyPhaseHasNoFabricatedTasks
+  [PASS] disconnectedShowsHonestStatus
+  [PASS] boardShowsErrorStateWhenApiBlocked
+  [PASS] recoversAfterError
+  [PASS] settingsSecretFieldNotEchoed
+  [PASS] noHorizontalOverflow_1024
+  [PASS] noHorizontalOverflow_390
+  [PASS] railItemsFocusableWithName
+  [PASS] railKeyboardFocusAdvancesWithResolvedRing :: focus-visible not BiDi-observable here; ring checked via rule+token
+  [PASS] popoverClosesOnEscape
+  [PASS] textContrastMeetsAA
+  [PASS] noSensitiveTokenInBrowserState
+{
+  "url": "http://127.0.0.1:46691/",
+  "checks": {
+    "fiveWorkEntriesAndSettings": {
+      "pass": true,
+      "labels": [
+        "Chat",
+        "Board",
+        "Files",
+        "Team",
+        "Resources",
+        "Settings"
+      ]
+    },
+    "noHorizontalOverflow1440": {
+      "pass": true
+    },
+    "allFiveEntriesRenderRealViews": {
+      "pass": true,
+      "Chat": {
+        "clicked": true,
+        "rendered": true,
+        "placeholder": false
+      },
+      "Board": {
+        "clicked": true,
+        "rendered": true,
+        "placeholder": false
+      },
+      "Files": {
+        "clicked": true,
+        "rendered": true,
+        "placeholder": false
+      },
+      "Team": {
+        "clicked": true,
+        "rendered": true,
+        "placeholder": false
+      },
+      "Resources": {
+        "clicked": true,
+        "rendered": true,
+        "placeholder": false
+      }
+    },
+    "settingsAtRailBottom": {
+      "pass": true
+    },
+    "boardReadsRealPhases": {
+      "pass": true,
+      "phases": [
+        "awaiting_acceptance",
+        "failed",
+        "recovery_required",
+        "queued",
+        "cancelled",
+        "completed"
+      ]
+    },
+    "boardDistinguishesPhases": {
+      "pass": true,
+      "note": "failed label present, no blanket running"
+    },
+    "openTaskPreservesScope": {
+      "pass": true,
+      "url": "?view=board&task=task_01M4ZXRG6CNZ4VTJVNWNYVPQK0"
+    },
+    "filesListsWorkspaceEntries": {
+      "pass": true,
+      "note": "TASK SCOPE\ntask_01M4ZXRG6CNZ4VTJVNWNYVPQK0\nPATH\n/\nCopy path\nTASK ARTIFACTS\n\nTask has no workspace_ref; no workspace file",
+      "fileItems": [
+        "candidates",
+        "deliverables",
+        "evidence",
+        "inputs"
+      ]
+    },
+    "teamRendersAvailableRecruited": {
+      "pass": true,
+      "note": "Team\nAvailable\nRecruited\ntask: task_01M4ZXRG6CNZ4VTJVNWNYVPQK0\nrun: active\ncurrent members: 0\nAvailable\nRecruited (0)\nBuilt-in default worker\nmissing dependency"
+    },
+    "resourcesRendersCategories": {
+      "pass": true,
+      "note": "Resources\nConnections\ncategory: connections\nsource: resources/connection\n\nRegistered adapter, model and credential reference. Edited in Settings.\n\n0 Connections"
+    },
+    "settingsTypedSections": {
+      "pass": true,
+      "note": "LG\nLightGravity Bot\nScope\nRun\n4\nWide layout\nChat\nBoard\nFiles\nTeam\nResources\nSettings\nSETTINGS\nModels & Providers\n\nModels & Providers is shown in the main panel.\n\nSettings\nModels & Providers\nsection: M"
+    },
+    "settingsNoRawYamlBlob": {
+      "pass": true
+    },
+    "notificationBadgeFromBackend": {
+      "pass": true,
+      "badge": "4",
+      "apiUnreadBefore": 4
+    },
+    "notificationTargetsTaskRun": {
+      "pass": true,
+      "taskRef": "task_01M4ZXRG6NFH1XCJRJ2ZPFJP1C · run_lg021_failed"
+    },
+    "notificationReadPersists": {
+      "pass": true,
+      "badgeAfter": "3",
+      "apiUnreadBefore": 4,
+      "apiUnreadAfter": 3
+    },
+    "taskScopeSurvivesViewSwitch": {
+      "pass": true,
+      "scopeTaskId": "task_01M4ZXRG6CNZ4VTJVNWNYVPQK0",
+      "scopeAfterViews": "task_01M4ZXRG6CNZ4VTJVNWNYVPQK0"
+    },
+    "chatDraftSurvivesViewSwitch": {
+      "pass": true,
+      "draftBefore": "lg021 draft retention check",
+      "draftAfter": "lg021 draft retention check"
+    },
+    "panelsCollapse": {
+      "pass": true,
+      "beforePanels": "{\"ctx\":true,\"chat\":false}"
+    },
+    "historyFilterSeparatesArchived": {
+      "pass": true,
+      "apiArchivedOff": "5",
+      "apiArchivedOn": "1"
+    },
+    "emptyPhaseHasNoFabricatedTasks": {
+      "pass": true,
+      "apiEmpty": "0"
+    },
+    "disconnectedShowsHonestStatus": {
+      "pass": true,
+      "streamStatusText": "Reconnecting (closed)",
+      "blockedHits": 3
+    },
+    "boardShowsErrorStateWhenApiBlocked": {
+      "pass": true,
+      "taskBlockHits": 38,
+      "errText": "Could not load tasks\n\nRequest failed with status 503 (internal_error)\n\nRetry"
+    },
+    "recoversAfterError": {
+      "pass": true,
+      "recovered": true
+    },
+    "settingsSecretFieldNotEchoed": {
+      "pass": true,
+      "inputsChecked": 0
+    },
+    "noHorizontalOverflow_1024": {
+      "pass": true,
+      "sw": 1024,
+      "cw": 1024
+    },
+    "noHorizontalOverflow_390": {
+      "pass": true,
+      "sw": 390,
+      "cw": 390
+    },
+    "railItemsFocusableWithName": {
+      "pass": true,
+      "ok": true,
+      "outline": "none",
+      "outlineWidth": "3px",
+      "aria": "Chat",
+      "current": null
+    },
+    "railKeyboardFocusAdvancesWithResolvedRing": {
+      "pass": true,
+      "measurable": true,
+      "focusAdvanced": true,
+      "tag": "BUTTON",
+      "cls": "lg-rail__item",
+      "focusVisible": false,
+      "outline": "none 3px",
+      "focusRingRules": {
+        "rules": 3,
+        "token": "2px solid #2563eb"
+      },
+      "note": "focus-visible not BiDi-observable here; ring checked via rule+token"
+    },
+    "popoverClosesOnEscape": {
+      "pass": true
+    },
+    "textContrastMeetsAA": {
+      "pass": true,
+      "candidates": 24,
+      "skipped": 0,
+      "sampled": 7,
+      "minRatio": 4.55,
+      "pairs": {
+        "lg-topbar__title": {
+          "text": "LightGravity Bot",
+          "fg": "rgb(15, 23, 42)",
+          "bg": "rgb(255, 255, 255)",
+          "ratio": 17.85
+        },
+        "lg-rail__item": {
+          "text": "Chat",
+          "fg": "rgb(71, 85, 105)",
+          "bg": "rgb(255, 255, 255)",
+          "ratio": 7.58
+        },
+        "lg-board__title": {
+          "text": "Board",
+          "fg": "rgb(15, 23, 42)",
+          "bg": "rgb(248, 250, 252)",
+          "ratio": 17.06
+        },
+        "lg-chat__subtitle": {
+          "text": "Real phase and Run state",
+          "fg": "rgb(100, 116, 139)",
+          "bg": "rgb(248, 250, 252)",
+          "ratio": 4.55
+        },
+        "lg-state__title": {
+          "text": "Nothing here",
+          "fg": "rgb(15, 23, 42)",
+          "bg": "rgb(255, 255, 255)",
+          "ratio": 17.85
+        },
+        "lg-card__title": {
+          "text": "Queued task",
+          "fg": "rgb(15, 23, 42)",
+          "bg": "rgb(255, 255, 255)",
+          "ratio": 17.85
+        },
+        "lg-card__path": {
+          "text": "task_01M4ZXRG6TSXZ22K2VV",
+          "fg": "rgb(71, 85, 105)",
+          "bg": "rgb(255, 255, 255)",
+          "ratio": 7.58
+        }
+      }
+    },
+    "noSensitiveTokenInBrowserState": {
+      "pass": true,
+      "scanned": "localStorage/sessionStorage/url/body-text"
+    }
+  },
+  "screenshots": [
+    "/tmp/lg021-qa.A181YA/shots/01-shell-1440.png",
+    "/tmp/lg021-qa.A181YA/shots/02-settings-1440.png",
+    "/tmp/lg021-qa.A181YA/shots/03-board-1440.png",
+    "/tmp/lg021-qa.A181YA/shots/04-task-long-1440.png",
+    "/tmp/lg021-qa.A181YA/shots/05-settings-form-1440.png",
+    "/tmp/lg021-qa.A181YA/shots/08-panels-collapsed-1440.png",
+    "/tmp/lg021-qa.A181YA/shots/09-disconnected-1440.png",
+    "/tmp/lg021-qa.A181YA/shots/10-error-state-1440.png",
+    "/tmp/lg021-qa.A181YA/shots/06-1024.png",
+    "/tmp/lg021-qa.A181YA/shots/07-390.png"
+  ],
+  "ok": true,
+  "browser": "firefox/156.0.1",
+  "contrastSample": {
+    "lg-topbar__title": {
+      "text": "LightGravity Bot",
+      "fg": "rgb(15, 23, 42)",
+      "bg": "rgb(255, 255, 255)",
+      "ratio": 17.85
+    },
+    "lg-rail__item": {
+      "text": "Chat",
+      "fg": "rgb(71, 85, 105)",
+      "bg": "rgb(255, 255, 255)",
+      "ratio": 7.58
+    },
+    "lg-board__title": {
+      "text": "Board",
+      "fg": "rgb(15, 23, 42)",
+      "bg": "rgb(248, 250, 252)",
+      "ratio": 17.06
+    },
+    "lg-chat__subtitle": {
+      "text": "Real phase and Run state",
+      "fg": "rgb(100, 116, 139)",
+      "bg": "rgb(248, 250, 252)",
+      "ratio": 4.55
+    },
+    "lg-state__title": {
+      "text": "Nothing here",
+      "fg": "rgb(15, 23, 42)",
+      "bg": "rgb(255, 255, 255)",
+      "ratio": 17.85
+    },
+    "lg-card__title": {
+      "text": "Queued task",
+      "fg": "rgb(15, 23, 42)",
+      "bg": "rgb(255, 255, 255)",
+      "ratio": 17.85
+    },
+    "lg-card__path": {
+      "text": "task_01M4ZXRG6TSXZ22K2VV",
+      "fg": "rgb(71, 85, 105)",
+      "bg": "rgb(255, 255, 255)",
+      "ratio": 7.58
+    }
+  },
+  "_evidenceFile": "/tmp/lg021-qa.A181YA/evidence/browser-qa-results.json"
+}
+# browser qa exit=0
+01-shell-1440.png
+02-settings-1440.png
+03-board-1440.png
+04-task-long-1440.png
+05-settings-form-1440.png
+06-1024.png
+07-390.png
+08-panels-collapsed-1440.png
+09-disconnected-1440.png
+10-error-state-1440.png
+api-notifications.json
+api-tasks.json
+browser-qa-results.json
+seed.json
+server-tail.log

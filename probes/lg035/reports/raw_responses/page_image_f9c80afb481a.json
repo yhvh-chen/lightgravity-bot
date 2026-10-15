@@ -1,0 +1,37 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "This is a lot of 12 point text to test the\nocr code and see if it works on all types\nof file format.\nThe quick brown dog jumped over the\nlazy fox. The quick brown dog jumped\nover the lazy fox. The quick brown dog\njumped over the lazy fox. The quick\nbrown dog jumped over the lazy fox.",
+        "reasoning_content": "The user wants a transcription of the text in the image. The text is rotated 90 degrees counter-clockwise. I need to read it as it appears, preserving the line structure. I will transcribe the text exactly as written, line by line, following the visual layout.\n\nLine 1: This is a lot of 12 point text to test the\nLine 2: ocr code and see if it works on all types\nLine 3: of file format.\nLine 4: The quick brown dog jumped over the\nLine 5: lazy fox. The quick brown dog jumped\nLine 6: over the lazy fox. The quick brown dog\nLine 7: jumped over the lazy fox. The quick\nLine 8: brown dog jumped over the lazy fox.\n"
+      }
+    }
+  ],
+  "created": 1792072037,
+  "model": "qwen3.8-27b",
+  "system_fingerprint": "b11641-843e7dcc1",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 244,
+    "prompt_tokens": 422,
+    "total_tokens": 666,
+    "prompt_tokens_details": {
+      "cached_tokens": 418
+    }
+  },
+  "id": "chatcmpl-as3bO61JvasOSEkgjRqq3txUBeIr8Zqq",
+  "timings": {
+    "cache_n": 418,
+    "prompt_n": 4,
+    "prompt_ms": 193.676,
+    "prompt_per_token_ms": 48.419,
+    "prompt_per_second": 20.65304942274727,
+    "predicted_n": 244,
+    "predicted_ms": 9975.681,
+    "predicted_per_token_ms": 41.05218518518519,
+    "predicted_per_second": 24.359239233892904
+  }
+}

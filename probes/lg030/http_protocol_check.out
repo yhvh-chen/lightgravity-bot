@@ -1,0 +1,5 @@
+DENY rejected unauthenticated
+POST 200 requested True
+REPLAY True
+BUDGET rejected budget_exhausted
+GET 200 ['c1', 'c2']

@@ -56,8 +56,11 @@ async def test_query_does_not_wait_for_running_task(store: FileStore) -> None:
         assert coordinator.status(task_id)["active_run"] is not None
 
         gate.set()
-        final = await wait_for_phase(coordinator, task_id, {"verifying", "failed"})
-        assert final == "verifying"
+        # LG-017 R1 honest default: no real independent reviewer is configured in
+        # this unit test, so an unreviewed candidate parks at ``waiting_user``
+        # instead of being silently accepted by a machine gate.
+        final = await wait_for_phase(coordinator, task_id, {"verifying", "waiting_user", "failed"})
+        assert final in {"verifying", "waiting_user"}
     finally:
         await coordinator.stop()
 
@@ -93,7 +96,7 @@ async def test_worker_survives_request_completion(store: FileStore) -> None:
         await asyncio.wait_for(executor.started.wait(), timeout=5)
         assert coordinator.active_run_id is not None
         gate.set()
-        final = await wait_for_phase(coordinator, created.task_id, {"verifying", "failed"})
-        assert final == "verifying"
+        final = await wait_for_phase(coordinator, created.task_id, {"verifying", "waiting_user", "failed"})
+        assert final in {"verifying", "waiting_user"}
     finally:
         await coordinator.stop()

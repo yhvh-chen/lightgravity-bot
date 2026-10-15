@@ -31,6 +31,7 @@ from .models import (
     PREFERRED_MODEL,
     ROLE_COORDINATOR,
     ROLE_EXPLICIT,
+    ROLE_REVIEWER,
     ROLE_WORKER,
     Connection,
     ConnectionReferences,
@@ -296,6 +297,8 @@ class ConnectionService:
             roles.append(ROLE_COORDINATOR)
         if settings.default_worker_connection_ref == connection_id:
             roles.append(ROLE_WORKER)
+        if settings.default_reviewer_connection_ref == connection_id:
+            roles.append(ROLE_REVIEWER)
         agents = tuple(
             sorted(
                 agent_id
@@ -317,6 +320,9 @@ class ConnectionService:
                     settings.default_coordinator_connection_ref
                 ),
                 ROLE_WORKER: self._describe_default(settings.default_worker_connection_ref),
+                ROLE_REVIEWER: self._describe_default(
+                    settings.default_reviewer_connection_ref
+                ),
             },
         }
 
@@ -327,6 +333,7 @@ class ConnectionService:
         actor: str,
         default_coordinator_connection_ref: Any = _UNSET,
         default_worker_connection_ref: Any = _UNSET,
+        default_reviewer_connection_ref: Any = _UNSET,
     ) -> dict[str, Any]:
         current = self._repo.read_settings()
         coordinator = (
@@ -339,11 +346,18 @@ class ConnectionService:
             if default_worker_connection_ref is _UNSET
             else default_worker_connection_ref
         )
+        reviewer = (
+            current.default_reviewer_connection_ref
+            if default_reviewer_connection_ref is _UNSET
+            else default_reviewer_connection_ref
+        )
         self._validate_default_ref(coordinator, role=ROLE_COORDINATOR)
         self._validate_default_ref(worker, role=ROLE_WORKER)
+        self._validate_default_ref(reviewer, role=ROLE_REVIEWER)
         content = {
             "default_coordinator_connection_ref": coordinator,
             "default_worker_connection_ref": worker,
+            "default_reviewer_connection_ref": reviewer,
         }
         if current.exists:
             if expected_revision is None:
@@ -367,6 +381,7 @@ class ConnectionService:
             written = self._repo.create_settings(
                 default_coordinator_connection_ref=coordinator,
                 default_worker_connection_ref=worker,
+                default_reviewer_connection_ref=reviewer,
                 actor=actor,
                 request_id="settings-init",
             )
@@ -375,6 +390,7 @@ class ConnectionService:
             "defaults": {
                 ROLE_COORDINATOR: self._describe_default(coordinator),
                 ROLE_WORKER: self._describe_default(worker),
+                ROLE_REVIEWER: self._describe_default(reviewer),
             },
         }
 
@@ -386,6 +402,9 @@ class ConnectionService:
                 "default_coordinator_connection_ref"
             ),
             "default_worker_connection_ref": content.get("default_worker_connection_ref"),
+            "default_reviewer_connection_ref": content.get(
+                "default_reviewer_connection_ref"
+            ),
         }
         return self._repo.write_settings(
             updates, expected_revision=expected_revision, actor=actor
@@ -490,6 +509,8 @@ class ConnectionService:
             ref = settings.default_coordinator_connection_ref
         elif role == ROLE_WORKER:
             ref = settings.default_worker_connection_ref
+        elif role == ROLE_REVIEWER:
+            ref = settings.default_reviewer_connection_ref
         else:
             raise SettingsConfigInvalid(
                 f"unknown default role {role!r}", diagnostics=[{"code": "role_invalid"}]

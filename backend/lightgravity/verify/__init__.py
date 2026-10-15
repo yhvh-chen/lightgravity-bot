@@ -47,7 +47,10 @@ from .checks import (
     run_checks,
 )
 from .review import (
+    DEFAULT_REVIEW_MODEL_CALLS,
+    DEFAULT_REVIEW_TIMEOUT_SECONDS,
     Finding,
+    ModelReviewer,
     ProgramReviewer,
     REVIEW_PASSED,
     REVIEW_REWORK,
@@ -57,8 +60,11 @@ from .review import (
     ReviewContext,
     ReviewReport,
     Reviewer,
+    ReviewerSupport,
     UnavailableReviewer,
     resolve_candidate_evidence,
+    resolve_reviewer_support,
+    run_review_turn,
     validate_findings,
 )
 from .rework import (
@@ -103,6 +109,7 @@ __all__ = [
     "CheckReport",
     "CheckResult",
     "Finding",
+    "ModelReviewer",
     "ProgramReviewer",
     "REVIEW_PASSED",
     "REVIEW_REWORK",
@@ -116,6 +123,7 @@ __all__ = [
     "ReviewContext",
     "ReviewReport",
     "Reviewer",
+    "ReviewerSupport",
     "ReworkLedger",
     "ReworkOrchestrator",
     "ReworkResult",
@@ -128,6 +136,8 @@ __all__ = [
     "VerificationService",
     "load_ledger",
     "resolve_candidate_evidence",
+    "resolve_reviewer_support",
+    "run_review_turn",
     "validate_findings",
     "ABSOLUTE_REF",
     "EVIDENCE_REF",

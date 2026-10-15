@@ -89,6 +89,24 @@ class InboxMessageRequest(BaseModel):
     media_type: str | None = None
 
 
+class SourceActionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    action: str
+    #: Optional intake job to cancel/reprocess; required for ``cancel``.
+    job_id: str | None = None
+    confirmed: bool = False
+    note: str | None = None
+
+
+class FormalEditRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    content: str
+    edited_by: str = "user"
+    expected_revision: int | None = None
+
+
 def _service(request: Request, ctx: ApiContext) -> Any:
     """Return the per-app source service, built from the live Store context.
 
@@ -283,6 +301,91 @@ def build_sources_router() -> APIRouter:
             f"unsupported action {payload.action!r}; supported: cancel, retry",
             details={"action": payload.action},
         )
+
+    @router.get("/sources/{source_id}/content")
+    def get_source_content(
+        source_id: str,
+        request: Request,
+        ctx: Annotated[ApiContext, Depends(get_context)],
+        kind: Annotated[str, Query(pattern="^(auto|formal|machine)$")] = "auto",
+    ) -> dict[str, Any]:
+        try:
+            return _service(request, ctx).content_view(source_id, kind=kind)
+        except EntityNotFound:
+            raise AppError(
+                ErrorCode.NOT_FOUND,
+                f"source {source_id!r} not found",
+                details={"source_id": source_id},
+            ) from None
+
+    @router.get("/sources/{source_id}/download")
+    def download_source(
+        source_id: str,
+        request: Request,
+        ctx: Annotated[ApiContext, Depends(get_context)],
+        kind: Annotated[str, Query(pattern="^(original|formal|machine)$")] = "original",
+    ) -> Response:
+        try:
+            view = _service(request, ctx).download_view(source_id, kind=kind)
+        except EntityNotFound:
+            raise AppError(
+                ErrorCode.NOT_FOUND,
+                f"source {source_id!r} not found",
+                details={"source_id": source_id},
+            ) from None
+        # ``stat_revision`` is a size-mtime token, explicitly NOT a crypto hash.
+        return Response(
+            content=view["bytes"],
+            media_type=view["media_type"],
+            headers={
+                "Content-Disposition": f'attachment; filename="{view["filename"]}"',
+                "ETag": f'"{view["stat_revision"]}"',
+                "X-LG-Stat-Revision": view["stat_revision"],
+                "X-LG-Kind": view["kind"],
+            },
+        )
+
+    @router.post("/sources/{source_id}/actions")
+    def source_action(
+        source_id: str,
+        payload: SourceActionRequest,
+        request: Request,
+        ctx: Annotated[ApiContext, Depends(get_context)],
+    ) -> dict[str, Any]:
+        try:
+            return _service(request, ctx).source_actions(
+                source_id,
+                action=payload.action,
+                confirmed=payload.confirmed,
+                job_id=payload.job_id,
+            )
+        except EntityNotFound:
+            raise AppError(
+                ErrorCode.NOT_FOUND,
+                f"source {source_id!r} not found",
+                details={"source_id": source_id},
+            ) from None
+
+    @router.post("/sources/{source_id}/formal")
+    def edit_source_formal(
+        source_id: str,
+        payload: FormalEditRequest,
+        request: Request,
+        ctx: Annotated[ApiContext, Depends(get_context)],
+    ) -> dict[str, Any]:
+        try:
+            return _service(request, ctx).edit_formal(
+                source_id,
+                content=payload.content,
+                edited_by=payload.edited_by,
+                expected_revision=payload.expected_revision,
+            )
+        except EntityNotFound:
+            raise AppError(
+                ErrorCode.NOT_FOUND,
+                f"source {source_id!r} not found",
+                details={"source_id": source_id},
+            ) from None
 
     @router.post("/inbox/messages")
     def inbox_message(

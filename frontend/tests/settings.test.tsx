@@ -47,9 +47,11 @@ function makeSettings(overrides: Partial<GlobalSettingsView> = {}): GlobalSettin
     content_hash: 'settings-hash-2',
     default_coordinator_connection_ref: 'deepseek-primary',
     default_worker_connection_ref: 'deepseek-primary',
+    default_reviewer_connection_ref: 'deepseek-primary',
     defaults: {
       coordinator: { ...makeConnection(), resolved: true },
       worker: { ...makeConnection(), resolved: true },
+      reviewer: { ...makeConnection(), resolved: true },
     },
     ...overrides,
   }
@@ -190,6 +192,10 @@ function makeFakeApi(initial?: Partial<FakeState>): { api: SettingsApi; state: F
           input.default_worker_connection_ref !== undefined
             ? input.default_worker_connection_ref
             : state.settings.default_worker_connection_ref,
+        default_reviewer_connection_ref:
+          input.default_reviewer_connection_ref !== undefined
+            ? input.default_reviewer_connection_ref
+            : state.settings.default_reviewer_connection_ref,
       }
       state.settings = updated
       return updated
@@ -394,6 +400,46 @@ describe('LG-026 Settings: defaults', () => {
     expect(state.updateSettingsCalls[0].expected_revision).toBe(2)
     expect(state.updateSettingsCalls[0].default_worker_connection_ref).toBeNull()
     expect(await screen.findByText(/Defaults saved at revision 3/)).toBeInTheDocument()
+  })
+
+  it('saves the independent reviewer default explicitly (LG-017)', async () => {
+    const { api, state } = makeFakeApi({
+      connections: [
+        makeConnection({ id: 'deepseek-primary', title: 'DeepSeek (primary)' }),
+        makeConnection({ id: 'deepseek-reviewer', title: 'DeepSeek (reviewer)' }),
+      ],
+    })
+    render(<SettingsView api={api} />)
+    await screen.findByText('Default models')
+
+    fireEvent.change(screen.getByLabelText('Default reviewer connection'), {
+      target: { value: 'deepseek-reviewer' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save defaults' }))
+
+    await waitFor(() => expect(state.updateSettingsCalls).toHaveLength(1))
+    expect(state.updateSettingsCalls[0].default_reviewer_connection_ref).toBe(
+      'deepseek-reviewer',
+    )
+  })
+
+  it('clears the reviewer default to an honest no-reviewer state', async () => {
+    const { api, state } = makeFakeApi({
+      settings: makeSettings({ default_reviewer_connection_ref: 'deepseek-primary' }),
+    })
+    render(<SettingsView api={api} />)
+    await screen.findByText('Default models')
+
+    fireEvent.change(screen.getByLabelText('Default reviewer connection'), {
+      target: { value: '' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save defaults' }))
+
+    await waitFor(() => expect(state.updateSettingsCalls).toHaveLength(1))
+    expect(state.updateSettingsCalls[0].default_reviewer_connection_ref).toBeNull()
+    expect(
+      screen.getByText(/worker connection is never silently/),
+    ).toBeInTheDocument()
   })
 })
 

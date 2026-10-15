@@ -34,11 +34,13 @@ function describeDefault(
 }
 
 /**
- * Global default coordinator/worker connection refs (docs/07 §3; docs/08 §6.5).
+ * Global default coordinator/worker/reviewer connection refs (docs/07 §3; docs/08 §6.5).
  *
  * Defaults only affect new sessions/recruitment; active members keep the
  * connection revision pinned when they were recruited. The page states this so
- * a default change is never presented as a live hot-swap.
+ * a default change is never presented as a live hot-swap. The reviewer default
+ * (LG-017) is a separate role so independent review does not reuse the
+ * implementer's connection; leaving it None is an honest "no reviewer" state.
  */
 export function DefaultsEditor({
   api,
@@ -52,6 +54,9 @@ export function DefaultsEditor({
   )
   const [worker, setWorker] = useState(
     settings.default_worker_connection_ref ?? '',
+  )
+  const [reviewer, setReviewer] = useState(
+    settings.default_reviewer_connection_ref ?? '',
   )
   const [revision, setRevision] = useState(settings.revision)
   const [pending, setPending] = useState(false)
@@ -75,6 +80,7 @@ export function DefaultsEditor({
         expected_revision: revision,
         default_coordinator_connection_ref: coordinator || null,
         default_worker_connection_ref: worker || null,
+        default_reviewer_connection_ref: reviewer || null,
       })
       setRevision(updated.revision)
       onSaved(updated)
@@ -111,6 +117,10 @@ export function DefaultsEditor({
       </p>
       <p className="lg-field__static">
         {describeDefault('worker', settings.defaults.worker)}
+      </p>
+      <p className="lg-field__static">
+        <StatusBadge kind="accent">independent review</StatusBadge>{' '}
+        {describeDefault('reviewer', settings.defaults.reviewer)}
       </p>
 
       {error ? (
@@ -174,6 +184,31 @@ export function DefaultsEditor({
             ))}
           </select>
         </label>
+        <label className="lg-field">
+          <span className="lg-field__label">Default reviewer connection</span>
+          <select
+            className="lg-field__input"
+            value={reviewer}
+            onChange={(event) => setReviewer(event.target.value)}
+          >
+            <option value="">None</option>
+            {reviewer && !knownRef(reviewer) ? (
+              <option value={reviewer}>Unresolved: {reviewer}</option>
+            ) : null}
+            {options.map((connection) => (
+              <option key={connection.id} value={connection.id}>
+                {connection.title} ({connection.id})
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="lg-field__hint">
+          The independent reviewer runs on its own connection so its context is
+          separate from the implementer. When left None there is no real
+          reviewer, so a candidate reports an honest unavailable review and
+          acceptance stays blocked; the worker connection is never silently
+          reused for review.
+        </p>
         <div className="lg-connection-form__actions">
           <button
             type="submit"

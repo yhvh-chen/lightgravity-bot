@@ -54,6 +54,11 @@ def app(settings: Settings) -> Iterator[FastAPI]:
         secret_store=secret_store,
         broker=EventBroker(),
         access=LocalAccessPolicy(allow_sensitive_without_token=True),
+        # Program-authenticated worker identity seam (LG-030/LG-031).  This test
+        # stands in for the coordinator injection: the authenticated member ref
+        # comes from a *header*, never from the request body, so a body-supplied
+        # `from_member_ref` cannot authenticate itself.
+        worker_identity=lambda request: request.headers.get("X-Test-Worker"),
     )
     application = FastAPI()
     application.state.context = context
@@ -189,3 +194,129 @@ async def test_renew_and_release_endpoints(
     )
     assert released.status_code == 200
     assert released.json()["released"] is True
+
+
+# ---------------------------------------------------------------------------
+# LG-030 peer collaboration endpoints
+def _seed_peer(app: FastAPI, *, collab_enabled: bool = True) -> tuple[str, str, str]:
+    store: FileStore = app.state.context.store
+    task_id = create_task(store)
+    run_id = create_run(store, task_id, team_refs=["member-a", "member-b"])
+    sub = create_subtask(store, run_id, key="a")
+    link_subtasks(store, run_id, [sub])
+    set_switches(store, enabled=True, lease_seconds=60, collab_enabled=collab_enabled)
+    return task_id, run_id, sub
+
+
+def _peer_payload(node: str, **overrides):  # type: ignore[no-untyped-def]
+    payload = {
+        "request_id": "creq-1",
+        "from_member_ref": "member-a",
+        "to_member_ref": "member-b",
+        "node_ref": node,
+        "mode": "review",
+        "summary": "please review node a",
+        "message_id": "msg_01J00000000000000000000AA",
+        "correlation_id": "corr_01J00000000000000000000AA",
+    }
+    payload.update(overrides)
+    return payload
+
+
+async def test_collab_request_endpoint_accepts_and_lists(
+    client: httpx.AsyncClient, app: FastAPI
+) -> None:
+    _, run_id, sub = _seed_peer(app)
+    headers = {"X-Test-Worker": "member-a"}
+    response = await client.post(
+        f"/api/v1/runs/{run_id}/collab_requests",
+        json=_peer_payload(sub),
+        headers=headers,
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["kind"] == "collab_request"
+    assert body["state"] == "requested"
+    assert body["reason"] == "accepted"
+    assert body["summary"]["instruction_like"] is False
+
+    replay = await client.post(
+        f"/api/v1/runs/{run_id}/collab_requests",
+        json=_peer_payload(sub),
+        headers=headers,
+    )
+    assert replay.json()["idempotent_replay"] is True
+
+    listed = await client.get(f"/api/v1/runs/{run_id}/collab_requests")
+    assert listed.status_code == 200
+    listing = listed.json()
+    assert listing["enabled"] is True
+    assert [item["request_id"] for item in listing["items"]] == ["creq-1"]
+
+
+async def test_collab_request_without_program_identity_default_denies(app: FastAPI) -> None:
+    """A body-supplied member ref is not authentication: no seam identity -> deny."""
+
+    _, run_id, sub = _seed_peer(app)
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as http:
+        response = await http.post(
+            f"/api/v1/runs/{run_id}/collab_requests", json=_peer_payload(sub)
+        )
+        body = response.json()
+        assert body["state"] == "rejected"
+        assert body["reason"] == "unauthenticated"
+        # Nothing was persisted for the unauthenticated attempt.
+        listed = await http.get(f"/api/v1/runs/{run_id}/collab_requests")
+        assert listed.json()["items"] == []
+
+
+async def test_collab_request_identity_mismatch_is_refused(app: FastAPI) -> None:
+    """An authenticated worker cannot act as a different run member."""
+
+    _, run_id, sub = _seed_peer(app)
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as http:
+        response = await http.post(
+            f"/api/v1/runs/{run_id}/collab_requests",
+            json=_peer_payload(sub),
+            headers={"X-Test-Worker": "member-b"},
+        )
+    body = response.json()
+    assert body["state"] == "rejected"
+    assert body["reason"] == "identity_mismatch"
+
+
+async def test_collab_request_disabled_returns_definite_rejection(app: FastAPI) -> None:
+    _, run_id, sub = _seed_peer(app, collab_enabled=False)
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as http:
+        response = await http.post(
+            f"/api/v1/runs/{run_id}/collab_requests",
+            json=_peer_payload(sub),
+            headers={"X-Test-Worker": "member-a"},
+        )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["state"] == "rejected"
+    assert body["reason"] == "feature_disabled"
+
+
+async def test_collab_cross_task_node_is_refused_over_http(app: FastAPI) -> None:
+    store: FileStore = app.state.context.store
+    _, run_a, _ = _seed_peer(app)
+    task_b = create_task(store)
+    run_b = create_run(store, task_b, team_refs=["member-a", "member-b"])
+    sub_b = create_subtask(store, run_b, key="b")
+    link_subtasks(store, run_b, [sub_b])
+
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as http:
+        response = await http.post(
+            f"/api/v1/runs/{run_a}/collab_requests",
+            json=_peer_payload(sub_b),
+            headers={"X-Test-Worker": "member-a"},
+        )
+    body = response.json()
+    assert body["state"] == "rejected"
+    assert body["reason"] == "unknown_node"

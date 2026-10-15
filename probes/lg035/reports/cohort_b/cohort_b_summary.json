@@ -1,0 +1,37 @@
+{
+  "cohort": "B",
+  "plan_file": "probes/lg035/QUALITY-PLAN-COHORT-B.md",
+  "plan_sha256": "391fa8f18ada02ee06b94e7bca59291741b9c50fa9e82aecc6653907248594bf",
+  "frozen_before_inference": true,
+  "status": "blocked_external",
+  "endpoint_under_test": "http://192.168.8.12:11434",
+  "endpoint_reachable": false,
+  "endpoint_evidence": "probes/lg035/reports/cohort_b/endpoint_reachability.txt",
+  "endpoint_error": "connect failed: No route to host (curl HTTP 000; ICMP 100% loss)",
+  "inference_posts_cohort_b": 0,
+  "lg035_cumulative_inference_posts": 4,
+  "lg035_cumulative_cap": 10,
+  "cohort_a_posts": 4,
+  "cohort_b_cap": 5,
+  "samples_collected": [],
+  "samples_used_for_ocr": [],
+  "download_bytes_spent": 0,
+  "quality_claims": [],
+  "blocked_classes": [
+    {
+      "class": "real_chinese_page_with_human_truth",
+      "reason": "XFUND (only found real ZH form benchmark with human truth) is CC BY-NC-SA 4.0 (NonCommercial) and its image archive zh.val.zip is 69,217,820 B > 10 MiB cap; ChineseOCRBench is VQA-only (no full-page truth)"
+    },
+    {
+      "class": "table",
+      "reason": "no licence-clear table page with human cell truth; blocked by same XFUND licence issue"
+    },
+    {
+      "class": "mixed_text_and_scan_single_file",
+      "reason": "no licence-clear source; mixed fixture not assemblable legally under this licence state"
+    }
+  ],
+  "provenance_report": "probes/lg035/reports/cohort_b/source_provenance_checks.md",
+  "criteria_source": "probes/lg035/QUALITY-PLAN-COHORT-B.md",
+  "note": "No new OCR POST was performed because the authorized endpoint is unreachable; no quality metric is claimed for cohort B. Cohort A scores and thresholds are unchanged."
+}

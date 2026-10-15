@@ -10,7 +10,12 @@ from fastapi import FastAPI
 
 from lightgravity.store import new_id
 
-from api_helpers import AsgiEventStream, create_task, wait_for_phase
+from api_helpers import (
+    AsgiEventStream,
+    create_task,
+    wait_for_phase,
+    wire_program_reviewer,
+)
 
 
 async def test_sse_replays_from_cursor_and_dedupes(
@@ -50,6 +55,9 @@ async def test_sse_replays_from_cursor_and_dedupes(
 async def test_sse_live_broadcast_and_disconnect_keeps_run_alive(
     run_app: FastAPI, run_api: httpx.AsyncClient, fake_executor: Any
 ) -> None:
+    # Opt in to the deterministic machine-gate reviewer: this test is about SSE
+    # disconnect not cancelling work, not about the independent-reviewer gate.
+    wire_program_reviewer(run_app)
     fake_executor.gate = asyncio.Event()
     task_id = await create_task(run_api)
     await asyncio.wait_for(fake_executor.started.wait(), timeout=5)

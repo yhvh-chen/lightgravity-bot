@@ -57,3 +57,22 @@ preserved, no fake pass when no reviewer is available.
   local/in-process fakes; real SDK/DeepSeek E2E remains LG-021/022.
 - Limits: model-backed reviewer is a port (default is deterministic program
   reviewer); multi-worker isolation and browser paths not covered here.
+
+## R1 repair (branch `fix/lg017-r1`, base `c138537`) — supersedes the section above
+
+The paragraphs above describe the **original** LG-017 delivery (`99174d8`, base
+`141809d`), which the integration owner kept `in-progress`: its default reviewer
+was a renamed machine gate, with no controlled reviewer config or real assembly
+path.  R1 addresses exactly that gap.  Details: `REFIX-R1.md`.
+
+- Real model calls: **1** real DeepSeek call (`review_real_probe.json`: `status=ran`,
+  `model_calls=1`, `reviewer_kind=model`, `outcome=passed`, `validated_outcome=passed`,
+  evidence `out/result.txt` contains `hello review`), `usage={"unknown":["usage"]}`
+  (unknown, cost only partially covered).  This continuation did **not** re-run it:
+  **0 new product-model calls** this session.
+- Checks (real exit codes): `uv run pytest tests/verify tests/settings tests/startup -q`
+  -> exit 0, 135 passed / 4 skipped; `uv run mypy` (changed files) -> exit 0, Success.
+- Status stays `in-progress` (waiting LG-022): implementation condition met, but the
+  package does **not** self-certify a complete version pass.
+- Note: `validate_findings` previously rebuilt the report without
+  `reviewer_kind`/`model_calls`/`usage`; fixed with a regression test.

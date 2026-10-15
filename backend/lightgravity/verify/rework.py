@@ -28,7 +28,7 @@ id, or ``None`` when it could not open one (which is reported, never faked).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Protocol, runtime_checkable
 
@@ -90,6 +90,12 @@ class ReworkLedger:
     last_findings: tuple[dict[str, Any], ...] = ()
     last_candidate_ref: str | None = None
     history: tuple[dict[str, Any], ...] = ()
+    #: LG-017 R1 additive: the last reviewer identity/kind and its real model
+    #: usage.  ``reviewer`` distinguishes a program machine gate from a real
+    #: independent (model) review; ``model_usage`` lists unknown counters too.
+    reviewer: str = ""
+    reviewer_kind: str = ""
+    model_usage: dict[str, Any] = field(default_factory=dict)
 
     @property
     def max_repair_rounds(self) -> int:
@@ -104,6 +110,9 @@ class ReworkLedger:
             "last_findings": [dict(f) for f in self.last_findings],
             "last_candidate_ref": self.last_candidate_ref,
             "history": [dict(h) for h in self.history],
+            "reviewer": self.reviewer,
+            "reviewer_kind": self.reviewer_kind,
+            "model_usage": dict(self.model_usage),
         }
 
 
@@ -115,6 +124,7 @@ def load_ledger(entity: dict[str, Any]) -> ReworkLedger:
     findings = raw.get("last_findings")
     history = raw.get("history")
     last_ref = raw.get("last_candidate_ref")
+    usage = raw.get("model_usage")
     return ReworkLedger(
         review_rounds=_int_field(raw, "review_rounds"),
         repair_rounds_spent=_int_field(raw, "repair_rounds_spent"),
@@ -131,6 +141,9 @@ def load_ledger(entity: dict[str, Any]) -> ReworkLedger:
             if isinstance(history, list)
             else ()
         ),
+        reviewer=str(raw.get("reviewer", "")),
+        reviewer_kind=str(raw.get("reviewer_kind", "")),
+        model_usage=dict(usage) if isinstance(usage, dict) else {},
     )
 
 
@@ -224,6 +237,9 @@ class ReworkOrchestrator:
         self._spawner = spawner
         self._actor = actor
         self._max_review_rounds = max_review_rounds
+        #: Last reviewer meta (kind/reviewer/usage) for the ledger, refreshed on
+        #: every review; never used as a verdict.
+        self._last_review_meta: dict[str, Any] = {}
 
     # ------------------------------------------------------------------ read
     def ledger(self, task_id: str) -> ReworkLedger:
@@ -251,6 +267,31 @@ class ReworkOrchestrator:
                 reviewer=getattr(self._reviewer, "name", "unknown"),
                 reason=f"reviewer raised {type(exc).__name__}: {exc}",
             )
+        # Stamp which kind of reviewer actually ran and any real model usage, so
+        # the ledger/events cannot mislabel a program machine gate as an
+        # independent (model) review.  Unknown usage is preserved, never zeroed.
+        kind = str(getattr(self._reviewer, "kind", "") or getattr(raw, "reviewer_kind", ""))
+        model_calls = getattr(self._reviewer, "model_calls", None)
+        if not isinstance(model_calls, int) or isinstance(model_calls, bool):
+            model_calls = raw.model_calls
+        usage = getattr(self._reviewer, "last_usage", None)
+        raw = ReviewReport(
+            outcome=raw.outcome,
+            candidate_ref=raw.candidate_ref,
+            findings=raw.findings,
+            unsubstantiated=raw.unsubstantiated,
+            reviewer=raw.reviewer,
+            reason=raw.reason,
+            reviewer_kind=kind,
+            model_calls=model_calls,
+            usage=dict(usage) if isinstance(usage, dict) else raw.usage,
+        )
+        self._last_review_meta = {
+            "reviewer": raw.reviewer,
+            "reviewer_kind": raw.reviewer_kind,
+            "model_calls": raw.model_calls,
+            "model_usage": dict(raw.usage),
+        }
         return validate_findings(raw, candidate=candidate, resolved_evidence=resolved), candidate
 
     def _record_ledger(
@@ -275,6 +316,7 @@ class ReworkOrchestrator:
         }
         if extra_history:
             entry.update(extra_history)
+        meta = getattr(self, "_last_review_meta", {}) or {}
         updated = ReworkLedger(
             review_rounds=review_rounds,
             repair_rounds_spent=repair_rounds_spent,
@@ -283,6 +325,13 @@ class ReworkOrchestrator:
             last_findings=findings,
             last_candidate_ref=candidate_ref,
             history=(*history, entry),
+            reviewer=str(meta.get("reviewer", ledger.reviewer)),
+            reviewer_kind=str(meta.get("reviewer_kind", ledger.reviewer_kind)),
+            model_usage=(
+                dict(meta["model_usage"])
+                if isinstance(meta.get("model_usage"), dict)
+                else ledger.model_usage
+            ),
         )
         self._writer.write_task(task_id, {"rework": updated.to_frontmatter()})
         return updated
@@ -356,6 +405,9 @@ class ReworkOrchestrator:
                 "findings": len(report.findings),
                 "unsubstantiated": len(report.unsubstantiated),
                 "reviewer": report.reviewer,
+                "reviewer_kind": report.reviewer_kind,
+                "model_calls": report.model_calls,
+                "usage": dict(report.usage),
             },
             run_ref=candidate.run_id,
         )

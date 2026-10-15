@@ -180,3 +180,32 @@ def test_test_endpoint_requires_tester(service: ConnectionService) -> None:
     )
     response = client.post("/api/v1/settings/connections/deepseek/test", json={})
     assert response.status_code == 503
+
+
+def test_reviewer_default_via_api(service: ConnectionService) -> None:
+    """LG-017 R1: the reviewer default is settable/readable through settings API."""
+
+    client = _client(service)
+    created = client.post(
+        "/api/v1/settings/connections",
+        json={"id": "lg-reviewer", "credential_ref": "lg-reviewer-ref"},
+    )
+    assert created.status_code == 201
+
+    ok = client.patch(
+        "/api/v1/settings", json={"default_reviewer_connection_ref": "lg-reviewer"}
+    )
+    assert ok.status_code == 200
+    body = ok.json()
+    assert body["default_reviewer_connection_ref"] == "lg-reviewer"
+    assert body["defaults"]["reviewer"]["resolved"] is True
+
+    fetched = client.get("/api/v1/settings").json()
+    assert fetched["default_reviewer_connection_ref"] == "lg-reviewer"
+
+    # An unknown reviewer ref is rejected like the other default roles.
+    bad = client.patch(
+        "/api/v1/settings", json={"default_reviewer_connection_ref": "missing"}
+    )
+    assert bad.status_code == 422
+    assert bad.json()["error"]["code"] == "reference_invalid"

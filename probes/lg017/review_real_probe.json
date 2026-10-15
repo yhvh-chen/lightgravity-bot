@@ -1,0 +1,21 @@
+{
+  "findings": [],
+  "last_error": "",
+  "model_calls": 1,
+  "outcome": "passed",
+  "reason": "The single provided evidence item, out/result.txt, shows content 'hello review', which exactly matches the acceptance criterion that out/result.txt exists and contains 'hello review'. No blocking issues found.",
+  "requested_model": "deepseek-v4-flash",
+  "resolved_evidence": [
+    "out/result.txt"
+  ],
+  "reviewer": "model-reviewer",
+  "reviewer_kind": "model",
+  "status": "ran",
+  "unsubstantiated": [],
+  "usage": {
+    "unknown": [
+      "usage"
+    ]
+  },
+  "validated_outcome": "passed"
+}

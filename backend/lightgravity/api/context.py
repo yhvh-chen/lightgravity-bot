@@ -7,6 +7,7 @@ singletons, so tests and integrations can inject a Store/Coordinator/service.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -21,6 +22,16 @@ from ..verify import VerificationService
 
 from .access import AccessPolicy
 from .eventbus import EventBroker
+
+
+#: Resolves the **program-authenticated** worker identity for a request.
+#:
+#: Returns the authenticated member ref, or ``None`` when the caller could not
+#: be authenticated.  A request body's self-reported member ref is never
+#: consulted here.  The real injection is the coordinator execution-identity
+#: seam (LG-031); until it is wired the default is ``None`` (default-deny) so no
+#: local caller can act as an arbitrary run member.
+WorkerIdentityResolver = Callable[[Request], str | None]
 
 
 @dataclass(slots=True)
@@ -38,6 +49,10 @@ class ApiContext:
     tester: ConnectionTester | None = None
     verification: VerificationService | None = None
     notifications: NotificationService | None = None
+    #: LG-030/LG-031 execution-identity seam. ``None`` means the runtime has no
+    #: way to authenticate a worker, so worker-scoped collaboration endpoints
+    #: default-deny instead of trusting a body-supplied member ref.
+    worker_identity: WorkerIdentityResolver | None = None
 
     @property
     def data_dir(self) -> Path:

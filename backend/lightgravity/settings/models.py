@@ -19,7 +19,14 @@ from typing import Any
 #: Connection roles used when pinning a resolved default.
 ROLE_COORDINATOR = "coordinator"
 ROLE_WORKER = "worker"
+#: LG-017 additive role: the independent reviewer runs on its own default
+#: connection/credential so its context is separate from the implementer.  It is
+#: a settings role only; it adds no ``state``/``phase``/``acceptance`` enum value.
+ROLE_REVIEWER = "reviewer"
 ROLE_EXPLICIT = "explicit"
+
+#: The default settings roles a connection can be pinned to (LG-017 adds reviewer).
+DEFAULT_ROLES = (ROLE_COORDINATOR, ROLE_WORKER, ROLE_REVIEWER)
 
 #: The only first-version backend that may be an executable default (docs/08 §8.1).
 DEFAULT_EXECUTABLE_BACKEND = "openai-compat"
@@ -71,6 +78,10 @@ class GlobalSettings:
     content_hash: str
     default_coordinator_connection_ref: str | None
     default_worker_connection_ref: str | None
+    #: LG-017 additive: independent-reviewer default connection.  ``None`` means
+    #: no real reviewer is configured, so the runtime reports ``unavailable``
+    #: instead of reviewing with the implementer's own connection.
+    default_reviewer_connection_ref: str | None = None
     exists: bool = True
     data: dict[str, Any] = field(default_factory=dict)
 
@@ -81,6 +92,7 @@ class GlobalSettings:
             "content_hash": self.content_hash,
             "default_coordinator_connection_ref": self.default_coordinator_connection_ref,
             "default_worker_connection_ref": self.default_worker_connection_ref,
+            "default_reviewer_connection_ref": self.default_reviewer_connection_ref,
         }
 
 

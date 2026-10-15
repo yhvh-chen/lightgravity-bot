@@ -141,7 +141,12 @@ async def test_injected_coordinator_auto_verifies(settings: Settings) -> None:
     from lightgravity.coordinator import Coordinator, SingleSlotDispatcher
     from lightgravity.store import FileStore
 
-    from api_helpers import FakeExecutor, create_task, wait_for_phase
+    from api_helpers import (
+        FakeExecutor,
+        create_task,
+        wait_for_phase,
+        wire_program_reviewer,
+    )
 
     base = FileStore(settings.data_dir, settings.workspace_root)
     fake = FakeExecutor()
@@ -153,6 +158,10 @@ async def test_injected_coordinator_auto_verifies(settings: Settings) -> None:
         executor=fake,
         access_policy=LocalAccessPolicy(allow_sensitive_without_token=True),
     )
+    # This test targets the auto-verify/acceptance wiring; opt in to the
+    # deterministic machine-gate reviewer explicitly (the honest default is an
+    # unavailable independent reviewer, which would park at waiting_user).
+    wire_program_reviewer(app)
     async with app.router.lifespan_context(app):
         transport = httpx.ASGITransport(app=app)
         async with httpx.AsyncClient(
