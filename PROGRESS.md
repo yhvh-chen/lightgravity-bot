@@ -296,3 +296,16 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - **契约判定（docs08 §6.3）**：依赖放行须传递上游产物引用与**版本/哈希**；workspace 相对产物**不要求**自身带 `@sha256:`（仅 executor evidence 属 `…@sha256:` 命名空间）。**硬条件 1–7 真实成立**。残余仅 `content_hash` 原始字节随临时目录删除（已记录事实，非伪造）。
 - **计数**：本恢复真实调用 **0**；全局已知累计仍 **34/40**（旧 24 + phase4 10，不重放、不归零）；usage `unknown` 不当 0。
 - **状态**：**LG-031 更新为 `done`**（硬条件 1–7 真实成立）；版本级行为由 **LG-032 独立集中 QA 复验**，不制造待 032 循环。未降低任何复核/机器门/停止/验收门；未改契约、未删断言。`main` 未推送。
+
+## 2026-10-16 第八批串行集成检查点（唯一集成 owner，`main` 已本地收拢）
+
+本节为当前事实；旧实验、worktree、原始 probes、旧 dirty 全部保留，未推送/部署/发布。唯一集成 owner；主代理只 PM。详细报告 [probes/batch-20261016/INTEGRATION-8.md](probes/batch-20261016/INTEGRATION-8.md)。
+
+- **集成前核对（真实）**：`integrate/batch7@85adc82` + 主代理 PM dirty `PROGRESS.md`（已独立只读保全至私有 checkpoint，`sha256=73e4fe9e…bf94`，再精确提交 `cef379a`）；`main@29ffbb6` 未收拢；`fix/lg022-stream@1dd5c67`（**已精确暂存 8 项**，未 commit）；`fix/lg031-r3@2f04654`（clean）。**无源 owner 残留进程**（仅本集成 owner 的 bounded pi 包装）。未 reset/clean/重复 pick、未复制 `.env`。
+- **合入 022 流式停止接线**：唯一收尾 commit `7d0510d`（8 文件，仅源 owner 暂存集合），`git merge --no-ff` → `eecbf05`（**无冲突**）。产品修复仅 `verify/review.py`：真正流式阶段承载 stop（不取消 pull + 有界重查，不丢/不重 chunk）+ 停止调 `Conversation.cancel()`/有界 `wait_for_idle()`（仅 SDK 确认 idle 才为真）+ enter/chat/stream/stop/teardown 同 loop（消除已关闭 loop 偶发 `RuntimeError`）。真 SDK+本地 fake SSE：stop **0.132s confirmed**（修复前 5.027s unconfirmed）、`session_refs` 保留、无残留 reviewer。
+- **合入 031 r3 闭环**：产品加性——`adapter/executor.py` proxy 上限对齐冻结 `budget.max_model_calls`；`api/bootstrap.py` G1 开关接线自主 claim + `ExecutionGrantRegistry`（缺省确定性路径）；`collaboration/execution_grant.py` G2 投影加性补 `objective`/`write`。`PROGRESS.md` 唯一内容冲突**同时保留双方**（root 最新状态 + r3 phase3/phase4/SALVAGE 检查点）。`git merge --no-ff` → **`975afc2`**。
+- **幸存原件私有保全已复核**：3 个 SDK session DB + 原 stdout 复制到 `~/.cache/lightgravity-bot/checkpoints/2026-10-16-batch/lg031-phase4-survivors/20261016T040115+1100/`（`700`/`600`），4 个 `sha256` 与 `MANIFEST`/`salvaged_handoff_evidence.json` 逐一相符且与 `/tmp` 原件 `cmp` 字节相等；原件未动，未重复制/删除/运行模型，秘密原件不入 repo。
+- **`main` 本地收拢**：`git checkout main && git merge --ff-only integrate/batch7` → **`main@975afc2`**（**未推送**）。不止停在 integrate 分支。
+- **集成检查（真实退出码，绑定 `975afc2`）**：`mypy` exit 0 → **137 files clean**；`pytest -q -p no:randomly` exit 0 → **794 passed, 2 skipped**（82.49s）；backlog 根 `validate` ok **41 tasks/0 diagnostics**、`digest` complete → **33 done / 3 in-progress / 5 todo**。**本包产品真实模型/外部服务调用 0**；UI 未改，未重跑完整前端。
+- **状态如实**：**LG-022 仍 `in-progress`** 待**新独立 QA `qa/lg022-stream`**（新持久 worktree `/home/yhvh/code/lightgravity-bot-worktrees/lg022-qa-stream`，基于最终 main 候选 `975afc2`，**不覆盖旧路径**）；**最新 `cea87ab` 独立调查确认重要缺陷是 stream 阶段没 cancel/deadlock（流式 stop 未接线，不是单纯限制）**，旧 a41 PASS 标题不覆盖新修复。**LG-031 `done`（待 LG-032 独立集中 QA）**。**LG-023/032 `todo` 未 claim**（依赖 022 未 done，保留后续步骤）。**LG-035/037 `in-progress`**；**LG-040/041 不解锁**。自主模式默认 off；不重新引入模型编排。
+- **成本（全部旧失败保留）**：LG-022 首轮 unknown、R1 6/10、`qa/lg022-r2` 真实 8（**两阶段不同账本，未执行统一总额硬限**，非产品账本缺陷）；LG-031 累计 **34/40**（旧 24 + phase4 10，不重放/不归零）。**本包产品真实请求 0**。**契约保持 `1.10.0`，SDK `0.1.22` 不变。**

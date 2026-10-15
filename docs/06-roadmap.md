@@ -122,6 +122,16 @@ SDK 安装/真实测试属于 LG-002/003 后续实施，不包含在此次写排
 > - **状态**：**LG-022 仍 `in-progress` 待独立 QA**；**LG-031 仍 `in-progress`**（真 2 worker + 交接 + 候选 review 仍缺，续接 `fix/lg031-r3`）；LG-035/037 `in-progress`；**LG-023/032 `todo` 未 claim**；**LG-040/041 不解锁**。
 > - **成本**：LG-031 累计 **10/10**，主代理新 phase3 另行授权**最多 14**，合计**上限 24**，**非 032 对照实验**；LG-022 首轮 unknown、R1 **6/10**，两轮失败记录均保留。
 
+> 2026-10-16 第八批集成更新（唯一集成 owner，报告 [probes/batch-20261016/INTEGRATION-8.md](../probes/batch-20261016/INTEGRATION-8.md)）：
+> - **集成前核对**：`integrate/batch7@85adc82` + 主代理 PM dirty `PROGRESS.md`（先独立只读保全再精确提交 `cef379a`）；`main@29ffbb6` 未收拢；`fix/lg022-stream@1dd5c67`（**已精确暂存 8 项**，未 commit）与 `fix/lg031-r3@2f04654`（clean）最终 HEAD 均核。全部旧分支/worktree/dirty/原始失败证据保留，未 reset/clean/重复 pick、未复制 `.env`；无源 owner 残留进程。
+> - **合入 022 流式停止接线**：唯一收尾 commit `7d0510d`；`git merge --no-ff` → `eecbf05`（**无冲突**）。产品修复仅 `verify/review.py`：真正流式阶段承载 stop（不取消 pull + 有界重查，不丢/不重 chunk）+ 停止调 SDK `Conversation.cancel()`/有界 `wait_for_idle()`（仅 SDK 确认 idle 才为真）+ enter/chat/stream/stop/teardown 同 loop（消除已关闭 loop 偶发 `RuntimeError`）。真 SDK+本地 fake SSE：stop **0.132s confirmed**（修复前 5.027s unconfirmed），`session_refs` 保留、无残留 reviewer。
+> - **合入 031 r3**：产品加性——`adapter/executor.py` proxy 上限对齐冻结 `budget.max_model_calls`；`api/bootstrap.py` G1 开关接线自主 claim + `ExecutionGrantRegistry`（缺省确定性路径）；`collaboration/execution_grant.py` G2 投影加性补 `objective`/`write`。`PROGRESS.md` 唯一内容冲突**同时保留双方**（root 最新状态 + r3 phase3/phase4/SALVAGE 检查点）；`git merge --no-ff` → **`975afc2`**。
+> - **幸存原件私有保全已复核**：3 个 SDK session DB + 原 stdout 复制到 `~/.cache/lightgravity-bot/checkpoints/2026-10-16-batch/lg031-phase4-survivors/20261016T040115+1100/`（`700`/`600`），4 个 `sha256` 与 `MANIFEST`/`salvaged_handoff_evidence.json` 逐一相符且与 `/tmp` 原件 `cmp` 字节相等；原件未动、秘密原件不入 repo；`SUBTASK.md` 原始字节丢失限制如实保留。
+> - **`main` 本地收拢**：`git merge --ff-only integrate/batch7` → **`main@975afc2`**（**未推送**），不止停在 integrate 分支。
+> - **集成检查（真实退出码，绑定 `975afc2`）**：`mypy` exit 0 → **137 files clean**；`pytest -q -p no:randomly` exit 0 → **794 passed, 2 skipped**；backlog 根 `validate` **41 tasks/0 diagnostics**、`digest` complete → **33 done / 3 in-progress / 5 todo**。**本包产品真实调用 0**；UI 未改，未重跑完整前端。
+> - **状态**：**LG-022 仍 `in-progress`**，待**新独立 QA `qa/lg022-stream`**（新持久 worktree `lg022-qa-stream`，基于 `975afc2`，不覆盖旧路径）；最新独立调查确认**重要缺陷是 stream 阶段没 cancel/deadlock（流式 stop 未接线，非单纯限制）**，旧 a41 PASS 标题不覆盖新修复。**LG-031 `done`（待 LG-032 独立集中 QA）**。**LG-023/032 `todo` 未 claim**（依赖 022 未 done）。**LG-035/037 `in-progress`**；**LG-040/041 不解锁**。**契约保持 `1.10.0`、SDK `0.1.22` 不变**，自主模式默认 off，不重新引入模型编排。
+> - **成本**：LG-022 首轮 unknown、R1 **6/10**、`qa/lg022-r2` 真实 **8**（两阶段不同账本，未执行统一总额硬限，非产品账本缺陷）；LG-031 累计 **34/40**（旧 24 + phase4 10，不重放/不归零）；**本包产品真实请求 0**。
+
 - 当前优先收拢 LG-013、LG-016、LG-027 已有隔离成果，继续 LG-017/018/019 与既有首版集中验收；单独 worktree 的交付不视为 main 已集成。不在本次排期中改变其状态。
 - LG-028 与 LG-033 可独立准备；LG-039 可在 LG-033 后验证。实现以任务 depends_on 为准，两个新版本的 LG-022 依赖是保留首版验收的排序门，非新功能代码依赖。
 - 多条线共享 Store、Coordinator、API 或前端入口时指定单一 owner 串行集成；开发执行仍经 pi，不因排期自动派工，不采用宿主原生子代理替代。
