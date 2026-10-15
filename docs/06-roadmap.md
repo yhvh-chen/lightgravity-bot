@@ -141,6 +141,12 @@ SDK 安装/真实测试属于 LG-002/003 后续实施，不包含在此次写排
 > - **LG-032 暂不 claim**（原 ready ≠ 立刻占有；待 023 评估后与 LG-024 并行排期）。
 > - **状态**：**LG-022 `done`（门内）**、**LG-031 `done`（待 032）**、**LG-023 claim 后 `in-progress`**、**LG-032 `todo` 暂不 claim**、**LG-035/037 `in-progress`**、**LG-036/038 `done` 待 040**、**LG-040/041 `todo` 不解锁**；自主模式默认 off；**契约保持 `1.10.0`、SDK `0.1.22`**；未推送/部署/发布。
 
+> 2026-10-16 QA/方法审计证据集成与 AUTH/POOL/EVAL 三线返修排期（唯一串行 PM，报告 [probes/batch-20261016/AUTH-POOL-EVAL-HANDOFF.md](../probes/batch-20261016/AUTH-POOL-EVAL-HANDOFF.md)）：**本包产品真实生成 0**（不实施代码/新 QA/新真实 cohort）。
+> - **集成**：先保全主代理 PM dirty（`4174e23`），再**仅证据/harness/PM 文档**安全合并 `qa/lg032@ad3d97b`（→`6a7fe72`）与 `fix/lg023-method@99ad735`（→**`51b7c9e`**），均无冲突、双方保留；产品路径 diff 为空 ⇒ 不重跑全量测试；旧 dirty/worktrees/记录不 reset/clean/覆盖/重复 pick。
+> - **LG-032 阶段 A（partial）**：核心机制 PASS；**F2 claim/lease HTTP 端点接受请求体 `owner`、未接程序认证身份 = 重要缺陷**（不符 LG-028 §2.4）；**F1 自主 claim=程序预选唯一节点后挂工具 = 部分符合**。**LG-029 `done→in-progress`**（F2 返修，`fix/lg029-auth`）；**LG-031 `done→in-progress`**（F1 补齐多候选真正 worker 自主申请，`fix/lg031-pool`）；保留原 assignee/历史 done/受限链证据，等价续接。**LG-032 保持 `in-progress`/partial，阶段 B 暂停**；**LG-023 保持 `in-progress`**，**LG-024 仍 `todo` 不解锁**。
+> - **新建 3 个持久 worktree/分支**（基于 `51b7c9e`，先查不存在不覆盖）：`lg029-auth-fix`/`fix/lg029-auth`、`lg031-pool`/`fix/lg031-pool`、`lg023-cohort2`/`eval/lg023-cohort2`（只评估 harness，产品/共享 docs 只读，两 arm 统一旧程序调度路径，比较计划写节点数 1 vs 2）。029/F1 实施包产品请求 0。
+> - **023 新 cohort PM 预注册**：2 样本×2 arm×1 repeat=4 attempt、每 run 仅 1 次；总 48/每 12、全 stage 单持久 ledger、转发前硬限；旧 45 另列，eval 已知总实际上限 **93**；双方同 toolcap 32、modelcall 每 worker≤12 且同 attempt≤12、output≤16000/HTTP120/retry0/并发≤2；必须真正走完整 Coordinator+stopconfirmer；旧混淆 45 不计交付成本也不删。**旧停止门不是产品 bug**（harness 缺陷）。契约 `1.10.0`/SDK `0.1.22`/自主 off 不动。
+
 - 当前优先收拢 LG-013、LG-016、LG-027 已有隔离成果，继续 LG-017/018/019 与既有首版集中验收；单独 worktree 的交付不视为 main 已集成。不在本次排期中改变其状态。
 - LG-028 与 LG-033 可独立准备；LG-039 可在 LG-033 后验证。实现以任务 depends_on 为准，两个新版本的 LG-022 依赖是保留首版验收的排序门，非新功能代码依赖。
 - 多条线共享 Store、Coordinator、API 或前端入口时指定单一 owner 串行集成；开发执行仍经 pi，不因排期自动派工，不采用宿主原生子代理替代。
