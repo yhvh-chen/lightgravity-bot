@@ -55,7 +55,14 @@ owner: "agent:pi-lg032-method-final（独立方法审计 owner；非 harness/产
 - [x] 门C 产品收口/accept 绑定 — **PASS**（evidence/gateC-20261015T204020Z.json）。
 - [x] 门D 独立 B s1/s2 0-fake — **PASS 2/2**（evidence/gateD-20261015T204123Z.json）。
 - [x] 门F formal 路径冻结/唯一 attempt/无 env 覆盖 — **PASS**（evidence/gateF-20261015T204144Z.json）。
-- [ ] 门E FORMAL-FREEZE 决策 + 报告。
+- [x] 门E FORMAL-FREEZE 决策 + 报告 — **PASS，recommend Ready**（FORMAL-FREEZE.md + REPORT-FINAL.md）。
+
+## 3.1 结论（HEAD `bd6bc10`，工作区 clean）
+
+- **审计 PASS**；**是否够进入正式 4 attempt：够（recommend Ready）**。本包**不执行**正式采样。
+- 真实 provider 生成 **0**；正式 `lg032-method-final-data` **不存在**；LG-032 仍 **in-progress**。
+- 正式入口：`probes/lg032/METHOD-FINAL/probes/run_formal.py`（先装 overlay，再走字节同 cohort-ready 的冻结驱动）。
+- 产品 tree `55e4de56…` == main == `0814b80`；独立边界 QA `70a0fd5`；harness 与 cohort-ready 逐字节同。
 
 ## 4. 门A/门B 证据摘要（2026-10-16，real provider 0）
 
