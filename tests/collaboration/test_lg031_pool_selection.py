@@ -34,7 +34,7 @@ from lightgravity.collaboration import (
     CollaborationService,
     ExecutionGrantRegistry,
 )
-from lightgravity.coordinator import GraphDispatcher, RoleCatalog
+from lightgravity.coordinator import DispatchContext, GraphDispatcher, RoleCatalog
 from lightgravity.coordinator.planning import PlanningRequest, PlanningTrigger
 from lightgravity.coordinator.planner import (
     PlanProposal,
@@ -806,3 +806,113 @@ async def test_two_member_pools_run_in_parallel_without_writer_collision(tmp_pat
     assert len(workspaces) == 2
     assert repo.path.resolve() not in workspaces
     assert registry.active_grants() == []
+
+
+# ---------------------------------------------------------------------------
+# LG-032 workspace-boundary regression (product defect found by LG-032 arm B)
+#
+# The real ``AntigravityExecutor`` authorizes only ``Settings.workspace_root``.
+# The product default sets that root to ``<data_dir>/workspaces`` -- a
+# *subdirectory* of data_dir -- while the Task ``save_dir`` lives at
+# ``<data_dir>/native-sessions/<task>``.  The selection scratch used to be
+# created under ``save_dir``, so a real executor honestly rejected it
+# ("escapes the authorized root") and every arm-B Run failed.  These tests pin
+# the boundary: the scratch must live inside the authorized root, and a path
+# outside it must still be rejected (authority is not widened).
+# ---------------------------------------------------------------------------
+
+
+def _real_executor(workspace_root: Path, store: FileStore):
+    from lightgravity.adapter import ResourceCompiler
+    from lightgravity.adapter.executor import AntigravityExecutor
+
+    return AntigravityExecutor(
+        store,
+        ResourceCompiler(store),
+        workspace_root=workspace_root,
+    )
+
+
+def test_selection_scratch_lives_inside_authorized_root(tmp_path: Path) -> None:
+    """The selection scratch must be inside ``workspace_root`` (real executor)."""
+
+    root = tmp_path / "ws"
+    repo = GitRepo(init_repo(root / "task-ws"))
+    workspace_root = repo.path.parent
+    store = FileStore(tmp_path / "data", workspace_root)
+    # A Task save_dir deliberately OUTSIDE workspace_root, exactly as the
+    # product default produces (data_dir/native-sessions/<task>).
+    save_dir = tmp_path / "data" / "native-sessions" / "task_regression"
+
+    provider = GraphWorkspaceProvider(WorktreeManager(workspace_root))
+    context = DispatchContext(
+        task_id="task_regression",
+        run_id="run_01REGRESSIONBOUNDARY",
+        attempt=1,
+        objective="select a candidate",
+        workspace_path=str(repo.path),
+        save_dir=str(save_dir),
+    )
+    dispatcher = GraphDispatcher(
+        store,
+        _real_executor(workspace_root, store),
+        catalog=TEAM,
+        workspaces=provider,
+        autonomous_pool=True,
+    )
+
+    scratch = dispatcher._selection_workspace(context, "slot_run_regression_0")
+    scratch_path = Path(scratch).resolve()
+    root_real = Path(workspace_root).resolve()
+
+    # Legal selector scratch: inside the executor's authorized root.
+    assert scratch_path == root_real or root_real in scratch_path.parents
+    # ...and NOT under the (outside-root) save_dir.
+    assert not str(scratch_path).startswith(str(save_dir.resolve()))
+
+    # The real executor accepts it (no "escapes the authorized root").
+    assert dispatcher._selection_scratch_root(context) is not None
+    resolved = _real_executor(workspace_root, store)._resolve_workspace(scratch)
+    assert resolved == scratch_path
+
+
+def test_selection_scratch_out_of_root_still_rejected(tmp_path: Path) -> None:
+    """A workspace outside the authorized root is still honestly rejected."""
+
+    from lightgravity.adapter.executor import AdapterConfigInvalid
+
+    root = tmp_path / "ws"
+    repo = GitRepo(init_repo(root / "task-ws"))
+    workspace_root = repo.path.parent
+    store = FileStore(tmp_path / "data", workspace_root)
+    executor = _real_executor(workspace_root, store)
+
+    outside = tmp_path / "outside" / "somewhere"
+    outside.mkdir(parents=True)
+    with pytest.raises(AdapterConfigInvalid):
+        executor._resolve_workspace(str(outside))
+
+
+def test_selection_scratch_without_provider_falls_back(tmp_path: Path) -> None:
+    """With no worktree provider the scratch falls back; never a hard crash."""
+
+    root = tmp_path / "ws"
+    repo = GitRepo(init_repo(root / "task-ws"))
+    workspace_root = repo.path.parent
+    store = FileStore(tmp_path / "data", workspace_root)
+    dispatcher = GraphDispatcher(
+        store,
+        _real_executor(workspace_root, store),
+        catalog=TEAM,
+        autonomous_pool=True,
+    )
+    context = DispatchContext(
+        task_id="task_regression",
+        run_id="run_01NOROVIDER",
+        attempt=1,
+        objective="select a candidate",
+        workspace_path=str(repo.path),
+        save_dir=str(tmp_path / "data" / "native-sessions" / "task_regression"),
+    )
+    scratch = dispatcher._selection_workspace(context, "slot_x")
+    assert scratch == str(repo.path)

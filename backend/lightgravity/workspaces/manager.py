@@ -422,6 +422,20 @@ class WorktreeManager:
         base = self.worktrees_root / _slug(run_id) / _slug(node_key)
         return self._authorize(base)
 
+    def selection_scratch_root(self, run_id: str) -> Path:
+        """Authorized directory a selection scratch for ``run_id`` may live under.
+
+        LG-032 workspace-boundary fix: the autonomous claim *selection* phase
+        needs a throwaway, non-write SDK workspace.  It must stay inside the
+        authorized workspace root or a real executor rejects it
+        (``escapes the authorized root``).  This returns the Run's own worktree
+        area under that root -- the same isolation seam real write worktrees
+        use, so it adds no new root and never widens authority.
+        """
+
+        base = self.worktrees_root / _slug(run_id)
+        return self._authorize(base)
+
     def _authorize(self, candidate: Path) -> Path:
         """Ensure a path stays inside the authorized workspace root."""
 

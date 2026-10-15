@@ -58,6 +58,26 @@ class GraphWorkspaceProvider:
     def session(self, run_id: str) -> WorktreeSession | None:
         return self._sessions.get(run_id)
 
+    def selection_scratch_root(self, run_id: str) -> Path | None:
+        """Authorized directory a selection scratch may live under, or ``None``.
+
+        LG-032 workspace-boundary fix: the autonomous claim *selection* phase
+        needs a throwaway, non-write SDK workspace.  It must be inside the
+        executor's authorized root (``Settings.workspace_root``) or the real
+        executor honestly rejects it (``escapes the authorized root``) and the
+        Run fails.  The Run's own worktree area under the authorized root is the
+        correct home; it adds no new root and stays inside the existing
+        isolation seam.  ``None`` when the provider has no worktree manager.
+        """
+
+        manager = self._manager
+        if manager is None:
+            return None
+        try:
+            return manager.selection_scratch_root(run_id)
+        except WorkspaceError:
+            return None
+
     def isolate(
         self,
         *,

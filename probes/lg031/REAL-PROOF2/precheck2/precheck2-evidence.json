@@ -1,0 +1,249 @@
+{
+  "elapsed_seconds": 3.272,
+  "finished_at": 1792092104.561566,
+  "frozen_plan_keys": [
+    "alpha",
+    "beta",
+    "verify"
+  ],
+  "part_a_startup_ledger": {
+    "counter_limit_from_env": 7,
+    "env_pin_matches_resolved": true,
+    "ledger_file": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof2/probes/lg031/REAL-PROOF2/fixtures/precheck2/data/generation/generation.jsonl",
+    "ledger_file_exists_after_reserve": true,
+    "reserve_granted": true,
+    "runtime_settings_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof2/probes/lg031/REAL-PROOF2/fixtures/precheck2/data",
+    "settings_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof2/probes/lg031/REAL-PROOF2/fixtures/precheck2/data",
+    "snapshot_after": {
+      "corrupt": false,
+      "count": 1,
+      "limit": 7,
+      "persistent": true,
+      "remaining": 6
+    },
+    "snapshot_before": {
+      "corrupt": false,
+      "count": 0,
+      "limit": 7,
+      "persistent": true,
+      "remaining": 7
+    },
+    "startup_ledger_is_persistent": true
+  },
+  "part_b_three_node_pool": {
+    "active_grants": [],
+    "artifacts": {
+      "alpha": {
+        "content": "alpha",
+        "exists": true,
+        "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof2/probes/lg031/REAL-PROOF2/fixtures/precheck2/ws/.lg-worktrees/run_01M50G6PZ0AAJQE5BR04EJTG06/alpha/out/alpha.txt",
+        "sha256": "b6a98d9ce9a2d9149288fa3df42d377c3e42737afdcdaf714e33c0a100b51060"
+      },
+      "beta": {
+        "content": "beta",
+        "exists": true,
+        "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof2/probes/lg031/REAL-PROOF2/fixtures/precheck2/ws/.lg-worktrees/run_01M50G6PZ0AAJQE5BR04EJTG06/beta/out/beta.txt",
+        "sha256": "f2c82decdd7181cf98945929a62598db7e6b477e11f6e0eb0ae97020eff151ad"
+      }
+    },
+    "distinct_worktrees": 2,
+    "first_pool_had_two": true,
+    "ledger_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof2/probes/lg031/REAL-PROOF2/fixtures/precheck2/data/generation/generation.jsonl",
+    "ledger_snapshot": {
+      "corrupt": false,
+      "count": 15,
+      "limit": 200,
+      "persistent": true,
+      "remaining": 185
+    },
+    "ledger_stages": [
+      {
+        "corrupt": false,
+        "count": 1,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 199,
+        "stage": "before_dispatch"
+      },
+      {
+        "corrupt": false,
+        "count": 1,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 199,
+        "stage": "execution_started"
+      },
+      {
+        "corrupt": false,
+        "count": 4,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 196,
+        "stage": "execution_finished"
+      },
+      {
+        "corrupt": false,
+        "count": 4,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 196,
+        "stage": "execution_started"
+      },
+      {
+        "corrupt": false,
+        "count": 6,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 194,
+        "stage": "execution_finished"
+      },
+      {
+        "corrupt": false,
+        "count": 6,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 194,
+        "stage": "execution_started"
+      },
+      {
+        "corrupt": false,
+        "count": 9,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 191,
+        "stage": "execution_finished"
+      },
+      {
+        "corrupt": false,
+        "count": 9,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 191,
+        "stage": "execution_started"
+      },
+      {
+        "corrupt": false,
+        "count": 11,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 189,
+        "stage": "execution_finished"
+      },
+      {
+        "corrupt": false,
+        "count": 11,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 189,
+        "stage": "execution_started"
+      },
+      {
+        "corrupt": false,
+        "count": 14,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 186,
+        "stage": "execution_finished"
+      },
+      {
+        "corrupt": false,
+        "count": 14,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 186,
+        "stage": "execution_started"
+      },
+      {
+        "corrupt": false,
+        "count": 15,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 185,
+        "stage": "execution_finished"
+      },
+      {
+        "corrupt": false,
+        "count": 15,
+        "limit": 200,
+        "persistent": true,
+        "remaining": 185,
+        "stage": "after_dispatch"
+      }
+    ],
+    "machine_truth_ok": true,
+    "nodes": {
+      "alpha": {
+        "capability": "implementation",
+        "fence": null,
+        "owner": null,
+        "state": "passed",
+        "subtask_ref": "subtask_01M50G6Q29A3BMNMTAFGHBH9B6",
+        "upstream_artifact_refs": [],
+        "write": true
+      },
+      "beta": {
+        "capability": "implementation",
+        "fence": 1,
+        "owner": null,
+        "state": "passed",
+        "subtask_ref": "subtask_01M50G6Q29PN99989KMDWY0EHX",
+        "upstream_artifact_refs": [],
+        "write": true
+      },
+      "verify": {
+        "capability": "verification",
+        "fence": null,
+        "owner": null,
+        "state": "passed",
+        "subtask_ref": "subtask_01M50G6Q298Y6G20SM50DEV5PY",
+        "upstream_artifact_refs": [
+          "subtask_01M50G6Q29A3BMNMTAFGHBH9B6@beb8a1198b9554de846da996c457a6db58e20255e76206f031a0f321cb507567:out/alpha.txt",
+          "subtask_01M50G6Q29A3BMNMTAFGHBH9B6@beb8a1198b9554de846da996c457a6db58e20255e76206f031a0f321cb507567:evidence:run_01M50G6PZ0AAJQE5BR04EJTG06/subtask_01M50G6Q29A3BMNMTAFGHBH9B6-lg006-diff.patch@sha256:6f94ea5f7a5dbd1f78261475c4703398d39aed468a3e5edcce87e2b92ac5bf25",
+          "subtask_01M50G6Q29PN99989KMDWY0EHX@8cf201dd053f2fd8be5dee90e86c213590ef8eab170b3d3dbca51b84cdc66dc6:out/beta.txt",
+          "subtask_01M50G6Q29PN99989KMDWY0EHX@8cf201dd053f2fd8be5dee90e86c213590ef8eab170b3d3dbca51b84cdc66dc6:evidence:run_01M50G6PZ0AAJQE5BR04EJTG06/subtask_01M50G6Q29PN99989KMDWY0EHX-lg006-diff.patch@sha256:a975a8c5c4fd38766f3532d6f971c643db1e43b2d36252fe2b1ed96bca3f4e2b"
+        ],
+        "write": false
+      }
+    },
+    "outcome_state": "succeeded",
+    "product_real_generation": 0,
+    "provider": "local-fake-openai-sse-loopback",
+    "provider_substitute": true,
+    "real_sdk_version": "0.1.22",
+    "run_session_refs_count": 6,
+    "sdk_session_count": 6,
+    "selection_offers_write_tool": false,
+    "selection_tool_names": [
+      "discover_and_request_claim",
+      "list_skills",
+      "lookup_skill",
+      "lookup_skills"
+    ],
+    "sessions_in_run_refs": true,
+    "stop_confirmation": {
+      "confirmed": true,
+      "problems": [],
+      "proxy_stopped": true,
+      "run_id": "run_01M50G6PZ0AAJQE5BR04EJTG06",
+      "sessions_stopped": 6,
+      "sessions_total": 6,
+      "unknown_sessions": []
+    },
+    "validated_plan_hash": "6a2417d24cd362b391d148cbd6681695dea3ab284b14fef9562e4538ec4889df",
+    "validated_plan_keys": [
+      "alpha",
+      "beta",
+      "verify"
+    ],
+    "verify_has_two_handoffs": true,
+    "verify_upstream_handoffs": [
+      "subtask_01M50G6Q29A3BMNMTAFGHBH9B6@beb8a1198b9554de846da996c457a6db58e20255e76206f031a0f321cb507567:out/alpha.txt",
+      "subtask_01M50G6Q29A3BMNMTAFGHBH9B6@beb8a1198b9554de846da996c457a6db58e20255e76206f031a0f321cb507567:evidence:run_01M50G6PZ0AAJQE5BR04EJTG06/subtask_01M50G6Q29A3BMNMTAFGHBH9B6-lg006-diff.patch@sha256:6f94ea5f7a5dbd1f78261475c4703398d39aed468a3e5edcce87e2b92ac5bf25",
+      "subtask_01M50G6Q29PN99989KMDWY0EHX@8cf201dd053f2fd8be5dee90e86c213590ef8eab170b3d3dbca51b84cdc66dc6:out/beta.txt",
+      "subtask_01M50G6Q29PN99989KMDWY0EHX@8cf201dd053f2fd8be5dee90e86c213590ef8eab170b3d3dbca51b84cdc66dc6:evidence:run_01M50G6PZ0AAJQE5BR04EJTG06/subtask_01M50G6Q29PN99989KMDWY0EHX-lg006-diff.patch@sha256:a975a8c5c4fd38766f3532d6f971c643db1e43b2d36252fe2b1ed96bca3f4e2b"
+    ]
+  },
+  "probe": "lg031-real-proof2/precheck2",
+  "started_at": 1792092101.2894664,
+  "work_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg031-real-proof2/probes/lg031/REAL-PROOF2/fixtures/precheck2"
+}
