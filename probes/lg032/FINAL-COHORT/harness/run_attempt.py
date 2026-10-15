@@ -888,17 +888,20 @@ def _enable_loopback_for_dry_run(state: Any) -> None:
     executor = state.executor
     if executor is not None:
         executor._allow_loopback_upstream = True  # type: ignore[attr-defined]
-    # Narrow B-path diagnostic workaround (opt-in via env).  The pool selection
-    # scratch lives under the Task save_dir (native-sessions/...), which is
-    # OUTSIDE the executor's default workspace_root, so the executor honestly
-    # blocks the selection session.  Widening the executor's authorized root to
-    # the data root lets the rest of the two-phase path run for evidence only;
-    # this is a harness-side observation aid, NOT a product fix.
-    if os.environ.get("LG032_WIDEN_EXEC_ROOT") and executor is not None:
-        import lightgravity.adapter.executor as _ex
-
-        widened = Path(os.environ["LG032_WIDEN_EXEC_ROOT"]).resolve()
-        executor._workspace_root = widened  # type: ignore[attr-defined]
+    # LG-032 workspace-boundary: the selection scratch is now rooted inside the
+    # executor's authorized root by the product fix (WorktreeManager
+    # selection_scratch_root), so no harness-side root widening is needed or
+    # allowed.  The former LG032_WIDEN_EXEC_ROOT debug escape hatch (which
+    # rewrote executor._workspace_root to the data root / sibling worktrees) is
+    # REMOVED from the formal path; its snapshot is retained in git history.
+    # Refuse loudly if the variable is set so a widened root can never mask the
+    # real boundary in a formal or dry run.
+    if os.environ.get("LG032_WIDEN_EXEC_ROOT"):
+        raise SystemExit(
+            "LG032_WIDEN_EXEC_ROOT is a removed debug aid and must not be set "
+            "(the selection scratch is inside the authorized root via the "
+            "product fix); refusing to widen the executor root"
+        )
     import lightgravity.adapter.proxy as proxy_mod
 
     cls = proxy_mod.LocalAuthProxy

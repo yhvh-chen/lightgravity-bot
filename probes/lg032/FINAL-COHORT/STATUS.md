@@ -11,6 +11,25 @@ updated: "2026-10-16"
 owner: "agent:pi-lg032-final-cohort（续接 owner；非 031 实施者；主代理仅 PM）"
 ---
 
+## APPEND 2026-10-16（最小交接固化；不重放、不调查、不 claim done）
+
+**新增**：`HANDOFF-MINIMAL.md`（最小交接）。以下为**准确已知事实**，未核实项标 **待核/unknown**：
+
+- **产品 bug**：默认 bootstrap selector scratch 越出 executor `workspace_root`（见 §1）。
+- **独立 fix**：`fix/lg031-workspace-boundary@0814b80`（修最小 root 内 scratch），作者**局部 check/proof 通过**；
+  **准确数字当前文档未记载 ⇒ unknown，不再调查**。
+- **Bdry 状态**：**已越过原越界点**，随后 `executing → failed`，原因 **429 fake 请求上限** ⇒ **不能完整 pass**。
+- **正式真实 provider0、总 192/4×48：从未执行**（真实生成 = 0）。
+- **A/B 已统一 3 nodes**；**剩余 driver 状态按实际文档，未记载的 = 待核/unknown**。
+- **上一 finalizer** `finalizer72404`/log `96hy_6mr`：读长日志 token 40k 超额 `exit 143`（≈29s），
+  副作用**仅 git status 核**，**不重放**。
+- **rootmain 3def294 两处 PM dirty（031 再开 / PROGRESS）本包不碰**；独立 boundary QA 另一 owner 在跑，QA 分支另 scope。
+- **preservation 事故**旧 dry 删除已记录；**后续严禁 rm/rmtree/reset/clean/覆盖，新 raw/失败全保留**。
+- **本 WIP**：`hold` run_attempt.py 移除 `LG032_WIDEN_EXEC_ROOT` 正式路径（改为显式拒绝），
+  **未跑新实验验证**；精确 commit 仅含现有 harness + 文档 + 脱敏 evidence，无私有 fixture/raw/secret/SDKDB。
+- **所需下一步**：PM 决定是否集成/复验 `0814b80`；剩余 driver 状态待核；正式 192/4×48 未执行；最终 REPORT+冻结 hash 未做。
+- **未做**：不新实验、不 claim done、不 main merge、不嵌套代理/push/deploy/publish。
+
 # LG-032 阶段 B — final-cohort STATUS（narrow-B 根因定位续接）
 
 ## 0. 本包性质与硬边界（不变）
