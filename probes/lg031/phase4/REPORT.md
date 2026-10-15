@@ -97,9 +97,28 @@ proxy 时，把上限对齐到 coordinator 冻结的 `request.budget.max_model_c
   fixture**（PM 明确不得默默重跑）。探针提取 bug 已修复（改扫 `subtasks/<id>/SUBTASK.md` 并
   记录每个 worker 请求的 `upstream_artifact_refs`），留作后续 phase 的**唯一**一次复验依据。
 
-**结论：LG-031 保持 `in-progress / partial`。** 真实 loop **闭合**（dispatcher succeeded +
-reviewer passed），但硬条件 4 的真实字符串证据缺失，不写 done。**未降低任何复核/机器门/停止/验收门**：
-reviewer 真实调用且诚实；未为探 reviewer 能否过而重复调用；未伪造 passed。
+**结论（已被同次运行证据恢复取代，见 §4bis）：LG-031 一度保持 `in-progress / partial`。**
+真实 loop **闭合**（dispatcher succeeded + reviewer passed），当时硬条件 4 的真实字符串证据**未捕获**，
+故不写 done。**未降低任何复核/机器门/停止/验收门**：reviewer 真实调用且诚实；未为探 reviewer 能否过而
+重复调用；未伪造 passed。
+
+### 4bis. 同次运行证据恢复（2026-10-16，`SALVAGE-REPORT.md`）
+
+上段「必须重跑 ≈10 转发」的结论**已被取代**：phase4 的**同一次**运行（`run_01M5079F4W8V37RHRTN7W6WWV6`）
+的 SDK session DB（3 个）与原 stdout **存活**。只读提取恢复出**真实交接原文**（产品构建的 verify 节点
+prompt 的 `Upstream artifacts:` 块）：
+
+```
+- subtask_01M5079F7MS9XM6AJRDJD4D7HM@1a60539e…64d:out/deliver.txt
+- subtask_01M5079F7MS9XM6AJRDJD4D7HM@1a60539e…64d:evidence:run_…/…-lg006-diff.patch@sha256:820a554a…714
+```
+
+版本化交接形态 + diff 证据独立 `@sha256:` **离线重算匹配**（69B）；源/目标节点授权均 `fence=1` 且脱敏。
+按 docs08 §6.3（依赖放行须传递上游引用与**版本/哈希**；workspace 相对产物**不要求**自身带 `@sha256:`，
+且 executor evidence 才是 `…@sha256:` 命名空间），**硬条件 4 满足**。残余仅为 `content_hash` 原始字节
+随临时目录删除（已记录事实，非伪造）。**恢复新增真实调用 0**，全局累计仍 **34/40**。
+
+**修正结论：LG-031 硬条件 1–7 真实成立，可据单次运行证据更新为 `done`（待 LG-032 独立 QA）。**
 
 ## 5. 检查（真实退出码）
 

@@ -241,3 +241,15 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - **未闭合（诚实，不伪称）**：**硬条件 4「带 hash 同伴交接」的真实原文未捕获**——探针从 `subtasks/*.md` 提取，实体实际在 `subtasks/<id>/SUBTASK.md`，故 `handoff_refs=[]`。产品侧交接**已发生**（verify 节点仅在 deliver 通过后才被领取并执行；deliver 产物在 reviewer 证据中可见），离线已证机制（`<subtask>@<64hex>:out/deliver.txt`）。一次完整复验需 ≈10 转发，本包剩 6，**不重跑同一 fixture**；探针提取 bug 已修复，留后续 phase 的**唯一**一次复验。**未降低任何复核/机器门/停止/验收门。**
 - **检查（真实退出码）**：`uv run mypy` **137 files clean**；`tests/adapter` **102**、`tests/collaboration` **77**、`tests/coordinator`（+collab）**187**、`tests/verify`+`tests/api`（+adapter）**233**、`tests/startup` **39 (+4 skip)**、`tests/settings` **46** 全通过；`py_compile` 探针 OK。
 - **状态如实**：**LG-031 保持 `in-progress`（partial）**——真实 loop 已闭合，但硬条件 4 真实原文证据缺失；不写 done、未偷偷归零、未重跑探过。**不替 LG-032 预注册样本/预算/成功标准，不预设节省。** `main` 未推送。
+
+## 2026-10-16 LG-031 phase4 同次运行证据恢复检查点（owner `agent:pi-lg031-r3`，硬条件 4 闭合 ⇒ done 待 032）
+
+本节覆盖 LG-031 phase4 相关上文；经 pi + 现有 DeepSeek，未推送/部署/发布；主代理只 PM，无嵌套派工。详细报告 [probes/lg031/phase4/SALVAGE-REPORT.md](probes/lg031/phase4/SALVAGE-REPORT.md)、[SALVAGE-STATUS.md](probes/lg031/phase4/SALVAGE-STATUS.md)。
+
+- **前 owner 停止核实**：前 spwchdnn 于 `maxround 65` 停止、进程 `exit 143`；**现无残留进程**（仅内核线程）；HEAD `8073830` clean（仅 2 个未跟踪恢复文件）；未 reset/clean/覆盖旧记录。
+- **恢复路径（只读、零模型）**：同次运行 `run_01M5079F4W8V37RHRTN7W6WWV6` 的 `data/store/worktrees` 已被探针 `TemporaryDirectory` 删除，但**3 个 SDK session DB 与原 stdout 存活**（`sha256` 逐一核对，与恢复 JSON 一致）；用 `sqlite3 mode=ro` 提取，**未写回原 store、未补字段、未编造收据**。
+- **硬条件 4 真实原文已复原**（产品构建 verify 节点 prompt 的 `Upstream artifacts:` 块）：`subtask_01M5079F7MS9XM6AJRDJD4D7HM@1a6053…a64d:out/deliver.txt` 与带独立 `@sha256:820a554a…` 的 diff 证据引用；diff patch 正文重取重算 **match=true**（69B）。
+- **授权**：源/目标节点 `reason=granted, fence=1`、程序原子授权、脱敏（`sandbox_set_has_secret=false`）；reviewer 真实 1 次 `outcome=passed`/`validated=passed`、usage `unknown`。
+- **契约判定（docs08 §6.3）**：依赖放行须传递上游产物引用与**版本/哈希**；workspace 相对产物**不要求**自身带 `@sha256:`（仅 executor evidence 属 `…@sha256:` 命名空间）。**硬条件 1–7 真实成立**。残余仅 `content_hash` 原始字节随临时目录删除（已记录事实，非伪造）。
+- **计数**：本恢复真实调用 **0**；全局已知累计仍 **34/40**（旧 24 + phase4 10，不重放、不归零）；usage `unknown` 不当 0。
+- **状态**：**LG-031 更新为 `done`**（硬条件 1–7 真实成立）；版本级行为由 **LG-032 独立集中 QA 复验**，不制造待 032 循环。未降低任何复核/机器门/停止/验收门；未改契约、未删断言。`main` 未推送。

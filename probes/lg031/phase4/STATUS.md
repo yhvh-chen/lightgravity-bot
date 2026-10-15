@@ -65,7 +65,9 @@ owner：`agent:pi-lg031-r3`（pi + env DeepSeek；主代理只 PM）。分支 `f
   `passed`）；仅手条件 4 的真实字符串证据仍缺。
 - 完整 checkpoint skip 仍未实现（沿用既有边界，本包不夸大）。
 - LG-032 独立集中 QA 与全生命周期成本对比**不在本包**。
-- **LG-031 保持 `in-progress`**；真实门未齐前不宣称 done，也不制造待 032 的循环。
+- ~~**LG-031 保持 `in-progress`**~~ → **已由同次运行证据恢复取代**（见 `SALVAGE-REPORT.md`/`SALVAGE-STATUS.md`）：
+  硬条件 4 的真实交接原文已从存活 SDK session DB 只读复原并离线 hash 核对（match=true），**新增真实调用 0**；
+  **硬条件 1–7 真实成立，LG-031 更新为 `done`（待 LG-032 独立集中 QA）**，不制造待 032 循环。
 
 ## 边界
 

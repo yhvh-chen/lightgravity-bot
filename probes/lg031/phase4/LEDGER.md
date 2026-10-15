@@ -58,5 +58,7 @@ owner: "agent:pi-lg031-r3"
 
 - 本 phase4 worker usage（SDK 未把 token 明细作为事件暴露）与 reviewer usage 均记 `unknown`，
   **不当 0**。
-- 真实 handoff 字符串未捕获（探针 bug），不伪称已捕获；机制证据见 `REPORT.md` §4 与
-  `tests/collaboration/test_lg031_r4_real_planner_closure.py`。
+- 真实 handoff 字符串**已由同次运行证据恢复复原**（探针提取 bug 已确诊；产品侧交接真实发生）：
+  从存活 SDK session DB 只读提取到 verify 节点产品 prompt 的 `Upstream artifacts:` 块，含
+  `subtask_…@1a6053…:out/deliver.txt` 与 `@sha256:820a554a…`（离线重算 match=true）。
+  见 `SALVAGE-REPORT.md`、`evidence/salvaged_handoff_evidence.json`；**新增真实调用 0**。
