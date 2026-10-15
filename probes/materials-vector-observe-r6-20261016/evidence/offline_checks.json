@@ -1,0 +1,66 @@
+{
+  "all_pass": true,
+  "network_used": false,
+  "checks": {
+    "1_nullable_misnamed_score": {
+      "verified_hit_to_dict_fields": [
+        "basis",
+        "content_hash",
+        "locators",
+        "reason",
+        "scope",
+        "snippet",
+        "source_id",
+        "source_version",
+        "stale",
+        "title",
+        "verified"
+      ],
+      "verified_hit_has_score": false,
+      "verified_hit_has_similarity": false,
+      "index_candidate_has_score": true,
+      "conclusion": "product VerifiedHit.to_dict omits score -> harness must record the pre-authorization candidate `score` separately",
+      "pass": true
+    },
+    "2_dimensions_finite": {
+      "header": {
+        "cache_version": 1,
+        "dim": 768,
+        "model": "embeddinggemma-2-Q8_0",
+        "record": "header"
+      },
+      "entry_count": 10,
+      "all_dim_768": true,
+      "all_finite": true,
+      "all_nonzero": true,
+      "header_consistent": true,
+      "pass": true
+    },
+    "3_hard_call_limit": {
+      "outcomes": [
+        "sent",
+        "sent",
+        "blocked:POST cap would exceed: 2 >= 2"
+      ],
+      "http_sent_by_stub_backend": 2,
+      "guard_used": 2,
+      "third_blocked_before_http": true,
+      "pass": true
+    },
+    "4_query_vector_persisted": {
+      "record": {
+        "query_bytes": 64,
+        "input_sha256": "b23cfe0071d1db3d77c8abc21ed25700951d2e976f2c546ce94c2a197e492d99",
+        "dim": 768,
+        "vector_sha256": "f1e910f1dd3c55f1e5abc76988c3ed1ec102abf2f734af80474ae79de4c5adc8",
+        "vector_len": 768,
+        "prompt_tokens": 7,
+        "raw_response_present": true
+      },
+      "vector_len_768": true,
+      "vector_sha_persisted": true,
+      "prompt_tokens_captured": true,
+      "pass": true
+    }
+  }
+}
