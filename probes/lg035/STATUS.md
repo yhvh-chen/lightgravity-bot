@@ -58,6 +58,33 @@ GitHub license API). Fixture sha256 and gold sha256 are in
 * **Mixed born-digital text + scan in one file: BLOCKED** under license.
 * Embedding is not OCR; vector service availability was not used to claim OCR.
 
+## Cohort B (2026-10-16) — public-sample + quality completion attempt
+
+Additive follow-up; **cohort A scores/thresholds are unchanged**. Pre-registered
+in [`QUALITY-PLAN-COHORT-B.md`](QUALITY-PLAN-COHORT-B.md) before any inference.
+
+* **Decisive blocker: the authorized endpoint is unreachable.**
+  `http://192.168.8.12:11434` → `connect failed: No route to host` (curl HTTP
+  000; ICMP 100% loss), verified 2×. So **0** new OCR POSTs were made and **no**
+  quality metric is claimed for cohort B. Evidence:
+  [`reports/cohort_b/endpoint_reachability.txt`](reports/cohort_b/endpoint_reachability.txt).
+* **Inference-POST accounting (from raw logs, not reports):** cohort A log has
+  **4** `POST /v1/chat/completions` → **LG-035 cumulative 4 / 10** (≤6 remain,
+  cohort B declares ≤5). Cohort B used **0**.
+* **Licence findings (verified, links in report):**
+  [`reports/cohort_b/source_provenance_checks.md`](reports/cohort_b/source_provenance_checks.md)
+  * Microsoft **XFUND** is a real Chinese form benchmark **with human truth**,
+    but its official README licenses it **CC BY-NC-SA 4.0 (NonCommercial)** and
+    its image archive `zh.val.zip` is **69,217,820 B** (>10 MiB cap) → not
+    licence-clear for a product fixture.
+  * **SWHL/ChineseOCRBench** (HF, card `apache-2.0`) is **short-answer VQA
+    only** (no full-page human transcript) → cannot support page CER; upstream
+    ESTVQA/ReCTS image licence unclear.
+  * `tesseract-ocr/test` (Apache-2.0) has **no real Chinese scan + truth pair**.
+* **Download budget spent on samples: 0 bytes** (nothing eligible).
+* **No product code changed** in this package; no new fixture beyond the
+  cohort-B evidence/report files. Status stays **in-progress**.
+
 ## Honest limits
 
 * `stat_revision` on download is a size-mtime token, **not** a crypto hash.

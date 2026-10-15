@@ -133,3 +133,74 @@ uv run pytest -q                 -> 585 passed, 4 skipped
 3. **Mixed born-digital text + scan** — BLOCKED under license.
 4. **docs/08 §4.3 status rows** — not updated here (single docs08 owner).
 5. Independent QA — LG-040.
+
+## 7. Cohort B — public-sample + quality completion attempt (2026-10-16)
+
+Additive follow-up to close the three cohort-A BLOCKED classes (real Chinese
+page with human truth, table, mixed text+scan). Pre-registered in
+`QUALITY-PLAN-COHORT-B.md` **before** any inference; **cohort A thresholds and
+scores are unchanged and not reinterpreted**.
+
+### 7.1 Decisive blocker: endpoint unreachable
+
+The authorized candidate `http://192.168.8.12:11434` did **not** answer:
+`connect failed: No route to host` (curl HTTP 000; `ping` 100% loss), verified
+with 3 paths (`/props`, `/v1/models`, `/health`) and a repeat. Raw evidence:
+`reports/cohort_b/endpoint_reachability.txt`.
+
+Consequence: **0 new OCR POSTs**, and **no cohort-B quality claim** is made.
+This is an external environment blocker (service/host down), not a
+sample-availability one. Per the no-replay rule, no attempt was retried.
+
+### 7.2 Inference-POST accounting (from raw logs, not reports)
+
+| Scope | POSTs | Cap |
+|---|---|---|
+| LG-035 cohort A (`reports/http_log.jsonl`) | **4** (0 failed) | — |
+| **LG-035 cumulative** | **4** | 10 |
+| Cohort B (this package) | **0** | 5 |
+
+Remaining LG-035 headroom: **6** (not used here).
+
+### 7.3 Licence / provenance findings for public Chinese samples (verified)
+
+Full links, HTTP evidence and sizes in
+`reports/cohort_b/source_provenance_checks.md`.
+
+* **Microsoft XFUND** (`doc-analysis/XFUND`, release `v1.0`) — a real Chinese
+  form benchmark **with human key/value truth**, but the official README
+  licenses it **CC BY-NC-SA 4.0 (NonCommercial + ShareAlike)**; its image
+  archive `zh.val.zip` is **69,217,820 B** (annotations-only `zh.val.json` is
+  1,711,142 B). → **BLOCKED**: not permissively licensed for a product fixture
+  and over the ≤10 MiB single-file cap.
+* **SWHL/ChineseOCRBench** (HF, card `apache-2.0`, not gated) — viewer schema is
+  `image, dataset_name, id, question, answers, type`: **short-answer VQA only**,
+  no full-page human transcript → cannot compute a page CER; upstream
+  ESTVQA/ReCTS image licence unclear.
+* **Yuliang-Liu/MultimodalOCR** — repo MIT, but the bundled Chinese eval images
+  are not repo-authored and their licence is not stated as permissive.
+* **tesseract-ocr/test** (Apache-2.0) — no real Chinese scan with matching
+  human transcript in `testing/`.
+
+### 7.4 What is NOT claimed
+
+* No Chinese CER, no table metric, no mixed-file metric from cohort B.
+* Cohort A's original scores (CER 0.0000 / 0.0000 / 0.0763) stand **only** for
+  the real English scanned pages they were measured on; they say nothing about
+  Chinese.
+* No synthetic image was substituted for a real sample.
+
+### 7.5 Minimal user-decidable need (not a generic "need samples")
+
+To close the remaining gates, one of the following is required:
+
+1. **Reachability**: bring the authorized `192.168.8.12:11434` OCR service back
+   (or authorize a different OpenAI-compatible OCR endpoint), AND
+2. **A licence-clear real Chinese sample with human truth** that fits the
+   budgets, e.g. a public-domain/CC0/CC-BY (not NC) scanned Chinese form or
+   table page with a human transcript, ≤10 MiB per file.
+
+Because XFUND's *data* exists but is NC-licensed, and ChineseOCRBench is
+VQA-only, neither can substitute; a licence decision (if NC were acceptable for
+non-shipping local verification only) is a user call, recorded here rather than
+silently assumed.

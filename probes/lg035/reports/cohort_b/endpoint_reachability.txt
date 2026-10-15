@@ -1,0 +1,32 @@
+# Cohort B — authorized endpoint reachability check (read-only, no inference)
+# Date/time (local, +1100): 2026-10-16 (cohort-B session)
+# Target: http://192.168.8.12:11434  (authorized OCR candidate; not a product default)
+
+$ curl -sv -m 15 http://192.168.8.12:11434/props
+*   Trying 192.168.8.12:11434...
+* connect to 192.168.8.12 port 11434 from 192.168.8.50 port 49358 failed: No route to host
+* Failed to connect to 192.168.8.12 port 11434 after 2620 ms: Could not connect to server
+
+$ curl -s -m 30 -o /dev/null -w 'HTTP %{http_code} time=%{time_total}\n' http://192.168.8.12:11434/props
+HTTP 000 time=2.416466
+$ curl -s -m 30 -o /dev/null -w 'HTTP %{http_code}\n' http://192.168.8.12:11434/v1/models
+HTTP 000 time=3.062465
+$ curl -s -m 30 -o /dev/null -w 'HTTP %{http_code}\n' http://192.168.8.12:11434/health
+HTTP 000 time=3.062519
+
+# repeat confirmation (2 attempts) — both HTTP 000, connect=0.000000
+$ curl -s -m 10 -o /dev/null -w 'attempt 1: HTTP %{http_code} connect=%{time_connect}\n' http://192.168.8.12:11434/v1/models
+attempt 1: HTTP 000 connect=0.000000
+$ curl -s -m 10 -o /dev/null -w 'attempt 2: HTTP %{http_code} connect=%{time_connect}\n' http://192.168.8.12:11434/v1/models
+attempt 2: HTTP 000 connect=0.000000
+
+$ ping -c 1 -W 2 192.168.8.12
+1 packets transmitted, 0 received, 100% packet loss, time 0ms
+
+$ ip route get 192.168.8.12
+192.168.8.12 dev enxc84d44233ec9 src 192.168.8.50 uid 1000
+    cache
+
+# Conclusion: route exists but the host does not answer (No route to host / ICMP 100% loss).
+# No OCR POST was attempted. This is an external environment blocker, not a sample blocker.
+# Zero automatic retries were performed (each command is a single attempt; no replay loop).
