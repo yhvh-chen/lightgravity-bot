@@ -1,0 +1,5 @@
+# LG-024 Stage B: keep the reviewable package (tarball + manifest + anchors)
+# under dist/ persistent and committed.  Ignore runtime scratch from the unpack
+# smoke test (isolated venv/data/secret-store/logs), which is private 700/600
+# and never distributed.
+smoke-unpack/

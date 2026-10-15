@@ -1,0 +1,12 @@
+# LG-024 L0 source package (private local review; NOT a release)
+source_commit: e0a8cec845864b387f89934266901e62817aaa9d
+source_tree:   0ff6ad6b7f48c74530e30e32bdd566f72440680d
+packed_at:     20261015T183958Z
+packer:        probes/lg024/STAGE-B/pack-stage-b.sh
+manifest:      MANIFEST.sha256 (per-file sha256, sorted)
+readme:        README.md (portable first-version guide, from PORTABLE-README.md)
+notice:        NOTICE.md (third-party licenses and source versions)
+frontend_dist: included (prebuilt static assets)
+license:       project has NO LICENSE/NOTICE; public license undecided; not granted
+excludes:      PROGRESS.md agent.md BACKLOG.md backlog/ PROJECT.md docs/08 docs/contracts/LG-033-preparation.md
+excludes:      .env/credentials/secrets/bot-data/**/*.db/**/*.log/probes/qa/.venv/node_modules/.git

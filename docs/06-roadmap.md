@@ -147,6 +147,15 @@ SDK 安装/真实测试属于 LG-002/003 后续实施，不包含在此次写排
 > - **新建 3 个持久 worktree/分支**（基于 `51b7c9e`，先查不存在不覆盖）：`lg029-auth-fix`/`fix/lg029-auth`、`lg031-pool`/`fix/lg031-pool`、`lg023-cohort2`/`eval/lg023-cohort2`（只评估 harness，产品/共享 docs 只读，两 arm 统一旧程序调度路径，比较计划写节点数 1 vs 2）。029/F1 实施包产品请求 0。
 > - **023 新 cohort PM 预注册**：2 样本×2 arm×1 repeat=4 attempt、每 run 仅 1 次；总 48/每 12、全 stage 单持久 ledger、转发前硬限；旧 45 另列，eval 已知总实际上限 **93**；双方同 toolcap 32、modelcall 每 worker≤12 且同 attempt≤12、output≤16000/HTTP120/retry0/并发≤2；必须真正走完整 Coordinator+stopconfirmer；旧混淆 45 不计交付成本也不删。**旧停止门不是产品 bug**（harness 缺陷）。契约 `1.10.0`/SDK `0.1.22`/自主 off 不动。
 
+> 2026-10-16 LG-024 阶段 B（交付准备：文档一致性 + 本地可审阅 L0 包；owner `agent:pi-lg024`，报告 [probes/lg024/STAGE-B/REPORT.md](../probes/lg024/STAGE-B/REPORT.md)）：**本包产品真实模型生成 0**；**未推送/部署/发布/上传**。
+> - **绑定首版核心稳定产品树 `e0a8cec`（= `main` `66b2b10` 产品路径，逐字节相同）**；契约 `1.10.0`、SDK `0.1.22`。**协作候选 `integrate/lg031-runtime@afcae82` 未合 `main`、独立 QA R1 进行中，单列待版本 QA，不入本包**。
+> - **串行落地共享文档**（阶段 B 起共享 docs 已释放）：README 新增「首版使用指南」（安装/启动/Settings worker+独立 reviewer/Chat 轻问答与交付 Task/Files 原件与来源/Resources 与恢复入口）；docs/06 本条目增补。**docs/08 仍归 runtime 返修 owner，本包不写**。
+> - **L0 源包**（`probes/lg024/STAGE-B/dist/*.tar.gz` + `MANIFEST.sha256` + `PACK-ANCHORS.txt`，405 文件）：严格无 `/home/yhvh/` 绝对路径/秘密/DB/日志/依赖体；**排除**开发/PM 证据（`PROGRESS.md`/`agent.md`/`BACKLOG.md`/`backlog/**`/`PROJECT.md`/`docs/08`/`docs/contracts/LG-033-preparation.md`，repo 保留不分发）。修正 Stage A 的 17 条绝对路径 WARN。
+> - **真实解包烟测**（专用端口 `18433`、独立 data/secret、`--no-executor`）：离线 `uv sync` 成、health 200（契约 `1.10.0`/`sdk_adapter=false`）、version 200、index 200 + 静态 JS 资产 200、无 token 受保护写 **401**、stop 0 且端口释放；**不碰 `:8123`**；产品真实模型 0。
+> - **许可**：L0 不重分发第三方包体/SDK/weights；随附 `NOTICE.md`（运行时 51 包版本与许可、前端 224、pypdfium2 捆绑 CC-BY-4.0、Olav=BSL-1.1 不搬运）；**项目自身无 LICENSE/NOTICE、未选公开许可证⇒未授予公开再分发**（不代用户选）；**未发布**。
+> - **范围如实**：029/031/032 返修未验；035/037 真实质量未齐；039 负结论/041 锁；040 未开；完整 checkpoint skip 未实现；023 两小样本组队无收益且 usage/费用 unknown（旧 45+4 单列）。**服务可达/合成样本/Embedding 输出 ≠ OCR 转写品质**；本包**不宣扬完整产品 pass**。
+> - **状态**：LG-024 阶段 B 达原交付准备门后可置 `done`（**仍非发布授权**）；契约/SDK/自主 off 不变。
+
 - 当前优先收拢 LG-013、LG-016、LG-027 已有隔离成果，继续 LG-017/018/019 与既有首版集中验收；单独 worktree 的交付不视为 main 已集成。不在本次排期中改变其状态。
 - LG-028 与 LG-033 可独立准备；LG-039 可在 LG-033 后验证。实现以任务 depends_on 为准，两个新版本的 LG-022 依赖是保留首版验收的排序门，非新功能代码依赖。
 - 多条线共享 Store、Coordinator、API 或前端入口时指定单一 owner 串行集成；开发执行仍经 pi，不因排期自动派工，不采用宿主原生子代理替代。
