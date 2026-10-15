@@ -3,7 +3,7 @@
   "worktree": "/home/yhvh/code/lightgravity-bot-worktrees/lg023-cohort2",
   "branch": "eval/lg023-cohort3",
   "product_base_commit": "e0a8cec",
-  "harness_head_commit": "1d6d45cbe07bf31a7c3cc1563c7d156088745340",
+  "harness_head_commit": "cdeda1d9c45b701cff374e3e06678ac0c29d2e07",
   "contract": "1.10.0",
   "sdk": "0.1.22",
   "model": "deepseek-v4-flash",
