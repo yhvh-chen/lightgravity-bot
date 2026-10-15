@@ -1,0 +1,17 @@
+{
+  "status": "ran",
+  "requested_model": "deepseek-v4-flash",
+  "reviewer_kind": "model",
+  "outcome": "unavailable",
+  "validated_outcome": "unavailable",
+  "findings": [],
+  "unsubstantiated": [],
+  "reason": "The candidate's evidence list contains only '<none resolved>': no machine check results and no bounded excerpts of src/geometry.py or src/report.py were provided. With no resolvable evidence refs to cite, the acceptance criteria (rect/circle support with ValueError on unknown kind; describe formatting and geometry dependency) cannot be substantiated or refuted, so no verdict can be rendered.",
+  "model_calls": 1,
+  "usage": {
+    "unknown": [
+      "usage"
+    ]
+  },
+  "resolved_evidence": []
+}

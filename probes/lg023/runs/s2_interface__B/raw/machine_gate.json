@@ -1,0 +1,37 @@
+{
+  "checks": [
+    {
+      "name": "geo.rect.area",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    },
+    {
+      "name": "geo.circle.area",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    },
+    {
+      "name": "geo.rect.perimeter",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    },
+    {
+      "name": "geo.bad.kind",
+      "passed": false,
+      "detail": "AssertionError: expected ValueError, got NotImplementedError: "
+    },
+    {
+      "name": "report.rect",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    },
+    {
+      "name": "report.circle",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    }
+  ],
+  "passed": 0,
+  "total": 6,
+  "exit_code": 0
+}

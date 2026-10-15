@@ -1,0 +1,12 @@
+diff --git a/tmp/tmptponv4ll/workspaces/candidate-ws/src/__pycache__/__init__.cpython-312.pyc b/tmp/tmptponv4ll/workspaces/candidate-ws/src/__pycache__/__init__.cpython-312.pyc
+new file mode 100644
+index 0000000..90ce76c
+Binary files /dev/null and b/tmp/tmptponv4ll/workspaces/candidate-ws/src/__pycache__/__init__.cpython-312.pyc differ
+diff --git a/tmp/tmptponv4ll/workspaces/candidate-ws/src/__pycache__/geometry.cpython-312.pyc b/tmp/tmptponv4ll/workspaces/candidate-ws/src/__pycache__/geometry.cpython-312.pyc
+new file mode 100644
+index 0000000..00f6ad8
+Binary files /dev/null and b/tmp/tmptponv4ll/workspaces/candidate-ws/src/__pycache__/geometry.cpython-312.pyc differ
+diff --git a/tmp/tmptponv4ll/workspaces/candidate-ws/src/__pycache__/report.cpython-312.pyc b/tmp/tmptponv4ll/workspaces/candidate-ws/src/__pycache__/report.cpython-312.pyc
+new file mode 100644
+index 0000000..ff8a2b0
+Binary files /dev/null and b/tmp/tmptponv4ll/workspaces/candidate-ws/src/__pycache__/report.cpython-312.pyc differ

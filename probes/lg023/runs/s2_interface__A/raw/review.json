@@ -1,0 +1,17 @@
+{
+  "status": "ran",
+  "requested_model": "deepseek-v4-flash",
+  "reviewer_kind": "model",
+  "outcome": "unavailable",
+  "validated_outcome": "unavailable",
+  "findings": [],
+  "unsubstantiated": [],
+  "reason": "The evidence list contains no resolved refs ('<none resolved>'), so no candidate artifact, machine-check result, or file excerpt was provided. Without any citable evidence_ref there is no material to verify the acceptance criteria (rect/circle support, ValueError on unknown kind, describe() format and its use of geometry), and per review policy an unsupported verdict must not be guessed.",
+  "model_calls": 1,
+  "usage": {
+    "unknown": [
+      "usage"
+    ]
+  },
+  "resolved_evidence": []
+}

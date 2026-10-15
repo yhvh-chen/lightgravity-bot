@@ -1,0 +1,126 @@
+{
+  "records": [
+    {
+      "run_dir": "s1_independent__A",
+      "sample": "s1_independent",
+      "arm": "A",
+      "dispatcher_state": "succeeded",
+      "summary": "all 1 subtask(s) passed; candidate handed to verification",
+      "worker_count": 1,
+      "machine_pass": true,
+      "machine": "6/6",
+      "review_validated_outcome": "passed",
+      "review_status": "ran",
+      "accept_reachable": false,
+      "verify_state": "unconfirmed",
+      "verify_messages": [
+        "resources not confirmed stopped",
+        "1 session(s) not confirmed closed (cleanup='pending')"
+      ],
+      "attempt_generation_requests": 6,
+      "elapsed_seconds": 15.11,
+      "sample_delivered": false,
+      "handoff_refs": [],
+      "tool_calls": [
+        "discover_and_request_claim",
+        "discover_and_request_claim",
+        "discover_and_request_claim",
+        "skill_lookup",
+        "edit_file",
+        "edit_file"
+      ],
+      "usage": {
+        "worker": {
+          "unknown": [
+            "usage"
+          ]
+        }
+      }
+    },
+    {
+      "run_dir": "s1_independent__B",
+      "sample": "s1_independent",
+      "arm": "B",
+      "dispatcher_state": "failed",
+      "summary": "subtask graph failed at 'part_a': StopReason.MAX_TOOL_CALLS_EXCEEDED",
+      "worker_count": 1,
+      "machine_pass": false,
+      "machine": "0/6",
+      "review_validated_outcome": "unavailable",
+      "review_status": "ran",
+      "accept_reachable": false,
+      "verify_state": null,
+      "verify_messages": null,
+      "attempt_generation_requests": 0,
+      "elapsed_seconds": 11.56,
+      "sample_delivered": false,
+      "handoff_refs": [],
+      "tool_calls": [],
+      "usage": {
+        "worker": {
+          "unknown": [
+            "usage"
+          ]
+        }
+      }
+    },
+    {
+      "run_dir": "s2_interface__A",
+      "sample": "s2_interface",
+      "arm": "A",
+      "dispatcher_state": "failed",
+      "summary": "subtask graph failed at 'deliver': StopReason.MAX_TOOL_CALLS_EXCEEDED",
+      "worker_count": 1,
+      "machine_pass": false,
+      "machine": "4/6",
+      "review_validated_outcome": "unavailable",
+      "review_status": "ran",
+      "accept_reachable": false,
+      "verify_state": null,
+      "verify_messages": null,
+      "attempt_generation_requests": 0,
+      "elapsed_seconds": 13.28,
+      "sample_delivered": false,
+      "handoff_refs": [],
+      "tool_calls": [],
+      "usage": {
+        "worker": {
+          "unknown": [
+            "usage"
+          ]
+        }
+      }
+    },
+    {
+      "run_dir": "s2_interface__B",
+      "sample": "s2_interface",
+      "arm": "B",
+      "dispatcher_state": "failed",
+      "summary": "subtask graph failed at 'part_a': StopReason.MAX_TOOL_CALLS_EXCEEDED",
+      "worker_count": 1,
+      "machine_pass": false,
+      "machine": "0/6",
+      "review_validated_outcome": "unavailable",
+      "review_status": "ran",
+      "accept_reachable": false,
+      "verify_state": null,
+      "verify_messages": null,
+      "attempt_generation_requests": 0,
+      "elapsed_seconds": 12.47,
+      "sample_delivered": false,
+      "handoff_refs": [],
+      "tool_calls": [],
+      "usage": {
+        "worker": {
+          "unknown": [
+            "usage"
+          ]
+        }
+      }
+    }
+  ],
+  "global_ledger_count": 45,
+  "global_limit": 48,
+  "frozen_attempt_limit": 12,
+  "note": "cost/usage unknown where the provider did not report it; never 0"
+}

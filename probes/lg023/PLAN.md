@@ -164,4 +164,14 @@ updated: "2026-10-16"
 
 ## 12. 偏差与失败记录（采样后只追加）
 
-（尚未开始正式采样。）
+- **2026-10-16：bring-up crash（5 请求）。** 首次真实运行在 `_accept` 读取 `Candidate.complete`（字段不存在）
+  时崩溃，未写结果；已修正为真实 `VerificationService` 验收门。成本保留。
+- **2026-10-16：首次四 attempt 全部 `dispatcher=failed`（约 23 请求）。** 旧 worker 提示 + 缺 `edit-file` 工具，
+  导致 worker 反复 `view_file`/重复 discovery，撞 `MAX_TOOL_CALLS`。**不得据此当作 arm 结论**。
+- **2026-10-16：worker 提示与工具集修正（偏差）**：加入 `edit-file`、要求直接覆盖、写内容更明确、
+  `max_model_calls=10`。修正前/后不可直接混比（REPORT §3/§5.4）。
+- **2026-10-16：版本验收停止门未闭合。** `verify_and_prepare` 返回 `unconfirmed`（`cleanup='pending'`，
+  1 session 未确认关闭）。两 arm 共用此门，**不降门/不伪造 `done`**。
+- **2026-10-16：预算耗尽 → PARTIAL。** 总 48 中已用 **45**，剩 **3**，不足以在最终 harness 下重跑 S1/B 与 S2（A/B）。
+  **未完成样本如实计失败/partial**；**不据结果增加额度**；组队 arm 结论待新预算 phase 重跑。
+- **2026-10-16：`usage`/费用部分 `unknown`**，**不当 0**，不据此推断收益。

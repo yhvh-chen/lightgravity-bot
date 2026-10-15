@@ -19,10 +19,11 @@ owner: "agent:pi-lg023"
 - [x] 核 claim 与 022 真 done。
 - [x] 读 AGENTS/agent/PROJECT/PROGRESS、docs06/08、LG-023/022、CORE-QA-CLOSE、按需读旧 agensh 实验。
 - [x] 冻结 PLAN（`PLAN.md`）：2 样本 × 2 arm × 1 repeat = 4 attempts；总 48 / 每 attempt 12。
-- [ ] 离线证明账本硬上限（先离线，后真实请求）。
-- [ ] 离线证明 fixtures 初始必败 / reference 必过、driver 自检。
-- [ ] S1×A、S1×B、S2×A、S2×B 四个对照 attempt（每样本每 arm 一次）。
-- [ ] REPORT + 脱敏证据 + 准确计数/缺陷/局限 + 精确 commit。
+- [x] 离线证明账本硬上限（`evidence/offline/ledger_proof.json`：L1–L7 全过）。
+- [x] 离线证明 fixtures 初始必败 / reference 必过（各 6/6）+ 冻结合法 plan 过真实 `PlanValidator`。
+- [~] S1×A、S1×B、S2×A、S2×B：**仅 S1×A 在最终 harness 下成功**（机器门 6/6 + 独立 reviewer passed；
+  版本验收停止门未闭合）；其余三个仅在旧 prompt 下运行（dispatcher failed）。**PARTIAL：预算耗尽**。
+- [x] REPORT + 脱敏证据 + 准确计数/缺陷/局限 + 精确 commit。
 
 ## 真实调用计数（防洗数，不归零）
 
@@ -33,6 +34,6 @@ owner: "agent:pi-lg023"
 | LG-022 R2 | **8** | 单列 |
 | LG-022 stream phase | **5/10** | 单列 |
 | LG-031 工程累计 | **34/40** | 单列 |
-| **本 phase（LG-023）** | **0/48** | 尚未开始 |
+| **本 phase（LG-023）** | **45/48**（剩 3 未用；全部失败/bring-up 保留） | PARTIAL |
 
 - 旧 022/031 成本**单列**保留，**不并入本 48，也不洗 0**。

@@ -1,0 +1,37 @@
+{
+  "checks": [
+    {
+      "name": "slug.case",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    },
+    {
+      "name": "slug.multi",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    },
+    {
+      "name": "slug.trim",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    },
+    {
+      "name": "clamp.low",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    },
+    {
+      "name": "clamp.high",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    },
+    {
+      "name": "in_range",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    }
+  ],
+  "passed": 0,
+  "total": 6,
+  "exit_code": 0
+}

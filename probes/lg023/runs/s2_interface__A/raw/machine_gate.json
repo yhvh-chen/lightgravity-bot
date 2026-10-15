@@ -1,0 +1,37 @@
+{
+  "checks": [
+    {
+      "name": "geo.rect.area",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "geo.circle.area",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "geo.rect.perimeter",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "geo.bad.kind",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "report.rect",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    },
+    {
+      "name": "report.circle",
+      "passed": false,
+      "detail": "NotImplementedError: "
+    }
+  ],
+  "passed": 4,
+  "total": 6,
+  "exit_code": 0
+}

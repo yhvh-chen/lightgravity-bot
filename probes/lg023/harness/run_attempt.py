@@ -103,7 +103,7 @@ ATTEMPT_LIMIT = int(os.environ.get("LG023_ATTEMPT_LIMIT", "12"))
 PER_REQUEST_OUTPUT_CAP = 16000
 #: Per-worker SDK ceiling. A few turns fit (discover/claim + write); the global
 #: hard cap remains the shared ledger.
-WORKER_MODEL_CALLS = 6
+WORKER_MODEL_CALLS = 10
 WORKER_PROXY_CALLS = 6
 
 #: Sample -> (module names, worker objectives).
@@ -111,8 +111,13 @@ SAMPLES: dict[str, dict[str, Any]] = {
     "s1_independent": {
         "files": ("src/slugs.py", "src/ranges.py"),
         "objective": (
-            "Implement in the workspace: src/slugs.py (slugify) and src/ranges.py "
-            "(clamp, in_range). See the acceptance criteria."
+            "Complete BOTH stub files so the acceptance criteria hold. "
+            "src/slugs.py must define slugify(title: str) -> str: lowercase, replace any run of "
+            "non-[a-z0-9] characters with a single '-', then strip leading/trailing '-'. "
+            "src/ranges.py must define clamp(value, lo, hi) (return lo if value<lo, hi if value>hi, "
+            "else value) and in_range(value, lo, hi) -> bool (True iff lo<=value<=hi). "
+            "Both files already exist as NotImplementedError stubs: OVERWRITE them. "
+            "Do NOT call view_file. Write each file with ONE create_file call and stop."
         ),
         "acceptance": (
             "slugify lowercases, collapses runs of non-alphanumerics to '-', trims '-'",
@@ -120,12 +125,30 @@ SAMPLES: dict[str, dict[str, Any]] = {
         ),
         "write_a": "src/slugs.py",
         "write_b": "src/ranges.py",
+        "objective_a": (
+            "Part A: overwrite src/slugs.py (already an existing stub) so it defines "
+            "slugify(title: str) -> str: lowercase; replace any run of non-[a-z0-9] characters "
+            "with a single '-'; strip leading/trailing '-'. Do NOT call view_file. "
+            "Write it with ONE create_file call (or edit_file) and stop."
+        ),
+        "objective_b": (
+            "Part B: overwrite src/ranges.py (already an existing stub) so it defines "
+            "clamp(value, lo, hi) (return lo if value<lo, hi if value>hi, else value) and "
+            "in_range(value, lo, hi) -> bool (True iff lo<=value<=hi). Do NOT call view_file. "
+            "Write it with ONE create_file call (or edit_file) and stop. "
+            "This is independent of part A's file."
+        ),
     },
     "s2_interface": {
         "files": ("src/geometry.py", "src/report.py"),
         "objective": (
-            "Implement in the workspace: src/geometry.py (area, perimeter) and "
-            "src/report.py (describe, which depends on geometry). See the acceptance criteria."
+            "Complete BOTH stub files so the acceptance criteria hold. "
+            "src/geometry.py must define area(shape) and perimeter(shape) for shapes that are dicts "
+            "with kind in {rect, circle}: rect uses width,height; circle uses radius and math.pi; "
+            "an unknown kind raises ValueError. src/report.py must define describe(shape) returning "
+            "f\"{shape['kind']}: area={area(shape):.2f} perimeter={perimeter(shape):.2f}\" and it "
+            "must import area, perimeter from .geometry. Both files already exist as stubs: "
+            "OVERWRITE them. Do NOT call view_file. Write each file with ONE create_file call and stop."
         ),
         "acceptance": (
             "area/perimeter support rect{width,height} and circle{radius}, unknown kind raises ValueError",
@@ -133,6 +156,19 @@ SAMPLES: dict[str, dict[str, Any]] = {
         ),
         "write_a": "src/geometry.py",
         "write_b": "src/report.py",
+        "objective_a": (
+            "Part A: overwrite src/geometry.py (already an existing stub) so it defines area(shape) "
+            "and perimeter(shape) for dict shapes with kind in {rect, circle}: rect uses width,height; "
+            "circle uses radius and math.pi; unknown kind raises ValueError. Do NOT call view_file. "
+            "Write it with ONE create_file call (or edit_file) and stop."
+        ),
+        "objective_b": (
+            "Part B (depends on part A's src/geometry.py): overwrite src/report.py (already an "
+            "existing stub) so it imports area, perimeter from .geometry and defines "
+            "describe(shape) returning f\"{shape['kind']}: area={area(shape):.2f} "
+            "perimeter={perimeter(shape):.2f}\". Do NOT call view_file. Write it with ONE "
+            "create_file call (or edit_file) and stop."
+        ),
     },
 }
 
@@ -188,21 +224,14 @@ class _FrozenPlanner:
             subtasks = (
                 RawSubtask(
                     key="part_a",
-                    objective=(
-                        f"First part: create/complete {spec['write_a']} only. "
-                        f"Full task: {context.objective}"
-                    ),
+                    objective=spec["objective_a"],
                     capability="implementation",
                     acceptance=acceptance,
                     write=True,
                 ),
                 RawSubtask(
                     key="part_b",
-                    objective=(
-                        f"Second part (depends on part_a): create/complete {spec['write_b']} only, "
-                        f"building on the upstream artifact from part_a. "
-                        f"Full task: {context.objective}"
-                    ),
+                    objective=spec["objective_b"],
                     capability="implementation",
                     acceptance=acceptance,
                     depends_on=("part_a",),
@@ -252,7 +281,7 @@ def _build_resources(store: FileStore) -> None:
         "worker",
         {"session_continuation_mode": "create_or_resume", "agent_behavior": "autonomous"},
     )
-    for tool_id, impl in (("view-file", "view-file"), ("create-file", "create-file")):
+    for tool_id, impl in (("view-file", "view-file"), ("create-file", "create-file"), ("edit-file", "edit-file")):
         create("tool", tool_id, {"implementation": impl})
     create("skill", "implementation", {"description": "Implementation"}, body="# Impl\n")
     create("skill", "verification", {"description": "Verification"}, body="# Verify\n")
@@ -263,7 +292,7 @@ def _build_resources(store: FileStore) -> None:
             "connection_ref": "primary",
             "conversation_ref": "worker",
             "skills": {"source": "inline", "refs": ["implementation"]},
-            "tool_refs": ["view-file", "create-file"],
+            "tool_refs": ["view-file", "create-file", "edit-file"],
             "hook_refs": [],
             "mcp_refs": [],
             "trigger_refs": [],
@@ -271,15 +300,17 @@ def _build_resources(store: FileStore) -> None:
         },
         body=(
             "You are one implementation worker. You work ONLY in your own workspace. The program "
-            "fixes your identity and you only REQUEST your assigned node. Use as few turns as "
-            "possible:\n"
+            "fixes your identity and you only REQUEST your assigned node. The target files ALREADY "
+            "EXIST as failing stubs; overwrite their contents with a correct implementation. Use as "
+            "few turns as possible:\n"
             "1. Call discover_and_request_claim with NO arguments ONCE to list candidates. Each "
             "candidate has `node_ref`, `objective` and `key`.\n"
             "2. Pick the candidate whose `objective` matches YOUR assigned objective and IMMEDIATELY "
             "call discover_and_request_claim with that `node_ref` plus a `request_id`. Do NOT call "
             "discovery again.\n"
-            "3. If granted, use view_file/create_file to complete EXACTLY the files named in your "
-            "objective, matching the acceptance criteria, then stop. If refused, stop and report.\n"
+            "3. If granted, use create_file (or edit_file) ONCE per target file named in your "
+            "objective to write the full correct implementation matching the acceptance criteria, "
+            "then stop. Do NOT call view_file. If refused, stop and report.\n"
             "Do not repeat discovery. Do not explore. Never invent a grant or write outside your "
             "workspace."
         ),
@@ -383,7 +414,7 @@ def _build_task_run(
             "node through the program tool; the program owns identity and authorization."
         ),
         workspace_path=str(workspace),
-        allowed_tools=("view-file", "create-file"),
+        allowed_tools=("view-file", "create-file", "edit-file"),
         agent_ref="developer",
         budget={
             "max_workers": 3,
@@ -391,7 +422,7 @@ def _build_task_run(
             "max_repair_rounds": 1,
             "max_collab_requests": 4,
             "max_model_calls": WORKER_MODEL_CALLS,
-            "max_tool_calls": 10,
+            "max_tool_calls": 16,
         },
         planning_request=PlanningRequest(
             trigger=PlanningTrigger.USER_REQUEST, reason="lg023", requested_by="probe", max_calls=1
@@ -452,27 +483,51 @@ def _review_sync(store: FileStore, secret_root: Path, task_id: str) -> dict[str,
     }
 
 
-def _accept(store: FileStore, task_id: str, run_id: str) -> dict[str, Any]:
-    """Program-side version acceptance gate: only a complete, verified candidate."""
+def _accept(store: FileStore, task_id: str, run_id: str, executor: Any = None) -> dict[str, Any]:
+    """Program-side version acceptance gate via the real product services.
 
-    from lightgravity.verify.candidate import load_candidate
+    Mirrors the coordinator on a successful dispatch: run/task -> ``verifying``,
+    then the real :class:`VerificationService` runs the authorized machine checks
+    and the stop/release gate before opening ``awaiting_acceptance``; finally the
+    real ``decide(accept)`` is applied and bound to the candidate version.
 
-    candidate = load_candidate(store, task_id)
-    task = store.read("task", task_id).entity
-    phase = str(task.get("phase", ""))
-    acceptance = task.get("acceptance") or {}
-    bound = (
-        acceptance.get("status") == "pending"
-        and acceptance.get("requirements_revision") == candidate.requirements_revision
-        and acceptance.get("deliverable_revision") == candidate.deliverable_revision
-    )
-    return {
-        "phase": phase,
-        "candidate_complete": candidate.complete,
-        "candidate_run_matches": candidate.run_id == run_id,
-        "acceptance_pending_bound": bound,
-        "accept_reachable": phase == "awaiting_acceptance" and bound,
-    }
+    The stop gate is given the real adapter stop-confirmation port (the executor
+    records its own closed sessions/proxy), so a successful Run whose
+    ``cleanup`` is still ``pending`` can be released on a genuine stop fact --
+    never on a fabricated ``cleanup=done`` (LG-022 R2).
+    """
+
+    from lightgravity.contracts import TaskPhase
+    from lightgravity.coordinator.state import StateWriter
+    from lightgravity.verify.service import VerificationService
+    from lightgravity.verify.stopgate import StoreResourceStopper
+
+    writer = StateWriter(store, actor="probe")
+    result: dict[str, Any] = {"accept_reachable": False}
+    try:
+        writer.transition_run(run_id, "verifying", task_ref=task_id)
+        writer.transition_task(task_id, TaskPhase.VERIFYING, run_ref=run_id)
+        stopper = StoreResourceStopper(store, session_confirmer=executor) if executor is not None else None
+        service = VerificationService(store, stopper=stopper)
+        prepared = service.verify_and_prepare(task_id, request_id=f"lg023-verify-{run_id}")
+        result.update({
+            "verify_state": prepared.state,
+            "verify_confirmed": prepared.confirmed,
+            "verify_messages": list(prepared.messages),
+            "phase_after_verify": str(store.read("task", task_id).entity.get("phase", "")),
+        })
+        result["accept_reachable"] = (
+            prepared.confirmed and result["phase_after_verify"] == "awaiting_acceptance"
+        )
+        if result["accept_reachable"]:
+            accepted = service.decide(task_id, "accept", request_id=f"lg023-accept-{run_id}")
+            result.update({
+                "accepted": accepted.confirmed,
+                "final_status": str(store.read("task", task_id).entity.get("status", "")),
+            })
+    except Exception as exc:  # noqa: BLE001 - record the real gate outcome
+        result["gate_error"] = f"{type(exc).__name__}: {exc}"
+    return result
 
 
 async def _run_attempt(sample: str, arm: str) -> dict[str, Any]:
@@ -484,20 +539,28 @@ async def _run_attempt(sample: str, arm: str) -> dict[str, Any]:
 
     os.environ["LIGHTGRAVITY_GENERATION_LEDGER_DIR"] = LEDGER_DIR
     os.environ["LIGHTGRAVITY_MAX_GENERATION_CALLS"] = str(GLOBAL_LIMIT)
-    ledger = configure_generation_ledger(LEDGER_DIR, GLOBAL_LIMIT)
-    guard = _AttemptGuard(ledger, ATTEMPT_LIMIT)
-    # Count *before* forwarding: every reserve increments the attempt guard too.
-    _orig_reserve = ledger.reserve
+    counter = configure_generation_ledger(LEDGER_DIR, GLOBAL_LIMIT)
+    guard = _AttemptGuard(counter, ATTEMPT_LIMIT)
+    # The proxy charges the *counter* (``counter.reserve()``), which in turn
+    # charges the shared persistent ledger.  Wrap the counter's ``reserve`` so
+    # the per-attempt secondary cap (12) is enforced *before* the global ledger
+    # is charged, and every stage (worker / reviewer / repair) is counted.
+    import lightgravity.adapter.proxy as _proxy
 
-    def _guarded_reserve() -> Any:
-        if guard.used >= ATTEMPT_LIMIT:
-            return None
-        result = _orig_reserve()
-        if getattr(result, "granted", False):
-            guard._used += 1  # noqa: SLF001
-        return result
+    _orig_reserve = counter.reserve
+    counter_inner = [0]
 
-    ledger.reserve = _guarded_reserve  # type: ignore[method-assign]
+    def _guarded_reserve() -> bool:
+        if counter_inner[0] >= ATTEMPT_LIMIT:
+            return False
+        granted = _orig_reserve()
+        if granted:
+            counter_inner[0] += 1
+        return granted
+
+    counter.reserve = _guarded_reserve  # type: ignore[method-assign]
+    _proxy._GLOBAL_GENERATION_COUNTER = counter  # type: ignore[attr-defined]
+    ledger = counter
 
     started = time.monotonic()
     out_dir = RUNS / f"{sample}__{arm}"
@@ -561,7 +624,6 @@ async def _run_attempt(sample: str, arm: str) -> dict[str, Any]:
         async def emit(event: dict[str, Any]) -> None:
             if str(event.get("type", "")).startswith("adapter."):
                 events.append(event)
-
         _inner = executor.execute
 
         async def _capture(request: Any, emit_cb: Any) -> Any:
@@ -586,7 +648,14 @@ async def _run_attempt(sample: str, arm: str) -> dict[str, Any]:
             review = await asyncio.to_thread(_review_sync, store, secrets, task_id)
         except Exception as exc:  # noqa: BLE001
             review = {"status": "error", "reason": f"{type(exc).__name__}: {exc}"}
-        gate = _accept(store, task_id, run_id)
+        try:
+            gate = _accept(store, task_id, run_id, executor=executor)
+        except Exception as exc:  # noqa: BLE001
+            gate = {
+                "phase": None,
+                "accept_reachable": False,
+                "error": f"{type(exc).__name__}: {exc}",
+            }
 
         # Candidate diff vs the initial commit.
         diff = subprocess.run(
@@ -612,12 +681,17 @@ async def _run_attempt(sample: str, arm: str) -> dict[str, Any]:
             "first_round_machine_pass": None,  # filled below (single dispatch == first round)
             "review": review,
             "acceptance_gate": gate,
-            "attempt_generation_requests": guard.used,
+            "attempt_generation_requests": counter_inner[0],
             "attempt_limit": ATTEMPT_LIMIT,
             "global_ledger": ledger.snapshot(),
             "elapsed_seconds": round(time.monotonic() - started, 2),
             "per_request_output_cap": PER_REQUEST_OUTPUT_CAP,
             "events_tail": [e.get("type") for e in events][-60:],
+            "tool_calls": [
+                {"name": e.get("name"), "status": e.get("status"), "error": e.get("error"),
+                 "args": str(e.get("args"))[:300]}
+                for e in events if e.get("type") == "adapter.tool_call"
+            ][:30],
         }
         result["first_round_machine_pass"] = result["machine_pass"]
         result["sample_delivered"] = bool(
