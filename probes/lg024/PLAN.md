@@ -26,12 +26,14 @@ updated: "2026-10-16"
 
 ### 阶段 A（本 worktree 可做，**只写 probes/本地产物**）
 
-- [ ] **许可清单**：`pyproject.toml` 运行/开发依赖许可；参考来源（Olav OS / Olav Tasks / Olav）commit 与许可；
-      SDK `google-antigravity==0.1.22` 许可与来源。落 `probes/lg024/`.
-- [ ] **安装/启动烟测草案**（可审阅，不部署）：`make`/`lightgravity start|status|stop|init` 入口命令、默认 loopback、token 内存握手、
-      未实现能力标注；以**当前产品树**实际行为为准，不宣传未实现能力。
-- [ ] **本地分发/演示素材草案**：介绍、范围（已验 vs 待 QA）、局限、可审阅产物索引。
-- [ ] **入口清单草稿**：安装/启动/任务/资源/恢复入口，待阶段 B 写入 README。
+- [x] **许可清单**（`LICENSE-INVENTORY.md`）：60 个已解析 Python 依赖（含传递依赖）逐包随附 LICENSE 实证、
+      前端 224 包锁文件 license、参考来源（Olav OS / Olav Tasks / Olav）HEAD commit 与许可、分发缺口尽录。
+- [x] **安装/启动烟测草案 + 实跑无模型子集**（`STARTUP-SMOKE-DRAFT.md`、`smoke/`）：`make`/`lightgravity start|status|stop|init` 入口、
+      默认 loopback、token 内存握手、未实现能力标注；专用端口/data `--no-executor` 真跑 health/version/静态/受保护写/停止。
+- [x] **本地分发/演示素材草案**（`DISTRIBUTION-MANIFEST-DRAFT.md`）：L0/L1/L2 分层、include/exclude 白/黑名单、固定 commit+sha256、禁入清单。
+- [x] **本地打包/校验脚本**（`pack-local.sh`、`verify-dist-exclusion.sh`）：draft source-staging + 每文件 sha256 + 禁入静态校验。
+- [x] **入口清单草稿**：安装/启动/任务/资源/恢复入口，待阶段 B 写入 README。
+- [x] **阶段 A 报告**（`artifacts/STAGE-A-REPORT.md`）：命令/退出码/源锚点/产物路径/许可缺口/未测/Stage B 接续。
 
 ### 阶段 B（**等待** `integrate/lg031-runtime` owner 释放共享 docs）
 

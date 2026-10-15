@@ -1,0 +1,9 @@
+# LG-024 private smoke artifacts: keep on disk (700/600), never commit runtime
+# data, secret store, raw HTTP dumps or generated resources.
+_data/
+_secrets/
+*.json
+*.out
+*.log
+*.html
+!smoke-result.example.json
