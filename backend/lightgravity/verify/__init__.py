@@ -9,12 +9,16 @@ This package owns the ``verify/**`` boundary from docs/08 §11:
   releases the team / execution slot before ``awaiting_acceptance``;
 * :class:`~lightgravity.verify.service.VerificationService` runs verification,
   binds decisions to the requirements + candidate version and is idempotent;
+* :mod:`~lightgravity.verify.review` is the independent reviewer port +
+  deterministic program reviewer with structured, evidence-bound findings;
+* :class:`~lightgravity.verify.rework.ReworkOrchestrator` drives bounded business
+  rework (separate from SDK retries, Task-lifetime budget across Runs);
 * :mod:`~lightgravity.verify.router` exposes an independent router factory for
   LG-012 / the integration owner to mount (``api/app.py`` is untouched).
 
 Scope boundary: LG-009 implements the first-version verification + acceptance
-seam.  Multi-round repair orchestration is LG-017; the real SDK end-to-end path
-is LG-010; new-Run creation stays with the coordinator's real state.
+seam.  LG-017 adds the independent candidate review and bounded rework loop; the
+real SDK end-to-end path is LG-010; new-Run creation stays with the coordinator.
 """
 
 from .candidate import Candidate, load_candidate
@@ -41,6 +45,33 @@ from .checks import (
     classify_artifact_ref,
     default_check_registry,
     run_checks,
+)
+from .review import (
+    Finding,
+    ProgramReviewer,
+    REVIEW_PASSED,
+    REVIEW_REWORK,
+    REVIEW_UNAVAILABLE,
+    SEV_ADVISORY,
+    SEV_BLOCKING,
+    ReviewContext,
+    ReviewReport,
+    Reviewer,
+    UnavailableReviewer,
+    resolve_candidate_evidence,
+    validate_findings,
+)
+from .rework import (
+    REWORK_BLOCKED,
+    REWORK_EXHAUSTED,
+    REWORK_OPENED,
+    REWORK_SPAWNED,
+    REWORK_UNAVAILABLE,
+    ReworkLedger,
+    ReworkOrchestrator,
+    ReworkResult,
+    RunSpawner,
+    load_ledger,
 )
 from .router import ActionRequest, build_acceptance_router, build_router
 from .service import ActionResult, AcceptanceView, VerificationService
@@ -71,10 +102,33 @@ __all__ = [
     "CheckRegistry",
     "CheckReport",
     "CheckResult",
+    "Finding",
+    "ProgramReviewer",
+    "REVIEW_PASSED",
+    "REVIEW_REWORK",
+    "REVIEW_UNAVAILABLE",
+    "REWORK_BLOCKED",
+    "REWORK_EXHAUSTED",
+    "REWORK_OPENED",
+    "REWORK_SPAWNED",
+    "REWORK_UNAVAILABLE",
     "ResourceStopper",
+    "ReviewContext",
+    "ReviewReport",
+    "Reviewer",
+    "ReworkLedger",
+    "ReworkOrchestrator",
+    "ReworkResult",
+    "RunSpawner",
+    "SEV_ADVISORY",
+    "SEV_BLOCKING",
     "StopReport",
     "StoreResourceStopper",
+    "UnavailableReviewer",
     "VerificationService",
+    "load_ledger",
+    "resolve_candidate_evidence",
+    "validate_findings",
     "ABSOLUTE_REF",
     "EVIDENCE_REF",
     "OPAQUE_REF",
