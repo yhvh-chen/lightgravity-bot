@@ -168,3 +168,20 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - **LG-036 依赖校正（PM 决定）**：`depends_on` 由 `[LG-034, LG-035]` 改为 `[LG-033, LG-034]`；技术依据副本 [probes/lg036/DEPENDENCY-AUDIT.md](probes/lg036/DEPENDENCY-AUDIT.md)，PM 决定 `checkpoints/2026-10-15/pm-decision-lg036-20261016.txt`。引用已交付内容接口 `faf7230`/`d7e4391`+第三批集成提交；**不降 LG-035 验收、不改 LG-040 依赖、不声称图片/PDF 检索质量通过**。
 - **LG-017 状态语义纠正（PM 决定）**：`in-progress` → `done`，标注“待 LG-022 集中 QA、非完整版本通过”；移除“须 LG-022 方可 done”的错误循环注释（LG-022 依赖 LG-017；集中 QA 非逐项前置）。**不改 LG-022 依赖**、不宣称版本验收。LG-035 质量门不动，LG-021 仍待增量复验。
 - 据此 ready 候选：LG-036、LG-031；本批 CLI claim 与 worktree 准备详见 [probes/batch-20261016/PREPARE-4.md](probes/batch-20261016/PREPARE-4.md)。产品模型调用 0。
+
+## 2026-10-16 第五批集成检查点（唯一集成 owner，持续执行中）
+
+本节覆盖上文，为当前事实；旧实验、worktree、原始 probes 全部保留，未推送/部署/发布。
+详细报告见 [probes/batch-20261016/INTEGRATION-5.md](probes/batch-20261016/INTEGRATION-5.md)。
+
+- 集成前 main HEAD `cfbff64`（clean）；集成分支 `integrate/batch5`，`--no-ff` merge `dev/lg031` `d4c0815`（clean，base `e4cef4a`），无冲突；合并提交 `ee575c3`，main merge `af6640e`。
+- **LG-031 安全合回 main**：保留 main 最新 021 `done`/036 机制/022 claim（`bf7851c`）；并入 `collaboration/execution_grant.py`、`coordinator/graph.py` fenced 领取/revoke、`adapter/**` execution_grant/custom_tools、`settings/**` 三开关、`api/{app,bootstrap}.py` `worker_identity`+`CollaborationService`。**默认关闭、可回退**；程序权限/状态/预算/验收权威；无常驻模型编排 agent。
+- **共享 `api/app.py` 唯一 owner 交接**：031 owner 已释放并提交，本集成 owner 为唯一 writer，在**同一次提交**中一并加装 LG-036 `build_search_router()`（1 import + 1 `include_router`），两侧安全接线、无并发并写。
+- **LG-036 `in-progress` → `done`（待版本 QA LG-040）**：真实默认 app 上 `GET /api/v1/search` → 200、空 FileStore 诚实 `index_unavailable`/`cache_missing`/`hits=[]`、`POST /search` → 405（GET 只读）、`GET /sources` → 200。**不降 LG-035 真实 OCR 门、不动 LG-040 门**。
+- **LG-031 保持 `in-progress`（真实运行硬条件未满足，非错误等 032 版本门）**：031 的 1 次 DeepSeek 只是**独立 reviewer**，**不是 SDK 多 worker**；**真实 Git + 进程内 fake executor ≠ “真实 SDK 两 worker 发现/领取/交接/隔离执行”**。据此不置 done，理由是本项真实运行硬条件未满足（032 **反依赖** 031）。不把完整 checkpoint skip 未实现夸大，不扩大恢复重放。等价续接分支 `fix/lg031-r1` 已建（基于 `af6640e`，保留原 `dev/lg031`），本包未实施。
+- **契约保持 `1.7.0`**（无新 schema 行为，不机械升版）；docs08 §4.3 `GET /search` 行同步为“已实现（集成挂载；待版本 QA LG-040）”、§5.1 注明 `source.indexed`/`source.invalidated` 已实际产生；docs06 §6.1 加第五批更新；PROJECT 加第五批决策。**037 向量与 038 UI 未实现如实标**。
+- 集成分支候选检查（真实退出码）：`uv run mypy` **130 files clean**；`uv run pytest -q` **693 passed, 1 skipped**（75s）；定向 sources/api/contracts/collaboration/settings+review_closure **253 passed**。**本轮产品真实模型/外部服务调用 0**；前端未改、未重复无关 type/build。
+- **backlog 专用根**：`validate` **OK 41 tasks, no diagnostics**；LG-036 done 后 `ready` = LG-037/LG-038/LG-041。CLI claim **LG-037 `agent:pi-lg037`、LG-038 `agent:pi-lg038`**（提交 `dda78f2`）；**LG-022 仍 in-progress，保留不重 claim**。
+- 持久 worktree（项目旁，无 `.env` 复制、不覆盖已有）：`fix/lg031-r1` @ `af6640e`；`dev/lg037`/`dev/lg038` @ **同一 claim commit `dda78f2`**；`main` HEAD `af6640e`（clean）。
+- **累计产品模型预算**：原任务 10、原包已用 1、**本包未新增、剩 9**（未重置旧尝试；031 的 1 次真实调用为其包内既有证据，未重放）。
+- **已知风险（不宣称无害/无缺陷）**：`tests/collaboration/test_claims.py::test_two_owner_race...` 既有 discovery/lease 竞争偶发 `not_discoverable`；本轮全量单跑一次通过、单跑连跑 3 次通过，留 LG-032 固定判定口径。完整 checkpoint skip **仍未实现**；LG-037 向量/LG-038 UI 未实现；LG-035 质量门、LG-040 门未动；main 未推送。
