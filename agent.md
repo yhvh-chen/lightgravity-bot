@@ -149,7 +149,7 @@ SDK 版本敏感问题以官方源码、文档与安装版本为准。docs/03 �
 - [Bot 行为](docs/04-bot-behavior.md)
 - [左侧导航与资源管理](docs/05-navigation-and-team.md)
 - [模型设置与凭证](docs/07-settings-and-models.md)
-- [首版接口与状态契约](docs/08-interface-contract.md)（契约版本 1.7.0，实现边界以它为准；1.7.0 为 LG-017 返修 R1 的加性 MINOR：新增独立复核者设置角色/字段 `default_reviewer_connection_ref`、Task 返修账本加性字段与 review/rework 事件加性 payload，并明确“程序机器门不等于独立复核、无 reviewer ⇒ `unavailable` 且阻止 accept”；1.6.0 加性冻结 LG-028/LG-033 两线接口，**仅接口、尚未实现**）
+- [首版接口与状态契约](docs/08-interface-contract.md)（契约版本 1.8.0，实现边界以它为准；1.8.0 为 LG-022 首版集中 QA 阻断项 D1/D2 返修 R1 的 MINOR：加性新增 `verifying`/`repairing → recovery_required` 两个合法迁移方向（复核阶段重启后未知副作用诚实停车），并新增只读诊断端点 `GET /api/v1/diagnostics/generation`（进程全局上游生成请求计数，转发前计数）；1.7.0 为 LG-017 返修 R1 的加性 MINOR：新增独立复核者设置角色/字段 `default_reviewer_connection_ref`、Task 返修账本加性字段与 review/rework 事件加性 payload，并明确“程序机器门不等于独立复核、无 reviewer ⇒ `unavailable` 且阻止 accept”；1.6.0 加性冻结 LG-028/LG-033 两线接口，**仅接口、尚未实现**）
 - [资料接入与检索设计](docs/09-source-intake-and-retrieval.md)（方向已确认、待实现；接口未冻结，实施前按 docs/08 变更控制升版）
 
 本文件约束开发实施，不代表功能已实现，不保证参赛资格，也不覆盖用户后续明确调整的需求。

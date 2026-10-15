@@ -19,10 +19,11 @@ from lightgravity.contracts import (
 
 
 def test_frozen_constants() -> None:
-    # docs/08 §13: 1.6.0 (LG-028/LG-033 interface freeze) -> 1.7.0 (LG-017 repair
-    # R1 additive: reviewer default role/field, rework ledger + review/rework
-    # event payloads, independent-review semantics).  Additive MINOR only.
-    assert CONTRACT_VERSION == "1.7.0"
+    # docs/08 §13: 1.7.0 (LG-017 repair R1) -> 1.8.0 (LG-022 first-version QA
+    # D1/D2 repair R1 additive: ``verifying``/``repairing -> recovery_required``
+    # legal transitions and the read-only global generation-count diagnostics
+    # endpoint).  Additive MINOR only.
+    assert CONTRACT_VERSION == "1.8.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 

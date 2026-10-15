@@ -125,10 +125,21 @@ TASK_PHASE_TRANSITIONS: dict[TaskPhase, frozenset[TaskPhase]] = {
             TaskPhase.WAITING_USER,
             TaskPhase.FAILED,
             TaskPhase.CANCELLING,
+            # LG-022 R1 (contract 1.8.0): a restart during the independent
+            # review has unknown side effects and must be able to park for a
+            # human decision rather than stay artificially ``verifying``.
+            TaskPhase.RECOVERY_REQUIRED,
         }
     ),
     TaskPhase.REPAIRING: frozenset(
-        {TaskPhase.EXECUTING, TaskPhase.WAITING_USER, TaskPhase.FAILED, TaskPhase.CANCELLING}
+        {
+            TaskPhase.EXECUTING,
+            TaskPhase.WAITING_USER,
+            TaskPhase.FAILED,
+            TaskPhase.CANCELLING,
+            # LG-022 R1 (contract 1.8.0): same restart-safety reason as above.
+            TaskPhase.RECOVERY_REQUIRED,
+        }
     ),
     TaskPhase.WAITING_USER: frozenset(
         {

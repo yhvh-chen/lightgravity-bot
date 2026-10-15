@@ -246,8 +246,15 @@ class ReworkOrchestrator:
         return load_ledger(self._store.read("task", task_id).entity)
 
     # --------------------------------------------------------------- review
-    def review_candidate(self, task_id: str) -> tuple[ReviewReport, Candidate]:
-        """Run the independent reviewer against the active candidate."""
+    def review_candidate(
+        self, task_id: str, *, stop_event: Any | None = None
+    ) -> tuple[ReviewReport, Candidate]:
+        """Run the independent reviewer against the active candidate.
+
+        ``stop_event`` (LG-022 R1) is an optional cooperative stop channel; it
+        is handed to the reviewer so a long model turn can be stopped by the
+        coordinator's review lifecycle.  ``None`` keeps the sync fixture path.
+        """
 
         candidate = load_candidate(self._store, task_id)
         resolved = resolve_candidate_evidence(self._store, candidate)
@@ -257,6 +264,7 @@ class ReworkOrchestrator:
             candidate=candidate,
             store=self._store,
             resolved_evidence=resolved,
+            stop_event=stop_event,
         )
         try:
             raw = self._reviewer.review(context)
@@ -343,12 +351,15 @@ class ReworkOrchestrator:
         *,
         request_id: str | None = None,
         note: str | None = None,
+        stop_event: Any | None = None,
     ) -> ReworkResult:
         """One review+rework pass for a Task in ``verifying`` (or ``repairing``).
 
         Idempotency is handled by the caller (coordinator/API) via the existing
         LG-009 ``request_id`` seam; this method is a single pure-ish step over
-        current Store state and never resets the lifetime ledger.
+        current Store state and never resets the lifetime ledger.  ``stop_event``
+        is the optional LG-022 R1 cooperative stop channel forwarded to the
+        reviewer.
         """
 
         task = self._store.read("task", task_id)
@@ -392,7 +403,7 @@ class ReworkOrchestrator:
                 messages=("review budget exhausted; no further round started",),
             )
 
-        report, candidate = self.review_candidate(task_id)
+        report, candidate = self.review_candidate(task_id, stop_event=stop_event)
         review_rounds = ledger.review_rounds + 1
         findings = tuple(f.to_dict() for f in report.findings)
         self._writer.emit(
@@ -408,6 +419,9 @@ class ReworkOrchestrator:
                 "reviewer_kind": report.reviewer_kind,
                 "model_calls": report.model_calls,
                 "usage": dict(report.usage),
+                # LG-022 R1: keep the reviewer's own error/reason on the event so
+                # an ``unavailable`` review is diagnosable, not a bare outcome.
+                "reason": report.reason,
             },
             run_ref=candidate.run_id,
         )
