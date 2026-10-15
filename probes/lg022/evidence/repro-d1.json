@@ -1,0 +1,7 @@
+{
+  "scenario": "run_review_turn called from inside a running event loop",
+  "result": {
+    "raised": "RuntimeError: asyncio.run() cannot be called from a running event loop"
+  },
+  "defect_d1_manifest": true
+}

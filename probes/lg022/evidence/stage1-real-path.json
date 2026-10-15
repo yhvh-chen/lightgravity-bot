@@ -1,0 +1,258 @@
+{
+  "steps": [
+    {
+      "name": "health_ok",
+      "ok": true,
+      "code": 200
+    },
+    {
+      "name": "worker_default_pinned",
+      "ok": true,
+      "value": "deepseek-worker-qa"
+    },
+    {
+      "name": "reviewer_default_pinned",
+      "ok": true,
+      "value": "deepseek-reviewer-qa"
+    },
+    {
+      "name": "protected_write_requires_token",
+      "ok": true,
+      "code": 401
+    },
+    {
+      "name": "execution_ready",
+      "ok": true,
+      "reasons": []
+    },
+    {
+      "name": "reviewer_wired_model",
+      "ok": true,
+      "reviewer": {
+        "reviewer": "model",
+        "connection_id": "deepseek-v4-flash",
+        "credential_configured": true
+      }
+    },
+    {
+      "name": "light_qa_no_task_created",
+      "ok": false,
+      "code": 422,
+      "before": 0,
+      "after": 0,
+      "kind": null,
+      "reply": "",
+      "raw_error": {
+        "code": "validation_failed",
+        "message": "request failed schema validation",
+        "details": {
+          "errors": [
+            {
+              "type": "extra_forbidden",
+              "loc": [
+                "body",
+                "conversation_id"
+              ],
+              "msg": "Extra inputs are not permitted",
+              "input": "global"
+            }
+          ]
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    },
+    {
+      "name": "task_created",
+      "ok": true,
+      "code": 200,
+      "task_id": "task_01M50004APZ6047QYZQ0VQMNMB"
+    },
+    {
+      "name": "run_reached_terminal_phase",
+      "ok": true,
+      "phase": "waiting_user"
+    },
+    {
+      "name": "status_query_immediate",
+      "ok": true,
+      "elapsed": 0.027,
+      "phase": "waiting_user"
+    },
+    {
+      "name": "accept_bound_exact_run",
+      "ok": false,
+      "code": 409,
+      "state": null,
+      "acceptance_status": null,
+      "candidate_ref": null,
+      "target_run_id": "run_01M50004C2TYXQ3ZYNEZ343DDT",
+      "response": {
+        "error": {
+          "code": "illegal_transition",
+          "message": "task phase 'waiting_user' has no pending acceptance decision",
+          "details": {
+            "task_id": "task_01M50004APZ6047QYZQ0VQMNMB",
+            "phase": "waiting_user",
+            "action": "accept"
+          },
+          "retryable": false,
+          "request_id": null
+        }
+      }
+    },
+    {
+      "name": "duplicate_accept_idempotent",
+      "ok": false,
+      "code": 409,
+      "candidate_ref": null,
+      "same_result": true
+    }
+  ],
+  "real_calls": 0,
+  "light_answer_reply": "",
+  "real_calls_worker_stage": 7,
+  "task_after_run": {
+    "phase": "waiting_user",
+    "run": {
+      "task_ref": "task_01M50004APZ6047QYZQ0VQMNMB",
+      "attempt": 1,
+      "state": "verifying",
+      "plan_ref": "PLAN.md",
+      "team_refs": [
+        "member_01M50004EX5VVWGJAX27H1VZVD"
+      ],
+      "subtask_refs": [
+        "subtask_01M50004EXMHPQJAV25G39C1KC",
+        "subtask_01M50004EXPVPMG3V6PGBEGYD4"
+      ],
+      "session_refs": [
+        "sess_ee612ac5e86f4510a2117d1a61a6b5f9",
+        "sess_d135a62d0b154afab46e8f19b764ae06"
+      ],
+      "continuation": {
+        "conversation_id": "40cfc7479c97697971e9d361e621d934",
+        "save_dir": "/tmp/lg022-qa-s1c/data/native-sessions/task_01M50004APZ6047QYZQ0VQMNMB",
+        "continuation_mode": "create_only",
+        "config_version": "lg016.1",
+        "decision": "fresh",
+        "primary_node_key": "deliver"
+      },
+      "cleanup": {
+        "status": "pending"
+      },
+      "ended_at": null,
+      "fail_reason": "all 2 subtask(s) passed; candidate handed to verification",
+      "schema": "lightgravity.bot/v1",
+      "kind": "run",
+      "id": "run_01M50004C2TYXQ3ZYNEZ343DDT",
+      "revision": 13,
+      "plan": {
+        "source": "rules",
+        "notes": [
+          "minimal rule plan: deliver + optional verify"
+        ],
+        "subtasks": [
+          {
+            "key": "deliver",
+            "objective": "Create a file named out/result.txt containing exactly the token LG022_OK on a single line.",
+            "capability": "implementation",
+            "acceptance": [
+              "out/result.txt exists and contains LG022_OK"
+            ],
+            "depends_on": [],
+            "write": true,
+            "order": 0
+          },
+          {
+            "key": "verify",
+            "objective": "独立验证：Create a file named out/result.txt containing exactly the token LG022_OK on a single line.",
+            "capability": "verification",
+            "acceptance": [
+              "out/result.txt exists and contains LG022_OK"
+            ],
+            "depends_on": [
+              "deliver"
+            ],
+            "write": false,
+            "order": 1
+          }
+        ]
+      },
+      "plan_hash": "63ecf9f9400136e47650deea0b21f2e8d15f00bd5e1acc1985a28fe6bcf07ca7",
+      "plan_source": "rules",
+      "connection_pin": {
+        "connection_id": "deepseek-worker-qa",
+        "role": "worker",
+        "revision": 0,
+        "content_hash": "69e99936e568881be852765cad167efb480beda724596bf0aaedb99a71ed74ae",
+        "backend": "openai-compat",
+        "model": "deepseek-v4-flash",
+        "base_url": "https://api.deepseek.com/v1",
+        "credential_ref": "deepseek-api-key",
+        "credential_version": null,
+        "config_hash": "32e83bc0c9217ed83828779e9a2371efb5709026607ab47d09e88c89951069e4"
+      },
+      "node_sessions": {
+        "subtask_01M50004EXMHPQJAV25G39C1KC": {
+          "key": "deliver",
+          "subtask_ref": "subtask_01M50004EXMHPQJAV25G39C1KC",
+          "member_ref": "member_01M50004EX5VVWGJAX27H1VZVD",
+          "session_id": "sess_ee612ac5e86f4510a2117d1a61a6b5f9",
+          "conversation_id": "40cfc7479c97697971e9d361e621d934",
+          "save_dir": "/tmp/lg022-qa-s1c/data/native-sessions/task_01M50004APZ6047QYZQ0VQMNMB",
+          "state": "created",
+          "source": "result",
+          "config_version": "lg016.1",
+          "node_state": "passed",
+          "role_ref": "lg-default-worker",
+          "config_hash": "027cc68835da8275e955fb9a5a9aa735fb0720c99666469dc48e579a9b7fcb23",
+          "reuse_identity": "79d775cb2d99eee359db1f227e30312529c95b64e04f683229ce3b84eb1454c4",
+          "handoff": {
+            "subtask_ref": "subtask_01M50004EXMHPQJAV25G39C1KC",
+            "revision": 5,
+            "content_hash": "398d6006192ff6c1d62cf5ff6ea3a6f0abbb1fffc142d7aff14fd3cff675cae5",
+            "artifacts": [
+              "out/result.txt",
+              "evidence:run_01M50004C2TYXQ3ZYNEZ343DDT/subtask_01M50004EXMHPQJAV25G39C1KC-lg006-diff.patch@sha256:dd8c007f82876a355f0c73e31e7045fbab679ecb88989c8559d440e8865f15ea"
+            ]
+          }
+        },
+        "subtask_01M50004EXPVPMG3V6PGBEGYD4": {
+          "key": "verify",
+          "subtask_ref": "subtask_01M50004EXPVPMG3V6PGBEGYD4",
+          "member_ref": "member_01M50004EX5VVWGJAX27H1VZVD",
+          "session_id": "sess_d135a62d0b154afab46e8f19b764ae06",
+          "conversation_id": "df6ebcdf42eeace056e2c38a44e5edb9",
+          "save_dir": "/tmp/lg022-qa-s1c/data/native-sessions/task_01M50004APZ6047QYZQ0VQMNMB",
+          "state": "created",
+          "source": "result",
+          "config_version": "lg016.1",
+          "node_state": "passed",
+          "role_ref": "lg-default-worker",
+          "config_hash": "c6327e4afea5a8a9befcdec4b9e73275e74da10aa4ffca8b3f16d3c4adbb817b",
+          "reuse_identity": "b8ff07b30960f35d7528b76ff6ab3d2244e4df0e5ca498edcaf7a9572b88cde4",
+          "handoff": {
+            "subtask_ref": "subtask_01M50004EXPVPMG3V6PGBEGYD4",
+            "revision": 5,
+            "content_hash": "165ae04d480a3399a76d3e70510d71c9d68223d5ccf4cee73ef21ca29929824f",
+            "artifacts": []
+          }
+        }
+      },
+      "etag": "\"13\"",
+      "body": "# Run run_01M50004C2TYXQ3ZYNEZ343DDT\n\nTask: task_01M50004APZ6047QYZQ0VQMNMB\n"
+    },
+    "acceptance": {
+      "status": "pending",
+      "requirements_revision": null,
+      "deliverable_revision": null,
+      "evidence_refs": [],
+      "decided_at": null,
+      "decision_ref": null
+    }
+  },
+  "final_calls": 7,
+  "executor_model_calls_cap": 10,
+  "ok": false
+}
