@@ -36,4 +36,4 @@
 ## Notes
 - Model calls this package: 0 (real SDK left to LG-022).
 - Default remains conservative: no provider => serial writes; max_parallel not raised.
-- Commit: see git log for dev/lg018.
+- Commit: `06ceb5c` (implementation) + `57c3647` (test-helper import fix) on dev/lg018.
