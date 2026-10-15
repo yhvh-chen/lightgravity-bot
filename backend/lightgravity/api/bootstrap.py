@@ -441,12 +441,18 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
                 collaboration=CollaborationService(store, policy=collab_policy),
                 grant_registry=grant_registry if decentralized else None,
                 autonomous_claim=decentralized,
+                # LG-031 POOL-FIX: with decentralized claim enabled the product
+                # dispatches *candidate-pool* worker slots, so a worker selects
+                # one of the legal ready nodes itself instead of receiving a
+                # single program-pre-bound node (the LG-032 F1 gap).  Off keeps
+                # the exact deterministic rules path.
+                autonomous_pool=decentralized,
             )
             log(
                 "executor wired: antigravity/openai-compat via loopback auth proxy"
                 + ("; capability catalog present" if catalog else "; no catalog")
                 + (
-                    "; decentralized claim enabled (autonomous claim tool active)"
+                    "; decentralized claim enabled (candidate-pool autonomous selection active)"
                     if decentralized
                     else "; decentralized claim disabled (deterministic path)"
                 )

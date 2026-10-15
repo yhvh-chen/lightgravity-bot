@@ -1,0 +1,79 @@
+{
+  "work": "probes/lg031/POOL-FIX/fixtures/work",
+  "run_ref": "run_01M50BQ5DA1V8AKQ2CZSWW87W8",
+  "member_ref": "member-pool",
+  "nodes": {
+    "alpha": "subtask_01M50BQ5DH1CZWFR0EYP641G5K",
+    "beta": "subtask_01M50BQ5DRPBDN5120ENKQDV4V"
+  },
+  "discoverable_at_dispatch": [
+    "subtask_01M50BQ5DH1CZWFR0EYP641G5K",
+    "subtask_01M50BQ5DRPBDN5120ENKQDV4V"
+  ],
+  "provider_substitute": "real FileStore + real OS processes; no SDK/network/model",
+  "non_first_selection": {
+    "selected_node": "subtask_01M50BQ5DRPBDN5120ENKQDV4V",
+    "is_first_candidate": false,
+    "granted": true,
+    "binding_key": "beta",
+    "leaks_token": false
+  },
+  "out_of_pool_refusal": {
+    "reason": "node_not_in_candidate_pool",
+    "granted": false
+  },
+  "race_on_same_node": {
+    "node_ref": "subtask_01M50BQ5DH1CZWFR0EYP641G5K",
+    "processes": 4,
+    "granted_count": 1,
+    "winner": "p3",
+    "results": [
+      {
+        "worker": "p3",
+        "granted": true,
+        "reason": "granted",
+        "node_ref": "subtask_01M50BQ5DH1CZWFR0EYP641G5K",
+        "binding_key": "subtask_01M50BQ5DH1CZWFR0EYP641G5K",
+        "leaks_token": false
+      },
+      {
+        "worker": "p1",
+        "granted": false,
+        "reason": "held_by_other",
+        "node_ref": "subtask_01M50BQ5DH1CZWFR0EYP641G5K",
+        "binding_key": null,
+        "leaks_token": false
+      },
+      {
+        "worker": "p2",
+        "granted": false,
+        "reason": "held_by_other",
+        "node_ref": "subtask_01M50BQ5DH1CZWFR0EYP641G5K",
+        "binding_key": null,
+        "leaks_token": false
+      },
+      {
+        "worker": "p0",
+        "granted": false,
+        "reason": "held_by_other",
+        "node_ref": "subtask_01M50BQ5DH1CZWFR0EYP641G5K",
+        "binding_key": null,
+        "leaks_token": false
+      }
+    ],
+    "final_fence": 1
+  },
+  "loser_reclaims_remaining": {
+    "granted": true,
+    "binding_key": "beta"
+  },
+  "no_claim_no_write": {
+    "owner": null,
+    "fence": 0,
+    "state": "pending"
+  },
+  "selection_not_in_pool_refused": {
+    "reason": "node_not_in_candidate_pool",
+    "granted": false
+  }
+}

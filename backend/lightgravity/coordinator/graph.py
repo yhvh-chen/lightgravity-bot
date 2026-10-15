@@ -125,6 +125,32 @@ class _RunMemory:
     handoffs: dict[str, ArtifactHandoff] = field(default_factory=dict)
 
 
+@dataclass(frozen=True, slots=True)
+class _PoolSlotOutcome:
+    """Terminal result of one candidate-pool worker slot.
+
+    ``selected`` is the node the *worker* chose (``None`` when it claimed
+    nothing); ``failure`` is the node outcome the program applied to it.
+    """
+
+    member_id: str
+    selected: "_Node | None"
+    failure: NodeResult | None
+
+
+@dataclass(frozen=True, slots=True)
+class _PoolView:
+    """Read-only candidate projection handed to the restricted claim tool.
+
+    ``candidates`` uses attribute objects (not dicts) so the shared restricted
+    claim tool can read ``subtask_id``/``capability``/``key``/``objective``/
+    ``write`` exactly as it does for the live discovery projection.
+    """
+
+    run_ref: str
+    candidates: tuple[Any, ...]
+
+
 class GraphDispatcher:
     """Planner/recruiter/scheduler dispatcher (docs/01 §4, docs/08 §8 seam)."""
 
@@ -149,6 +175,7 @@ class GraphDispatcher:
         collaboration: Any | None = None,
         grant_registry: Any | None = None,
         autonomous_claim: bool = False,
+        autonomous_pool: bool = False,
     ) -> None:
         if max_parallel < 1:
             raise ValueError("max_parallel must be >= 1")
@@ -203,6 +230,20 @@ class GraphDispatcher:
         self._autonomous_claim = autonomous_claim
         #: node key -> (grant token, subtask id) for explicit revocation on stop.
         self._node_grants: dict[str, tuple[str, str]] = {}
+        #: LG-031 POOL-FIX additive: when true (and the decentralized path is
+        #: enabled) the graph dispatches **worker slots** rather than pre-bound
+        #: nodes.  The program computes the legal ready candidate set for each
+        #: member; the worker itself selects one node from that pool and requests
+        #: the claim; the program re-validates and atomically authorizes *the
+        #: chosen node*, then binds its isolation/upstream context and attributes
+        #: the result to it.  This makes the worker's selectable set genuinely
+        #: multi-candidate (the F1 gap).  Default ``False`` keeps prior behavior.
+        self._autonomous_pool = autonomous_pool
+        #: Per-run record of the node a pool-slot worker selected via its own
+        #: claim request, keyed by the slot's synthetic subtask id.
+        self._pool_selected: dict[str, dict[str, str]] = {}
+        #: Per-run materialized node index for the candidate-pool path.
+        self._run_nodes: dict[str, tuple[_Node, ...]] = {}
 
     @property
     def executor(self) -> ExecutorAdapter:
@@ -234,6 +275,7 @@ class GraphDispatcher:
             self._run_workspaces.pop(run_id, None)
             self._inflight.pop(run_id, None)
             self._active_refs.pop(run_id, None)
+            self._run_nodes.pop(run_id, None)
 
     async def _dispatch_graph(
         self,
@@ -334,6 +376,7 @@ class GraphDispatcher:
         nodes = self._materialize_subtasks(
             plan, key_to_subtask, team, member_ids, member_subtasks, context, controller
         )
+        self._run_nodes[context.run_id] = nodes
         # Real write isolation (LG-018): give every ``write`` node its own real
         # git worktree at a frozen base commit *before* scheduling.  Nodes that
         # cannot be isolated (non-git / unauthorized workspace, or no provider)
@@ -574,6 +617,15 @@ class GraphDispatcher:
                 states[key] = "passed"
                 memory.handoffs[key] = handoff
 
+        # LG-031 POOL-FIX: when the candidate-pool path is active the scheduler
+        # dispatches *worker slots* instead of pre-bound nodes, so a worker may
+        # genuinely select among multiple legal ready candidates.  Every other
+        # path (deterministic, single-node autonomous) is unchanged.
+        if self._pool_enabled():
+            return await self._run_graph_pool(
+                context, controller, plan, nodes, states, memory, failures, emit
+            )
+
         while True:
             if context.run_id in self._explicit_cancel:
                 await self._drain(memory)
@@ -634,6 +686,659 @@ class GraphDispatcher:
                     failures[key] = result
 
         return self._final_outcome(states, failures, forced_cancel=False), failures
+
+    # --------------------------------------------------- candidate-pool slots
+    def _pool_enabled(self) -> bool:
+        """True only when the decentralized path and the pool mode are both on."""
+
+        return self._decentralized_enabled() and self._autonomous_pool
+
+    def _candidate_capabilities(self, node: "_Node") -> frozenset[str]:
+        """The capabilities a member may legitimately serve for a node.
+
+        The node's declared ``capability`` is the authoritative requirement; the
+        member's ``capabilities`` describe what the recruited member covers.  A
+        candidate is legal for this member only when the node's capability is
+        actually covered, so the pool cannot advertise a node the worker could
+        not be authorized to claim.
+        """
+
+        caps = set(getattr(node.member, "capabilities", ()) or ())
+        caps.add(node.member.role_ref)
+        return frozenset(caps)
+
+    def _legal_candidates(
+        self,
+        member_id: str,
+        nodes: Sequence["_Node"],
+        states: Mapping[str, str],
+        memory: "_RunMemory",
+        context: DispatchContext,
+    ) -> tuple["_Node", ...]:
+        """Compute the program-authorized candidate pool for one worker slot.
+
+        A node enters the pool only when it is genuinely ready *and* the worker
+        could be granted it: pending, dependencies passed, capability covered by
+        this member, not already running/terminal, within the concurrency and
+        single-writer limits, and not already in flight for this Run.  The pool
+        is recomputed every scheduling round, so it reflects the live graph (a
+        claim re-validates against it, closing the select/claim TOCTOU gap).
+        """
+
+        pool: list[_Node] = []
+        running_writers = set(memory.writer_keys)
+        for node in nodes:
+            if node.member_id != member_id:
+                continue
+            if states.get(node.key) != "pending":
+                continue
+            deps = node.spec.depends_on
+            if not all(states.get(dep) == "passed" for dep in deps):
+                continue
+            if any(states.get(dep) in _BLOCKED_STATES for dep in deps):
+                continue
+            caps = self._candidate_capabilities(node)
+            if node.spec.capability not in caps:
+                continue
+            if node.spec.write:
+                writer_key = self._writer_key(node, context)
+                if writer_key and writer_key in running_writers:
+                    continue
+            pool.append(node)
+        pool.sort(key=lambda item: (item.spec.order, item.key))
+        return tuple(pool)
+
+    def _candidate_binding(self, node: "_Node", context: DispatchContext) -> dict[str, Any]:
+        """A non-secret binding describing a pool candidate to the worker.
+
+        Carries exactly what the worker needs to act on the node it selects
+        (objective, capability, isolation workspace, upstream versioned refs)
+        and nothing credential-like.  The program still owns the node's state,
+        manifest and verification; this is only the read-only "where/what" the
+        worker must know to build the artifact it owns.
+        """
+
+        workspace = self.workspace_for_node(context.run_id, node.key) or context.workspace_path
+        return {
+            "node_ref": node.subtask_id,
+            "key": node.key,
+            "capability": node.spec.capability,
+            "objective": node.spec.objective,
+            "write": bool(node.spec.write),
+            "workspace_path": workspace or "",
+            "member_ref": node.member_id,
+        }
+
+    async def _run_graph_pool(
+        self,
+        context: DispatchContext,
+        controller: RunController,
+        plan: Plan,
+        nodes: Sequence["_Node"],
+        states: dict[str, str],
+        memory: "_RunMemory",
+        failures: dict[str, NodeResult],
+        emit: Callable[[dict[str, Any]], Any],
+    ) -> tuple[DispatchOutcome, dict[str, NodeResult]]:
+        """Schedule worker slots; each worker selects a legal node itself.
+
+        Mirrors :meth:`_run_graph`'s dependency/terminal bookkeeping but the unit
+        of concurrency is a **member slot**, not a pre-bound node.  A slot is
+        dispatched only when the program can offer that member at least one
+        legal ready candidate; the worker then chooses one through its own claim
+        request and the result is attributed to the node it chose.
+        """
+
+        by_key = {node.key: node for node in nodes}
+        member_ids = sorted({node.member_id for node in nodes})
+        slots: dict[str, asyncio.Task[_PoolSlotOutcome]] = {}
+        #: Writer keys reserved by each in-flight slot, so finishing one slot only
+        #: releases its own reservations (never another concurrent slot's).
+        slot_writers: dict[str, set[str]] = {}
+        slot_seq = 0
+        #: Bounded retries per member: a worker that never claims must not spin
+        #: forever.  The cap is derived from the number of nodes assigned to the
+        #: member plus one slack round, so a genuine miss cannot exceed the work
+        #: that actually exists; hitting the cap leaves those nodes pending and
+        #: the run finalizes honestly (never a fake pass).
+        node_counts: dict[str, int] = {}
+        for node in nodes:
+            node_counts[node.member_id] = node_counts.get(node.member_id, 0) + 1
+        attempts: dict[str, int] = {member_id: 0 for member_id in member_ids}
+        attempt_caps: dict[str, int] = {
+            member_id: max(1, node_counts.get(member_id, 0) + 1)
+            for member_id in member_ids
+        }
+
+        while True:
+            if context.run_id in self._explicit_cancel:
+                await self._drain_pool(slots, memory)
+                return self._final_outcome(states, failures, forced_cancel=True), failures
+
+            # Mark nodes blocked by failed dependencies (same rule as the
+            # deterministic loop) so the graph can terminalize.
+            for node in nodes:
+                key = node.key
+                if states.get(key) != "pending":
+                    continue
+                failed_deps = [
+                    by_key[dep].subtask_id
+                    for dep in node.spec.depends_on
+                    if states.get(dep) in _BLOCKED_STATES
+                ]
+                if failed_deps:
+                    states[key] = "blocked"
+                    failures[key] = self._block_node(node, controller, failed_deps)
+
+            # Dispatch a slot for each member that still has a legal candidate
+            # and whose worker is not already busy.
+            for member_id in member_ids:
+                if member_id in slots:
+                    continue
+                if len(slots) >= self._max_parallel:
+                    break
+                pool = self._legal_candidates(member_id, nodes, states, memory, context)
+                if not pool:
+                    continue
+                if attempts[member_id] >= attempt_caps[member_id]:
+                    # Bounded selection attempts exhausted: stop offering this
+                    # member's slot so the run can finalize honestly instead of
+                    # spinning.  Its nodes stay pending (never faked passed).
+                    continue
+                attempts[member_id] += 1
+                reserved: set[str] = set()
+                for node in pool:
+                    if node.spec.write:
+                        writer_key = self._writer_key(node, context)
+                        if writer_key:
+                            memory.writer_keys.add(writer_key)
+                            reserved.add(writer_key)
+                slot_id = f"slot_{context.run_id}_{slot_seq}"
+                slot_seq += 1
+                slot_writers[member_id] = reserved
+                slots[member_id] = asyncio.ensure_future(
+                    self._execute_pool_slot(
+                        slot_id, member_id, pool, context, controller, memory, emit
+                    )
+                )
+
+            if not slots:
+                if all(state in _TERMINAL_STATES for state in states.values()):
+                    break
+                break
+
+            done, _ = await asyncio.wait(
+                set(slots.values()), return_when=asyncio.FIRST_COMPLETED
+            )
+            for member_id, task in list(slots.items()):
+                if task not in done:
+                    continue
+                slots.pop(member_id, None)
+                for writer_key in slot_writers.pop(member_id, set()):
+                    memory.writer_keys.discard(writer_key)
+                try:
+                    outcome = task.result()
+                except Exception:  # noqa: BLE001 - never lose a slot outcome
+                    outcome = _PoolSlotOutcome(
+                        member_id=member_id, selected=None, failure=None
+                    )
+                if outcome.selected is None:
+                    # No node was claimed by this worker; the pool stays pending
+                    # for a later round (bounded by the per-member attempt cap).
+                    continue
+                node = outcome.selected
+                result = outcome.failure
+                if result is None:
+                    result = self._crash_node(
+                        node, controller, RuntimeError("pool slot produced no outcome")
+                    )
+                states[node.key] = result.state
+                if result.state == "passed":
+                    if result.handoff is not None:
+                        memory.handoffs[node.key] = result.handoff
+                else:
+                    failures[node.key] = result
+
+        # Honest finalization: a candidate that was never claimed (or whose
+        # member exhausted its bounded selection attempts) stays ``pending``.
+        # The run must not report success while work remains unexecuted; a
+        # pending write node is a definite non-success, never a fake pass.
+        pending = [key for key, state in states.items() if state not in _TERMINAL_STATES]
+        for key in pending:
+            node = by_key[key]
+            failure = self._fail_node(
+                node,
+                controller,
+                code="claim_required",
+                message=(
+                    "autonomous worker did not claim a legal candidate within its "
+                    "bounded selection attempts"
+                ),
+            )
+            states[key] = failure.state
+            failures[key] = failure
+        return self._final_outcome(states, failures, forced_cancel=False), failures
+
+    async def _drain_pool(
+        self, slots: dict[str, asyncio.Task["_PoolSlotOutcome"]], memory: "_RunMemory"
+    ) -> None:
+        if not slots:
+            return
+        await asyncio.gather(*slots.values(), return_exceptions=True)
+        slots.clear()
+        memory.writer_keys.clear()
+    async def _execute_pool_slot(
+        self,
+        slot_id: str,
+        member_id: str,
+        pool: Sequence["_Node"],
+        context: DispatchContext,
+        controller: RunController,
+        memory: "_RunMemory",
+        emit: Callable[[dict[str, Any]], Any],
+    ) -> "_PoolSlotOutcome":
+        """Run one worker slot over a program-computed candidate pool.
+
+        The program freezes the pool, mints a multi-candidate pool grant and
+        attaches the discover/claim tool; the worker selects a node and requests
+        the claim.  Only then does the program bind the *selected* node's
+        isolation/upstream context, execute, and attribute the result to it.
+        """
+
+        representative = pool[0]
+        pool_refs = tuple(node.subtask_id for node in pool)
+        pool_by_id = {node.subtask_id: node for node in pool}
+        bindings = {node.subtask_id: self._candidate_binding(node, context) for node in pool}
+        token = self._mint_pool_grant_multi(
+            representative, context, pool_refs, max_claims=len(pool)
+        )
+        self._pool_selected[slot_id] = {}
+
+        # A slot-level synthetic subtask id keeps the executor API unchanged;
+        # the worker never sees it as an authorized node.
+        slot_subtask_id = slot_id
+        slot_node = _Node(
+            subtask_id=slot_subtask_id,
+            spec=SubtaskSpec(
+                key=f"pool-slot-{slot_id}",
+                objective=(
+                    "Select exactly one node from the authorized candidate pool by "
+                    "calling discover_and_request_claim(node_ref=...) and then "
+                    "produce that node's artifact; the program authorizes and "
+                    "records the selected node."
+                ),
+                capability=representative.spec.capability,
+                acceptance=(),
+                depends_on=(),
+                write=False,
+                order=0,
+            ),
+            member=representative.member,
+            depends_on=(),
+            member_id=member_id,
+        )
+        request = self._build_pool_request(
+            slot_node, context, bindings=bindings, pool_refs=pool_refs, grant_token=token
+        )
+        run_id = context.run_id
+        task = asyncio.ensure_future(self._executor.execute(request, emit))
+        self._inflight.setdefault(run_id, set()).add(task)
+        try:
+            result = await task
+        except asyncio.CancelledError:
+            if run_id not in self._explicit_cancel:
+                self._revoke_if_pool(slot_id, token)
+                raise
+            result = ExecutorResult(
+                state="cancelled",
+                summary="pool slot cancelled by run control",
+                stop_confirmed=True,
+                execution_ref=ExecutionRef(
+                    execution_id=f"exec_cancelled_{slot_id}",
+                    task_id=context.task_id,
+                    run_id=run_id,
+                ),
+            )
+        except Exception:  # noqa: BLE001 - classify, never fake success
+            result = ExecutorResult(state="failed", summary="pool slot executor crashed")
+        finally:
+            self._inflight.get(run_id, set()).discard(task)
+
+        from lightgravity.collaboration import default_registry
+
+        selection = self._pool_selected.get(slot_id) or {}
+        selected_id = selection.get("node_ref")
+        node_grant = self._node_grants.pop(slot_id, None)
+        if node_grant is not None:
+            (self._grant_registry or default_registry()).revoke_token(node_grant[0])
+        self._revoke_if_pool(slot_id, token)
+
+        if selected_id is None or selected_id not in pool_by_id:
+            # Worker never made a valid selection: no node is passed, and no
+            # control state is written for any candidate.  Honest no-op slot.
+            controller.emit(
+                EventType.ERROR_RECORDED,
+                {
+                    "mode": "pool_slot",
+                    "code": "claim_required",
+                    "message": "autonomous worker did not claim an authorized candidate",
+                    "pool_refs": list(pool_refs),
+                },
+            )
+            return _PoolSlotOutcome(member_id=member_id, selected=None, failure=None)
+
+        node = pool_by_id[selected_id]
+        # The pool path took the lease itself through the fenced authority; apply
+        # the result first (so state/manifest/handoff attribute to the selected
+        # node) and then release the lease, exactly as the deterministic path
+        # does -- but only after the execution has actually stopped.
+        if result.state == "succeeded":
+            outcome = self._apply_result(node, controller, result)
+        else:
+            code = result.failure.code if result.failure else result.state
+            message = result.failure.message if result.failure else result.summary
+            outcome = self._fail_node(node, controller, code=code, message=message, result=result)
+        self._release_collaboration_lease(node)
+        if result.execution_ref is not None:
+            self._active_refs.setdefault(run_id, []).append(result.execution_ref)
+        self._pool_selected.pop(slot_id, None)
+        return _PoolSlotOutcome(member_id=member_id, selected=node, failure=outcome)
+
+    def _release_collaboration_lease(self, node: "_Node") -> None:
+        """Release a pool-selected node's lease after its execution stopped."""
+
+        collab = self._collaboration
+        if collab is None:
+            return
+        try:
+            collab.release(node.subtask_id, self._owner)
+        except Exception:  # noqa: BLE001 - release must never mask the outcome
+            return
+
+    def _build_pool_request(
+        self,
+        slot_node: "_Node",
+        context: DispatchContext,
+        *,
+        bindings: Mapping[str, dict[str, Any]],
+        pool_refs: Sequence[str],
+        grant_token: str,
+    ) -> ExecuteRequest:
+        """Build the worker-facing pool request (selection then program binds)."""
+
+        candidate = slot_node.member.candidate
+        return ExecuteRequest(
+            task_id=context.task_id,
+            run_id=context.run_id,
+            subtask_id=slot_node.subtask_id,
+            attempt=context.attempt,
+            objective=slot_node.spec.objective,
+            acceptance_criteria=(),
+            instructions=context.instructions,
+            upstream_artifact_refs=(),
+            workspace_path=context.workspace_path,
+            allowed_tools=candidate.tool_refs,
+            skill_refs=candidate.skill_refs,
+            connection_ref=candidate.connection_ref,
+            timeout_seconds=context.timeout_seconds,
+            budget=dict(context.budget),
+            agent_ref=slot_node.member.role_ref,
+            save_dir=context.save_dir,
+            conversation_id=context.conversation_id,
+            continuation_mode=context.continuation_mode,
+            execution_grant=grant_token,
+            custom_tools=self._pool_claim_tools_for(
+                slot_node, context, grant_token, bindings=bindings, pool_refs=pool_refs
+            ),
+            candidate_bindings=tuple(bindings.values()),
+        )
+
+    def _mint_pool_grant_multi(
+        self,
+        anchor: "_Node",
+        context: DispatchContext,
+        pool_refs: Sequence[str],
+        *,
+        max_claims: int,
+    ) -> str:
+        """Mint a **multi-candidate** pool grant (discovery/claim only).
+
+        Unlike :meth:`_mint_pool_grant` (which lists the live discovery view) this
+        freezes the program's legal candidate set for this slot and bounds the
+        number of claim reservations, so a worker's selection attempts are finite
+        and cannot be used to enumerate the run indefinitely.  The grant never
+        confers a node lease: the program upgrades it only for the node the worker
+        actually selects.
+        """
+
+        from lightgravity.collaboration import default_registry
+
+        registry = self._grant_registry or default_registry()
+        token, _grant = registry.mint(
+            task_id=context.task_id,
+            run_id=context.run_id,
+            subtask_id=anchor.subtask_id,
+            member_ref=anchor.member_id,
+            fence=0,
+            authorized_node_refs=frozenset(pool_refs),
+            max_collab_calls=int(context.budget.get("max_collab_requests", 0) or 0),
+            budget_remaining=None,
+            ttl_seconds=max(60, int(self._lease_seconds) * 2),
+            origin="graph-dispatcher:candidate-pool",
+            kind="pool",
+            max_claims=max(1, int(max_claims)),
+        )
+        return token
+
+    def _pool_claim_tools_for(
+        self,
+        slot_node: "_Node",
+        context: DispatchContext,
+        token: str,
+        *,
+        bindings: Mapping[str, dict[str, Any]],
+        pool_refs: Sequence[str],
+    ) -> tuple[Any, ...]:
+        """Build the worker's discover/claim tool bound to the candidate pool."""
+
+        from lightgravity.collaboration import default_registry, make_restricted_claim_tool
+
+        registry = self._grant_registry or default_registry()
+        pool_ids = tuple(pool_refs)
+
+        def discover() -> Any:
+            # The program's frozen pool for this slot, projected with the same
+            # read-only metadata the restricted tool exposes.
+            from types import SimpleNamespace
+
+            items = [
+                SimpleNamespace(
+                    subtask_id=binding.get("node_ref"),
+                    **{k: v for k, v in binding.items() if k != "node_ref"},
+                )
+                for ref, binding in ((ref, bindings[ref]) for ref in pool_ids if ref in bindings)
+            ]
+            return _PoolView(run_ref=context.run_id, candidates=tuple(items))
+
+        def claim_callback(node_ref: str, request_id: str) -> Any:
+            return self._claim_for_worker_pool(
+                slot_node,
+                context,
+                node_ref,
+                request_id,
+                pool_refs=pool_ids,
+                bindings=bindings,
+            )
+
+        tool = make_restricted_claim_tool(
+            registry=registry,
+            token=token,
+            discover=discover,
+            claim_callback=claim_callback,
+        )
+        return (tool,)
+
+    def _claim_for_worker_pool(
+        self,
+        slot_node: "_Node",
+        context: DispatchContext,
+        node_ref: str,
+        request_id: str,
+        *,
+        pool_refs: Sequence[str],
+        bindings: Mapping[str, dict[str, Any]],
+    ) -> dict[str, Any]:
+        """Program handler for a claim against the candidate pool.
+
+        Recomputes the *live* legal candidate set (so a stale/racing choice is
+        refused rather than silently binding a node the worker may no longer hold)
+        and requires the selected ``node_ref`` to still be a member of it.  On
+        success it atomically claims the **selected** node through the fenced
+        lease authority, records the selection for program-side binding, and
+        returns a redacted receipt plus the selected node's binding.
+        """
+
+        from lightgravity.collaboration import ClaimRequest, default_registry
+
+        collab = self._collaboration
+        if collab is None:
+            return {"granted": False, "reason": "feature_disabled", "request_id": request_id}
+        if node_ref not in pool_refs:
+            return {
+                "granted": False,
+                "reason": "node_not_in_candidate_pool",
+                "request_id": request_id,
+            }
+        # Re-validate against the live graph: dependencies may have failed or
+        # another slot may already hold the node.  This closes the window between
+        # the worker seeing the pool and acting on it.
+        try:
+            live = self._live_candidate_refs(context, slot_node.member_id)
+        except Exception:  # noqa: BLE001 - a read failure must deny, not grant
+            return {
+                "granted": False,
+                "reason": "candidate_validation_failed",
+                "request_id": request_id,
+            }
+        if node_ref not in live:
+            return {
+                "granted": False,
+                "reason": "candidate_no_longer_available",
+                "request_id": request_id,
+            }
+        binding = bindings.get(node_ref) or {}
+        node = self._node_by_subtask(node_ref, context)
+        # The claim may be handled without a live in-process node index (e.g. a
+        # direct program call); read the authoritative Subtask entity instead so
+        # capability/write/dependency gates still come from the Store.
+        if node is not None:
+            capability: str | None = node.spec.capability
+            write = bool(node.spec.write)
+        else:
+            try:
+                entity = self._store.read("subtask", node_ref).entity
+            except Exception:  # noqa: BLE001 - unreadable node cannot be granted
+                return {"granted": False, "reason": "node_unknown", "request_id": request_id}
+            raw_capability = entity.get("capability")
+            capability = raw_capability if isinstance(raw_capability, str) else None
+            write = bool(entity.get("write"))
+        decision = collab.request_claim(
+            context.run_id,
+            ClaimRequest(
+                subtask_id=node_ref,
+                owner=self._owner,
+                request_id=request_id,
+                lease_seconds=self._lease_seconds,
+                capability=capability,
+            ),
+            allow_write=write,
+            dependencies_ready=True,
+            capability_ok=True,
+        )
+        if not decision.granted:
+            return {
+                "granted": False,
+                "reason": decision.reason,
+                "request_id": decision.request_id,
+            }
+        registry = self._grant_registry or default_registry()
+        node_token, _grant = registry.mint(
+            task_id=context.task_id,
+            run_id=context.run_id,
+            subtask_id=node_ref,
+            member_ref=slot_node.member_id,
+            fence=decision.fence,
+            authorized_node_refs=frozenset({node_ref}),
+            max_collab_calls=int(context.budget.get("max_collab_requests", 0) or 0),
+            budget_remaining=decision.fence,
+            ttl_seconds=max(60, int(self._lease_seconds) * 2),
+            origin="graph-dispatcher:candidate-claim",
+        )
+        # Record the selected node for the slot's execute step; revoke any prior
+        # node grant the same worker minted (one selection per slot).
+        prior = self._node_grants.get(slot_node.subtask_id)
+        if prior is not None:
+            registry.revoke_token(prior[0])
+        self._node_grants[slot_node.subtask_id] = (node_token, node_ref)
+        self._pool_selected.setdefault(slot_node.subtask_id, {})["node_ref"] = node_ref
+        return {
+            "granted": True,
+            "reason": decision.reason,
+            "fence": decision.fence,
+            "lease_expires_at": decision.lease_expires_at,
+            "request_id": decision.request_id,
+            "binding": dict(binding),
+        }
+
+    def _node_by_subtask(self, node_ref: str, context: DispatchContext) -> "_Node | None":
+        for node in self._run_nodes.get(context.run_id, ()):
+            if node.subtask_id == node_ref:
+                return node
+        return None
+
+    def _live_candidate_refs(self, context: DispatchContext, member_id: str) -> set[str]:
+        """Recompute the live legal pool for a member from persisted state.
+
+        Reads the authoritative Run ``subtask_refs`` and each Subtask entity,
+        so the check does not depend on any in-process scheduling memory and a
+        selection is only granted against the current graph.  A node already
+        claimed by another owner is excluded via its persisted state/capability.
+        """
+
+        try:
+            run = self._store.read("run", context.run_id).entity
+        except Exception:  # noqa: BLE001 - unknown run has no legal candidates
+            return set()
+        refs = run.get("subtask_refs")
+        if not isinstance(refs, list):
+            return set()
+        from lightgravity.collaboration.models import CLAIMABLE_SUBTASK_STATES
+
+        legal: set[str] = set()
+        for ref in refs:
+            if not isinstance(ref, str):
+                continue
+            try:
+                entity = self._store.read("subtask", ref).entity
+            except Exception:  # noqa: BLE001 - unreadable node is not available
+                continue
+            if str(entity.get("state")) not in CLAIMABLE_SUBTASK_STATES:
+                continue
+            if str(entity.get("assignee_member_ref")) != member_id:
+                continue
+            deps = entity.get("depends_on") or []
+            if not all(
+                isinstance(dep, str) and self._safe_state(dep) == "passed" for dep in deps
+            ):
+                continue
+            legal.add(ref)
+        return legal
+
+    def _safe_state(self, subtask_id: str) -> str:
+        try:
+            return str(self._store.read("subtask", subtask_id).entity.get("state") or "")
+        except Exception:  # noqa: BLE001 - unreadable state is not "passed"
+            return ""
 
     def _plan_resume_reuse(
         self,
