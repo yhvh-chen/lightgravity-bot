@@ -1,0 +1,3 @@
+# Raw GET bodies + any credential-adjacent material stay private (0700/0600).
+# Repo carries only sanitized digests/results.
+private/

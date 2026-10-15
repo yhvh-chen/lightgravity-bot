@@ -1,0 +1,38 @@
+{
+  "package": "materials-quality-20261016-r3",
+  "corpus_kind": "real Chinese human-transcribed text fragments (NO synthetic content)",
+  "license_note": "Underlying scans are Public domain (Wikimedia Commons imageinfo License=pd). Human transcriptions are Wikisource ProofreadPage level-3, CC BY-SA 4.0. Fragments are verbatim sub-ranges of those transcriptions for evaluation use.",
+  "provenance": {
+    "Z1": {
+      "scan": "File:10-13老解老.pdf page 10, Wikimedia Commons, Public domain",
+      "truth": "Wikimedia Wikisource Page: level 3 human transcription, CC BY-SA 4.0",
+      "truth_file_sha256": "9043c2b76ff8c26215b99d99c4a86eb6801207691ac5cd8d15ecf4f304147ea1"
+    },
+    "Z2": {
+      "scan": "NLC416-14jh004627-68702 方言調查表格.pdf page 2, Wikimedia Commons, Public domain",
+      "truth": "Wikimedia Wikisource Page: level 3 human transcription, CC BY-SA 4.0",
+      "truth_file_sha256": "8c6ad74b3b647dd85aacb1db665ceafd262da579a0c65aac7e879488665862b0"
+    }
+  },
+  "documents": [
+    {"id": "D1", "source": "Z1", "lines": "1-3", "text": "其功也予生平篤信老氏之學說如此年來因更覃思舊業萃古今注老數十百家而遍肄之將以窮其賾而會其通乃讀註愈多而理解愈晦在作者非不各竭其"},
+    {"id": "D2", "source": "Z1", "lines": "4-6", "text": "聰明才力以鑽硏淬礪於老氏一言一字之中其實支離曼衍去玄之又玄之真際不知幾千萬里然後歎猶"},
+    {"id": "D3", "source": "Z1", "lines": "7-9", "text": "龍之妙不可方物而絕詣之未易以淺見求也遂乃盡棄舊註專致力於經文而有串珠之編由是批郤導竅以求之於經如人三萬六千毛孔孔孔疏達三百六十骨節節節靈通雖不加一字詮釋而篇中之八百有四"},
+    {"id": "D4", "source": "Z2", "lines": "1-5", "text": "語助詞北風跟太陽 國、有一囘，北風跟太陽兩個人在那兒爭論誰的本事大。 蘇、有一轉，北風搭太陽两家頭勒浪爭啥人格本事大。 廣、有一句，北風同𤍠頭兩個人喺處爭論邊個嘅本事大。"},
+    {"id": "D5", "source": "Z2", "lines": "7-9", "text": "北風說，我的本事大極了。 北風說，我格本事大極哉。 北風話，我嘅本事至大嘅喇。"},
+    {"id": "D6", "source": "Z2", "lines": "11-13", "text": "世界上的東西沒有不怕我的。 世界浪格末事嘸不勿怕我格。 世界上嘅野冇唔怕我嘅。"},
+    {"id": "D7", "source": "Z2", "lines": "15-21", "text": "船碰見了我就會翻，房子碰見了我就會坍，樹碰見了我就會倒，什 船碰着仔我就會翻，房子碰着仔我就會坍，樹碰着仔我就會倒，啥 船見親我就噲沈，屋見親我我就會 冧，樹見親我就會倒，個 末貓阿，狗阿，花阿，草阿，他們見了我，更是怕得不得了了。 格貓阿，狗阿，花阿，草阿，俚篤見仔我，加二嚇得勿知那亨哉。 的貓阿，狗阿，花阿，草阿，佢哋見親我，越發怕到交關喇。"}
+  ],
+  "queries": [
+    {"q": "Q1", "text": "老氏學說 鑽研 淬礪", "type": "positive", "relevant": ["D2"]},
+    {"q": "Q2", "text": "批郤導竅 經文 串珠之編", "type": "positive", "relevant": ["D3"]},
+    {"q": "Q3", "text": "北風 太陽 爭論 本事", "type": "positive", "relevant": ["D4"]},
+    {"q": "Q4", "text": "船碰見 翻 坍 倒", "type": "positive", "relevant": ["D7"]},
+    {"q": "Q5", "text": "貓 狗 花 草 怕", "type": "positive", "relevant": ["D6", "D7"]},
+    {"q": "Q6", "text": "量子色動力學 膠子 強相互作用", "type": "negative_control", "relevant": []},
+    {"q": "Q7", "text": "2024年 財務報表 淨利潤 萬元", "type": "negative_control", "relevant": []}
+  ],
+  "labels_authorship": "executor-authored relevance judgements (NOT independent or human review)",
+  "k_values": [1, 3, 5],
+  "recall_definition": "recall@k(q) = |relevant(q) INTERSECT topk(q)| / |relevant(q)| over positive queries"
+}

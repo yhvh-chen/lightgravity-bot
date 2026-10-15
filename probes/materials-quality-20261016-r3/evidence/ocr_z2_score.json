@@ -1,0 +1,130 @@
+{
+  "metric": "z2_table_segment_CER + structural",
+  "threshold": {
+    "segment_cer": 0.25,
+    "structure": "rows AND sections AND cols preserved, no merge"
+  },
+  "whole_page": {
+    "truth_chars": 363,
+    "hyp_chars": 334,
+    "edit_distance": 107,
+    "cer": 0.294766
+  },
+  "segment_cer_by_overlap": 0.3281,
+  "human_rows": 15,
+  "machine_dialect_lines_detected": 12,
+  "human_sections": 5,
+  "machine_sections_detected": 5,
+  "human_cols": 3,
+  "merged_column_lines": 1,
+  "field_tokens": [
+    {
+      "token": "2",
+      "present_exact": true
+    },
+    {
+      "token": "2",
+      "present_exact": true
+    }
+  ],
+  "structure_pass": false,
+  "segment_rows": [
+    {
+      "human": "國、有一囘，北風跟太陽兩個人在那兒爭論誰的本事大。",
+      "machine_best": "國、 有一回，北風跟太陽兩個人在那兒爭論誰的本事大。",
+      "cer": 0.04,
+      "overlap": 24
+    },
+    {
+      "human": "蘇、有一轉，北風搭太陽两家頭勒浪爭啥人格本事大。",
+      "machine_best": "蘇、 有一轉，北風搭太陽兩家頭勒爭爭啥人格本事大。",
+      "cer": 0.083333,
+      "overlap": 22
+    },
+    {
+      "human": "廣、有一句，北風同𤍠頭兩個人喺處爭論邊個嘅本事大。",
+      "machine_best": "廣、 有一勻，北風同熱頭兩個人臨處爭論邊個嘅本事大。",
+      "cer": 0.12,
+      "overlap": 22
+    },
+    {
+      "human": "北風說，我的本事大極了。",
+      "machine_best": "北風說，我的本事大極了。 世界上的東西沒有不怕我的。",
+      "cer": 1.083333,
+      "overlap": 12
+    },
+    {
+      "human": "北風說，我格本事大極哉。",
+      "machine_best": "北風說，我格本事大極哉。 世界浪格末事嘸不勿怕我格。",
+      "cer": 1.083333,
+      "overlap": 12
+    },
+    {
+      "human": "北風話，我嘅本事至大嘅喇。",
+      "machine_best": "北風話，我嘅本事至大嘸喇。 世界上嘅野有唔怕我嘅。",
+      "cer": 0.923077,
+      "overlap": 13
+    },
+    {
+      "human": "世界上的東西沒有不怕我的。",
+      "machine_best": "北風說，我的本事大極了。 世界上的東西沒有不怕我的。",
+      "cer": 0.923077,
+      "overlap": 13
+    },
+    {
+      "human": "世界浪格末事嘸不勿怕我格。",
+      "machine_best": "北風說，我格本事大極哉。 世界浪格末事嘸不勿怕我格。",
+      "cer": 0.923077,
+      "overlap": 13
+    },
+    {
+      "human": "世界上嘅野冇唔怕我嘅。",
+      "machine_best": "北風話，我嘅本事至大嘸喇。 世界上嘅野有唔怕我嘅。",
+      "cer": 1.272727,
+      "overlap": 10
+    },
+    {
+      "human": "船碰見了我就會翻，房子碰見了我就會坍，樹碰見了我就會倒，什",
+      "machine_best": "船碰見了我就會翻，房子碰見了我就會坍，樹碰見了我就會倒，什",
+      "cer": 0.0,
+      "overlap": 29
+    },
+    {
+      "human": "船碰着仔我就會翻，房子碰着仔我就會坍，樹碰着仔我就會倒，啥",
+      "machine_best": "船碰着仔我就會翻，房子碰着仔我就會坍，樹碰着仔我就會倒，啥",
+      "cer": 0.0,
+      "overlap": 29
+    },
+    {
+      "human": "船見親我就會噲沈，屋見親我我就會 冧，樹見親我就會倒，個",
+      "machine_best": "船見親我就會沈，屋見親我我就會 Lhann，樹見親我就會倒，個",
+      "cer": 0.222222,
+      "overlap": 25
+    },
+    {
+      "human": "末貓阿，狗阿，花阿，草阿，他們見了我，更是怕得不得了了。",
+      "machine_best": "狗阿，花阿，草阿，他們見了我，更是怕得不得了。",
+      "cer": 0.178571,
+      "overlap": 23
+    },
+    {
+      "human": "格貓阿，狗阿，花阿，草阿，俚篤見仔我，加二嚇得勿知那亨哉。",
+      "machine_best": "狗阿，花阿，草阿，但篤見仔我，加二嚇得勿知那亨哉。",
+      "cer": 0.172414,
+      "overlap": 24
+    },
+    {
+      "human": "的貓阿，狗阿，花阿，草阿，佢哋見親我，越發怕到交關喇。",
+      "machine_best": "狗阿，花阿，草阿，但嘅見親我，越發怕到交關喇。",
+      "cer": 0.222222,
+      "overlap": 21
+    }
+  ],
+  "verdict": "FAIL",
+  "ocr_latency_seconds": 37.8,
+  "notes": [
+    "extraneous tokens present in machine output: A/C, H17, and a trailing numeric row",
+    "machine merged section-2 and section-3 dialect columns onto single lines",
+    "leading dialect-prefix glyphs 末/格/的 dropped in the final section"
+  ]
+}

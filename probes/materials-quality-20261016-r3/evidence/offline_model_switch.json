@@ -1,0 +1,23 @@
+{
+  "cache_header": {
+    "cache_version": 1,
+    "dim": 768,
+    "model": "embeddinggemma-2-Q8_0",
+    "record": "header"
+  },
+  "stats": {
+    "documents": 7,
+    "cache_version": 1,
+    "model": "embeddinggemma-2-Q8_0",
+    "dim": 768
+  },
+  "canonical_model": "embeddinggemma-2-Q8_0",
+  "canonical_dim": 768,
+  "is_compatible_same_model": true,
+  "is_compatible_other_model": false,
+  "same_model_search_returns": 5,
+  "other_model_search_returns": 0,
+  "cache_version_matches": true,
+  "self_query_top1": "source_1KM4HYBN3MX3SMJPKW617HE622",
+  "real_entry_source_id": "source_1KM4HYBN3MX3SMJPKW617HE622"
+}

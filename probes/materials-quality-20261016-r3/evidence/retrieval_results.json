@@ -1,0 +1,485 @@
+{
+  "queries": [
+    {
+      "q": "Q1",
+      "text": "老氏學說 鑽研 淬礪",
+      "type": "positive",
+      "relevant": [
+        "D2"
+      ],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2"
+        ],
+        [
+          "source_1KM4HYBN3MX3SMJPKW617HE622",
+          "D1"
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5"
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6"
+        ],
+        [
+          "source_5YTYNYNHBEAR59DDZYYK44D9MH",
+          "D3"
+        ]
+      ],
+      "lexical_hits": [],
+      "latency": 0.05
+    },
+    {
+      "q": "Q2",
+      "text": "批郤導竅 經文 串珠之編",
+      "type": "positive",
+      "relevant": [
+        "D3"
+      ],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_5YTYNYNHBEAR59DDZYYK44D9MH",
+          "D3"
+        ],
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2"
+        ],
+        [
+          "source_1KM4HYBN3MX3SMJPKW617HE622",
+          "D1"
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6"
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5"
+        ]
+      ],
+      "lexical_hits": [
+        [
+          "source_5YTYNYNHBEAR59DDZYYK44D9MH",
+          "D3"
+        ]
+      ],
+      "latency": 0.049
+    },
+    {
+      "q": "Q3",
+      "text": "北風 太陽 爭論 本事",
+      "type": "positive",
+      "relevant": [
+        "D4"
+      ],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_081XH6161QFTBE82SFY0K0EE03",
+          "D4"
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5"
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6"
+        ],
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2"
+        ],
+        [
+          "source_1KM4HYBN3MX3SMJPKW617HE622",
+          "D1"
+        ]
+      ],
+      "lexical_hits": [
+        [
+          "source_081XH6161QFTBE82SFY0K0EE03",
+          "D4"
+        ]
+      ],
+      "latency": 0.056
+    },
+    {
+      "q": "Q4",
+      "text": "船碰見 翻 坍 倒",
+      "type": "positive",
+      "relevant": [
+        "D7"
+      ],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_1F8D5TAEYKKSWK7NZ141RC99W3",
+          "D7"
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5"
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6"
+        ],
+        [
+          "source_081XH6161QFTBE82SFY0K0EE03",
+          "D4"
+        ],
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2"
+        ]
+      ],
+      "lexical_hits": [
+        [
+          "source_1F8D5TAEYKKSWK7NZ141RC99W3",
+          "D7"
+        ]
+      ],
+      "latency": 0.066
+    },
+    {
+      "q": "Q5",
+      "text": "貓 狗 花 草 怕",
+      "type": "positive",
+      "relevant": [
+        "D6",
+        "D7"
+      ],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_1F8D5TAEYKKSWK7NZ141RC99W3",
+          "D7"
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6"
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5"
+        ],
+        [
+          "source_081XH6161QFTBE82SFY0K0EE03",
+          "D4"
+        ],
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2"
+        ]
+      ],
+      "lexical_hits": [
+        [
+          "source_1F8D5TAEYKKSWK7NZ141RC99W3",
+          "D7"
+        ]
+      ],
+      "latency": 0.058
+    },
+    {
+      "q": "Q6",
+      "text": "量子色動力學 膠子 強相互作用",
+      "type": "negative_control",
+      "relevant": [],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2"
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6"
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5"
+        ],
+        [
+          "source_1KM4HYBN3MX3SMJPKW617HE622",
+          "D1"
+        ],
+        [
+          "source_081XH6161QFTBE82SFY0K0EE03",
+          "D4"
+        ]
+      ],
+      "lexical_hits": [],
+      "latency": 0.054
+    },
+    {
+      "q": "Q7",
+      "text": "2024年 財務報表 淨利潤 萬元",
+      "type": "negative_control",
+      "relevant": [],
+      "vector_error": null,
+      "vector_index_status": "ok",
+      "vector_hits": [
+        [
+          "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+          "D2"
+        ],
+        [
+          "source_0JMX817752WK0M51XVDVCYSTFE",
+          "D5"
+        ],
+        [
+          "source_5YTYNYNHBEAR59DDZYYK44D9MH",
+          "D3"
+        ],
+        [
+          "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+          "D6"
+        ],
+        [
+          "source_1KM4HYBN3MX3SMJPKW617HE622",
+          "D1"
+        ]
+      ],
+      "lexical_hits": [],
+      "latency": 0.051
+    }
+  ],
+  "corpus_ids": {
+    "D1": "source_1KM4HYBN3MX3SMJPKW617HE622",
+    "D2": "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+    "D3": "source_5YTYNYNHBEAR59DDZYYK44D9MH",
+    "D4": "source_081XH6161QFTBE82SFY0K0EE03",
+    "D5": "source_0JMX817752WK0M51XVDVCYSTFE",
+    "D6": "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+    "D7": "source_1F8D5TAEYKKSWK7NZ141RC99W3"
+  },
+  "budget": {
+    "limit": 16,
+    "used": 16
+  },
+  "vector_metrics": {
+    "recall@1": 0.9,
+    "recall@3": 1.0,
+    "recall@5": 1.0,
+    "mrr": 1.0,
+    "top1_accuracy": 1.0,
+    "negative_controls": {
+      "Q6": {
+        "hits": [
+          [
+            "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+            "D2"
+          ],
+          [
+            "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+            "D6"
+          ],
+          [
+            "source_0JMX817752WK0M51XVDVCYSTFE",
+            "D5"
+          ],
+          [
+            "source_1KM4HYBN3MX3SMJPKW617HE622",
+            "D1"
+          ],
+          [
+            "source_081XH6161QFTBE82SFY0K0EE03",
+            "D4"
+          ]
+        ],
+        "leakage": 5
+      },
+      "Q7": {
+        "hits": [
+          [
+            "source_12CQTK6VBVC0VVBDTTSSS7MV28",
+            "D2"
+          ],
+          [
+            "source_0JMX817752WK0M51XVDVCYSTFE",
+            "D5"
+          ],
+          [
+            "source_5YTYNYNHBEAR59DDZYYK44D9MH",
+            "D3"
+          ],
+          [
+            "source_7D6MCNNR17JAHM71SP8J9T9HV6",
+            "D6"
+          ],
+          [
+            "source_1KM4HYBN3MX3SMJPKW617HE622",
+            "D1"
+          ]
+        ],
+        "leakage": 5
+      }
+    }
+  },
+  "lexical_metrics": {
+    "recall@1": 0.7,
+    "recall@3": 0.7,
+    "recall@5": 0.7,
+    "mrr": 0.8,
+    "top1_accuracy": 0.8,
+    "negative_controls": {
+      "Q6": {
+        "hits": [],
+        "leakage": 0
+      },
+      "Q7": {
+        "hits": [],
+        "leakage": 0
+      }
+    }
+  },
+  "corpus_provenance": {
+    "Z1": {
+      "scan": "File:10-13老解老.pdf page 10, Wikimedia Commons, Public domain",
+      "truth": "Wikimedia Wikisource Page: level 3 human transcription, CC BY-SA 4.0",
+      "truth_file_sha256": "9043c2b76ff8c26215b99d99c4a86eb6801207691ac5cd8d15ecf4f304147ea1"
+    },
+    "Z2": {
+      "scan": "NLC416-14jh004627-68702 方言調查表格.pdf page 2, Wikimedia Commons, Public domain",
+      "truth": "Wikimedia Wikisource Page: level 3 human transcription, CC BY-SA 4.0",
+      "truth_file_sha256": "8c6ad74b3b647dd85aacb1db665ceafd262da579a0c65aac7e879488665862b0"
+    }
+  },
+  "labels_authorship": "executor-authored relevance judgements (NOT independent or human review)",
+  "post_log": [
+    {
+      "kind": "corpus_text",
+      "doc": "D1",
+      "indexed": true,
+      "dim": 768,
+      "model": "embeddinggemma-2-Q8_0",
+      "text_sha256": "2267f1c6d33c85edff1f7c709c39535efc053b298873e7f3b06a652e99fb1049",
+      "latency": 0.089
+    },
+    {
+      "kind": "corpus_text",
+      "doc": "D2",
+      "indexed": true,
+      "dim": 768,
+      "model": "embeddinggemma-2-Q8_0",
+      "text_sha256": "fe54758ed038143a0cd1a564c692604d6c25f135a5854799e2b6aa95d438d104",
+      "latency": 0.045
+    },
+    {
+      "kind": "corpus_text",
+      "doc": "D3",
+      "indexed": true,
+      "dim": 768,
+      "model": "embeddinggemma-2-Q8_0",
+      "text_sha256": "20e819f328c63c6b5b4ffebee4ffba30784c44fe1b1323ec893705a3a1604f30",
+      "latency": 0.05
+    },
+    {
+      "kind": "corpus_text",
+      "doc": "D4",
+      "indexed": true,
+      "dim": 768,
+      "model": "embeddinggemma-2-Q8_0",
+      "text_sha256": "c59bdf68609cdd5db476441f9ff9aa0e5b42094fed5acb6bc0a5c481be318840",
+      "latency": 0.049
+    },
+    {
+      "kind": "corpus_text",
+      "doc": "D5",
+      "indexed": true,
+      "dim": 768,
+      "model": "embeddinggemma-2-Q8_0",
+      "text_sha256": "6b1e15be2f75621d86f3717c4924a618623076c40ac22b8f62e0bb2704469f08",
+      "latency": 0.041
+    },
+    {
+      "kind": "corpus_text",
+      "doc": "D6",
+      "indexed": true,
+      "dim": 768,
+      "model": "embeddinggemma-2-Q8_0",
+      "text_sha256": "b0ad3d82ddd30851de782bd1b2aad1ddb9289b91984b444d39af845f65db1604",
+      "latency": 0.081
+    },
+    {
+      "kind": "corpus_text",
+      "doc": "D7",
+      "indexed": true,
+      "dim": 768,
+      "model": "embeddinggemma-2-Q8_0",
+      "text_sha256": "2fe43e9696a236810fd7028772ae48d8c3f470c1f01cc39349832845ffebb6b3",
+      "latency": 0.09
+    },
+    {
+      "kind": "media_image",
+      "doc": "D_IMG_Z1",
+      "dim": 768,
+      "model": "embeddinggemma-2-Q8_0",
+      "input_sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+      "finite": true,
+      "latency": 0.325
+    },
+    {
+      "kind": "query",
+      "q": "Q1",
+      "error": null,
+      "latency": 0.05,
+      "index_status": "ok"
+    },
+    {
+      "kind": "query",
+      "q": "Q2",
+      "error": null,
+      "latency": 0.049,
+      "index_status": "ok"
+    },
+    {
+      "kind": "query",
+      "q": "Q3",
+      "error": null,
+      "latency": 0.056,
+      "index_status": "ok"
+    },
+    {
+      "kind": "query",
+      "q": "Q4",
+      "error": null,
+      "latency": 0.066,
+      "index_status": "ok"
+    },
+    {
+      "kind": "query",
+      "q": "Q5",
+      "error": null,
+      "latency": 0.058,
+      "index_status": "ok"
+    },
+    {
+      "kind": "query",
+      "q": "Q6",
+      "error": null,
+      "latency": 0.054,
+      "index_status": "ok"
+    },
+    {
+      "kind": "query",
+      "q": "Q7",
+      "error": null,
+      "latency": 0.051,
+      "index_status": "ok"
+    }
+  ],
+  "media_image_sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f"
+}
