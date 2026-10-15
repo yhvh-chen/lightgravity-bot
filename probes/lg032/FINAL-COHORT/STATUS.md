@@ -1,15 +1,37 @@
 ---
-title: "LG-032 阶段 B final-cohort STATUS（narrow-B 根因定位 + WIP 交接）"
+title: "LG-032 阶段 B final-cohort STATUS（narrow-B 根因定位 + WIP 交接 + 公平性纠正续接）"
 doc_type: status
 category: engineering
-status: "NARROW-B ROOT CAUSE LOCATED (product defect); WIP REPORT + commit landed; PM-authorized minimal fix worktree created; product real calls 0"
-experiment_id: lg032-final-cohort-20261016
-worktree: /home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort
-branch: qa/lg032-final-cohort
-base_commit: "91550a9"
+status: "FAIRNESS-CORRECTION 续接：同 3 节点计划 + 同 seed SHA 已实现；新 s1A/s2A fake 均 PASS；产品 real calls 0"
+experiment_id: lg032-fair-ablation-20261016
+worktree: /home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort-ready
+branch: qa/lg032-cohort-ready
+base_commit: "dee0248"
 updated: "2026-10-16"
-owner: "agent:pi-lg032-final-cohort（续接 owner；非 031 实施者；主代理仅 PM）"
+owner: "agent:pi-lg032-cohort-ready（续接 owner；主代理仅 PM）"
 ---
+
+## APPEND 2026-10-16（公平性纠正续接包；真实 provider=0；本包不占正式预算）
+
+**新增**：`FAIRNESS-CORRECTION.md`（前 owner 设计，本包核实） + `REPORT-FAIRNESS.md`（本包执行报告） +
+`harness/fairness_selftest.py`（局部不变量单测）。
+
+- **先核 git，未盲目重放前 owner edit**：起始 `run_attempt.py` 已含同 3 节点 `_FrozenPlanner`、
+  per-sample seed（`_ensure_seed`/`_init_repo` clone + HEAD==seed 校验）、`_authorize_task_checks`。
+- **前 owner 未跑**新 s1A/s2A（`fixtures/*/seed.git` 当时不存在；最新产物早于纠正文档）⇒ 本包执行。
+- **本包最小改动**：`FROZEN_TASK_CHECKS` 收敛为 `("evidence-present",)`（空 Task checks 会 vacuous pass，
+  必须授权至少一个真实注册检查；`artifacts-in-workspace` 非 graph 门所必需，不强制）。
+- **公平性自测 PASS**：canonical plan hash **A==B**（s1=`4611722…`、s2=`df60b54…`，均 3 节点 alpha/beta/verify）；
+  仅协作开关分支；seed SHA arm 无关（derived A==B==seed）。
+- **新 0-fake：s1A / s2A 各一次，均 PASS**（共 2 次，用尽本包上限；未跑 B、不超预算）：
+  `task_checks_authorized=('evidence-present',)`；accept `check_records=[{evidence-present, passed, 4 evidence ref}]`；
+  machine 5/5 与 7/7；3 真实 session（alpha/beta/verify）；accept confirmed/idempotent/wrong-target 409；
+  `initial_head==seed_head`（`53458ac7…` / `6fa0fd00…`）。
+- **真实 provider 生成：0**；**正式 4×48/192 仍 0，未 freeapproved / 未 mark done / 未 main merge/push/deploy/publish**；
+  未碰 `8123`；未改产品源；禁止 rm/rmtree/reset/clean/TMD/覆盖（本次全程只新增 unique 输出）。
+- **剩余门（须独立方法 audit）**：fake 相位分类 vs 产品真实相位（NOT DONE）；arm B 新计划重验（本包未做）；
+  A/B 同质性独立复核；正式预算 4×48（未开始）。
+- **未做**：不 claim done、不嵌套代理、不 new binding 到 accept 之外、不跑全套测试。
 
 ## APPEND 2026-10-16（最小交接固化；不重放、不调查、不 claim done）
 

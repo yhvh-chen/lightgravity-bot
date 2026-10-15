@@ -181,14 +181,22 @@ VERIFY_PROMPT_BODY = (
 class _FrozenPlanner:
     """Deterministic program-side plan frozen *before* the attempt.
 
-    Emitted plans are validated by the product ``PlanValidator`` exactly like the
-    product's own rule plan.  This is the experimental mechanism that sets the
-    number of write nodes (arm A = 1 merged write node, arm B = 2 independent
-    write nodes); it is not a control-state edit.
+    FAIRNESS-CORRECTION (LG-032): the plan is **identical for arm A and arm B**.
+    Both arms declare the same three nodes -- ``alpha`` (writes file1),
+    ``beta`` (writes file2), and a read-only ``verify`` that depends on both.
+
+    The **only** experimental variable is therefore whether the product uses
+    the deterministic program scheduler (arm A) or the candidate-pool
+    autonomous collaboration path (arm B).  The former old design (A=1 merged
+    write node, B=2 write nodes) confounded two variables (write-node count AND
+    the collaboration mechanism) and is rejected by the PM.
+
+    Emitted plans are validated by the product ``PlanValidator`` exactly like
+    the product's own rule plan; this is not a control-state edit.
     """
 
     def __init__(self, arm: str, sample: str) -> None:
-        self.name = f"lg032-final-frozen-{arm}"
+        self.name = f"lg032-fair-frozen-{arm}"
         self._arm = arm
         self._sample = sample
 
@@ -197,62 +205,43 @@ class _FrozenPlanner:
 
         spec = SAMPLE_SPEC[self._sample]
         acceptance = tuple(context.acceptance_criteria) or tuple(spec["acceptance"])
-        if self._arm == "A":
-            subtasks = (
-                RawSubtask(
-                    key="deliver",
-                    objective=context.objective,
-                    capability="implementation",
-                    acceptance=acceptance,
-                    write=True,
+        # Identical 3-node plan for BOTH arms (FAIRNESS-CORRECTION §1).
+        subtasks = (
+            RawSubtask(
+                key="alpha",
+                objective=spec["objective_a"],
+                capability="implementation",
+                acceptance=acceptance,
+                write=True,
+            ),
+            RawSubtask(
+                key="beta",
+                objective=spec["objective_b"],
+                capability="implementation",
+                acceptance=acceptance,
+                write=True,
+            ),
+            RawSubtask(
+                key="verify",
+                objective=(
+                    "Read the two upstream artifacts and report their exact contents and "
+                    "upstream hashes: "
+                    + ", ".join(spec["files"])
+                    + ". Read-only: do not write."
                 ),
-                RawSubtask(
-                    key="verify",
-                    objective=(
-                        "Read the delivered artifacts and report their exact contents: "
-                        + ", ".join(spec["files"])
-                        + ". Read-only: do not write."
-                    ),
-                    capability="verification",
-                    acceptance=acceptance,
-                    depends_on=("deliver",),
-                    write=False,
-                ),
-            )
-        else:
-            subtasks = (
-                RawSubtask(
-                    key="alpha",
-                    objective=spec["objective_a"],
-                    capability="implementation",
-                    acceptance=acceptance,
-                    write=True,
-                ),
-                RawSubtask(
-                    key="beta",
-                    objective=spec["objective_b"],
-                    capability="implementation",
-                    acceptance=acceptance,
-                    write=True,
-                ),
-                RawSubtask(
-                    key="verify",
-                    objective=(
-                        "Read the two upstream artifacts and report their exact contents and "
-                        "upstream hashes: "
-                        + ", ".join(spec["files"])
-                        + ". Read-only: do not write."
-                    ),
-                    capability="verification",
-                    acceptance=acceptance,
-                    depends_on=("alpha", "beta"),
-                    write=False,
-                ),
-            )
+                capability="verification",
+                acceptance=acceptance,
+                depends_on=("alpha", "beta"),
+                write=False,
+            ),
+        )
         return PlanProposal(
             subtasks=subtasks,
-            source=f"lg032-final-frozen-{self._arm}",
-            notes=(f"LG-032 FINAL-COHORT frozen plan for arm {self._arm}",),
+            source="lg032-fair-frozen-plan",
+            notes=(
+                "LG-032 FAIRNESS-CORRECTION: identical 3-node plan for both arms; "
+                f"only the collaboration switch differs (arm {self._arm})",
+            ),
         )
 
 
@@ -325,16 +314,77 @@ def _wait_for(predicate: Any, timeout: float, interval: float = 0.4) -> bool:
     return predicate()
 
 
-def _init_repo(root: Path, initial: Path) -> str:
-    """Freeze the candidate workspace from the fixture ``initial/`` tree.
+def _seed_repo(sample: str) -> Path:
+    """The persistent, read-only seed git repo for ``sample`` (FAIRNESS-CORRECTION §3).
 
-    The workspace is a real git repository so the product's per-write-node
-    isolation applies (arm B two nodes get distinct worktrees).  The frozen
-    start identity is the initial commit hash.
+    The seed is created **once** and then persisted; its single initial commit is
+    the *same actual commit SHA* for every arm of every attempt.  This fixes the
+    LG-023 A5 defect where each arm ran its own ``git init`` + commit, producing
+    byte-identical trees but **different commit objects** (commit timestamps).
+
+    The seed lives beside the fixture in the repo (tracked, frozen content) and
+    is never written by a worker: attempt workspaces are cloned *from* it and the
+    per-node worktrees are isolated copies, so the seed object store is immutable
+    after first creation.
+    """
+
+    return C.FIXTURES_DIR / sample / "seed.git"
+
+
+def _ensure_seed(sample: str, initial: Path) -> str:
+    """Create the per-sample seed repo once; return its frozen commit SHA.
+
+    Deterministic commit identity: fixed author/committer name/email and fixed
+    commit timestamp are used so the *first* generation is reproducible and its
+    SHA is stable.  Once the seed exists it is never re-created; a worker reset
+    would be detected because derived repositories pin this exact SHA.
+    """
+
+    seed = _seed_repo(sample)
+    if seed.exists():
+        head = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=seed,
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
+        return head
+    seed.mkdir(parents=True)
+    # Fixed identity + fixed timestamp => a stable, reproducible seed commit SHA.
+    env = {
+        **os.environ,
+        "GIT_AUTHOR_NAME": "lg032",
+        "GIT_AUTHOR_EMAIL": "lg032@local",
+        "GIT_COMMITTER_NAME": "lg032",
+        "GIT_COMMITTER_EMAIL": "lg032@local",
+        "GIT_AUTHOR_DATE": "2026-10-16T00:00:00+00:00",
+        "GIT_COMMITTER_DATE": "2026-10-16T00:00:00+00:00",
+    }
+    shutil.copytree(initial, seed, dirs_exist_ok=True)
+    subprocess.run(["git", "init", "-q", "--initial-branch=main"], cwd=seed, check=True, env=env)
+    subprocess.run(["git", "add", "-A"], cwd=seed, check=True, env=env)
+    subprocess.run(
+        ["git", "-c", "commit.gpgsign=false", "commit", "-q", "-m", "fixture initial"],
+        cwd=seed, check=True, env=env,
+    )
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=seed, capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    # A provenance record pins the seed identity for the fairness hash / audit.
+    (seed.parent / "seed.sha256").write_text(head + "\n", encoding="utf-8")
+    return head
+
+
+def _init_repo(root: Path, initial: Path, *, sample: str) -> str:
+    """Materialise the candidate workspace by CLONING the frozen seed repo.
+
+    The workspace is a real git repository (so the product's per-write-node
+    isolation applies and ``alpha``/``beta`` each get distinct worktrees).  Its
+    start identity is the **same actual commit SHA** as the per-sample seed, so
+    arm A and arm B start from one identical git commit object -- not merely an
+    identical tree.
 
     Preservation: ``root`` must be a caller-owned, uniquely-named path under
     this run's own attempt root.  Refuse to touch anything else so a history /
-    formal path can never be clobbered.
+    formal path can never be clobbered.  The read-only seed is never modified.
     """
 
     if root.exists() and "workspaces" not in root.parts:
@@ -342,9 +392,10 @@ def _init_repo(root: Path, initial: Path) -> str:
             f"_init_repo refusing to remove non-attempt path {root} "
             "(preservation: only this run's own candidate-ws may be reused)"
         )
+    seed = _seed_repo(sample)
+    seed_head = _ensure_seed(sample, initial)
     if root.exists():
         shutil.rmtree(root)
-    shutil.copytree(initial, root)
     env = {
         **os.environ,
         "GIT_AUTHOR_NAME": "lg032",
@@ -352,12 +403,26 @@ def _init_repo(root: Path, initial: Path) -> str:
         "GIT_COMMITTER_NAME": "lg032",
         "GIT_COMMITTER_EMAIL": "lg032@local",
     }
-    subprocess.run(["git", "init", "-q"], cwd=root, check=True, env=env)
-    subprocess.run(["git", "add", "-A"], cwd=root, check=True, env=env)
-    subprocess.run(["git", "-c", "commit.gpgsign=false", "commit", "-q", "-m", "fixture initial"],
+    # Clone the seed so the derived repo shares the exact seed commit object; a
+    # failed clone falls back to an explicit (SHA-checked) copy so a runner
+    # without a local git transport still gets the SAME commit.
+    proc = subprocess.run(
+        ["git", "clone", "-q", "--no-checkout", str(seed), str(root)],
+        capture_output=True, text=True, env=env,
+    )
+    if proc.returncode != 0:
+        shutil.copytree(seed, root)
+        subprocess.run(["git", "config", "--unset", "remote.origin.url"], cwd=root, check=False, env=env)
+    subprocess.run(["git", "-c", "advice.detachedHead=false", "checkout", "-q", seed_head],
                    cwd=root, check=True, env=env)
-    head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=root, capture_output=True,
-                          text=True, check=True).stdout.strip()
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=root, capture_output=True, text=True, check=True,
+    ).stdout.strip()
+    if head != seed_head:
+        raise SystemExit(
+            f"derived workspace HEAD {head} != frozen seed {seed_head} "
+            "(FAIRNESS-CORRECTION: A/B must share one actual commit SHA)"
+        )
     return head
 
 
@@ -563,7 +628,8 @@ def run_attempt(sample: str, arm: str, *, dry_run: bool = False,
 
     initial_dir = C.FIXTURES_DIR / sample / "initial"
     candidate_ws = workspace_root / "candidate-ws"
-    initial_head = _init_repo(candidate_ws, initial_dir)
+    initial_head = _init_repo(candidate_ws, initial_dir, sample=sample)
+    seed_head = _ensure_seed(sample, initial_dir)
 
     import uvicorn
 
@@ -579,6 +645,7 @@ def run_attempt(sample: str, arm: str, *, dry_run: bool = False,
         "sample": sample,
         "arm": arm,
         "initial_head": initial_head,
+        "seed_head": seed_head,
         "phase_data_dir": str(data_dir),
         "frozen_ledger_history": str(data_dir / "generation" / "generation.jsonl"),
         "total_limit": C.TOTAL_GENERATION_LIMIT,
@@ -650,6 +717,15 @@ def run_attempt(sample: str, arm: str, *, dry_run: bool = False,
         code, task = _http("POST", f"{base}/tasks", body=body)
         task_id = task.get("task_id")
         step("task_created", code == 200 and bool(task_id), code=code, task_id=task_id)
+
+        # Authorise the product's OWN registered machine checks on the Task
+        # (docs/08 §6.1 additive ``checks`` field).  Without this the product's
+        # ``verify_and_prepare`` runs ZERO checks and would treat "no checks" as
+        # a pass -- FAIRNESS-CORRECTION §5 forbids treating empty Task checks as
+        # a machine pass.  This is a legitimate Task configuration write through
+        # the product's controlled StateWriter (not a phase/acceptance edit).
+        checks_authorized = _authorize_task_checks(state, task_id)
+        step("task_checks_authorized", bool(checks_authorized), checks=checks_authorized)
 
         terminal = {"awaiting_acceptance", "waiting_user", "failed", "completed",
                     "recovery_required", "cancelled"}
@@ -836,6 +912,36 @@ def _review_from_store(state: Any, task_id: str) -> dict[str, Any]:
     out["outcome"] = out.get("outcome", "unknown")
     out["validated_outcome"] = out.get("validated_outcome", out["outcome"])
     return out
+
+
+#: The product's OWN registered machine check the Task authorises (docs/08
+#: §6.1 ``checks``).  ``evidence-present`` is the minimum the FAIRNESS-CORRECTION
+#: requires: it makes the product actually run a real registered check (failing
+#: when no artifact/diff evidence is recorded) instead of vacuously treating an
+#: empty Task-checks list as a pass.  ``artifacts-in-workspace`` (stricter
+#: workspace/evidence path resolution) is deliberately NOT forced here: it is not
+#: required for the graph evidence-present gate and could over-constrain a graph
+#: harness whose refs are already namespace-classified; it stays a follow-up.
+FROZEN_TASK_CHECKS = ("evidence-present",)
+
+
+def _authorize_task_checks(state: Any, task_id: str) -> tuple[str, ...]:
+    """Authorise the frozen product machine checks on the Task entity.
+
+    Uses the product's controlled ``StateWriter.write_task`` (the same unified
+    write interface every control change uses); it only sets the purely additive
+    ``checks`` authorization field, never a phase/acceptance/cleanup value.  The
+    verified report therefore carries real ``check_records`` instead of an empty
+    "no checks" set -- an empty Task-checks list must never masquerade as a
+    machine pass (FAIRNESS-CORRECTION §5).
+    """
+
+    from lightgravity.coordinator.state import StateWriter
+
+    store = state.store
+    writer = StateWriter(store, actor="lg032")
+    writer.write_task(task_id, {"checks": list(FROZEN_TASK_CHECKS)})
+    return FROZEN_TASK_CHECKS
 
 
 def _enable_decentralized_pool(settings: Any) -> None:
