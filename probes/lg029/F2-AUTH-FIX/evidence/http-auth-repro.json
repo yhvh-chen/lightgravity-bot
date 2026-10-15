@@ -1,0 +1,242 @@
+{
+  "product_model_calls": 0,
+  "note": "real ASGI + real FileStore; provider-substitute (no SDK, no model)",
+  "unauthenticated_claim": {
+    "status": 409,
+    "body": {
+      "error": {
+        "code": "claim_refused",
+        "message": "no active program execution grant was presented",
+        "details": {
+          "reason": "unauthenticated"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "state_after_unauthenticated": {
+    "run_ref": "run_01M50B702AZX5A6FPSK1E9CDEY",
+    "state": "pending",
+    "depends_on": [],
+    "assignee_member_ref": null,
+    "upstream_artifact_refs": [],
+    "objective": "objective for a",
+    "capability": "implementation",
+    "key": "a",
+    "write": false,
+    "config_hash": "hash-a",
+    "owner": null,
+    "lease_expires_at": null,
+    "fail_reason": null,
+    "blocked_by": [],
+    "acceptance": {
+      "status": "pending",
+      "criteria": [],
+      "evidence_refs": []
+    },
+    "schema": "lightgravity.bot/v1",
+    "kind": "subtask",
+    "id": "subtask_01M50B702C38B3HWEH589BVHBW",
+    "revision": 0
+  },
+  "impersonation_claim": {
+    "status": 409,
+    "body": {
+      "error": {
+        "code": "claim_refused",
+        "message": "request owner does not match the program-authenticated principal",
+        "details": {
+          "reason": "identity_mismatch",
+          "authenticated": "member-a"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "escalation_claim": {
+    "status": 422,
+    "body": {
+      "error": {
+        "code": "validation_failed",
+        "message": "request failed schema validation",
+        "details": {
+          "errors": [
+            {
+              "type": "extra_forbidden",
+              "loc": [
+                "body",
+                "write"
+              ],
+              "msg": "Extra inputs are not permitted",
+              "input": true
+            }
+          ]
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "state_after_escalation": {
+    "run_ref": "run_01M50B702AZX5A6FPSK1E9CDEY",
+    "state": "pending",
+    "depends_on": [],
+    "assignee_member_ref": null,
+    "upstream_artifact_refs": [],
+    "objective": "objective for a",
+    "capability": "implementation",
+    "key": "a",
+    "write": false,
+    "config_hash": "hash-a",
+    "owner": null,
+    "lease_expires_at": null,
+    "fail_reason": null,
+    "blocked_by": [],
+    "acceptance": {
+      "status": "pending",
+      "criteria": [],
+      "evidence_refs": []
+    },
+    "schema": "lightgravity.bot/v1",
+    "kind": "subtask",
+    "id": "subtask_01M50B702C38B3HWEH589BVHBW",
+    "revision": 0
+  },
+  "cross_run_claim": {
+    "status": 409,
+    "body": {
+      "error": {
+        "code": "claim_refused",
+        "message": "execution grant is scoped to a different run",
+        "details": {
+          "reason": "identity_mismatch",
+          "grant_run": "run_01M50B702AZX5A6FPSK1E9CDEY",
+          "requested_run": "run_01M50B706RB1G8F94V583XVMGY"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "authorized_claim": {
+    "status": 200,
+    "body": {
+      "granted": true,
+      "subtask_ref": "subtask_01M50B702C38B3HWEH589BVHBW",
+      "subtask_id": "subtask_01M50B702C38B3HWEH589BVHBW",
+      "owner": "member-a",
+      "request_id": "r-5",
+      "reason": "granted",
+      "fence": 1,
+      "lease_expires_at": "2026-10-15T17:55:28.208Z",
+      "revision": 1,
+      "idempotent_replay": false
+    }
+  },
+  "state_after_authorized": {
+    "run_ref": "run_01M50B702AZX5A6FPSK1E9CDEY",
+    "state": "running",
+    "depends_on": [],
+    "assignee_member_ref": null,
+    "upstream_artifact_refs": [],
+    "objective": "objective for a",
+    "capability": "implementation",
+    "key": "a",
+    "write": false,
+    "config_hash": "hash-a",
+    "owner": "member-a",
+    "lease_expires_at": "2026-10-15T17:55:28.208Z",
+    "fail_reason": null,
+    "blocked_by": [],
+    "acceptance": {
+      "status": "pending",
+      "criteria": [],
+      "evidence_refs": []
+    },
+    "schema": "lightgravity.bot/v1",
+    "kind": "subtask",
+    "id": "subtask_01M50B702C38B3HWEH589BVHBW",
+    "revision": 1,
+    "fence": 1
+  },
+  "stale_renew": {
+    "status": 409,
+    "body": {
+      "error": {
+        "code": "stale_lease",
+        "message": "fence mismatch for subtask subtask_01M50B702C38B3HWEH589BVHBW: provided=6 current=1",
+        "details": {
+          "reason": "fence_mismatch",
+          "subtask_ref": "subtask_01M50B702C38B3HWEH589BVHBW",
+          "provided_fence": 6,
+          "current_fence": 1
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "authorized_renew": {
+    "status": 200,
+    "body": {
+      "subtask_ref": "subtask_01M50B702C38B3HWEH589BVHBW",
+      "owner": "member-a",
+      "renewed": true,
+      "fence": 1,
+      "lease_expires_at": "2026-10-15T17:55:28.228Z",
+      "reason": "renewed"
+    }
+  },
+  "authorized_release": {
+    "status": 200,
+    "body": {
+      "subtask_ref": "subtask_01M50B702C38B3HWEH589BVHBW",
+      "owner": "member-a",
+      "released": true
+    }
+  },
+  "state_after_release": {
+    "run_ref": "run_01M50B702AZX5A6FPSK1E9CDEY",
+    "state": "running",
+    "depends_on": [],
+    "assignee_member_ref": null,
+    "upstream_artifact_refs": [],
+    "objective": "objective for a",
+    "capability": "implementation",
+    "key": "a",
+    "write": false,
+    "config_hash": "hash-a",
+    "owner": null,
+    "lease_expires_at": null,
+    "fail_reason": null,
+    "blocked_by": [],
+    "acceptance": {
+      "status": "pending",
+      "criteria": [],
+      "evidence_refs": []
+    },
+    "schema": "lightgravity.bot/v1",
+    "kind": "subtask",
+    "id": "subtask_01M50B702C38B3HWEH589BVHBW",
+    "revision": 3,
+    "fence": 1
+  },
+  "disabled_claim": {
+    "status": 409,
+    "body": {
+      "error": {
+        "code": "claim_refused",
+        "message": "decentralized claim is disabled",
+        "details": {
+          "reason": "feature_disabled",
+          "subtask_ref": "subtask_01M50B702C38B3HWEH589BVHBW"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "baseline_owner_before": null
+}

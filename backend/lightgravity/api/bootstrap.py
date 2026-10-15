@@ -72,6 +72,7 @@ from ..store import ConfigInvalid, EntityNotFound, FileStore, Store
 from ..store.entities import RESOURCE_DIRS
 from .access import AccessPolicy, LocalAccessPolicy
 from .app import create_app
+from .collaboration import resolve_request_grant
 from ..runtime.frontend import mount_frontend
 from ..runtime.hostguard import HostGuardMiddleware
 from ..runtime.minimal import DEFAULT_AGENT_ID, seed_default_agent
@@ -484,6 +485,9 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         # request presenting an execution grant is bound to the member the graph
         # minted; a body field is never consulted as authentication.
         worker_identity=resolve_worker_identity,
+        # LG-029 F2: the discovery/claim/lease endpoints enforce the full minted
+        # grant (member + run/subtask scope + fence), not just a member ref.
+        worker_grant=resolve_request_grant,
     )
     allowed_hosts = options.allowed_hosts
     env_hosts = os.environ.get(ALLOWED_HOSTS_ENV, "")

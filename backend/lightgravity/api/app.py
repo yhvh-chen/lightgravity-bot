@@ -121,6 +121,10 @@ def create_app(
     #: worker-scoped collaboration endpoints default-deny, so no caller can
     #: impersonate a run member with a body field.
     worker_identity: Any | None = None,
+    #: LG-029 F2 full-grant resolver.  ``None`` (default) leaves the
+    #: discovery/claim/lease endpoints default-deny; when wired it supplies the
+    #: program-frozen scope (run/subtask/fence) the body can never grant.
+    worker_grant: Any | None = None,
 ) -> FastAPI:
     """Build the application; every heavy dependency is injectable for tests."""
 
@@ -187,6 +191,7 @@ def create_app(
             broadcasting, NotificationStateStore(resolved.data_dir)
         ),
         worker_identity=worker_identity,
+        worker_grant=worker_grant,
     )
 
     @asynccontextmanager
