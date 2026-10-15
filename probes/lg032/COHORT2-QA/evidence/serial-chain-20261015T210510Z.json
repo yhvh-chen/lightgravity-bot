@@ -1,0 +1,1683 @@
+{
+  "chain": {
+    "attempt_order": [
+      "s1_units__A",
+      "s1_units__B",
+      "s2_pipeline__A",
+      "s2_pipeline__B"
+    ],
+    "steps": [
+      {
+        "accept_idempotent_response": {
+          "acceptance": {
+            "candidate_plan_hash": "f73476375c33091d6cbff82a3ef54602ad8fc2585e5f770f5aa21d9043ad664b",
+            "candidate_ref": "run_01M50P47J7YW4T5542GXXQK0VT",
+            "check_records": [
+              {
+                "check_id": "evidence-present",
+                "detail": "4 evidence ref(s) recorded",
+                "status": "passed"
+              }
+            ],
+            "decided_at": "2026-10-15T21:05:14.712Z",
+            "decision_ref": "lg032-s1_units__A-accept",
+            "deliverable_revision": 1,
+            "evidence_refs": [
+              "src/labels.py",
+              "evidence:run_01M50P47J7YW4T5542GXXQK0VT/subtask_01M50P47PN4Y1W17TEAX8K21Z5-lg006-diff.patch@sha256:b571d1ccc4c284eb183c76075e819054f8466af8960c62649c55982cadb1382c",
+              "src/numeric.py",
+              "evidence:run_01M50P47J7YW4T5542GXXQK0VT/subtask_01M50P47PNSTCFNC6B27P3Q9M8-lg006-diff.patch@sha256:cb2f260b9bd1e460714cfbf852a67164b83a2506b0faa3e874fc95de6f438ca0"
+            ],
+            "requirements_revision": 1,
+            "status": "accepted"
+          },
+          "action": "accept",
+          "candidate": null,
+          "candidate_ref": "run_01M50P47J7YW4T5542GXXQK0VT",
+          "checks": null,
+          "confirmed": true,
+          "messages": [
+            "decision 'accept' recorded; no merge/push/deploy performed"
+          ],
+          "phase": "completed",
+          "request_id": "lg032-s1_units__A-accept",
+          "state": "confirmed",
+          "stop": null,
+          "task_id": "task_01M50P47FHABBJ3G33P64EEB5A"
+        },
+        "accept_response": {
+          "acceptance": {
+            "candidate_plan_hash": "f73476375c33091d6cbff82a3ef54602ad8fc2585e5f770f5aa21d9043ad664b",
+            "candidate_ref": "run_01M50P47J7YW4T5542GXXQK0VT",
+            "check_records": [
+              {
+                "check_id": "evidence-present",
+                "detail": "4 evidence ref(s) recorded",
+                "status": "passed"
+              }
+            ],
+            "decided_at": "2026-10-15T21:05:14.712Z",
+            "decision_ref": "lg032-s1_units__A-accept",
+            "deliverable_revision": 1,
+            "evidence_refs": [
+              "src/labels.py",
+              "evidence:run_01M50P47J7YW4T5542GXXQK0VT/subtask_01M50P47PN4Y1W17TEAX8K21Z5-lg006-diff.patch@sha256:b571d1ccc4c284eb183c76075e819054f8466af8960c62649c55982cadb1382c",
+              "src/numeric.py",
+              "evidence:run_01M50P47J7YW4T5542GXXQK0VT/subtask_01M50P47PNSTCFNC6B27P3Q9M8-lg006-diff.patch@sha256:cb2f260b9bd1e460714cfbf852a67164b83a2506b0faa3e874fc95de6f438ca0"
+            ],
+            "requirements_revision": 1,
+            "status": "accepted"
+          },
+          "action": "accept",
+          "candidate": null,
+          "candidate_ref": "run_01M50P47J7YW4T5542GXXQK0VT",
+          "checks": null,
+          "confirmed": true,
+          "messages": [
+            "decision 'accept' recorded; no merge/push/deploy performed"
+          ],
+          "phase": "completed",
+          "request_id": "lg032-s1_units__A-accept",
+          "state": "confirmed",
+          "stop": null,
+          "task_id": "task_01M50P47FHABBJ3G33P64EEB5A"
+        },
+        "accept_wrong_target_response": {
+          "body": {
+            "error": {
+              "code": "illegal_transition",
+              "details": {
+                "active_run": null,
+                "target_run_id": "run_0000000000000000000000000"
+              },
+              "message": "target_run_id does not match the Task's active Run",
+              "request_id": null,
+              "retryable": false
+            }
+          },
+          "code": 409
+        },
+        "arm": "A",
+        "attempt_id": "s1_units__A",
+        "driver_error": null,
+        "fake_base_url": "http://127.0.0.1:37459/v1",
+        "fake_phase_records": 7,
+        "final_phase": "awaiting_acceptance",
+        "frozen_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+        "ledger_count_after": {
+          "count_json": {
+            "count": 7
+          },
+          "history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+          "history_exists": true,
+          "history_lines": 7
+        },
+        "ledger_count_before": {
+          "history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+          "history_exists": false
+        },
+        "machine_gate": {
+          "checks": [
+            {
+              "detail": "",
+              "name": "labels.slugify.basic",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "labels.slugify.runs",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "numeric.clamp",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "numeric.in_range",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "no_write_from_verify",
+              "passed": true
+            }
+          ],
+          "exit_code": 0,
+          "passed": 5,
+          "total": 5
+        },
+        "machine_pass": true,
+        "mode_restore": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "restored_off": true
+        },
+        "mode_snapshot_after_bootstrap": {
+          "arm": "A",
+          "congruent": true,
+          "dispatcher_autonomous_claim": false,
+          "dispatcher_autonomous_pool": false,
+          "dispatcher_decentralized_enabled": false,
+          "expected_enabled": false,
+          "mode_snapshot_before": {
+            "after": {
+              "claim_lease_seconds": 300,
+              "collab_requests_enabled": false,
+              "decentralized_claim_enabled": false,
+              "default_worker_connection_ref": "lg032-worker"
+            },
+            "arm": "A",
+            "before": {
+              "claim_lease_seconds": 300,
+              "collab_requests_enabled": false,
+              "decentralized_claim_enabled": false,
+              "default_worker_connection_ref": "lg032-worker"
+            }
+          },
+          "problems": [],
+          "settings_switches": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "ok": true,
+        "phases": [
+          "execution",
+          "review",
+          "verify"
+        ],
+        "rc": 0,
+        "result_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/offline_dry_run_output/s1_units__A/result.json",
+        "reviewer_cleanup": {
+          "agent_closed": true,
+          "confirmed": true,
+          "problems": [],
+          "proxy_stopped": true,
+          "status": "done"
+        },
+        "sample": "s1_units",
+        "seed_head": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1",
+        "selection_present": false,
+        "session_ref_count": 3,
+        "session_refs": [
+          "sess_04068cb0451344a8acb96adcef50c2e8",
+          "sess_05244a46642f4d39bf9add53b78621e8",
+          "sess_ed02fd564ee74ef5b447725cdc820e26"
+        ],
+        "steps": [
+          {
+            "name": "health_ok",
+            "ok": true
+          },
+          {
+            "name": "execution_ready",
+            "ok": true,
+            "reasons": []
+          },
+          {
+            "name": "reviewer_wired_model",
+            "ok": true,
+            "reviewer": {
+              "connection_id": "deepseek-v4-flash",
+              "credential_configured": true,
+              "reviewer": "model"
+            }
+          },
+          {
+            "generation": {
+              "corrupt": false,
+              "count": 0,
+              "limit": 192,
+              "persistent": true,
+              "remaining": 192
+            },
+            "name": "ledger_persistent_single_path",
+            "ok": true
+          },
+          {
+            "identity": {
+              "counter_is_global": true,
+              "counter_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+              "counter_ledger_matches_frozen": true,
+              "frozen_history_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+              "frozen_phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z",
+              "physical_history_exists_at_freeze": false
+            },
+            "name": "counter_ledger_matches_frozen_path",
+            "ok": true
+          },
+          {
+            "code": 200,
+            "name": "task_created",
+            "ok": true,
+            "task_id": "task_01M50P47FHABBJ3G33P64EEB5A"
+          },
+          {
+            "checks": [
+              "evidence-present"
+            ],
+            "name": "task_checks_authorized",
+            "ok": true
+          },
+          {
+            "name": "run_reached_awaiting_acceptance",
+            "ok": true,
+            "phase": "awaiting_acceptance",
+            "phases_seen": [
+              "awaiting_acceptance",
+              "executing",
+              "verifying"
+            ]
+          },
+          {
+            "machine": {
+              "checks": [
+                {
+                  "detail": "",
+                  "name": "labels.slugify.basic",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "labels.slugify.runs",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "numeric.clamp",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "numeric.in_range",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "no_write_from_verify",
+                  "passed": true
+                }
+              ],
+              "exit_code": 0,
+              "passed": 5,
+              "total": 5
+            },
+            "name": "machine_gate_pass",
+            "ok": true
+          },
+          {
+            "name": "real_session_refs_recorded",
+            "ok": true,
+            "session_refs": [
+              "sess_04068cb0451344a8acb96adcef50c2e8",
+              "sess_05244a46642f4d39bf9add53b78621e8",
+              "sess_ed02fd564ee74ef5b447725cdc820e26"
+            ]
+          },
+          {
+            "name": "reviewer_real_teardown_recorded",
+            "ok": true,
+            "reviewer_cleanup": {
+              "agent_closed": true,
+              "confirmed": true,
+              "problems": [],
+              "proxy_stopped": true,
+              "status": "done"
+            }
+          },
+          {
+            "acceptance": {
+              "candidate_plan_hash": "f73476375c33091d6cbff82a3ef54602ad8fc2585e5f770f5aa21d9043ad664b",
+              "candidate_ref": "run_01M50P47J7YW4T5542GXXQK0VT",
+              "check_records": [
+                {
+                  "check_id": "evidence-present",
+                  "detail": "4 evidence ref(s) recorded",
+                  "status": "passed"
+                }
+              ],
+              "decided_at": "2026-10-15T21:05:14.712Z",
+              "decision_ref": "lg032-s1_units__A-accept",
+              "deliverable_revision": 1,
+              "evidence_refs": [
+                "src/labels.py",
+                "evidence:run_01M50P47J7YW4T5542GXXQK0VT/subtask_01M50P47PN4Y1W17TEAX8K21Z5-lg006-diff.patch@sha256:b571d1ccc4c284eb183c76075e819054f8466af8960c62649c55982cadb1382c",
+                "src/numeric.py",
+                "evidence:run_01M50P47J7YW4T5542GXXQK0VT/subtask_01M50P47PNSTCFNC6B27P3Q9M8-lg006-diff.patch@sha256:cb2f260b9bd1e460714cfbf852a67164b83a2506b0faa3e874fc95de6f438ca0"
+              ],
+              "requirements_revision": 1,
+              "status": "accepted"
+            },
+            "candidate_ref": "run_01M50P47J7YW4T5542GXXQK0VT",
+            "code": 200,
+            "name": "accept_confirmed_bound",
+            "ok": true,
+            "state": "confirmed"
+          },
+          {
+            "code": 200,
+            "decision_ref": "lg032-s1_units__A-accept",
+            "name": "accept_same_request_idempotent",
+            "ok": true,
+            "state": "confirmed"
+          },
+          {
+            "body": {
+              "error": {
+                "code": "illegal_transition",
+                "details": {
+                  "active_run": null,
+                  "target_run_id": "run_0000000000000000000000000"
+                },
+                "message": "target_run_id does not match the Task's active Run",
+                "request_id": null,
+                "retryable": false
+              }
+            },
+            "code": 409,
+            "name": "accept_wrong_target_rejected",
+            "ok": true
+          }
+        ],
+        "steps_pass": 14,
+        "steps_total": 14,
+        "truths_before_accept": true
+      },
+      {
+        "accept_idempotent_response": {
+          "acceptance": {
+            "candidate_plan_hash": "4301bd0384e9fb23ec96255a852902f3615fb8a1d24d2c30d516dbcc979552dd",
+            "candidate_ref": "run_01M50P4BR3YZDKV7KGJ8682HHF",
+            "check_records": [
+              {
+                "check_id": "evidence-present",
+                "detail": "4 evidence ref(s) recorded",
+                "status": "passed"
+              }
+            ],
+            "decided_at": "2026-10-15T21:05:19.400Z",
+            "decision_ref": "lg032-s1_units__B-accept",
+            "deliverable_revision": 1,
+            "evidence_refs": [
+              "src/labels.py",
+              "evidence:run_01M50P4BR3YZDKV7KGJ8682HHF/subtask_01M50P4BWPTQ3RVX09CNKWW5KZ-lg006-diff.patch@sha256:b571d1ccc4c284eb183c76075e819054f8466af8960c62649c55982cadb1382c",
+              "src/numeric.py",
+              "evidence:run_01M50P4BR3YZDKV7KGJ8682HHF/subtask_01M50P4BWP6FHCJDYW2VSWMKHY-lg006-diff.patch@sha256:cb2f260b9bd1e460714cfbf852a67164b83a2506b0faa3e874fc95de6f438ca0"
+            ],
+            "requirements_revision": 1,
+            "status": "accepted"
+          },
+          "action": "accept",
+          "candidate": null,
+          "candidate_ref": "run_01M50P4BR3YZDKV7KGJ8682HHF",
+          "checks": null,
+          "confirmed": true,
+          "messages": [
+            "decision 'accept' recorded; no merge/push/deploy performed"
+          ],
+          "phase": "completed",
+          "request_id": "lg032-s1_units__B-accept",
+          "state": "confirmed",
+          "stop": null,
+          "task_id": "task_01M50P4BNH7WHVZHD0YMMGW0MV"
+        },
+        "accept_response": {
+          "acceptance": {
+            "candidate_plan_hash": "4301bd0384e9fb23ec96255a852902f3615fb8a1d24d2c30d516dbcc979552dd",
+            "candidate_ref": "run_01M50P4BR3YZDKV7KGJ8682HHF",
+            "check_records": [
+              {
+                "check_id": "evidence-present",
+                "detail": "4 evidence ref(s) recorded",
+                "status": "passed"
+              }
+            ],
+            "decided_at": "2026-10-15T21:05:19.400Z",
+            "decision_ref": "lg032-s1_units__B-accept",
+            "deliverable_revision": 1,
+            "evidence_refs": [
+              "src/labels.py",
+              "evidence:run_01M50P4BR3YZDKV7KGJ8682HHF/subtask_01M50P4BWPTQ3RVX09CNKWW5KZ-lg006-diff.patch@sha256:b571d1ccc4c284eb183c76075e819054f8466af8960c62649c55982cadb1382c",
+              "src/numeric.py",
+              "evidence:run_01M50P4BR3YZDKV7KGJ8682HHF/subtask_01M50P4BWP6FHCJDYW2VSWMKHY-lg006-diff.patch@sha256:cb2f260b9bd1e460714cfbf852a67164b83a2506b0faa3e874fc95de6f438ca0"
+            ],
+            "requirements_revision": 1,
+            "status": "accepted"
+          },
+          "action": "accept",
+          "candidate": null,
+          "candidate_ref": "run_01M50P4BR3YZDKV7KGJ8682HHF",
+          "checks": null,
+          "confirmed": true,
+          "messages": [
+            "decision 'accept' recorded; no merge/push/deploy performed"
+          ],
+          "phase": "completed",
+          "request_id": "lg032-s1_units__B-accept",
+          "state": "confirmed",
+          "stop": null,
+          "task_id": "task_01M50P4BNH7WHVZHD0YMMGW0MV"
+        },
+        "accept_wrong_target_response": {
+          "body": {
+            "error": {
+              "code": "illegal_transition",
+              "details": {
+                "active_run": null,
+                "target_run_id": "run_0000000000000000000000000"
+              },
+              "message": "target_run_id does not match the Task's active Run",
+              "request_id": null,
+              "retryable": false
+            }
+          },
+          "code": 409
+        },
+        "arm": "B",
+        "attempt_id": "s1_units__B",
+        "driver_error": null,
+        "fake_base_url": "http://127.0.0.1:40847/v1",
+        "fake_phase_records": 16,
+        "final_phase": "awaiting_acceptance",
+        "frozen_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+        "ledger_count_after": {
+          "count_json": {
+            "count": 23
+          },
+          "history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+          "history_exists": true,
+          "history_lines": 23
+        },
+        "ledger_count_before": {
+          "count_json": {
+            "count": 7
+          },
+          "history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+          "history_exists": true,
+          "history_lines": 7
+        },
+        "machine_gate": {
+          "checks": [
+            {
+              "detail": "",
+              "name": "labels.slugify.basic",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "labels.slugify.runs",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "numeric.clamp",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "numeric.in_range",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "no_write_from_verify",
+              "passed": true
+            }
+          ],
+          "exit_code": 0,
+          "passed": 5,
+          "total": 5
+        },
+        "machine_pass": true,
+        "mode_restore": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "restored_off": true
+        },
+        "mode_snapshot_after_bootstrap": {
+          "arm": "B",
+          "congruent": true,
+          "dispatcher_autonomous_claim": true,
+          "dispatcher_autonomous_pool": true,
+          "dispatcher_decentralized_enabled": true,
+          "expected_enabled": true,
+          "mode_snapshot_before": {
+            "after": {
+              "claim_lease_seconds": 300,
+              "collab_requests_enabled": false,
+              "decentralized_claim_enabled": true,
+              "default_worker_connection_ref": "lg032-worker"
+            },
+            "arm": "B",
+            "before": {
+              "claim_lease_seconds": 300,
+              "collab_requests_enabled": false,
+              "decentralized_claim_enabled": false,
+              "default_worker_connection_ref": "lg032-worker"
+            }
+          },
+          "problems": [],
+          "settings_switches": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "ok": true,
+        "phases": [
+          "execution",
+          "review",
+          "selection",
+          "verify"
+        ],
+        "rc": 0,
+        "result_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/offline_dry_run_output/s1_units__B/result.json",
+        "reviewer_cleanup": {
+          "agent_closed": true,
+          "confirmed": true,
+          "problems": [],
+          "proxy_stopped": true,
+          "status": "done"
+        },
+        "sample": "s1_units",
+        "seed_head": "53458ac742b5aa4fd6913000aeeb69ae94cc80c1",
+        "selection_present": true,
+        "session_ref_count": 6,
+        "session_refs": [
+          "sess_bca7ce727dfb4d278c61ea1746659fcc",
+          "sess_549f6d97f4a2424da244f6f26f444602",
+          "sess_9bceff915950470b82209d0a2973be67",
+          "sess_48e97eb537aa4946bca74d95c0610dbf",
+          "sess_335d2b94d6404ad4b48f61ccf43ed6e6",
+          "sess_036a14713497435492ce8fb782b7c702"
+        ],
+        "steps": [
+          {
+            "name": "health_ok",
+            "ok": true
+          },
+          {
+            "name": "execution_ready",
+            "ok": true,
+            "reasons": []
+          },
+          {
+            "name": "reviewer_wired_model",
+            "ok": true,
+            "reviewer": {
+              "connection_id": "deepseek-v4-flash",
+              "credential_configured": true,
+              "reviewer": "model"
+            }
+          },
+          {
+            "generation": {
+              "corrupt": false,
+              "count": 7,
+              "limit": 192,
+              "persistent": true,
+              "remaining": 185
+            },
+            "name": "ledger_persistent_single_path",
+            "ok": true
+          },
+          {
+            "identity": {
+              "counter_is_global": true,
+              "counter_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+              "counter_ledger_matches_frozen": true,
+              "frozen_history_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+              "frozen_phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z",
+              "physical_history_exists_at_freeze": true
+            },
+            "name": "counter_ledger_matches_frozen_path",
+            "ok": true
+          },
+          {
+            "code": 200,
+            "name": "task_created",
+            "ok": true,
+            "task_id": "task_01M50P4BNH7WHVZHD0YMMGW0MV"
+          },
+          {
+            "checks": [
+              "evidence-present"
+            ],
+            "name": "task_checks_authorized",
+            "ok": true
+          },
+          {
+            "name": "run_reached_awaiting_acceptance",
+            "ok": true,
+            "phase": "awaiting_acceptance",
+            "phases_seen": [
+              "awaiting_acceptance",
+              "executing",
+              "verifying"
+            ]
+          },
+          {
+            "machine": {
+              "checks": [
+                {
+                  "detail": "",
+                  "name": "labels.slugify.basic",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "labels.slugify.runs",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "numeric.clamp",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "numeric.in_range",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "no_write_from_verify",
+                  "passed": true
+                }
+              ],
+              "exit_code": 0,
+              "passed": 5,
+              "total": 5
+            },
+            "name": "machine_gate_pass",
+            "ok": true
+          },
+          {
+            "name": "real_session_refs_recorded",
+            "ok": true,
+            "session_refs": [
+              "sess_bca7ce727dfb4d278c61ea1746659fcc",
+              "sess_549f6d97f4a2424da244f6f26f444602",
+              "sess_9bceff915950470b82209d0a2973be67",
+              "sess_48e97eb537aa4946bca74d95c0610dbf",
+              "sess_335d2b94d6404ad4b48f61ccf43ed6e6",
+              "sess_036a14713497435492ce8fb782b7c702"
+            ]
+          },
+          {
+            "name": "reviewer_real_teardown_recorded",
+            "ok": true,
+            "reviewer_cleanup": {
+              "agent_closed": true,
+              "confirmed": true,
+              "problems": [],
+              "proxy_stopped": true,
+              "status": "done"
+            }
+          },
+          {
+            "acceptance": {
+              "candidate_plan_hash": "4301bd0384e9fb23ec96255a852902f3615fb8a1d24d2c30d516dbcc979552dd",
+              "candidate_ref": "run_01M50P4BR3YZDKV7KGJ8682HHF",
+              "check_records": [
+                {
+                  "check_id": "evidence-present",
+                  "detail": "4 evidence ref(s) recorded",
+                  "status": "passed"
+                }
+              ],
+              "decided_at": "2026-10-15T21:05:19.400Z",
+              "decision_ref": "lg032-s1_units__B-accept",
+              "deliverable_revision": 1,
+              "evidence_refs": [
+                "src/labels.py",
+                "evidence:run_01M50P4BR3YZDKV7KGJ8682HHF/subtask_01M50P4BWPTQ3RVX09CNKWW5KZ-lg006-diff.patch@sha256:b571d1ccc4c284eb183c76075e819054f8466af8960c62649c55982cadb1382c",
+                "src/numeric.py",
+                "evidence:run_01M50P4BR3YZDKV7KGJ8682HHF/subtask_01M50P4BWP6FHCJDYW2VSWMKHY-lg006-diff.patch@sha256:cb2f260b9bd1e460714cfbf852a67164b83a2506b0faa3e874fc95de6f438ca0"
+              ],
+              "requirements_revision": 1,
+              "status": "accepted"
+            },
+            "candidate_ref": "run_01M50P4BR3YZDKV7KGJ8682HHF",
+            "code": 200,
+            "name": "accept_confirmed_bound",
+            "ok": true,
+            "state": "confirmed"
+          },
+          {
+            "code": 200,
+            "decision_ref": "lg032-s1_units__B-accept",
+            "name": "accept_same_request_idempotent",
+            "ok": true,
+            "state": "confirmed"
+          },
+          {
+            "body": {
+              "error": {
+                "code": "illegal_transition",
+                "details": {
+                  "active_run": null,
+                  "target_run_id": "run_0000000000000000000000000"
+                },
+                "message": "target_run_id does not match the Task's active Run",
+                "request_id": null,
+                "retryable": false
+              }
+            },
+            "code": 409,
+            "name": "accept_wrong_target_rejected",
+            "ok": true
+          }
+        ],
+        "steps_pass": 14,
+        "steps_total": 14,
+        "truths_before_accept": true
+      },
+      {
+        "accept_idempotent_response": {
+          "acceptance": {
+            "candidate_plan_hash": "3519527fc0cbf9d778666f1012dd898eb66a3491b1a01b4794b646dd3fc94430",
+            "candidate_ref": "run_01M50P4G9SD38764DETYKG2BTM",
+            "check_records": [
+              {
+                "check_id": "evidence-present",
+                "detail": "4 evidence ref(s) recorded",
+                "status": "passed"
+              }
+            ],
+            "decided_at": "2026-10-15T21:05:23.383Z",
+            "decision_ref": "lg032-s2_pipeline__A-accept",
+            "deliverable_revision": 1,
+            "evidence_refs": [
+              "src/shapes.py",
+              "evidence:run_01M50P4G9SD38764DETYKG2BTM/subtask_01M50P4GDZH8BZT0F9RXAQ4RMG-lg006-diff.patch@sha256:c490778cf381703bb679dd05743ee22ea6de8c72e9caac831fc6ea95e3e1ff1f",
+              "src/report.py",
+              "evidence:run_01M50P4G9SD38764DETYKG2BTM/subtask_01M50P4GDZ828WVMS8587WY6BB-lg006-diff.patch@sha256:88d2aae6976e075e3996eb7637874fc7b174bcd6231ee50db9d86758d9eb036c"
+            ],
+            "requirements_revision": 1,
+            "status": "accepted"
+          },
+          "action": "accept",
+          "candidate": null,
+          "candidate_ref": "run_01M50P4G9SD38764DETYKG2BTM",
+          "checks": null,
+          "confirmed": true,
+          "messages": [
+            "decision 'accept' recorded; no merge/push/deploy performed"
+          ],
+          "phase": "completed",
+          "request_id": "lg032-s2_pipeline__A-accept",
+          "state": "confirmed",
+          "stop": null,
+          "task_id": "task_01M50P4G4RRYF5PQ259JPYFNJW"
+        },
+        "accept_response": {
+          "acceptance": {
+            "candidate_plan_hash": "3519527fc0cbf9d778666f1012dd898eb66a3491b1a01b4794b646dd3fc94430",
+            "candidate_ref": "run_01M50P4G9SD38764DETYKG2BTM",
+            "check_records": [
+              {
+                "check_id": "evidence-present",
+                "detail": "4 evidence ref(s) recorded",
+                "status": "passed"
+              }
+            ],
+            "decided_at": "2026-10-15T21:05:23.383Z",
+            "decision_ref": "lg032-s2_pipeline__A-accept",
+            "deliverable_revision": 1,
+            "evidence_refs": [
+              "src/shapes.py",
+              "evidence:run_01M50P4G9SD38764DETYKG2BTM/subtask_01M50P4GDZH8BZT0F9RXAQ4RMG-lg006-diff.patch@sha256:c490778cf381703bb679dd05743ee22ea6de8c72e9caac831fc6ea95e3e1ff1f",
+              "src/report.py",
+              "evidence:run_01M50P4G9SD38764DETYKG2BTM/subtask_01M50P4GDZ828WVMS8587WY6BB-lg006-diff.patch@sha256:88d2aae6976e075e3996eb7637874fc7b174bcd6231ee50db9d86758d9eb036c"
+            ],
+            "requirements_revision": 1,
+            "status": "accepted"
+          },
+          "action": "accept",
+          "candidate": null,
+          "candidate_ref": "run_01M50P4G9SD38764DETYKG2BTM",
+          "checks": null,
+          "confirmed": true,
+          "messages": [
+            "decision 'accept' recorded; no merge/push/deploy performed"
+          ],
+          "phase": "completed",
+          "request_id": "lg032-s2_pipeline__A-accept",
+          "state": "confirmed",
+          "stop": null,
+          "task_id": "task_01M50P4G4RRYF5PQ259JPYFNJW"
+        },
+        "accept_wrong_target_response": {
+          "body": {
+            "error": {
+              "code": "illegal_transition",
+              "details": {
+                "active_run": null,
+                "target_run_id": "run_0000000000000000000000000"
+              },
+              "message": "target_run_id does not match the Task's active Run",
+              "request_id": null,
+              "retryable": false
+            }
+          },
+          "code": 409
+        },
+        "arm": "A",
+        "attempt_id": "s2_pipeline__A",
+        "driver_error": null,
+        "fake_base_url": "http://127.0.0.1:40455/v1",
+        "fake_phase_records": 7,
+        "final_phase": "awaiting_acceptance",
+        "frozen_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+        "ledger_count_after": {
+          "count_json": {
+            "count": 30
+          },
+          "history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+          "history_exists": true,
+          "history_lines": 30
+        },
+        "ledger_count_before": {
+          "count_json": {
+            "count": 23
+          },
+          "history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+          "history_exists": true,
+          "history_lines": 23
+        },
+        "machine_gate": {
+          "checks": [
+            {
+              "detail": "",
+              "name": "shapes.rect.area",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "shapes.circle.area",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "shapes.rect.perimeter",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "shapes.bad.kind",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "report.rect",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "report.circle",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "no_write_from_verify",
+              "passed": true
+            }
+          ],
+          "exit_code": 0,
+          "passed": 7,
+          "total": 7
+        },
+        "machine_pass": true,
+        "mode_restore": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "restored_off": true
+        },
+        "mode_snapshot_after_bootstrap": {
+          "arm": "A",
+          "congruent": true,
+          "dispatcher_autonomous_claim": false,
+          "dispatcher_autonomous_pool": false,
+          "dispatcher_decentralized_enabled": false,
+          "expected_enabled": false,
+          "mode_snapshot_before": {
+            "after": {
+              "claim_lease_seconds": 300,
+              "collab_requests_enabled": false,
+              "decentralized_claim_enabled": false,
+              "default_worker_connection_ref": "lg032-worker"
+            },
+            "arm": "A",
+            "before": {
+              "claim_lease_seconds": 300,
+              "collab_requests_enabled": false,
+              "decentralized_claim_enabled": false,
+              "default_worker_connection_ref": "lg032-worker"
+            }
+          },
+          "problems": [],
+          "settings_switches": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "ok": true,
+        "phases": [
+          "execution",
+          "review",
+          "verify"
+        ],
+        "rc": 0,
+        "result_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/offline_dry_run_output/s2_pipeline__A/result.json",
+        "reviewer_cleanup": {
+          "agent_closed": true,
+          "confirmed": true,
+          "problems": [],
+          "proxy_stopped": true,
+          "status": "done"
+        },
+        "sample": "s2_pipeline",
+        "seed_head": "6fa0fd006ff058a7299f5e6dc42013fa051303de",
+        "selection_present": false,
+        "session_ref_count": 3,
+        "session_refs": [
+          "sess_d25da2b93ecd40acaa28de886a4d4c26",
+          "sess_2bfb37349a4a4e9a936258c915f41dd0",
+          "sess_49cce65b32b24e1e854efeb32e54dbba"
+        ],
+        "steps": [
+          {
+            "name": "health_ok",
+            "ok": true
+          },
+          {
+            "name": "execution_ready",
+            "ok": true,
+            "reasons": []
+          },
+          {
+            "name": "reviewer_wired_model",
+            "ok": true,
+            "reviewer": {
+              "connection_id": "deepseek-v4-flash",
+              "credential_configured": true,
+              "reviewer": "model"
+            }
+          },
+          {
+            "generation": {
+              "corrupt": false,
+              "count": 23,
+              "limit": 192,
+              "persistent": true,
+              "remaining": 169
+            },
+            "name": "ledger_persistent_single_path",
+            "ok": true
+          },
+          {
+            "identity": {
+              "counter_is_global": true,
+              "counter_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+              "counter_ledger_matches_frozen": true,
+              "frozen_history_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+              "frozen_phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z",
+              "physical_history_exists_at_freeze": true
+            },
+            "name": "counter_ledger_matches_frozen_path",
+            "ok": true
+          },
+          {
+            "code": 200,
+            "name": "task_created",
+            "ok": true,
+            "task_id": "task_01M50P4G4RRYF5PQ259JPYFNJW"
+          },
+          {
+            "checks": [
+              "evidence-present"
+            ],
+            "name": "task_checks_authorized",
+            "ok": true
+          },
+          {
+            "name": "run_reached_awaiting_acceptance",
+            "ok": true,
+            "phase": "awaiting_acceptance",
+            "phases_seen": [
+              "awaiting_acceptance",
+              "executing",
+              "verifying"
+            ]
+          },
+          {
+            "machine": {
+              "checks": [
+                {
+                  "detail": "",
+                  "name": "shapes.rect.area",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "shapes.circle.area",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "shapes.rect.perimeter",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "shapes.bad.kind",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "report.rect",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "report.circle",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "no_write_from_verify",
+                  "passed": true
+                }
+              ],
+              "exit_code": 0,
+              "passed": 7,
+              "total": 7
+            },
+            "name": "machine_gate_pass",
+            "ok": true
+          },
+          {
+            "name": "real_session_refs_recorded",
+            "ok": true,
+            "session_refs": [
+              "sess_d25da2b93ecd40acaa28de886a4d4c26",
+              "sess_2bfb37349a4a4e9a936258c915f41dd0",
+              "sess_49cce65b32b24e1e854efeb32e54dbba"
+            ]
+          },
+          {
+            "name": "reviewer_real_teardown_recorded",
+            "ok": true,
+            "reviewer_cleanup": {
+              "agent_closed": true,
+              "confirmed": true,
+              "problems": [],
+              "proxy_stopped": true,
+              "status": "done"
+            }
+          },
+          {
+            "acceptance": {
+              "candidate_plan_hash": "3519527fc0cbf9d778666f1012dd898eb66a3491b1a01b4794b646dd3fc94430",
+              "candidate_ref": "run_01M50P4G9SD38764DETYKG2BTM",
+              "check_records": [
+                {
+                  "check_id": "evidence-present",
+                  "detail": "4 evidence ref(s) recorded",
+                  "status": "passed"
+                }
+              ],
+              "decided_at": "2026-10-15T21:05:23.383Z",
+              "decision_ref": "lg032-s2_pipeline__A-accept",
+              "deliverable_revision": 1,
+              "evidence_refs": [
+                "src/shapes.py",
+                "evidence:run_01M50P4G9SD38764DETYKG2BTM/subtask_01M50P4GDZH8BZT0F9RXAQ4RMG-lg006-diff.patch@sha256:c490778cf381703bb679dd05743ee22ea6de8c72e9caac831fc6ea95e3e1ff1f",
+                "src/report.py",
+                "evidence:run_01M50P4G9SD38764DETYKG2BTM/subtask_01M50P4GDZ828WVMS8587WY6BB-lg006-diff.patch@sha256:88d2aae6976e075e3996eb7637874fc7b174bcd6231ee50db9d86758d9eb036c"
+              ],
+              "requirements_revision": 1,
+              "status": "accepted"
+            },
+            "candidate_ref": "run_01M50P4G9SD38764DETYKG2BTM",
+            "code": 200,
+            "name": "accept_confirmed_bound",
+            "ok": true,
+            "state": "confirmed"
+          },
+          {
+            "code": 200,
+            "decision_ref": "lg032-s2_pipeline__A-accept",
+            "name": "accept_same_request_idempotent",
+            "ok": true,
+            "state": "confirmed"
+          },
+          {
+            "body": {
+              "error": {
+                "code": "illegal_transition",
+                "details": {
+                  "active_run": null,
+                  "target_run_id": "run_0000000000000000000000000"
+                },
+                "message": "target_run_id does not match the Task's active Run",
+                "request_id": null,
+                "retryable": false
+              }
+            },
+            "code": 409,
+            "name": "accept_wrong_target_rejected",
+            "ok": true
+          }
+        ],
+        "steps_pass": 14,
+        "steps_total": 14,
+        "truths_before_accept": true
+      },
+      {
+        "accept_idempotent_response": {
+          "acceptance": {
+            "candidate_plan_hash": "025cc5d81e0bb7c91858142854872ecaf0acd5c3df3046ff31da6f62c34c7f44",
+            "candidate_ref": "run_01M50P4MJ3QCR21HQ8RMGDS8FF",
+            "check_records": [
+              {
+                "check_id": "evidence-present",
+                "detail": "4 evidence ref(s) recorded",
+                "status": "passed"
+              }
+            ],
+            "decided_at": "2026-10-15T21:05:28.480Z",
+            "decision_ref": "lg032-s2_pipeline__B-accept",
+            "deliverable_revision": 1,
+            "evidence_refs": [
+              "src/shapes.py",
+              "evidence:run_01M50P4MJ3QCR21HQ8RMGDS8FF/subtask_01M50P4MP5SK7QNJGTHW7D9RKQ-lg006-diff.patch@sha256:c490778cf381703bb679dd05743ee22ea6de8c72e9caac831fc6ea95e3e1ff1f",
+              "src/report.py",
+              "evidence:run_01M50P4MJ3QCR21HQ8RMGDS8FF/subtask_01M50P4MP5XG32VT6ZQEPJXJMM-lg006-diff.patch@sha256:88d2aae6976e075e3996eb7637874fc7b174bcd6231ee50db9d86758d9eb036c"
+            ],
+            "requirements_revision": 1,
+            "status": "accepted"
+          },
+          "action": "accept",
+          "candidate": null,
+          "candidate_ref": "run_01M50P4MJ3QCR21HQ8RMGDS8FF",
+          "checks": null,
+          "confirmed": true,
+          "messages": [
+            "decision 'accept' recorded; no merge/push/deploy performed"
+          ],
+          "phase": "completed",
+          "request_id": "lg032-s2_pipeline__B-accept",
+          "state": "confirmed",
+          "stop": null,
+          "task_id": "task_01M50P4MER9MQ7TZZHWNN5VJQ7"
+        },
+        "accept_response": {
+          "acceptance": {
+            "candidate_plan_hash": "025cc5d81e0bb7c91858142854872ecaf0acd5c3df3046ff31da6f62c34c7f44",
+            "candidate_ref": "run_01M50P4MJ3QCR21HQ8RMGDS8FF",
+            "check_records": [
+              {
+                "check_id": "evidence-present",
+                "detail": "4 evidence ref(s) recorded",
+                "status": "passed"
+              }
+            ],
+            "decided_at": "2026-10-15T21:05:28.480Z",
+            "decision_ref": "lg032-s2_pipeline__B-accept",
+            "deliverable_revision": 1,
+            "evidence_refs": [
+              "src/shapes.py",
+              "evidence:run_01M50P4MJ3QCR21HQ8RMGDS8FF/subtask_01M50P4MP5SK7QNJGTHW7D9RKQ-lg006-diff.patch@sha256:c490778cf381703bb679dd05743ee22ea6de8c72e9caac831fc6ea95e3e1ff1f",
+              "src/report.py",
+              "evidence:run_01M50P4MJ3QCR21HQ8RMGDS8FF/subtask_01M50P4MP5XG32VT6ZQEPJXJMM-lg006-diff.patch@sha256:88d2aae6976e075e3996eb7637874fc7b174bcd6231ee50db9d86758d9eb036c"
+            ],
+            "requirements_revision": 1,
+            "status": "accepted"
+          },
+          "action": "accept",
+          "candidate": null,
+          "candidate_ref": "run_01M50P4MJ3QCR21HQ8RMGDS8FF",
+          "checks": null,
+          "confirmed": true,
+          "messages": [
+            "decision 'accept' recorded; no merge/push/deploy performed"
+          ],
+          "phase": "completed",
+          "request_id": "lg032-s2_pipeline__B-accept",
+          "state": "confirmed",
+          "stop": null,
+          "task_id": "task_01M50P4MER9MQ7TZZHWNN5VJQ7"
+        },
+        "accept_wrong_target_response": {
+          "body": {
+            "error": {
+              "code": "illegal_transition",
+              "details": {
+                "active_run": null,
+                "target_run_id": "run_0000000000000000000000000"
+              },
+              "message": "target_run_id does not match the Task's active Run",
+              "request_id": null,
+              "retryable": false
+            }
+          },
+          "code": 409
+        },
+        "arm": "B",
+        "attempt_id": "s2_pipeline__B",
+        "driver_error": null,
+        "fake_base_url": "http://127.0.0.1:41281/v1",
+        "fake_phase_records": 16,
+        "final_phase": "awaiting_acceptance",
+        "frozen_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+        "ledger_count_after": {
+          "count_json": {
+            "count": 46
+          },
+          "history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+          "history_exists": true,
+          "history_lines": 46
+        },
+        "ledger_count_before": {
+          "count_json": {
+            "count": 30
+          },
+          "history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+          "history_exists": true,
+          "history_lines": 30
+        },
+        "machine_gate": {
+          "checks": [
+            {
+              "detail": "",
+              "name": "shapes.rect.area",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "shapes.circle.area",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "shapes.rect.perimeter",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "shapes.bad.kind",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "report.rect",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "report.circle",
+              "passed": true
+            },
+            {
+              "detail": "",
+              "name": "no_write_from_verify",
+              "passed": true
+            }
+          ],
+          "exit_code": 0,
+          "passed": 7,
+          "total": 7
+        },
+        "machine_pass": true,
+        "mode_restore": {
+          "after": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": false,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "before": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          },
+          "restored_off": true
+        },
+        "mode_snapshot_after_bootstrap": {
+          "arm": "B",
+          "congruent": true,
+          "dispatcher_autonomous_claim": true,
+          "dispatcher_autonomous_pool": true,
+          "dispatcher_decentralized_enabled": true,
+          "expected_enabled": true,
+          "mode_snapshot_before": {
+            "after": {
+              "claim_lease_seconds": 300,
+              "collab_requests_enabled": false,
+              "decentralized_claim_enabled": true,
+              "default_worker_connection_ref": "lg032-worker"
+            },
+            "arm": "B",
+            "before": {
+              "claim_lease_seconds": 300,
+              "collab_requests_enabled": false,
+              "decentralized_claim_enabled": false,
+              "default_worker_connection_ref": "lg032-worker"
+            }
+          },
+          "problems": [],
+          "settings_switches": {
+            "claim_lease_seconds": 300,
+            "collab_requests_enabled": false,
+            "decentralized_claim_enabled": true,
+            "default_worker_connection_ref": "lg032-worker"
+          }
+        },
+        "ok": true,
+        "phases": [
+          "execution",
+          "review",
+          "selection",
+          "verify"
+        ],
+        "rc": 0,
+        "result_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/offline_dry_run_output/s2_pipeline__B/result.json",
+        "reviewer_cleanup": {
+          "agent_closed": true,
+          "confirmed": true,
+          "problems": [],
+          "proxy_stopped": true,
+          "status": "done"
+        },
+        "sample": "s2_pipeline",
+        "seed_head": "6fa0fd006ff058a7299f5e6dc42013fa051303de",
+        "selection_present": true,
+        "session_ref_count": 6,
+        "session_refs": [
+          "sess_0c2bd4c4b5f74353a82e90b3d7c532b9",
+          "sess_0dcc99d207e147739b4951c543179e68",
+          "sess_f63f12ff889f45fcbaa117ff0d721f2d",
+          "sess_4b7dfa880f7a41c3859b6c03900115d2",
+          "sess_a05466904cce4a7989eadf45a546ad45",
+          "sess_a81d01041aff4dc38ef664a966d39753"
+        ],
+        "steps": [
+          {
+            "name": "health_ok",
+            "ok": true
+          },
+          {
+            "name": "execution_ready",
+            "ok": true,
+            "reasons": []
+          },
+          {
+            "name": "reviewer_wired_model",
+            "ok": true,
+            "reviewer": {
+              "connection_id": "deepseek-v4-flash",
+              "credential_configured": true,
+              "reviewer": "model"
+            }
+          },
+          {
+            "generation": {
+              "corrupt": false,
+              "count": 30,
+              "limit": 192,
+              "persistent": true,
+              "remaining": 162
+            },
+            "name": "ledger_persistent_single_path",
+            "ok": true
+          },
+          {
+            "identity": {
+              "counter_is_global": true,
+              "counter_ledger_history": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+              "counter_ledger_matches_frozen": true,
+              "frozen_history_path": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z/generation/generation.jsonl",
+              "frozen_phase_data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z",
+              "physical_history_exists_at_freeze": true
+            },
+            "name": "counter_ledger_matches_frozen_path",
+            "ok": true
+          },
+          {
+            "code": 200,
+            "name": "task_created",
+            "ok": true,
+            "task_id": "task_01M50P4MER9MQ7TZZHWNN5VJQ7"
+          },
+          {
+            "checks": [
+              "evidence-present"
+            ],
+            "name": "task_checks_authorized",
+            "ok": true
+          },
+          {
+            "name": "run_reached_awaiting_acceptance",
+            "ok": true,
+            "phase": "awaiting_acceptance",
+            "phases_seen": [
+              "awaiting_acceptance",
+              "executing",
+              "verifying"
+            ]
+          },
+          {
+            "machine": {
+              "checks": [
+                {
+                  "detail": "",
+                  "name": "shapes.rect.area",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "shapes.circle.area",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "shapes.rect.perimeter",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "shapes.bad.kind",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "report.rect",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "report.circle",
+                  "passed": true
+                },
+                {
+                  "detail": "",
+                  "name": "no_write_from_verify",
+                  "passed": true
+                }
+              ],
+              "exit_code": 0,
+              "passed": 7,
+              "total": 7
+            },
+            "name": "machine_gate_pass",
+            "ok": true
+          },
+          {
+            "name": "real_session_refs_recorded",
+            "ok": true,
+            "session_refs": [
+              "sess_0c2bd4c4b5f74353a82e90b3d7c532b9",
+              "sess_0dcc99d207e147739b4951c543179e68",
+              "sess_f63f12ff889f45fcbaa117ff0d721f2d",
+              "sess_4b7dfa880f7a41c3859b6c03900115d2",
+              "sess_a05466904cce4a7989eadf45a546ad45",
+              "sess_a81d01041aff4dc38ef664a966d39753"
+            ]
+          },
+          {
+            "name": "reviewer_real_teardown_recorded",
+            "ok": true,
+            "reviewer_cleanup": {
+              "agent_closed": true,
+              "confirmed": true,
+              "problems": [],
+              "proxy_stopped": true,
+              "status": "done"
+            }
+          },
+          {
+            "acceptance": {
+              "candidate_plan_hash": "025cc5d81e0bb7c91858142854872ecaf0acd5c3df3046ff31da6f62c34c7f44",
+              "candidate_ref": "run_01M50P4MJ3QCR21HQ8RMGDS8FF",
+              "check_records": [
+                {
+                  "check_id": "evidence-present",
+                  "detail": "4 evidence ref(s) recorded",
+                  "status": "passed"
+                }
+              ],
+              "decided_at": "2026-10-15T21:05:28.480Z",
+              "decision_ref": "lg032-s2_pipeline__B-accept",
+              "deliverable_revision": 1,
+              "evidence_refs": [
+                "src/shapes.py",
+                "evidence:run_01M50P4MJ3QCR21HQ8RMGDS8FF/subtask_01M50P4MP5SK7QNJGTHW7D9RKQ-lg006-diff.patch@sha256:c490778cf381703bb679dd05743ee22ea6de8c72e9caac831fc6ea95e3e1ff1f",
+                "src/report.py",
+                "evidence:run_01M50P4MJ3QCR21HQ8RMGDS8FF/subtask_01M50P4MP5XG32VT6ZQEPJXJMM-lg006-diff.patch@sha256:88d2aae6976e075e3996eb7637874fc7b174bcd6231ee50db9d86758d9eb036c"
+              ],
+              "requirements_revision": 1,
+              "status": "accepted"
+            },
+            "candidate_ref": "run_01M50P4MJ3QCR21HQ8RMGDS8FF",
+            "code": 200,
+            "name": "accept_confirmed_bound",
+            "ok": true,
+            "state": "confirmed"
+          },
+          {
+            "code": 200,
+            "decision_ref": "lg032-s2_pipeline__B-accept",
+            "name": "accept_same_request_idempotent",
+            "ok": true,
+            "state": "confirmed"
+          },
+          {
+            "body": {
+              "error": {
+                "code": "illegal_transition",
+                "details": {
+                  "active_run": null,
+                  "target_run_id": "run_0000000000000000000000000"
+                },
+                "message": "target_run_id does not match the Task's active Run",
+                "request_id": null,
+                "retryable": false
+              }
+            },
+            "code": 409,
+            "name": "accept_wrong_target_rejected",
+            "ok": true
+          }
+        ],
+        "steps_pass": 14,
+        "steps_total": 14,
+        "truths_before_accept": true
+      }
+    ]
+  },
+  "summary": {
+    "checks": {
+      "ledger_strictly_increasing": true,
+      "no_driver_error": true,
+      "one_physical_ledger": true,
+      "s1A_3_refs": true,
+      "s1B_6_refs": true,
+      "s1B_selection": true,
+      "s1_units__A_all_steps_pass": true,
+      "s1_units__A_dispatcher_pool_is_False": true,
+      "s1_units__A_mode_congruent": true,
+      "s1_units__A_ok": true,
+      "s1_units__A_restored_off": true,
+      "s1_units__A_reviewer_teardown_confirmed": true,
+      "s1_units__B_all_steps_pass": true,
+      "s1_units__B_dispatcher_pool_is_True": true,
+      "s1_units__B_mode_congruent": true,
+      "s1_units__B_ok": true,
+      "s1_units__B_restored_off": true,
+      "s1_units__B_reviewer_teardown_confirmed": true,
+      "s2A_after_B_3_refs": true,
+      "s2A_after_B_no_selection": true,
+      "s2B_6_refs": true,
+      "s2_pipeline__A_all_steps_pass": true,
+      "s2_pipeline__A_dispatcher_pool_is_False": true,
+      "s2_pipeline__A_mode_congruent": true,
+      "s2_pipeline__A_ok": true,
+      "s2_pipeline__A_restored_off": true,
+      "s2_pipeline__A_reviewer_teardown_confirmed": true,
+      "s2_pipeline__B_all_steps_pass": true,
+      "s2_pipeline__B_dispatcher_pool_is_True": true,
+      "s2_pipeline__B_mode_congruent": true,
+      "s2_pipeline__B_ok": true,
+      "s2_pipeline__B_restored_off": true,
+      "s2_pipeline__B_reviewer_teardown_confirmed": true,
+      "verdict": "PASS"
+    },
+    "formal_phase_root_created": false,
+    "formal_phase_root_reserved": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-data",
+    "label": "qa-serial-1",
+    "real_provider_generation": 0,
+    "shared_phase_root": "/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort2-qa-data-20261015T210510Z",
+    "utc": "20261015T210510Z",
+    "verdict": "PASS"
+  }
+}
