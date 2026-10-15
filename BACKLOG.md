@@ -9,14 +9,18 @@ updated: "2026-10-16"
 
 > 创建：2026-10-14。开发任务由 Olav Tasks 管理，schema 为 `olav.tasks/v1`，编号 LG。状态以单项 Markdown frontmatter 为准，本索引不重复维护状态。
 
-## 当前批次状态（2026-10-16，资料质量证据集成收拢）
+## 当前批次状态（2026-10-16，Materials OCR R4 集成）
 
 - 任务 CLI（**backlog 专用根** `/home/yhvh/code/lightgravity-bot/backlog`）：`validate` **41 tasks / 0 diagnostics**；`digest` **2 todo / 2 in-progress / 37 done**，complete=true；`ready=[]`。
-- **in-progress**：LG-035（图片/PDF OCR）、LG-037（可选向量）。二者实现/机制已在位；**真实质量不再空白**（下方真实证据），但仍**未达标/未封闭**。
-- **todo**：LG-040（资料/Embedding 集中验收，**未执行/未就绪**）、LG-041（中文 ASR 质量锁，未解锁）。
+- **R4 集成（2026-10-16）**：`fix/materials-ocr-r4-20261016 @ 3cb68c6` 以 `--no-ff` 合入 **`575f84a`**（parent `71a2041`）；仅 R4 自有 8 个产品/doc/test 文件 + `probes/materials-ocr-r4-20261016/**`；集成后 main 聚焦 22 OCR 测试 + mypy 3 文件 exit 0；详细 [REPORT](probes/materials-r4-integration-20261016/REPORT.md)。
+- **in-progress**：LG-035（图片/PDF OCR）、LG-037（可选向量）。二者实现/机制已在位；**真实质量仍**未达标/未封闭：Z2 表格 FAIL（scale-4.0 后公平段 CER **0.2689 仍 > 0.25**）、混合 born-digital+扫描与跨模态质量未验。
+- **todo**：LG-040（资料/Embedding 集中验收，**未执行/未就绪**；QA 准备存在但非完整门）、LG-041（中文 ASR 质量锁，未解锁）。
 - **LG-032 已 `done`（仅评估范围）**：独立封账 PASS；default 自主协作仍 **off**。契约 `1.11.0`、SDK `0.1.22`。
-- **并行在途（INPROGRESS，无结果，本索引不读为最终）**：`fix/materials-ocr-r4-20261016`。
 - 唯一 future block：候选资料服务**仅历史时点健康** + OCR 表格类质量未达标 + ASR 质量门；续接见 [FINAL-CHECKPOINT/RESUME](probes/batch-20261016/FINAL-CHECKPOINT/RESUME.md)。
+
+### 新真实质量证据（集成入 main，链接有效）
+
+- **R4 OCR-scale 机制修复 + 有界复测**（[REPORT](probes/materials-ocr-r4-20261016/REPORT.md)，merge `575f84a`）：可选 `LIGHTGRAVITY_OCR_SCALE`（缺省 2.0 不变、非法拒绝）；Z2 第 2 页整页 CER 0.2991→**0.2508**、公平段 CER 0.3172→**0.2689** 仍 **> 0.25**、结构未验证 ⇒ **表格质量仍 FAIL**；Z1 印刷页 **0.0423** 通过；ASR/embedding 0 POST。集成说明见 [R4 集成 REPORT](probes/materials-r4-integration-20261016/REPORT.md)。
 
 ### 新真实质量证据（2026-10-16 集成入 main，链接有效）
 

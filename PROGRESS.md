@@ -7,9 +7,28 @@ updated: "2026-10-16"
 
 # 当前进展与续接记录
 
-> **2026-10-16 最新事实见下方「## 2026-10-16 资料质量证据集成收拢检查点」；其下 2026-10-15 起的历史快照整体标记为历史，保留不改。**
+> **2026-10-16 最新事实见下方「## 2026-10-16 Materials OCR R4 集成检查点」；其下各节（含 2026-10-16 证据集成收拢与 2026-10-15 历史快照）整体标记为历史，保留不改。**
 
-## 2026-10-16 资料质量证据集成收拢检查点（唯一 main 最终整合/PM 文档 owner；产品真实生成 0/外部服务 0）
+## 2026-10-16 Materials OCR R4 集成检查点（唯一 main 集成/PM 文档 owner；本集成阶段产品 LAN 调用 0/外部服务 0）
+
+本节为**当前事实**。开工核对：本项目根 `main@71a2041` clean；四条既有证据分支确认为 `main` 的真实祖先；
+`fix/materials-ocr-r4-20261016`（基点 `db01cd6`，线性 4 commit：`311c2d4` PLAN / `8337e04` 产品修复 / `e9fd5e5` 重评分 / `3cb68c6` 报告）
+为 `INPROGRESS 无结果` 之外的本轮唯一待集成候选。详细报告 [probes/materials-r4-integration-20261016/REPORT.md](probes/materials-r4-integration-20261016/REPORT.md)。
+
+- **集成（唯一写动作，`--no-ff`，无冲突、无重复 cherry-pick）**：`git merge --no-ff fix/materials-ocr-r4-20261016` →
+  **`575f84a`**（parent `71a2041`）。进入 main 的仅 R4 自有 **8 个产品/doc/test 文件**（`sources/ocr/adapter.py`、`sources/processing.py`、
+  `sources/service.py`、`sources/ocr/__init__.py`、`docs/08` §6.6 实现说明、`docs/09` 加性说明、`tests/sources/ocr/test_adapter.py`、
+  `tests/sources/ocr/test_processing.py`）+ `probes/materials-ocr-r4-20261016/**`（14 文件）。区分点：上一集成 `71a2041` 的非 probe diff 为空，本合并首次带入 R4 产品文件。全部旧 probe/worktree/dirty 保留。
+- **集成后聚焦验证（main 上仅跑一次，使用既有 venv + `PYTHONPATH=backend`，无装依赖/无网络推理）**：
+  `tests/sources/ocr/{test_adapter,test_processing}.py` → **22 passed**（exit 0）；`mypy` 三个变更文件 → **Success: no issues found in 3 source files**（exit 0）。未跑全量套件（聚焦范围，无失败无需扩大）。
+- **机制修复 PASS**：可选 `LIGHTGRAVITY_OCR_SCALE`（缺省 `2.0` 不变，非法值显式报错，真正到达产品 `ProcessingEngine`→`PdfiumRasterizer`）；`docs/08`/`docs/09` 无端点/schema/枚举变化，契约 **`1.11.0` 不变**（实现说明增补，不机械升版）。无前端改动。
+- **Z2 表格质量仍 FAIL（诚实，不 done）**：一次有界 scale-4.0 复测使 Z2 第 2 页 OCR 改善（整页 CER 0.2991→**0.2508**；公平 token 加权段 CER 0.3172→**0.2689**），但**仍 > 0.25**、协议 §4 结构**未验证/失败**；Z1 印刷页 CER **0.0423** 仍是唯一通过的真实页。R4 公平段评分**精确复现 R3 审计的 0.3172** ⇒ 方法可比；R4 整页 CER 与审计 0.2948 同为一种归一化，差异由重渲染 + 评分器 bug 修复解释 ⇒ **无需 errata 文件**，冻结的 R4 REPORT 字节未改。
+- **成本**：本集成阶段产品 LAN 调用 **0**（无 GET/POST/ASR/embedding，无新质量 POST）；R4 分支自身历史计数（GET 1/1、POST 1/2、ASR 0、embedding 0）不变。**pi/DeepSeek 执行成本 unknown、非零**，不作零成本假设。未 push/deploy/publish。
+- **状态不变**：`validate` 41/0、`digest` 2 todo/2 in-progress/37 done、`ready=[]`（见下节 CLI 事实）；LG-035/037 `in-progress`，LG-040/041 `todo` 不解锁。**LG-040 QA 准备存在，但非完整门、未通过**；普通剩余任务在既有授权下继续，不需要“新的单独授权”。不改任何 status/assignee。
+
+---
+
+## 2026-10-16 资料质量证据集成收拢检查点（历史；唯一 main 最终整合/PM 文档 owner；产品真实生成 0/外部服务 0）
 
 本节为**当前事实**，覆盖其上历史快照中的相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
 未 reset/clean/覆盖/重复 cherry-pick，未推送/部署/发布。主代理只 PM，无嵌套派工。
