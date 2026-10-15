@@ -199,3 +199,18 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - LG-038 已结束 dev/lg038@80cbef7：Chat/Files 接入、预览校订检索与浏览器局部检查通过，尚待串行整合；其“归档复用 revoke”存在语义缺口，下一集成包必须区分可逆归档与撤销，不能以撤销充当整理归档完成。真实 OCR/vector/ASR 质量未宣通过。
 - LG-041 主代理已补 blocked_by 明确中文 ASR quality gate，防止因 LG-039 可行性报告 done 而错误 ready；不改变其 todo。该 PM dirty 与本节需由下一 pi 集成 owner 精确提交，禁止覆盖。
 - 当前待续接：结束 R1 → 合并 R1/037/038 并修最小归档语义 → 新独立 lg022-qa-r1 复验 → 核 LG-031 原 dirty/调用/残留进程再续接真实 SDK 闭环。准备提示词均在 ~/.cache/lightgravity-bot/checkpoints/2026-10-15/，原始受保护日志在 dispatch-logs；候选 OCR 服务恢复/授权样本异步问题尚未收到答复，继续其他独立任务。
+
+## 2026-10-16 第六批集成检查点（唯一串行集成 owner）
+
+本节覆盖旧检查点的最新事实；全部执行仍经 pi + 现有 DeepSeek，未推送/部署/发布。唯一集成 owner；主代理只 PM。产品真实模型/外部服务调用 **0**。
+
+- **集成前核对**：LG-022 R1 返修 owner 已结束（无残留 pi 进程）；`fix/lg022-r1@d07a4a6` clean；`dev/lg037@e713ea2`、`dev/lg038@80cbef7` clean。主代理两项授权 PM dirty（`PROGRESS.md`、`LG-041.md`）已先精确提交 `098c7cc`。
+- **整合候选 `integrate/batch6` @ `9698e8a`**（未推送）：`bed3d0c` 合 `fix/lg022-r1`（review 生命周期 D1/D2/D3 + 全局生成计数器）、`cf824be` 合 `dev/lg037`、`0313d04` 合 `dev/lg038`，全部 `--no-ff` 无冲突。旧分支/worktree/probes/dirty **全部保留**，未 reset/clean/覆盖/重复 pick。
+- **向量挂载**：`api/app.py` 加 `build_vector_router`（`/vector/status`、`/vector/search`、`/vector/rebuild`），默认禁用、env 配置、候选回源核对；`/search` 未回退。
+- **LG-038 归档语义修复（实质）**：原“归档复用 revoke”不能作为整理归档完成证据。新增**可逆归档**——`source.archived` 加性字段 + `archive`/`unarchive` 动作（+ 可选 `expected_revision`）；归档**保留**来源/权限/检索/打开，`revoke` 仍使资料不可用且原件保留。真实 HTTP 回归 3 项（归档后仍可查可开、revoke 失效且原件保留、幂等/版本冲突）+ 前端 2 项冒烟（Archive 绝不调 revoke）。tags 未冻结→明确不实现，不挡本项。038 保持 done 待 LG-040，注释如实更新。
+- **契约 `1.8.0 → 1.9.0`**（加性 MINOR，真实变更控制，保留 1.8/1.7/1.6 历史链）：docs08 §4.3/§6.6/§13 + README/agent/docs06/PROJECT 一致。
+- **集成检查（绑定 `9698e8a`）**：`uv run pytest -q` **754 passed, 2 skipped**；`uv run mypy` **136 files clean**；定向 sources/api/contracts **179 passed, 1 skipped**；前端 `tsc` 0 错、`vitest` **98 passed**、`npm run build` 成功。真实产品调用 0（已有结果只引用不重跑）。
+- **独立 QA 准备**：新分支 `qa/lg022-r1`（基于 `9698e8a`）+ 脚手架 `probes/lg022/reverify-r1/`；**本包未执行 QA**、未发真实请求；LG-022 原 claim 保持 in-progress；新 phase 预算 10，须先证明共享 forward 计数器。
+- **LG-031 续接准备**：新分支 `fix/lg031-r2`（基于 `9698e8a`）已把原 `fix/lg031-r1` 的 tracked 改动 + `probes/lg031/R1_*` untracked 证据**精确 WIP commit**（不 `add -A`）；原 `fix/lg031-r1` dirty 原样留存。**真实产品调用以 `probes/lg031/r1_worker_claim_probe.json` 为准**：R1 = 2 worker + 1 reviewer = **3**；原包 1；**累计 4/10，剩 ≤ 6**（交接日志的 turn_end 114/响应 224 是开发 pi 事件，不算产品请求）。未闭合项：autonomous-claim 定向测试在整合候选与原 base **均失败**（`plan_validation failed: config_invalid`，非整合回归），交下一 owner。
+- **状态如实**：LG-022 in-progress（待独立复验）；LG-017 done 待 022、不制造循环；LG-037/035 不假 done；LG-038 done 待 040；LG-040 不解锁；LG-041 quality gate 不解锁。未领取 023/024/032/040。
+- 本包结束先写持久 REPORT（本文件 + `probes/batch-20261016/INTEGRATION-6.md`），再精确本地 commit；main 未推送。
