@@ -43,6 +43,12 @@ updated: "2026-10-15"
 
 ## 决策日志
 
+### 2026-10-16：LG-036 真实依赖校正与 LG-017 状态语义纠正
+
+- **LG-036 依赖校正（真实依赖，非降门）**：依据只读技术调查（副本 [probes/lg036/DEPENDENCY-AUDIT.md](probes/lg036/DEPENDENCY-AUDIT.md)）与 PM 决定（`checkpoints/2026-10-15/pm-decision-lg036-20261016.txt`），将 LG-036 `depends_on` 由 `[LG-034, LG-035]` 校正为 `[LG-033, LG-034]`。本项需要的是**已交付的内容接口**（LG-035 commit `faf7230`/`d7e4391`、第三批集成提交提供的 `/content`/`/download`/`/actions` 只读通道、source/版本/哈希/权限接口），与 LG-035 **尚未通过的真实 OCR 质量门**无关。**不降低 LG-035 验收、不改 LG-040 依赖、不声称图片/PDF 检索质量已通过**：无派生正文或正文不可信的来源须诚实 `not_indexed`。
+- **LG-017 状态语义纠正**：LG-017 原 `status` 注释把“待 LG-022 独立集中 QA”当作本项 done 的前置，而 LG-022 自身 `depends_on` 含 LG-017，形成错误循环，违反 [agent.md](agent.md) 第 1/8 节（集中 QA 只在命名大版本完成后开展，不是逐项前置）。本项实施目标——产品已实现的独立 ModelReviewer 路径——已由 R1（真实受控独立复核 + 诚实 `unavailable` 默认 + 真实 DeepSeek 探针 passed 且程序验真）与第三批 Settings reviewer 默认 UI 满足，未发现实缺口。据此置 **`done` 并标注“待 LG-022 集中 QA、非完整版本通过”**，移除错误循环注释；**不改 LG-022 依赖**、不宣称版本验收。
+- **证据**：LG-036 依赖校正与 LG-017 纠正均由 PM 决定，具体任务/CLI claim/worktree 准备记录见 [probes/batch-20261016/PREPARE-4.md](probes/batch-20261016/PREPARE-4.md)。产品模型调用 0，未运行 QA。
+
 ### 2026-10-15：排入去中心化协作与 Embedding 资料工作线
 
 - 用户要求两条工作线正式排期。新增 LG-028～041 共 14 项 todo，连同原 27 项共 41 项；不修改既有任务状态、负责人和验收记录，不自动开始实施。

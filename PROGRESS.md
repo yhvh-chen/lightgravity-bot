@@ -162,3 +162,9 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - 未创建 LG-022/031/036 的 claim/worktree：集成后 `tasks ready` 无就绪任务（前置 LG-017/021/035 仍 in-progress），不就绪则不伪造 claim commit。
 - 测试工具隔离怪癖（非本批引入）：`tests/startup/*` 的 `from conftest import make_settings` 在同一会话与 `tests/api` 同收集时冲突；`c138537` 已存在，全量 `pytest -q` 正常。
 - `git diff --check` 仅报 LG-035 gold 真值 fixture 的尾随空白（字节保真，不改）。
+
+### 第四批准备：依赖校正与状态语义纠正（2026-10-16，准备 owner）
+
+- **LG-036 依赖校正（PM 决定）**：`depends_on` 由 `[LG-034, LG-035]` 改为 `[LG-033, LG-034]`；技术依据副本 [probes/lg036/DEPENDENCY-AUDIT.md](probes/lg036/DEPENDENCY-AUDIT.md)，PM 决定 `checkpoints/2026-10-15/pm-decision-lg036-20261016.txt`。引用已交付内容接口 `faf7230`/`d7e4391`+第三批集成提交；**不降 LG-035 验收、不改 LG-040 依赖、不声称图片/PDF 检索质量通过**。
+- **LG-017 状态语义纠正（PM 决定）**：`in-progress` → `done`，标注“待 LG-022 集中 QA、非完整版本通过”；移除“须 LG-022 方可 done”的错误循环注释（LG-022 依赖 LG-017；集中 QA 非逐项前置）。**不改 LG-022 依赖**、不宣称版本验收。LG-035 质量门不动，LG-021 仍待增量复验。
+- 据此 ready 候选：LG-036、LG-031；本批 CLI claim 与 worktree 准备详见 [probes/batch-20261016/PREPARE-4.md](probes/batch-20261016/PREPARE-4.md)。产品模型调用 0。
