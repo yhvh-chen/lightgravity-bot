@@ -39,6 +39,12 @@ from lightgravity.store import (
 )
 from lightgravity.store.locking import LockManager
 
+# LG-017: the rework orchestrator's spawner returns this structural outcome.
+# Importing it directly (no cycle: verify.rework depends on coordinator.state,
+# not on coordinator.service) keeps the coordinator's port honest without
+# duplicating the type.
+from lightgravity.verify.rework import SpawnOutcome
+
 from .classification import Classification, MessageIntent, classify_message
 from .resource_commands import (
     PROPOSAL_AUTHOR_ROLES,
@@ -69,6 +75,53 @@ from .state import ACTIVE_TASK_PHASES, TERMINAL_RUN_STATES, StateWriter
 _ALLOWED_MESSAGE_ROLES = frozenset({"user", "assistant", "system", "tool"})
 
 
+class _ReworkRunController:
+    """RunController delegate that keeps a rework Task in ``executing``.
+
+    A rework Run enters through the frozen ``repairing -> executing`` transition.
+    The dispatcher still calls ``set_task_phase('planning'/'recruiting')`` while
+    it plans and recruits; those would be illegal backward transitions from
+    ``executing``.  This delegate forwards every Run write and member/event call
+    but drops Task-phase writes that would move the Task *back* from
+    ``executing`` (the Run's own state and the final ``executing -> verifying``
+    write still happen normally).
+    """
+
+    def __init__(self, inner: RunController) -> None:
+        self._inner = inner
+
+    def set_task_phase(
+        self,
+        phase: str,
+        *,
+        status: str | None = None,
+        extra: dict[str, Any] | None = None,
+        reason: str | None = None,
+    ) -> Any:
+        normalized = str(phase)
+        if normalized in {"planning", "recruiting", "executing"}:
+            # The Task already sits in ``executing`` for a rework Run; keep it
+            # there instead of writing an illegal backward transition.
+            return None
+        return self._inner.set_task_phase(
+            normalized, status=status, extra=extra, reason=reason
+        )
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._inner, name)
+
+
+def _spawn_outcome_from_dict(data: dict[str, Any]) -> "SpawnOutcome":
+    """Rebuild a recorded rework-spawn outcome from its persisted dict."""
+
+    run_id = data.get("run_id")
+    return SpawnOutcome(
+        queued=bool(data.get("queued", False)),
+        run_id=run_id if isinstance(run_id, str) and run_id else None,
+        detail=str(data.get("detail", "")),
+    )
+
+
 def _now_iso() -> str:
     return (
         datetime.now(timezone.utc)
@@ -93,6 +146,25 @@ class CandidateVerifier(Protocol):
         *,
         request_id: str | None = None,
         expected_revision: int | None = None,
+    ) -> Any: ...
+
+
+@runtime_checkable
+class ReworkReviewer(Protocol):
+    """Structural port for the LG-017 review + bounded rework orchestrator.
+
+    Declared here (not imported) so the coordinator and verify packages do not
+    form an import cycle; ``ReworkOrchestrator`` satisfies it.  The coordinator
+    calls :meth:`process` after machine verification and only opens human
+    acceptance when the review passes.
+    """
+
+    def process(
+        self,
+        task_id: str,
+        *,
+        request_id: str | None = None,
+        note: str | None = None,
     ) -> Any: ...
 
 
@@ -221,6 +293,7 @@ class Coordinator:
         classifier: Callable[[str], Classification] | None = None,
         responder: Callable[[str, Classification], str] | None = None,
         verification: CandidateVerifier | None = None,
+        rework: ReworkReviewer | None = None,
         resource_service: ResourceService | None = None,
         process_probe: ProcessProbe | None = None,
     ) -> None:
@@ -248,6 +321,7 @@ class Coordinator:
         self._classifier = classifier or classify_message
         self._responder = responder or _default_responder
         self._verification = verification
+        self._rework = rework
         self._resource_service = resource_service
         self._resource_dir = resolved_data_dir
         self._control = ControlService(
@@ -262,6 +336,12 @@ class Coordinator:
         self._loop_task: asyncio.Task[None] | None = None
         self._stopping = False
         self._last_recovery: RecoveryReport | None = None
+        #: LG-017 bounded rework queue: (task_id, findings) drained by the
+        #: worker loop.  Kept in memory because the Task frontmatter already
+        #: records ``review_findings``; a restart re-derives rework from the
+        #: ``repairing`` phase via the normal recovery scan instead of replaying
+        #: in-memory state.
+        self._pending_rework: list[tuple[str, tuple[dict[str, Any], ...]]] = []
         #: Set while a dispatcher call is in flight (exposed for tests/monitoring).
         self._active_run_id: str | None = None
 
@@ -297,6 +377,48 @@ class Coordinator:
         injected coordinator shares the app's verification service)."""
 
         self._verification = verification
+
+    def set_rework(self, rework: ReworkReviewer | None) -> None:
+        """Attach/replace the LG-017 independent-review/rework orchestrator.
+
+        ``create_app`` may inject a ``ReworkOrchestrator``; when it does not, the
+        coordinator builds one lazily over the same Store with a deterministic
+        :class:`~lightgravity.verify.review.ProgramReviewer` and itself as the
+        ``RunSpawner``.  That makes independent review + bounded rework the
+        product's real default runtime path, not just a declared interface.
+        """
+
+        self._rework = rework
+
+    @property
+    def rework(self) -> ReworkReviewer | None:
+        return self._rework
+
+    def _resolved_rework(self) -> ReworkReviewer | None:
+        """Return the effective rework orchestrator, building the default once.
+
+        The default is a ``ReworkOrchestrator`` over this coordinator's Store
+        whose ``RunSpawner`` is this coordinator, with the deterministic
+        program reviewer (no model call).  It is built lazily so importing the
+        coordinator never constructs it and so an injected orchestrator always
+        wins.
+        """
+
+        if self._rework is not None:
+            return self._rework
+        # Local import keeps coordinator import graph free of verify at module
+        # load time while still wiring a real default at runtime.
+        from lightgravity.verify.review import ProgramReviewer
+        from lightgravity.verify.rework import ReworkOrchestrator
+
+        self._rework = ReworkOrchestrator(
+            self._store,
+            reviewer=ProgramReviewer(),
+            writer=self._writer,
+            spawner=self,
+            actor=self._owner,
+        )
+        return self._rework
 
     def start(self) -> None:
         """Start the background queue worker (idempotent).
@@ -870,6 +992,12 @@ class Coordinator:
                     raise
 
     async def _process_one(self) -> bool:
+        # LG-017 rework Runs are dispatched directly (the frozen contract allows
+        # ``repairing -> executing``, not ``repairing -> queued``), so they are
+        # drained here *before* the normal queue.  A rework Run still opens a
+        # fresh Run, re-recruits and re-verifies through the same dispatcher.
+        if self._pending_rework:
+            return await self._process_rework()
         summary = self._queue.next_queued()
         if summary is None:
             return False
@@ -881,32 +1009,7 @@ class Coordinator:
         try:
             task = self._store.read("task", task_id)
             run_id = self._open_run(task)
-            self._writer.emit(
-                task_id,
-                EventType.QUEUE_CLAIMED,
-                {"owner": self._owner, "run_id": run_id},
-                task_ref=task_id,
-                run_ref=run_id,
-            )
-            context = self._build_context(task, run_id)
-            controller = RunController(self._writer, task_id, run_id)
-            self._active_run_id = run_id
-            try:
-                outcome = await self._dispatcher.dispatch(
-                    context, controller, self._adapter_sink(task_id, run_id)
-                )
-            except asyncio.CancelledError:
-                raise
-            except Exception as exc:  # noqa: BLE001 - convert a dispatcher crash to a failure
-                outcome = DispatchOutcome(
-                    state="failed",
-                    summary=f"{type(exc).__name__}: {exc}",
-                    failure_code="internal_error",
-                    failure_message=str(exc),
-                )
-            finally:
-                self._active_run_id = None
-            self._apply_outcome(task_id, run_id, outcome)
+            await self._dispatch_run(task, run_id, claimed_event=True)
             return True
         finally:
             # Only release the claim we still hold.  A control requeue (resume)
@@ -920,6 +1023,107 @@ class Coordinator:
             except LockConflict:
                 pass
 
+    async def _dispatch_run(
+        self,
+        task: Versioned,
+        run_id: str,
+        *,
+        claimed_event: bool,
+        rework: bool = False,
+    ) -> None:
+        """Dispatch one opened Run through the configured dispatcher.
+
+        Shared by the normal queue path and the LG-017 rework path so both open a
+        real Run, recruit a team and run verification identically.  For a rework
+        Run the Task is already in ``executing`` (the only frozen transition out
+        of ``repairing``), so the controller suppresses the dispatcher's
+        planning/recruiting Task-phase writes (the Run's own state still moves
+        normally) instead of hitting an illegal backward transition.
+        """
+
+        task_id = task.entity_id
+        if claimed_event:
+            self._writer.emit(
+                task_id,
+                EventType.QUEUE_CLAIMED,
+                {"owner": self._owner, "run_id": run_id},
+                task_ref=task_id,
+                run_ref=run_id,
+            )
+        context = self._build_context(task, run_id)
+        controller = RunController(self._writer, task_id, run_id)
+        if rework:
+            controller = _ReworkRunController(controller)  # type: ignore[assignment]
+        self._active_run_id = run_id
+        try:
+            outcome = await self._dispatcher.dispatch(
+                context, controller, self._adapter_sink(task_id, run_id)
+            )
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - convert a dispatcher crash to a failure
+            outcome = DispatchOutcome(
+                state="failed",
+                summary=f"{type(exc).__name__}: {exc}",
+                failure_code="internal_error",
+                failure_message=str(exc),
+            )
+        finally:
+            self._active_run_id = None
+        self._apply_outcome(task_id, run_id, outcome)
+
+    async def _process_rework(self) -> bool:
+        """Open and dispatch one queued LG-017 rework Run.
+
+        The Task is already in ``repairing`` (set by the orchestrator).  The
+        only frozen transition out of ``repairing`` is ``executing``; the new
+        Run is opened and dispatched there, re-recruiting a team and re-running
+        verification.  A Task that is no longer spawnable is dropped with an
+        honest error event instead of being retried forever.
+        """
+
+        task_id, findings = self._pending_rework[0]
+        try:
+            task = self._store.read("task", task_id)
+        except EntityNotFound:
+            self._pending_rework.pop(0)
+            return False
+        phase = str(task.entity.get("phase", ""))
+        if phase != TaskPhase.REPAIRING.value:
+            self._pending_rework.pop(0)
+            self._writer.emit(
+                task_id,
+                EventType.ERROR_RECORDED,
+                {
+                    "mode": "rework",
+                    "code": "not_ready",
+                    "message": f"rework dropped: task phase is {phase!r}, not repairing",
+                },
+            )
+            return True
+        try:
+            self._writer.write_task(task_id, {"review_findings": [dict(f) for f in findings]})
+            # ``_open_run(rework=True)`` performs the single frozen
+            # ``repairing -> executing`` transition and opens the fresh Run; the
+            # Run then owns planning/recruiting/executing internally.
+            task = self._store.read("task", task_id)
+            run_id = self._open_run(task, rework=True)
+        except Exception as exc:  # noqa: BLE001 - report, never fabricate a Run
+            self._pending_rework.pop(0)
+            self._writer.emit(
+                task_id,
+                EventType.ERROR_RECORDED,
+                {
+                    "mode": "rework",
+                    "code": "not_ready",
+                    "message": f"could not open rework Run: {type(exc).__name__}: {exc}",
+                },
+            )
+            return True
+        self._pending_rework.pop(0)
+        await self._dispatch_run(task, run_id, claimed_event=False, rework=True)
+        return True
+
     def _queue_state(self, task_id: str) -> str:
         try:
             queue = self._store.read("task", task_id).entity.get("queue")
@@ -929,7 +1133,7 @@ class Coordinator:
             return str(queue.get("state", "not_queued"))
         return "not_queued"
 
-    def _open_run(self, task: Versioned) -> str:
+    def _open_run(self, task: Versioned, *, rework: bool = False) -> str:
         # A Task that a restart scan (or an operator) put into recovery_required
         # must not have a Run opened as a silent replay: its side effects are
         # unknown.  A human decides via resume/retry/cancel first.
@@ -1009,9 +1213,28 @@ class Coordinator:
             )
 
         run_id = new_id("run")
+        # Attempt counts the Run's position in the Task's delivery history.  A
+        # rework Run (opened after a review rejected the prior candidate) is a
+        # new business attempt, so it must not reuse attempt 1 as though nothing
+        # had been delivered (docs/08 §6.2).  Prior Run attempt comes from the
+        # retained ``last_run``/``active_run`` source, never a fabricated count.
+        prior_attempt = 0
+        if isinstance(source_run, dict):
+            raw_attempt = source_run.get("attempt")
+            if isinstance(raw_attempt, int) and not isinstance(raw_attempt, bool):
+                prior_attempt = raw_attempt
+        attempt = prior_attempt + 1 if prior_attempt > 0 else 1
+        # Carry the independent review findings (if any) onto the new Run so the
+        # repair context can target them; empty for a normal first/retry Run.
+        review_findings = task.entity.get("review_findings")
+        findings_list = (
+            [dict(f) for f in review_findings if isinstance(f, dict)]
+            if isinstance(review_findings, list)
+            else []
+        )
         run_content: dict[str, Any] = {
             "task_ref": task.entity_id,
-            "attempt": 1,
+            "attempt": attempt,
             "state": "planning",
             "plan_ref": "PLAN.md",
             "team_refs": [],
@@ -1022,6 +1245,8 @@ class Coordinator:
             "ended_at": None,
             "fail_reason": None,
         }
+        if findings_list:
+            run_content["review_findings"] = findings_list
         cast(_BodyStore, self._store).create(
             "run",
             run_id,
@@ -1035,7 +1260,7 @@ class Coordinator:
             EventType.RUN_CREATED,
             {
                 "run_id": run_id,
-                "attempt": 1,
+                "attempt": attempt,
                 "continuation": decision.kind,
                 "source_run_id": decision.source_run_id,
             },
@@ -1044,9 +1269,10 @@ class Coordinator:
         )
         self._writer.transition_task(
             task.entity_id,
-            TaskPhase.PLANNING,
+            TaskPhase.EXECUTING if rework else TaskPhase.PLANNING,
             run_ref=run_id,
             extra={"active_run": run_id},
+            reason="lg017 rework Run opened" if rework else None,
         )
         return run_id
 
@@ -1068,10 +1294,10 @@ class Coordinator:
         return DispatchContext(
             task_id=task.entity_id,
             run_id=run_id,
-            attempt=1,
+            attempt=self._run_attempt(run_id),
             objective=str(entity.get("objective") or entity.get("title") or ""),
             acceptance_criteria=tuple(str(item) for item in criteria),
-            instructions=task.body.strip(),
+            instructions=self._instructions_for(task, run_id),
             workspace_path=self._workspace_path(entity),
             allowed_tools=self._allowed_tools,
             agent_ref=self._agent_ref,
@@ -1083,6 +1309,42 @@ class Coordinator:
             continuation_mode=continuation_mode,
             prior_run=self._prior_run_for(run_id),
         )
+
+    def _run_attempt(self, run_id: str) -> int:
+        """Read the Run's authoritative attempt (default 1 when unrecorded)."""
+
+        try:
+            raw = self._store.read("run", run_id).entity.get("attempt")
+        except EntityNotFound:
+            return 1
+        if isinstance(raw, int) and not isinstance(raw, bool) and raw > 0:
+            return raw
+        return 1
+
+    def _instructions_for(self, task: Versioned, run_id: str) -> str:
+        """The Task body plus any independent-review rework targets (LG-017).
+
+        A repair Run gets the review findings appended so the new team knows
+        what the independent reviewer rejected, without erasing the original
+        Task body.  A normal Run gets the body unchanged.
+        """
+
+        body = task.body.strip()
+        try:
+            findings = self._store.read("run", run_id).entity.get("review_findings")
+        except EntityNotFound:
+            findings = None
+        if not isinstance(findings, list) or not findings:
+            return body
+        lines = [body, "", "## Independent review rework targets (LG-017)"]
+        for item in findings:
+            if not isinstance(item, dict):
+                continue
+            target = str(item.get("rework_target") or "deliverable")
+            summary = str(item.get("summary") or "").strip()
+            ref = str(item.get("evidence_ref") or "")
+            lines.append(f"- [{target}] {summary} (evidence: {ref})")
+        return "\n".join(lines)
 
     def _prior_run_for(self, run_id: str) -> dict[str, Any] | None:
         """Return the source Run entity a resumed Run continues, else ``None``.
@@ -1252,15 +1514,49 @@ class Coordinator:
             self._auto_verify(task_id, run_id)
 
     def _auto_verify(self, task_id: str, run_id: str) -> None:
-        """Run machine verification automatically after a successful delivery.
+        """Run independent review, then machine verification, after delivery.
 
-        The candidate is moved ``verifying -> awaiting_acceptance`` only through
-        :meth:`VerificationService.verify_and_prepare`, which enforces the real
-        stop/release gate.  A failure is recorded and leaves the Task in
-        ``verifying`` rather than faking acceptance.
+        Order (LG-017): the independent reviewer inspects the candidate's *real
+        evidence* first.  Only a passing review proceeds to
+        :meth:`VerificationService.verify_and_prepare`, which moves the candidate
+        ``verifying -> awaiting_acceptance`` through the real stop/release gate.
+
+        * review ``rework`` with budget left -> a fresh repair Run is queued
+          (re-recruit + re-verify); the old candidate/evidence are kept;
+        * review ``rework`` with budget spent -> ``waiting_user`` and a
+          ``budget_exhausted`` event, never a fake acceptance;
+        * review ``unavailable`` (no usable independent reviewer) -> the
+          candidate stays pending for a human, never a fake pass;
+        * a review failure is recorded and leaves the Task in ``verifying``.
+
+        When no rework orchestrator is wired the coordinator falls back to the
+        LG-009 behaviour (machine checks only), so the default runtime never
+        breaks.
         """
 
         verifier = self._verification
+        rework = self._resolved_rework()
+        if rework is not None:
+            try:
+                outcome = rework.process(task_id, request_id=f"auto-review:{run_id}")
+            except Exception as exc:  # noqa: BLE001 - never let review crash the loop
+                self._writer.emit(
+                    task_id,
+                    EventType.ERROR_RECORDED,
+                    {
+                        "mode": "review",
+                        "code": "internal_error",
+                        "message": f"independent review failed: {type(exc).__name__}: {exc}",
+                    },
+                    task_ref=task_id,
+                    run_ref=run_id,
+                )
+                return
+            state = str(getattr(outcome, "state", ""))
+            if state != "awaiting_acceptance":
+                # rework / unavailable / exhausted: do not open acceptance here.
+                return
+
         if verifier is None:
             return
         try:
@@ -1277,6 +1573,104 @@ class Coordinator:
                 task_ref=task_id,
                 run_ref=run_id,
             )
+
+    def spawn_repair_run(
+        self,
+        task_id: str,
+        *,
+        prior_run_id: str,
+        findings: tuple[dict[str, Any], ...],
+        request_id: str,
+    ) -> "SpawnOutcome":
+        """LG-017 :class:`~lightgravity.verify.rework.RunSpawner` implementation.
+
+        Queues a fresh rework Run for a Task already moved to ``repairing`` by
+        the orchestrator.  The worker loop opens exactly one new Run on the next
+        pass (``active_run`` was cleared, the prior Run is retained as
+        ``last_run`` with its diff/evidence untouched), and that new Run goes
+        through the full plan/recruit/dispatch/verify path again — i.e. it
+        re-recruits and re-verifies rather than reusing the rejected team.
+
+        The outcome is recorded under a rework-scoped ``request_id`` so a
+        replayed reject (same request id) returns the *same* rework result
+        instead of re-deriving it against moved-on state.  A spawn that cannot
+        proceed returns ``SpawnOutcome(queued=False, ...)`` (never a fabricated
+        Run id).
+        """
+
+        key = f"rework-spawn:{task_id}:{request_id}"
+        existing = self._idempotency.lookup(key)
+        if existing is not None:
+            return _spawn_outcome_from_dict(existing)
+
+        outcome = self._spawn_repair_run_once(
+            task_id, prior_run_id=prior_run_id, findings=findings, request_id=request_id
+        )
+        self._idempotency.execute(key, lambda: outcome.to_dict())
+        return outcome
+
+    def lookup_spawn_outcome(self, task_id: str, request_id: str) -> "SpawnOutcome | None":
+        """Return a previously recorded rework-spawn outcome, if any.
+
+        Used by the API replay path so a duplicate reject returns the first
+        response verbatim (including its ``rework`` field) without writing a
+        second Run.
+        """
+
+        key = f"rework-spawn:{task_id}:{request_id}"
+        existing = self._idempotency.lookup(key)
+        if existing is None:
+            return None
+        return _spawn_outcome_from_dict(existing)
+
+    def _spawn_repair_run_once(
+        self,
+        task_id: str,
+        *,
+        prior_run_id: str,
+        findings: tuple[dict[str, Any], ...],
+        request_id: str,
+    ) -> "SpawnOutcome":
+        current = self._store.read("task", task_id)
+        phase = str(current.entity.get("phase", ""))
+        if phase != TaskPhase.REPAIRING.value:
+            return SpawnOutcome(
+                queued=False, detail=f"task phase {phase!r} is not spawnable"
+            )
+        if isinstance(current.entity.get("active_run"), str) and current.entity.get("active_run"):
+            return SpawnOutcome(queued=False, detail="task still has a non-terminal Run")
+        # Persist the review findings so the new Run's context can read what to
+        # repair; the old candidate/evidence stay on disk.
+        self._writer.write_task(
+            task_id,
+            {"review_findings": [dict(f) for f in findings]},
+        )
+        # Enqueue into the bounded rework queue.  The worker loop transitions
+        # ``repairing -> executing`` and opens exactly one fresh Run (re-recruit
+        # + re-verify).  Duplicate requests for the same Task are collapsed so a
+        # replayed reject cannot open a second concurrent rework Run.
+        if any(existing_task == task_id for existing_task, _ in self._pending_rework):
+            return SpawnOutcome(
+                queued=True, detail="rework already queued for this task"
+            )
+        self._pending_rework.append((task_id, tuple(dict(f) for f in findings)))
+        self._writer.emit(
+            task_id,
+            EventType.QUEUE_ENQUEUED,
+            {
+                "state": "rework_queued",
+                "request_id": request_id,
+                "prior_run_id": prior_run_id,
+                "reason": "lg017-rework",
+                "findings": len(findings),
+            },
+            task_ref=task_id,
+            run_ref=prior_run_id,
+        )
+        # The worker loop opens exactly one new Run on its next pass and drives
+        # the full plan/recruit/dispatch/verify path again (re-recruit +
+        # re-verify).  No Run id exists yet, so none is fabricated.
+        return SpawnOutcome(queued=True, detail="repair Run queued for the worker loop")
 
     def _adapter_sink(self, task_id: str, run_id: str) -> Callable[[dict[str, Any]], None]:
         """Persist only contract-relevant adapter events.

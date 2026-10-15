@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { NotificationList } from '../components/NotificationList'
+import { NotificationList, type NotificationListItem } from '../components/NotificationList'
 import { Icon } from '../components/icons'
 import { MOCK_NOTIFICATIONS, MOCK_TASKS, MOCK_RUNS_BY_TASK } from './layoutMock'
 import { useShell } from './ShellProvider'
+import { useNotifications } from './useNotifications'
+import { NOTIFICATION_REFRESH_TYPES, useEventStream } from './useEventStream'
 
 export interface TopBarProps {
   compact: boolean
@@ -66,16 +68,37 @@ export function TopBar({
   const runOptions = new Set(state.taskRef ? (MOCK_RUNS_BY_TASK[state.taskRef] ?? []) : [])
   if (state.runRef) runOptions.add(state.runRef)
 
-  const notifications = state.showLayoutMock ? MOCK_NOTIFICATIONS : []
-  const hasUnread = notifications.length > 0 && !state.notificationsRead
+  // Real notifications from the backend projection. The layout mock toggle is a
+  // separate, clearly-labelled sample; it never claims to be business truth.
+  const notifications = useNotifications()
+  const { status: streamStatus } = useEventStream({
+    filterTypes: NOTIFICATION_REFRESH_TYPES,
+    onEvent: () => notifications.refresh(),
+  })
+  const mockItems: NotificationListItem[] = state.showLayoutMock
+    ? MOCK_NOTIFICATIONS.map((item) => ({
+        id: item.id,
+        title: item.title,
+        at: item.at,
+        mock: true,
+      }))
+    : []
+  const unread = notifications.items.filter((item) => !item.read)
+  const hasUnread = unread.length > 0
+  const openNotification = useCallback(
+    (item: NotificationListItem) => {
+      if (item.mock || !item.taskRef) return
+      // Return to the exact Task/Run and persist the read flag on the backend.
+      dispatch({ type: 'selectTask', taskRef: item.taskRef })
+      if (item.runRef) dispatch({ type: 'selectRun', runRef: item.runRef })
+      void notifications.markRead([item.id])
+      setNotifOpen(false)
+    },
+    [dispatch, notifications],
+  )
 
   const toggleNotifications = () => {
-    setNotifOpen((open) => {
-      if (!open && hasUnread) {
-        dispatch({ type: 'markNotificationsRead' })
-      }
-      return !open
-    })
+    setNotifOpen((open) => !open)
   }
 
   return (
@@ -186,26 +209,53 @@ export function TopBar({
           ref={notifButtonRef}
           type="button"
           className="lg-icon-button"
-          aria-label="Notifications"
+          aria-label={
+            hasUnread ? `Notifications (${unread.length} unread)` : 'Notifications'
+          }
           aria-haspopup="dialog"
           aria-expanded={notifOpen}
           onClick={toggleNotifications}
         >
           <Icon name="bell" />
-          {hasUnread ? <span className="lg-icon-button__dot" aria-hidden="true" /> : null}
+          {hasUnread ? (
+            <span className="lg-icon-button__badge" aria-hidden="true">
+              {unread.length > 99 ? '99+' : unread.length}
+            </span>
+          ) : null}
         </button>
       </div>
 
       {notifOpen ? (
         <div className="lg-popover" role="dialog" aria-label="Notifications" ref={popoverRef}>
+          <div className="lg-popover__header">
+            <span>Notifications</span>
+            <span
+              className="lg-popover__status"
+              data-state={streamStatus}
+              title={`Event stream: ${streamStatus}`}
+            >
+              {notifications.connected
+                ? streamStatus === 'open'
+                  ? 'Live'
+                  : `Reconnecting (${streamStatus})`
+                : 'Offline'}
+            </span>
+          </div>
           <NotificationList
-            items={notifications.map((item) => ({
-              id: item.id,
-              title: item.title,
-              at: item.at,
-              mock: item.mock,
-            }))}
-            emptyMessage="Notifications are implemented by LG-019."
+            items={[
+              ...notifications.items.map((item) => ({
+                id: item.notification_id,
+                title: item.title,
+                at: item.at,
+                taskRef: item.task_ref,
+                runRef: item.run_ref,
+                severity: item.severity,
+                read: item.read,
+              })),
+              ...mockItems,
+            ]}
+            emptyMessage="No notifications. Failures, waiting-for-user and pending acceptance appear here."
+            onSelect={openNotification}
           />
         </div>
       ) : null}

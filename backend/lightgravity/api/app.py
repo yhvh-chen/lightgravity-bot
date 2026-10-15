@@ -48,6 +48,10 @@ from ..coordinator.dispatcher import (
     SingleSlotDispatcher,
     UnavailableExecutor,
 )
+from ..notifications import (
+    NotificationService,
+    NotificationStateStore,
+)
 from ..settings import (
     ConnectionService,
     ConnectionTester,
@@ -60,12 +64,15 @@ from ..verify import ResourceStopper, VerificationService, build_acceptance_rout
 
 from .access import AccessPolicy, LocalAccessPolicy, require_access
 from .context import ApiContext
+from .collaboration import build_collaboration_router
 from .conversations import build_conversations_router
 from .eventbus import BroadcastingStore, EventBroker
 from .events import build_events_router
 from .files import build_files_router
 from .health import router as health_router
+from .notifications import build_notifications_router
 from .resources import build_resource_router
+from .sources import build_sources_router
 from .tasks import build_task_router
 
 _STATUS_TO_CODE: dict[int, ErrorCode] = {
@@ -153,6 +160,9 @@ def create_app(
         real_executor=real_executor,
         tester=tester,
         verification=verification_service,
+        notifications=NotificationService(
+            broadcasting, NotificationStateStore(resolved.data_dir)
+        ),
     )
 
     @asynccontextmanager
@@ -217,7 +227,10 @@ def create_app(
     app.include_router(build_task_router(), prefix=API_PREFIX)
     app.include_router(build_resource_router(), prefix=API_PREFIX)
     app.include_router(build_files_router(), prefix=API_PREFIX)
+    app.include_router(build_sources_router(), prefix=API_PREFIX)
+    app.include_router(build_collaboration_router(), prefix=API_PREFIX)
     app.include_router(build_events_router(), prefix=API_PREFIX)
+    app.include_router(build_notifications_router(), prefix=API_PREFIX)
     app.include_router(build_conversations_router(), prefix=API_PREFIX)
     app.include_router(build_acceptance_router(verification_service), prefix=API_PREFIX)
     app.include_router(build_settings_router(connections, tester=tester), prefix=API_PREFIX)

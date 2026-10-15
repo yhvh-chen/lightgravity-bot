@@ -108,3 +108,31 @@ DeepSeek 出现间歇性过载及仅保活等待，导致 pi 生成通道长期�
 - 资料与 Embedding LG-033～040：契约、原件摄取、图片/PDF OCR、词法索引、可选多模态向量、Chat/Files、中文 ASR 验证与集中验收；LG-041 在 ASR 质量达标后实施并集中验收中文转写扩展。
 - 更新 [滚动排期](docs/06-roadmap.md) 第 6 节、[任务入口](BACKLOG.md) 与 PROJECT 决策。两线契约可并行准备；保留首版集中验收顺序与程序权限边界，不引入常驻模型编排 agent 或独立向量数据库。
 - backlog 目录专项校验：41 项、无诊断；未修改代码、任务旧状态、凭证或当前 1.5.0 接口版本，未开始实施、模型实验或提交发布。日历日期未约定，当前为依赖与版本门排期。
+
+## 2026-10-16 批量推进检查点（持续执行中）
+
+本节覆盖上文旧检查点的当前事实；历史实验记录和旧 worktree 均保留。所有实施、调查、测试与集成经 pi + 现有 DeepSeek，主代理只协调；不推送、部署或发布。
+
+- 原 main dirty 已由 pi 保全为 `b2bd5eb`；持久备份与完整第一批证据在 `~/.cache/lightgravity-bot/checkpoints/2026-10-16-batch/REPORT.md`，排除凭证。原始 probes 中 12 个 YAML 诊断不改，开发任务 CLI 改以 **本仓库 `backlog/` 专用根**运行，41 项完整扫描、无诊断。
+- 第一批 `integrate/ui-controls` 已以 merge `7928e0f` 收拢，未重复 cherry-pick；LG-013/016/027 为 done。main 同候选后端 **485 passed、1 skipped**，mypy 91 files；前端 **75 passed**，tsc/build 通过。此次产品模型调用 0；不代表完整首版 QA 通过。完整 checkpoint skip 仍未实现。
+- LG-028/033 准备稿分别由隔离 pi 交付，再由单一 owner 串行冻结为 **1.6.0**（`9215a2f`，加性、默认关闭/未实现接口，非机械升版），两项 done。定向 contracts/API **65 passed**、mypy 通过。证据：[契约整合报告](probes/batch-20261016/CONTRACTS.md)。报告内若称“未跟踪实验”或把 Git blob ID 写作 sha256，均仅为表述问题：原始实验现已在保全提交中跟踪；40 位值是 Git blob ID。
+- 当前管理基点 main `374759b`；backlog digest **22 done、6 in-progress、13 todo**。LG-017/018/019（共同基点 `141809d`）正在项目旁 `lightgravity-bot-worktrees/lg017|lg018|lg019` 由不同 pi owner 并行实施；共享接线与正式契约后续由唯一集成者串行处理。
+- LG-029/034/039 已 claim（基点 `9ff71ff`），持久 worktree 已备；LG-039 已派出有界服务/真实语音质量验证，产品服务 health/models ≤4、推理 ≤6，无自动重试；样本/许可与质量不达标不得解锁 LG-041。LG-029/034 尚待派出（不是已实施）。
+- 派工提示词与原始受保护日志位于 `~/.cache/lightgravity-bot/checkpoints/2026-10-15/*20261016.txt` 与 `~/.cache/lightgravity-bot/dispatch-logs/`。恢复须先核对各 worktree 最新 HEAD/status 与 REPORT/STATUS，不能盲目重放进程或 pick。开发 pi 用量仅部分可计量，不把未知当零。
+- 下一步：收取 LG-017/018/019 必要局部证据 → 唯一 pi owner 集成并处理实际兼容性 → LG-021/022 独立集中 QA/返修复验；独立的 LG-029/034 可穿插。主代理不得接手代码。后续 LG-023/024、LG-030～032、LG-035～040 仍按真实依赖和集中门推进。
+
+## 2026-10-16 第二批集成检查点（唯一集成 owner，持续执行中）
+
+本节覆盖上文，为当前事实；旧实验与 worktree 全部保留，未推送/部署/发布。详细报告见
+[probes/batch-20261016/INTEGRATION-2.md](probes/batch-20261016/INTEGRATION-2.md)。
+
+- 集成前 main HEAD `374759b`；主代理本轮 PROGRESS 管理补充 dirty 已保留并随集成提交，未 reset/clean/覆盖。集成分支 `integrate/batch2`。
+- 按实际 HEAD/status 收拢六包（均 clean）：LG-017 `ae85dd1`、LG-018 `ad4a10f`、LG-019 `eed0b28`、LG-029 `ddab113`（收尾 pi 已退出并提交）、LG-034 `3f98f04`、LG-039 `e6f3fd5`。逐分支 `--no-ff` merge，未重复 pick、未整树覆盖。
+- 共享装配（唯一 owner）：`api/app.py` 挂载 sources（LG-034）、collaboration（LG-029，默认关闭）、notifications（LG-019）；`api/bootstrap.py` 按 LG-018 加性接线 `GraphDispatcher(..., workspaces=GraphWorkspaceProvider(WorktreeManager(settings.workspace_root)))`，**保持保守默认**未提高 `max_parallel`。
+- 契约：`docs/08` 保持 `1.6.0`，仅更新 §4.3 的 LG-034/LG-029 状态行与 §5.1 事件实际产生说明。
+- 整合候选检查：后端 `uv run mypy` 109 files clean、`uv run pytest -q` **545 passed, 1 skipped**；前端 tsc 0、vitest **81 passed**、vite build 通过。**产品真实模型调用 0**（mock/Git/HTTP 冒烟非完整 SDK 验收）。
+- 状态：LG-018/019/034/039 与 LG-029 `done`（待版本 QA）；**LG-017 保持 `in-progress`**——默认 `ProgramReviewer` 只是机器检查换名，非独立模型/角色复核，目标未满足，留 LG-022 真实门复验；LG-041 保持 `todo` 并记录 `needs decision`。
+- LG-039 报告口径限定“本轮已测模型/路径无可用 ASR、LG-041 不解锁”，未泛化；`done` 仅指有界可行性负结果，不等于完整中文质量验收。
+- 就绪任务已 claim（不代跑）：LG-021 → `qa/lg021`（基于整合候选，供新上下文独立 QA），LG-035 → `dev/lg035`（持久），LG-030 → `dev/lg030`（持久）。LG-022/023/024、LG-031/032、LG-036～040 仍按依赖推进。
+- backlog 专用根校验：41 项、无诊断；27 done、1 in-progress、13 todo。
+- 未完成质量门：首版集中 QA（021/022）、资料版（035～040）、去中心化版（030～032）；LG-017 独立 QA 缺口；LG-029 settings 写入/coordinator LeaseManager/执行身份注入；完整 checkpoint skip。

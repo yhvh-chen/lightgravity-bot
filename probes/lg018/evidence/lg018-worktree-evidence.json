@@ -1,0 +1,40 @@
+{
+  "base_commit": "5764efaeaa0e170e7d034287fc66b042c6070781",
+  "candidate_is_ancestor_of_base": true,
+  "cleanup_after_unconfirmed": null,
+  "cleanup_kept_undelivered": true,
+  "conflict": {
+    "base_commit": "5764efaeaa0e170e7d034287fc66b042c6070781",
+    "candidate_commit": null,
+    "conflicted": true,
+    "conflicts": [
+      "code.txt"
+    ],
+    "integration_branch": "lg/run_conflict/integration",
+    "integration_path": "/tmp/lg018-probe-qfy26ipc/ws/.lg-worktrees/run_conflict/integration",
+    "merged": [
+      "lg/run_conflict/write-a"
+    ]
+  },
+  "conflict_worktrees_retained": true,
+  "distinct_paths": true,
+  "integration": {
+    "base_commit": "5764efaeaa0e170e7d034287fc66b042c6070781",
+    "candidate_commit": "cbf945795749aa97dc2b25755718371fb6d4a1e4",
+    "conflicted": false,
+    "conflicts": [],
+    "integration_branch": "lg/run_ok/integration",
+    "integration_path": "/tmp/lg018-probe-qfy26ipc/ws/.lg-worktrees/run_ok/integration",
+    "merged": [
+      "lg/run_ok/write-a",
+      "lg/run_ok/write-b"
+    ]
+  },
+  "isolated_paths": [
+    "/tmp/lg018-probe-qfy26ipc/ws/.lg-worktrees/run_ok/write-a",
+    "/tmp/lg018-probe-qfy26ipc/ws/.lg-worktrees/run_ok/write-b"
+  ],
+  "original_workspace_clean": true,
+  "passed": true,
+  "repo": "/tmp/lg018-probe-qfy26ipc/ws/project"
+}

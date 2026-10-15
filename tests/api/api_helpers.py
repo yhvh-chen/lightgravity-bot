@@ -208,6 +208,7 @@ __all__ = [
     "AsgiEventStream",
     "FakeExecutor",
     "StubDispatcher",
+    "create_bare_task",
     "create_task",
     "make_stub_app",
     "settle_task",
@@ -271,3 +272,23 @@ def make_stub_app(settings: Settings, **dispatcher_kwargs: object) -> FastAPI:
         dispatcher=dispatcher,
         access_policy=LocalAccessPolicy(allow_sensitive_without_token=True),
     )
+
+
+def create_bare_task(app: Any, *, title: str = "Bare task") -> str:
+    """Create a Task without enqueueing work (deterministic projection tests).
+
+    The real ``POST /tasks`` enqueues and the default ``UnavailableExecutor``
+    then fails the Run, which would itself (correctly) produce a
+    ``task.failed`` notification.  Tests that assert the projection mapping use
+    this seam so only the events under test exist on the stream.
+    """
+
+    counter = getattr(app.state, "_bare_task_counter", 0) + 1
+    app.state._bare_task_counter = counter
+    result = app.state.coordinator.create_task(
+        request_id=f"bare-{counter}-{id(app)}",
+        title=title,
+        objective="projection fixture",
+        enqueue=False,
+    )
+    return str(result.task_id)
