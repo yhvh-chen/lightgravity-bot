@@ -66,6 +66,18 @@ def _connection_from_versioned(versioned: Versioned) -> Connection:
     )
 
 
+def _optional_bool(data: dict[str, Any], field: str, *, default: bool = False) -> bool:
+    value = data.get(field)
+    return value if isinstance(value, bool) else default
+
+
+def _optional_positive_int(data: dict[str, Any], field: str, *, default: int) -> int:
+    value = data.get(field)
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        return default
+    return value
+
+
 def _settings_from_versioned(versioned: Versioned) -> GlobalSettings:
     data = versioned.entity
     return GlobalSettings(
@@ -78,6 +90,9 @@ def _settings_from_versioned(versioned: Versioned) -> GlobalSettings:
         default_reviewer_connection_ref=_optional_str(
             data, "default_reviewer_connection_ref"
         ),
+        decentralized_claim_enabled=_optional_bool(data, "decentralized_claim_enabled"),
+        collab_requests_enabled=_optional_bool(data, "collab_requests_enabled"),
+        claim_lease_seconds=_optional_positive_int(data, "claim_lease_seconds", default=300),
         exists=True,
         data=dict(data),
     )
@@ -244,6 +259,9 @@ class ConnectionRepository:
         default_coordinator_connection_ref: str | None,
         default_worker_connection_ref: str | None,
         default_reviewer_connection_ref: str | None = None,
+        decentralized_claim_enabled: bool = False,
+        collab_requests_enabled: bool = False,
+        claim_lease_seconds: int = 300,
         actor: str,
         request_id: str,
     ) -> GlobalSettings:
@@ -251,6 +269,9 @@ class ConnectionRepository:
             "default_coordinator_connection_ref": default_coordinator_connection_ref,
             "default_worker_connection_ref": default_worker_connection_ref,
             "default_reviewer_connection_ref": default_reviewer_connection_ref,
+            "decentralized_claim_enabled": decentralized_claim_enabled,
+            "collab_requests_enabled": collab_requests_enabled,
+            "claim_lease_seconds": claim_lease_seconds,
         }
         versioned = self._store.create(
             SETTINGS_KIND, SETTINGS_ID, content, actor=actor, request_id=request_id
