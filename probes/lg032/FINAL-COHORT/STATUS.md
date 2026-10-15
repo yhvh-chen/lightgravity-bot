@@ -30,6 +30,22 @@ owner: "agent:pi-lg032-final-cohort（续接 owner；非 031 实施者；主代�
 - **所需下一步**：PM 决定是否集成/复验 `0814b80`；剩余 driver 状态待核；正式 192/4×48 未执行；最终 REPORT+冻结 hash 未做。
 - **未做**：不新实验、不 claim done、不 main merge、不嵌套代理/push/deploy/publish。
 
+## APPEND 2026-10-16（cohort-ready 预检归档 + 冻结候选；真实 provider=0）
+
+**新增**：`REPORT-COHORT-READY.md` + `offline/cohort-ready-freeze-candidate.manifest.json`。
+
+- 迁移到 `qa/lg032-cohort-ready`（HEAD `a29e94f` = `07cf5fa` + `0814b80` 合并）后跑出 **7 次新 dry attempt**：
+  A×2 全绿；B×5 **4 绿 1 红**（`s2_pipeline-B` 首个 `20261015T202402Z` 机器门 5/7 真败、未 accept；重跑 `20261015T202429Z` 7/7 绿）。
+- 四组合（s1A/s1B/s2A/s2B）**各有一份完整 0-fake-pass + 实际计量 + 硬门 证据**，但对应 **未提交的 dirty driver**。
+- **必须精确 commit 3 个 dirty harness 文件**（已随 commit 冻结）；HEAD 版仍含旧的 selection-by-tool-name 429 死循环实现。
+- **独立边界 QA** `lg031-boundary@70a0fd5`（`82b4357` BOUNDARY-R1 **PASS**，0 provider，产品只读）已核；`0814b80` 已并入本 HEAD。
+- A/B 唯一 mode 变量 = 实施写节点数 + arm B 候选池；Member/权限/工具/模型/初始 commit/任务 input/truth **同质**。
+- **未发现**为方便 fake 而放宽正式 prompt/tool/caps/真预算的 diff；`LG032_WIDEN_EXEC_ROOT` 改为显式拒绝（更严格）。
+- 正式 ledger `lg032-cohort-ready-data` **不存在**（formal 未启动）；旧成本 shared 记 **unknown 不记 0**。
+- **判定 PARTIAL**：缺 **独立方法 audit**（fake phase 判定 vs 真实、accept 前置门是否真绑机器 truth、A/B 同质）⇒ **不准正式跑**。
+- 前 owner `23608`/log `c8n8bi2n` exit143 elapsed368（s1B 最后 fake 后）= **unknown，不重试**。
+- **未做**：不正式跑、不 mark 032 done、不 main merge/push/deploy/publish、不嵌套代理、不改产品 caps/root、不改 harness 逻辑。
+
 # LG-032 阶段 B — final-cohort STATUS（narrow-B 根因定位续接）
 
 ## 0. 本包性质与硬边界（不变）

@@ -361,27 +361,61 @@ def _init_repo(root: Path, initial: Path) -> str:
     return head
 
 
-def _materialize_candidate(initial_dir: Path, patch_path: Path, dest: Path) -> bool:
-    """Apply the run's own candidate diff onto a fresh copy of the fixture.
+def _materialize_candidate(initial_dir: Path, patch_paths: list[Path], dest: Path) -> bool:
+    """Apply the run's own candidate diffs onto a fresh copy of the fixture.
 
-    The product's real candidate is the isolated per-node worktree diff it
-    records as ``lg006-diff.patch``; the machine truth must run against that
-    candidate, not the untouched start workspace.  ``dest`` is a brand-new
-    unique path (never deleted/overwritten).
+    The product's real candidate for a multi-node (pool) run is the set of
+    **per-node** ``evidence:<run>/<subtask>-lg006-diff.patch`` artifacts the
+    dispatcher imported into the Task/Run evidence root.  The single legacy
+    ``artifacts/<run>/lg006-diff.patch`` path collides across pool nodes (every
+    node writes the same run-scoped name), so it is NOT the full candidate and
+    must never be the only input.  ``dest`` is a brand-new unique path (never
+    deleted/overwritten).
     """
 
     if dest.exists():
         raise SystemExit(f"refusing to reuse candidate dir {dest}")
     shutil.copytree(initial_dir, dest)
-    if not patch_path.exists():
+    if not patch_paths:
         return False
-    proc = subprocess.run(
-        ["git", "apply", "--unsafe-paths", "-p1", str(patch_path)],
-        cwd=dest,
-        capture_output=True,
-        text=True,
-    )
-    return proc.returncode == 0
+    for patch_path in patch_paths:
+        if not patch_path.exists():
+            return False
+        proc = subprocess.run(
+            ["git", "apply", "--unsafe-paths", "-p1", str(patch_path)],
+            cwd=dest,
+            capture_output=True,
+            text=True,
+        )
+        if proc.returncode != 0:
+            return False
+    return True
+
+
+def _candidate_diff_paths(state: Any, task_id: str, run_id: str) -> list[Path]:
+    """The product's real per-node candidate diffs for ``run_id``.
+
+    Uses the product's own candidate snapshot (``load_candidate``) plus its
+    canonical evidence resolver, so the machine truth runs against the exact
+    artifacts the product recorded -- never an unmerged shared stub and never a
+    raw executor path.  Returns them in node-ref order (deterministic); an empty
+    list means the product recorded no diff evidence.
+    """
+
+    from lightgravity.verify.candidate import load_candidate
+    from lightgravity.verify.review import resolve_candidate_evidence
+
+    store = state.store
+    candidate = load_candidate(store, task_id)
+    resolved = resolve_candidate_evidence(store, candidate)
+    diffs: list[Path] = []
+    for ref in candidate.artifact_refs:
+        path = resolved.get(ref)
+        if path is None:
+            continue
+        if path.name.lower().endswith(("-lg006-diff.patch", "lg006-diff.patch")):
+            diffs.append(path)
+    return diffs
 
 
 def _machine_gate(workspace: Path, acceptance_script: Path) -> dict[str, Any]:
@@ -646,11 +680,14 @@ def run_attempt(sample: str, arm: str, *, dry_run: bool = False,
         results["run_id"] = run_id
 
         # Machine truth runs against the run's REAL candidate: apply the
-        # product-recorded diff onto a fresh copy of the frozen fixture.
-        patch = data_dir / "artifacts" / (run_id or "") / "lg006-diff.patch"
+        # product-recorded per-node diffs onto a fresh copy of the frozen
+        # fixture.  A multi-node (pool) run has one per-node evidence diff;
+        # the colliding legacy run-level path is not sufficient on its own.
         candidate_dir = workspace_root / "candidate-eval"
-        applied = _materialize_candidate(initial_dir, patch, candidate_dir)
-        results["candidate_patch"] = str(patch)
+        diffs = _candidate_diff_paths(state, task_id, run_id or "")
+        applied = _materialize_candidate(initial_dir, diffs, candidate_dir)
+        results["candidate_diffs"] = [str(p) for p in diffs]
+        results["candidate_diff_count"] = len(diffs)
         results["candidate_patch_applied"] = applied
         machine = _machine_gate(candidate_dir, C.FIXTURES_DIR / sample / "acceptance.py")
         results["machine_gate"] = machine
@@ -674,6 +711,20 @@ def run_attempt(sample: str, arm: str, *, dry_run: bool = False,
              reviewer_cleanup=reviewer_cleanup)
 
         # ---- bind accept through the real acceptance service
+        # Accept is only attempted once the product's own truths pass (machine
+        # gate + independent reviewer + real stop/teardown + real session refs).
+        # If a truth failed, the run is honestly recorded as not delivered and no
+        # accept is attempted (never fabricate a bound acceptance).
+        review_passed = str(review.get("validated_outcome", review.get("outcome", ""))) == "passed"
+        truths_ok = bool(
+            results["machine_pass"]
+            and review_passed
+            and len(session_refs) >= 1
+            and isinstance(reviewer_cleanup, dict)
+            and reviewer_cleanup.get("confirmed") is True
+        )
+        results["truths_before_accept"] = truths_ok
+
         req_rev = detail.get("requirements_revision")
         accept_body = {
             "action": "accept",
@@ -681,24 +732,50 @@ def run_attempt(sample: str, arm: str, *, dry_run: bool = False,
             "target_run_id": run_id,
             "expected_requirements_revision": req_rev,
         }
-        acode, ares = _http("POST", f"{base}/tasks/{task_id}/actions", body=accept_body,
-                            headers={"X-LG-Token": "lg032-token"})
-        results["accept_response"] = ares
-        acc = ares.get("acceptance") or {}
-        accepted = (
-            acode == 200 and ares.get("state") == "confirmed"
-            and acc.get("status") == "accepted" and ares.get("candidate_ref") == run_id
-        )
-        step("accept_confirmed_bound", accepted, code=acode, state=ares.get("state"),
-             acceptance=acc, candidate_ref=ares.get("candidate_ref"))
+        accepted = False
+        if truths_ok:
+            acode, ares = _http("POST", f"{base}/tasks/{task_id}/actions", body=accept_body,
+                                headers={"X-LG-Token": "lg032-token"})
+            results["accept_response"] = ares
+            acc = ares.get("acceptance") or {}
+            accepted = (
+                acode == 200 and ares.get("state") == "confirmed"
+                and acc.get("status") == "accepted" and ares.get("candidate_ref") == run_id
+            )
+            step("accept_confirmed_bound", accepted, code=acode, state=ares.get("state"),
+                 acceptance=acc, candidate_ref=ares.get("candidate_ref"))
+
+            # Idempotency: replaying the SAME request_id must not create a second
+            # decision nor change the bound candidate.
+            icode, ires = _http("POST", f"{base}/tasks/{task_id}/actions", body=accept_body,
+                                headers={"X-LG-Token": "lg032-token"})
+            results["accept_idempotent_response"] = ires
+            iacc = ires.get("acceptance") or {}
+            idempotent = (
+                icode == 200 and ires.get("state") == "confirmed"
+                and ires.get("candidate_ref") == run_id
+                and iacc.get("decision_ref") == acc.get("decision_ref")
+            )
+            step("accept_same_request_idempotent", idempotent, code=icode,
+                 state=ires.get("state"), decision_ref=iacc.get("decision_ref"))
+
+            # Wrong target: a different (non-active) run must be refused and must
+            # not alter the confirmed acceptance.
+            wrong_body = dict(accept_body, target_run_id="run_0000000000000000000000000")
+            wcode, wres = _http("POST", f"{base}/tasks/{task_id}/actions", body=wrong_body,
+                                headers={"X-LG-Token": "lg032-token"})
+            results["accept_wrong_target_response"] = {"code": wcode, "body": wres}
+            step("accept_wrong_target_rejected", wcode >= 400, code=wcode, body=wres)
+        else:
+            step("accept_confirmed_bound", False, skipped="preconditions_unmet",
+                 machine_pass=results["machine_pass"], review_passed=review_passed)
 
         gen_final = gen()
         results["generation_final"] = gen_final
         results["attempt_generation_requests"] = guard.used
 
         results["sample_delivered"] = bool(
-            results["machine_pass"] and accepted
-            and str(review.get("validated_outcome", review.get("outcome", ""))) == "passed"
+            results["machine_pass"] and accepted and review_passed
         )
         results["first_round_machine_pass"] = results["machine_pass"]
     except Exception as exc:  # noqa: BLE001 - record the real failure, never fake success

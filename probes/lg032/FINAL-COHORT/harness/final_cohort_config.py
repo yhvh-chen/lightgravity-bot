@@ -29,14 +29,20 @@ from pathlib import Path
 
 # ------------------------------------------------------------------ paths
 #: Project-adjacent, persistent, never a TemporaryDirectory.
-WORKTREE = Path("/home/yhvh/code/lightgravity-bot-worktrees/lg032-final-cohort")
+#: LG-032 cohort-ready: the protocol moved to its own worktree after the
+#: workspace-boundary product fix was safely merged.  The previous harness
+#: worktree (`lg032-final-cohort`) and its data roots are PRESERVED verbatim as
+#: history and are never written to again (preservation incident rule).
+WORKTREE = Path("/home/yhvh/code/lightgravity-bot-worktrees/lg032-cohort-ready")
 COHORT = WORKTREE / "probes" / "lg032" / "FINAL-COHORT"
 
 #: The ONE controlled persistent phase data root for the WHOLE cohort.
 #: Passed verbatim as ``Settings.data_dir`` for every serial attempt / runtime
 #: start, so the product ledger rooted at ``data_dir/generation`` IS the single
 #: phase ledger (fixes the 023 cohort-2 D1 per-attempt-ledger defect).
-PHASE_DATA_DIR = WORKTREE.parent / "lg032-final-cohort-data"
+#: Kept as a distinct (fresh) root for the cohort-ready phase; the formal
+#: attempt ledger has never been started, so this is not a reset of any data.
+PHASE_DATA_DIR = WORKTREE.parent / "lg032-cohort-ready-data"
 
 #: Product's OWN layout under ``data_dir``.
 LEDGER_DIR = PHASE_DATA_DIR / "generation"
@@ -86,7 +92,11 @@ BASE_URL = "https://api.deepseek.com/v1"
 CREDENTIAL_REF = "deepseek-api-key"
 
 #: Product tree the cohort snapshot is pinned to.
-PRODUCT_BASE_COMMIT = "91550a9"
+#: Product tree the cohort-ready harness is pinned to: the workspace-boundary
+#: fix (selection scratch rooted inside the executor authorized root), safely
+#: merged onto the final-cohort WIP base.  Product real generation stays 0.
+PRODUCT_BASE_COMMIT = "a29e94f"
+PRODUCT_FIX_COMMIT = "0814b80"
 
 
 def phase_env() -> dict[str, str]:
@@ -115,6 +125,8 @@ def attempt_root(attempt_id: str) -> Path:
 #: written to or deleted again.  New dry runs MUST use a unique path instead
 #: (see ``new_dry_root``) so no prior attempt output can ever be clobbered.
 LEGACY_DRY_DATA_DIR = PHASE_DATA_DIR.parent / "lg032-final-cohort-data-dry"
+#: Phase-1 harness data root (lg032-final-cohort); preserved, never written now.
+LEGACY_PHASE_DATA_DIR = PHASE_DATA_DIR.parent / "lg032-final-cohort-data"
 
 
 def new_dry_root(label: str = "dry") -> Path:
@@ -136,7 +148,7 @@ def new_dry_root(label: str = "dry") -> Path:
 
     stamp = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     nonce = (_os.environ.get("LG032_DRY_NONCE") or _uuid.uuid4().hex[:8]).strip()
-    root = PHASE_DATA_DIR.parent / f"lg032-final-cohort-data-{label}-{stamp}-{nonce}"
+    root = PHASE_DATA_DIR.parent / f"{PHASE_DATA_DIR.name}-{label}-{stamp}-{nonce}"
     if root.exists():  # never reuse / never delete; add a further nonce
         root = root.with_name(root.name + "-" + _uuid.uuid4().hex[:6])
     return root
@@ -157,6 +169,7 @@ __all__ = [
     "LEDGER_DIR",
     "LEDGER_HISTORY",
     "LEGACY_DRY_DATA_DIR",
+    "LEGACY_PHASE_DATA_DIR",
     "MAX_CONCURRENCY",
     "MAX_REWORKS_PER_ATTEMPT",
     "MODEL",

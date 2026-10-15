@@ -12,6 +12,36 @@ Guarantees:
   passing structured outcome.
 * Records only redacted metadata (phase, tool names, roles).  Never records or
   returns prompts/headers/credentials in the saved evidence.
+
+State machine / termination (LG-032 cohort-ready fix)
+-----------------------------------------------------
+The previous revision classified a request as a *selection* phase whenever the
+restricted ``discover_and_request_claim`` tool appeared in the exposed tool
+list.  That is wrong: the product's phase-2 **execution** session still carries
+the claim tool schema, so every execution request was mis-read as a selection,
+re-issued ``discover_and_request_claim`` forever, and burned the whole
+per-attempt generation cap before any artifact was written (observed: 48/48
+selection requests, then the execution session hit the pre-forward ``429``).
+
+The fake now discriminates phases exactly like the mature R1 real-SDK fake:
+the product-frozen selection prompt carries the sentinel ``PHASE 1``; a
+verify node is a session that exposes ``view_file`` but **no** write tool; and
+everything else is an execution node.  Every phase has an explicit, *bounded*
+termination condition derived from the conversation itself (not from wall
+clock), so a node can never spin indefinitely:
+
+* selection -> ``discover`` (once) -> ``claim`` (once, a legal non-first
+  candidate) -> final text after a ``granted`` receipt; a refused/revoked claim
+  also terminates after one refusal instead of retrying forever.
+* execution -> one ``write_to_file`` per artifact the node's own objective
+  names -> final text once all owned artifacts are written; bounded by the
+  number of owned artifacts.
+* verify    -> one ``view_file`` of the first upstream artifact -> final text.
+* reviewer  -> a passing structured outcome.
+
+No product cap is relaxed, no proxy budget is bypassed, no model permission is
+changed and no authorized root is widened: the fake only decides *what the
+model would have said*.
 """
 
 from __future__ import annotations
@@ -70,6 +100,15 @@ ARTIFACTS: dict[str, dict[str, str]] = {
         ),
     },
 }
+
+#: Write tools the pinned SDK may expose (any one proves an execution node).
+_WRITE_TOOLS = frozenset(
+    {"write_to_file", "replace_file_content", "create_file", "edit_file"}
+)
+#: The product-frozen sentinel that marks a phase-1 selection session.
+_SELECTION_SENTINEL = "PHASE 1"
+#: Hard cap on fake-driven tool calls per node session (bounded termination).
+_MAX_TOOL_CALLS = 6
 
 
 def _sse(data: str) -> str:
@@ -158,33 +197,43 @@ class _ScriptedUpstream(http.server.BaseHTTPRequestHandler):
             self._send(payload)
             return
 
-        wrote = any(
-            m.get("role") == "tool" and (
-                "created" in str(m.get("content") or "").lower()
-                or "wrote" in str(m.get("content") or "").lower()
-            )
-            for m in messages
-        )
-        read_done = any(
-            m.get("role") == "tool" and "file" in str(m.get("content") or "").lower()
-            for m in messages
-        )
-
-        # A node is a verify node iff it can only read (no write tool exposed).
-        write_capable = any(
-            n in ("write_to_file", "replace_file_content", "create_file", "edit_file")
-            for n in tool_names
-        )
-        if self._is_selection(tool_names, joined):
-            payload, phase = self._selection(messages, joined), "selection"
-        elif not write_capable and "view_file" in tool_names:
-            payload, phase = self._verify(messages), "verify"
+        phase = self._classify(tool_names, joined)
+        # Hard per-node bound: a node session may issue at most ``_MAX_TOOL_CALLS``
+        # tool calls before the fake ends the turn with a final text.  This makes
+        # an unparseable receipt a bounded, honest stop instead of an unbounded
+        # loop that would burn the product's pre-forward generation cap (the
+        # exact failure mode this revision fixes).
+        if len(self._assistant_tool_calls(messages)) >= _MAX_TOOL_CALLS:
+            payload = _text(f"{phase} complete (bounded tool-call budget reached)")
+            self._record(phase, joined, tool_names, messages)
+            self._send(payload + "data: [DONE]\n\n")
+            return
+        if phase == "selection":
+            payload = self._selection(messages)
+        elif phase == "verify":
+            payload = self._verify(messages)
         else:
-            payload, phase = self._execute(messages, wrote), "execution"
+            payload = self._execute(messages)
         self._record(phase, joined, tool_names, messages)
         self._send(payload + "data: [DONE]\n\n")
 
     # ------------------------------------------------------------- internals
+    @staticmethod
+    def _classify(tool_names: list[Any], joined: str) -> str:
+        """Which product phase this request is, by product-frozen signals only.
+
+        * selection carries the frozen ``PHASE 1`` sentinel;
+        * verify exposes ``view_file`` and **no** write tool;
+        * everything else is an execution node.
+        """
+
+        if _SELECTION_SENTINEL in joined:
+            return "selection"
+        write_capable = any(name in _WRITE_TOOLS for name in tool_names)
+        if not write_capable and "view_file" in tool_names:
+            return "verify"
+        return "execution"
+
     def _record(self, phase: str, joined: str, tool_names: list[Any],
                 messages: list[dict[str, Any]]) -> None:
         with self.lock:
@@ -213,32 +262,77 @@ class _ScriptedUpstream(http.server.BaseHTTPRequestHandler):
         self.wfile.write(encoded)
         self.close_connection = True
 
+    # --------------------------------------------------------- tool receipts
     @staticmethod
-    def _is_selection(tool_names: list[Any], joined: str) -> bool:
-        # Only a real selection phase for arm B: the restricted claim tool must be
-        # an *exposed tool* (not merely mentioned in a prompt).
-        return "discover_and_request_claim" in tool_names
+    def _assistant_tool_calls(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """All tool calls the (fake) assistant already issued in this session."""
+
+        calls: list[dict[str, Any]] = []
+        for m in messages:
+            if m.get("role") != "assistant":
+                continue
+            for call in m.get("tool_calls") or []:
+                if isinstance(call, dict):
+                    calls.append(call)
+        return calls
 
     @staticmethod
-    def _is_verify(joined: str) -> bool:
-        return "verification member" in joined.lower() or "read-only tools" in joined.lower()
+    def _called_tools(messages: list[dict[str, Any]]) -> list[str]:
+        names: list[str] = []
+        for call in _ScriptedUpstream._assistant_tool_calls(messages):
+            fn = call.get("function")
+            if isinstance(fn, dict) and fn.get("name"):
+                names.append(str(fn["name"]))
+        return names
 
-    def _selection(self, messages: list[dict[str, Any]], joined: str) -> str:
-        last_tool = next((m for m in reversed(messages) if m.get("role") == "tool"), None)
-        last_tool_text = str((last_tool or {}).get("content") or "")
-        granted = '"state": "granted"' in last_tool_text
-        discovered = '"state": "discovered"' in last_tool_text
-        if granted:
+    @staticmethod
+    def _tool_result_texts(messages: list[dict[str, Any]]) -> list[str]:
+        """The raw text of every ``role: tool`` result in the conversation."""
+
+        return [str(m.get("content") or "") for m in messages if m.get("role") == "tool"]
+
+    @staticmethod
+    def _last_receipt_state(messages: list[dict[str, Any]]) -> str | None:
+        """The ``state`` of the most recent claim receipt, if any.
+
+        The pinned SDK renders the claim tool's dict result inside a
+        ``role: tool`` message as ``... ```json\\n{"ok":..., "state": "..."}``` ``.
+        Parse that JSON rather than substring-matching a key format.
+        """
+
+        for text in reversed(_ScriptedUpstream._tool_result_texts(messages)):
+            for block in re.findall(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL):
+                try:
+                    payload = json.loads(block)
+                except Exception:  # noqa: BLE001
+                    continue
+                if isinstance(payload, dict) and "state" in payload:
+                    return str(payload.get("state"))
+        return None
+
+    # ------------------------------------------------------- phase handlers
+    def _selection(self, messages: list[dict[str, Any]]) -> str:
+        """Bounded selection: discover -> claim -> finish (never spins)."""
+
+        state = self._last_receipt_state(messages)
+        if state == "granted":
             return _text("selection complete")
-        if discovered:
-            node_ref = self._pick_node(last_tool_text, self.select_non_first)
-            return _tool_call("discover_and_request_claim",
-                              {"node_ref": node_ref, "request_id": "req-select"})
+        if state in {"rejected", "refused"}:
+            # A refused claim must terminate the node, not re-loop: the program
+            # will honestly record a no-claim slot outcome.
+            return _text("selection refused; no authorized candidate claimed")
+        if state == "discovered":
+            node_ref = self._pick_node_from_messages(messages, self.select_non_first)
+            if not node_ref:
+                return _text("no candidate available")
+            return _tool_call(
+                "discover_and_request_claim",
+                {"node_ref": node_ref, "request_id": "req-select"},
+            )
         return _tool_call("discover_and_request_claim", {})
 
     def _verify(self, messages: list[dict[str, Any]]) -> str:
-        already = any(m.get("role") == "tool" for m in messages)
-        if already:
+        if "view_file" in self._called_tools(messages):
             return _text("verified: artifacts match acceptance criteria")
         joined = json.dumps(messages)
         files = list(ARTIFACTS.get(self.sample, {}).keys())
@@ -252,31 +346,28 @@ class _ScriptedUpstream(http.server.BaseHTTPRequestHandler):
             "toolAction": "Reading artifact",
         })
 
-    def _execute(self, messages: list[dict[str, Any]], wrote: bool) -> str:
+    def _execute(self, messages: list[dict[str, Any]]) -> str:
         joined = json.dumps(messages)
         files = list(ARTIFACTS.get(self.sample, {}).keys())
         if not files:
             return _text("implementation complete")
-        # Count how many write tool calls the conversation already contains, and
-        # which targets were written, so one node can write every artifact for
-        # its objective (arm A writes both files; arm B writes one each).
-        written_targets: list[str] = []
-        for m in messages:
-            for call in (m.get("tool_calls") or []):
-                fn = call.get("function") if isinstance(call, dict) else None
-                name = (fn or {}).get("name")
-                if name == "write_to_file":
-                    try:
-                        args = json.loads((fn or {}).get("arguments") or "{}")
-                    except Exception:  # noqa: BLE001
-                        args = {}
-                    tgt = str(args.get("TargetFile") or "")
-                    written_targets.append(tgt)
-        # Which artifacts this node owns: arm B splits objectives per file.
+        # Which artifacts this node owns: arm B splits objectives per file, so a
+        # node writes only files explicitly named in its own objective.
         owns = self._owned_files(joined, files)
-        remaining = [f for f in owns if not any(f in t for t in written_targets)]
-        if wrote and not remaining:
-            return _text("implementation complete")
+        written_targets: dict[str, int] = {}
+        for call in self._assistant_tool_calls(messages):
+            fn = call.get("function")
+            if not isinstance(fn, dict) or fn.get("name") not in _WRITE_TOOLS:
+                continue
+            try:
+                args = json.loads(fn.get("arguments") or "{}")
+            except Exception:  # noqa: BLE001
+                args = {}
+            tgt = str(args.get("TargetFile") or args.get("AbsolutePath") or "")
+            for owned in owns:
+                if owned in tgt:
+                    written_targets[owned] = written_targets.get(owned, 0) + 1
+        remaining = [f for f in owns if written_targets.get(f, 0) == 0]
         if not remaining:
             return _text("implementation complete")
         target = remaining[0]
@@ -294,40 +385,61 @@ class _ScriptedUpstream(http.server.BaseHTTPRequestHandler):
             "toolAction": "Writing artifact",
         })
 
+    # ------------------------------------------------------------- selection
+    def _pick_node_from_messages(self, messages: list[dict[str, Any]], non_first: bool) -> str:
+        """The non-first (or first) legal candidate from the discovery receipt."""
+
+        for text in reversed(self._tool_result_texts(messages)):
+            for block in re.findall(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL):
+                try:
+                    payload = json.loads(block)
+                except Exception:  # noqa: BLE001
+                    continue
+                if not isinstance(payload, dict):
+                    continue
+                candidates = payload.get("candidates")
+                if not isinstance(candidates, list) or not candidates:
+                    continue
+                chosen = candidates[-1] if non_first and len(candidates) > 1 else candidates[0]
+                if isinstance(chosen, dict):
+                    return str(chosen.get("node_ref") or "")
+        # Fallback: pull the candidate refs out of the raw discovery text.
+        refs = re.findall(r'"node_ref":\s*"([^"]+)"', "\n".join(self._tool_result_texts(messages)))
+        if not refs:
+            return ""
+        return refs[-1] if non_first and len(refs) > 1 else refs[0]
+
     @staticmethod
     def _owned_files(joined: str, files: list[str]) -> list[str]:
-        """The artifacts named by this node's objective (defaults to all).
+        """The artifacts this node is asked to write.
 
-        Arm B splits the work: the alpha objective names the first file, the
-        beta objective the second.  A node only writes files explicitly named
-        in its own objective text.
+        A node owns the files it is explicitly told to *overwrite*.  Arm B
+        splits the work: the alpha objective says ``overwrite src/shapes.py`` and
+        the beta objective says ``overwrite src/report.py`` -- even though beta
+        also *mentions* ``src/shapes.py`` in a dependency clause ("depends on
+        part A's src/shapes.py"), which must NOT make beta write it.  Arm A's
+        combined objective says ``OVERWRITE them`` with no per-file
+        ``overwrite <path>`` phrase, so it falls back to every artifact named.
         """
 
+        explicit: list[str] = []
+        for match in re.finditer(r"overwrite\s+([^\s,;\"']+\.py)", joined, re.IGNORECASE):
+            target = match.group(1)
+            for f in files:
+                if f in target and f not in explicit:
+                    explicit.append(f)
+        if explicit:
+            return explicit
         named = [f for f in files if f in joined]
         return named or files
 
     @staticmethod
     def _workspace_root(joined: str) -> str | None:
-        match = re.search(r"(/[^\"'\\ ]+?/workspaces/[^\"'\\ ]+)", joined)
+        # Prefer the isolated per-node worktree (execution/verify); fall back to
+        # any authorized workspace path (selection scratch).  The product always
+        # discloses the active workspace in the SDK ``user_information`` block.
+        match = re.search(r"(/[^\"'\\ \n]+?/workspaces/[^\"'\\ \n]+)", joined)
         return match.group(1) if match else None
-
-    @staticmethod
-    def _pick_node(tool_text: str, non_first: bool) -> str:
-        try:
-            start = tool_text.index("{")
-            payload = json.loads(tool_text[start:])
-        except Exception:  # noqa: BLE001
-            payload = None
-        candidates: list[dict[str, Any]] = []
-        if isinstance(payload, dict) and isinstance(payload.get("candidates"), list):
-            candidates = [c for c in payload["candidates"] if isinstance(c, dict)]
-        if not candidates:
-            refs = re.findall(r'"node_ref":\s*"([^"]+)"', tool_text)
-            candidates = [{"node_ref": r} for r in refs]
-        if not candidates:
-            return ""
-        chosen = candidates[-1] if non_first and len(candidates) > 1 else candidates[0]
-        return str(chosen.get("node_ref") or "")
 
     @staticmethod
     def _reviewer_payload(joined: str) -> str:
