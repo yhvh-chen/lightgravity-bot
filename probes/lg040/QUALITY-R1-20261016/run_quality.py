@@ -104,6 +104,69 @@ def seed_text_machine(data_dir: Path, source_id: str, filename: str, text: str) 
     return {"source_id": source_id, "extractor": "human_provided_text", "written": written}
 
 
+def compute_ocr_cer(data_dir: Path, source_id: str) -> dict:
+    """Per-page CER of the OCR machine derivative vs human-authored truth.
+
+    Page 1 truth = NIST SP 811 page 16 native text (human-authored, from the
+    truth fixture); page 2 truth = phototest.gold.txt (human gold).  Normalized
+    NFKC + collapsed whitespace + lowercased; Levenshtein edit distance.
+    """
+    import re
+    import unicodedata
+
+    def norm(s: str) -> str:
+        s = unicodedata.normalize("NFKC", s).lower()
+        return re.sub(r"\s+", " ", s).strip()
+
+    def levenshtein(a: str, b: str) -> int:
+        if not a:
+            return len(b)
+        if not b:
+            return len(a)
+        prev = list(range(len(b) + 1))
+        for i, ca in enumerate(a, 1):
+            cur = [i]
+            for j, cb in enumerate(b, 1):
+                cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+            prev = cur
+        return prev[-1]
+
+    from lightgravity.sources.store import SourceStore
+    store = SourceStore(data_dir)
+    rec = store.read_source(source_id)
+    pages_path = store.source_dir(source_id) / f"derivative/machine.v{rec.source_version}.pages.json"
+    out: dict = {"source_id": source_id, "pages_path": str(pages_path)}
+    if not pages_path.is_file():
+        out["error"] = "no pages derivative"
+        return out
+    pages_doc = json.loads(pages_path.read_text(encoding="utf-8"))
+    out["status"] = pages_doc.get("status")
+    # page1 truth from NIST page 16 native text
+    import pypdfium2 as pdfium
+    p16 = pdfium.PdfDocument(str(NIST_PDF))[15].get_textpage().get_text_bounded()
+    start = p16.index("Table 1 gives the seven base quantities")
+    end = p16.index("4.2 SI derived units")
+    truth_p1 = norm(p16[start:end])
+    truth_p2 = norm((ROOT / "probes/lg035/fixtures/phototest.gold.txt").read_text(encoding="utf-8"))
+    truths = {1: truth_p1, 2: truth_p2}
+    for pg in pages_doc.get("pages", []):
+        pno = pg.get("page")
+        got = norm(pg.get("text") or "")
+        t = truths.get(pno)
+        entry = {"page": pno, "status": pg.get("status"), "got_chars": len(got),
+                 "model": pg.get("model"), "input_sha256": pg.get("input_sha256")}
+        if t is not None:
+            dist = levenshtein(got, t)
+            entry.update({"truth_chars": len(t), "edit_distance": dist,
+                          "cer": round(dist / max(len(t), 1), 4)})
+        out[f"page{pno}" if pno else "page? "] = entry
+        if pno == 1:
+            out["page1_cer"] = entry.get("cer")
+        if pno == 2:
+            out["page2_cer"] = entry.get("cer")
+    return out
+
+
 def wait_for_server(url: str, timeout: float = 30.0) -> bool:
     import urllib.request
     deadline = time.time() + timeout
@@ -227,6 +290,12 @@ def main() -> int:
             (EVIDENCE / "ocr_machine_content.json").write_text(json.dumps(content, indent=2), encoding="utf-8")
         except Exception as exc:
             log(f"machine content fetch failed: {exc}")
+
+        # OCR CER per page from the persisted pages derivative vs human truth
+        cer = compute_ocr_cer(data_dir, mix_sid)
+        rec.add(phase="ocr_cer", **cer)
+        (EVIDENCE / "ocr_cer.json").write_text(json.dumps(cer, indent=2, ensure_ascii=False), encoding="utf-8")
+        log(f"ocr CER -> page1={cer.get('page1_cer')} page2={cer.get('page2_cer')}")
 
         # ---------------- Phase C: vector index build ----------------
         status = rec_client.get("/api/v1/vector/status").json()
