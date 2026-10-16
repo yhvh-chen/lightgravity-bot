@@ -1,0 +1,171 @@
+{
+ "url": "http://127.0.0.1:39933/",
+ "bound_ms": 2000,
+ "captured_at": "2026-10-16T07:24:13.015Z",
+ "cases": {
+  "resize_1440_to_390": {
+   "sampling": {
+    "nSamples": 196,
+    "maxOvershoot": 0,
+    "maxDoc": 1440,
+    "nOver2": 0,
+    "firstOver": null,
+    "lastOver": null
+   }
+  },
+  "initial_390": {
+   "boundMs": 2000,
+   "ready": true,
+   "readyAtMs": 76,
+   "sawTransientOverflow": false,
+   "transientMaxScrollWidth": 0,
+   "final": {
+    "listW": 310,
+    "detailW": 310,
+    "docScrollWidth": 390,
+    "railHidden": true,
+    "railPresent": false,
+    "railDisplay": null,
+    "actionsVisible": [
+     "Save correction",
+     "Archive",
+     "Download original"
+    ],
+    "overflow": false
+   },
+   "nSamples": 3,
+   "samples": [
+    {
+     "t_ms": 7,
+     "vw": 390,
+     "doc": 390,
+     "body": 390,
+     "overflow": false,
+     "railPresent": false,
+     "railW": 0,
+     "railDisplay": null,
+     "railHidden": true,
+     "listW": 310,
+     "detailW": 310,
+     "panelsNonzero": true,
+     "actionsVisible": [],
+     "actionsOk": false,
+     "geometryKey": "390|390|310|310|0",
+     "stableCount": 0
+    },
+    {
+     "t_ms": 43,
+     "vw": 390,
+     "doc": 390,
+     "body": 390,
+     "overflow": false,
+     "railPresent": false,
+     "railW": 0,
+     "railDisplay": null,
+     "railHidden": true,
+     "listW": 310,
+     "detailW": 310,
+     "panelsNonzero": true,
+     "actionsVisible": [
+      "Save correction",
+      "Archive",
+      "Download original"
+     ],
+     "actionsOk": true,
+     "geometryKey": "390|390|310|310|0",
+     "stableCount": 1
+    },
+    {
+     "t_ms": 76,
+     "vw": 390,
+     "doc": 390,
+     "body": 390,
+     "overflow": false,
+     "railPresent": false,
+     "railW": 0,
+     "railDisplay": null,
+     "railHidden": true,
+     "listW": 310,
+     "detailW": 310,
+     "panelsNonzero": true,
+     "actionsVisible": [
+      "Save correction",
+      "Archive",
+      "Download original"
+     ],
+     "actionsOk": true,
+     "geometryKey": "390|390|310|310|0",
+     "stableCount": 2
+    }
+   ]
+  },
+  "initial_390_chat_to_files": {
+   "sampling": {
+    "nSamples": 89,
+    "maxOvershoot": 0,
+    "maxDoc": 390,
+    "nOver2": 0,
+    "firstOver": null,
+    "lastOver": null
+   }
+  }
+ },
+ "desktop_boot": {
+  "vw": 1440,
+  "doc": 1440,
+  "rail": true
+ },
+ "steady_390": {
+  "vw": 390,
+  "doc": 390,
+  "body": 390,
+  "overflow": false,
+  "listW": 310,
+  "detailW": 310,
+  "railPresent": false,
+  "railW": 0,
+  "gridTemplateColumns": "310px",
+  "entries": 3
+ },
+ "steady_1024": {
+  "vw": 1024,
+  "doc": 1024,
+  "body": 1024,
+  "overflow": false,
+  "listW": 276,
+  "detailW": 276,
+  "railPresent": true,
+  "railW": 360,
+  "gridTemplateColumns": "276px",
+  "entries": 3
+ },
+ "steady_1440": {
+  "vw": 1440,
+  "doc": 1440,
+  "body": 1440,
+  "overflow": false,
+  "listW": 320,
+  "detailW": 360,
+  "railPresent": true,
+  "railW": 360,
+  "gridTemplateColumns": "320px 360px",
+  "entries": 3
+ },
+ "chat_390": {
+  "vw": 390,
+  "doc": 390,
+  "overflow": false,
+  "hasSearch": true
+ },
+ "verdict": {
+  "bound_ms": 2000,
+  "resize_no_overshoot": true,
+  "initial390_nav_no_overshoot": true,
+  "steady_no_overflow": true,
+  "steady390_panels_nonzero": true,
+  "desktop_two_panel": "320px 360px",
+  "readiness_ready_within_2s": true,
+  "readiness_readyAtMs": 76,
+  "chat390_no_overflow": true
+ }
+}

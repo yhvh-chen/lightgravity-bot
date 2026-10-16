@@ -1,0 +1,12 @@
+=== source shell.css ===
+b2b3ca8b54b4d0953a771e70dad9cbeed0cb376b5795caf13628a7eaa83b2132  frontend/src/app/shell.css
+=== dist assets ===
+8240d114205736ea9052702eebccefc631383448006cec4d065aa90fa143d5db  frontend/dist/index.html
+a7f185d41d22b8dfc8357e7385c3bebb89e4f8407fb4c08c8ada793b2ff5f5f5  frontend/dist/assets/index-D9QzHlXV.js
+a62d304df63662e4fae57a6d31c1ee5d65a83dd3c464c7aa36bcda4ae11769f0  frontend/dist/assets/index-DRJ4h6SM.css
+=== git HEAD ===
+30029eb95465c32fde94dcf7ce44ae18db4a43a0
+qa/lg040-transition-20261016
+=== grep compiled rule ===
+lg-chat-rail,.lg-workspace>.lg-resizer{display:none}
+.lg-chat-rail{display:flex;flex-direction:column;flex:0 0 auto;min-height:0;min-width:0;max-width:100%}
