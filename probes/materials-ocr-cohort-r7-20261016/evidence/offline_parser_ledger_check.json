@@ -1,0 +1,81 @@
+{
+  "phase": "offline_parser_ledger_check",
+  "checks": [
+    {
+      "name": "accept_markdown",
+      "ok": true,
+      "detail": {
+        "method": "markdown_pipe",
+        "rows": 8
+      }
+    },
+    {
+      "name": "markdown_gate_pass",
+      "ok": true,
+      "detail": {
+        "cell_cer": 0.0,
+        "gate": true
+      }
+    },
+    {
+      "name": "accept_plain",
+      "ok": true,
+      "detail": {
+        "method": "plain_aligned",
+        "rows": 8
+      }
+    },
+    {
+      "name": "plain_gate_pass",
+      "ok": true,
+      "detail": {
+        "cell_cer": 0.0,
+        "gate": true
+      }
+    },
+    {
+      "name": "reject_prose",
+      "ok": true,
+      "detail": {
+        "method": "none",
+        "machine_rows": 0,
+        "gate": false
+      }
+    },
+    {
+      "name": "no_gt_repair",
+      "ok": true,
+      "detail": {
+        "cell_cer": 0.041666666666666664,
+        "m_cell": "x",
+        "all_exact": false
+      }
+    },
+    {
+      "name": "row_count_exact_enforced",
+      "ok": true,
+      "detail": {
+        "machine_rows": 6,
+        "cell_cer": 0.25
+      }
+    },
+    {
+      "name": "ledger_reservation_before_raw",
+      "ok": true,
+      "detail": {
+        "kinds": [
+          "health",
+          "reservation",
+          "raw_response",
+          "reservation",
+          "raw_response",
+          "reservation",
+          "raw_response"
+        ],
+        "reservations": 3,
+        "raw": 3
+      }
+    }
+  ],
+  "all_ok": true
+}
