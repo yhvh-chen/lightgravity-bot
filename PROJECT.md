@@ -51,6 +51,14 @@ updated: "2026-10-16"
 - **预算**：prep/A/B/C/整合产品推理 0；**LG-047 唯一真实 DeepSeek 预算 12 次**（含 reviewer/retry，retry 0、串行、单请求 ≤90s、持久账本、转发前硬上限），**不经 PM 重规划不自动增长**；不足即诚实 partial 并保持 gate 开放。本 prep 真实调用 0。
 - **边界**：无 native 子代理、无产品模型/网络调用、无 push/deploy/破坏性清理/8123；保留所有既有 QA/raw/worktree/默认 OFF 特性；个体 worker 不写任务文件。
 
+### 2026-10-16：选定资料快速原型 LG-043～046 实施完成 + 串行整合候选（契约 finalsync 1.12.0；LG-047 待 QA）
+
+- **PM/集成决定**：LG-043（A 后端，含 run/message 触发绑定修正 R1 = `6515e5c`，集成验证回执提交 `9ac6597`）、LG-044（B 前端 `552d839`）、LG-045（C 示例/指南，初版 `6facb0b`、事实校正 `e36df29`）三线均**实现完成**；LG-046 由 `pi-proto-integrate` 在 `main` **串行 `--no-ff` 整合** A→B→C，整合候选见 [D-INTEGRATION REPORT](probes/prototype-selected-material-20261016/D-INTEGRATION/REPORT.md)。**LG-047 命名里程碑独立版本 QA 尚未开始**。
+- **A 绑定修正回执（诚实补齐）**：A 原报告将绑定修正标为 PARTIAL（无完成回执）；集成 owner 在**已提交的** `6515e5c` 上实跑并取得真实 EXIT 0 回执（`pytest tests/sources/test_lg043_selected_material.py` **42 passed**；`mypy` **139 files clean**；相关子集 **550 passed / 1 skipped**）。
+- **整合实际检查（候选 commit 见 REPORT）**：后端 `mypy` 139 files clean、`pytest tests/` **908 passed / 2 skipped**（EXIT 0）；前端 `tsc`/`vite build` EXIT 0，且集成后前端树与 B `552d839` **逐字节一致**；C fixture checker EXIT 0。全部**无真实产品模型/网络调用**。
+- **契约**：docs/08 头部与 §6.6.1、docs/10 已由 A finalsync 至 **`1.12.0`**（去 reserved）；docs/11 去 reserved。**新增加性可选 Task/Run 实体字段 `selected_trigger={message_id,snapshot}`**（实体序列化可达、非秘密），已在 docs/08 §6.6.1/§13 与 docs/10 §6 登记，**不按“无实体字段变化”口径**；不新增端点/错误码/枚举/迁移方向，旧客户端省略字段行为不变，前端 `selected_sources` wire 无变化。SDK `0.1.22` 不变。
+- **状态与下一步**：LG-043/044/045/046 置 `done`/in-progress 按实际证据；**LG-047 仍 `todo`（命名里程碑 QA）**，真实 SDK/DeepSeek 端到端 + 浏览器 390/1024/1440 + stale/revoked/cross-Task/oversize 真实错误验收归其独立预算（12 次，未开始）。本整合产品推理 0、成本 unknown 非 0。**041 保持 `todo` 不变**，LG-040 既有结论不变。
+
 ### 2026-10-16：LG-040 RELEASE-CLOSE 收口——依独立治理 QA TRANSITION-QA 置 done（版本 QA 技术验收；用户最终验收 PENDING）
 
 - **PM/integration 收口决定**：LG-040 `status` 置 **`done`**。依据**唯一治理独立 QA** `probes/lg040/TRANSITION-QA-20261016/REPORT.md`（tip `7fd0f61`，候选 **`30029eb`**）**PASS_WITH_LIMITATIONS、0 个 open important issue**，含 **fresh actual** 证据（fresh build EXIT 0 + bundle CSS hash 绑定；transition max overshoot **0**；starvation **0/1986**；宽度 **19/19**；**bounded readiness ready=true @76ms，2s 上界保留、未放宽为 8s**）。

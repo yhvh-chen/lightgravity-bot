@@ -1,0 +1,1 @@
+LG-046 D-INTEGRATION actual checks. Candidate commit: f7a32ac6bf99e668abf577e57f28254da6fda227. 2026-10-16T08:35:10Z

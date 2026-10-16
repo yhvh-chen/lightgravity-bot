@@ -2,7 +2,7 @@
 title: "Selected-material prototype — repeatable user guide (LG-045)"
 doc_type: guide
 category: engineering
-contract_version: "1.12.0-reserved"
+contract_version: "1.12.0"
 updated: "2026-10-16"
 ---
 
@@ -18,10 +18,17 @@ the feature is finished.
 > run has passed. Any result you obtain is an *observation* to compare against
 > the fixture truth, and only LG-047 may declare version acceptance.
 >
-> **Run it on `main` after LG-046.** The demo branch
+> **Run it on integrated `main`.** The demo branch
 > `dev/proto-material-demo-20261016` is not an integrated prototype base; see
 > §1 for the exact pre-integration behavior (unknown `selected_sources` ⇒
 > `422 validation_failed`, not a `404`/`not_ready` route).
+>
+> **Integration status (2026-10-16, LG-046):** the LG-043 backend and LG-044
+> frontend are now merged into `main` (`--no-ff`), so the `selected_sources`
+> field **is** present on this integrated candidate and the flows below apply.
+> The “pre-integration / before LG-046” explanation in §1 is retained as
+> historical context and for reproduction on the base product only. Contract
+> version is now finalized at **`1.12.0`** (no longer reserved).
 >
 > **Fixture data is human-written SAMPLE data, not OCR output and not measured
 > model results.** See [`examples/selected-material-prototype/README.md`](../examples/selected-material-prototype/README.md).
@@ -60,7 +67,8 @@ text was provided.
 ## 1. Prerequisites
 
 - A working checkout of this repository **on the integrated branch `main`
-  after LG-046 has landed** (LG-043 backend + LG-044 frontend merged).
+  after LG-046 has landed** (LG-043 backend + LG-044 frontend merged) — this
+  is the current state of `main` as of 2026-10-16.
   **Do not run this guide on the demo owner branch
   `dev/proto-material-demo-20261016`** — that branch only contains the demo
   assets and the base product; it is **not** a working prototype base because
@@ -68,8 +76,9 @@ text was provided.
 - Python `>=3.12,<3.13`, `uv 0.12.x`, Node 22 / npm 10, GNU make
   (see [README](../README.md) "版本要求").
 - The two prototype owner worktrees are integrated (LG-043 backend, LG-044
-  frontend). **Until LG-046 integration lands on `main`, the selection field
-  is not implemented on top of the existing base.**
+  frontend). On the current integrated `main` the selection field **is**
+  implemented; the pre-integration explanation below is kept for reproducing
+  the base product only.
 
 ### What "not integrated yet" actually looks like (do not invent a `not_ready` error)
 

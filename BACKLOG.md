@@ -9,11 +9,12 @@ updated: "2026-10-16"
 
 > 创建：2026-10-14。开发任务由 Olav Tasks 管理，schema 为 `olav.tasks/v1`，编号 LG。状态以单项 Markdown frontmatter 为准，本索引不重复维护状态。
 
-## 当前批次状态（2026-10-16，选定资料快速原型规划；LG-042～047 新建）
+## 当前批次状态（2026-10-16，选定资料快速原型 LG-042～047；046 已整合候选、047 待 QA）
 
-- 任务 CLI（backlog 根）：`validate` **47 tasks / 0 diagnostics**；`ready=[LG-042]`；LG-041 仍 `todo`（质量门阻塞）。
-- **新建 LG-042～047**：042 冻结契约（`pi-proto-prepare`）→ 043 后端（A，并行）/044 前端（B）/045 Demo（C）→ 046 串行整合 → 047 **命名里程碑独立版本 QA**。契约 [docs/10](docs/10-selected-material-prototype.md) + docs/08 §6.6.1，加性 MINOR **`1.12.0` 预留**。派工说明 [DISPATCH](probes/prototype-selected-material-20261016/DISPATCH.md)。三 worktree 建于冻结基线之后，**未启动 worker**。
-- **预算**：prep/A/B/C/整合产品推理 0；LG-047 唯一真实 DeepSeek 12 次（含 reviewer/retry、retry 0、串行、单请求 ≤90s、持久账本、转发前硬上限）。
+- 任务 CLI（backlog 根）：LG-042～045 **done**（实施完成，待 047 版本 QA）、**LG-046 已整合候选**、**LG-047 待独立 QA**；LG-041 仍 `todo`（质量门阻塞）。
+- **实施进展**：042 冻结契约（`pi-proto-prepare`）→ 043 后端（A `6515e5c`，含 run/message 触发绑定修正 R1）→044 前端（B `552d839`）/045 Demo（C `e36df29`）→ **046 串行整合候选**（[D-INTEGRATION REPORT](probes/prototype-selected-material-20261016/D-INTEGRATION/REPORT.md)）→ 047 **命名里程碑独立版本 QA（未开始）**。契约 [docs/10](docs/10-selected-material-prototype.md) + docs/08 §6.6.1，加性 MINOR **`1.12.0`（已 finalsync，去 reserved）**。派工说明 [DISPATCH](probes/prototype-selected-material-20261016/DISPATCH.md)。
+- **整合实际检查**：后端 `mypy` 139 files clean + `pytest tests/` **908 passed / 2 skipped**（EXIT 0）；前端 `tsc`/`vite build` EXIT 0（前端树与 B 逐字节一致）；C fixture checker EXIT 0；无真实产品模型调用。
+- **预算**：prep/A/B/C/整合产品推理 0；**LG-047 唯一真实 DeepSeek 12 次（未开始）**（含 reviewer/retry、retry 0、串行、单请求 ≤90s、持久账本、转发前硬上限）；成本 unknown 非 0。
 
 ### 上一批次（2026-10-16，LG-040 RELEASE-CLOSE 收口；LG-040 done）
 
