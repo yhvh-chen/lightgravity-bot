@@ -1,0 +1,103 @@
+{
+  "ledger_before": {
+    "generation": {
+      "count": 0,
+      "limit": 12,
+      "remaining": 12,
+      "corrupt": false,
+      "persistent": true
+    }
+  },
+  "N1_over_limit": {
+    "status": 422,
+    "body": {
+      "error": {
+        "code": "validation_failed",
+        "message": "at most 3 selected sources are allowed",
+        "details": {
+          "field": "selected_sources",
+          "max_selected_sources": 3,
+          "count": 4
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "N2_stale": {
+    "status": 422,
+    "body": {
+      "error": {
+        "code": "reference_invalid",
+        "message": "selected source 'source_01M51Y7PCE017H50P1DD51DBWT' does not resolve",
+        "details": {
+          "source_id": "source_01M51Y7PCE017H50P1DD51DBWT"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "revoke_action": {
+    "status": 200,
+    "body": {
+      "source_id": "source_01M51Y7PCY9JFPNMTCC3ZPF17M",
+      "status": "archived",
+      "revoked": true
+    }
+  },
+  "N3_revoked": {
+    "status": 404,
+    "body": {
+      "error": {
+        "code": "not_found",
+        "message": "source 'source_01M51Y7PCY9JFPNMTCC3ZPF17M' is revoked and unavailable",
+        "details": {
+          "source_id": "source_01M51Y7PCY9JFPNMTCC3ZPF17M",
+          "status": "archived",
+          "revoked": true
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "N4_cross_task": {
+    "status": 422,
+    "body": {
+      "error": {
+        "code": "reference_invalid",
+        "message": "selected source 'source_01M51Y7PCY9JFPNMTCC3ZPF17M' is scoped to another Task",
+        "details": {
+          "source_id": "source_01M51Y7PCY9JFPNMTCC3ZPF17M"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "N5_no_readable_body": {
+    "status": 422,
+    "body": {
+      "error": {
+        "code": "reference_invalid",
+        "message": "selected source 'source_01M51Y7PCE017H50P1DD51DBWT' does not resolve",
+        "details": {
+          "source_id": "source_01M51Y7PCE017H50P1DD51DBWT"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "ledger_after": {
+    "generation": {
+      "count": 0,
+      "limit": 12,
+      "remaining": 12,
+      "corrupt": false,
+      "persistent": true
+    }
+  },
+  "ledger_unchanged": true
+}

@@ -1,0 +1,289 @@
+{
+  "base": "http://127.0.0.1:60779",
+  "started": 1792140227.2061737,
+  "health": {
+    "status": 200,
+    "body": {
+      "status": "ok",
+      "package_version": "0.1.0",
+      "contract_version": "1.12.0",
+      "schema_version": "lightgravity.bot/v1",
+      "capabilities": {
+        "health": true,
+        "version": true,
+        "store": true,
+        "coordinator": true,
+        "events_sse": true,
+        "settings": true,
+        "files": true,
+        "resources": true,
+        "verification": true,
+        "global_chat": true,
+        "sdk_adapter": true
+      }
+    }
+  },
+  "create_task": {
+    "status": 200,
+    "body": {
+      "kind": "task",
+      "reply": "\u5df2\u521b\u5efa Task task_01M51Y3CM9WEA49PEYXDGN9QKA\uff08queued\uff09\u3002",
+      "task_id": "task_01M51Y3CM9WEA49PEYXDGN9QKA",
+      "run_id": null,
+      "conversation_id": null,
+      "queue_state": "queued",
+      "candidates": [],
+      "data": {}
+    }
+  },
+  "upload_alpha": {
+    "status": 201,
+    "body": {
+      "source": {
+        "id": "source_01M51Y3CNY2CQ1PS2CWTGX1Z30",
+        "source_id": "source_01M51Y3CNY2CQ1PS2CWTGX1Z30",
+        "title": "ORION-71 brief (sample)",
+        "title_origin": "user",
+        "status": "received",
+        "archived": false,
+        "revision": 0,
+        "etag": "\"0\"",
+        "scope": {
+          "task_ref": "task_01M51Y3CM9WEA49PEYXDGN9QKA",
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "origin": {
+          "kind": "upload",
+          "external_ref": null,
+          "fetched": false
+        },
+        "content_hash": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f",
+        "stat_revision": null,
+        "source_version": 1,
+        "original": {
+          "path": "original/alpha-brief.txt",
+          "media_type": "text/plain",
+          "bytes": 1701,
+          "archived_at": null
+        },
+        "derivatives": [],
+        "formal": {
+          "path": null,
+          "revision": null,
+          "edited_by": null
+        },
+        "index": {
+          "lexical": "not_indexed",
+          "lexical_hash": null,
+          "vector": "disabled",
+          "vector_model": null
+        },
+        "receipt_ref": "receipt.jsonl",
+        "created_at": "2026-10-16T08:43:47.263Z",
+        "updated_at": "2026-10-16T08:43:47.263Z",
+        "path": "sources/source_01M51Y3CNY2CQ1PS2CWTGX1Z30/SOURCE.md"
+      },
+      "job": {
+        "id": "intake_01M51Y3CP8DRYJZDT0SGR1Q8TN",
+        "job_id": "intake_01M51Y3CP8DRYJZDT0SGR1Q8TN",
+        "source_ref": "source_01M51Y3CNY2CQ1PS2CWTGX1Z30",
+        "status": "queued",
+        "revision": 0,
+        "etag": "\"0\"",
+        "request_id": "qa-flowA-alpha",
+        "payload_hash": "4a640708c4080d6b79d1b5f7092696997971a6aa2a5963a8279432ba4cebde5a",
+        "stage": "received",
+        "attempt": 1,
+        "budget": {
+          "max_model_calls": 0,
+          "timeout_seconds": null,
+          "max_retries": 1
+        },
+        "cancel": {
+          "requested": false,
+          "confirmed": false
+        },
+        "fail_reason": null,
+        "created_at": "2026-10-16T08:43:47.272Z",
+        "updated_at": "2026-10-16T08:43:47.272Z"
+      },
+      "deduplicated": false,
+      "created": true,
+      "receipts": [
+        {
+          "source_id": "source_01M51Y3CNY2CQ1PS2CWTGX1Z30",
+          "filename": "alpha-brief.txt",
+          "status": "received",
+          "stage": "received",
+          "detail": "original persisted; extraction not started (LG-035)",
+          "searchable": false,
+          "original_path": "original/alpha-brief.txt",
+          "formal_path": null,
+          "content_hash": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f",
+          "source_version": 1,
+          "at": "2026-10-16T08:43:47.276Z",
+          "error_code": null
+        }
+      ]
+    }
+  },
+  "upload_gamma_decoy": {
+    "status": 201,
+    "body": {
+      "source": {
+        "id": "source_01M51Y3CPJ40PNMX2CPJ10V3WN",
+        "source_id": "source_01M51Y3CPJ40PNMX2CPJ10V3WN",
+        "title": "ORION-99 decoy (sample)",
+        "title_origin": "user",
+        "status": "received",
+        "archived": false,
+        "revision": 0,
+        "etag": "\"0\"",
+        "scope": {
+          "task_ref": "task_01M51Y3CM9WEA49PEYXDGN9QKA",
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "origin": {
+          "kind": "upload",
+          "external_ref": null,
+          "fetched": false
+        },
+        "content_hash": "af0f7bdb5633f405b7ba85a4a082abeb6652e3fe9550402ebb595bb1a6ab7228",
+        "stat_revision": null,
+        "source_version": 1,
+        "original": {
+          "path": "original/gamma-decoy.txt",
+          "media_type": "text/plain",
+          "bytes": 1474,
+          "archived_at": null
+        },
+        "derivatives": [],
+        "formal": {
+          "path": null,
+          "revision": null,
+          "edited_by": null
+        },
+        "index": {
+          "lexical": "not_indexed",
+          "lexical_hash": null,
+          "vector": "disabled",
+          "vector_model": null
+        },
+        "receipt_ref": "receipt.jsonl",
+        "created_at": "2026-10-16T08:43:47.282Z",
+        "updated_at": "2026-10-16T08:43:47.282Z",
+        "path": "sources/source_01M51Y3CPJ40PNMX2CPJ10V3WN/SOURCE.md"
+      },
+      "job": {
+        "id": "intake_01M51Y3CPWCN8NCFJR5JA2RS20",
+        "job_id": "intake_01M51Y3CPWCN8NCFJR5JA2RS20",
+        "source_ref": "source_01M51Y3CPJ40PNMX2CPJ10V3WN",
+        "status": "queued",
+        "revision": 0,
+        "etag": "\"0\"",
+        "request_id": "qa-flowA-gamma",
+        "payload_hash": "2e2f19df7f1cfc57f1c252171f4f2b94fc5e9c4001321a115cabb57b2e7042f6",
+        "stage": "received",
+        "attempt": 1,
+        "budget": {
+          "max_model_calls": 0,
+          "timeout_seconds": null,
+          "max_retries": 1
+        },
+        "cancel": {
+          "requested": false,
+          "confirmed": false
+        },
+        "fail_reason": null,
+        "created_at": "2026-10-16T08:43:47.292Z",
+        "updated_at": "2026-10-16T08:43:47.292Z"
+      },
+      "deduplicated": false,
+      "created": true,
+      "receipts": [
+        {
+          "source_id": "source_01M51Y3CPJ40PNMX2CPJ10V3WN",
+          "filename": "gamma-decoy.txt",
+          "status": "received",
+          "stage": "received",
+          "detail": "original persisted; extraction not started (LG-035)",
+          "searchable": false,
+          "original_path": "original/gamma-decoy.txt",
+          "formal_path": null,
+          "content_hash": "af0f7bdb5633f405b7ba85a4a082abeb6652e3fe9550402ebb595bb1a6ab7228",
+          "source_version": 1,
+          "at": "2026-10-16T08:43:47.299Z",
+          "error_code": null
+        }
+      ]
+    }
+  },
+  "receipt_alpha": {
+    "status": 200,
+    "body": {
+      "source_id": "source_01M51Y3CNY2CQ1PS2CWTGX1Z30",
+      "revision": 0,
+      "status": "received",
+      "source_version": 1,
+      "items": [
+        {
+          "source_id": "source_01M51Y3CNY2CQ1PS2CWTGX1Z30",
+          "filename": "alpha-brief.txt",
+          "status": "received",
+          "stage": "received",
+          "detail": "original persisted; extraction not started (LG-035)",
+          "searchable": false,
+          "original_path": "original/alpha-brief.txt",
+          "formal_path": null,
+          "content_hash": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f",
+          "source_version": 1,
+          "at": "2026-10-16T08:43:47.276Z",
+          "error_code": null
+        }
+      ],
+      "latest": {
+        "source_id": "source_01M51Y3CNY2CQ1PS2CWTGX1Z30",
+        "filename": "alpha-brief.txt",
+        "status": "received",
+        "stage": "received",
+        "detail": "original persisted; extraction not started (LG-035)",
+        "searchable": false,
+        "original_path": "original/alpha-brief.txt",
+        "formal_path": null,
+        "content_hash": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f",
+        "source_version": 1,
+        "at": "2026-10-16T08:43:47.276Z",
+        "error_code": null
+      }
+    }
+  },
+  "selected_ref": {
+    "source_id": "source_01M51Y3CNY2CQ1PS2CWTGX1Z30",
+    "source_version": 1,
+    "content_hash": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f"
+  },
+  "source_content": {
+    "status": 404,
+    "body": {
+      "error": {
+        "code": "not_found",
+        "message": "no machine content exists for source 'source_01M51Y3CNY2CQ1PS2CWTGX1Z30'",
+        "details": {
+          "source_id": "source_01M51Y3CNY2CQ1PS2CWTGX1Z30",
+          "kind": "machine"
+        },
+        "retryable": false,
+        "request_id": null
+      }
+    }
+  },
+  "history_pre": {
+    "status": 200,
+    "body": {
+      "items": [],
+      "next_cursor": null
+    }
+  }
+}
