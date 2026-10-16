@@ -313,6 +313,7 @@ def cmd_status(args: argparse.Namespace) -> int:
                 wire_real_executor=True,
                 # ``status`` must stay read-only: never seed resources.
                 seed_minimal_agent=False,
+                seed_default_admin=False,
             )
         )
         payload["execution"] = state.execution_report()

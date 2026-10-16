@@ -19,13 +19,15 @@ test.describe('LG-055 real HTTP API smoke (no browser)', () => {
         contract_version: string
         capabilities: Record<string, boolean>
       }
-      expect(body.contract_version).toBe('1.14.0')
+      expect(body.contract_version).toBe('1.15.0')
       expect(body.capabilities.global_chat).toBe(true)
       expect(body.capabilities.personal_chat).toBe(true)
+      // LG-062 additive team-only account management.
+      expect(body.capabilities.accounts).toBe(true)
 
       const version = await api.get('/api/v1/version')
       expect(((await version.json()) as { contract_version: string }).contract_version).toBe(
-        '1.14.0',
+        '1.15.0',
       )
     } finally {
       await api.dispose()

@@ -14,7 +14,7 @@ import './auth.css'
  * matching the rest of the shell (design.md §1).
  */
 export function LoginView() {
-  const { login } = useAuth()
+  const { login, notice } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -53,6 +53,12 @@ export function LoginView() {
             <p className="lg-auth__subtitle">Shared workspace · sign in to continue</p>
           </div>
         </div>
+
+        {notice ? (
+          <p className="lg-notice" role="status">
+            {notice}
+          </p>
+        ) : null}
 
         {error ? (
           <p className="lg-notice lg-notice--error" role="alert">

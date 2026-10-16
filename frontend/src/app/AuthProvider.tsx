@@ -33,7 +33,12 @@ import {
 
 import { setRuntimeToken } from '../api/auth'
 import { ApiError, fetchHealth } from '../api/client'
-import { backendIncompatible, assertBackendCompatible, supportsPersonalChat } from '../api/backendCompatibility'
+import {
+  backendIncompatible,
+  assertBackendCompatible,
+  supportsAccounts,
+  supportsPersonalChat,
+} from '../api/backendCompatibility'
 import {
   fetchAuthMe,
   login as authLogin,
@@ -78,12 +83,19 @@ export interface AuthContextValue {
   isTeam: boolean
   isAdmin: boolean
   personalChatAvailable: boolean
+  /** LG-062: backend advertises the account-management surface (team only). */
+  accountsAvailable: boolean
+  /** Optional login-gate notice (e.g. after a password change signed you out). */
+  notice: string | null
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
   /** Re-run the `/auth/me` probe (used by the retryable error state). */
   refresh: () => Promise<void>
-  /** Hand control back to the login gate (e.g. after a `401`). */
-  requireLogin: () => void
+  /**
+   * Hand control back to the login gate (e.g. after a `401`).  An optional
+   * notice explains why (e.g. a successful own-password change logs you out).
+   */
+  requireLogin: (notice?: string) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -136,6 +148,8 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
   const [identity, setIdentity] = useState<TeamIdentity>(SINGLE_IDENTITY)
   const [error, setError] = useState<AuthFailure | null>(null)
   const [personalChatAvailable, setPersonalChatAvailable] = useState(false)
+  const [accountsAvailable, setAccountsAvailable] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
   const cancelled = useRef(false)
   const refreshGeneration = useRef(0)
 
@@ -161,8 +175,12 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
         assertBackendCompatible(health)
         if (cancelled.current || requestGeneration !== refreshGeneration.current) return
         setPersonalChatAvailable(supportsPersonalChat(health))
+        setAccountsAvailable(supportsAccounts(health))
       } else {
         setPersonalChatAvailable(false)
+        // Account management is team-only; single-user mode keeps Models.  An
+        // old single-user backend must never advertise an account surface.
+        setAccountsAvailable(false)
       }
       if (cancelled.current || requestGeneration !== refreshGeneration.current) return
       applyIdentity(normalizeIdentity(me))
@@ -200,6 +218,7 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
         username: result.username,
         role: result.role,
       })
+      setNotice(null)
       setError(null)
       setStatus('ready')
     },
@@ -217,8 +236,9 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
     setStatus('ready')
   }, [applyIdentity])
 
-  const requireLogin = useCallback(() => {
+  const requireLogin = useCallback((message?: string) => {
     refreshGeneration.current += 1
+    setNotice(message ?? null)
     setIdentity((previous) =>
       previous.mode === 'team' ? { ...TEAM_ANONYMOUS } : previous,
     )
@@ -233,12 +253,25 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
       isTeam: identity.mode === 'team',
       isAdmin: identity.role === 'admin',
       personalChatAvailable,
+      accountsAvailable,
+      notice,
       login,
       logout,
       refresh,
       requireLogin,
     }),
-    [status, identity, error, personalChatAvailable, login, logout, refresh, requireLogin],
+    [
+      status,
+      identity,
+      error,
+      personalChatAvailable,
+      accountsAvailable,
+      notice,
+      login,
+      logout,
+      refresh,
+      requireLogin,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -252,6 +285,8 @@ const DEFAULT_AUTH: AuthContextValue = {
   isTeam: false,
   isAdmin: true,
   personalChatAvailable: false,
+  accountsAvailable: false,
+  notice: null,
   login: async () => undefined,
   logout: async () => undefined,
   refresh: async () => undefined,

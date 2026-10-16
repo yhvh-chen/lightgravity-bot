@@ -49,9 +49,16 @@ test.describe('LG-055 single-user mode', () => {
     await page.getByRole('navigation', { name: 'Primary navigation' }).getByRole('button', { name: 'Files', exact: true }).click()
     const entry = page.getByRole('region', { name: 'Task directories' }).locator(`button[title="${outcome.task_id}"]`)
     await entry.click()
-    await expect(page.getByLabel(`Message for ${outcome.task_id}`, { exact: true })).toBeVisible()
+    // Files already has this task's composer in its side panel. Wait for the
+    // verified Task navigation to commit before reloading its history entry.
+    await expect(page).toHaveURL((url) => url.searchParams.get('view') === 'chat'
+      && url.searchParams.get('task') === outcome.task_id
+      && url.searchParams.get('channel') === 'personal')
+    const taskComposer = page.getByRole('region', { name: 'Chat workspace', exact: true })
+      .getByLabel(`Message for ${outcome.task_id}`, { exact: true })
+    await expect(taskComposer).toBeVisible()
     await page.reload()
-    await expect(page.getByLabel(`Message for ${outcome.task_id}`, { exact: true })).toBeVisible()
+    await expect(taskComposer).toBeVisible()
     await page.goBack()
     await expect(page.getByRole('heading', { name: 'Tasks /', exact: true })).toBeVisible()
   })

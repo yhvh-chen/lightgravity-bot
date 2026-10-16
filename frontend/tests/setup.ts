@@ -13,7 +13,7 @@ import '@testing-library/jest-dom/vitest'
 export const HEALTH_FIXTURE = {
   status: 'ok',
   package_version: '0.1.0',
-  contract_version: '1.14.0',
+  contract_version: '1.15.0',
   schema_version: 'lightgravity.bot/v1',
   capabilities: {
     health: true,
@@ -26,6 +26,7 @@ export const HEALTH_FIXTURE = {
     global_chat: true,
     personal_chat: true,
     events_sse: true,
+    accounts: true,
     sdk_adapter: false,
   },
 }
@@ -57,7 +58,7 @@ export function backendFetch(input: RequestInfo | URL): Promise<Response> {
   if (url.endsWith('/api/v1/version')) {
     return Promise.resolve(
       jsonResponse({
-        contract_version: '1.14.0',
+        contract_version: '1.15.0',
         schema_version: 'lightgravity.bot/v1',
         package_version: '0.1.0',
         python_version: '3.12.13',

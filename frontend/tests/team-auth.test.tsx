@@ -196,7 +196,7 @@ describe('LG-050 auth: identity, logout and admin entry', () => {
     expect(await screen.findByRole('main', { name: 'Sign in' })).toBeInTheDocument()
   })
 
-  it('enables Settings for an admin and disables it for a member', async () => {
+  it('enables Settings for both roles; members reach only My Account', async () => {
     installFetch({
       authMe: () =>
         jsonResponse({ mode: 'team', authenticated: true, username: 'root', role: 'admin' }),
@@ -204,6 +204,10 @@ describe('LG-050 auth: identity, logout and admin entry', () => {
     render(<App />)
     const adminSettings = await screen.findByRole('button', { name: 'Settings' })
     expect(adminSettings).toBeEnabled()
+    fireEvent.click(adminSettings)
+    expect(await screen.findByRole('tab', { name: 'Models & Providers' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Accounts' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'My Account' })).toBeInTheDocument()
 
     cleanup()
     installFetch({
@@ -212,8 +216,20 @@ describe('LG-050 auth: identity, logout and admin entry', () => {
     })
     render(<App />)
     const memberSettings = await screen.findByRole('button', { name: 'Settings' })
-    await waitFor(() => expect(memberSettings).toBeDisabled())
-    expect(memberSettings).toHaveAttribute('title', 'Administrator only')
+    await waitFor(() => expect(memberSettings).toBeEnabled())
+    fireEvent.click(memberSettings)
+    expect(await screen.findByRole('heading', { name: 'My Account' })).toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: 'Models & Providers' })).toBeNull()
+    expect(screen.queryByRole('tab', { name: 'Accounts' })).toBeNull()
+    // The member settings never issued a Models/Connections or admin-list call.
+    const accountListCalls = vi
+      .mocked(fetch)
+      .mock.calls.filter((call) => urlOf(call[0]).endsWith('/api/v1/accounts'))
+    expect(accountListCalls).toHaveLength(0)
+    const settingsCalls = vi
+      .mocked(fetch)
+      .mock.calls.filter((call) => urlOf(call[0]).includes('/api/v1/settings'))
+    expect(settingsCalls).toHaveLength(0)
   })
 
   it('returns to the login gate when a request reports an expired session (401)', async () => {

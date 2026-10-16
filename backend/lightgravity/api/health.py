@@ -59,6 +59,10 @@ async def health(request: Request) -> HealthResponse:
         # LG-054 additive: the private Personal conversation surface exists and
         # enforces server-derived ownership.  Optional for older 1.13 backends.
         "personal_chat": wired,
+        # LG-062 additive: admin account management + self password are mounted.
+        # Team mode only (single-user keeps the 1.14 surface untouched); older
+        # backends report false and the UI degrades honestly.
+        "accounts": bool(getattr(context, "team", None)),
         # The real SDK adapter is only advertised once LG-006/LG-010 inject it.
         "sdk_adapter": bool(getattr(context, "real_executor", False)),
     }

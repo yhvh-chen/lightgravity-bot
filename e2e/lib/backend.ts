@@ -116,6 +116,29 @@ export async function waitForHealth(url: string, timeoutMs = 90_000): Promise<vo
   throw new Error(`backend at ${url} did not become healthy: ${String(lastError)}`)
 }
 
+/**
+ * LG-062 isolation: the real backend fixture must never inherit real model or
+ * provider credentials (e.g. an exported ``DEEPSEEK_API_KEY``) from the
+ * developer shell.  The fixture uses a deterministic responder and
+ * ``LIGHTGRAVITY_MAX_GENERATION_CALLS=0``; no credential is needed.  ``LG_E2E_*``
+ * harness variables are preserved so nested launchers still work.
+ */
+const CREDENTIAL_ENV_PATTERN =
+  /(api[_-]?key|token|secret|password|credential|deepseek|openai|anthropic|gemini|vertex)/i
+
+export function sanitizedChildEnv(): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {}
+  for (const [key, value] of Object.entries(process.env)) {
+    if (key.startsWith('LG_E2E_')) {
+      env[key] = value
+      continue
+    }
+    if (CREDENTIAL_ENV_PATTERN.test(key)) continue
+    env[key] = value
+  }
+  return env
+}
+
 /** Reuse the main worktree's installed frontend deps via a read-only symlink. */
 function ensureFrontendDeps(): void {
   const target = join(frontendDir, 'node_modules')
@@ -184,7 +207,7 @@ export async function startBackend({ mode, port }: StartBackendOptions): Promise
     {
       cwd: repoRoot,
       env: {
-        ...process.env,
+        ...sanitizedChildEnv(),
         PYTHONPATH: join(repoRoot, 'backend'),
         LIGHTGRAVITY_MAX_GENERATION_CALLS: '0',
       },

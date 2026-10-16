@@ -269,3 +269,140 @@
     width: 100%;
   }
 }
+
+/* --------------------------------------------------- LG-062 account sections */
+
+.lg-settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-4);
+  min-width: 0;
+}
+
+.lg-settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-1);
+  border-bottom: 1px solid var(--lg-color-border);
+  margin-bottom: var(--lg-space-3);
+}
+
+.lg-settings-tabs__tab {
+  appearance: none;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: transparent;
+  color: var(--lg-color-text-muted);
+  font: inherit;
+  font-size: var(--lg-font-size-sm);
+  padding: var(--lg-space-2) var(--lg-space-3);
+  border-radius: var(--lg-radius-control) var(--lg-radius-control) 0 0;
+  cursor: pointer;
+}
+
+.lg-settings-tabs__tab:hover {
+  color: var(--lg-color-text);
+  background: var(--lg-color-surface-2);
+}
+
+.lg-settings-tabs__tab.is-selected {
+  color: var(--lg-color-accent-strong);
+  background: var(--lg-color-panel);
+  border-color: var(--lg-color-border);
+  margin-bottom: -1px;
+}
+
+.lg-panel {
+  background: var(--lg-color-panel);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+  padding: var(--lg-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+  min-width: 0;
+}
+
+.lg-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+  max-width: 28rem;
+}
+
+.lg-form--inline {
+  max-width: none;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.lg-form__actions {
+  display: flex;
+  gap: var(--lg-space-2);
+  align-items: center;
+}
+
+.lg-accounts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--lg-font-size-sm);
+}
+
+.lg-accounts-table th,
+.lg-accounts-table td {
+  text-align: left;
+  padding: var(--lg-space-2);
+  border-bottom: 1px solid var(--lg-color-border);
+  vertical-align: middle;
+}
+
+.lg-accounts-table th {
+  color: var(--lg-color-text-muted);
+  font-weight: 600;
+  font-size: var(--lg-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.lg-accounts-table__username {
+  font-family: var(--lg-font-mono);
+  margin-right: var(--lg-space-1);
+}
+
+.lg-accounts-table__actions {
+  display: flex;
+  gap: var(--lg-space-1);
+  flex-wrap: wrap;
+}
+
+.lg-accounts-table tr.is-self {
+  background: var(--lg-color-surface-2);
+}
+
+@media (max-width: 720px) {
+  .lg-accounts-table,
+  .lg-accounts-table thead,
+  .lg-accounts-table tbody,
+  .lg-accounts-table tr,
+  .lg-accounts-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .lg-accounts-table thead {
+    display: none;
+  }
+
+  .lg-accounts-table tr {
+    border: 1px solid var(--lg-color-border);
+    border-radius: var(--lg-radius-panel);
+    padding: var(--lg-space-2);
+    margin-bottom: var(--lg-space-2);
+  }
+
+  .lg-accounts-table td {
+    border-bottom: none;
+    padding: var(--lg-space-1) var(--lg-space-2);
+  }
+}

@@ -40,3 +40,13 @@ export function supportsPersonalChat(health: HealthResponse): boolean {
   const version = /^(\d+)\.(\d+)\.(\d+)$/.exec(health?.contract_version ?? '')
   return Boolean(version && Number(version[1]) === 1 && Number(version[2]) >= 14 && health.capabilities?.personal_chat === true)
 }
+
+/**
+ * LG-062 account management is additive (contract >= 1.15) and team-only.
+ * Older/single-user backends report the capability false and the UI must not
+ * advertise an account surface that does not exist.
+ */
+export function supportsAccounts(health: HealthResponse): boolean {
+  const version = /^(\d+)\.(\d+)\.(\d+)$/.exec(health?.contract_version ?? '')
+  return Boolean(version && Number(version[1]) === 1 && Number(version[2]) >= 15 && health.capabilities?.accounts === true)
+}

@@ -34,9 +34,12 @@ def test_frozen_constants() -> None:
     # server-written message ``author`` and the ``forbidden`` error code) ->
     # 1.14.0 (LG-054 private Personal conversation implementation: additive
     # ``/conversations/personal/messages`` GET/POST with server-derived owner,
-    # the ``personal_chat`` health capability and chat-only private routing).
-    # Additive MINOR only.
-    assert CONTRACT_VERSION == "1.14.0"
+    # the ``personal_chat`` health capability and chat-only private routing) ->
+    # 1.15.0 (LG-062 account management: additive team-only ``/accounts*`` and
+    # ``/account/password`` endpoints, additive account ``enabled``/``revision``/
+    # ``session_version`` fields, session invalidation, last-active-admin guard
+    # and the ``accounts`` health capability). Additive MINOR only.
+    assert CONTRACT_VERSION == "1.15.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 
