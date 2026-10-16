@@ -1,0 +1,29 @@
+{
+  "checks": [
+    [
+      "deny_before_init",
+      true
+    ],
+    [
+      "3_granted_then_denied",
+      true
+    ],
+    [
+      "count_is_3",
+      true
+    ],
+    [
+      "corrupt_denies",
+      true
+    ],
+    [
+      "corrupt_history_denies",
+      true
+    ],
+    [
+      "missing_history_dir_denies",
+      true
+    ]
+  ],
+  "all_pass": true
+}

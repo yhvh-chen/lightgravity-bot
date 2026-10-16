@@ -1,0 +1,43 @@
+{
+  "task_id": "task_01M523EJZBG1X1BMTQD8JE7TTH",
+  "task_status": "done",
+  "task_phase": "completed",
+  "acceptance_status": "accepted",
+  "evidence_refs": [
+    "orion-summary.md",
+    "evidence:run_01M523EK321M4KD494CA042R1M/subtask_01M523EKAACQHS13HE9ZWTMM3A-lg006-diff.patch@sha256:058254de782fd1cfa16938723497a0046978976820a6db1d4e291213072b99fe",
+    "evidence:run_01M523EK321M4KD494CA042R1M/subtask_01M523EKAARRNG5B6DJSC2W81B-lg006-diff.patch@sha256:4b707df359c731d986342be74005795453d22149df0d3876f1d38c17ba8b153d"
+  ],
+  "active_run": null,
+  "evidence_resolution": [
+    {
+      "ref": "orion-summary.md",
+      "status": 400,
+      "chars": 0,
+      "sha256_header": null,
+      "preview": ""
+    },
+    {
+      "ref": "evidence:run_01M523EK321M4KD494CA042R1M/subtask_01M523EKAACQHS13HE9ZWTMM3A-lg006-diff.patch@sha256:058254de782fd1cfa16938723497a0046978976820a6db1d4e291213072b99fe",
+      "status": 200,
+      "chars": 504,
+      "sha256_header": null,
+      "preview": "--- a/orion-summary.md\n+++ b/orion-summary.md\n@@ -0,0 +1,12 @@\n+# Project Orion-71 — Summary\n+\n+| Field | Value |\n+| ---"
+    },
+    {
+      "ref": "evidence:run_01M523EK321M4KD494CA042R1M/subtask_01M523EKAARRNG5B6DJSC2W81B-lg006-diff.patch@sha256:4b707df359c731d986342be74005795453d22149df0d3876f1d38c17ba8b153d",
+      "status": 200,
+      "chars": 427,
+      "sha256_header": null,
+      "preview": "--- a/orion-summary.md\n+++ b/orion-summary.md\n@@ -0,0 +1,12 @@\n+# Project Orion-71 — Summary\n+\n+| Field | Value |\n+| ---"
+    }
+  ],
+  "download_orion": {
+    "status": 400
+  },
+  "history_len": 1,
+  "trigger_message_id": "msg_r3sdk_1792145837",
+  "trigger_refs": [
+    "source_01M523EJTV1K7MAS8W9S5PVDK2"
+  ]
+}

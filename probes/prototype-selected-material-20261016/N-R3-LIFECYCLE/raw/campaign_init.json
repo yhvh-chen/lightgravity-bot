@@ -1,0 +1,7 @@
+{
+  "campaign_id": "N-R3-LIFECYCLE",
+  "cap": 16,
+  "created_ts": 1792145735.810637,
+  "purpose": "LG-049 R3 N-R3-LIFECYCLE independent product-request budget cap 16 (single fresh delivery task; worker/verify/reviewer/retries/connection-tests all count; no auto-extend)",
+  "notes": "One-time init. Never reset. Missing/corrupt ledger with existing manifest denies."
+}
