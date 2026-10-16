@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "results": {
+    "default_table_mode": false,
+    "from_env_empty_table_mode": false,
+    "parse_table_mode_default": false,
+    "ocr_prompt_sha": "7cb03181c5220ca42c767951205de2a243a344145ad2e0c5df4cf9fc164d2171",
+    "ocr_table_prompt_sha": "4c7d8ec40e76bb36d018ec548ed85dee1dcfb77cee9510b7b86df676bd34fa76",
+    "prompts_differ": true
+  }
+}
