@@ -1,0 +1,7 @@
+{
+  "campaign_id": "LG-047-R2",
+  "cap": 8,
+  "created_ts": 1792142606.1513157,
+  "purpose": "LG-047 R2 independent product-request budget (all attempts/worker/reviewer)",
+  "notes": "One-time init. Never reset. Missing/corrupt ledger with existing manifest denies."
+}

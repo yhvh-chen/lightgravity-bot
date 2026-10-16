@@ -1,0 +1,85 @@
+{
+  "pid": 3854488,
+  "cmd": [
+    "/home/yhvh/code/lightgravity-bot/.venv/bin/python",
+    "/home/yhvh/code/lightgravity-bot-worktrees/proto-material-qa-r2-20261016/probes/prototype-selected-material-20261016/I-R2-QA/scripts/launch_app.py",
+    "--data-dir",
+    "/home/yhvh/code/lightgravity-bot-worktrees/proto-material-qa-r2-20261016/probes/prototype-selected-material-20261016/I-R2-QA/campaign/product-data",
+    "--port",
+    "0",
+    "--max-generation-calls",
+    "8",
+    "--ready-file",
+    "/home/yhvh/code/lightgravity-bot-worktrees/proto-material-qa-r2-20261016/probes/prototype-selected-material-20261016/I-R2-QA/evidence/ready_boot.json"
+  ],
+  "ready": {
+    "url": "http://127.0.0.1:50759/",
+    "port": 50759,
+    "data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/proto-material-qa-r2-20261016/probes/prototype-selected-material-20261016/I-R2-QA/campaign/product-data",
+    "execution": {
+      "execution_ready": true,
+      "reasons": [],
+      "default_worker_connection_ref": "conn-worker",
+      "credential_configured": true,
+      "agent_refs": [
+        "lg-default-worker"
+      ],
+      "token_source": "environment",
+      "frontend_served": true,
+      "frontend_dist": "/home/yhvh/code/lightgravity-bot-worktrees/proto-material-qa-r2-20261016/frontend/dist",
+      "reviewer": {
+        "reviewer": "model",
+        "connection_id": "deepseek-v4-flash",
+        "credential_configured": true
+      },
+      "warnings": []
+    },
+    "reviewer": {
+      "reviewer": "model",
+      "connection_id": "deepseek-v4-flash",
+      "credential_configured": true
+    },
+    "warnings": []
+  },
+  "checks": {
+    "health_status": 200,
+    "contract_version": "1.12.0",
+    "package_version": "0.1.0",
+    "generation": {
+      "generation": {
+        "count": 0,
+        "limit": 8,
+        "remaining": 8,
+        "corrupt": false,
+        "persistent": true
+      }
+    },
+    "create_task_status": 200,
+    "read_messages_status": 200,
+    "execution": {
+      "execution_ready": true,
+      "reasons": [],
+      "default_worker_connection_ref": "conn-worker",
+      "credential_configured": true,
+      "agent_refs": [
+        "lg-default-worker"
+      ],
+      "token_source": "environment",
+      "frontend_served": true,
+      "frontend_dist": "/home/yhvh/code/lightgravity-bot-worktrees/proto-material-qa-r2-20261016/frontend/dist",
+      "reviewer": {
+        "reviewer": "model",
+        "connection_id": "deepseek-v4-flash",
+        "credential_configured": true
+      },
+      "warnings": []
+    },
+    "reviewer": {
+      "reviewer": "model",
+      "connection_id": "deepseek-v4-flash",
+      "credential_configured": true
+    },
+    "warnings": []
+  },
+  "ok": true
+}

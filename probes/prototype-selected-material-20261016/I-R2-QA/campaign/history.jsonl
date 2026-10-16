@@ -1,0 +1,1 @@
+{"kind": "reserve", "count": 1, "campaign": "LG-047-R2", "reserve_kind": "product", "note": "ACCIDENTAL: N4 revoke harness payload had extra request_id -> 422; selection succeeded -> 1 real direct answer (not planned)", "pid": 3866631, "ts": 1792143090.531512}

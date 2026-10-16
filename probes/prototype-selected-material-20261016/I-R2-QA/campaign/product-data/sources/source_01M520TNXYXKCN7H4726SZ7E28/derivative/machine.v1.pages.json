@@ -1,0 +1,21 @@
+{
+  "schema": "lightgravity.bot/v1",
+  "kind": "source_derivative",
+  "derivative": "page_map",
+  "source_version": 1,
+  "filename": "revoke-alpha.txt",
+  "model": "none",
+  "extractor": "native-utf8-text",
+  "status": "succeeded",
+  "total_pages": 1,
+  "pages": [
+    {
+      "page": 1,
+      "text": "PROJECT ORION-71 — INTERNAL BRIEFING NOTE (SAMPLE FICTION)\n================================================================\n\nNOTE: This is human-written SAMPLE data for the selected-material\nprototype. It is NOT OCR output and NOT a measured model result.\nAll names, numbers, and IDs are fictional and intentionally unique so\nthat a model that never saw this file cannot guess them.\n\nProject code name .......... ORION-71\nProgramme owner ............ Halden Reyes\nPrimary launch date ........ 2027-03-14\nContingency window ......... 2027-04-02 .. 2027-04-09\nTotal approved budget ...... 418,250 EUR\nReserve line ............... 37,900 EUR (held by finance, not project)\n\nKey identifiers\n---------------\nProject ID ................. PRJ-ORION-71\nChange-board ticket ........ CB-8842\nVendor contract ID ......... VND-5501-KESTREL\nInternal build tag ......... orion-71-rc4\n\nScope summary\n-------------\nORION-71 delivers a compact telemetry relay that samples wind speed at\na fixed 11.5 Hz. The relay unit is designated RT-11.5. Field trials run\nfor 26 days using two crews and a total of 14 relay units.\n\nDeliverables\n------------\n1. Wind relay unit RT-11.5 (14 units for the trial fleet).\n2. Acceptance protocol AP-ORION-71 (single document, 41 pages).\n3. Ground station adapter GS-ADAPT-9.\n\nKnown constraints\n-----------------\n- The reserve line (37,900 EUR) may not be spent without CB-8842 approval.\n- Field trials cannot start before 2027-02-22 (regulatory clearance).\n- Vendor VND-5501-KESTREL ships only in lots of 6 units.\n\nOwner contact\n-------------\nHalden Reyes (programme owner), desk extension 4471.\nDeputy owner: Mira Okonjo, desk extension 4472.\n\nEND OF SAMPLE BRIEF — alpha-brief.txt\n",
+      "input_sha256": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f",
+      "model": "none",
+      "status": "succeeded",
+      "error": null
+    }
+  ]
+}

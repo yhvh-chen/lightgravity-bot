@@ -1,0 +1,8 @@
+{
+  "count": 0,
+  "cap": 8,
+  "remaining": 8,
+  "corrupt": false,
+  "history_lines": 0,
+  "snapshot": null
+}
