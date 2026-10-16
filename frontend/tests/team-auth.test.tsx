@@ -226,3 +226,55 @@ describe('LG-050 auth: identity, logout and admin entry', () => {
     expect(await screen.findByRole('main', { name: 'Sign in' })).toBeInTheDocument()
   })
 })
+
+describe('LG-050 auth: probe states are explicit (no optimistic single fallback)', () => {
+  it('shows Loading while the probe is pending and does not mount the workspace', async () => {
+    let release: (response: Response) => void = () => undefined
+    const pending = new Promise<Response>((resolve) => {
+      release = resolve
+    })
+    installFetch({ authMe: () => pending as unknown as Response })
+    render(<App />)
+
+    expect(
+      screen.getByRole('status', { name: 'Checking authentication' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Primary navigation' })).toBeNull()
+    expect(screen.queryByRole('main', { name: 'Sign in' })).toBeNull()
+
+    release(
+      jsonResponse({ mode: 'team', authenticated: false, username: null, role: null }),
+    )
+    expect(await screen.findByRole('main', { name: 'Sign in' })).toBeInTheDocument()
+  })
+
+  it('surfaces a retryable network error instead of falling back to single-user', async () => {
+    let mode: 'fail' | 'team' = 'fail'
+    installFetch({
+      authMe: () => {
+        if (mode === 'fail') throw new Error('Connection refused')
+        return jsonResponse({ mode: 'team', authenticated: false, username: null, role: null })
+      },
+    })
+    render(<App />)
+
+    expect(await screen.findByText('Cannot reach the server')).toBeInTheDocument()
+    // It never silently shows the single-user workspace.
+    expect(screen.queryByRole('navigation', { name: 'Primary navigation' })).toBeNull()
+
+    mode = 'team'
+    fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(await screen.findByRole('main', { name: 'Sign in' })).toBeInTheDocument()
+  })
+
+  it('treats an unknown auth mode as an error, not single-user', async () => {
+    installFetch({
+      authMe: () =>
+        jsonResponse({ mode: 'weird', authenticated: true, username: null, role: null }),
+    })
+    render(<App />)
+
+    expect(await screen.findByText('Cannot reach the server')).toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Primary navigation' })).toBeNull()
+  })
+})

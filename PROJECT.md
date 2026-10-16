@@ -50,6 +50,7 @@ updated: "2026-10-16"
 - 参考调查由 pi 只读完成：Olav OS `dev_docs/01-ce-design.md:68` 的 mention 策略属于 IM 渠道；网页 `team-chat.tsx`/`chat-file-store.ts` 有目录共享会话与作者，但每条用户消息仍排 bot turn。仅借鉴必要机制，避免把其网页聊天当作已实现 mention 门控。
 - 命名里程碑 **LG-050 共享团队聊天与简单认证 MVP**：后端与前端使用独立 worktree、明确接口并行实施；集成候选完成后交独立 pi 集中 QA。验收覆盖双用户共享、身份可信、匿名拒绝、管理员门禁、普通消息零模型触发、显式触发幂等、并发同步与退出失效。任务与证据见 [LG-050](backlog/tasks/LG-050.md)。
 - 当前仅调查与实施安排已完成，产品能力尚未交付；未发布、未部署，用户已有 `PROGRESS.md` 改动保留。
+- **进展（2026-10-16，串行集成）**：后端 `feat/team-backend-20261016` 与前端 `feat/team-frontend-20261016` 已 `--no-ff` 合并到候选分支 `feat/team-integration-20261016`；公开契约同步为 `1.13.0`（`docs/08` §13/§14）。局部集成检查（team/contracts 后端测试、前端 typecheck/131 tests/build、真实 team 模式 HTTP 冒烟）通过；**独立集中 QA 与真实浏览器验收尚未执行**，未合回 `main`、未宣称 QA 通过。证据见 [probes/team-chat-20261016](probes/team-chat-20261016/README.md)。
 
 ### 2026-10-16：LG-049/ N-R3-LIFECYCLE 实际 PASS_WITH_LIMITATIONS 复核闭环 → 置 LG-049 与 LG-047 `done`；PM/docs 集成（root PM）
 

@@ -1,18 +1,23 @@
 /**
  * Team authentication state (LG-050 §7).
  *
- * On startup the provider probes `GET /auth/me`:
+ * On startup the provider probes `GET /auth/me` and keeps an explicit tri-state
+ * so the UI never assumes single-user to bypass the login experience:
  *
- * * `mode: "single"` (or an older backend that does not implement the endpoint)
- *   ⇒ the existing single-user workspace, byte-for-byte unchanged;
- * * `mode: "team"`, unauthenticated ⇒ the login gate;
- * * `mode: "team"`, authenticated ⇒ the workspace plus identity/logout.
+ * * `checking` — the probe is in flight; the gate renders Loading, never the
+ *   workspace and never a login form it cannot yet justify;
+ * * `error` — the probe failed for a reason that is *not* a legacy backend
+ *   (network unreachable, 5xx, malformed body); the gate renders a retryable
+ *   error instead of silently dropping into single-user mode;
+ * * `ready` — the probe resolved.  `mode: "single"` (or a legacy 404 from a
+ *   backend without `/auth/me`) ⇒ the existing single-user workspace;
+ *   `mode: "team"`, unauthenticated ⇒ the login gate; authenticated ⇒ the
+ *   workspace plus identity/logout.
  *
- * The initial state is the optimistic single-user workspace so the shell mounts
- * exactly as before while the probe is in flight; if the server reports a team
- * session that is not authenticated, the gate replaces it.  Identity is always
- * the server-resolved session — a local runtime token is explicitly cleared in
- * team mode so it can never act as a role/backdoor (interface §6).
+ * Only an explicit `mode: "single"` or a legacy `404` is treated as
+ * single-user.  Identity is always the server-resolved session — a local
+ * runtime token is explicitly cleared in team mode so it can never act as a
+ * role/backdoor (interface §6).
  */
 
 import {
@@ -27,6 +32,7 @@ import {
 } from 'react'
 
 import { setRuntimeToken } from '../api/auth'
+import { ApiError } from '../api/client'
 import {
   fetchAuthMe,
   login as authLogin,
@@ -34,11 +40,19 @@ import {
   type AuthMeResponse,
 } from '../api/teamAuth'
 
+export type AuthStatus = 'checking' | 'ready' | 'error'
+
 export interface TeamIdentity {
   mode: 'team' | 'single'
   authenticated: boolean
   username: string | null
   role: string | null
+}
+
+export interface AuthFailure {
+  message: string
+  code: string | null
+  retryable: boolean
 }
 
 const SINGLE_IDENTITY: TeamIdentity = {
@@ -56,12 +70,15 @@ const TEAM_ANONYMOUS: TeamIdentity = {
 }
 
 export interface AuthContextValue {
-  status: 'checking' | 'ready'
+  status: AuthStatus
   identity: TeamIdentity
+  /** Non-null while `status === 'error'`. */
+  error: AuthFailure | null
   isTeam: boolean
   isAdmin: boolean
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  /** Re-run the `/auth/me` probe (used by the retryable error state). */
   refresh: () => Promise<void>
   /** Hand control back to the login gate (e.g. after a `401`). */
   requireLogin: () => void
@@ -69,13 +86,38 @@ export interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+/**
+ * Map a `/auth/me` response to a concrete identity.
+ *
+ * Only the two contract modes are accepted; an unexpected mode is an error
+ * rather than an implicit single-user fallback, so a broken server cannot
+ * silently bypass the gate.
+ */
 function normalizeIdentity(me: AuthMeResponse): TeamIdentity {
-  if (me.mode !== 'team') return { ...SINGLE_IDENTITY }
+  if (me.mode === 'single') return { ...SINGLE_IDENTITY }
+  if (me.mode === 'team') {
+    return {
+      mode: 'team',
+      authenticated: Boolean(me.authenticated),
+      username: me.username ?? null,
+      role: me.role ?? null,
+    }
+  }
+  throw new Error(`unexpected auth mode: ${String(me.mode)}`)
+}
+
+function failureFrom(cause: unknown): AuthFailure {
+  if (cause instanceof ApiError) {
+    return {
+      message: cause.message,
+      code: cause.code,
+      retryable: cause.retryable,
+    }
+  }
   return {
-    mode: 'team',
-    authenticated: Boolean(me.authenticated),
-    username: me.username ?? null,
-    role: me.role ?? null,
+    message: cause instanceof Error ? cause.message : 'Authentication probe failed',
+    code: null,
+    retryable: true,
   }
 }
 
@@ -86,10 +128,11 @@ export interface AuthProviderProps {
 }
 
 export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProps) {
-  const [status, setStatus] = useState<'checking' | 'ready'>('checking')
-  // Optimistic single-user default keeps the pre-LG-050 shell intact until the
-  // real server state is known (and for single-user backends, forever).
+  const [status, setStatus] = useState<AuthStatus>('checking')
+  // Placeholder identity; it is only observed by the shell once status is
+  // 'ready', and by then it has been replaced by the real server state.
   const [identity, setIdentity] = useState<TeamIdentity>(SINGLE_IDENTITY)
+  const [error, setError] = useState<AuthFailure | null>(null)
   const cancelled = useRef(false)
 
   const applyIdentity = useCallback((next: TeamIdentity) => {
@@ -101,16 +144,26 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
   }, [])
 
   const refresh = useCallback(async () => {
+    setStatus('checking')
+    setError(null)
     try {
       const me = await probe()
-      if (!cancelled.current) applyIdentity(normalizeIdentity(me))
-    } catch {
-      // Older/single-user backends return 404 and an unreachable server errors
-      // out; both must keep the existing single-user behavior rather than
-      // forcing a login gate that cannot work.
-      if (!cancelled.current) applyIdentity({ ...SINGLE_IDENTITY })
-    } finally {
-      if (!cancelled.current) setStatus('ready')
+      if (cancelled.current) return
+      applyIdentity(normalizeIdentity(me))
+      setStatus('ready')
+    } catch (cause) {
+      if (cancelled.current) return
+      // A backend that predates `/auth/me` answers 404 (single-user product);
+      // that is the only failure that may fall back to single-user mode.
+      if (cause instanceof ApiError && cause.httpStatus === 404) {
+        applyIdentity({ ...SINGLE_IDENTITY })
+        setStatus('ready')
+        return
+      }
+      // Network errors and server errors must be surfaced, not hidden behind a
+      // single-user workspace that would let an anonymous team user in.
+      setError(failureFrom(cause))
+      setStatus('error')
     }
   }, [applyIdentity, probe])
 
@@ -131,6 +184,7 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
         username: result.username,
         role: result.role,
       })
+      setError(null)
       setStatus('ready')
     },
     [applyIdentity],
@@ -143,18 +197,21 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
       /* Even if the request fails, drop the local gate immediately and honestly. */
     }
     applyIdentity({ ...TEAM_ANONYMOUS })
+    setStatus('ready')
   }, [applyIdentity])
 
   const requireLogin = useCallback(() => {
     setIdentity((previous) =>
       previous.mode === 'team' ? { ...TEAM_ANONYMOUS } : previous,
     )
+    setStatus('ready')
   }, [])
 
   const value = useMemo<AuthContextValue>(
     () => ({
       status,
       identity,
+      error,
       isTeam: identity.mode === 'team',
       isAdmin: identity.role === 'admin',
       login,
@@ -162,7 +219,7 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
       refresh,
       requireLogin,
     }),
-    [status, identity, login, logout, refresh, requireLogin],
+    [status, identity, error, login, logout, refresh, requireLogin],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -172,6 +229,7 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
 const DEFAULT_AUTH: AuthContextValue = {
   status: 'ready',
   identity: { ...SINGLE_IDENTITY },
+  error: null,
   isTeam: false,
   isAdmin: true,
   login: async () => undefined,
