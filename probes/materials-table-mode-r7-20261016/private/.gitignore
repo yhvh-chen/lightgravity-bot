@@ -1,0 +1,3 @@
+# Live runtime data root for the LG-035 R7 probe (`run_probe.py` sets `DATA_ROOT` here).
+# Regenerable from the declared fixtures + `evidence/`; not a source artifact.
+data/

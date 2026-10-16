@@ -44,15 +44,20 @@ from .content import (
 from .intake import IntakeService
 from .models import SourceRecord
 from .ocr import (
+    OCR_PROMPT,
+    OCR_TABLE_PROMPT,
     OcrBackend,
     OcrRequest,
     OcrTimeout,
     OcrUnavailable,
+    OcrTableModeInvalid,
     PdfRasterizer,
     PdfiumRasterizer,
     UnavailableOcrBackend,
+    classify_image_bytes,
     is_pdf_bytes,
     parse_scale_env,
+    parse_table_mode_env,
 )
 from .store import SourceStore
 
@@ -81,20 +86,31 @@ class ProcessingConfig:
     max_pages: int = 100
     max_tokens_per_page: int = 2000
     scale: float = 2.0
+    #: Optional, **default OFF** table-aware OCR mode.  When False (the
+    #: default) every page uses the unchanged default prompt, so ordinary pages
+    #: and existing behaviour are byte-for-byte unchanged.  When True, a page is
+    #: first passed through the program-side, model-free layout classifier and the
+    #: explicit-grid table prompt is used **only** for pages confidently
+    #: identified as an actual ruled table; ordinary pages still use the default
+    #: prompt (R5 showed a global prompt swap regresses ordinary pages).
+    table_mode: bool = False
 
     @classmethod
     def from_env(cls, env: Any = None) -> "ProcessingConfig":
         """Build the config from the environment, keeping default behaviour.
 
-        Only the optional render ``scale`` is read here today.  Page/token
-        bounds stay code defaults; this does **not** widen any work limit.
+        Reads the optional render ``scale`` and the optional ``table_mode`` flag.
+        Page/token bounds stay code defaults; this does **not** widen any work
+        limit.  An invalid ``table_mode`` value is rejected with an explicit
+        diagnostic instead of being silently ignored.
         """
 
         import os
 
         source = os.environ if env is None else env
         scale = parse_scale_env(source, default=ProcessingConfig().scale)
-        return ProcessingConfig(scale=scale)
+        table_mode = parse_table_mode_env(source, default=ProcessingConfig().table_mode)
+        return ProcessingConfig(scale=scale, table_mode=table_mode)
 
 
 @dataclass(frozen=True, slots=True)
@@ -278,11 +294,32 @@ class ProcessingEngine:
         import hashlib
         import time
 
+        request_media_type = (
+            "image/png"
+            if is_pdf_bytes(page_bytes) or page_number is not None
+            else _normalize_media_type(media_type) or "image/png"
+        )
+        # Optional, default-OFF table-aware branch: classify the page with the
+        # bounded, model-free layout analyser and override the prompt **only**
+        # when it is confidently a real ruled table.  Ordinary pages fall through
+        # to the unchanged default prompt, so the default request is unchanged.
+        prompt = OCR_PROMPT
+        table_decision = None
+        if self._config.table_mode:
+            try:
+                decision = classify_image_bytes(page_bytes)
+            except Exception:  # noqa: BLE001 - classification must never break OCR
+                decision = None
+            if decision is not None:
+                table_decision = decision
+                if decision.is_table:
+                    prompt = OCR_TABLE_PROMPT
         request = OcrRequest(
             data=page_bytes,
-            media_type="image/png" if is_pdf_bytes(page_bytes) or page_number is not None else _normalize_media_type(media_type) or "image/png",
+            media_type=request_media_type,
             page=page_number,
             max_tokens=self._config.max_tokens_per_page,
+            prompt=prompt if prompt is not OCR_PROMPT else None,
         )
         started = time.monotonic()
         try:
@@ -323,6 +360,19 @@ class ProcessingEngine:
                 status="failed",
                 error=f"{exc.code.value}: {exc.message}",
             )
+        detail: dict[str, Any] = {
+            "model": result.model,
+            "prompt_tokens": result.prompt_tokens,
+            "completion_tokens": result.completion_tokens,
+            "latency_seconds": round(time.monotonic() - started, 3),
+            "finish_reason": result.finish_reason,
+            "raw_response_sha256": hashlib.sha256(result.raw_response.encode("utf-8")).hexdigest(),
+        }
+        if self._config.table_mode:
+            detail["prompt_kind"] = "table" if prompt is OCR_TABLE_PROMPT else "default"
+            detail["prompt_sha256"] = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+            if table_decision is not None:
+                detail["table_classification"] = table_decision.to_dict()
         self._evidence(
             content,
             source,
@@ -330,14 +380,7 @@ class ProcessingEngine:
             page_number,
             page_bytes,
             "succeeded",
-            {
-                "model": result.model,
-                "prompt_tokens": result.prompt_tokens,
-                "completion_tokens": result.completion_tokens,
-                "latency_seconds": round(time.monotonic() - started, 3),
-                "finish_reason": result.finish_reason,
-                "raw_response_sha256": hashlib.sha256(result.raw_response.encode("utf-8")).hexdigest(),
-            },
+            detail,
         )
         return PageText(
             page=page_number,

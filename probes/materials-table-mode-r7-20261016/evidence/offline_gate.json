@@ -1,0 +1,70 @@
+{
+  "checks": [
+    {
+      "name": "LG035-R7-T1 (real grid)",
+      "expect_is_table": true,
+      "got_is_table": true,
+      "ok": true,
+      "reason": "dominant ruled multi-column region",
+      "dominant_region": 0,
+      "column_count": 3,
+      "line_fraction": 1.0,
+      "rules_in_region": 4,
+      "line_consistency": 0.9167,
+      "format_supported": true
+    },
+    {
+      "name": "NIST p16 full page (born-digital prose+table)",
+      "expect_is_table": false,
+      "got_is_table": false,
+      "ok": true,
+      "reason": "no dominant region",
+      "dominant_region": 6,
+      "column_count": 3,
+      "line_fraction": 0.3585,
+      "rules_in_region": 5,
+      "line_consistency": 0.0,
+      "format_supported": true
+    },
+    {
+      "name": "LG035-R7-MIX p1 (ordinary)",
+      "expect_is_table": false,
+      "got_is_table": false,
+      "ok": true,
+      "reason": "no dominant region",
+      "dominant_region": 6,
+      "column_count": 3,
+      "line_fraction": 0.3585,
+      "rules_in_region": 5,
+      "line_consistency": 0.0,
+      "format_supported": true
+    },
+    {
+      "name": "LG035-R7-MIX p2 (ordinary)",
+      "expect_is_table": false,
+      "got_is_table": false,
+      "ok": true,
+      "reason": "dominant region is single-column",
+      "dominant_region": 0,
+      "column_count": 1,
+      "line_fraction": 1.0,
+      "rules_in_region": 0,
+      "line_consistency": 0.0,
+      "format_supported": true
+    },
+    {
+      "name": "LG035-ZH-Z1 (Chinese printed JPEG)",
+      "expect_is_table": false,
+      "got_is_table": false,
+      "ok": true,
+      "reason": "undecodable/unsupported input: not a PNG",
+      "dominant_region": null,
+      "column_count": 0,
+      "line_fraction": 0.0,
+      "rules_in_region": 0,
+      "line_consistency": 0.0,
+      "format_supported": false
+    }
+  ],
+  "all_ok": true
+}

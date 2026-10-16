@@ -1,0 +1,46 @@
+{
+  "requests": [
+    {
+      "input_sha256": "39138a971d605f65d10b5df3a13e35c7cec5d3710bc38d55e6eb656fc1219652",
+      "input_bytes": 33716,
+      "media_type": "image/png",
+      "page": null,
+      "max_tokens": 4096,
+      "prompt_override": "You are a precise OCR engine that preserves table structure. This image contains a table layout with columns. Transcribe the visible text into a GitHub Markdown table: one pipe-delimited row per table row, one cell per column, in visual left-to-right, top-to-bottom order. Include a header row followed by a Markdown separator row. Use exactly the columns that are visibly present; do not merge, split, reorder or invent cells. Transcribe cell text exactly as written (preserve digits, symbols and punctuation) and do not infer, complete, translate, summarise or add commentary. If a cell is unreadable, output the token [unreadable] in that cell instead of guessing. Return only the Markdown table.",
+      "prompt_sha256": "4c7d8ec40e76bb36d018ec548ed85dee1dcfb77cee9510b7b86df676bd34fa76",
+      "default_prompt_sha256": "7cb03181c5220ca42c767951205de2a243a344145ad2e0c5df4cf9fc164d2171"
+    }
+  ],
+  "evidence": [
+    {
+      "source_id": "source_01M515M2H97X0AX09DAN4Y7V5N",
+      "source_version": 1,
+      "original": "honest_table_grid_scale4.png",
+      "page": null,
+      "input_sha256": "39138a971d605f65d10b5df3a13e35c7cec5d3710bc38d55e6eb656fc1219652",
+      "outcome": "succeeded",
+      "detail": {
+        "model": "qwen3.8-27b",
+        "prompt_tokens": 954,
+        "completion_tokens": 634,
+        "latency_seconds": 36.063,
+        "finish_reason": "stop",
+        "raw_response_sha256": "930e4fef17c6fe718799e1186986b479029c530e78b13c55fa3d9b957553d269",
+        "prompt_kind": "table",
+        "prompt_sha256": "4c7d8ec40e76bb36d018ec548ed85dee1dcfb77cee9510b7b86df676bd34fa76",
+        "table_classification": {
+          "is_table": true,
+          "reason": "dominant ruled multi-column region",
+          "dominant_region": 0,
+          "column_count": 3,
+          "line_fraction": 1.0,
+          "rules_in_region": 4,
+          "line_consistency": 0.9167,
+          "format_supported": true
+        }
+      },
+      "at": "2026-10-16T01:36:35.881Z"
+    }
+  ],
+  "processing_status": "succeeded"
+}

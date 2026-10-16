@@ -47,12 +47,35 @@ DEFAULT_COLD_TIMEOUT_SECONDS = 180.0
 MAX_OCR_SCALE = 4.0
 
 #: Prompt deliberately forbids inference so the model does not invent content.
+#: This is the **unchanged default** used for ordinary pages (prose, printed
+#: pages, scans).  R5 showed that swapping it globally regresses ordinary pages,
+#: so it is never changed implicitly: the optional table mode below passes an
+#: explicit per-request override only when a page is program-classified as a
+#: real table.
 OCR_PROMPT = (
     "You are a precise OCR engine. Transcribe only the text that is visibly "
     "present in the image, exactly as written, preserving line breaks and "
     "punctuation. Do not infer, complete, translate, summarise or add any "
     "commentary. If a region is unreadable, output the token [unreadable] "
     "instead of guessing. Return only the transcription."
+)
+
+#: Optional prompt used **only** when the program-side layout classifier is
+#: confident the page is a ruled grid.  It carries **only generic structural
+#: instructions** — no page text, no ground truth, no known answers — and asks
+#: for an explicit Markdown table so the machine output has an actual grid
+#: instead of the flat one-token-per-line list the default prompt produces.
+OCR_TABLE_PROMPT = (
+    "You are a precise OCR engine that preserves table structure. This image "
+    "contains a table layout with columns. Transcribe the visible text into a "
+    "GitHub Markdown table: one pipe-delimited row per table row, one cell per "
+    "column, in visual left-to-right, top-to-bottom order. Include a header row "
+    "followed by a Markdown separator row. Use exactly the columns that are "
+    "visibly present; do not merge, split, reorder or invent cells. Transcribe "
+    "cell text exactly as written (preserve digits, symbols and punctuation) and "
+    "do not infer, complete, translate, summarise or add commentary. If a cell is "
+    "unreadable, output the token [unreadable] in that cell instead of guessing. "
+    "Return only the Markdown table."
 )
 
 _IMAGE_MEDIA_TYPES = {
@@ -89,6 +112,19 @@ class OcrScaleInvalid(AppError):
         self.key = key
         self.raw = raw
         self.reason = reason
+
+
+class OcrTableModeInvalid(AppError):
+    """An explicit OCR table-mode env value is not a recognised on/off value."""
+
+    def __init__(self, key: str, raw: str) -> None:
+        super().__init__(
+            ErrorCode.VALIDATION_FAILED,
+            "OCR table mode configuration is invalid",
+            details={"env": key, "value": raw, "accepted": ["0", "1", "false", "true"]},
+        )
+        self.key = key
+        self.raw = raw
 
 
 class OcrTimeout(AppError):
@@ -128,6 +164,10 @@ class OcrRequest:
     max_tokens: int = DEFAULT_MAX_TOKENS
     timeout_seconds: float | None = None
     cold: bool = False
+    #: Optional explicit prompt override.  ``None`` (the default) keeps the
+    #: unchanged :data:`OCR_PROMPT`; the optional table mode sets
+    #: :data:`OCR_TABLE_PROMPT` only for a program-classified real table.
+    prompt: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -218,7 +258,7 @@ class OpenAICompatOcrBackend:
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": OCR_PROMPT},
+                        {"type": "text", "text": request.prompt or OCR_PROMPT},
                         {"type": "image_url", "image_url": {"url": data_url}},
                     ],
                 }
@@ -349,6 +389,15 @@ ENV_OCR_MAX_TOKENS = "LIGHTGRAVITY_OCR_MAX_TOKENS"
 #: and never hard-codes a host.  Absent/empty keeps the default unchanged.
 ENV_OCR_SCALE = "LIGHTGRAVITY_OCR_SCALE"
 
+#: Optional, **default OFF** table-aware OCR mode.  This is a non-secret
+#: behavioural toggle read only through the normal processing configuration; it
+#: is **not** a new endpoint/field and does not change the default pipeline.
+ENV_OCR_TABLE_MODE = "LIGHTGRAVITY_OCR_TABLE_MODE"
+
+#: Accepted on/off spellings for :data:`ENV_OCR_TABLE_MODE` (case-insensitive).
+_TABLE_MODE_TRUE = {"1", "true", "yes", "on"}
+_TABLE_MODE_FALSE = {"0", "false", "no", "off"}
+
 
 def backend_from_env(env: Any = None) -> OcrBackend:
     """Build the configured OCR backend, or an honest unavailable stub.
@@ -433,6 +482,28 @@ def parse_scale_env(
     return value
 
 
+def parse_table_mode_env(
+    source: Any, key: str = ENV_OCR_TABLE_MODE, *, default: bool
+) -> bool:
+    """Parse the optional, default-OFF table-mode flag from the environment.
+
+    Returns ``default`` (False) when the variable is absent or empty, so the
+    default pipeline is unchanged.  A present-but-unrecognised value raises
+    :class:`OcrTableModeInvalid` instead of being silently treated as off, so a
+    mistyped toggle cannot masquerade as an intended configuration.
+    """
+
+    raw = source.get(key)
+    if raw is None or str(raw).strip() == "":
+        return default
+    token = str(raw).strip().lower()
+    if token in _TABLE_MODE_TRUE:
+        return True
+    if token in _TABLE_MODE_FALSE:
+        return False
+    raise OcrTableModeInvalid(key, str(raw))
+
+
 __all__ = [
     "OcrBackend",
     "OcrPageResult",
@@ -450,8 +521,12 @@ __all__ = [
     "ENV_OCR_MODEL",
     "ENV_OCR_TOKEN",
     "ENV_OCR_SCALE",
+    "ENV_OCR_TABLE_MODE",
     "parse_scale_env",
+    "parse_table_mode_env",
     "OcrScaleInvalid",
+    "OcrTableModeInvalid",
     "MAX_OCR_SCALE",
     "OCR_PROMPT",
+    "OCR_TABLE_PROMPT",
 ]
