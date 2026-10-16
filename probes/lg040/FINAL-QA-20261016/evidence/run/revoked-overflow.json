@@ -1,0 +1,149 @@
+{
+  "revoke": {
+    "status": 200,
+    "body": {
+      "source_id": "source_01M51N3TRHB3Y5KQ5SAPSBEFRB",
+      "status": "archived",
+      "revoked": true
+    }
+  },
+  "selectRevoked": {
+    "entries": 3,
+    "selectedRevoked": true
+  },
+  "chatThenNarrow": true,
+  "stepH_exact_390": {
+    "innerWidth": 390,
+    "docScrollWidth": 390,
+    "overflow": false,
+    "nOffenders": 4,
+    "offenders": [
+      {
+        "tag": "span",
+        "cls": "lg-visually-hidden",
+        "rect": {
+          "x": 11,
+          "right": 12,
+          "width": 1
+        },
+        "scrollW": 103,
+        "clientW": 1,
+        "minWidth": "0px",
+        "display": "block",
+        "overflowX": "hidden"
+      },
+      {
+        "tag": "input",
+        "cls": "lg-visually-hidden",
+        "rect": {
+          "x": 32,
+          "right": 33,
+          "width": 1
+        },
+        "scrollW": 244,
+        "clientW": 1,
+        "minWidth": "0px",
+        "display": "block",
+        "overflowX": "clip"
+      },
+      {
+        "tag": "span",
+        "cls": "lg-visually-hidden",
+        "rect": {
+          "x": 11,
+          "right": 12,
+          "width": 1
+        },
+        "scrollW": 154,
+        "clientW": 1,
+        "minWidth": "0px",
+        "display": "block",
+        "overflowX": "hidden"
+      },
+      {
+        "tag": "label",
+        "cls": "lg-visually-hidden",
+        "rect": {
+          "x": 11,
+          "right": 12,
+          "width": 1
+        },
+        "scrollW": 127,
+        "clientW": 1,
+        "minWidth": "0px",
+        "display": "block",
+        "overflowX": "hidden"
+      }
+    ]
+  },
+  "stepH_dom": {
+    "materials": false,
+    "entries": 0,
+    "hasFacts": false,
+    "bodyText": ""
+  },
+  "stepH_settled_390": {
+    "innerWidth": 390,
+    "docScrollWidth": 390,
+    "overflow": false,
+    "nOffenders": 4,
+    "offenders": [
+      {
+        "tag": "span",
+        "cls": "lg-visually-hidden",
+        "rect": {
+          "x": 11,
+          "right": 12,
+          "width": 1
+        },
+        "scrollW": 103,
+        "clientW": 1,
+        "minWidth": "0px",
+        "display": "block",
+        "overflowX": "hidden"
+      },
+      {
+        "tag": "input",
+        "cls": "lg-visually-hidden",
+        "rect": {
+          "x": 32,
+          "right": 33,
+          "width": 1
+        },
+        "scrollW": 244,
+        "clientW": 1,
+        "minWidth": "0px",
+        "display": "block",
+        "overflowX": "clip"
+      },
+      {
+        "tag": "span",
+        "cls": "lg-visually-hidden",
+        "rect": {
+          "x": 11,
+          "right": 12,
+          "width": 1
+        },
+        "scrollW": 154,
+        "clientW": 1,
+        "minWidth": "0px",
+        "display": "block",
+        "overflowX": "hidden"
+      },
+      {
+        "tag": "label",
+        "cls": "lg-visually-hidden",
+        "rect": {
+          "x": 11,
+          "right": 12,
+          "width": 1
+        },
+        "scrollW": 127,
+        "clientW": 1,
+        "minWidth": "0px",
+        "display": "block",
+        "overflowX": "hidden"
+      }
+    ]
+  }
+}
