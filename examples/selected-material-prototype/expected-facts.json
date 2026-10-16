@@ -1,0 +1,122 @@
+{
+  "_note": "FIXTURE TRUTH, NOT MEASURED MODEL OUTPUT. These are the facts that a human wrote into the fictional sample briefs. They are the expected ground truth for the selected-material prototype flows. Any real answer produced by a model during LG-047 QA must be compared against these facts. These files are NOT OCR output and were NOT produced by a model.",
+  "_provenance": "human-authored SAMPLE data; see ../README.md",
+  "_unknown_to_base_model": "All project names, IDs, budgets and dates here are invented and deliberately unique so an unaided model cannot guess them.",
+  "fixtures": {
+    "alpha-brief.txt": {
+      "title": "PROJECT ORION-71 — INTERNAL BRIEFING NOTE",
+      "sample": true,
+      "ocr_output": false,
+      "project_code_name": "ORION-71",
+      "programme_owner": "Halden Reyes",
+      "deputy_owner": "Mira Okonjo",
+      "primary_launch_date": "2027-03-14",
+      "contingency_window": "2027-04-02 .. 2027-04-09",
+      "total_approved_budget_eur": 418250,
+      "reserve_line_eur": 37900,
+      "project_id": "PRJ-ORION-71",
+      "change_board_ticket": "CB-8842",
+      "vendor_contract_id": "VND-5501-KESTREL",
+      "internal_build_tag": "orion-71-rc4",
+      "relay_unit": "RT-11.5",
+      "sample_rate_hz": 11.5,
+      "field_trial_days": 26,
+      "relay_units_in_trial": 14,
+      "acceptance_protocol": "AP-ORION-71",
+      "acceptance_protocol_pages": 41,
+      "ground_station_adapter": "GS-ADAPT-9",
+      "regulatory_clearance_date": "2027-02-22",
+      "vendor_lot_size": 6
+    },
+    "beta-brief.txt": {
+      "title": "PROJECT LUMEN-33 — STANDING OPERATIONS NOTE",
+      "sample": true,
+      "ocr_output": false,
+      "project_code_name": "LUMEN-33",
+      "operations_lead": "Priya Nandakumar",
+      "duty_engineer": "Tomas Vidal",
+      "start_of_operations": "2026-11-05",
+      "review_checkpoint": "2027-05-20",
+      "operating_budget_eur_per_quarter": 96400,
+      "capital_allocation_eur": 512000,
+      "project_id": "PRJ-LUMEN-33",
+      "change_board_ticket": "CB-9107",
+      "vendor_contract_id": "VND-7724-LANTERN",
+      "internal_build_tag": "lumen-33-stable",
+      "central_node": "NODE-PELICAN",
+      "sensor_pod": "SP-9",
+      "coastal_sites": 3,
+      "pods_per_site": 9,
+      "total_pods": 27,
+      "sample_interval_minutes": 4,
+      "report_template": "QRT-LUMEN-33",
+      "power_account": "ACC-POWER-COAST"
+    },
+    "gamma-decoy.txt": {
+      "title": "PROJECT ORION-99 — DRAFT DECOY NOTE",
+      "sample": true,
+      "ocr_output": false,
+      "role": "contradictory-decoy-leave-unselected",
+      "decoys_alpha-brief.txt": true,
+      "decoy_project_code_name": "ORION-99",
+      "decoy_programme_owner": "Dana Whitfield",
+      "decoy_primary_launch_date": "2028-09-01",
+      "decoy_total_approved_budget_eur": 999999,
+      "decoy_project_id": "PRJ-ORION-99",
+      "decoy_change_board_ticket": "CB-0000",
+      "decoy_relay_unit": "RT-99.9",
+      "decoy_sample_rate_hz": 99.9,
+      "contradicts": {
+        "project_code_name": "ORION-71",
+        "programme_owner": "Halden Reyes",
+        "primary_launch_date": "2027-03-14",
+        "total_approved_budget_eur": 418250
+      }
+    },
+    "cross-task-negative.txt": {
+      "title": "CROSS-TASK NEGATIVE FIXTURE MARKER",
+      "sample": true,
+      "ocr_output": false,
+      "role": "cross-task-negative",
+      "cross_task_sentinel": "XTM-ORION-71-FF41",
+      "fixture_kind": "cross-task-negative",
+      "expected_error_code": "reference_invalid",
+      "expected_http_status": 422,
+      "expected_behavior": "selecting this source while a different Task is active must be rejected before model dispatch; selection must not carry across Task boundaries"
+    }
+  },
+  "negative_cases": {
+    "over_limit": {
+      "description": "selecting more than 3 sources in one message",
+      "expected_error_code": "validation_failed",
+      "expected_http_status": 422,
+      "expected_details": { "max_selected_sources": 3 }
+    },
+    "stale": {
+      "description": "source_version or content_hash no longer matches the current source",
+      "expected_error_code": "source_stale",
+      "expected_http_status": 409
+    },
+    "revoked": {
+      "description": "source was revoked (status=archived as the revoke marker)",
+      "expected_error_code": "not_found",
+      "expected_http_status": 404,
+      "expected_details": { "revoked": true }
+    },
+    "cross_task": {
+      "description": "source scope.task_ref differs from the current Task and is not global",
+      "expected_error_code": "reference_invalid",
+      "expected_http_status": 422
+    },
+    "missing_or_unreadable": {
+      "description": "selected source has no readable body",
+      "expected_error_code": "not_found or capability_unavailable",
+      "expected_http_status": "404 or 503"
+    }
+  },
+  "truncation": {
+    "max_total_unicode_chars": 12000,
+    "behavior": "explicit truncation with truncation metadata (reason, original_char_count, kept_char_count, max_total); the truncated body is the exact body used for both Chat reply and worker context",
+    "note": "the frozen contract also permits reusing the existing limiter rejection instead; the backend owner declares which branch is implemented"
+  }
+}

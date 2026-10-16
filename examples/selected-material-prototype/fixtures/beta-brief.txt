@@ -1,0 +1,48 @@
+PROJECT LUMEN-33 — STANDING OPERATIONS NOTE (SAMPLE FICTION)
+================================================================
+
+NOTE: This is human-written SAMPLE data for the selected-material
+prototype. It is NOT OCR output and NOT a measured model result.
+All names, numbers, and IDs are fictional and intentionally unique so
+that a model that never saw this file cannot guess them.
+
+Project code name .......... LUMEN-33
+Operations lead ............ Priya Nandakumar
+Start of operations ........ 2026-11-05
+Review checkpoint .......... 2027-05-20
+Operating budget ........... 96,400 EUR per quarter
+Capital allocation ......... 512,000 EUR (one-off hardware)
+
+Key identifiers
+---------------
+Project ID ................. PRJ-LUMEN-33
+Change-board ticket ........ CB-9107
+Vendor contract ID ......... VND-7724-LANTERN
+Internal build tag ......... lumen-33-stable
+
+Scope summary
+-------------
+LUMEN-33 runs a daylight sensor array across three coastal sites. The
+array samples illuminance every 4 minutes and reports to a central
+node named NODE-PELICAN. Each site hosts 9 sensor pods, for a total of
+27 pods.
+
+Deliverables
+------------
+1. Sensor pod SP-9 fleet (27 pods across three sites).
+2. Central node NODE-PELICAN with redundant power.
+3. Quarterly report template QRT-LUMEN-33.
+
+Known constraints
+-----------------
+- Checkpoint CB-9107 must be approved before hardware replacement.
+- Capital allocation (512,000 EUR) is one-off and cannot be re-drawn.
+- The operating budget excludes site power costs, which are billed
+  separately under account ACC-POWER-COAST.
+
+Owner contact
+-------------
+Priya Nandakumar (operations lead), desk extension 5120.
+Duty engineer: Tomas Vidal, desk extension 5121.
+
+END OF SAMPLE NOTE — beta-brief.txt
