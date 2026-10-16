@@ -46,6 +46,8 @@ def main() -> None:
     ap.add_argument("--tag", default="alpha")
     ap.add_argument("--prep-only", action="store_true",
                     help="stop before the model call (0 product calls)")
+    ap.add_argument("--data-dir", default=None,
+                    help="QA data dir, to materialize a trusted machine body")
     args = ap.parse_args()
 
     facts = load_facts()
@@ -89,7 +91,29 @@ def main() -> None:
         f"/api/v1/sources/{sid_a}/formal",
         {"content": alpha_text, "edited_by": "qa-human", "expected_revision": 0},
     )
-    rec(out, "formal_edit_alpha", {"status": st_f, "body": fbody})["id"]
+    rec(out, "formal_edit_alpha", {"status": st_f, "body": fbody})
+
+    # Materialize a trusted machine body via the product's own ContentStore
+    # writer (plain-text intake has no extraction step; see REPORT D1).
+    if args.data_dir:
+        import subprocess
+        seed = subprocess.run(
+            [sys.executable, str(Path(__file__).resolve().parent / "seed_machine.py"),
+             "--data-dir", args.data_dir, "--source-id", sid_a,
+             "--text-file", str(FIX / "alpha-brief.txt")],
+            capture_output=True, text=True,
+        )
+        rec(out, "seed_machine_alpha", {"rc": seed.returncode, "stdout": seed.stdout,
+                                         "stderr": seed.stderr[-400:]})
+        st_c, cbody2 = api.source_content(sid_a, "auto")
+        c2 = cbody2.get("content") if isinstance(cbody2, dict) else ""
+        rec(out, "source_content_after_seed", {
+            "status": st_c,
+            "kind": cbody2.get("kind") if isinstance(cbody2, dict) else None,
+            "chars": len(c2 or ""),
+            "mentions_orion": "ORION-71" in (c2 or ""),
+            "mentions_halden": "Halden Reyes" in (c2 or ""),
+        })
 
     # A2 — poll receipt to terminal.
     receipt = None
@@ -113,8 +137,12 @@ def main() -> None:
         return
 
     # A3 — the ONE real product call: ask with the selected alpha source.
-    q = ("Using only the selected brief, report: project code name, programme owner, "
-         "primary launch date, total approved budget EUR, project id and change ticket.")
+    # NOTE: avoid the substring "approved" — the v1 classifier's _DECISION tuple
+    # contains "approve", so "approved budget" misroutes a question to a canned
+    # decision reply (recorded as finding D3). Use "total budget" instead.
+    q = ("Using only the selected brief, what is the project code name, the programme "
+         "owner, the primary launch date, the total budget EUR, the project id, "
+         "and the change ticket?")
     msg = api.task_message(
         tid, message_id="qa-flowA-q1", content=q,
         selected_sources=[{"source_id": sid_a, "source_version": ver_a, "content_hash": hash_a}],
@@ -145,7 +173,7 @@ def main() -> None:
 
     # A5 — open the real source content.
     st, content = api.source_content(sid_a, "auto")
-    ctext = content.get("text") if isinstance(content, dict) else content
+    ctext = content.get("content") if isinstance(content, dict) else content
     rec(out, "source_content", {
         "status": st,
         "kind": content.get("kind") if isinstance(content, dict) else None,

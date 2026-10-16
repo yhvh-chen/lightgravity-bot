@@ -150,11 +150,14 @@ def main() -> None:
 
     app = runtime.app
 
-    from fastapi import FastAPI, HTTPException
+    # Evidence-only routes are added DIRECTLY onto the product app (not a
+    # wrapper mount) so the product app's own lifespan — which starts the
+    # coordinator background queue worker — actually runs.
+    from fastapi import HTTPException, Request
     from starlette.responses import Response
     from starlette.routing import Route
 
-    def _fixture(request):
+    def _fixture(request: Request):
         client = request.client
         if client and client.host not in ("127.0.0.1", "::1"):
             raise HTTPException(403, "loopback only")
@@ -172,7 +175,7 @@ def main() -> None:
             },
         )
 
-    def _generation(request):
+    def _generation(request: Request):
         from lightgravity.adapter.proxy import global_generation_counter
 
         return Response(
@@ -180,13 +183,10 @@ def main() -> None:
             media_type="application/json",
         )
 
-    wrapper = FastAPI(
-        routes=[
-            Route("/_lg047_fixture/{name}", _fixture),
-            Route("/_lg047_generation", _generation),
-        ]
-    )
-    wrapper.mount("/", app)
+    # Insert BEFORE the SPA catch-all (``/{path:path}``) so these are matched
+    # first; a plain append would be shadowed by the frontend route.
+    app.router.routes.insert(0, Route("/_lg047_generation", _generation))
+    app.router.routes.insert(0, Route("/_lg047_fixture/{name}", _fixture))
 
     import uvicorn
 
@@ -203,7 +203,7 @@ def main() -> None:
         "utf-8",
     )
 
-    config = uvicorn.Config(wrapper, host="127.0.0.1", port=port, log_level="warning")
+    config = uvicorn.Config(app, host="127.0.0.1", port=port, log_level="warning")
     server = uvicorn.Server(config)
 
     def _health_wait() -> None:
