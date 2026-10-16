@@ -7,7 +7,7 @@ updated: "2026-10-16"
 
 # 当前进展与续接记录
 
-> **2026-10-16 选定资料快速原型（最新事实）**：LG-042～046 实施/整合完成，LG-047 QA R1 判 FAIL（`57809d4`）；F+G 并行返修已由 H 串行集成到 `main` 形成 R2 候选（F+G 联合全量 `pytest -q` 930 passed / 2 skipped、mypy 139 clean，均 EXIT 0）；**LG-047 仍进行中、未 PASS/done**，独立 QA-R2 待执行，R2 新增产品请求硬上限 8 次。其下 LG-040 收口节为上一已完成事实，再往下为历史保留不改。
+> **2026-10-16 selected-material 原型命名里程碑闭环（最新事实）**：LG-047 独立版本 QA 据 LG-049 `N-R3-LIFECYCLE` 实际 **PASS_WITH_LIMITATIONS** 置 `done`；LG-049 亦置 `done`。真实完整 SDK 交付生命周期跑通（原生 API 上传 alpha → EXACT 目标交付路由 → `deliver`+`verify` 双 SDK 节点 → 真实 SDK worker 6/6 事实 → 真实独立 ModelReviewer passed → worker/reviewer stop CONFIRMED 于 accept 前 → API accept done），**8/16 前向**；本轮 root PM 仅 `--no-ff` 合入 probes/docs（合并 `76f10c7`），产品树 `main` == `0188ca2`。CLI 实测 **49 tasks / 0 diagnostics / 48 done / 1 todo / 0 in-progress / ready=[]**；LG-041 保持 `todo`（质量门）。历史 R1/R2 FAIL 与成本（unknown 非 0）保留不改。详见 [K-RELEASE-CLOSE REPORT](probes/prototype-selected-material-20261016/K-RELEASE-CLOSE/REPORT.md)。其下 LG-047 R1 FAIL 节为上一轮事实，再往下为历史保留不改。
 
 ## 2026-10-16 LG-047 R1 FAIL → F+G 返修 → H 串行集成候选（PM/integration only；产品推理 0/网络 0）
 

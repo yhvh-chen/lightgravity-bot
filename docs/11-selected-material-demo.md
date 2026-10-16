@@ -13,10 +13,24 @@ rapid prototype by hand. It is written for LG-047 QA and for anyone who wants
 to reproduce the two prototype flows. It is a **user guide**, not a claim that
 the feature is finished.
 
-> **Status: implementation done, pending LG-047 version QA.** This guide
-> describes how to drive the frozen contract; it does **not** assert that any
-> run has passed. Any result you obtain is an *observation* to compare against
-> the fixture truth, and only LG-047 may declare version acceptance.
+> **Status: implementation done; LG-047 name-milestone version QA is `done` (PASS_WITH_LIMITATIONS) as of 2026-10-16.** This guide
+> describes how to drive the frozen contract. A full lifecycle run has been
+> observed and independently QA-verified (see the result block below and
+> [N-R3-LIFECYCLE REPORT](../probes/prototype-selected-material-20261016/N-R3-LIFECYCLE/REPORT-N-R3-LIFECYCLE-20261016.md));
+> the limitations in §9 still apply. Any result you obtain is an *observation* to compare against
+> the fixture truth.
+>
+> **Version QA result (2026-10-16, LG-049 `N-R3-LIFECYCLE`, PASS_WITH_LIMITATIONS):** on the frozen
+> product (`main` == `0188ca2`, zero product-code change) the full real SDK delivery lifecycle
+> passed: native upload of the alpha brief via `selected_sources` → EXACT prior-failing delivery
+> target routed to `delivery/create_task` → rules plan `deliver`+`verify` (sequential SDK nodes) →
+> real SDK worker wrote all 6 fixture facts → `verify` node passed (R2 had 429 here) → program
+> machine gate → **real independent ModelReviewer passed** (`reviewer_kind=model`, `model_calls=1`)
+> → **worker `cleanup=done`+`member.released` and reviewer `reviewer_cleanup.confirmed=true` before
+> accept** → API accept (optimistic revision) → `done`; artifact refs returned real authorized
+> bodies and history Sources matched the bindings. Count: **8/16** product requests
+> (deliver 2 + verify 5 + reviewer 1). Product code was not
+> changed (J's classifier fix was already in `main`).
 >
 > **Run it on integrated `main`.** The demo branch
 > `dev/proto-material-demo-20261016` is not an integrated prototype base; see
@@ -35,7 +49,7 @@ the feature is finished.
 > The expected facts live in
 > [`examples/selected-material-prototype/expected-facts.json`](../examples/selected-material-prototype/expected-facts.json).
 >
-> **R1 返修后的事实（2026-10-16，F+G 合并候选，待独立 R2 复验；非版本 PASS）**：
+> **R1 返修后的事实（2026-10-16，F+G 合并候选；后续已被 R2/R3 验证取代，本条保留为历史）**：
 > - **原生文本成功，无需 OCR**：`text/plain`（及 `text/markdown`、`text/x-markdown`、`text/x-log`、`application/x-ndjson`）上传后由**原生 UTF-8 模型免调用**提取器同步落盘为一个 machine 派生件（`extractor=native-utf8-text`、`model=none`），可经 `GET /sources/{id}/content?kind=auto` 读到正文。非 UTF-8 或超限（2 MB）如实 `failed` 且不留伪造正文。
 > - **PDF/图像处理不变，仍走显式 OCR 路径**：这两种媒体类型上传保持 `received`，需显式 `reprocess` 触发既有 OCR；原生文本修复**不改**该路径。
 > - **选定回答（含来源）已持久化进历史**：每个 `direct`/`bounded_read` 回答把助手行 `assistant:<message_id>`（携带 `resolved_source_bindings` 与 `selected_context` 快照）写入同一会话 SoT，`GET .../messages` 可重放；重试同一 `message_id` 幂等（不重复落库、不重复派发）。**旧的“无助手历史”行为是已修复的 bug；旧会话历史不再行数逐字节一致。**
@@ -74,9 +88,11 @@ text was provided.
 ## 1. Prerequisites
 
 - A working checkout of this repository **on the integrated branch `main`
-  after LG-046 has landed and the LG-047 R1 repairs (F+G) are merged**
-  (LG-043 backend + LG-044 frontend + R1 native-intake/history/plan repairs)
-  — this is the current state of the R2 QA candidate as of 2026-10-16.
+  after LG-046 has landed and the LG-047 R1 repairs (F+G) are merged and the
+  J classifier fix (`2352c52`) is in `main`**
+  (LG-043 backend + LG-044 frontend + R1 native-intake/history/plan repairs +
+  J English whole-word classifier fix) — this is the frozen, version-QA'd state as of 2026-10-16
+  (`main` product tree == `0188ca2`).
   **Do not run this guide on the demo owner branch
   `dev/proto-material-demo-20261016`** — that branch only contains the demo
   assets and the base product; it is **not** a working prototype base because
@@ -426,10 +442,13 @@ new ones.
 
 ## 7. LG-047 budget and replay discipline
 
-- The **only** LG-047 product budget is **12 real DeepSeek requests across
+- **Historical budget rule (retained):** the **only** LG-047 product budget is **12 real DeepSeek requests across
   all attempts** (including every retry and reviewer turn), **retry 0**,
   **serial**, **per-request wall ≤ 90 s**. There is **no** automatic growth and
-  **no** new quota; growth would require PM re-planning.
+  **no** new quota; growth requires PM re-planning. R1 (FAIL) and R2 (FAIL/INCOMPLETE,
+  8/8 exhausted) are kept as historical cost records; the **R3 `N-R3-LIFECYCLE`**
+  campaign (PM-authorized **cap 16**) consumed **8/16** and passed. **Cumulative cost
+  across R1/R2/R3 is unknown, not 0.**
 - The backend enforces a **hard global generation budget before forwarding**,
   and it is a **per-campaign persistent ledger** that is **not reset**. The
   limit is observed through `GET /api/v1/diagnostics/generation`.
@@ -452,13 +471,17 @@ For one attempt, record:
 4. For Flow B, the artifact reference and the reviewer outcome.
 5. Any rejection, with the exact error code and HTTP status.
 
-A passing attempt is still **not** version acceptance. Report observations and
-leave the version gate to LG-047.
+A passing attempt is still **not** user final acceptance. Report observations and
+compare them against the version QA record (LG-047 is `done`,
+PASS_WITH_LIMITATIONS; user final acceptance remains pending).
 
 ## 9. Limits of this guide
 
-- The prototype is **not product-validated** here; model results are
-  **unverified** until LG-047.
+- One full lifecycle run has been observed and independently QA-verified
+  (LG-049 `N-R3-LIFECYCLE`, PASS_WITH_LIMITATIONS, 8/16); the browser UI
+  evidence is reused from I (frontend tree unchanged) and no full test suite was
+  re-run (product code unchanged). The prototype is still not a claim of
+  user final acceptance.
 - No OCR truth is claimed; fixtures are plain text samples.
 - This guide contains no hardcoded real source id or real hash, and no secret.
   IDs and hashes are always taken from the actual upload response.
@@ -470,6 +493,10 @@ leave the version gate to LG-047.
 
 ## See also
 
+- **Review/demo entry (actual run to inspect):** [N-R3-LIFECYCLE REPORT](../probes/prototype-selected-material-20261016/N-R3-LIFECYCLE/REPORT-N-R3-LIFECYCLE-20261016.md)
+  with raw evidence under `probes/prototype-selected-material-20261016/N-R3-LIFECYCLE/{evidence,raw,campaign}/`
+  (uploaded `alpha-brief.txt`, written `orion-summary.md` with the 6 facts, run/ledger).
+- Closure report: [K-RELEASE-CLOSE](../probes/prototype-selected-material-20261016/K-RELEASE-CLOSE/REPORT.md)
 - Frozen contract: [docs/10-selected-material-prototype.md](10-selected-material-prototype.md)
 - Interface contract: [docs/08-interface-contract.md](08-interface-contract.md) §4.2, §5.2, §6.6.1
 - Source design direction: [docs/09-source-intake-and-retrieval.md](09-source-intake-and-retrieval.md)

@@ -10,7 +10,9 @@ updated: "2026-10-16"
 
 > 性质：LG-042 冻结的**加性、可选、非秘密**契约，是快速原型（manual selected-material）实现与验收的唯一接口事实源。它是 [docs/08](08-interface-contract.md) 的补充 subsection，**不重复定义**已冻结的 `source`/`intake_job` 实体（§6.6）、消息信封（§5.2）与错误码（§4.2）。
 >
-> **契约版本 MINOR `1.12.0`（已实现）**：LG-042 冻结、LG-043 后端实现。`contract_version` 常量与测试版本已由 A 后端 owner（LG-043）同步，docs/08 头部版本已 finalsync 至 `1.12.0`；实现注记见 docs/08 §6.6.1。
+> **契约版本 MINOR `1.12.0`（已实现，且已实际生命周期验证）**：LG-042 冻结、LG-043 后端实现。`contract_version` 常量与测试版本已由 A 后端 owner（LG-043）同步，docs/08 头部版本已 finalsync 至 `1.12.0`；实现注记见 docs/08 §6.6.1。
+>
+> **实际验证（2026-10-16，LG-049 `N-R3-LIFECYCLE`，PASS_WITH_LIMITATIONS）**：在冻结产品（`main` == `0188ca2`，产品零改动）上，经本契约的 `selected_sources` 原生上传 alpha 并选定后，真实跑通一条完整 SDK 交付生命周期：程序规则计划 `deliver`+`verify` 双 SDK 节点顺序执行、真实 SDK worker 写出六事实、程序机器门、**独立 ModelReviewer passed**、worker/reviewer stop CONFIRMED 于 accept 前、API accept 置 `done`；8/16 前向。详见 [N-R3-LIFECYCLE REPORT](../probes/prototype-selected-material-20261016/N-R3-LIFECYCLE/REPORT-N-R3-LIFECYCLE-20261016.md)。限制（前端未构建故浏览器证据复用、未重跑全量、累积成本 unknown 非 0）见该报告。
 >
 > 任何与本文冲突的 docs/08 正文以 docs/08 为准；本文只做**加性**扩展。旧客户端**省略**本文字段时，**可选请求省略与既有响应 wire / 模型上下文**保持兼容；此兼容**不含**下文明确记录的 R1 行为修复（助手回答历史持久化；无选材普通 Chat 交付的默认规则计划修好），这些修复会改变旧历史行与旧交付行为，见 §7 与 docs/08 §6.6.1。
 

@@ -9,7 +9,14 @@ updated: "2026-10-16"
 
 > 创建：2026-10-14。开发任务由 Olav Tasks 管理，schema 为 `olav.tasks/v1`，编号 LG。状态以单项 Markdown frontmatter 为准，本索引不重复维护状态。
 
-## 当前批次状态（2026-10-16，选定资料快速原型 LG-042～049；047 保持 in-progress，049 R3 生命周期验证 in-progress）
+## 当前批次状态（2026-10-16，selected-material 原型命名里程碑闭环；LG-047 与 LG-049 已 done；LG-041 保持 todo）
+
+- **实际闭环（root PM 复核）**：LG-047 命名里程碑独立 QA 据 LG-049 `N-R3-LIFECYCLE` **实际 PASS_WITH_LIMITATIONS** 置 `done`；LG-049 亦置 `done`。真实完整 SDK 交付生命周期跑通（原生 API 上传 alpha `content_hash=d34f0ca58b8d…`、无 seeded derivative → EXACT 前失败目标 `delivery/create_task` → 程序规则计划 `deliver`+`verify` → 真实 SDK worker **6/6 事实** → **`verify` passed（R2 曾 429）** → 机器门 → **真实独立 ModelReviewer `reviewer_kind=model`/`model_calls=1`/passed** → **worker `cleanup=done`+`member.released` 与 reviewer `reviewer_cleanup.confirmed=true` 于 accept 前 CONFIRMED** → API accept（乐观 revision）→ `done`；artifact refs 真实 body + Sources bindings 匹配）。**8/16 前向**（deliver 2 + verify 5 + reviewer 1）。报告 [REPORT-N-R3-LIFECYCLE](probes/prototype-selected-material-20261016/N-R3-LIFECYCLE/REPORT-N-R3-LIFECYCLE-20261016.md)；本轮集成 [K-RELEASE-CLOSE](probes/prototype-selected-material-20261016/K-RELEASE-CLOSE/REPORT.md)。
+- **集成（仅 probes/docs）**：`--no-ff` 合入 `qa/proto-material-lifecycle-r3-20261016@dc1a1b2` → 合并提交 **`76f10c7`**（父 `096d796`+`dc1a1b2`）；唯一非 probe 差异 `LG-049.md` 冲突保留 `main` 验证记录，**无代码改动**；产品树 `main` == `0188ca2`（backend `8b4256a4…`/frontend `07618bb2…`/tests `9a37448e…`/examples `63ee05cd…`）。
+- **任务 CLI（实测）**：`validate` **49 tasks / 0 diagnostics**；`digest` **48 done / 0 in-progress / 1 todo**；`ready=[]`；唯一 decision = LG-041（质量门）。
+- **保留限制（不洗白）**：累积成本 **unknown 非 0**（R1 已知 1+缺口 / R2 actual 8 / R3 actual 8 分列）；浏览器 UI 证据为复用（前端未构建，前端树一致）；未重跑全量测试（代码未改）；`orion-summary.md` 裸名 ref 400 为端点契约行为。用户最终验收仍待定、未 push/deploy、`8123` 未触。
+
+### 上一批次（2026-10-16，selected-material 快速原型 LG-042～049；R3 执行完成待闭环；历史保留）
 
 - 任务 CLI（backlog 根）：LG-042～045 **done**、**LG-046 整合候选已交付**、**LG-047 进行中（R1 FAIL，R2 FAIL/INCOMPLETE，预算 8/8 耗尽，无 PASS/done）**、**LG-048 诊断 done**、**LG-049《验证选定资料交付完整生命周期》`in-progress`（P0，`parent: LG-047`，`depends_on: [LG-048, LG-046]`，`assignee: agent:pi-proto-lifecycle-qa`）**；LG-041 仍 `todo`（质量门阻塞）。
 - **PM 选定（root 显式授权）**：依据 LG-048 诊断，PM **明确选定** 049 为下一任务（**非**第三次盲修）；root 授权 **R3 新 campaign `N-R3-LIFECYCLE`，hard cap 16**（含失败/reviewer/连接测试）——**仅一个** fresh delivery Task、**无自动整轮重试**、`retry 0`、串行 90s/请求、生命周期轮询 ≤300s；单次 initialize 自有新 dataRoot+manifest+durable ledger（**绝不用 R2 根/counter reset**）；manifest 缺失/损坏或账本损坏 ⇒ **deny**，转发前持久预留 cap16、跨重启不归零、不自动扩展；R1 已知 1 + R2 actual 8 **分别保留**，累积成本 unknown 非 0。
