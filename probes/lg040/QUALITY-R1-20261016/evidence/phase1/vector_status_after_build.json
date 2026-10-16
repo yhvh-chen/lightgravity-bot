@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "backend": {
+    "configured": true,
+    "model": "embeddinggemma-2-Q8_0"
+  },
+  "cache": {
+    "exists": true,
+    "readable": true,
+    "documents": 4,
+    "cache_version": 1,
+    "model": "embeddinggemma-2-Q8_0",
+    "dim": 768
+  },
+  "reason": null
+}

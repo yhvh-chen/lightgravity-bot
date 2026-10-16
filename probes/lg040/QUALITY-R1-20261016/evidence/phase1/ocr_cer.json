@@ -1,0 +1,27 @@
+{
+  "source_id": "source_01M51N8WZ5TM1H8AJ503TN35GK",
+  "pages_path": "/tmp/lg040-quality-r1-20261016/data/sources/source_01M51N8WZ5TM1H8AJ503TN35GK/derivative/machine.v1.pages.json",
+  "status": "succeeded",
+  "page1": {
+    "page": 1,
+    "status": "succeeded",
+    "got_chars": 2272,
+    "model": "qwen3.8-27b",
+    "input_sha256": "265f187a8345146435282a6bf898141d748a50b086b8377d4e72fa916150f571",
+    "truth_chars": 600,
+    "edit_distance": 1674,
+    "cer": 2.79
+  },
+  "page1_cer": 2.79,
+  "page2": {
+    "page": 2,
+    "status": "succeeded",
+    "got_chars": 284,
+    "model": "qwen3.8-27b",
+    "input_sha256": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276",
+    "truth_chars": 284,
+    "edit_distance": 0,
+    "cer": 0.0
+  },
+  "page2_cer": 0.0
+}

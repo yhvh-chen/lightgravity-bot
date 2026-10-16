@@ -1,0 +1,105 @@
+{
+  "Q1": {
+    "query": "SI base unit for electric current",
+    "kind": [
+      "term"
+    ],
+    "hits": [],
+    "stale": [],
+    "skipped": [],
+    "index_status": "ok",
+    "authorized_scope": {
+      "task_ref": null,
+      "project_ref": null,
+      "inbox_ref": null,
+      "include_global": true
+    }
+  },
+  "Q2": {
+    "query": "quick brown dog jumped over the lazy fox",
+    "kind": [
+      "term"
+    ],
+    "hits": [
+      {
+        "source_id": "source_01M51N8WQ4VMKE46407AP9JXF6",
+        "source_version": 1,
+        "content_hash": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed",
+        "basis": "formal",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D2",
+        "locators": [
+          {
+            "layer": "formal",
+            "path": "formal/FORMAL.md"
+          }
+        ],
+        "snippet": "\u2026This is a lot of 12 point text to test the ocr code and see if it works on all types of file format.  The quick brown dog jumped over the lazy fox. The quick brown dog jumped over the lazy fox. The quick brown dog jumped over the lazy fox. The quick brown dog jumped over the lazy fox.",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      }
+    ],
+    "stale": [],
+    "skipped": [],
+    "index_status": "ok",
+    "authorized_scope": {
+      "task_ref": null,
+      "project_ref": null,
+      "inbox_ref": null,
+      "include_global": true
+    }
+  },
+  "Q3": {
+    "query": "scanned page of twelve point text with the quick brown fox sentence",
+    "kind": [
+      "term"
+    ],
+    "hits": [],
+    "stale": [],
+    "skipped": [],
+    "index_status": "ok",
+    "authorized_scope": {
+      "task_ref": null,
+      "project_ref": null,
+      "inbox_ref": null,
+      "include_global": true
+    }
+  },
+  "Q4": {
+    "query": "spoken recording of the Wikipedia article about the Chinese language",
+    "kind": [
+      "term"
+    ],
+    "hits": [],
+    "stale": [],
+    "skipped": [],
+    "index_status": "ok",
+    "authorized_scope": {
+      "task_ref": null,
+      "project_ref": null,
+      "inbox_ref": null,
+      "include_global": true
+    }
+  },
+  "QN": {
+    "query": "renormalization of lattice quantum chromodynamics gauge fields",
+    "kind": [
+      "term"
+    ],
+    "hits": [],
+    "stale": [],
+    "skipped": [],
+    "index_status": "ok",
+    "authorized_scope": {
+      "task_ref": null,
+      "project_ref": null,
+      "inbox_ref": null,
+      "include_global": true
+    }
+  }
+}

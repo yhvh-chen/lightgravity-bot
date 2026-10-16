@@ -1,0 +1,38 @@
+{
+  "rebuilt": true,
+  "indexed": [
+    "source_01M51N8WPMXQDNZXQJFM63B291",
+    "source_01M51N8WQ4VMKE46407AP9JXF6",
+    "source_01M51N8WRG42DM90N5SSDZB3W4",
+    "source_01M51N8WZ5TM1H8AJ503TN35GK"
+  ],
+  "not_indexed": [
+    "source_01M51N8WQWF748WMW0XPKSZXGS"
+  ],
+  "documents": 4,
+  "model": "embeddinggemma-2-Q8_0",
+  "dim": 768,
+  "states": [
+    {
+      "source_id": "source_01M51N8WPMXQDNZXQJFM63B291",
+      "indexed": true
+    },
+    {
+      "source_id": "source_01M51N8WQ4VMKE46407AP9JXF6",
+      "indexed": true
+    },
+    {
+      "source_id": "source_01M51N8WQWF748WMW0XPKSZXGS",
+      "indexed": false,
+      "reason": "vector_backend_failed"
+    },
+    {
+      "source_id": "source_01M51N8WRG42DM90N5SSDZB3W4",
+      "indexed": true
+    },
+    {
+      "source_id": "source_01M51N8WZ5TM1H8AJ503TN35GK",
+      "indexed": true
+    }
+  ]
+}

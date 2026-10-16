@@ -1,0 +1,14 @@
+Table 1 gives the seven base quantities, assumed to be mutually independent, on which the SI is 
+founded, and the names and symbols of their respective units, called “SI base units.” Definitions of the SI 
+base units are given in Appendix A. The kelvin and its symbol K are also used to express the value of a 
+temperature interval or a temperature difference (see Sec. 8.5). 
+Table 1. SI base units 
+ SI base unit 
+Base quantity Name Symbol 
+length meter m 
+mass kilogram kg 
+time second s 
+electric current ampere A 
+thermodynamic temperature kelvin K 
+amount of substance mole mol 
+luminous intensity candela cd
