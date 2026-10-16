@@ -269,6 +269,8 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  /* Inline context rail also carries a JS `width`; same defensive bound. */
+  max-width: 100%;
   flex: 0 0 auto;
   background: var(--lg-color-panel);
   border-right: 1px solid var(--lg-color-border);
@@ -438,6 +440,11 @@
   flex-direction: column;
   flex: 0 0 auto;
   min-height: 0;
+  /* Defensive: the wrapper carries an inline `width` (chatWidth, default
+   * 360px) sized by JS shell state. It must never force the app shell wider
+   * than its own container if the container shrinks (LG-040 transition). */
+  min-width: 0;
+  max-width: 100%;
 }
 
 .lg-chat-rail .lg-chat {
@@ -904,8 +911,18 @@
 /* -------------------------------------------------- Compact / responsive */
 
 @media (max-width: 1023px) {
+  /* LG-040: collapse the inline context/chat regions. This must key on the
+   * viewport media query alone, not wait for the JS `compact` state commit:
+   * during a 1440->390 resize (or an initial 390 load) React re-render lags,
+   * and the inline rail wrappers (.lg-chat-rail / .lg-context--inline) plus
+   * their resizers keep their JS widths for a few frames, pushing the shell
+   * wider than the viewport (observed docScrollWidth 428 at 390px). Hiding
+   * the wrappers here removes that transient horizontal overflow without any
+   * overlay/clipping and without changing what desktop renders. */
   .lg-context--inline,
-  .lg-chat--rail {
+  .lg-chat--rail,
+  .lg-chat-rail,
+  .lg-workspace > .lg-resizer {
     display: none;
   }
 }
