@@ -43,6 +43,14 @@ updated: "2026-10-16"
 
 ## 决策日志
 
+### 2026-10-16：选定资料快速原型规划——契约 MINOR 1.12.0 预留 + 三并行工作包（LG-042～047）
+
+- **PM 决定**：规划并冻结“手动选定已摄取资料 → Chat 回答 / 单 worker 交付”快速原型。新建任务 LG-042～047（CLI `backlog`）：042 冻结契约（owner `pi-proto-prepare`）→ 043 后端（A，与 044 并行，仅依赖 042）→ 044 前端（B）+ 045 Demo（C）并行 → 046 串行整合 → 047 **命名里程碑独立版本 QA**。**041 保持 `todo` 不变**。
+- **契约**：单一 owner 冻结 [docs/10](docs/10-selected-material-prototype.md) + docs/08 §6.6.1，加性 MINOR **`1.12.0` 预留**（仅登记，头部 `contract_version` 值由 A 实现时同步）。消息加性可选 `selected_sources`（≤3 来源、`{source_id, source_version?, content_hash?}`）；结果加性可选 `resolved_source_bindings`/`context_truncated`/`provided_context_note`；总 12000 Unicode 字符有界、显式截断 metadata、正式优先机器回退、派发前 stale/revoked/cross-Task 拒绝、不可信数据隔离、不跨 Task；**不影响 legacy 省略字段**。
+- **工作包与 owner**：A `dev/proto-material-backend-20261016`（`backend/**`+Python `tests/**`，唯一后端 writer）、B `dev/proto-material-frontend-20261016`（`frontend/**`）、C `dev/proto-material-demo-20261016`（`examples/selected-material-prototype/**`+`docs/11`）；三 worktree 均建于冻结基线 `acd7005` 之后（本 prep commit）；预派工 **不启动 worker**。派工说明见 [DISPATCH](probes/prototype-selected-material-20261016/DISPATCH.md)。
+- **预算**：prep/A/B/C/整合产品推理 0；**LG-047 唯一真实 DeepSeek 预算 12 次**（含 reviewer/retry，retry 0、串行、单请求 ≤90s、持久账本、转发前硬上限），**不经 PM 重规划不自动增长**；不足即诚实 partial 并保持 gate 开放。本 prep 真实调用 0。
+- **边界**：无 native 子代理、无产品模型/网络调用、无 push/deploy/破坏性清理/8123；保留所有既有 QA/raw/worktree/默认 OFF 特性；个体 worker 不写任务文件。
+
 ### 2026-10-16：LG-040 RELEASE-CLOSE 收口——依独立治理 QA TRANSITION-QA 置 done（版本 QA 技术验收；用户最终验收 PENDING）
 
 - **PM/integration 收口决定**：LG-040 `status` 置 **`done`**。依据**唯一治理独立 QA** `probes/lg040/TRANSITION-QA-20261016/REPORT.md`（tip `7fd0f61`，候选 **`30029eb`**）**PASS_WITH_LIMITATIONS、0 个 open important issue**，含 **fresh actual** 证据（fresh build EXIT 0 + bundle CSS hash 绑定；transition max overshoot **0**；starvation **0/1986**；宽度 **19/19**；**bounded readiness ready=true @76ms，2s 上界保留、未放宽为 8s**）。

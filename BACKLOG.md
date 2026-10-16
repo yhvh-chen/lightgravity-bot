@@ -9,7 +9,13 @@ updated: "2026-10-16"
 
 > 创建：2026-10-14。开发任务由 Olav Tasks 管理，schema 为 `olav.tasks/v1`，编号 LG。状态以单项 Markdown frontmatter 为准，本索引不重复维护状态。
 
-## 当前批次状态（2026-10-16，LG-040 RELEASE-CLOSE 收口；LG-040 done）
+## 当前批次状态（2026-10-16，选定资料快速原型规划；LG-042～047 新建）
+
+- 任务 CLI（backlog 根）：`validate` **47 tasks / 0 diagnostics**；`ready=[LG-042]`；LG-041 仍 `todo`（质量门阻塞）。
+- **新建 LG-042～047**：042 冻结契约（`pi-proto-prepare`）→ 043 后端（A，并行）/044 前端（B）/045 Demo（C）→ 046 串行整合 → 047 **命名里程碑独立版本 QA**。契约 [docs/10](docs/10-selected-material-prototype.md) + docs/08 §6.6.1，加性 MINOR **`1.12.0` 预留**。派工说明 [DISPATCH](probes/prototype-selected-material-20261016/DISPATCH.md)。三 worktree 建于冻结基线之后，**未启动 worker**。
+- **预算**：prep/A/B/C/整合产品推理 0；LG-047 唯一真实 DeepSeek 12 次（含 reviewer/retry、retry 0、串行、单请求 ≤90s、持久账本、转发前硬上限）。
+
+### 上一批次（2026-10-16，LG-040 RELEASE-CLOSE 收口；LG-040 done）
 
 - 任务 CLI（**backlog 专用根** `/home/yhvh/code/lightgravity-bot/backlog`）：`validate` **41 tasks / 0 diagnostics**；`digest` **1 todo / 0 in-progress / 40 done**，complete=true；`ready=[]`；唯一 decision = LG-041（质量门）。
 - **LG-040 已 `done`（版本 QA 技术验收；用户最终验收仍 PENDING、未发布）**：治理报告 `probes/lg040/TRANSITION-QA-20261016/REPORT.md`（候选 `30029eb`）**PASS_WITH_LIMITATIONS、0 个 open important issue**；收口顺序 `--no-ff` 合并 `925f828`/`8a4560a`/`30029eb`/`7fd0f61` 至 HEAD `7cc94b5`（无冲突）；`backend/`/`tests/`/`docs/` 自 `fc9f74b` 未变，产品增量仅 `frontend/src/app/shell.css`（transition CSS）。详情 [RELEASE-CLOSE REPORT](probes/lg040/RELEASE-CLOSE-20261016/REPORT.md)。

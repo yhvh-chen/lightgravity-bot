@@ -7,9 +7,22 @@ updated: "2026-10-16"
 
 # 当前进展与续接记录
 
-> **2026-10-16 LG-040 已收口并置 `done`（版本 QA 技术验收按治理报告 TRANSITION-QA-20261016 PASS_WITH_LIMITATIONS；用户最终验收仍 PENDING、未发布）（本节为最新事实）；其下所有早于本节的段落整体标记为历史，保留不改。**
+> **2026-10-16 选定资料快速原型规划（最新事实）**：新建 LG-042～047，契约 MINOR `1.12.0` 预留，三并行 worktree 未启动；其下 LG-040 收口节为当前已完成的上一事实，再往下为历史保留不改。
 
-## 2026-10-16 LG-040 RELEASE-CLOSE 收口（置 done；PM/integration only；产品运行时改动 0/网络 0/无 push/deploy）
+## 2026-10-16 选定资料快速原型规划（LG-042～047；PM only；产品推理 0/网络 0）
+
+本节为**当前事实**。由 root PM 规划并由 `pi-proto-prepare` 冻结契约与工作包。
+
+- **任务（CLI `backlog`，新建 6 项）**：LG-042 冻结契约（`pi-proto-prepare`）→ LG-043 后端（A）与 LG-044 前端（B）并行（均仅依赖 042）→ LG-045 Demo（C）→ LG-046 串行整合 → LG-047 **命名里程碑独立版本 QA**。**LG-041 保持 `todo` 不变**（质量门）。CLI：`validate` **47 tasks / 0 diagnostics**、`ready=[LG-042]`。
+- **契约（唯一 owner 冻结）**：[docs/10](docs/10-selected-material-prototype.md) + docs/08 §6.6.1，**加性 MINOR `1.12.0` 预留**（仅登记预留；头部值由 A 实现时同步）。消息加性可选 `selected_sources`（≤3 来源）；结果加性可选 `resolved_source_bindings`/`context_truncated`/`provided_context_note`；总 12000 Unicode 字符有界、显式截断 metadata、正式优先机器回退、派发前 stale/revoked/cross-Task 拒绝、不可信数据隔离、不跨 Task；legacy 省略字段不变。
+- **三 worktree（冻结基线之后创建，预派工，未启动 worker）**：A `dev/proto-material-backend-20261016`（`backend/**`+Python `tests/**`）、B `dev/proto-material-frontend-20261016`（`frontend/**`）、C `dev/proto-material-demo-20261016`（`examples/selected-material-prototype/**`+`docs/11`）。见 [DISPATCH](probes/prototype-selected-material-20261016/DISPATCH.md)。
+- **预算**：prep/A/B/C/整合产品推理 0；**LG-047 唯一真实 DeepSeek 12 次**（含 reviewer/retry，retry 0、串行、单请求 ≤90s、持久账本、转发前硬上限）。本 prep 真实调用 **0**。
+- **边界**：无 native 子代理、无产品模型/网络调用、无 push/deploy/破坏性清理/8123；保留所有既有 QA/raw/worktree/默认 OFF 特性；个体 worker 不写任务文件。
+- **计数**：本包网络 0 / 模型 0 / 产品推理 0 / 产品运行时代码改动 0；pi 成本 unknown 非 0。
+
+---
+
+## 2026-10-16 LG-040 RELEASE-CLOSE 收口（置 done；PM/integration only；产品运行时改动 0/网络 0/无 push/deploy）（历史；上一当前事实）
 
 本节为**当前事实**。收口依据为**独立治理 QA** `probes/lg040/TRANSITION-QA-20261016/REPORT.md`（tip `7fd0f61`，候选 `30029eb`）**PASS_WITH_LIMITATIONS、0 个 open important issue**；详情 [RELEASE-CLOSE REPORT](probes/lg040/RELEASE-CLOSE-20261016/REPORT.md)。
 
