@@ -21,12 +21,14 @@ from lightgravity.coordinator.planner import (
 from lightgravity.contracts import ErrorCode
 
 
-def context(*, acceptance: tuple[str, ...] = ("it works",)) -> DispatchContext:
+def context(
+    *, acceptance: tuple[str, ...] = ("it works",), objective: str = "implement login"
+) -> DispatchContext:
     return DispatchContext(
         task_id="task_01J0000000000000000000001",
         run_id="run_01J0000000000000000000001",
         attempt=1,
-        objective="implement login",
+        objective=objective,
         acceptance_criteria=acceptance,
         workspace_path="/tmp/ws",
     )
@@ -47,12 +49,48 @@ async def test_rule_planner_adds_verification_when_acceptance_present() -> None:
     assert plan.required_capabilities == ("implementation", "verification")
 
 
-async def test_rule_planner_single_node_without_acceptance() -> None:
-    proposal = await RuleBasedPlanner().plan(context(acceptance=()))
+async def test_rule_planner_single_node_derives_acceptance_without_declared() -> None:
+    """LG-047 QA-R1: an ordinary Chat delivery request declares no criteria.
+
+    The program-side rule plan must still be a *valid* minimal single-worker
+    plan: the deliver node carries a deterministic derived acceptance criterion,
+    no independent verify node is added, and the unchanged validator accepts it.
+    """
+
+    proposal = await RuleBasedPlanner().plan(
+        context(acceptance=(), objective="Create a Markdown file named report.md")
+    )
     assert [subtask.key for subtask in proposal.subtasks] == ["deliver"]
+    deliver = proposal.subtasks[0]
+    assert deliver.acceptance and "report.md" in deliver.acceptance[0]
+    plan = PlanValidator(known_capabilities=["implementation"]).validate(
+        proposal, workspace_path="/tmp/ws"
+    )
+    assert plan.order == ("deliver",)
+
+
+def test_validator_still_requires_acceptance_and_workspace() -> None:
+    """The program checks are not waived: an arbitrary proposal missing
+    acceptance criteria or a write workspace boundary is still rejected."""
+
+    no_acceptance = PlanProposal(
+        subtasks=(RawSubtask(key="a", objective="x", capability="implementation", write=True),)
+    )
     with pytest.raises(PlanInvalid) as excinfo:
-        PlanValidator().validate(proposal, workspace_path="/tmp/ws")
+        PlanValidator().validate(no_acceptance, workspace_path="/tmp/ws")
     assert any("acceptance" in problem for problem in excinfo.value.problems)
+
+    no_workspace = PlanProposal(
+        subtasks=(
+            RawSubtask(
+                key="a", objective="x", capability="implementation",
+                acceptance=("ok",), write=True,
+            ),
+        )
+    )
+    with pytest.raises(PlanInvalid) as excinfo:
+        PlanValidator().validate(no_workspace, workspace_path="")
+    assert any("workspace" in problem for problem in excinfo.value.problems)
 
 
 def test_validator_rejects_duplicate_unknown_and_cyclic_graphs() -> None:

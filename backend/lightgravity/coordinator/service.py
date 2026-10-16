@@ -553,14 +553,24 @@ class Coordinator:
         agent_ref: str | None,
         enqueue: bool,
         selected_trigger: Mapping[str, Any] | None = None,
+        default_delivery: bool = False,
     ) -> dict[str, Any]:
         task_id = new_id("task")
+        acceptance = tuple(acceptance_criteria)
+        resolved_workspace_ref = workspace_ref
+        if default_delivery:
+            if not acceptance:
+                from .planner import default_acceptance_criteria
+
+                acceptance = default_acceptance_criteria(objective)
+            if resolved_workspace_ref is None or not str(resolved_workspace_ref).strip():
+                resolved_workspace_ref = self._ensure_default_workspace(task_id)
         content = _task_content(
             title=title,
             objective=objective,
-            acceptance=acceptance_criteria,
+            acceptance=acceptance,
             project_ref=project_ref,
-            workspace_ref=workspace_ref,
+            workspace_ref=resolved_workspace_ref,
             agent_ref=agent_ref or "coordinator",
         )
         cast(_BodyStore, self._store).create(
@@ -569,7 +579,7 @@ class Coordinator:
             content,
             actor=self._owner,
             request_id=request_id,
-            body=_task_body(objective, scope, acceptance_criteria),
+            body=_task_body(objective, scope, acceptance),
         )
         self._writer.emit(
             task_id,
@@ -654,6 +664,19 @@ class Coordinator:
             }
             if selected is not None:
                 data.update(selected.bindings_data())
+            # LG-047 QA-R1: persist the real assistant reply (and its additive
+            # selected-source bindings) into the same conversation log the user
+            # message was written to, so reopening the history shows the reply
+            # and its Sources backlinks.  Deterministic id + idempotent append:
+            # a retried message never writes a second assistant row.
+            self._persist_assistant_reply(
+                conversation_id=conversation_id,
+                task_id=None,
+                in_reply_to=str(message.get("message_id") or request_id),
+                reply=reply,
+                selected=selected,
+                extra={"bounded_tools": list(classification.bounded_tools)},
+            )
             return CoordinatorResult(
                 kind=classification.next_action,
                 reply=reply,
@@ -674,6 +697,12 @@ class Coordinator:
                     workspace_ref=None,
                     agent_ref=None,
                     enqueue=True,
+                    # An ordinary Chat delivery request has neither explicit
+                    # acceptance criteria nor a workspace.  The program supplies
+                    # both (a real authorized workspace under the configured
+                    # root + a derived acceptance criterion) so the default rule
+                    # plan validates.  Explicit /tasks callers are unchanged.
+                    default_delivery=True,
                     selected_trigger=self._trigger_binding(
                         str(message.get("message_id") or request_id), selected
                     ),
@@ -786,9 +815,21 @@ class Coordinator:
             }
             if selected is not None:
                 data.update(selected.bindings_data())
+            reply = self._responder(compose_prompt(content, selected), classification)
+            # LG-047 QA-R1: persist the Task-conversation assistant reply with
+            # its additive selected-source bindings so reopening the Task chat
+            # shows the answer and Sources (frontend normalizes ``message.data``).
+            self._persist_assistant_reply(
+                conversation_id=None,
+                task_id=task_id,
+                in_reply_to=message_id,
+                reply=reply,
+                selected=selected,
+                extra={"intent": classification.intent.value},
+            )
             result = CoordinatorResult(
                 kind=classification.next_action,
-                reply=self._responder(compose_prompt(content, selected), classification),
+                reply=reply,
                 task_id=task_id,
                 data=data,
             )
@@ -899,6 +940,50 @@ class Coordinator:
                 "task_ref": task_id,
             },
         )
+
+    def _persist_assistant_reply(
+        self,
+        *,
+        conversation_id: str | None,
+        task_id: str | None,
+        in_reply_to: str,
+        reply: str,
+        selected: SelectedContext | None,
+        extra: Mapping[str, Any] | None = None,
+    ) -> None:
+        """Persist one assistant reply into the existing conversation SoT.
+
+        The direct / bounded-read reply is written with the *same* store the
+        triggering user message used (global conversation log or the Task
+        message log), so reopening the history shows the answer.  The additive
+        selected-source bindings are stored under the message's ``data`` field
+        that the frontend already normalizes (docs/10 §4) — no new DB, no second
+        source of truth, no raw secret/path (bindings only carry the stable
+        locator string).  The id is deterministic on the triggering message, so
+        an idempotent retry never appends a duplicate assistant row.
+        """
+
+        payload: dict[str, Any] = {
+            "message_id": f"assistant:{in_reply_to}",
+            "role": "assistant",
+            "content": reply,
+            "in_reply_to": in_reply_to,
+            "correlation_id": in_reply_to,
+        }
+        data: dict[str, Any] = dict(extra or {})
+        if selected is not None:
+            data.update(selected.bindings_data())
+            # Keep the bounded resolved snapshot on the reply too, so a reload
+            # can replay the exact bytes/refs bound to this answer (docs/10 §6)
+            # and the assistant row carries the same authorization as its
+            # triggering message.  Additive; never a raw path/secret.
+            payload["selected_context"] = selected.snapshot()
+        if data:
+            payload["data"] = data
+        if conversation_id is not None:
+            self._global.append(conversation_id, payload)
+        elif task_id is not None:
+            self._store.append_message(task_id, payload)
 
     def _record_resource_result(
         self,
@@ -1640,6 +1725,25 @@ class Coordinator:
         except Exception:  # noqa: BLE001 - unresolved workspace is reported as empty
             return ""
         return str(resolved)
+
+    def _ensure_default_workspace(self, task_id: str) -> str:
+        """Provision and return the default authorized workspace ref for a Task.
+
+        Used only for an ordinary Chat delivery request that named no workspace.
+        The ref is a Task-scoped directory *inside* the configured authorized
+        workspace root (``Store.resolve_path`` enforces containment), so it is a
+        real boundary the worker may write within; it never escapes the root and
+        creates no new root.  The directory is created because the executor
+        requires an existing directory.
+        """
+
+        ref = f"tasks/{task_id}"
+        try:
+            resolved = self._store.resolve_path(ref, write=True)
+            resolved.mkdir(parents=True, exist_ok=True)
+        except Exception:  # noqa: BLE001 - leave the ref for the resolver to report
+            return ref
+        return ref
 
     def _native_session_dir(self, task_id: str) -> str:
         """Stable, non-secret native session storage directory for a Task.

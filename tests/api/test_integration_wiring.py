@@ -260,8 +260,12 @@ async def test_global_conversation_roundtrip_and_source_limits(app: FastAPI) -> 
 
             listed = await client.get("/api/v1/conversations/global/messages")
             assert listed.status_code == 200
+            # LG-047 QA-R1: the direct reply is persisted with its user message,
+            # so reopening the history shows the answer (here without a
+            # configured model the responder is the honest default).
             assert [item["message_id"] for item in listed.json()["items"]] == [
-                "msg-global-1"
+                "msg-global-1",
+                "assistant:msg-global-1",
             ]
             assert listed.json()["next_cursor"]
 
@@ -271,7 +275,8 @@ async def test_global_conversation_roundtrip_and_source_limits(app: FastAPI) -> 
             )
             assert replay.status_code == 200
             again = await client.get("/api/v1/conversations/global/messages")
-            assert len(again.json()["items"]) == 1
+            # Idempotent replay: exactly one assistant reply, never two.
+            assert len(again.json()["items"]) == 2
 
             escaped = await client.post(
                 "/api/v1/conversations/global/messages",

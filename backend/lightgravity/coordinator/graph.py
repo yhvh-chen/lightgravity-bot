@@ -2372,7 +2372,10 @@ class GraphDispatcher:
             attempt=context.attempt,
             objective=node.spec.objective,
             acceptance_criteria=node.spec.acceptance,
-            instructions=context.instructions,
+            # LG-047 QA-R1: the graph path must carry the same selected-material
+            # body the chat reply used (revalidated before dispatch), exactly as
+            # the single-slot dispatcher does.  Never a raw instruction.
+            instructions=context.worker_instructions(),
             upstream_artifact_refs=tuple(upstream),
             workspace_path=effective_workspace,
             allowed_tools=candidate.tool_refs,
