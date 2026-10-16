@@ -1,0 +1,59 @@
+{
+  "package": "LG-035 R7 materials fixtures",
+  "frozen_at_utc": "2026-10-16",
+  "base_commit": "2d76c83",
+  "model_ocr_embedding_asr_calls": 0,
+  "product_lan_calls": 0,
+  "samples": [
+    {
+      "id": "LG035-R7-T1",
+      "class": "real_published_grid_table_born_digital",
+      "truth_file": "LG035-R7-T1.table.json",
+      "truth_sha256": "02a4ada1be2c38d356034bf79a1b856394f3cbac5a2bfd8ca0d11bc780d4f39d",
+      "input_image": "../fixtures/honest_table_grid_scale4.png",
+      "input_image_sha256": "39138a971d605f65d10b5df3a13e35c7cec5d3710bc38d55e6eb656fc1219652",
+      "whole_page_reference": "../fixtures/born_digital_table_page16_full_scale2.png",
+      "whole_page_reference_sha256": "42d50ff2eb76019f346bd6a215f00406d1a6c0629255c8641b063945d9a3b5ed",
+      "region_context": "../fixtures/born_digital_table_region_scale2.png",
+      "region_context_sha256": "6925e05e3e6eb71528b6dce2e1c393df987d4f3afed858a32bcf053fa562dd7c",
+      "source_pdf": "../sources/nist-sp811/nistspecialpublication811e2008.pdf",
+      "source_pdf_sha256": "788dd8f0bcb0ec06e40c300690266742532a7e760a93be57764b77ed0ef3482f",
+      "source_pdf_url": "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication811e2008.pdf",
+      "source_license": "US Government work -> public domain (17 U.S.C. 105)",
+      "table_region_pdf_pts": [90.0, 517.0, 524.6, 627.5],
+      "render_scale": 4.0,
+      "thresholds": {"cell_cer_max": 0.25, "row_count_exact": true, "col_count_exact": true, "numeric_id_tokens_byte_exact_after_nfkc": true}
+    },
+    {
+      "id": "LG035-R7-MIX",
+      "class": "mixed_born_digital_plus_real_scan",
+      "file": "../fixtures/mixed_born_digital_plus_scan.pdf",
+      "file_sha256": "0f7286016cc22717d4dab67319180604be097374b4d07a53fe68332c9f68ada5",
+      "pages": 2,
+      "page1": {
+        "provenance": "born_digital NIST SP 811 page 16 (native text layer)",
+        "native_text_layer_present": true,
+        "source_pdf_sha256": "788dd8f0bcb0ec06e40c300690266742532a7e760a93be57764b77ed0ef3482f"
+      },
+      "page2": {
+        "provenance": "real scan probes/lg035/fixtures/clear_real.pdf page 1 (tesseract-ocr/test, Apache-2.0)",
+        "native_text_layer_present": false,
+        "source_pdf_sha256": "89c6b42242d0aa16efdb7ff814604c4bfc5214e0bbdd040ead67dcf453d9ec0f",
+        "human_gold_text": "../../lg035/fixtures/phototest.gold.txt",
+        "human_gold_text_sha256": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed"
+      },
+      "disclosure": "Composite TEST FIXTURE assembled locally from one born-digital page and one real-scan page. Not an unmodified original historical document. Page 1 keeps its native text layer; page 2 is a scan with no text layer.",
+      "thresholds": {"page_cer_max": 0.15}
+    }
+  ],
+  "tools": {
+    "builder": {"path": "../build_fixtures.py", "sha256": "8b50e067a6a15a0731c9a6917f2cae2774a75d8b2de8ff8ef5a5d1d79c479726"},
+    "verifier": {"path": "../verify_truth.py", "sha256": "6720268d9c6ca81bc717406799d03c7a135697f8daa56a39bda7a835a2ec7b00"},
+    "rasteriser": "pypdfium2 (product dependency, BSD-3-Clause + Apache-2.0)"
+  },
+  "no_synthetic_or_machine_truth": true,
+  "no_model_output_as_truth": true,
+  "ocr_embedding_asr_executed": false,
+  "quality_claim": "none",
+  "lg040_041_locked": true
+}

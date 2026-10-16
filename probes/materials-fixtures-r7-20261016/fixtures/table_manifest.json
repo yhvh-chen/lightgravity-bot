@@ -1,0 +1,356 @@
+{
+  "package": "LG-035 R7 materials fixtures",
+  "purpose": "offline/acquisition-only fixtures: genuine published grid table + mixed born-digital+scan PDF",
+  "model_ocr_embedding_asr_calls": 0,
+  "product_lan_calls": 0,
+  "born_digital_source": {
+    "title": "Guide for the Use of the International System of Units (SI), NIST SP 811 (2008)",
+    "issuer": "National Institute of Standards and Technology (US federal)",
+    "url": "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication811e2008.pdf",
+    "host": "nvlpubs.nist.gov (official NIST Publications)",
+    "license": "US Government work -> public domain (17 U.S.C. 105)",
+    "sha256": "788dd8f0bcb0ec06e40c300690266742532a7e760a93be57764b77ed0ef3482f",
+    "bytes": 2027518,
+    "pdf_pages": 90,
+    "native_text_layer": true,
+    "page_used": 16,
+    "table": "Table 1. SI base units"
+  },
+  "table_region_pdf_coords_points": [
+    90.0,
+    517.0,
+    524.6,
+    627.5
+  ],
+  "caption_region_pdf_coords_points": [
+    90.0,
+    628.0,
+    524.6,
+    638.5
+  ],
+  "render_scale": 4.0,
+  "table_truth": {
+    "source_kind": "born_digital_native_text_human_authored",
+    "is_ocr": false,
+    "header": [
+      "Base quantity",
+      "Name",
+      "Symbol"
+    ],
+    "rows": [
+      [
+        "length",
+        "meter",
+        "m"
+      ],
+      [
+        "mass",
+        "kilogram",
+        "kg"
+      ],
+      [
+        "time",
+        "second",
+        "s"
+      ],
+      [
+        "electric current",
+        "ampere",
+        "A"
+      ],
+      [
+        "thermodynamic temperature",
+        "kelvin",
+        "K"
+      ],
+      [
+        "amount of substance",
+        "mole",
+        "mol"
+      ],
+      [
+        "luminous intensity",
+        "candela",
+        "cd"
+      ]
+    ],
+    "n_rows_data": 7,
+    "n_cols": 3,
+    "cells": [
+      {
+        "row": 0,
+        "col": 0,
+        "text": "Base quantity"
+      },
+      {
+        "row": 0,
+        "col": 1,
+        "text": "Name"
+      },
+      {
+        "row": 0,
+        "col": 2,
+        "text": "Symbol"
+      },
+      {
+        "row": 1,
+        "col": 0,
+        "text": "length"
+      },
+      {
+        "row": 1,
+        "col": 1,
+        "text": "meter"
+      },
+      {
+        "row": 1,
+        "col": 2,
+        "text": "m"
+      },
+      {
+        "row": 2,
+        "col": 0,
+        "text": "mass"
+      },
+      {
+        "row": 2,
+        "col": 1,
+        "text": "kilogram"
+      },
+      {
+        "row": 2,
+        "col": 2,
+        "text": "kg"
+      },
+      {
+        "row": 3,
+        "col": 0,
+        "text": "time"
+      },
+      {
+        "row": 3,
+        "col": 1,
+        "text": "second"
+      },
+      {
+        "row": 3,
+        "col": 2,
+        "text": "s"
+      },
+      {
+        "row": 4,
+        "col": 0,
+        "text": "electric current"
+      },
+      {
+        "row": 4,
+        "col": 1,
+        "text": "ampere"
+      },
+      {
+        "row": 4,
+        "col": 2,
+        "text": "A"
+      },
+      {
+        "row": 5,
+        "col": 0,
+        "text": "thermodynamic temperature"
+      },
+      {
+        "row": 5,
+        "col": 1,
+        "text": "kelvin"
+      },
+      {
+        "row": 5,
+        "col": 2,
+        "text": "K"
+      },
+      {
+        "row": 6,
+        "col": 0,
+        "text": "amount of substance"
+      },
+      {
+        "row": 6,
+        "col": 1,
+        "text": "mole"
+      },
+      {
+        "row": 6,
+        "col": 2,
+        "text": "mol"
+      },
+      {
+        "row": 7,
+        "col": 0,
+        "text": "luminous intensity"
+      },
+      {
+        "row": 7,
+        "col": 1,
+        "text": "candela"
+      },
+      {
+        "row": 7,
+        "col": 2,
+        "text": "cd"
+      }
+    ],
+    "cell_matrix_shape": [
+      8,
+      3
+    ],
+    "column_source": "PDF native text layer, 'Table 1. SI base units' (NIST SP 811, p.16)",
+    "transcription_note": "Row/column split verified mechanically: per-row native char boxes show three cells separated by >50 pt gaps at consistent column starts."
+  },
+  "native_text_rects_in_region": [
+    {
+      "rect": [
+        90.31,
+        630.17,
+        127.0,
+        637.19
+      ],
+      "text": "Table 1. "
+    },
+    {
+      "rect": [
+        130.11,
+        630.16,
+        183.17,
+        637.25
+      ],
+      "text": "SI base units "
+    },
+    {
+      "rect": [
+        351.0,
+        617.22,
+        353.5,
+        617.23
+      ],
+      "text": " "
+    },
+    {
+      "rect": [
+        363.89,
+        617.04,
+        416.63,
+        624.15
+      ],
+      "text": "SI base unit "
+    },
+    {
+      "rect": [
+        95.56,
+        603.18,
+        473.2,
+        612.15
+      ],
+      "text": "Base quantity Name Symbol "
+    },
+    {
+      "rect": [
+        95.7,
+        591.19,
+        460.86,
+        600.29
+      ],
+      "text": "length meter m "
+    },
+    {
+      "rect": [
+        95.48,
+        579.67,
+        462.04,
+        588.77
+      ],
+      "text": "mass kilogram kg "
+    },
+    {
+      "rect": [
+        95.5,
+        570.23,
+        458.96,
+        577.31
+      ],
+      "text": "time second s "
+    },
+    {
+      "rect": [
+        95.77,
+        556.71,
+        460.65,
+        565.79
+      ],
+      "text": "electric current ampere A "
+    },
+    {
+      "rect": [
+        95.5,
+        545.17,
+        460.61,
+        554.27
+      ],
+      "text": "thermodynamic temperature kelvin K "
+    },
+    {
+      "rect": [
+        95.76,
+        535.73,
+        464.76,
+        542.81
+      ],
+      "text": "amount of substance mole mol "
+    },
+    {
+      "rect": [
+        95.7,
+        522.19,
+        461.8,
+        531.29
+      ],
+      "text": "luminous intensity candela cd "
+    }
+  ],
+  "outputs": {
+    "born_digital_table_page16_full_scale2.png": "42d50ff2eb76019f346bd6a215f00406d1a6c0629255c8641b063945d9a3b5ed",
+    "honest_table_grid_scale4.png": "39138a971d605f65d10b5df3a13e35c7cec5d3710bc38d55e6eb656fc1219652",
+    "born_digital_table_region_scale2.png": "6925e05e3e6eb71528b6dce2e1c393df987d4f3afed858a32bcf053fa562dd7c"
+  },
+  "mixed_fixture": {
+    "path": "probes/materials-fixtures-r7-20261016/fixtures/mixed_born_digital_plus_scan.pdf",
+    "sha256": "0f7286016cc22717d4dab67319180604be097374b4d07a53fe68332c9f68ada5",
+    "bytes": 103371,
+    "page1": {
+      "provenance": "born_digital NIST SP 811 page 16 (native text layer)",
+      "source_sha256": "788dd8f0bcb0ec06e40c300690266742532a7e760a93be57764b77ed0ef3482f",
+      "native_text_layer_present": true
+    },
+    "page2": {
+      "provenance": "real scan clear_real.pdf (tesseract-ocr/test, Apache-2.0)",
+      "source_sha256": "89c6b42242d0aa16efdb7ff814604c4bfc5214e0bbdd040ead67dcf453d9ec0f",
+      "native_text_layer_present": false
+    },
+    "disclosure": "Composite TEST FIXTURE assembled locally from one born-digital page and one real-scan page. Not an unmodified original historical document. Page 1 keeps its native text layer; page 2 is a scan with no text layer."
+  },
+  "reused_real_scans": [
+    {
+      "name": "phototest.tif",
+      "path": "probes/lg035/fixtures/phototest.tif",
+      "sha256": "d2241a1eb6d6cd2eb6544b8e228c2862c852b7467d16ed636caa32179b780692",
+      "bytes": 38668,
+      "license": "Apache-2.0 (tesseract-ocr/test)"
+    },
+    {
+      "name": "8071_093.3B.tif",
+      "path": "probes/lg035/fixtures/8071_093.3B.tif",
+      "sha256": "d4f01cba19c99f8894d94a6d43eb8ed8013f8cf17fc08af9346bb9fb3697d452",
+      "bytes": 112194,
+      "license": "Apache-2.0 (tesseract-ocr/test)"
+    }
+  ],
+  "disclosure": "The table page is BORN-DIGITAL (native text), not a historical scan; it is NOT claimed to be a scanned document. Real-document OCR applies because the product rasterises the real published page and the model sees pixels."
+}
