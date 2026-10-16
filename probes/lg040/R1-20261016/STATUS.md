@@ -50,3 +50,16 @@ updated: "2026-10-16"
 Root dispatches 3 fresh independent pi QA owners (API/BROWSER/QUALITY) from the claimed-plan
 commit into the three prepared worktrees. QUALITY waits for `lg040-browser-r1-20261016.txt` exit
 before any LAN/model call. No QA is started by this package.
+
+## 6. Progress addendum — integration candidate prepared (2026-10-16)
+
+- Three owner branches merged **sequential `--no-ff`** onto `dd4ca81`: API probes `38138df`,
+  BROWSER probes `05d9f7b`, revoke fix `92d6f5b`. Candidate commit `92d6f5b`; product tree
+  `77685f0c…` **byte-identical to fix `266945c`** (no product edit by this package, no conflict).
+- Raw QA reports preserved byte-identical; source worktrees exited clean. QUALITY METHOD-AUDIT
+  owner still ACTIVE/isolated — not read/merged/touched here.
+- API slice: **confirmed MAJOR implemented, awaiting independent retest**. BROWSER: needs 2 valid
+  search cases + single end-state capture, **0 new OCR**. QUALITY: still in audit, not whole-PASS.
+- New independent retest worktrees prepared (see `RETEST-CANDIDATE.md` §5); **0** model calls,
+  **0** network, **0** product writes by this package. LG-040 remains **in-progress**.
+- Detail: `probes/lg040/R1-20261016/RETEST-CANDIDATE.md`.
