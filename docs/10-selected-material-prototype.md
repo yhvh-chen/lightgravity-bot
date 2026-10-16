@@ -2,7 +2,7 @@
 title: "选定资料快速原型契约（selected-material，docs/08 §4.3/§5.2 补充）"
 doc_type: specification
 category: architecture
-contract_version: "1.12.0-reserved"
+contract_version: "1.12.0"
 updated: "2026-10-16"
 ---
 
@@ -10,7 +10,7 @@ updated: "2026-10-16"
 
 > 性质：LG-042 冻结的**加性、可选、非秘密**契约，是快速原型（manual selected-material）实现与验收的唯一接口事实源。它是 [docs/08](08-interface-contract.md) 的补充 subsection，**不重复定义**已冻结的 `source`/`intake_job` 实体（§6.6）、消息信封（§5.2）与错误码（§4.2）。
 >
-> **契约版本预留 MINOR `1.12.0`**：本次冻结**仅在 docs/08 §13 登记预留**；实际 `contract_version` 常量与测试版本由 **A 后端 owner（LG-043）**在实现集成时同步，并在 finalsync 时更新 docs/08 头部版本。**本任务不写产品代码、不改契约版本值。**
+> **契约版本 MINOR `1.12.0`（已实现）**：LG-042 冻结、LG-043 后端实现。`contract_version` 常量与测试版本已由 A 后端 owner（LG-043）同步，docs/08 头部版本已 finalsync 至 `1.12.0`；实现注记见 docs/08 §6.6.1。
 >
 > 任何与本文冲突的 docs/08 正文以 docs/08 为准；本文只做**加性**扩展。旧客户端**省略**本文字段时行为**与现状逐字节不变**。
 
@@ -58,7 +58,7 @@ updated: "2026-10-16"
 | 读取 | **有界**（沿用既有 per-source 读取上界） | 不做无界读取 |
 | 内容选取 | **正式（formal）优先，机器派生（machine）回退** | 只用**已信任机器**产出，不做新推理 |
 
-**截断（冻结选择）**：超长时**显式截断并附 metadata**（`truncated: true` + `truncation` 信息）。**保证选项**：若既有 limiter 明确拒绝，则**沿用既有 limiter 错误**（`validation_failed`）而非静默截断。冻结实现选择为**显式截断 + metadata**（本原型），但契约同时允许“复用既有 limiter 拒绝”，由 A 在实现注记中声明实际采用分支。
+**截断（冻结选择）**：超长时**显式截断并附 metadata**（`truncated: true` + `truncation` 信息）。**保证选项**：若既有 limiter 明确拒绝，则**沿用既有 limiter 错误**（`validation_failed`）而非静默截断。冻结实现选择为**显式截断 + metadata**（本原型，**LG-043 实际采用此分支**），契约同时允许“复用既有 limiter 拒绝”分支。
 - 截断在**程序侧**完成，逐来源累计；截断后的正文即 Chat reply 与 worker context 使用的**精确正文**（同一 body）。
 
 ## 4. 响应侧：resolved source bindings
@@ -131,6 +131,8 @@ updated: "2026-10-16"
 - **旧前端兼容**：不传 `selected_sources` 时后端行为与现状一致；旧前端不因新字段报错（字段 optional + `extra="forbid"` 仅约束未知键，见风险注记）。
 
 > 风险注记（供 A 实现核对）：现有请求 DTO 使用 `ConfigDict(extra="forbid")`。新增 `selected_sources` 为**加性可选**字段，因此**旧客户端不传仍可用**，但**新前端传新字段需后端已发布该字段**。按 §13 属加性 MINOR；A 负责常量与测试版本同步。
+>
+> **LG-043 实现注记（无契约歧义）**：`selected_sources` 已在 `AppendMessageRequest`（Task）与 `GlobalMessageRequest`（global）以 `list[dict] | None` 加性发布（保持 `extra="forbid"`）。解析后再由程序按冻结 shape 校验（≤3、opaque id、version/hash 类型），保证与共享 TS shape 一致；不一致的条目返回 `validation_failed`。鉴于 `source.content_hash` 记录的是**原件**哈希、formal 编辑不改变它，实现额外计算**内部** `body_digest`（不暴露为客户端字段）用于 worker 派发前重校验实际选定正文（§5/§6）。
 
 ## 9. 共享 TS shape（前端）
 
@@ -172,7 +174,7 @@ export interface ResolvedSourceBindingsData {
 
 ## 10. 变更控制
 
-- 按 docs/08 §13，本变更为**加性可选字段 + 加性响应字段** ⇒ **MINOR `1.12.0`（预留）**。
+- 按 docs/08 §13，本变更为**加性可选字段 + 加性响应字段** ⇒ **MINOR `1.12.0`**（LG-043 已实现并同步常量）。
 - 不新增端点、错误码、枚举、迁移方向；不改变既有字段语义。
 - 冻结由**唯一 owner（pi-proto-prepare）**完成；实现不得先于本版契约扩展语义。
 

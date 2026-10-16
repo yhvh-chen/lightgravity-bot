@@ -26,8 +26,11 @@ def test_frozen_constants() -> None:
     # a ``persistent``/``corrupt`` durability flag) -> 1.11.0 (LG-031 runtime
     # integration additive: the four decentralized endpoints' request-body
     # ``owner`` relaxed from required to optional/compat-only + additive internal
-    # ``ExecutionGrant.lease_owner``).  Additive MINOR only.
-    assert CONTRACT_VERSION == "1.11.0"
+    # ``ExecutionGrant.lease_owner``) -> 1.12.0 (LG-043 selected-material
+    # implementation: additive optional message ``selected_sources`` +
+    # reply/Run data ``resolved_source_bindings``/``context_truncated``/
+    # ``provided_context_note``).  Additive MINOR only.
+    assert CONTRACT_VERSION == "1.12.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 
