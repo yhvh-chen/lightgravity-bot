@@ -105,7 +105,13 @@ def test_two_owner_race_on_real_store_only_one_wins(
     refused = [d for d in results if not getattr(d, "granted")]
     assert len(granted) == 1, results
     assert len(refused) == 1
-    assert refused[0].reason == "held_by_other"
+    # The loser is refused fail-closed with one of two legitimate reasons,
+    # depending on whether its discovery snapshot was taken before or after the
+    # winner's committed write: ``held_by_other`` (it still saw the subtask as
+    # claimable) or ``not_discoverable`` (the now-running subtask with a live
+    # lease was already excluded from its view).  Both are single-winner
+    # refusals; only the exact reason was racy, never the outcome.
+    assert refused[0].reason in {"held_by_other", "not_discoverable"}, refused[0]
     entity = setup.read("subtask", sub).entity
     assert entity["owner"] == granted[0].owner
     assert entity["fence"] == 1
