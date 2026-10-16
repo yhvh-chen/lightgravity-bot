@@ -1,0 +1,190 @@
+{
+  "base": "http://127.0.0.1:36577",
+  "cases": {
+    "N1_over_limit": {
+      "status": 422,
+      "code": "validation_failed",
+      "body": {
+        "error": {
+          "code": "validation_failed",
+          "message": "at most 3 selected sources are allowed",
+          "details": {
+            "field": "selected_sources",
+            "max_selected_sources": 3,
+            "count": 4
+          },
+          "retryable": false,
+          "request_id": null
+        }
+      },
+      "pass": true
+    },
+    "N2_stale_version": {
+      "status": 409,
+      "code": "source_stale",
+      "body": {
+        "error": {
+          "code": "source_stale",
+          "message": "selected source 'source_01M520Q7XEKCY59NJSX2KWBSG2' version is stale",
+          "details": {
+            "source_id": "source_01M520Q7XEKCY59NJSX2KWBSG2",
+            "expected_version": 100,
+            "actual_version": 1
+          },
+          "retryable": false,
+          "request_id": null
+        }
+      },
+      "pass": true
+    },
+    "N3_stale_hash": {
+      "status": 409,
+      "code": "source_stale",
+      "body": {
+        "error": {
+          "code": "source_stale",
+          "message": "selected source 'source_01M520Q7XEKCY59NJSX2KWBSG2' content hash is stale",
+          "details": {
+            "source_id": "source_01M520Q7XEKCY59NJSX2KWBSG2",
+            "expected_hash": "sha256:deadbeef",
+            "actual_hash": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f"
+          },
+          "retryable": false,
+          "request_id": null
+        }
+      },
+      "pass": true
+    },
+    "N4_revoke_action": {
+      "status": 422,
+      "body": {
+        "error": {
+          "code": "validation_failed",
+          "message": "request failed schema validation",
+          "details": {
+            "errors": [
+              {
+                "type": "extra_forbidden",
+                "loc": [
+                  "body",
+                  "request_id"
+                ],
+                "msg": "Extra inputs are not permitted",
+                "input": "qa-r2-n4-rev"
+              }
+            ]
+          },
+          "retryable": false,
+          "request_id": null
+        }
+      }
+    },
+    "N4_revoked": {
+      "status": 200,
+      "code": null,
+      "body": {
+        "kind": "direct",
+        "reply": "I don't see an actual request here \u2014 the message is just \"q\". The only other content is the attached selected-source snippet (`alpha-brief.txt`, the fictional ORION-71 briefing), which is reference material, not a question.\n\nIf you meant to ask something, my best guesses:\n\n- **Summarize it?** ORION-71 is a fictional sample brief: programme owner Halden Reyes, launch 2027-03-14, contingency 2027-04-02\u20262027-04-09, budget 418,250 EUR with a ring-fenced 37,900 EUR reserve, vendor `VND-5501-KESTREL`, build tag `orion-71-rc4`. Scope is a telemetry relay sampling wind at 11.5 Hz (unit `RT-11.5`), 26-day field trial, 14 units, 2 crews.\n- **Extract the IDs / numbers?** Project `PRJ-ORION-71`, change-board ticket `CB-8842`, contract `VND-5501-KESTREL`, deliverables `RT-11.5`, `AP-ORION-71` (41 pages), `GS-ADAPT-9`; constraints: no reserve spend without `CB-8842`, no trial start before 2027-02-22, vendor ships in lots of 6.\n- **Ask about this workspace?** I can't act on it \u2014 this mode has no tools, so I can't read, write, run, or verify anything. Anything touching files here (including `formal/FORMAL.md` or the extraction pipeline) needs a delivery Task or a bounded read-only request rather than a chat reply.\n\nTell me what you actually wanted and I'll answer, or flag that it needs a Task.",
+        "task_id": "task_01M520M389G2DWC8J62NYA9D00",
+        "run_id": null,
+        "conversation_id": null,
+        "queue_state": null,
+        "candidates": [],
+        "data": {
+          "intent": "answer",
+          "creates_run": false,
+          "resolved_source_bindings": [
+            {
+              "source_id": "source_01M520Q7XEKCY59NJSX2KWBSG2",
+              "source_version": 1,
+              "content_hash": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f",
+              "layer": "machine",
+              "locator": "source_01M520Q7XEKCY59NJSX2KWBSG2#v1",
+              "char_count": 2223,
+              "truncated": false,
+              "truncation": null
+            }
+          ],
+          "context_truncated": false,
+          "provided_context_note": "Sources are provided as context; citations are NOT span-verified."
+        }
+      },
+      "pass": false
+    },
+    "N5_cross_task": {
+      "status": 422,
+      "code": "reference_invalid",
+      "body": {
+        "error": {
+          "code": "reference_invalid",
+          "message": "selected source 'source_01M520Q83MTVKQ6PDQ504B91M9' is scoped to another Task",
+          "details": {
+            "source_id": "source_01M520Q83MTVKQ6PDQ504B91M9"
+          },
+          "retryable": false,
+          "request_id": null
+        }
+      },
+      "pass": true
+    },
+    "N6_missing_ref": {
+      "status": 422,
+      "code": "reference_invalid",
+      "body": {
+        "error": {
+          "code": "reference_invalid",
+          "message": "selected source 'source_does_not_exist' does not resolve",
+          "details": {
+            "source_id": "source_does_not_exist"
+          },
+          "retryable": false,
+          "request_id": null
+        }
+      },
+      "pass": true
+    },
+    "N7_bin_upload": {
+      "status": 201,
+      "source_status": "received"
+    },
+    "N7_unreadable": {
+      "status": 503,
+      "code": "capability_unavailable",
+      "body": {
+        "error": {
+          "code": "capability_unavailable",
+          "message": "selected source 'source_01M520QCBV2EWJ9QQ60CJX0XV1' has no readable body",
+          "details": {
+            "source_id": "source_01M520QCBV2EWJ9QQ60CJX0XV1",
+            "layer": "machine"
+          },
+          "retryable": true,
+          "request_id": null
+        }
+      },
+      "pass": true
+    }
+  },
+  "started": 1792142974.8807259,
+  "ledger_before": {
+    "count": 0,
+    "limit": 8,
+    "remaining": 8,
+    "corrupt": false,
+    "persistent": true
+  },
+  "alpha_source": {
+    "id": "source_01M520Q7XEKCY59NJSX2KWBSG2",
+    "version": 1,
+    "hash": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f",
+    "status": "extracted"
+  },
+  "ledger_after": {
+    "count": 1,
+    "limit": 8,
+    "remaining": 7,
+    "corrupt": false,
+    "persistent": true
+  },
+  "ended": 1792142979.517505
+}

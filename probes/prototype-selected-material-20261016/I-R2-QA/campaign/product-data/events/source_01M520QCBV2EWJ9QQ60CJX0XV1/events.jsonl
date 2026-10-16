@@ -1,0 +1,1 @@
+{"type":"source.received","actor":"source-intake","payload":{"deduplicated":false},"schema":"lightgravity.bot/v1","kind":"event","event_id":"evt_01M520QCCZQJPPZ2DSTQ3XJGCW","stream_id":"source_01M520QCBV2EWJ9QQ60CJX0XV1","seq":1,"at":"2026-10-16T09:29:39.487Z","task_ref":null,"run_ref":null}

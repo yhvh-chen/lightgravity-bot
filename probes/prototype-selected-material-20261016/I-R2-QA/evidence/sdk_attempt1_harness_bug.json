@@ -1,0 +1,21 @@
+{
+  "attempt": 1,
+  "outcome": "INVALID HARNESS POLL — NOT a product defect",
+  "task_id": "task_01M522A80FHRPQ1ZCRHFZ60PAM",
+  "run_id": "run_01M522A85348ECGTNWWHQARWJ1",
+  "duration_s": 2.279,
+  "gen_before": 2,
+  "gen_after": 3,
+  "cause": "sdk_delivery.py poll helper returned the task phase on the first call because phase is always a non-empty string; the driver exited in ~2.3s while the SDK worker turn was still running. with_server.py's finally then killpg(SIGTERM)'d the server process group, which SIGTERM'd the antigravity localharness mid-turn -> WS close 1006.",
+  "harness_stderr": "Raising signal 15 with default behavior (SIGTERM delivered by with_server teardown)",
+  "product_side": {
+    "classification": "delivery -> create_task (correct)",
+    "plan_source": "rules (program minimal plan; NO model planner)",
+    "acceptance": "program-derived deliverable criterion present",
+    "workspace": "tasks/task_01M522A80FHRPQ1ZCRHFZ60PAM (authorized, created by program)",
+    "selected_binding": "source_01M521GDB7S4XB86X3WKPD2B6W v1 d34f0ca58b8d (2223 chars) bound to the Run trigger",
+    "worker_connection": "conn-worker openai-compat deepseek-v4-flash"
+  },
+  "fix": "poll for a genuinely terminal phase before teardown; retried once (diagnosed, not blind)",
+  "calls_counted": 1
+}

@@ -1,0 +1,21 @@
+=== prestop snapshot 2026-10-16 20:35:54 +1100 ===
+--- product generation count ---
+{"count":1}
+--- generation.jsonl ---
+{"count":1,"kind":"reserved","pid":3861014,"reserve_id":"3861014-1792142975770-1","ts":1792142975.7709794}
+--- campaign history ---
+{"kind": "reserve", "count": 1, "campaign": "LG-047-R2", "reserve_kind": "product", "note": "ACCIDENTAL: N4 revoke harness payload had extra request_id -> 422; selection succeeded -> 1 real direct answer (not planned)", "pid": 3866631, "ts": 1792143090.531512}
+--- campaign count ---
+{"count": 1}
+
+--- owned processes of old wrapper 3850676 tree ---
+3850676 2685628 3850676 Fri Oct 16 20:21:49 2026       14:04 Ss   python3 /home/yhvh/.cache/lightgravity-bot/checkpoints/2026-10-15/lightgravity-pi-bounded.py /home/yhvh/.cache/lightgravity-bot/checkpoints/2026-10-15/prototype-I-independent-r2-qa-20261016.txt /home/yhvh/code/lightgravity-bot-worktrees/proto-material-qa-r2-20261016 --wall-seconds 1500 --model-idle-seconds 180 --max-rounds 200 --max-noncache-tokens 380000 --max-auto-retries 0
+3850698 3850676 3850698 Fri Oct 16 20:21:49 2026       14:03 Ssl  pi
+3873930 3850698 3873930 Fri Oct 16 20:35:23 2026       00:30 Ss   /bin/bash -c cd /home/yhvh/code/lightgravity-bot-worktrees/proto-material-qa-r2-20261016/probes/prototype-selected-material-20261016/I-R2-QA && timeout 700 /home/yhvh/code/lightgravity-bot/.venv/bin/python scripts/with_server.py --tag chatflow -- node scripts/flow_chat_browser.mjs --url {base} --out /tmp/lg047r2-chatflow 2>&1 | tail -70
+3873938 3873930 3873938 Fri Oct 16 20:35:23 2026       00:30 S    timeout 700 /home/yhvh/code/lightgravity-bot/.venv/bin/python scripts/with_server.py --tag chatflow -- node scripts/flow_chat_browser.mjs --url {base} --out /tmp/lg047r2-chatflow
+3873943 3873938 3873938 Fri Oct 16 20:35:23 2026       00:30 S    /home/yhvh/code/lightgravity-bot/.venv/bin/python scripts/with_server.py --tag chatflow -- node scripts/flow_chat_browser.mjs --url {base} --out /tmp/lg047r2-chatflow
+3873956 3873943 3873956 Fri Oct 16 20:35:23 2026       00:30 Ssl  /home/yhvh/code/lightgravity-bot/.venv/bin/python /home/yhvh/code/lightgravity-bot-worktrees/proto-material-qa-r2-20261016/probes/prototype-selected-material-20261016/I-R2-QA/scripts/launch_app.py --data-dir /home/yhvh/code/lightgravity-bot-worktrees/proto-material-qa-r2-20261016/probes/prototype-selected-material-20261016/I-R2-QA/campaign/product-data --port 0 --max-generation-calls 8 --ready-file /home/yhvh/code/lightgravity-bot-worktrees/proto-material-qa-r2-20261016/probes/prototype-selected-material-20261016/I-R2-QA/evidence/ready_chatflow.json
+--- listener ports for chatflow app (3873956) ---
+LISTEN 0      2048       127.0.0.1:39357      0.0.0.0:*    users:(("python",pid=3873956,fd=6))    
+--- data hashes (product unmodified check) ---
+f10991a234f1bc3d615f87a7841ec25dfb37e06e

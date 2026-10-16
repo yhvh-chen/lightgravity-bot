@@ -1,0 +1,21 @@
+{
+  "schema": "lightgravity.bot/v1",
+  "kind": "source_derivative",
+  "derivative": "page_map",
+  "source_version": 1,
+  "filename": "cross-task-negative.txt",
+  "model": "none",
+  "extractor": "native-utf8-text",
+  "status": "succeeded",
+  "total_pages": 1,
+  "pages": [
+    {
+      "page": 1,
+      "text": "CROSS-TASK NEGATIVE FIXTURE MARKER (SAMPLE FICTION)\n================================================================\n\nNOTE: This is human-written SAMPLE data for the selected-material\nprototype. It is NOT OCR output and NOT a measured model result.\n\nPurpose\n-------\nThis file exists ONLY to demonstrate the cross-Task isolation rule in\ndocs/10 §5 and docs/08 §6.6.1: a selected source bound to Task A must\nNOT be carried into Task B. Per the frozen contract, selecting this\nsource while working in a DIFFERENT Task than the one it was uploaded\nunder must be rejected before model dispatch:\n\n    error.code      = reference_invalid   (HTTP 422)\n    error.details   = { not echoed path, no secret }\n    model dispatch  = none (rejected first)\n\nThe rule is:  cross-Task ref (scope.task_ref != current Task and not\nglobal) -> reference_invalid (422).\n\nHow QA uses this file (no new OCR)\n----------------------------------\n1. Upload this marker under Task A, wait for the real intake receipt.\n2. Select it while Task A is the active Task -> this is legal (same Task).\n3. Switch to Task B (or the singleton global conversation) -> the\n   selection must be CLEARED because selection does not carry across\n   Task boundaries (docs/10 §8).\n4. Attempt to send a message in Task B that names Task A's source_id ->\n   program rejects with reference_invalid (422) before any model call.\n\nUnique sentinel tokens (so a leak is detectable)\n------------------------------------------------\nCROSS_TASK_SENTINEL = \"XTM-ORION-71-FF41\"\nFIXTURE_KIND        = \"cross-task-negative\"\nEXPECTED_CODE       = \"reference_invalid\"\nEXPECTED_HTTP       = 422\n\nIf any answer produced while working in Task B quotes the sentinel\nXTM-ORION-71-FF41 or any fact above, that is a CONTRACT VIOLATION and\nmust be recorded as such, not as a correct result.\n\nEND OF SAMPLE MARKER — cross-task-negative.txt\n",
+      "input_sha256": "fe08d3d0688bf0608efa43475affaed47eb27dd893c618428eae957db1bff7af",
+      "model": "none",
+      "status": "succeeded",
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "finding": "deterministic classifier false-positive",
+  "detail": "substring 'approve' inside 'approved' matches the _DECISION control keyword, so a delivery goal mentioning 'total approved budget' is routed as DECISION (control) and never creates a Task",
+  "exact_handoff_goal": {
+    "text": "Create a Markdown file orion-summary.md using only the selected brief. Include project name, programme owner, primary launch date, total approved budget, project ID, and change ticket. Return the file as the deliverable.",
+    "intent": "decision",
+    "next_action": "decision",
+    "matched": [
+      "approve"
+    ]
+  },
+  "corrected_goal": {
+    "text": "Create the deliverable orion-summary.md (Markdown) using only the selected brief. It must contain the project name, programme owner, primary launch date, total budget, project ID, and change ticket. Return the file as the deliverable.",
+    "intent": "delivery",
+    "next_action": "create_task",
+    "matched": [
+      "create"
+    ]
+  },
+  "product_code_unchanged": true,
+  "severity": "important (routing correctness); no core facts hardcoded, no fake pass"
+}

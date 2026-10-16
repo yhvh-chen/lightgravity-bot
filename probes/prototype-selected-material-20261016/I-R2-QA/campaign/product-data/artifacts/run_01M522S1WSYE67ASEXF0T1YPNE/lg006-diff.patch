@@ -1,0 +1,21 @@
+--- a/orion-summary.md
++++ b/orion-summary.md
+@@ -0,0 +1,18 @@
++# ORION-71 — Summary
++
++| Field | Value |
++| --- | --- |
++| Project name | ORION-71 |
++| Programme owner | Halden Reyes |
++| Primary launch date | 2027-03-14 |
++| Total budget | 418,250 EUR |
++| Project ID | PRJ-ORION-71 |
++| Change ticket | CB-8842 |
++
++## Notes
++
++- Total budget is the total approved budget of 418,250 EUR; the reserve line
++  of 37,900 EUR is held by finance and is not part of the project budget.
++- Contingency window: 2027-04-02 .. 2027-04-09 (not the primary launch date).
++
++_Source: alpha-brief.txt (sample briefing note, v1 machine transcription)._
