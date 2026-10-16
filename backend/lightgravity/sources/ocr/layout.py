@@ -124,6 +124,149 @@ MAX_RELATIVE_MIN_LINE_INK_FRACTION = 1.0 / 50.0
 #: new layout region (section break), so per-region column analysis can run.
 REGION_GAP_FACTOR = 1.6
 
+# ------------------------------------------------------------------ table gate
+# The optional table classifier below decides whether a page is *confidently*
+# an actual ruled grid, using only the layout geometry (pixels + normalised
+# gutters + full-width rules).  It never reads a filename, fixture hash, page
+# number, or ground truth.  To avoid promoting ordinary prose (R7 measured that
+# a born-digital NIST prose page also exposes ragged multi-column regions and
+# horizontal rules) the gate requires ALL of:
+#
+#   * a single **dominant** region that owns at least TABLE_DOMINANT_LINE_FRACTION
+#     of the page's text lines (a real table is one grid, not scattered columns);
+#   * that region has TABLE_MIN_COLUMNS or more columns (a real column split);
+#   * the region is bounded/separated by at least TABLE_MIN_RULES full-width
+#     horizontal rules inside its own y-span (booktabs-style ruling);
+#   * the same column gutters hold across (almost) every text line of the
+#     region — TABLE_COLUMN_LINE_CONSISTENCY — the discriminator that a block of
+#     ordinary multi-column prose with ragged, per-line gaps fails.
+#
+# These are documented ratios/constants, not per-page tuning knobs.
+
+#: A dominant table region must own at least this fraction of the page's lines.
+TABLE_DOMINANT_LINE_FRACTION = 0.75
+#: Minimum columns for a ruled region to be called an actual table.
+TABLE_MIN_COLUMNS = 2
+#: Minimum full-width horizontal rules inside the dominant region's y-span.
+TABLE_MIN_RULES = 2
+#: Fraction of the dominant region's text lines whose own ink must confirm the
+#: region's column gutters (i.e. emit ink in >= 2 of the region's columns).
+TABLE_COLUMN_LINE_CONSISTENCY = 0.60
+
+
+@dataclass(frozen=True, slots=True)
+class TableClassification:
+    """Result of the optional, model-free table classifier.
+
+    ``is_table`` is the *conservative* verdict: it is True only when every gate
+    above holds.  ``reason`` and the measured evidence are always recorded so a
+    decision can be audited without re-running the rasteriser.  This type carries
+    **no ground truth** and is safe to persist in the derivative evidence.
+    """
+
+    is_table: bool
+    reason: str
+    dominant_region: int | None
+    column_count: int
+    line_fraction: float
+    rules_in_region: int
+    line_consistency: float
+    format_supported: bool
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "is_table": self.is_table,
+            "reason": self.reason,
+            "dominant_region": self.dominant_region,
+            "column_count": self.column_count,
+            "line_fraction": round(self.line_fraction, 4),
+            "rules_in_region": self.rules_in_region,
+            "line_consistency": round(self.line_consistency, 4),
+            "format_supported": self.format_supported,
+        }
+
+
+def classify_table(analysis: LayoutAnalysis) -> TableClassification:
+    """Decide whether a :class:`LayoutAnalysis` is *confidently* a ruled table.
+
+    Pure function of the analysis (no filename/hash/page/GT inputs).  A page that
+    is not confidently a table returns ``is_table=False`` so the caller keeps the
+    ordinary default prompt; the classifier never guesses from a fixture identity.
+    """
+
+    if analysis.status != "ok":
+        return TableClassification(
+            False, f"not analysed: {analysis.status}", None, 0, 0.0, 0, 0.0, True
+        )
+    total_lines = len(analysis.lines)
+    if total_lines == 0:
+        return TableClassification(False, "no text lines", None, 0, 0.0, 0, 0.0, True)
+
+    best: RegionAnalysis | None = None
+    best_fraction = 0.0
+    for region in analysis.regions:
+        fraction = len(region.line_indices) / total_lines
+        if fraction > best_fraction:
+            best, best_fraction = region, fraction
+
+    if best is None:
+        return TableClassification(False, "no regions", None, 0, 0.0, 0, 0.0, True)
+
+    rules_in_region = sum(1 for r in analysis.horizontal_rules if best.y0 <= r <= best.y1)
+    line_fraction = best_fraction
+    column_count = best.column_count
+
+    if line_fraction < TABLE_DOMINANT_LINE_FRACTION:
+        return TableClassification(
+            False, "no dominant region", best.index, column_count, line_fraction, rules_in_region, 0.0, True
+        )
+    if column_count < TABLE_MIN_COLUMNS:
+        return TableClassification(
+            False, "dominant region is single-column", best.index, column_count,
+            line_fraction, rules_in_region, 0.0, True,
+        )
+    if rules_in_region < TABLE_MIN_RULES:
+        return TableClassification(
+            False, "dominant region has too few full-width rules", best.index,
+            column_count, line_fraction, rules_in_region, 0.0, True,
+        )
+
+    lines = [line for line in analysis.lines if line.index in set(best.line_indices)]
+    consistency = _region_line_column_consistency(analysis, best, lines)
+    if consistency < TABLE_COLUMN_LINE_CONSISTENCY:
+        return TableClassification(
+            False, "region columns are not consistent across its lines", best.index,
+            column_count, line_fraction, rules_in_region, consistency, True,
+        )
+    return TableClassification(
+        True, "dominant ruled multi-column region", best.index, column_count,
+        line_fraction, rules_in_region, consistency, True,
+    )
+
+
+def _region_line_column_consistency(
+    analysis: LayoutAnalysis, region: RegionAnalysis, lines: list[TextLine]
+) -> float:
+    """Fraction of a region's text lines whose ink occupies >= 2 of its columns.
+
+    Computed from each line's own x-extent against the region's column boxes, so
+    a line that only sits in one column does not count as a table row.  Uses the
+    per-line pixel columns the region already split on — no ground truth.
+    """
+
+    if not lines or region.column_count < 2:
+        return 0.0
+    columns = region.columns
+    hits = 0
+    for line in lines:
+        occupied = 0
+        for col in columns:
+            if line.x1 >= col.x0 and line.x0 <= col.x1:
+                occupied += 1
+        if occupied >= 2:
+            hits += 1
+    return hits / len(lines)
+
 #: Minimum accepted column width.  The fraction is relative to the region's
 #: own ink span and is therefore already scale-invariant; the pixel floor only
 #: guards tiny rasters.  A split that would leave a narrower sliver is merged
@@ -1051,6 +1194,56 @@ def analyse_image_bytes(
     )
 
 
+def classify_image_bytes(
+    encoded: bytes,
+    *,
+    scale: float | None = None,
+    ink_threshold: int = DEFAULT_INK_THRESHOLD,
+) -> TableClassification:
+    """Boundedly classify *encoded image bytes* as a ruled table, or not.
+
+    Only bounded, locally decodable formats are analysed: **PNG** (the product
+    rasteriser's own output; the decoder enforces :data:`MAX_PAGE_SIDE` /
+    :data:`MAX_PAGE_PIXELS` before inflation, so an untrusted tiny IDAT cannot
+    expand into an unbounded buffer).  Any other / undecodable input returns
+    ``is_table=False`` with ``format_supported=False`` and a clear reason, so the
+    caller keeps the ordinary default prompt — the classifier **never** guesses a
+    table identity from a filename or from bytes it cannot bound.
+    """
+
+    try:
+        analysis = analyse_image_bytes(encoded, ink_threshold=ink_threshold)
+    except LayoutAnalysisError as exc:
+        return TableClassification(
+            False, f"undecodable/unsupported input: {exc}", None, 0, 0.0, 0, 0.0, False
+        )
+    if scale is not None and analysis.geometry.scale != scale:
+        analysis = LayoutAnalysis(
+            width=analysis.width,
+            height=analysis.height,
+            ink_threshold=analysis.ink_threshold,
+            input_sha256=analysis.input_sha256,
+            page=analysis.page,
+            geometry=PageGeometry(
+                page=analysis.geometry.page,
+                width_pt=analysis.geometry.width_pt,
+                height_pt=analysis.geometry.height_pt,
+                scale=scale,
+            ),
+            content_box=analysis.content_box,
+            lines=analysis.lines,
+            columns=analysis.columns,
+            regions=analysis.regions,
+            horizontal_rules=analysis.horizontal_rules,
+            vertical_rules=analysis.vertical_rules,
+            mean_line_height=analysis.mean_line_height,
+            status=analysis.status,
+            reason=analysis.reason,
+            warnings=analysis.warnings,
+        )
+    return classify_table(analysis)
+
+
 def analyse_rendered_page(
     rendered: Any,
     *,
@@ -1231,4 +1424,7 @@ __all__ = [
     "analyse_page",
     "analyse_rendered_page",
     "decode_png_gray",
+    "TableClassification",
+    "classify_image_bytes",
+    "classify_table",
 ]
