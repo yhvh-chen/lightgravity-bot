@@ -7,7 +7,19 @@ updated: "2026-10-16"
 
 # 当前进展与续接记录
 
-> **2026-10-16 最新事实见下方「## 2026-10-16 用户市场范围决定检查点（英文为主，中文可接受）」；其下各节（Materials R7 集成、Materials R6 集成、Materials OCR/Vector R5 收拢、Materials Vector R4 集成、Materials OCR R4 集成、证据集成收拢与 2026-10-15 历史快照）整体标记为历史，保留不改。**
+> **2026-10-16 LG-040 已按英文主线开始集中版本 QA 的 claim + 规划派工准备（本节为最新事实）；其下「用户市场范围决定检查点」等各节整体标记为历史，保留不改。**
+
+## 2026-10-16 LG-040 集中版本 QA — claim + 派工准备开始（PM only；本包产品推理 0/网络 0；**本包不执行 QA、不置 done**）
+
+- **开工核对（只读）**：`main@2f277fa` clean、无 stash/外部 main 写入者；Node CLI `validate` **41 tasks / 0 diagnostics**、`ready` **仅 LG-040**。
+- **原子 claim**：`tasks claim ... LG-040 --as agent:pi-lg040` 首次成功（`already=false`，version `a67971c3…`）→ LG-040 `in-progress`。**未绕过 claim、未手改状态；未置 done、未宣 QA pass。**
+- **规划/派工准备（非执行）**：新增 [probes/lg040/R1-20261016/PLAN.md](probes/lg040/R1-20261016/PLAN.md)（PM scope/单一候选 `2f277fa`/覆盖矩阵/owner/预算）与 STATUS.md。
+- **三线独立 FRESH pi QA（root 后续派工，本包不启动）**：API `qa/lg040-api-r1-20261016`、BROWSER `qa/lg040-browser-r1-20261016`、QUALITY `qa/lg040-quality-r1-20261016`，owner 分别为 `probes/lg040/{API,BROWSER,QUALITY}-R1-20261016/**`；无实施作者复用；native sub-agents 禁止；全部经既有 pi/env DeepSeek。
+- **预算（严格分区）**：LAN 仅 `http://192.168.8.12:11434`（`qwen3.8-27b`/`embeddinggemma-2-Q8_0`）；product OCR ≤4、embedding ≤18（全 QUALITY）、API inference 0、总计 ≤22 POST；retries 0/并发 1；QUALITY 在 BROWSER wrapper 退出前禁 LAN。
+- **口径**：契约 `1.11.0`、SDK `0.1.22`、默认 table mode OFF；旧 `GATE-PREP` Z2×3/中文门历史非当前契约；英文主线 + 原安全/完整性门；LG-041 锁不变。
+- **计数**：本包网络 0 / 模型 0 / 产品推理 0 / 产品代码改动 0；pi 成本 unknown 非 0。
+
+---
 
 ## 2026-10-16 用户市场范围决定检查点（英文为主，中文可接受）（唯一 main 集成/PM 文档 owner；本包产品 LAN 调用 0/外部服务 0；文档-only）
 
