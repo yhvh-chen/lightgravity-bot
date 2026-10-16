@@ -592,6 +592,7 @@ updated_at: null
 - 来源内容 hash 变化→ `source_version + 1` 并重建派生/索引/向量，旧命中失效（`source_stale`）；`stat_revision` 变化但内容 hash 不变**不**构成新源版本。
 - 撤销/删除使命中失效，**不返回悬空结果**；重处理**不覆盖**人工正式版本（位置分离）。
 - **整理归档≠撤销（`1.9.0`）**：`archive`/`unarchive` 是可逆整理，**保留**来源、作用域/权限、检索与打开能力，只将资料移出默认列表；只有 `revoke`/`delete` 使命中失效、资料不可用。不得以撤销（`revoke`）充当整理归档，也不得让 UI 的 archive 实际执行永久 revoke。
+- **撤销 fail-closed 实现说明（LG-040 R1 返修，无契约版本变化）**：`revoke` 写 `status=archived`（与可逆 `archived` 布尔标志不同），该值即撤销标记。已撤销来源的**全部读取与再处理路径一律 fail-closed**：`GET /sources/{id}/content`（`auto`/`formal`/`machine`）、`GET /sources/{id}/download`（`original`/`formal`/`machine`）、`POST /sources/{id}/actions`（`reprocess`）与 `POST /sources/{id}/formal` 均拒绝，**不返回任何原始/正式/机器正文或字节、不重索引**；撤销来源的 `status` 不被 `reprocess`/正式校订覆盖而复活。拒绝使用**既有** `not_found`（HTTP **404**，§4.2）并在 `error.details` 附 `{source_id, status, revoked:true}`，使客户端/诊断可区分撤销与删除而不泄露正文。原始字节/机器派生/人工正式版本/历史**保留在磁盘**（`revoke`≠`delete`，不删除证据、不回滚归档语义）；`GET /sources/{id}` 元数据/状态诊断视图保留。可逆 `archive`/`unarchive` 仍保持检索/打开/下载与 `status` 不变。此为实现对齐既有 §6.6 语义，不新增端点/枚举/错误码/实体 schema，`revoke` 语义不变；独立重测预期状态码 = **404（`not_found`，`details.revoked=true`）**。
 - 取消需**确认停止**（`cancel.confirmed`）才写 `cancelled`；未知副作用的中断**不自动重放**（对齐 §9 与 LG-016）。
 - 失败**不造空成功正文**，失败说明**不作为知识正文参与检索**。
 - 向量为**可选派生**，不是摄取/OCR/词法索引的前提；向量服务不可用时词法检索与原件查看仍可用；**embedding ≠ OCR/ASR**，不得用一条通路推断另一条。
