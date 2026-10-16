@@ -6,6 +6,8 @@ export interface ChatComposerProps {
   onSubmit: () => void
   /** Scope the draft belongs to, e.g. "Global" or "task_...". */
   scopeLabel: string
+  /** Optional extra hint (e.g. team @bot usage). Defaults to the send hint. */
+  hint?: string
   disabled?: boolean
   disabledReason?: string
 }
@@ -20,6 +22,7 @@ export function ChatComposer({
   onChange,
   onSubmit,
   scopeLabel,
+  hint,
   disabled = false,
   disabledReason,
 }: ChatComposerProps) {
@@ -59,7 +62,7 @@ export function ChatComposer({
       />
       <div className="lg-composer__row">
         <span className="lg-composer__hint">
-          Enter to send · Shift+Enter for a new line
+          {hint ?? 'Enter to send · Shift+Enter for a new line'}
         </span>
         <button
           type="button"

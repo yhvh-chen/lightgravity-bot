@@ -416,6 +416,8 @@ export function createSourcesApi(runtime: SourcesRuntimeConfig = {}): SourcesApi
       const response = await fetch(
         `${API_PREFIX}/sources/${encodeURIComponent(sourceId)}/download${query({ kind })}`,
         {
+          // Same-origin session cookie for team mode (LG-050 §7).
+          credentials: 'include',
           headers: { Accept: '*/*', ...authHeaders(runtime) },
           signal,
         },

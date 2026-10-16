@@ -56,6 +56,12 @@ export interface ResolvedSourceBindingsData {
   provided_context_note?: string
 }
 
+export interface ChatAuthor {
+  kind: string
+  username: string | null
+  role: string | null
+}
+
 export interface ChatMessage {
   message_id: string
   role: string
@@ -67,6 +73,12 @@ export interface ChatMessage {
   task_ref?: string | null
   conversation_ref?: string | null
   seq?: number
+  /**
+   * Additive server-author field (LG-050 §5).  Present on team-mode global
+   * messages; absent on legacy/single-user rows, where the view shows
+   * "Unknown" rather than inventing a speaker.
+   */
+  author?: ChatAuthor | null
   /** Additive resource-proposal outcome written back by the coordinator. */
   resource_result?: { status?: string } | null
   /**
@@ -103,6 +115,7 @@ export interface ChatMessageWire {
   in_reply_to?: string | null
   task_ref?: string | null
   conversation_ref?: string | null
+  author?: ChatAuthor | null
   resource_result?: { status?: string } | null
   /** Additive selected-material fields (docs/10 §4); absent on legacy rows. */
   resolved_source_bindings?: ResolvedSourceBinding[] | null
@@ -159,6 +172,7 @@ function normalizeMessage(wire: ChatMessageWire): ChatMessage {
     in_reply_to: inner.in_reply_to ?? wire.in_reply_to ?? null,
     task_ref: inner.task_ref ?? wire.task_ref ?? null,
     conversation_ref: inner.conversation_ref ?? wire.conversation_ref ?? null,
+    author: inner.author ?? wire.author ?? null,
     seq: wire.seq,
     resource_result: inner.resource_result ?? wire.resource_result ?? null,
     data: normalizeBindingsData(wire, inner),
