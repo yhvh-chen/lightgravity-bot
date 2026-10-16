@@ -1,0 +1,87 @@
+{
+  "package": "LG-040 QUALITY-R1-20261016",
+  "frozen_at_utc": "2026-10-16",
+  "base_commit": "dd4ca81",
+  "product_tree_expected": "2f277fa",
+  "endpoint": "http://192.168.8.12:11434",
+  "models": {"ocr": "qwen3.8-27b", "embedding": "embeddinggemma-2-Q8_0"},
+  "budget": {
+    "embedding_post_max": 18,
+    "embedding_post_planned": 14,
+    "ocr_post_max": 2,
+    "health_models_get_max": 2,
+    "inference_post_slice_max": 20,
+    "audio_total_seconds_max": 15,
+    "media_bytes_max": 10485760,
+    "retries": 0,
+    "concurrency": 1
+  },
+  "corpus": [
+    {
+      "doc_id": "D1",
+      "kind": "text",
+      "path": "corpus/d1_si_units.txt",
+      "sha256": "fa74a73e43a5bb631954b4d9a0998c84e757e8dcb7fece0754bd691409b2d7ec",
+      "truth_source": "NIST SP 811 2008 §4.1 prose + Table 1 native text layer (US-gov public domain)",
+      "human_authored": true,
+      "basis": "trusted text (human formal version)"
+    },
+    {
+      "doc_id": "D2",
+      "kind": "text",
+      "path": "corpus/d2_phototest_gold.txt",
+      "sha256": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed",
+      "truth_source": "tesseract-ocr/test phototest.gold.txt (Apache-2.0)",
+      "human_authored": true,
+      "basis": "trusted text (human formal version)"
+    },
+    {
+      "doc_id": "D3",
+      "kind": "image",
+      "path": "probes/lg035/fixtures/phototest.tif",
+      "sha256": "d2241a1eb6d6cd2eb6544b8e228c2862c852b7467d16ed636caa32179b780692",
+      "truth_source": "tesseract-ocr/test phototest.tif real EN photo test (Apache-2.0)",
+      "human_authored": true,
+      "basis": "original media embedded as image (never text)"
+    },
+    {
+      "doc_id": "D4",
+      "kind": "audio",
+      "path": "corpus/d4_audio_10s.wav",
+      "sha256": "1eede9d1b03022f5c01332a65148a076dc61c32eb5dc0a4cc82d8b5995e6cad0",
+      "source_path": "probes/lg039/evidence/real_voice_chinese_language-1.ogg",
+      "source_sha256": "1a8df6fbd1cff0ce6c192932cb6d1d5a8e20e551ba915896685544abb0528e9f",
+      "truth_source": "Wikimedia Commons File:Chinese language-1.ogg CC BY-SA 3.0 real human voice; language mixed Chinese/English per source description (NOT assumed English; no ASR)",
+      "human_authored": true,
+      "basis": "original media embedded as audio (never text)",
+      "duration_s": 10.0
+    }
+  ],
+  "queries": [
+    {"q_id": "Q1", "text": "SI base unit for electric current", "positive": "D1", "type": "text", "gate": "G1"},
+    {"q_id": "Q2", "text": "quick brown dog jumped over the lazy fox", "positive": "D2", "type": "text", "gate": "G1"},
+    {"q_id": "Q3", "text": "scanned page of twelve point text with the quick brown fox sentence", "positive": "D3", "type": "image", "gate": "G2"},
+    {"q_id": "Q4", "text": "spoken recording of the Wikipedia article about the Chinese language", "positive": "D4", "type": "audio", "gate": "INDICATIVE_G3"},
+    {"q_id": "QN", "text": "renormalization of lattice quantum chromodynamics gauge fields", "positive": null, "type": "negative", "gate": "G4_info"}
+  ],
+  "metrics": ["recall@1", "recall@3", "recall@5", "mrr", "top1_correct", "negative_false_hits_top5"],
+  "gates": {
+    "G1": "text Q1,Q2 vector top-1 correct AND Recall@1 == 1.0",
+    "G2": "image Q3 vector top-1 == D3",
+    "G3": "audio Q4 top-1 == D4 (INDICATIVE only; mixed-language real audio, no ASR)",
+    "G4": "negative QN returns top-5 with no abstention; false hits reported as quality metric, not ACL bug"
+  },
+  "ocr": {
+    "input": "probes/materials-fixtures-r7-20261016/fixtures/mixed_born_digital_plus_scan.pdf",
+    "sha256": "0f7286016cc22717d4dab67319180604be097374b4d07a53fe68332c9f68ada5",
+    "pages": 2,
+    "page1_truth": "born-digital NIST SP 811 page 16 native text layer (human-authored)",
+    "page2_truth": "probes/lg035/fixtures/phototest.gold.txt human gold (Apache-2.0)",
+    "page_cer_max": 0.15,
+    "table_mode": "OFF (product default); named table-mode test is BROWSER-owned, not duplicated here"
+  },
+  "no_model_output_as_truth": true,
+  "no_post_hoc_label_expansion": true,
+  "no_asr": true,
+  "real_second_live_model": false
+}
