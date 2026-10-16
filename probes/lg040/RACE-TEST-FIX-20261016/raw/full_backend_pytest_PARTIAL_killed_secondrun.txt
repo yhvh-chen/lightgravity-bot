@@ -1,0 +1,22 @@
+# STATUS: PARTIAL -- this is a SECOND full-suite run whose ONLY purpose was to
+#         tee stdout to a file. The wrapper was killed (exit143) at ~66%; it has
+#         NO captured exit code and its trailing 'F' is an artifact of an
+#         interrupted run (stale --basetemp). NOT a real failure. See
+#         full_backend_pytest_completed_stdout.txt for the CLEAN completed run.
+# LG-040 RACE-TEST-FIX full backend+frontend pytest run (ONCE)
+# CWD: /home/yhvh/code/lightgravity-bot-worktrees/lg040-race-test-fix-20261016
+# PYTHONPATH: /home/yhvh/code/lightgravity-bot-worktrees/lg040-race-test-fix-20261016/backend
+# command: python -m pytest backend tests -q -p no:cacheprovider --basetemp=/tmp/lg040-racefix-fullpytmp
+# python: Python 3.12.13
+# date: 2026-10-16T06:30:16Z
+# HEAD: 75c60487ad90c6712fa65c9f24ed235b45c06225
+================================================================
+........................................................................ [  8%]
+........................................................................ [ 16%]
+........................................................................ [ 24%]
+........................................................................ [ 33%]
+........................................................................ [ 41%]
+........................................................................ [ 49%]
+........................................................................ [ 58%]
+..................F..................................................... [ 66%]
+..................................
