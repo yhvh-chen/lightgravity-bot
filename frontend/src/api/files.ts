@@ -184,6 +184,8 @@ export function createFilesApi(runtime: FilesRuntimeConfig = {}): FilesApi {
       const response = await fetch(
         `${API_PREFIX}/files/download${query({ path, revision })}`,
         {
+          // Same-origin session cookie for team mode (LG-050 §7).
+          credentials: 'include',
           headers: { Accept: '*/*', ...authHeaders(runtime) },
           signal,
         },

@@ -84,6 +84,48 @@
   gap: var(--lg-space-1);
 }
 
+/* Signed-in identity + sign-out (team mode only, LG-050). */
+.lg-topbar__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--lg-space-2);
+  padding-right: var(--lg-space-2);
+  margin-right: var(--lg-space-1);
+  border-right: 1px solid var(--lg-color-border);
+}
+
+.lg-topbar__identity-user {
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lg-topbar__identity-role {
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-subtle);
+  text-transform: lowercase;
+}
+
+.lg-topbar__logout {
+  min-height: 28px;
+  padding: 0 var(--lg-space-2);
+  font-size: var(--lg-font-size-xs);
+}
+
+.lg-button--subtle {
+  background: transparent;
+  border-color: transparent;
+  color: var(--lg-color-text-muted);
+}
+
+.lg-button--subtle:hover:not(:disabled) {
+  background: var(--lg-color-surface-2);
+  color: var(--lg-color-text);
+}
+
 .lg-scope-field {
   display: flex;
   align-items: center;
@@ -480,6 +522,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--lg-space-3);
+}
+
+.lg-chat__new-messages {
+  align-self: center;
+  margin-bottom: var(--lg-space-2);
+  min-height: 28px;
+  font-size: var(--lg-font-size-xs);
 }
 
 .lg-message {

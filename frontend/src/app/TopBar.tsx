@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { NotificationList, type NotificationListItem } from '../components/NotificationList'
 import { Icon } from '../components/icons'
 import { MOCK_NOTIFICATIONS, MOCK_TASKS, MOCK_RUNS_BY_TASK } from './layoutMock'
+import { useAuth } from './AuthProvider'
 import { useShell } from './ShellProvider'
 import { useNotifications } from './useNotifications'
 import { NOTIFICATION_REFRESH_TYPES, useEventStream } from './useEventStream'
@@ -34,6 +35,7 @@ export function TopBar({
   onToggleChat,
 }: TopBarProps) {
   const { state, dispatch } = useShell()
+  const { isTeam, identity, logout } = useAuth()
   const [notifOpen, setNotifOpen] = useState(false)
   const notifButtonRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -170,6 +172,21 @@ export function TopBar({
       <div className="lg-topbar__spacer" />
 
       <div className="lg-topbar__actions">
+        {isTeam ? (
+          <div className="lg-topbar__identity" aria-label="Signed-in identity">
+            <span className="lg-topbar__identity-user">
+              {identity.username ?? 'Unknown'}
+            </span>
+            <span className="lg-topbar__identity-role">{identity.role ?? 'member'}</span>
+            <button
+              type="button"
+              className="lg-button lg-button--subtle lg-topbar__logout"
+              onClick={() => void logout()}
+            >
+              Sign out
+            </button>
+          </div>
+        ) : null}
         <button
           type="button"
           className="lg-icon-button lg-topbar__mock-toggle"

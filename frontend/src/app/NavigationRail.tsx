@@ -4,6 +4,7 @@ import {
   type NavItem,
   type ViewId,
 } from './navigation'
+import { useAuth } from './AuthProvider'
 import { Icon } from '../components/icons'
 
 export interface NavigationRailProps {
@@ -19,23 +20,31 @@ export interface NavigationRailProps {
  * an accessible name per button and `aria-current` on the active entry.
  */
 export function NavigationRail({ current, onNavigate, variant = 'inline' }: NavigationRailProps) {
-  const renderItem = (item: NavItem) => (
-    <li key={item.id}>
-      <button
-        type="button"
-        className="lg-rail__item"
-        aria-current={current === item.id ? 'page' : undefined}
-        aria-label={item.label}
-        title={item.label}
-        onClick={() => onNavigate(item.id)}
-      >
-        <Icon name={item.icon} />
-        <span className="lg-rail__tooltip" aria-hidden="true">
-          {item.label}
-        </span>
-      </button>
-    </li>
-  )
+  const { isTeam, isAdmin } = useAuth()
+  // Administrator-only configuration entry (LG-050).  Members see the entry
+  // but cannot open it; the backend still enforces the role (403).
+  const settingsRestricted = isTeam && !isAdmin
+  const renderItem = (item: NavItem) => {
+    const restricted = item.id === 'settings' && settingsRestricted
+    return (
+      <li key={item.id}>
+        <button
+          type="button"
+          className="lg-rail__item"
+          aria-current={current === item.id ? 'page' : undefined}
+          aria-label={item.label}
+          title={restricted ? 'Administrator only' : item.label}
+          disabled={restricted}
+          onClick={() => onNavigate(item.id)}
+        >
+          <Icon name={item.icon} />
+          <span className="lg-rail__tooltip" aria-hidden="true">
+            {item.label}
+          </span>
+        </button>
+      </li>
+    )
+  }
 
   return (
     <nav

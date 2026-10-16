@@ -9,6 +9,7 @@ import {
 } from '../../api/sources'
 import type { Attachment } from '../../api/types'
 import { useShell } from '../../app/ShellProvider'
+import { useAuth } from '../../app/AuthProvider'
 import { draftKey } from '../../app/uiState'
 import { ChatComposer } from '../../components/ChatComposer'
 import { EmptyState } from '../../components/EmptyState'
@@ -52,8 +53,15 @@ interface PendingAttachment {
  */
 export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRuntime }: ChatBodyProps) {
   const { state, dispatch } = useShell()
+  const { isTeam, requireLogin } = useAuth()
   const taskRef = state.taskRef
-  const chat = useChat({ taskRef }, api)
+  const chat = useChat(
+    { taskRef },
+    api,
+    // Team mode polls the global conversation only; single-user mode passes no
+    // interval so the existing behavior is byte-for-byte unchanged (LG-050 §7).
+    isTeam ? { pollIntervalMs: 3000, onUnauthorized: requireLogin } : {},
+  )
   const resolvedSourcesApi =
     sourcesApi ?? createSourcesApi(sourcesRuntime ?? { getApiToken: getRuntimeToken })
   const materials = useChatMaterials(resolvedSourcesApi)
@@ -67,17 +75,63 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
   const [notice, setNotice] = useState<string | null>(null)
   const [attachments, setAttachments] = useState<PendingAttachment[]>([])
   const [attachmentError, setAttachmentError] = useState<string | null>(null)
+  const [hasNewMessages, setHasNewMessages] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
+  const atBottomRef = useRef(true)
+  const prevCountRef = useRef(0)
 
   // Scope change (including Task switch) drops any transient reply Sources so it
   // can never leak across Task boundaries (docs/10 §1, §8).
   useEffect(() => {
     setLastSendSources(null)
+    // A scope switch starts at the latest message, not a stale "new messages"
+    // badge held over from the previous conversation.
+    atBottomRef.current = true
+    prevCountRef.current = 0
+    setHasNewMessages(false)
   }, [taskRef])
 
   useEffect(() => {
-    if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight
+    const list = listRef.current
+    if (!list) return
+    const grew = chat.messages.length > prevCountRef.current
+    prevCountRef.current = chat.messages.length
+    if (!grew) return
+    // Never yank the viewport while the user is reading history: only auto-scroll
+    // when already near the bottom, otherwise offer a "new messages" entry
+    // (design.md §5). Incremental polling must not disturb the draft or scroll.
+    if (atBottomRef.current) {
+      list.scrollTop = list.scrollHeight
+      setHasNewMessages(false)
+    } else {
+      setHasNewMessages(true)
+    }
   }, [chat.messages.length])
+
+  const handleScroll = () => {
+    const list = listRef.current
+    if (!list) return
+    const atBottom = list.scrollHeight - list.scrollTop - list.clientHeight <= 48
+    atBottomRef.current = atBottom
+    if (atBottom) setHasNewMessages(false)
+  }
+
+  const scrollToBottom = () => {
+    const list = listRef.current
+    if (!list) return
+    list.scrollTop = list.scrollHeight
+    atBottomRef.current = true
+    setHasNewMessages(false)
+  }
+
+  const authorLabel = (message: (typeof chat.messages)[number]): string => {
+    if (!isTeam) return message.role === 'user' ? 'You' : message.role
+    // Team mode: the server writes the real author; legacy rows without one are
+    // shown as Unknown rather than inventing a speaker (LG-050 §5).
+    if (message.role === 'user') return message.author?.username ?? 'Unknown'
+    if (message.role === 'assistant') return message.author?.username ?? 'Bot'
+    return message.author?.username ?? message.role
+  }
 
   const scopeLabel = taskRef ?? 'Global'
 
@@ -115,7 +169,10 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
       // message; a failed send keeps them so an explicit retry reuses them.
       if (selectedRefs && selectedRefs.length > 0) selection.clear()
       setLastSendSources(outcome.resolvedSources)
-      if (outcome.createdTaskRef) {
+      if (outcome.kind === 'recorded') {
+        // Team-mode plain message: persisted for the team only, no bot reply.
+        setNotice('Shared with the team.')
+      } else if (outcome.createdTaskRef) {
         setNotice(`Created Task ${outcome.createdTaskRef}. Opening its Board scope.`)
         dispatch({ type: 'selectTask', taskRef: outcome.createdTaskRef })
       } else if (outcome.reply) {
@@ -164,6 +221,7 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
         className="lg-chat__messages"
         aria-label="Conversation messages"
         ref={listRef}
+        onScroll={handleScroll}
       >
         {chat.error ? (
           <ErrorState
@@ -191,7 +249,7 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
             className={`lg-message lg-message--${message.role === 'user' ? 'user' : 'assistant'}`}
           >
             <div className="lg-message__meta">
-              <span>{message.role === 'user' ? 'You' : message.role}</span>
+              <span>{authorLabel(message)}</span>
               {message.at ? <span>{message.at}</span> : null}
               {message.resource_result?.status ? (
                 <StatusBadge kind="neutral">
@@ -219,6 +277,15 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
       </div>
 
       <footer className="lg-chat__footer">
+        {hasNewMessages ? (
+          <button
+            type="button"
+            className="lg-button lg-chat__new-messages"
+            onClick={scrollToBottom}
+          >
+            New messages ↓
+          </button>
+        ) : null}
         {notice ? (
           <p className="lg-notice" role="status">
             {notice}
@@ -310,6 +377,11 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
           }}
           onSubmit={handleSubmit}
           scopeLabel={scopeLabel}
+          hint={
+            isTeam
+              ? 'Shared with the team · start with @bot to ask the assistant · Enter to send'
+              : undefined
+          }
           disabled={chat.sending}
           disabledReason="A message is being sent…"
         />
