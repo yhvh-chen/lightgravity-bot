@@ -7,7 +7,7 @@ updated: "2026-10-16"
 
 # 首版与扩展版本滚动排期
 
-> **新增实施范围（2026-10-16）**：[LG-050](../backlog/tasks/LG-050.md) 为共享团队聊天与简单认证命名里程碑，接口已加性冻结于 [docs/08 §14](08-interface-contract.md)（1.13.0）。后端认证/消息与前端登录/同步并行，随后串行集成、独立集中 QA；**当前实现完成、集成候选 `feat/team-integration-20261016` 已就绪，独立集中 QA 尚未执行**。下方 49 任务与 1.12.0 为此前 selected-material 收口时的快照。
+> **当前更新（2026-10-16）**：[LG-050](../backlog/tasks/LG-050.md) 共享团队聊天与简单认证命名里程碑已本地合入，契约 [1.13.0](08-interface-contract.md)。独立 QA **PASS_WITH_LIMITATIONS**（58 项真实 HTTP、Firefox 双用户上下文端到端），主目录前端生产包已重建。当前 50 项任务：49 done、1 todo（LG-041）、0 diagnostics；用户最终验收待定，现有服务未重启、未发布部署。下方 49 任务与 1.12.0 为此前 selected-material 收口时的快照。
 
 > **当前状态（2026-10-16，selected-material 原型命名里程碑闭环）**：**LG-047 选定资料快速原型命名里程碑独立 QA 已 `done`（PASS_WITH_LIMITATIONS），LG-049 完整生命周期验证已 `done`（PASS_WITH_LIMITATIONS）**，依据 LG-049 `N-R3-LIFECYCLE` 真实完整 SDK 交付生命周期（原生 API 上传 alpha `d34f0ca58b8d…`、无 seeded derivative → EXACT 目标交付路由 → 程序规则计划 `deliver`+`verify` → 真实 SDK worker 6/6 事实 → `verify` passed（R2 曾 429）→ **真实独立 ModelReviewer `reviewer_kind=model`/`model_calls=1`/passed** → **worker `cleanup=done`+`member.released` 与 reviewer `reviewer_cleanup.confirmed=true` 于 accept 前 CONFIRMED** → API accept done），**8/16 前向**；本轮 root PM 仅 `--no-ff` 合入 probes/docs（合并 `76f10c7`），产品树 `main` == `0188ca2`。任务 CLI（实测）：`49 tasks / 0 diagnostics`、`digest` **48 done / 1 todo / 0 in-progress**、`ready=[]`。**LG-040 已 `done`**（版本 QA 技术验收；用户最终验收 PENDING、未发布）；**LG-037 已 `done`**（可选向量，机制/ACL/降级已证；旧 G2 冻结图片实验 FAIL / R5 图片硬门为历史保留、不 waived）；**LG-041 仍 `todo`、阻塞于中文 ASR 质量门**。累积成本 unknown **非 0**（R1 已知 1+缺口 / R2 actual 8 / R3 actual 8 分列）。契约 **`1.12.0`**、SDK **`0.1.22`**。详情 [K-RELEASE-CLOSE REPORT](../probes/prototype-selected-material-20261016/K-RELEASE-CLOSE/REPORT.md)。本节以下为历史排期快照（含 LG-040 收口时的 41 任务口径），保留不改。
 
