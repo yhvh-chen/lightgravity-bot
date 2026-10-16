@@ -1,0 +1,4219 @@
+{
+  "iterations": 300,
+  "failures": [
+    {
+      "iteration": 2,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 22,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 30,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 31,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 32,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 42,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 53,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 82,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 107,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 117,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 121,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 136,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 150,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 157,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 167,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 171,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 175,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 195,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 201,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 205,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 215,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 217,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 245,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 281,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    }
+  ],
+  "all": [
+    {
+      "iteration": 0,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 1,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 2,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 3,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 4,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 5,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 6,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 7,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 8,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 9,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 10,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 11,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 12,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 13,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 14,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 15,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 16,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 17,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 18,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 19,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 20,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 21,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 22,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 23,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 24,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 25,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 26,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 27,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 28,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 29,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 30,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 31,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 32,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 33,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 34,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 35,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 36,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 37,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 38,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 39,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 40,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 41,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 42,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 43,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 44,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 45,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 46,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 47,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 48,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 49,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 50,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 51,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 52,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 53,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 54,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 55,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 56,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 57,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 58,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 59,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 60,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 61,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 62,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 63,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 64,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 65,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 66,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 67,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 68,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 69,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 70,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 71,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 72,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 73,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 74,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 75,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 76,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 77,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 78,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 79,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 80,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 81,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 82,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 83,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 84,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 85,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 86,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 87,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 88,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 89,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 90,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 91,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 92,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 93,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 94,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 95,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 96,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 97,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 98,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 99,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 100,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 101,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 102,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 103,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 104,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 105,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 106,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 107,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 108,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 109,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 110,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 111,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 112,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 113,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 114,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 115,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 116,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 117,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 118,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 119,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 120,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 121,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 122,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 123,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 124,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 125,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 126,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 127,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 128,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 129,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 130,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 131,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 132,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 133,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 134,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 135,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 136,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 137,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 138,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 139,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 140,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 141,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 142,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 143,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 144,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 145,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 146,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 147,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 148,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 149,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 150,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 151,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 152,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 153,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 154,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 155,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 156,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 157,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 158,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 159,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 160,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 161,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 162,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 163,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 164,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 165,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 166,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 167,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 168,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 169,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 170,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 171,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 172,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 173,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 174,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 175,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 176,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 177,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 178,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 179,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 180,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 181,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 182,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 183,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 184,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 185,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 186,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 187,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 188,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 189,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 190,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 191,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 192,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 193,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 194,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 195,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 196,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 197,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 198,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 199,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 200,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 201,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 202,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 203,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 204,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 205,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 206,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 207,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 208,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 209,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 210,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 211,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 212,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 213,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 214,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 215,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 216,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 217,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 218,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 219,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 220,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 221,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 222,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 223,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 224,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 225,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 226,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 227,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 228,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 229,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 230,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 231,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 232,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 233,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 234,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 235,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 236,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 237,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 238,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 239,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 240,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 241,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 242,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 243,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 244,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 245,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 246,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 247,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 248,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 249,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 250,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 251,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 252,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 253,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 254,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 255,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 256,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 257,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 258,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 259,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 260,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 261,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 262,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 263,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 264,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 265,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 266,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 267,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 268,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 269,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 270,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 271,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 272,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 273,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 274,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 275,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 276,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 277,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 278,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 279,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 280,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 281,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "not_discoverable"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": false
+    },
+    {
+      "iteration": 282,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 283,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 284,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 285,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 286,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 287,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 288,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 289,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 290,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 291,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 292,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 293,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 294,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 295,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 296,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 297,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 298,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-b",
+      "final_fence": 1,
+      "pass": true
+    },
+    {
+      "iteration": 299,
+      "errors": [],
+      "results": 2,
+      "granted": 1,
+      "refused": 1,
+      "refuse_reasons": [
+        "held_by_other"
+      ],
+      "final_owner": "worker-a",
+      "final_fence": 1,
+      "pass": true
+    }
+  ]
+}

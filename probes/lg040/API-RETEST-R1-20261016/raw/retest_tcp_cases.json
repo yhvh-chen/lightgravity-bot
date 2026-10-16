@@ -1,0 +1,307 @@
+{
+  "candidate_tree": "77685f0c64ba0403f6ba93823e7162d37be8e7bd",
+  "results": [
+    {
+      "case": "R1 BEFORE revoke content/download all kinds 200 + marker",
+      "expected": "all 200 and serve marker",
+      "actual": {
+        "content_auto": {
+          "status": 200,
+          "serves_marker": true,
+          "sha256": "313f517bc17d1f41a2f7867e5b887d843bd75b1d085be98c4bf2938fc6d26cdc"
+        },
+        "content_formal": {
+          "status": 200,
+          "serves_marker": true,
+          "sha256": "313f517bc17d1f41a2f7867e5b887d843bd75b1d085be98c4bf2938fc6d26cdc"
+        },
+        "content_machine": {
+          "status": 200,
+          "serves_marker": true,
+          "sha256": "601989bd20585f19a29364d9ee479505bebe986523a138b320e7f603ae1c4f08"
+        },
+        "download_original": {
+          "status": 200,
+          "serves_marker": true,
+          "sha256": "1e07d862cf619f9addc9cb57df6d2f461a0cb03eeec7dac7acc4e26a7c67d6d4"
+        },
+        "download_formal": {
+          "status": 200,
+          "serves_marker": true,
+          "sha256": "9c4618fe2deb5846485559047ca07b5b1338a2c79c00e317d9174ccca0d0e54a"
+        },
+        "download_machine": {
+          "status": 200,
+          "serves_marker": true,
+          "sha256": "30b10979ed038abf2e40c872b2f073db424427362dedda2ef69ad751a78d8bb8"
+        }
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R2 revoke 200 status=archived revoked=true",
+      "expected": "200 archived revoked",
+      "actual": {
+        "status": 200,
+        "body": {
+          "source_id": "source_01M51NZEFRE2MVSYBW9R2AFF9E",
+          "status": "archived",
+          "revoked": true
+        }
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R3 metadata remains diagnosable (status archived)",
+      "expected": "200 status archived",
+      "actual": {
+        "status": 200,
+        "status_field": "archived"
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R4 search hits [] after revoke",
+      "expected": "200 hits==[]",
+      "actual": {
+        "status": 200,
+        "hits": []
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R5 AFTER revoke all content/download kinds 404 not_found revoked + no bytes",
+      "expected": "all 404 not_found revoked=true, no marker",
+      "actual": {
+        "content_auto": {
+          "status": 404,
+          "serves_marker": false,
+          "sha256": "eb75e9e85c5cf27dc738d2f09cbb8909c4d559f3115fd160bba11cdd320d82b8",
+          "code": "not_found",
+          "revoked": true
+        },
+        "content_formal": {
+          "status": 404,
+          "serves_marker": false,
+          "sha256": "eb75e9e85c5cf27dc738d2f09cbb8909c4d559f3115fd160bba11cdd320d82b8",
+          "code": "not_found",
+          "revoked": true
+        },
+        "content_machine": {
+          "status": 404,
+          "serves_marker": false,
+          "sha256": "eb75e9e85c5cf27dc738d2f09cbb8909c4d559f3115fd160bba11cdd320d82b8",
+          "code": "not_found",
+          "revoked": true
+        },
+        "download_original": {
+          "status": 404,
+          "serves_marker": false,
+          "sha256": "eb75e9e85c5cf27dc738d2f09cbb8909c4d559f3115fd160bba11cdd320d82b8",
+          "code": "not_found",
+          "revoked": true
+        },
+        "download_formal": {
+          "status": 404,
+          "serves_marker": false,
+          "sha256": "eb75e9e85c5cf27dc738d2f09cbb8909c4d559f3115fd160bba11cdd320d82b8",
+          "code": "not_found",
+          "revoked": true
+        },
+        "download_machine": {
+          "status": 404,
+          "serves_marker": false,
+          "sha256": "eb75e9e85c5cf27dc738d2f09cbb8909c4d559f3115fd160bba11cdd320d82b8",
+          "code": "not_found",
+          "revoked": true
+        }
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R5b raw TCP body bytes: no marker served for any kind",
+      "expected": "all 404 and no marker",
+      "actual": {
+        "content_auto": {
+          "status": 404,
+          "serves_marker": false,
+          "sha256": "eb75e9e85c5cf27dc738d2f09cbb8909c4d559f3115fd160bba11cdd320d82b8"
+        },
+        "content_formal": {
+          "status": 404,
+          "serves_marker": false,
+          "sha256": "eb75e9e85c5cf27dc738d2f09cbb8909c4d559f3115fd160bba11cdd320d82b8"
+        },
+        "content_machine": {
+          "status": 404,
+          "serves_marker": false,
+          "sha256": "eb75e9e85c5cf27dc738d2f09cbb8909c4d559f3115fd160bba11cdd320d82b8"
+        },
+        "download_original": {
+          "status": 404,
+          "serves_marker": false,
+          "sha256": "eb75e9e85c5cf27dc738d2f09cbb8909c4d559f3115fd160bba11cdd320d82b8"
+        },
+        "download_formal": {
+          "status": 404,
+          "serves_marker": false,
+          "sha256": "eb75e9e85c5cf27dc738d2f09cbb8909c4d559f3115fd160bba11cdd320d82b8"
+        },
+        "download_machine": {
+          "status": 404,
+          "serves_marker": false,
+          "sha256": "eb75e9e85c5cf27dc738d2f09cbb8909c4d559f3115fd160bba11cdd320d82b8"
+        }
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R6 raw original/formal/machine preserved on disk (bytes unchanged)",
+      "expected": "original+derivative+formal files present and byte-identical to pre-revoke served bytes",
+      "actual": {
+        "disk": {
+          "original": [
+            "doc.txt"
+          ],
+          "derivative": [
+            "machine.v1.md",
+            "machine.v1.pages.json"
+          ],
+          "formal": [
+            "FORMAL.md"
+          ]
+        },
+        "original_matches_pre": true,
+        "machine_matches_pre": true,
+        "formal_matches_pre": true
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R7 repeated revoke idempotent",
+      "expected": "200 revoked, status still archived",
+      "actual": {
+        "status": 200,
+        "body": {
+          "source_id": "source_01M51NZEFRE2MVSYBW9R2AFF9E",
+          "status": "archived",
+          "revoked": true
+        },
+        "detail": "archived"
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R8 reprocess/formal cannot resurrect",
+      "expected": "both 404 not_found, status unchanged, views still 404",
+      "actual": {
+        "reprocess": 404,
+        "formal": 404,
+        "status": 200,
+        "views": {
+          "content_auto": 404,
+          "content_formal": 404,
+          "content_machine": 404,
+          "download_original": 404,
+          "download_formal": 404,
+          "download_machine": 404
+        }
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R9 archive keeps preview/search/download 200",
+      "expected": "archive 200; content/download 200; hit present",
+      "actual": {
+        "archive": 200,
+        "content": 200,
+        "download": 200,
+        "hit": true
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R10 unarchive restores openable (<-> archive reversible)",
+      "expected": "unarchive 200; status != archived; content 200",
+      "actual": {
+        "unarchive": 200,
+        "status": "received",
+        "content": 200
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R11 global/task scopes preserved (task filter narrows, no cross-task leak)",
+      "expected": "global listing has live sources; task_a sees a not b; task_b excludes revoked",
+      "actual": {
+        "task_a": [
+          "source_01M51NZEG9WDCRNXATSM8RN6CM"
+        ],
+        "task_b": [],
+        "listing_has_a_g_arc": true
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R12 forged/stale hit fail-closed (never returned as authority)",
+      "expected": "no forged hit; source_stale reported",
+      "actual": {
+        "status": 200,
+        "forged_hits": [],
+        "stale": [
+          {
+            "source_id": "source_01M51NZEG9WDCRNXATSM8RN6CM",
+            "cached_version": 999,
+            "current_version": 1,
+            "reason": "source_stale"
+          }
+        ]
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R13 unknown task_ref query yields no hits (scope narrows, no grant)",
+      "expected": "200 hits==[]",
+      "actual": {
+        "status": 200,
+        "hits": []
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R14 missing source content 404 not_found",
+      "expected": "404 not_found",
+      "actual": {
+        "status": 404,
+        "code": "not_found"
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "R15 cleanup: server stopped / port released",
+      "expected": "port released",
+      "actual": {
+        "port": 59807,
+        "released": true
+      },
+      "result": "PASS",
+      "notes": ""
+    }
+  ],
+  "failures": 0
+}
