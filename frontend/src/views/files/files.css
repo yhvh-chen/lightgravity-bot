@@ -143,6 +143,7 @@
   grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
   gap: var(--lg-space-3);
   min-height: 0;
+  min-width: 0;
   flex: 1;
 }
 
@@ -152,6 +153,7 @@
   flex-direction: column;
   gap: var(--lg-space-2);
   min-height: 0;
+  min-width: 0;
   padding: var(--lg-space-3);
   border: 1px solid var(--lg-color-border);
   border-radius: var(--lg-radius-panel);
@@ -301,12 +303,24 @@
   display: flex;
   flex-direction: column;
   gap: var(--lg-space-3);
+  /* Files is rendered inside a flex column (`.lg-files`); without this the
+   * section sizes to its content's max-content width and pushes the app
+   * shell wider than the viewport on narrow screens (LG-040). */
+  min-width: 0;
 }
 
 .lg-files-materials__body {
   display: grid;
-  grid-template-columns: minmax(220px, 320px) 1fr;
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
   gap: var(--lg-space-3);
+  min-width: 0;
+}
+
+.lg-files-materials__list-panel,
+.lg-files-materials__detail-panel {
+  /* Grid children default to min-width:auto, so long file names / hashes /
+   * paths would force the track to grow instead of wrapping. */
+  min-width: 0;
 }
 
 .lg-files-materials__list {
@@ -316,6 +330,7 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  min-width: 0;
 }
 
 .lg-files-materials__facts {
@@ -323,6 +338,12 @@
   flex-wrap: wrap;
   gap: var(--lg-space-3);
   margin: 0;
+  min-width: 0;
+}
+
+.lg-files-materials__facts dd {
+  /* Long source ids / content hashes must wrap, not widen the panel. */
+  overflow-wrap: anywhere;
 }
 
 .lg-files-materials__facts dt {
@@ -344,6 +365,9 @@
 
 .lg-files-materials__textarea {
   min-height: 160px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   font-family: var(--lg-font-mono, monospace);
 }
 
@@ -353,8 +377,13 @@
   gap: var(--lg-space-2);
 }
 
-@media (max-width: 700px) {
+/* Stack list above detail before the two-column floor (220px) plus the
+ * non-wrapping detail content can be squeezed toward zero. The threshold
+ * accounts for the app-shell chrome (56 rail + 240 context + 360 chat) which
+ * stays inline down to 1023px, so at 1024px the content area is only ~330px
+ * wide and a 220px list column would leave the detail panel at ~0 width. */
+@media (max-width: 1199px) {
   .lg-files-materials__body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
