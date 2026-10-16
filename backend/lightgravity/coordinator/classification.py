@@ -14,6 +14,7 @@ read-only tools; anything not listed is denied.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from enum import StrEnum
 
@@ -82,8 +83,97 @@ class Classification:
         return self.next_action in {"direct", "bounded_read"}
 
 
-def _hit(text: str, keywords: tuple[str, ...]) -> tuple[str, ...]:
-    return tuple(keyword for keyword in keywords if keyword in text)
+#: Quote pairs whose contents are treated as quoted content, not commands.
+_QUOTE_PAIRS: tuple[tuple[str, str], ...] = (("\"", "\""), ("'", "'"), ("`", "`"), ("\u201c", "\u201d"))
+
+
+def _ascii_matcher(keyword: str) -> re.Pattern[str] | None:
+    """Whole-word regex for an ASCII keyword, or ``None`` for CJK keywords.
+
+    CJK keywords have no word delimiters, so they keep the original substring
+    semantics (existing Chinese commands must not regress).  ASCII keywords are
+    matched on word boundaries so derived forms such as ``approved``,
+    ``approval``, ``acceptance`` or ``cancellation`` no longer match the control
+    stems ``approve``/``accept``/``cancel``.
+    """
+
+    if not keyword.isascii():
+        return None
+    pattern = re.escape(keyword)
+    if keyword[:1].isalnum() or keyword[:1] == "_":
+        pattern = r"(?<!\w)" + pattern
+    if keyword[-1:].isalnum() or keyword[-1:] == "_":
+        pattern = pattern + r"(?!\w)"
+    return re.compile(pattern)
+
+
+_MATCHER_CACHE: dict[str, re.Pattern[str] | None] = {}
+
+
+def _matcher(keyword: str) -> re.Pattern[str] | None:
+    if keyword not in _MATCHER_CACHE:
+        _MATCHER_CACHE[keyword] = _ascii_matcher(keyword)
+    return _MATCHER_CACHE[keyword]
+
+
+def _quoted_spans(text: str) -> tuple[tuple[int, int], ...]:
+    """Character spans that sit inside a matched quoted segment."""
+
+    spans: list[tuple[int, int]] = []
+    for open_quote, close_quote in _QUOTE_PAIRS:
+        start = 0
+        while True:
+            begin = text.find(open_quote, start)
+            if begin == -1:
+                break
+            end = text.find(close_quote, begin + 1)
+            if end == -1:
+                break
+            spans.append((begin, end + 1))
+            start = end + 1
+    return tuple(spans)
+
+
+def _inside(spans: tuple[tuple[int, int], ...], pos: int) -> bool:
+    return any(begin <= pos < end for begin, end in spans)
+
+
+def _is_filename_token(text: str, end: int) -> bool:
+    """Whether a keyword is immediately followed by a file extension."""
+
+    return bool(re.match(r"\.[a-z0-9]{1,6}(?!\w)", text[end:]))
+
+
+def _is_incidental_control(text: str, matcher: re.Pattern[str]) -> bool:
+    """True when a control/decision keyword is only quoted content or a filename.
+
+    A delivery imperative that merely *mentions* a control word (inside quotes
+    or as a filename such as ``accept.md``) must not execute that word as a
+    control command.  Only the concrete occurrence is suppressed; the keyword
+    itself keeps matching elsewhere in the message.
+    """
+
+    quoted = _quoted_spans(text)
+    for match in matcher.finditer(text):
+        start, end = match.span()
+        if _inside(quoted, start) or _is_filename_token(text, end):
+            continue
+        return False
+    return True
+
+
+def _hit(text: str, keywords: tuple[str, ...], *, suppress_incidental: bool = False) -> tuple[str, ...]:
+    hits: list[str] = []
+    for keyword in keywords:
+        matcher = _matcher(keyword)
+        if matcher is None:
+            if keyword in text:
+                hits.append(keyword)
+        elif matcher.search(text):
+            if suppress_incidental and _is_incidental_control(text, matcher):
+                continue
+            hits.append(keyword)
+    return tuple(hits)
 
 
 # Ordered rules: control/decision/status/retry precede content classification so
@@ -157,7 +247,11 @@ def classify_message(content: str) -> Classification:
         (MessageIntent.STATUS_QUERY, _STATUS),
         (MessageIntent.RETRY, _RETRY),
     ):
-        matched = _hit(text, keywords)
+        matched = _hit(
+            text,
+            keywords,
+            suppress_incidental=intent in {MessageIntent.CONTROL, MessageIntent.DECISION},
+        )
         if matched:
             return Classification(
                 intent=intent,

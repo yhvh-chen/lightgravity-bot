@@ -1,0 +1,225 @@
+{
+  "cases": [
+    {
+      "label": "observed finding goal",
+      "text": "Create a Markdown file orion-summary.md using only the selected brief. Include project name, programme owner, primary launch date, total approved budget, project ID, and change ticket. Return the file as the deliverable.",
+      "expected_intent": "delivery",
+      "intent": "delivery",
+      "next_action": "create_task",
+      "matched": [
+        "create"
+      ],
+      "ok": true
+    },
+    {
+      "label": "QA corrected goal (no 'approved')",
+      "text": "Create the deliverable orion-summary.md (Markdown) using only the selected brief. It must contain the project name, programme owner, primary launch date, total budget, project ID, and change ticket. Return the file as the deliverable.",
+      "expected_intent": "delivery",
+      "intent": "delivery",
+      "next_action": "create_task",
+      "matched": [
+        "create"
+      ],
+      "ok": true
+    },
+    {
+      "label": "derived word in question",
+      "text": "Who approved the budget?",
+      "expected_intent": "answer",
+      "intent": "answer",
+      "next_action": "direct",
+      "matched": [],
+      "ok": true
+    },
+    {
+      "label": "noun 'approval'",
+      "text": "What is the approval status?",
+      "expected_intent": "status_query",
+      "intent": "status_query",
+      "next_action": "query",
+      "matched": [
+        "status"
+      ],
+      "ok": true
+    },
+    {
+      "label": "filename acceptance.md",
+      "text": "Create acceptance.md",
+      "expected_intent": "delivery",
+      "intent": "delivery",
+      "next_action": "create_task",
+      "matched": [
+        "create"
+      ],
+      "ok": true
+    },
+    {
+      "label": "filename approved-budget.md",
+      "text": "Create approved-budget.md",
+      "expected_intent": "delivery",
+      "intent": "delivery",
+      "next_action": "create_task",
+      "matched": [
+        "create"
+      ],
+      "ok": true
+    },
+    {
+      "label": "noun 'cancellation'",
+      "text": "Create a doc explaining the cancellation policy",
+      "expected_intent": "delivery",
+      "intent": "delivery",
+      "next_action": "create_task",
+      "matched": [
+        "create"
+      ],
+      "ok": true
+    },
+    {
+      "label": "explicit approve",
+      "text": "Please approve the current candidate.",
+      "expected_intent": "decision",
+      "intent": "decision",
+      "next_action": "decision",
+      "matched": [
+        "approve"
+      ],
+      "ok": true
+    },
+    {
+      "label": "explicit accept",
+      "text": "Please accept the current candidate",
+      "expected_intent": "decision",
+      "intent": "decision",
+      "next_action": "decision",
+      "matched": [
+        "accept"
+      ],
+      "ok": true
+    },
+    {
+      "label": "explicit reject",
+      "text": "reject the current candidate",
+      "expected_intent": "decision",
+      "intent": "decision",
+      "next_action": "decision",
+      "matched": [
+        "reject"
+      ],
+      "ok": true
+    },
+    {
+      "label": "explicit cancel",
+      "text": "cancel the running task",
+      "expected_intent": "control",
+      "intent": "control",
+      "next_action": "control",
+      "matched": [
+        "cancel"
+      ],
+      "ok": true
+    },
+    {
+      "label": "explicit pause",
+      "text": "pause the running task",
+      "expected_intent": "control",
+      "intent": "control",
+      "next_action": "control",
+      "matched": [
+        "pause"
+      ],
+      "ok": true
+    },
+    {
+      "label": "explicit resume",
+      "text": "resume the task",
+      "expected_intent": "retry",
+      "intent": "retry",
+      "next_action": "retry",
+      "matched": [
+        "resume"
+      ],
+      "ok": true
+    },
+    {
+      "label": "question not write auth",
+      "text": "How do I create file?",
+      "expected_intent": "answer",
+      "intent": "answer",
+      "next_action": "direct",
+      "matched": [
+        "how "
+      ],
+      "ok": true
+    },
+    {
+      "label": "filename accept.md",
+      "text": "Create a file accept.md listing the results",
+      "expected_intent": "delivery",
+      "intent": "delivery",
+      "next_action": "create_task",
+      "matched": [
+        "create"
+      ],
+      "ok": true
+    },
+    {
+      "label": "quoted control word",
+      "text": "Create a file with the text \"approve\" inside",
+      "expected_intent": "delivery",
+      "intent": "delivery",
+      "next_action": "create_task",
+      "matched": [
+        "create"
+      ],
+      "ok": true
+    },
+    {
+      "label": "existing Chinese control",
+      "text": "取消那个修改任务",
+      "expected_intent": "control",
+      "intent": "control",
+      "next_action": "control",
+      "matched": [
+        "取消"
+      ],
+      "ok": true
+    },
+    {
+      "label": "existing Chinese read",
+      "text": "读这个文件并解释一下",
+      "expected_intent": "bounded_read",
+      "intent": "bounded_read",
+      "next_action": "bounded_read",
+      "matched": [
+        "读这个文件",
+        "解释"
+      ],
+      "ok": true
+    },
+    {
+      "label": "existing Chinese status",
+      "text": "现在进度如何？",
+      "expected_intent": "status_query",
+      "intent": "status_query",
+      "next_action": "query",
+      "matched": [
+        "进度"
+      ],
+      "ok": true
+    },
+    {
+      "label": "existing Chinese delivery",
+      "text": "修改示例页面并验证登录功能",
+      "expected_intent": "delivery",
+      "intent": "delivery",
+      "next_action": "create_task",
+      "matched": [
+        "修改"
+      ],
+      "ok": true
+    }
+  ],
+  "failures": 0,
+  "total": 20
+}
