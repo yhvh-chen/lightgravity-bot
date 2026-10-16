@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import httpx
 
+from lightgravity.api.app import create_app
 from lightgravity.config import Settings
 
 from team_helpers import (
@@ -144,3 +145,27 @@ async def test_member_cannot_use_task_resource_proposal(
     # Refused by the admin-only control-change gate before any resource write.
     assert response.status_code == 403
     assert error_code(response) == "forbidden"
+
+
+async def test_files_cannot_read_team_accounts_even_inside_workspace(
+    team_settings: Settings,
+    seeded_accounts: object,
+) -> None:
+    import dataclasses
+
+    # Worst case: the workspace root is configured to contain the team dir.
+    misconfigured = dataclasses.replace(
+        team_settings, workspace_root=team_settings.data_dir
+    )
+    app = create_app(misconfigured)
+    async with app.router.lifespan_context(app):
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            assert (await login_member(client)).status_code == 200
+            response = await client.get(
+                "/api/v1/files/content", params={"path": "team/accounts.json"}
+            )
+            assert response.status_code == 403
+            assert error_code(response) == "path_outside_workspace"
