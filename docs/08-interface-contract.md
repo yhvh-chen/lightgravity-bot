@@ -601,6 +601,8 @@ updated_at: null
 
 **实现说明（OCR 渲染尺度，无契约版本变化）**：OCR 处理路径的 PDF 渲染尺度为可选、非秘密的组合配置，经既有环境配置入口 `LIGHTGRAVITY_OCR_SCALE` 读取并传到产品 `ProcessingEngine` → `PdfiumRasterizer`。PDF 用户单位为 1/72 英寸，缺省 `2.0`（约 144 DPI）保持既有默认行为；显式值须为有限正数且不超过已记录安全上限（`MAX_OCR_SCALE=4.0`，约 288 DPI），非法值显式报错、不静默夹取为通过。此为**加性可选环境变量，不新增/改变端点、错误码、实体 schema、枚举、迁移方向与请求/响应字段**，按 docs/08 §13 属“实现说明增补（无版本变化）”，**不机械升版**；契约版本保持 `1.11.0`。
 
+**实现说明（OCR 可选表格模式，无契约版本变化）**：OCR 处理路径新增**可选、默认关闭**的表格模式，经既有组合配置入口 `LIGHTGRAVITY_OCR_TABLE_MODE` 读取（缺省/空值 = 关闭）。接受值仅为不区分大小写的开/关拼写：开 = `1`/`true`/`yes`/`on`，关 = `0`/`false`/`no`/`off`；**其它任意值显式报错**（`validation_failed`，`details.accepted` 列出规范拼写 `0`/`1`/`false`/`true`），不静默当作关闭。开启时，程序先用**模型无关、有界、纯像素/几何**的版面分类器判断该页是否**确有带横线、多列一致 gutter 的表格网格**；**仅**对置信判为真实表格的页改用显式 Markdown 表格提示词，普通页（清晰页、印刷页、扫描页、非 PNG 输入等）**始终使用未改动的默认提示词**。判定所需的行数、列数、横线数与逐行列一致性为**已记录的固定比率常量，非逐页调参**；分类输入不含文件名、fixture 哈希、页码或任何人工真值。该模式**不新增/改变任何端点、错误码、实体 schema、枚举、迁移方向、状态迁移或请求/响应字段**；其判定记录（`prompt_kind`/`prompt_sha256`/`table_classification`）**只写入不透明本地派生证据** `derivative/ocr_evidence.jsonl` 与 per-version `source_derivative` pages 文档，**不进入** §6.6 冻结的 `source` 顶层字段或 `source.derivatives` 条目形状（`{kind, path, source_version, content_hash, model_version}`）。页数与输入上界沿用既有处理边界（`ProcessingConfig` 的 `max_pages`/`max_tokens_per_page`），无新增无界输入路径。按 §13 属“实现说明增补（无版本变化）”，**不机械升版**；契约版本保持 `1.11.0`。
+
 ## 7. Store 接口（文件事实源）
 
 Store 是唯一控制状态写入者；worker/adapter 不得直接编辑 TASK.md/RUN.md 等控制文件。接口以 Python `Protocol` 表达（LG-004 实现，LG-002 建骨架）：

@@ -86,18 +86,16 @@ Files 只读预览/下载、受控上传（`X-LG-Token`，无 token 时上传如
 
 ## 当前进展（截至 2026-10-16）
 
-> **最新状态（2026-10-16，Materials R6 集成）**：任务 CLI（backlog 专用根）`validate` **41 tasks / 0 diagnostics**；
-> `digest` complete=true → **2 todo / 2 in-progress / 37 done**；`ready=[]`。
-> 本轮仅集成**证据**，0 新增产品 LAN 调用、0 音频：OCR 版面（A）产品原型**不合并**（scale-sensitive：同一 Z2 页 gutter 计数 2 vs 4 不稳定、未集成默认管线；
-> 仅 `probes/materials-ocr-layout-r6-20261016/**` 证据入库，owned commit `72f7125`；**erratum**：A wrapper 在 commit 之后 `exit 143`（非正常成功），
-> 版面计数 scale 不稳定，本节为结构性信号、**非质量通过**）；向量诊断 B、证据可观测 C、OCR 协议调查 D 三者 probes-only `--no-ff` 合并
->（B `d189f43` / C `7069ffe` / D `6bef4ed`，历史报告字节未改）。B：查询文本一致、媒体向量稳定、语料改变，**旧 margin UNKNOWN**、未证产品排序缺陷；
-> C：真实 2 POST 均 30 s `index_unavailable`、health 1 GET 200，**无真实新排名**，stub `order_match` 仅 WEAK PATH；D：`15×3` 溯源于 R4 评分代码而非原协议/真值，
-> 支持**疑似协议类缺陷（非绝对证明）**、**U1 无人眼视觉确认**。**无质量通过**；历史 R3/R4/R5 FAIL 维持、旧协议/JSON 与阈值不变、不宣 Z2 pass；
-> 真实 grid + 人工 cell 真值 / 新冻结 cohort 与混合覆盖仍 **UNMET**。**in-progress = LG-035（图片/PDF OCR，真实表格未过）、LG-037（可选向量，无新排名、R5 图片门 FAIL 不变）**；
-> **todo = LG-040（资料/Embedding 集中验收，未解锁）、LG-041（中文 ASR 质量锁，未解锁）**。代码契约 **`1.11.0`**、SDK **`0.1.22`**。
-> **当前下一步**：OCR 需**真实 grid + 人工 cell 真值**并在冻结新协议/cohort 后再做未来模型调用（Z2 更宜作多列/并排阅读顺序基准）；
-> 向量需**更大更平衡跨模态语料 + 分数 margin 诊断**（不自动采样、不在冻结 R5 查询上调阈值）。集成报告 [probes/materials-r6-integration-20261016/REPORT.md](probes/materials-r6-integration-20261016/REPORT.md)。下方表格为 2026-10-15 历史局部证据，保留不改。
+> **最新状态（2026-10-16，Materials R7 集成 + LG-035 置 done）**：任务 CLI（backlog 专用根）`validate` **41 tasks / 0 diagnostics**；
+> `digest` complete=true → **2 todo / 1 in-progress / 38 done**；`ready=[]`（LG-037 仍 `in-progress`，仍阻塞 LG-040）。
+> 本包为**真实本地集成**，0 新增产品 LAN 调用、0 新模型探针：A（fixtures：真实 NIST SP 811 表格 3×8 + 人工真值、混合 2 页 PDF 文本层已核）`f21d6e3`、B（layout：可选有界 `layout.py` + init 导出 + 测试，跨尺度 1/2/4 同一 `[1,2,1,1]`）`8182d36`、
+> C（端点诊断：真实 2 embedding POST 成功 + 2 GET，首次完整排名 `Q_IMG_ZH` rank **7/10** score **0.725667**、`margin_to_prev` **0.00037**）`1cfa417`、D（OCR cohort：3 POST + 1 GET，默认管线真实表格 **FAIL**（0 行/列）、MIX p1 CER **0.0295**/p2 **0.0000** PASS）`97c4f8f`、
+> E（可选表格模式，基点 `8182d36`）`4917413`：**默认 OFF**、程序侧真实网格分类器仅对可信表格路由通用 Markdown 提示词，真实产品路径 2 OCR POST + 1 health GET → T1 真实 8×3 网格 cell CER **0.0**、符号 7/7 PASS，Z1 CER **0.0423**（默认提示词哈希不变）PASS。
+> 五包按 A→B→C→D→E 顺序 `--no-ff` 合并（无冲突、E 因 descends B 无重复 pick）；合并候选 `mypy` **138 files clean**、`pytest tests/sources` **147 passed, 1 skipped**、`test_layout`+`test_table_mode` **28 passed**、离线 gate **ALL_OK**。
+> **LG-035 置 `done`（待 LG-040 集中版本 QA）**：原始验收条件（真实清晰页、低质量诚实降级、多页、中文印刷、**真实 grid + 人工真值 + 可选表格模式**、混合、机器/正式分离）已由真实 receipt 覆盖；**历史 R3/R4/R5/R6/R7-cohort 表格 FAIL 全部保留**，不宣称统计级/全类表格质量通过。
+> **in-progress = LG-037（可选向量：新排名取到但旧 R5 图片硬门 FAIL 不变、无跨模态质量结论）**；**todo = LG-040（资料/Embedding 集中验收，未解锁）、LG-041（中文 ASR 质量锁，未解锁）**。代码契约 **`1.11.0`**、SDK **`0.1.22`**。
+> **当前下一步**：命名的 **LG-040 集中版本 QA**（真实浏览器上传/归属/OCR/校订/检索/重处理/撤销删除/索引重建 + 跨模态质量 + 资源成本）；
+> 向量需**更大更平衡跨模态语料 + 分数 margin 诊断**（不自动采样、不在冻结 R5 查询上调阈值）。集成报告 [probes/materials-r7-integration-20261016/REPORT.md](probes/materials-r7-integration-20261016/REPORT.md)。下方表格为 2026-10-15 历史局部证据，保留不改。
 
 | 任务 | 状态 | 实际证据与限制 |
 |---|---|---|
@@ -123,7 +121,7 @@ Files 只读预览/下载、受控上传（`X-LG-Token`，无 token 时上传如
 - 上述 done 为执行者局部证据，**除 LG-010、LG-027 外均不是版本 QA 结论**；LG-003 已实测的 DeepSeek（OpenAI-compatible）路径是 docs/08 v1.7.0 确定的（1.1.0 起）真实后端，LG-006 已在该路径上实现正式 executor + 产品侧 loopback 认证代理。LG-010 已通过独立版本 QA（最小后端闭环），但其收尾是**基于契约 1.3.1 core**、不覆盖 1.5 新资源/启动功能；LG-015、LG-020 仍待 LG-021/LG-022 版本 QA 门集中验证（LG-027 已就其设置/凭证子范围 pass）。
 - LG-013 实施已按真实 API 接线通过本包验收并置 `done`，但**完整浏览器业务路径（真实浏览器 HTTP 创建/继续任务、交付审阅与验收停止释放）仍归 LG-021/022**，不能据此宣称完整网页可用。
 - 旧 QA「浏览器全 HTTP/fetch 阻断」结论已被 root `probes/browser-diagnostics` 诊断推翻并精确更正：真实 loopback HTTP 的 `fetch` 与 SSE 从 `file://`/`about:blank` shell 可用，仅**顶层 `Page.navigate` 到 `http://` 在本机 headless Chrome 挂起**（见 [browser-diagnostics README](probes/browser-diagnostics/README.md)）。原报告按历史保留，更正不改写旧文。
-- 下一步（已更新至 2026-10-16）：LG-016/LG-017/LG-018/LG-019/LG-021/LG-022/LG-023/LG-024 已 done；LG-028～032 已交付，**LG-031/LG-032 已依据独立门 done（032 仅评估范围）**；**LG-033～038 中 LG-036/038 done 待 LG-040，LG-035/037 仍 in-progress**；**LG-040/041 未解锁**。**完整 checkpoint skip 调度仍未实现**。契约保持 `1.11.0`，SDK `0.1.22`。资料 OCR R4 机制修复（可选 `LIGHTGRAVITY_OCR_SCALE`，缺省 2.0 不变）已 `--no-ff` 合入 `main@575f84a`，集成后聚焦 22 OCR 测试 + mypy 3 文件 exit 0；**Z2 表格质量仍 FAIL（公平段 CER 0.2689 > 0.25）⇒ 不 done、不解锁 LG-040/041**，下一步为已被命名的 LG-040 集中版本 QA（[R4 集成 REPORT](probes/materials-r4-integration-20261016/REPORT.md)）。**跨模态向量质量 R4 证据（真实 16 embedding POST/1 GET/0 retry；text→image Recall@5=1，Q_IMG_ZH rank 5/Q_IMG_EN rank 1；text→audio Recall@5=1；MRR 0.7333；负向各 5 false hits 属 top-k NN 预期；仅 1 真实音频候选、第二条缺失；未做真实第二模型切换）已 `--no-ff` 合入 `main@bd7fb18`（产品树零 delta、源 report 字节未改），**LG-037 仍 partial cross-modal、不 done、不解锁 LG-040/041**（[向量 R4 集成 REPORT](probes/materials-vector-r4-integration-20261016/REPORT.md)）。
+- 下一步（已更新至 2026-10-16）：LG-016/LG-017/LG-018/LG-019/LG-021/LG-022/LG-023/LG-024 已 done；LG-028～032 已交付，**LG-031/LG-032 已依据独立门 done（032 仅评估范围）**；LG-033/034/036/038 已 done 待 LG-040；**LG-035 已 done（待 LG-040 集中版本 QA）**、**LG-037 仍 in-progress**；**LG-040/041 未解锁**。**完整 checkpoint skip 调度仍未实现**。契约保持 `1.11.0`，SDK `0.1.22`。Materials R7 五包 A→B→C→D→E 已 `--no-ff` 合入 `main`（HEAD 见 PROGRESS），集成候选 mypy 138 files clean、`pytest tests/sources` 147 passed/1 skipped；**LG-035 按原始验收条件真实覆盖置 done**（表格由可选 `LIGHTGRAVITY_OCR_TABLE_MODE` 真实 8×3 网格 + 人工真值 PASS 覆盖，默认 OFF、默认管线不变；历史表格 FAIL 保留），下一步为已被命名的 LG-040 集中版本 QA（[R7 集成 REPORT](probes/materials-r7-integration-20261016/REPORT.md)）。**LG-037 真实新排名（rank 7/10、margin 0.00037）取到，但旧 R5 图片硬门 FAIL 不变、无跨模态质量结论、不 done、不解锁 LG-040/041**。
 - **计划标记（资料接入与检索）**：方向已确认并落盘到 [docs/09](docs/09-source-intake-and-retrieval.md)，2026-10-15 已正式排入资料线 [LG-033～041](BACKLOG.md)，但**未实现、接口未冻结**；其中中文 ASR 先由 LG-039 做质量验证，达标后再由 LG-041 条件接入，且不作为 LG-040 的硬依赖；图片/PDF、词法、可选向量与 Chat/Files 统一由 LG-040 集中 QA。实施前须按 [docs/08 §13](docs/08-interface-contract.md) 变更控制冻结接口并升版；不改变现有 LG 任务状态与优先级。
 - **计划标记（去中心化协作）**：[LG-028～032](BACKLOG.md) 已正式排期（契约 → 原子领取/租约 → 同伴交接 → 隔离执行与 QA/返修整合 → 集中版本验收），但**完整自主协作尚未实现、接口未冻结**；不改变现有任务状态，也不把已有“无独立编排”QA 当作去中心化验收。
 

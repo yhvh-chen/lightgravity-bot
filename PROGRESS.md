@@ -7,7 +7,35 @@ updated: "2026-10-16"
 
 # 当前进展与续接记录
 
-> **2026-10-16 最新事实见下方「## 2026-10-16 Materials R6 集成检查点」；其下各节（Materials OCR/Vector R5 收拢、Materials Vector R4 集成、Materials OCR R4 集成、证据集成收拢与 2026-10-15 历史快照）整体标记为历史，保留不改。**
+> **2026-10-16 最新事实见下方「## 2026-10-16 Materials R7 集成检查点（LG-035 置 done）」；其下各节（Materials R6 集成、Materials OCR/Vector R5 收拢、Materials Vector R4 集成、Materials OCR R4 集成、证据集成收拢与 2026-10-15 历史快照）整体标记为历史，保留不改。**
+
+## 2026-10-16 Materials R7 集成检查点（LG-035 置 done）（唯一 main 集成/PM 文档 owner；本集成阶段产品 LAN 调用 0/外部服务 0）
+
+本节为**当前事实**，覆盖其上历史快照中的相关表述；旧实验、worktree、原始 probes、旧 dirty 全部保留，
+未 reset/clean/覆盖/重复 cherry-pick，未推送/部署/发布。主代理只 PM，无嵌套派工、无网络/模型探针、无新模型探针。
+详细报告 [probes/materials-r7-integration-20261016/REPORT.md](probes/materials-r7-integration-20261016/REPORT.md)。
+
+- **开工核对（真实，只读）**：本项目根 `main@2d76c83` clean、无 stash；五条源分支均以 `2d76c83` 为基点、worktree clean、tip 如实：
+  A `test/materials-fixtures-r7-20261016@f21d6e3`、B `fix/materials-layout-r7-20261016@8182d36`、C `investigate/materials-endpoint-r7-20261016@1cfa417`、
+  D `test/materials-ocr-cohort-r7-20261016@97c4f8f`、E `fix/materials-table-mode-r7-20261016@4917413`（基点 `8182d36`，**descends B**）。
+- **既有 bounded wrapper 缺席（不含自身）**：开工时唯一在跑的 `lightgravity-pi-bounded.py` 为**本集成任务自身**（argv `materials-r7-integrate-20261016.txt`，
+  其 `pi` 子进程为本 shell 父进程）；五个源 owner wrapper 均已自行退出（未被杀）。**无其它外部 `main` 写入者**（合并前 HEAD 与 `git status` 符合预期）。
+- **顺序 `--no-ff` 合并（无冲突、E 因 descends B 无重复 pick）**：A `89b0cc1` → B `7eb88fe` → C `e8a8e40` → D `95b66bf` → E `5f84503`。
+  最终合并产品树与 E `4917413` 于 owned 文件**逐字节相同**（`git diff` 空）；源 tip 未变、源 worktree clean；其它历史 worktree/dirty 保留未触。
+- **产品变更（合并）**：`sources/ocr/layout.py`（新增，有界/模型无关版面分析 + 真实网格分类）、`sources/ocr/__init__.py`（导出）、`sources/ocr/adapter.py`（`OCR_TABLE_PROMPT`/`OcrRequest.prompt`/`ENV_OCR_TABLE_MODE`/`parse_table_mode_env`）、`sources/processing.py`（`ProcessingConfig.table_mode` 默认 False + 逐页分类 + 证据字段）、`tests/sources/ocr/test_layout.py` + `test_table_mode.py`。
+  **默认管线不变**；`api/`、`service.py`、`content.py`、`models.py` 与合并前**逐字节不变**；无新增无界 PNG 膨胀（解压前限几何）、无运行期绝对引用依赖、无新公开 schema。
+- **集成检查（真实 exit，绑定合并候选）**：`mypy` exit 0 → **138 files clean**；`pytest tests/sources -q` exit 0 → **147 passed, 1 skipped**；`test_layout`+`test_table_mode` **28 passed**；`offline_gate.py` **ALL_OK**；重新生成的 `offline_gate.json` 与 E 提交版**逐字节相同**（确定性）。
+- **Board CLI（真实，绝对根）**：`validate` **41 tasks / 0 diagnostics**；**置 done 后** `digest` **38 done / 1 in-progress / 2 todo / ready []**、complete=true、0 diagnostics——与预期一致。
+- **LG-035 → `done`（待 LG-040 集中版本 QA）**（仅改 frontmatter `status` + 追加正文，assignee/IDs 保留）：原始验收条件（真实清晰页、低质量诚实降级、多页、中文印刷、**真实 grid + 人工真值 + 可选表格模式**、混合、机器/正式分离）已由**真实 receipt** 覆盖；
+  A/B/C/D/E 证据：清晰页 CER 0.0000、多页 p1 0.0000/p2 0.0763、混合 D MIX p1 **0.0295**/p2 **0.0000**、表格 E T1 真实 8×3 cell CER **0.0**/符号 7/7、中文 Z1 **0.0423**、低质量诚实记录未计分。
+  **不宣称统计级/全类表格质量通过**：E 为单次单样本（born-digital 网格）；D 默认管线同一真实网格仍 **FAIL**（扁平列表、0 行/列、cell CER 1.0）；**历史 R3/R4/R5/R6/R7-cohort 表格 FAIL 全部保留不改写**；Z2 多列阅读顺序归 LG-040。
+- **LG-037 保持 `in-progress`**：C 取到**首次完整可复算真实排名**——`Q_IMG_ZH` 目标 **rank 7/10**、score **0.725667**、`margin_to_prev` **0.00037**（与 D6 几乎并列）；协议逐维一致、**唯一确定性差异是 timeout 30 s(R6) vs 90 s(R4/R5/R7)**；R6 瞬时故障归因**plausible（端点瞬时排队/冷加载）但未唯一证明**（缺 raw 体/异常类型）、**health 200 ≠ embeddings 容量**；**不证明产品代码缺陷**；旧 R5 图片硬门 **FAIL 不变**、不加新阈值、不在冻结查询上调阈值、**无跨模态质量结论**、**不解锁 LG-040/041**。
+- **契约**：`prompt_kind`/`prompt_sha256`/`table_classification` 仅为不透明派生证据（`ocr_evidence.jsonl` + pages 派生文档），**不属冻结 source schema/API/枚举/迁移**（docs/08 §6.6/§13 先例同 `LIGHTGRAVITY_OCR_SCALE`）⇒ **内部扩展，无版本 bump**；契约保持 **`1.11.0`**、SDK **`0.1.22`**；README + docs/08 §6.6 + docs/09 已写入 LIGHTGRAVITY_OCR_TABLE_MODE 接受值/默认 OFF/条件性 PNG 与页/输入上界。
+- **成本（分开计，unknown ≠ 0）**：本集成阶段产品 LAN 调用 **0**（无新 POST/GET/ASR/embedding、无新模型探针）；源历史 C embedding **2 POST + 2 GET**、D OCR **3 POST + 1 GET**、E OCR **2 POST + 1 GET**、acquisition(A) **7 GET + 1 download**（含冗余 size 探测，如实）；pi/DeepSeek 成本 **unknown 非 0**；LAN/端点价格 unknown；**无音频**。未 push/deploy/publish。
+- **状态总览**：**38 done / 1 in-progress（LG-037）/ 2 todo（LG-040、LG-041）**；**LG-040/041 仍 locked**（LG-037 未 done 仍阻塞 LG-040）。
+- **下一步（具体）**：命名的 **LG-040 集中版本 QA**——浏览器真实上传/归属/OCR/校订/检索/重处理/撤销删除/索引重建 + 跨模态质量 + 资源成本；向量需**更大更平衡跨模态语料 + 分数 margin 诊断**（不自动采样、不在冻结 R5 查询上调阈值）；OCR 多列/并排阅读顺序与统计级表格电池归 LG-040。
+
+---
 
 ## 2026-10-16 Materials R6 集成检查点（唯一 main 集成/PM 文档 owner；本集成阶段产品 LAN 调用 0/外部服务 0）
 

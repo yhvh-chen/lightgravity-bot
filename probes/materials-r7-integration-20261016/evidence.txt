@@ -1,0 +1,14 @@
+main HEAD: 5f84503a2921aa413cc1cf4ff76748fb0d8dacb9
+=== pytest tests/sources ===
+.....................................................s.................. [ 97%]
+....                                                                     [100%]
+147 passed, 1 skipped in 17.36s
+EXIT=0
+=== ocr subtests ===
+............................                                             [100%]
+28 passed in 6.21s
+=== mypy ===
+Success: no issues found in 138 source files
+=== offline gate ===
+wrote /home/yhvh/code/lightgravity-bot/probes/materials-table-mode-r7-20261016/evidence/offline_gate.json
+ALL_OK

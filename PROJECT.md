@@ -43,6 +43,20 @@ updated: "2026-10-15"
 
 ## 决策日志
 
+### 2026-10-16：Materials R7 集成——五包 A→B→C→D→E 真实合并；可选表格模式（默认 OFF）落地；LG-035 依據原始验收条件置 done；LG-037 保持 in-progress
+
+- **PM 决定（普通技术决定）**：本轮为**真实本地集成**（非仅证据），将 A/B/C/D/E 五包按序 `--no-ff` 合入 `main`；报告 [probes/materials-r7-integration-20261016/REPORT.md](probes/materials-r7-integration-20261016/REPORT.md)。**无 push/deploy/publish、无 reset/clean、无新模型探针**（本集成阶段产品 LAN 调用 0）。
+- **真实本地集成（无冲突、无重复 pick）**：A `test/materials-fixtures-r7-20261016@f21d6e3`（真实 NIST SP 811 表格 3×8 + 人工真值、混合 2 页 PDF 文本层已核）→ `89b0cc1`；
+  B `fix/materials-layout-r7-20261016@8182d36`（可选有界 `layout.py` + init 导出 + `test_layout.py`）→ `7eb88fe`；
+  C `investigate/materials-endpoint-r7-20261016@1cfa417` → `e8a8e40`；D `test/materials-ocr-cohort-r7-20261016@97c4f8f` → `95b66bf`；
+  E `fix/materials-table-mode-r7-20261016@4917413`（基点 `8182d36`，descends B）→ `5f84503`。最终合并产品树与 E owned 文件逐字节相同；源 tip/worktree 未变；其它历史 worktree/dirty 全保留。
+- **PM 决定 1：LG-035 → `done`（待 LG-040 集中版本 QA）**。依据 PM 授权：实现可置 done **仅当**技术 receipt 覆盖**实际原始验收条件**（baseline+new cohorts）——已列如：真实清晰页 CER 0.0000、低质量页诚实记录降级（无倣造 numeric gate）、多页 p1 0.0000/p2 0.0763、中文印刷 Z1 **0.0423**、**真实 grid + 人工真值 PASS（可选表格模式）** E T1 真实 8×3 cell CER **0.0**、符号 7/7、混合 D MIX p1 **0.0295**/p2 **0.0000**、baseline 机器/正式分离与重处理不覆盖。仅改 frontmatter `status` + 追加正文，**assignee/IDs 保留**。
+- **表格质量口径（诚实）**：E 表格 PASS 为**单次单样本**（born-digital 网格）；D **默认管线**（表格模式 OFF）对同一真实网格仍 **FAIL**（扁平列表、0 行/列、cell CER 1.0）；**历史 R3/R4/R5/R6/R7-cohort 表格 FAIL 全部保留不改写**；Z2 多列阅读顺序归 LG-040；**不宣称统计级/全类质量通过**。
+- **PM 决定 2：LG-037 保持 `in-progress`**。C 取得**首次完整可复算真实排名**（`Q_IMG_ZH` rank **7/10**、score **0.725667**、`margin_to_prev` **0.00037**）；协议逐维一致、唯一确定性差异是 timeout（30 s vs 90 s）；R6 瞬时故障归因**plausible 但未唯一证明**（缺 raw 体/异常类型）、**health 200 ≠ embeddings 容量**、**不证明产品代码缺陷**；旧 R5 图片硬门 **FAIL 不变**、不加新阈值、不在冻结查询上调阈值、**无跨模态质量结论**。
+- **契约：无版本 bump（内部扩展）**。`prompt_kind`/`prompt_sha256`/`table_classification` 仅写入不透明本地派生证据（`derivative/ocr_evidence.jsonl` + pages `source_derivative` 文档），**不属**冻结 `source` schema/API/枚举/迁移（docs/08 §6.6/§13 先例同 `LIGHTGRAVITY_OCR_SCALE`）；`LIGHTGRAVITY_OCR_TABLE_MODE` 为可选非秘密 env（缺省 OFF），接受值 `1/true/yes/on` 与 `0/false/no/off`（不区分大小写），其它值显式报错；页/输入上界沿用既有 `ProcessingConfig`。**无 fake 'changed' 声明**；契约保持 **`1.11.0`**、SDK **`0.1.22`**。已写 docs/08 §6.6 + docs/09 + README 使用说明。
+- **集成检查（真实 exit，绑定合并候选）**：`mypy` **138 files clean**；`pytest tests/sources -q` **147 passed, 1 skipped**；`test_layout`+`test_table_mode` **28 passed**；`offline_gate.py` **ALL_OK**；Board `validate` **41 / 0 diagnostics**、`digest` **38 done / 1 in-progress / 2 todo**、`ready=[]`。`api/`/`service.py`/`content.py`/`models.py` 逐字节不变（源 API 未改）；无运行期绝对引用依赖。
+- **状态与下一步**：**LG-040/041 仍 locked**（LG-037 仍阻塞 LG-040）；下一步为**已命名的 LG-040 集中版本 QA**；向量需更大更平衡跨模态语料 + margin 诊断（不自动采样、不在冻结查询上调阈值）。本集成产品 LAN 调用 **0**、音频 **0**；pi/DeepSeek 成本 unknown 非 0。
+
 ### 2026-10-16：Materials R6 集成——OCR 版面原型不合并（scale 不稳）；B/C/D probes-only 合并；接受前瞻协议修正规划；无质量通过
 
 - **PM 决定（普通技术决定）**：本轮只集成**证据**，**无质量通过、无状态变更**。报告 [probes/materials-r6-integration-20261016/REPORT.md](probes/materials-r6-integration-20261016/REPORT.md)。
