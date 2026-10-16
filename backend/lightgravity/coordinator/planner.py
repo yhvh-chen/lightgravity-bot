@@ -297,7 +297,14 @@ class RuleBasedPlanner:
         self._verification = verification_capability
 
     async def plan(self, context: DispatchContext) -> PlanProposal:
-        acceptance = tuple(context.acceptance_criteria)
+        declared = tuple(context.acceptance_criteria)
+        # LG-047 QA-R1: the deliver node must always carry a real acceptance
+        # boundary.  When the Task declares none (an ordinary Chat delivery
+        # request such as "create a Markdown file ..."), the program derives a
+        # deterministic, checkable criterion from the objective rather than
+        # emitting a node that the validator must reject.  This supplies a
+        # requirement to verify; it never asserts success.
+        acceptance = declared or default_acceptance_criteria(context.objective)
         subtasks: list[RawSubtask] = [
             RawSubtask(
                 key="deliver",
@@ -307,13 +314,17 @@ class RuleBasedPlanner:
                 write=True,
             )
         ]
-        if acceptance:
+        # An independent verification node is added only when the Task itself
+        # declares acceptance criteria.  A derived default keeps the prototype's
+        # minimal single-worker plan (docs/10 §7) while still satisfying the
+        # required acceptance boundary.
+        if declared:
             subtasks.append(
                 RawSubtask(
                     key="verify",
                     objective=f"独立验证：{context.objective}",
                     capability=self._verification,
-                    acceptance=acceptance,
+                    acceptance=declared,
                     depends_on=("deliver",),
                     write=False,
                 )
@@ -406,6 +417,32 @@ class ModelPlanner:
         return PlanProposal(subtasks=tuple(subtasks), source="model", notes=notes)
 
 
+#: A filename-like token in the objective (used to derive a concrete, checkable
+#: acceptance criterion for a generic Chat file-delivery request).
+_ARTIFACT_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\.[A-Za-z0-9]{1,8}")
+
+
+def default_acceptance_criteria(objective: str) -> tuple[str, ...]:
+    """Deterministically derive a minimal, checkable acceptance criterion.
+
+    Used only when a Task declares no criteria (an ordinary Chat delivery).  If
+    the objective names a concrete artifact, the criterion requires that file in
+    the task workspace; otherwise it requires a produced deliverable that
+    matches the objective.  This is a *requirement*, not a success claim: the
+    existing machine check and independent review still decide the outcome.
+    """
+
+    text = (objective or "").strip()
+    match = _ARTIFACT_RE.search(text)
+    if match is not None:
+        name = match.group(0)
+        return (
+            f"The requested deliverable file {name!r} exists in the task "
+            f"workspace and satisfies the objective: {text}",
+        )
+    return (f"A deliverable matching the objective is produced: {text}",)
+
+
 def _require_str(value: Any, field: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"{field} must be a non-empty string")
@@ -437,5 +474,6 @@ __all__ = [
     "RawSubtask",
     "RuleBasedPlanner",
     "SubtaskSpec",
+    "default_acceptance_criteria",
     "stable_hash",
 ]

@@ -13,7 +13,8 @@ async def test_global_and_task_messages_are_persisted(store: FileStore) -> None:
     coordinator = make_coordinator(store)
     await coordinator.submit_global_message(CONV, message("你好", message_id="msg-g1"))
     records = coordinator.read_global_messages(CONV)
-    assert [r["message_id"] for r in records] == ["msg-g1"]
+    # The user message and its persisted assistant reply (LG-047 QA-R1).
+    assert [r["message_id"] for r in records] == ["msg-g1", "assistant:msg-g1"]
     # Persisted on disk in the documented global-conversation location.
     path = store.data_dir / "conversations" / CONV / "messages.jsonl"
     assert path.is_file()
@@ -22,6 +23,8 @@ async def test_global_and_task_messages_are_persisted(store: FileStore) -> None:
     assert task_id is not None
     await coordinator.submit_task_message(task_id, message("补充", message_id="msg-t1"))
     task_records = coordinator.read_task_messages(task_id)
+    # A follow-up note is not a direct/bounded-read turn, so only the user row
+    # is recorded here (the assistant reply path is exercised in test_dialogue).
     assert [r["message_id"] for r in task_records] == ["msg-t1"]
 
 

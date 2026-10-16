@@ -17,8 +17,10 @@ async def test_global_message_id_is_idempotent(store) -> None:
     second = await coordinator.submit_global_message(CONV, msg)
     assert first.to_dict() == second.to_dict()
     records = coordinator.read_global_messages(CONV)
-    assert len(records) == 1
-    assert records[0]["message_id"] == "msg_same"
+    # The user message plus exactly one persisted assistant reply (LG-047): a
+    # retried message_id never appends a second reply.
+    assert [r["message_id"] for r in records] == ["msg_same", "assistant:msg_same"]
+    assert records[1]["message"]["role"] == "assistant"
 
 
 async def test_global_delivery_message_creates_one_task(store) -> None:
@@ -38,7 +40,9 @@ async def test_task_message_id_is_idempotent(store) -> None:
     await coordinator.submit_task_message(task_id, msg)
     await coordinator.submit_task_message(task_id, msg)
     records = coordinator.read_task_messages(task_id)
-    assert len(records) == 1
+    # A follow-up note appends only the user row; the duplicate message_id must
+    # not append a second one (LG-047 idempotency).
+    assert [r["message_id"] for r in records] == ["msg_task_same"]
 
 
 async def test_duplicate_task_message_does_not_repeat_control(store) -> None:

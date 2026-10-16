@@ -96,18 +96,29 @@ class DispatchContext:
     #: LG-043: the resolved/persisted bindings for this Run (internal evidence).
     selected_bindings: tuple[Mapping[str, Any], ...] = ()
 
-    def to_execute_request(self) -> ExecuteRequest:
-        """Build the frozen adapter request from this context."""
+    def worker_instructions(self) -> str:
+        """The exact worker instructions, including the selected-material body.
+
+        The persisted selected body (already untrusted-wrapped) is appended to
+        the Task instructions as untrusted data, clearly delimited, never as an
+        instruction.  Both the single-slot dispatcher and the graph dispatcher
+        use this, so the worker receives the same exact body the chat reply
+        used (docs/10 §7).
+        """
 
         instructions = self.instructions
         if self.selected_body:
-            # Same exact body the chat reply used; appended as untrusted data,
-            # clearly delimited, never as an instruction.
             instructions = (
                 f"{instructions}\n\n{self.selected_body}"
                 if instructions
                 else self.selected_body
             )
+        return instructions
+
+    def to_execute_request(self) -> ExecuteRequest:
+        """Build the frozen adapter request from this context."""
+
+        instructions = self.worker_instructions()
         return ExecuteRequest(
             task_id=self.task_id,
             run_id=self.run_id,
