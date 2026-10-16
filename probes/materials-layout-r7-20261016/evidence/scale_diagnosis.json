@@ -1,0 +1,552 @@
+{
+  "controls": [
+    {
+      "column_model": "single_column",
+      "content_box_norm": [
+        13.0,
+        33.0,
+        223.0,
+        129.0
+      ],
+      "global_cols": 1,
+      "has_ruling": false,
+      "height": 173,
+      "line_count": 8,
+      "max_region_cols": 1,
+      "page": 1,
+      "pdf": "clear_real.pdf",
+      "png_sha256": "8c07cd200643fbe7",
+      "region_counts": [
+        1
+      ],
+      "regions": [
+        {
+          "col_boxes_norm": [
+            [
+              13.0,
+              223.0
+            ]
+          ],
+          "col_widths_norm": [
+            211.0
+          ],
+          "cols": 1,
+          "index": 0,
+          "y_norm": [
+            33.0,
+            129.0
+          ]
+        }
+      ],
+      "scale": 1.0,
+      "width": 231
+    },
+    {
+      "column_model": "single_column",
+      "content_box_norm": [
+        13.0,
+        33.0,
+        223.0,
+        129.0
+      ],
+      "global_cols": 1,
+      "has_ruling": false,
+      "height": 173,
+      "line_count": 8,
+      "max_region_cols": 1,
+      "page": 1,
+      "pdf": "multipage_real.pdf",
+      "png_sha256": "8c07cd200643fbe7",
+      "region_counts": [
+        1
+      ],
+      "regions": [
+        {
+          "col_boxes_norm": [
+            [
+              13.0,
+              223.0
+            ]
+          ],
+          "col_widths_norm": [
+            211.0
+          ],
+          "cols": 1,
+          "index": 0,
+          "y_norm": [
+            33.0,
+            129.0
+          ]
+        }
+      ],
+      "scale": 1.0,
+      "width": 231
+    },
+    {
+      "column_model": "single_column",
+      "content_box_norm": [
+        13.0,
+        33.0,
+        222.0,
+        129.5
+      ],
+      "global_cols": 1,
+      "has_ruling": true,
+      "height": 346,
+      "line_count": 8,
+      "max_region_cols": 1,
+      "page": 1,
+      "pdf": "clear_real.pdf",
+      "png_sha256": "1aebdc639db93532",
+      "region_counts": [
+        1
+      ],
+      "regions": [
+        {
+          "col_boxes_norm": [
+            [
+              13.0,
+              222.0
+            ]
+          ],
+          "col_widths_norm": [
+            209.5
+          ],
+          "cols": 1,
+          "index": 0,
+          "y_norm": [
+            33.0,
+            129.5
+          ]
+        }
+      ],
+      "scale": 2.0,
+      "width": 461
+    },
+    {
+      "column_model": "single_column",
+      "content_box_norm": [
+        13.0,
+        33.0,
+        222.0,
+        129.5
+      ],
+      "global_cols": 1,
+      "has_ruling": true,
+      "height": 346,
+      "line_count": 8,
+      "max_region_cols": 1,
+      "page": 1,
+      "pdf": "multipage_real.pdf",
+      "png_sha256": "1aebdc639db93532",
+      "region_counts": [
+        1
+      ],
+      "regions": [
+        {
+          "col_boxes_norm": [
+            [
+              13.0,
+              222.0
+            ]
+          ],
+          "col_widths_norm": [
+            209.5
+          ],
+          "cols": 1,
+          "index": 0,
+          "y_norm": [
+            33.0,
+            129.5
+          ]
+        }
+      ],
+      "scale": 2.0,
+      "width": 461
+    },
+    {
+      "column_model": "single_column",
+      "content_box_norm": [
+        13.0,
+        33.25,
+        222.25,
+        129.75
+      ],
+      "global_cols": 1,
+      "has_ruling": true,
+      "height": 692,
+      "line_count": 8,
+      "max_region_cols": 1,
+      "page": 1,
+      "pdf": "clear_real.pdf",
+      "png_sha256": "423b4dc727c50fea",
+      "region_counts": [
+        1
+      ],
+      "regions": [
+        {
+          "col_boxes_norm": [
+            [
+              13.0,
+              222.25
+            ]
+          ],
+          "col_widths_norm": [
+            209.5
+          ],
+          "cols": 1,
+          "index": 0,
+          "y_norm": [
+            33.25,
+            129.75
+          ]
+        }
+      ],
+      "scale": 4.0,
+      "width": 922
+    },
+    {
+      "column_model": "single_column",
+      "content_box_norm": [
+        13.0,
+        33.25,
+        222.25,
+        129.75
+      ],
+      "global_cols": 1,
+      "has_ruling": true,
+      "height": 692,
+      "line_count": 8,
+      "max_region_cols": 1,
+      "page": 1,
+      "pdf": "multipage_real.pdf",
+      "png_sha256": "423b4dc727c50fea",
+      "region_counts": [
+        1
+      ],
+      "regions": [
+        {
+          "col_boxes_norm": [
+            [
+              13.0,
+              222.25
+            ]
+          ],
+          "col_widths_norm": [
+            209.5
+          ],
+          "cols": 1,
+          "index": 0,
+          "y_norm": [
+            33.25,
+            129.75
+          ]
+        }
+      ],
+      "scale": 4.0,
+      "width": 922
+    }
+  ],
+  "z2": [
+    {
+      "column_model": "multi_column_local",
+      "content_box_norm": [
+        54.0,
+        160.0,
+        352.0,
+        519.0
+      ],
+      "global_cols": 1,
+      "has_ruling": false,
+      "height": 690,
+      "line_count": 12,
+      "max_region_cols": 2,
+      "page": 2,
+      "pdf": "LG035-ZH-Z2.pdf",
+      "png_sha256": "2da2b3743f8a6d05",
+      "region_counts": [
+        1,
+        2,
+        1,
+        1
+      ],
+      "regions": [
+        {
+          "col_boxes_norm": [
+            [
+              63.0,
+              352.0
+            ]
+          ],
+          "col_widths_norm": [
+            290.0
+          ],
+          "cols": 1,
+          "index": 0,
+          "y_norm": [
+            160.0,
+            226.0
+          ]
+        },
+        {
+          "col_boxes_norm": [
+            [
+              58.0,
+              177.0
+            ],
+            [
+              202.0,
+              325.0
+            ]
+          ],
+          "col_widths_norm": [
+            120.0,
+            124.0
+          ],
+          "cols": 2,
+          "index": 1,
+          "y_norm": [
+            275.0,
+            313.0
+          ]
+        },
+        {
+          "col_boxes_norm": [
+            [
+              64.0,
+              337.0
+            ]
+          ],
+          "col_widths_norm": [
+            274.0
+          ],
+          "cols": 1,
+          "index": 2,
+          "y_norm": [
+            361.0,
+            399.0
+          ]
+        },
+        {
+          "col_boxes_norm": [
+            [
+              54.0,
+              335.0
+            ]
+          ],
+          "col_widths_norm": [
+            282.0
+          ],
+          "cols": 1,
+          "index": 3,
+          "y_norm": [
+            437.0,
+            519.0
+          ]
+        }
+      ],
+      "scale": 1.0,
+      "width": 409
+    },
+    {
+      "column_model": "multi_column_local",
+      "content_box_norm": [
+        54.5,
+        159.5,
+        352.0,
+        519.5
+      ],
+      "global_cols": 1,
+      "has_ruling": false,
+      "height": 1380,
+      "line_count": 12,
+      "max_region_cols": 2,
+      "page": 2,
+      "pdf": "LG035-ZH-Z2.pdf",
+      "png_sha256": "15ca62198b90b2ef",
+      "region_counts": [
+        1,
+        2,
+        1,
+        1
+      ],
+      "regions": [
+        {
+          "col_boxes_norm": [
+            [
+              62.5,
+              352.0
+            ]
+          ],
+          "col_widths_norm": [
+            290.0
+          ],
+          "cols": 1,
+          "index": 0,
+          "y_norm": [
+            159.5,
+            227.0
+          ]
+        },
+        {
+          "col_boxes_norm": [
+            [
+              58.0,
+              177.5
+            ],
+            [
+              200.0,
+              337.5
+            ]
+          ],
+          "col_widths_norm": [
+            120.0,
+            138.0
+          ],
+          "cols": 2,
+          "index": 1,
+          "y_norm": [
+            275.0,
+            313.5
+          ]
+        },
+        {
+          "col_boxes_norm": [
+            [
+              63.5,
+              337.5
+            ]
+          ],
+          "col_widths_norm": [
+            274.5
+          ],
+          "cols": 1,
+          "index": 2,
+          "y_norm": [
+            360.5,
+            399.0
+          ]
+        },
+        {
+          "col_boxes_norm": [
+            [
+              54.5,
+              335.0
+            ]
+          ],
+          "col_widths_norm": [
+            281.0
+          ],
+          "cols": 1,
+          "index": 3,
+          "y_norm": [
+            437.5,
+            519.5
+          ]
+        }
+      ],
+      "scale": 2.0,
+      "width": 817
+    },
+    {
+      "column_model": "multi_column_local",
+      "content_box_norm": [
+        54.25,
+        159.5,
+        352.25,
+        520.75
+      ],
+      "global_cols": 1,
+      "has_ruling": false,
+      "height": 2759,
+      "line_count": 12,
+      "max_region_cols": 2,
+      "page": 2,
+      "pdf": "LG035-ZH-Z2.pdf",
+      "png_sha256": "2b8327bf14cba890",
+      "region_counts": [
+        1,
+        2,
+        1,
+        1
+      ],
+      "regions": [
+        {
+          "col_boxes_norm": [
+            [
+              62.0,
+              352.25
+            ]
+          ],
+          "col_widths_norm": [
+            290.5
+          ],
+          "cols": 1,
+          "index": 0,
+          "y_norm": [
+            159.5,
+            227.25
+          ]
+        },
+        {
+          "col_boxes_norm": [
+            [
+              58.0,
+              178.0
+            ],
+            [
+              199.75,
+              338.0
+            ]
+          ],
+          "col_widths_norm": [
+            120.25,
+            138.5
+          ],
+          "cols": 2,
+          "index": 1,
+          "y_norm": [
+            275.25,
+            313.75
+          ]
+        },
+        {
+          "col_boxes_norm": [
+            [
+              54.25,
+              347.75
+            ]
+          ],
+          "col_widths_norm": [
+            293.75
+          ],
+          "cols": 1,
+          "index": 2,
+          "y_norm": [
+            360.25,
+            399.75
+          ]
+        },
+        {
+          "col_boxes_norm": [
+            [
+              54.25,
+              335.25
+            ]
+          ],
+          "col_widths_norm": [
+            281.25
+          ],
+          "cols": 1,
+          "index": 3,
+          "y_norm": [
+            437.25,
+            519.5
+          ]
+        }
+      ],
+      "scale": 4.0,
+      "width": 1633
+    }
+  ]
+}
