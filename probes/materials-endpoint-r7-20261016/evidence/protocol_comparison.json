@@ -1,0 +1,83 @@
+{
+  "generated_by": "materials-endpoint-r7-20261016",
+  "purpose": "exact protocol comparison R7 vs earlier successful R4/R5 and failed R6",
+  "verified_read_only_from_existing_evidence": true,
+  "dimensions": {
+    "endpoint_url": {
+      "r4": "http://192.168.8.12:11434",
+      "r5": "http://192.168.8.12:11434",
+      "r6": "http://192.168.8.12:11434",
+      "r7": "http://192.168.8.12:11434",
+      "same": true
+    },
+    "route": {
+      "all": "POST /v1/embeddings",
+      "same": true
+    },
+    "model": {
+      "all": "embeddinggemma-2-Q8_0",
+      "same": true
+    },
+    "request_body_shape": {
+      "all": "{\"model\": <model>, \"encoding_format\": \"float\", \"input\": [<text>]} (text is a bare string element)",
+      "r7_recorded_body_example": {"model": "embeddinggemma-2-Q8_0", "encoding_format": "float", "input": ["老子 道德經 註解 學說"]},
+      "reconstructed_via_same_class_byte_equal": true,
+      "same": true
+    },
+    "content_type": {
+      "all": "application/json",
+      "accept": "application/json",
+      "same": true
+    },
+    "authorization": {
+      "all": "absent (no token configured)",
+      "same": true
+    },
+    "task_encoding": {
+      "all": "no task/prefix/instruction wrapper; raw query text as single input element",
+      "same": true
+    },
+    "http_client": {
+      "all": "same product class OpenAICompatEmbeddingBackend (urllib.request.urlopen, no ProxyHandler/getproxies)",
+      "same": true
+    },
+    "proxy_env": {
+      "r4_r5_r6_r7": "no *_proxy environment variables set; no proxy code; git http.proxy unset",
+      "same": true,
+      "is_differentiator": false
+    },
+    "timeout_budget": {
+      "r4": {"default_timeout_seconds": 90.0, "cold_timeout_seconds": 90.0},
+      "r5": {"default_timeout_seconds": 90.0, "cold_timeout_seconds": 90.0},
+      "r6": {"default_timeout_seconds": 30.0, "cold_timeout_seconds": 30.0},
+      "r7": {"default_timeout_seconds": 90.0, "cold_timeout_seconds": 90.0},
+      "text_uses": "cold_timeout_seconds (part_type == 'text')",
+      "is_only_deterministic_difference_r6_vs_r4r5": true
+    }
+  },
+  "observed_latency": {
+    "r4_query_text": [0.064, 0.060, 0.119, 0.070, 0.065],
+    "r5_query_text": [0.062, 0.059, 0.051, 0.061, 0.062, 0.052, 0.050],
+    "r6_query_text": [30.0402, 30.0303],
+    "r7_query_text_embed_latency": [0.0614, 0.022],
+    "r7_query_status": ["ok", "ok"],
+    "r7_embedding_response_usage_prompt_tokens": [12, 12]
+  },
+  "endpoint_model_state_r7": {
+    "id": "embeddinggemma-2-Q8_0",
+    "status": "loaded",
+    "server": "llama.cpp llama-server router mode",
+    "sleep_idle_seconds": -1,
+    "parallel": 4,
+    "worker_host": "127.0.0.1",
+    "mmproj": "/models/mmproj-embeddinggemma-2-Q8_0.gguf",
+    "note": "sleep-idle-seconds -1 disables idle auto-unload; model not unloaded by idle at R7"
+  },
+  "conclusion_from_comparison": {
+    "protocol_route_model_encoding_content_type_proxy": "identical across R4/R5/R6/R7; not the differentiator",
+    "deterministic_difference_r6_vs_r4_r5": "R6 used a 30s text/cold timeout versus R4/R5's 90s; R6's request was byte-identical in shape",
+    "r7_outcome": "with the R4/R5 90s budget the SAME request succeeded in 0.022-0.061s; the endpoint was warm/fast at R7 time",
+    "inference": "R6's 30s timeout was NOT because the endpoint needs >30s under normal (warm) conditions; it reflects a transient endpoint state at R6 time (busy/queued/stuck) that had cleared by R7",
+    "health_200_not_inference_capacity": true
+  }
+}

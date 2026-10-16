@@ -1,0 +1,6 @@
+{
+  "path": "/health",
+  "status": 200,
+  "raw": "{\"status\":\"ok\"}",
+  "latency": 0.0038
+}
