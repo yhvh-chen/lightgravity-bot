@@ -189,7 +189,8 @@ Final HEAD SHA and `git status` are recorded at the end of this report.
 - Worktree: `/home/yhvh/code/lightgravity-bot-worktrees/proto-material-intake-fix-r1-20261016`
 - Branch: `fix/proto-material-intake-r1-20261016`
 - Base HEAD on entry: `1d7095c`
-- **Final HEAD: `958280c`** (`fix(lg047-r1): native model-free UTF-8 text intake + frozen selected-source error ordering`)
-- `git status`: **clean** (all intended files committed; no symlinks; no QA/G/main-PM files)
+- **F code commit: `09edad2`** — `fix(lg047-r1): native model-free UTF-8 text intake + frozen selected-source error ordering` (backend source + owned tests + probe + REPORT).
+- **HEAD:** a report-only follow-up commit titled `docs(lg047-r1): record final HEAD/status/evidence in REPORT (follow-up)` whose **parent is `09edad2`** (the F code commit). Using the final follow-up SHA here would be self-referential; the authoritative node code commit is `09edad2`.
+- `git status`: **clean** (all intended files committed; no symlinks; no QA/G/main-PM files).
 - Process stop: prior F writer already gone; only my own session and the untouched G coordinator session (`/home/yhvh/code/lightgravity-bot`) were running.
 - Exact tests: `pytest tests/sources tests/api tests/contracts tests/verify` → **358 passed, 1 skipped, EXIT 0**; `mypy` → **139 files, EXIT 0**; probe `probe_r2_after_fix.py` → **EXIT 0**.
