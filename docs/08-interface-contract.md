@@ -8,7 +8,7 @@ updated: "2026-10-16"
 
 # 首版接口与状态契约（v1）
 
-> **当前契约 1.13.0（2026-10-16，LG-050 加性 MINOR）**：新增显式启用的共享团队模式、账号会话端点、服务端消息作者及 `forbidden` 错误码。范围见 §14；实现与串行集成已完成，独立集中 QA 尚未执行，未通过版本 QA。默认单用户行为保持；下方长段版本记录自 1.12.0 起为历史沿革，不是当前版本号。
+> **当前契约 1.13.0（2026-10-16，LG-050 加性 MINOR）**：新增显式启用的共享团队模式、账号会话端点、服务端消息作者及 `forbidden` 错误码。范围见 §14；已本地合入并通过独立 QA（PASS_WITH_LIMITATIONS，含真实 HTTP、CLI 与 Firefox 双用户上下文端到端），[证据](../probes/team-chat-20261016/qa/QA-REPORT.md)。用户最终验收待定。默认单用户行为保持；下方长段版本记录自 1.12.0 起为历史沿革，不是当前版本号。
 
 > 性质：LG-001 冻结的候选实现契约。它把 [产品与架构设计](01-design.md)、[Task 与 SDK 资源契约](02-task-and-sdk-resources.md)、[Bot 行为契约](04-bot-behavior.md)、[SDK 能力审计](03-sdk-capability-audit.md)、[导航设计](05-navigation-and-team.md)、[模型设置](07-settings-and-models.md) 收敛到可实现的接口与状态边界，不新增产品能力，也不代表功能已实现或经过运行时验证。
 >
@@ -776,7 +776,7 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 
 | 版本 | 日期 | 级别 | 变更 | API/实体字段影响 |
 |---|---|---|---|---|
-| `1.13.0` | 2026-10-16 | MINOR | LG-050 共享团队模式**实现**（接口范围见 §14）：显式、默认关闭的团队模式；新增 `/api/v1/auth/me|login|logout` 会话端点；消息加性可选 `author:{kind,username,role}`（服务端按会话写入）；新增 `forbidden`（403）错误码；`GET /auth/me` 以 `mode:"single"|"team"` 供前端判别。详见 [probes/team-chat-20261016](probes/team-chat-20261016/README.md) | **仅新增可选端点、加性可选消息字段与一个新的错误码**；不改变既有端点、`state`/`phase`/`acceptance` 枚举或迁移方向；默认单用户逐字不变；`X-LG-Token` 不构成团队身份；团队模式匿名业务访问 default-deny。无秘密，账号仅存盐+哈希 |
+| `1.13.0` | 2026-10-16 | MINOR | LG-050 共享团队模式**实现**（接口范围见 §14）：显式、默认关闭的团队模式；新增 `/api/v1/auth/me|login|logout` 会话端点；消息加性可选 `author:{kind,username,role}`（服务端按会话写入）；新增 `forbidden`（403）错误码；`GET /auth/me` 以 `mode:"single"|"team"` 供前端判别。详见 [probes/team-chat-20261016](../probes/team-chat-20261016/README.md) | **仅新增可选端点、加性可选消息字段与一个新的错误码**；不改变既有端点、`state`/`phase`/`acceptance` 枚举或迁移方向；默认单用户逐字不变；`X-LG-Token` 不构成团队身份；团队模式匿名业务访问 default-deny。无秘密，账号仅存盐+哈希 |
 | `1.9.0` | 2026-10-16 | MINOR | 首版返修后的串行集成收拢（唯一集成 owner）：① 新增加性可逆归档——`source` 加性布尔字段 `archived`（默认 `false`，§6.6）、`POST /sources/{id}/actions` 新增 `archive`/`unarchive` 动作与可选 `expected_revision`（§4.3、§6.6）；② 挂载 LG-037 可选向量端点 `GET /vector/status`、`GET /vector/search`、`POST /vector/rebuild`（§4.3、§6.6，默认禁用、仅环境变量配置、候选回源核对） | **仅新增可选非秘密字段、两个可逆动作与三个可选端点**；不改变 `revoke`/`delete` 语义（撤销仍 `status=archived` + 失效命中），不新增事件类型，不改变 `state`/`phase`/`acceptance`/`source.status` 枚举；向量默认关闭，不可用时词法/原件仍可用；不新增供应商、秘密表单或常驻编排 agent |
 | `1.10.0` | 2026-10-16 | MINOR | LG-022 第二轮针对性返修（REFIX-R2）：① 停止门可接受**真实停止事实**（§9）——成功 Run 的 `cleanup` 常为 `pending`，停止门除 `cleanup=done` 外接受权威适配器停止确认（SDK session `__aexit__` / loopback 代理真实关闭），Run 加性新增可选 `reviewer_cleanup`（`{status,confirmed,...}`）；未知/仍活跃/关闭失败保留 `unconfirmed` 与 `session_refs`，不伪 `done`。② `GET /api/v1/diagnostics/generation` 加性新增 `persistent`（及损坏时 `corrupt`/`reason`）——全局生成计数改为受控 dataRoot 下持久账本，转发前持久预留，跨重启不归零，损坏绝不当 0 | **仅新增可选非秘密字段/诊断字段与停止门事实来源**；不新增端点、错误码、`state`/`phase`/`acceptance` 枚举或迁移方向；不改远端 exactly-once 语义；不新增供应商/秘密表单/常驻编排 agent |
 | `1.11.0` | 2026-10-16 | MINOR | LG-031 runtime/API/SDK 集成落地后按实际公开兼容变化保守登记（取代 `1.10.0` 的“实现说明增补（无版本变化）”口径）：① **公开请求字段语义放松**——四个去中心化端点（`GET /runs/{run_id}/discoverable`、`POST /runs/{run_id}/claim_requests`、`POST /subtasks/{subtask_id}/lease/renew`、`POST /subtasks/{subtask_id}/lease/release`）的请求体 `owner` 由 `1.6.0` 冻结时事实采用的 **required/端点采用** 放宽为 **optional/兼容校验、不再具有授权含义**；② **加性内部字段**——`ExecutionGrant` 加性新增进程内非持久 `lease_owner`（程序冻结租约权威身份，`effective_lease_owner = lease_owner or member_ref`）。**精确行为**：四端点 principal/scope/fence 仅从 `ApiContext.worker_grant`（`X-LG-Execution-Grant`）解析的程序冻结 grant 推导；body `owner` 存在且不等于认证 principal ⇒ `claim_refused`/`identity_mismatch` 且不落盘；无 resolver/无效 grant ⇒ `claim_refused`/`unauthenticated`；body `capability`/`write`/`scope` 不授予权限。**回退**：旧客户端传 `owner` 仍被接受作一致性校验（不获授权），不传亦可用；认证 A 不能冒 B/跨 TaskRun；只读身份不能写。**安全边界**：未配置/未认证一律 default-deny 且不写业务状态；仍不接受浏览器直接指定任意 `owner`；`lease_owner` 不进入 HTTP/实体 schema（进程内非持久）。 | **仅公开请求字段语义向后兼容放松 + 加性进程内字段**；不新增/删除端点、错误码、`state`/`phase`/`acceptance` 枚举或迁移方向；不改变实体 schema、去中心化默认关闭与确定性 `plan_source=rules` 回退；不新增供应商/秘密表单/常驻编排 agent |
@@ -809,9 +809,9 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 | 去中心化发现/领取/租约 fencing/协作/预算（§4.3、§5.1、§6.2、§6.3） | LG-029、LG-030、LG-031、**LG-032（集中 QA）** |
 | 资料摄取/来源版本/去重/回源/索引失效与可选向量降级（§4.3、§5.1、§6.6） | LG-034～038、LG-039、**LG-040（集中 QA）** |
 
-## 14. 共享团队模式（1.13.0，LG-050，实施完成待独立 QA）
+## 14. 共享团队模式（1.13.0，LG-050，独立 QA 通过、有限制）
 
-团队模式显式开启，一个共享工作区，所有登录成员共享聊天、Task 和资料。此模式不承诺私聊、私有资料或多租户隔离；默认关闭，原单用户路由保持。**实现已完成并串行集成到候选 `feat/team-integration-20261016`；独立集中 QA 与真实浏览器验收尚未执行，本节不代表已通过版本验收或用户验收。**
+团队模式显式开启，一个共享工作区，所有登录成员共享聊天、Task 和资料。此模式不承诺私聊、私有资料或多租户隔离；默认关闭，原单用户路由保持。**实现已完成并串行集成到候选 `feat/team-integration-20261016`；已由独立 QA 验证真实 HTTP、CLI 及 Firefox 双用户上下文（PASS_WITH_LIMITATIONS），证据见 [QA 报告](../probes/team-chat-20261016/qa/QA-REPORT.md)；用户最终验收仍待定。**
 
 ### 14.1 配置与账号
 
@@ -840,7 +840,7 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 - 持久化与请求幂等、并发序号保持；bot 回合有序处理。全局消息同步先采用约 3 秒轮询既有读取接口，游标补齐、按消息 ID 去重；页面隐藏暂停，失效登录返回登录界面。不把全局轮询宣称为新增 SSE 事件流。
 - 默认单用户模式不要求 mention，旧客户端省略加性字段时保持现有行为。不修改 Task/Run 状态枚举或迁移方向。真实 SDK 执行能力沿原验收记录，本次不能以认证测试替代真实 SDK 验收。
 
-本节记录契约与实现边界；运行命令、精确实现偏差和测试证据见 [probes/team-chat-20261016](probes/team-chat-20261016/README.md)。下表为集成时确认的**精确实现偏差/补充**，均为加性且不改变默认单用户行为：
+本节记录契约与实现边界；运行命令、精确实现偏差和测试证据见 [probes/team-chat-20261016](../probes/team-chat-20261016/README.md)。下表为集成时确认的**精确实现偏差/补充**，均为加性且不改变默认单用户行为：
 
 - `forbidden` 错误码（HTTP 403，`retryable:false`）；`/settings*` 的**全部方法（含 GET）**为 admin-only，`PATCH/PUT/DELETE /api/v1/resources/{kind}/{id}` 与含 `resource_proposal` 的 Task 消息同样 admin-only。
 - 登录失败限流：同一 `(client-host, username)` 在 60s 滚动窗口内 5 次失败后返回 429 `budget_exhausted` 并带 `Retry-After`；成功清除计数（这是加性实现，不新增专用错误码）。
@@ -849,7 +849,7 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 - `AccessPolicy.authorize` 加性新增关键字 `admin: bool = False`（单用户策略忽略）；`is_sensitive_request` 加性覆盖资源变更；Files 在团队模式额外拒绝解析到受控 `<data>/team/` 内路径。
 - 前端启动探测 `/auth/me` 为显式三态：探测中显示 Loading；仅**明确 `mode:"single"` 或 legacy `404`** 进入单用户工作台；网络/服务端错误显示可重试错误，绝不乐观降级为单用户绕过登录。团队匿名才显示登录门。
 
-本节不代表功能已交付或通过 QA。
+LG-050 已本地合入并通过独立技术 QA；限制和真实证据见上述报告。本次未重验真实模型/SDK 交付链路，未发布部署。
 
 ## 参考
 
