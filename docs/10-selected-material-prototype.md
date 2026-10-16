@@ -121,7 +121,8 @@ updated: "2026-10-16"
 ## 7. 集成与行为边界
 
 - **Chat reply 与 worker context 使用完全相同的选定正文**（同一 body、同一截断结果）。
-- 保持既有**单 worker 原型默认规则计划**；**不**自动引入 search/project/MCP/ASR/Office/模型 planer。
+- 保持既有**原型默认规则计划**：单一执行槽（single execution slot）内**顺序**运行既有 `deliver` + `verify` 两个 SDK worker 节点（`verify` 依赖 `deliver`），随后由**独立 ModelReviewer** 复核；三者均计入同一预算。**不**自动引入 search/project/MCP/ASR/Office/模型 planer。
+  - **勘误（2026-10-16，LG-048 诊断）**：本节此前“单 worker”措辞对**普通 Chat 交付**不准确——只有未声明验收条件时才是单 `deliver` 节点；`default_delivery=True` 会派生验收条件，从而按既有 `RulePlanner` 规则追加 `verify` 节点。此为文档勘误，非行为变更：`deliver`/`verify` SDK 节点、程序机器门（LG-009）与**独立 ModelReviewer** 复核均**保留、不削弱**。`verify`（同 worker 连接的程序机器门前置 SDK 节点）**≠** 独立 ModelReviewer（`verifying` 阶段用 `default_reviewer_connection_ref` 的独立 reviewer turn）；二者并存，均预算化。
 - 有效回答路径使用**既有真实配置 `ModelDialogue`**；**不伪造自动回答**、不伪造只读 SDK 工具集。
 - **无选材时**：可选请求省略与既有响应 wire / 模型上下文退回 legacy 行为（省略字段 ⇒ 可选字段语义不变）。**例外（R1 记录在案的 bug 修复，非契约回退）**：① 每个 `direct`/`bounded_read` 回答（含无选材）现在把助手回答行持久化到同一会话 SoT（`assistant:<message_id>`，幂等），因此旧会话历史**不再行数逐字节相同**；② 无选材的普通 Chat 交付请求（如“创建 Markdown 文件…”）会派生出可检查的验收条件并预置 Task 作用域授权工作区，使不改动的 `PlanValidator` 接受默认最小规则计划（此前该交付被计划校验拒绝）。两者均为文档化的 R1 行为修复，**不**以回退修复来满足旧断言；不宣称历史行数逐字节一致。
 

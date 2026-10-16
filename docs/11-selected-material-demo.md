@@ -39,7 +39,7 @@ the feature is finished.
 > - **原生文本成功，无需 OCR**：`text/plain`（及 `text/markdown`、`text/x-markdown`、`text/x-log`、`application/x-ndjson`）上传后由**原生 UTF-8 模型免调用**提取器同步落盘为一个 machine 派生件（`extractor=native-utf8-text`、`model=none`），可经 `GET /sources/{id}/content?kind=auto` 读到正文。非 UTF-8 或超限（2 MB）如实 `failed` 且不留伪造正文。
 > - **PDF/图像处理不变，仍走显式 OCR 路径**：这两种媒体类型上传保持 `received`，需显式 `reprocess` 触发既有 OCR；原生文本修复**不改**该路径。
 > - **选定回答（含来源）已持久化进历史**：每个 `direct`/`bounded_read` 回答把助手行 `assistant:<message_id>`（携带 `resolved_source_bindings` 与 `selected_context` 快照）写入同一会话 SoT，`GET .../messages` 可重放；重试同一 `message_id` 幂等（不重复落库、不重复派发）。**旧的“无助手历史”行为是已修复的 bug；旧会话历史不再行数逐字节一致。**
-> - **无选材普通 Chat 交付使用确定性文件计划**：请求未命名验收条件/工作区时，程序派生可检查验收条件并在授权根内预置 Task 工作区，使**未改动**的 `PlanValidator` 接受原型的最小单 worker 规则计划。
+> - **无选材普通 Chat 交付使用确定性文件计划**：请求未命名验收条件/工作区时，程序派生可检查验收条件并在授权根内预置 Task 工作区，使**未改动**的 `PlanValidator` 接受原型默认规则计划——单一执行槽内**顺序**运行既有 `deliver` + `verify` 两个 SDK worker 节点，随后由**独立 ModelReviewer** 复核（三者均预算化、保留不削弱）。**勘误（2026-10-16，LG-048 诊断）**：本节先前“最小单 worker 规则计划”措辞对普通 Chat 交付不准确（`default_delivery=True` 派生验收条件 ⇒ 追加 `verify`）；此为文档勘误，非行为变更。
 > - **`Sources` 仍不是已验证引用**：绑定只说明程序提供了哪些文本，引用**未经 span 验证**；一切仍以人工比对 fixture truth 为准。
 
 ## 0. What this prototype is (and is not)
@@ -330,8 +330,13 @@ document project — that capability is **not** what this prototype validates.
 > **R1 fact:** an ordinary Chat delivery that names neither acceptance criteria
 > nor a workspace now gets a program-derived checkable acceptance criterion and
 > an authorized Task workspace, so the unchanged `PlanValidator` accepts the
-> minimal single-worker rule plan (previously the default delivery failed plan
-> validation). No planner model call is added.
+> default rule plan (previously the default delivery failed plan validation).
+> **Erratum (2026-10-16, LG-048 diagnosis):** that default plan is **not** a
+> single worker for a normal Chat delivery — it runs the existing `deliver` +
+> `verify` SDK worker nodes **sequentially in one execution slot**, followed by
+> the independent ModelReviewer; all are budgeted and preserved (not weakened).
+> `verify` (an SDK node behind the program machine gate) is **not** the
+> independent ModelReviewer. No planner model call is added.
 
 ### Step B2 — wait for the delivery to reach acceptance
 

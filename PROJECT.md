@@ -43,6 +43,20 @@ updated: "2026-10-16"
 
 ## 决策日志
 
+### 2026-10-16：PM 依据 LG-048 诊断选定下一任务 → root 显式授权 R3 新 campaign `N-R3-LIFECYCLE`（hard cap 16）；创建 LG-049
+
+- **PM 显式选定**：依据 [LG-048 诊断](probes/prototype-selected-material-20261016/M-DELIVERY-DIAGNOSIS/REPORT.md) 与 I-R2 FAIL/INCOMPLETE（`a9ba494`）、L routing PASS（`11b5848`），PM **明确选定**下一任务为**完整生命周期验证**（**非**第三次盲修/盲重试）。经 CLI `tasks new` 创建 **LG-049《验证选定资料交付完整生命周期》**（P0，`parent: LG-047`，`depends_on: [LG-048, LG-046]`），以 `tasks claim --as agent:pi-proto-lifecycle-qa` 领取，执行者**独立于全部产品实施者**。
+- **PM 决策（保留护栏，不删除/不弱化、不新增 planner/infra）**：**保留**既有 `deliver` + `verify` SDK worker 节点、**真实独立 ModelReviewer**（`default_reviewer_connection_ref`）与程序机器门（LG-009）/stopguard。
+- **docs/10 §7 与 docs/11 勘误（最小、文档-only）**：“单 worker”措辞对**普通 Chat 交付**不准确：`default_delivery=True` 派生验收条件 ⇒ `RulePlanner` 追加 `verify`。勘误为单一执行槽内**顺序**运行 `deliver`+`verify`、随后**独立 ModelReviewer**，三者均预算化并保留。**属文档勘误，非行为变更**；产品代码**零改动**。
+- **root PM 显式授权 R3 新 campaign `N-R3-LIFECYCLE`**：
+  - **硬上限 16 次**新增产品前向请求总计（含全部 worker/verify/reviewer/失败输出重试/连接测试）；**仅一个** fresh delivery Task；**无自动整轮重试**；模型/代理重试在可配置处为 **0**；**串行 90s/请求**；**生命周期轮询 ≤300s**。
+  - **单次** initialize：**自有新 dataRoot** + manifest + **durable product generation ledger**（**绝不用 R2 根 / 不 reset counter**）。既有 manifest 缺失/损坏或账本损坏 ⇒ **deny**；**转发前**持久预留 cap16、跨重启不归零、**不自动扩展**。
+  - R1 已知 1 次 + 账目缺口 与 R2 actual **8** 次成本**分别保留**；**全累积成本 unknown、非 0**。
+  - 复用 I 的真实 UI proof（4 facts/Sources/history/widths）与 L 的 routing proof（**同一产品哈希组成**）；**无需** chat 调用/重复连接测试/browser/OCR/embeddings。
+  - 每个请求 role/node/time 与 SDK 事件及持久账本对账（**不 dump 密钥**）；失败即停车保留证据，cap 不扩展；**不触 8123**、不 push/deploy。
+- **序列 prep（`main`，`--no-ff`、probes-only、无冲突、产品树不变、保留全部历史）**：合入 I `qa/proto-material-r2-20261016@a9ba494` → 合并提交 **`256cd78`**；合入 L `qa/proto-material-route-r2-20261016@11b5848` → 合并提交 **`d8d8b4e`**。`main:backend` 树 `8b4256a4…` 与 `3ae4ac0` 一致。
+- **状态**：**LG-049 `in-progress`（`assignee: agent:pi-proto-lifecycle-qa`）**，**标 done 留待 root closure 复核报告**；**LG-047 保持 `in-progress`，无 PASS**；LG-041 保持 `todo`。**技术性 QA 用户最终验收仍待定。**
+
 ### 2026-10-16：LG-047 R2 FAIL/INCOMPLETE → 暂停盲重试，拆分 LG-048 技术诊断（root 授权）
 
 - **R2 结论**：活动独立 QA worktree `proto-material-qa-r2-20261016`（`qa/proto-material-r2-20261016` @ `a9ba494`，[REPORT-I-R2](probes/prototype-selected-material-20261016/I-R2-QA/REPORT-I-R2-20261016.md)）判 **FAIL — INCOMPLETE**。R2 新增产品请求硬上限 **8/8 已耗尽**（持久账本 `generation.count.json={"count":8}`，remaining 0，不可重跑）。真实 SDK worker 已写出含**全部 6 条真实事实且正确**的 deliverable（`raw/sdk-attempt2/`），但第二个（`verify`）SDK 节点撞 **429** 后整 Task `failed`，独立 **ModelReviewer / stop-gate / QA user accept** **从未到达（UNVERIFIED）**。**LG-047 仍 `in-progress`、无 PASS/done；不再接受任何 R2 请求；不改动 I 活动 worktree/campaign/ledger。**
