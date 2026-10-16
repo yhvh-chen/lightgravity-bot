@@ -202,6 +202,29 @@ class CoordinatorResult:
         }
 
 
+#: Characters that may directly follow the bot mention and still count as a
+#: mention (ASCII + common CJK punctuation).
+_MENTION_FOLLOW_PUNCT = ",.!?;:)]}、。，！？；：）】》。"
+
+
+def _is_bot_mention(content: str, mention: str) -> bool:
+    """Whether ``content`` starts with the configured bot mention.
+
+    Leading whitespace is ignored and the mention must be followed by end of
+    string, whitespace or punctuation so ``@bottom`` is not a bot call.
+    """
+
+    if not mention:
+        return False
+    stripped = content.lstrip()
+    if not stripped.startswith(mention):
+        return False
+    rest = stripped[len(mention) :]
+    if not rest:
+        return True
+    return rest[0].isspace() or rest[0] in _MENTION_FOLLOW_PUNCT
+
+
 def _default_responder(content: str, classification: Classification) -> str:
     if classification.intent == MessageIntent.BOUNDED_READ:
         return (
@@ -305,6 +328,8 @@ class Coordinator:
         resource_service: ResourceService | None = None,
         process_probe: ProcessProbe | None = None,
         source_service: Any | None = None,
+        team_mode: bool = False,
+        bot_mention: str = "@bot",
     ) -> None:
         self._store = store
         self._owner = owner or f"coordinator:{os.getpid()}"
@@ -337,6 +362,14 @@ class Coordinator:
         #: resolution reports an honest ``capability_unavailable`` instead of
         #: pretending to read sources.
         self._source_service = source_service
+        #: LG-050 additive team-mode behaviour.  When ``False`` (default) the
+        #: coordinator is byte-for-byte the single-user behaviour: global
+        #: messages always route and no author is injected.
+        self._team_mode = team_mode
+        self._bot_mention = bot_mention or "@bot"
+        #: Serialises bot turns per global conversation so concurrent requests
+        #: (and duplicate ``message_id`` retries) cannot double-run a model.
+        self._conversation_locks: dict[str, asyncio.Lock] = {}
         #: Late-bound provider used by the API assembly to share the same
         #: per-app ``app.state.source_service`` the sources router builds.
         self._source_service_provider: Callable[[], Any | None] | None = None
@@ -616,8 +649,36 @@ class Coordinator:
         The message is written before any side effect.  Repeated ``message_id``
         returns the first recorded result; control side effects carry their own
         ``request_id`` idempotency as a second guard.
+
+        In team mode a global message that does not mention the bot is recorded
+        only (no model call, no Task).  Bot turns are serialised per
+        conversation so a concurrent duplicate retry cannot run twice.
         """
 
+        if not self._team_mode:
+            return await self._submit_global_unlocked(
+                conversation_id, message, request_id=request_id
+            )
+        lock = self._conversation_lock(conversation_id)
+        async with lock:
+            return await self._submit_global_unlocked(
+                conversation_id, message, request_id=request_id
+            )
+
+    def _conversation_lock(self, conversation_id: str) -> asyncio.Lock:
+        lock = self._conversation_locks.get(conversation_id)
+        if lock is None:
+            lock = asyncio.Lock()
+            self._conversation_locks[conversation_id] = lock
+        return lock
+
+    async def _submit_global_unlocked(
+        self,
+        conversation_id: str,
+        message: dict[str, Any],
+        *,
+        request_id: str | None = None,
+    ) -> CoordinatorResult:
         message_id = self._require_message_id(message)
         key = f"message:{message_id}"
         existing = self._idempotency.lookup(key)
@@ -630,10 +691,27 @@ class Coordinator:
             message = dict(message)
             message["selected_context"] = selected.snapshot()
         record = self._global.append(conversation_id, message)
-        classification = self._classifier(str(message.get("content", "")))
+        content = str(message.get("content", ""))
+        if self._team_mode and not _is_bot_mention(content, self._bot_mention):
+            # Ordinary team message: persist only.  No classifier, no responder,
+            # no model call, no Task creation.
+            result = CoordinatorResult(
+                kind="recorded",
+                reply="",
+                conversation_id=conversation_id,
+                data={"intent": "recorded", "creates_task": False},
+            )
+            self._idempotency.record(key, result.to_dict())
+            return result
+        routed = message
+        if self._team_mode:
+            stripped = content.lstrip()[len(self._bot_mention):].lstrip()
+            routed = dict(message)
+            routed["content"] = stripped
+        classification = self._classifier(str(routed.get("content", "")))
         result = await self._route_global(
             conversation_id=conversation_id,
-            message=message,
+            message=routed,
             record_seq=record.seq,
             classification=classification,
             task_ref=self._message_task_ref(message),
@@ -869,6 +947,23 @@ class Coordinator:
                 ),
                 data={"role": role},
             )
+        if self._team_mode:
+            # Defense in depth: even if the API admin gate were bypassed, a
+            # member-authored proposal is refused here.  The ``author`` field is
+            # only ever injected server-side from the resolved session.
+            author = message.get("author")
+            author_role = author.get("role") if isinstance(author, dict) else None
+            if author_role != "admin":
+                return self._record_resource_result(
+                    task_id,
+                    submitted_id,
+                    status="unauthorized_source",
+                    reply=(
+                        "Team-mode resource changes require an administrator "
+                        "session; no change was written."
+                    ),
+                    data={"required_role": "admin"},
+                )
 
         try:
             proposal = parse_resource_proposal(message.get("resource_proposal"))
@@ -970,6 +1065,12 @@ class Coordinator:
             "in_reply_to": in_reply_to,
             "correlation_id": in_reply_to,
         }
+        if self._team_mode:
+            payload["author"] = {
+                "kind": "bot",
+                "username": "bot",
+                "role": "assistant",
+            }
         data: dict[str, Any] = dict(extra or {})
         if selected is not None:
             data.update(selected.bindings_data())

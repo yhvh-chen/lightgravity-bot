@@ -29,6 +29,21 @@ class ErrorEnvelope(BaseModel):
     error: ErrorBody
 
 
+class Author(BaseModel):
+    """Server-injected message author (LG-050, docs/08 additive).
+
+    Persisted on team-mode conversation messages and returned inside each
+    message item.  It is produced by the server from the session; a client can
+    never supply it (the request model forbids the field).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    kind: str
+    username: str | None = None
+    role: str | None = None
+
+
 class HealthResponse(BaseModel):
     """Process liveness, version and capability overview (docs/08 §4.3).
 
@@ -57,4 +72,10 @@ class VersionResponse(BaseModel):
     platform: str
 
 
-__all__ = ["ErrorBody", "ErrorEnvelope", "HealthResponse", "VersionResponse"]
+__all__ = [
+    "Author",
+    "ErrorBody",
+    "ErrorEnvelope",
+    "HealthResponse",
+    "VersionResponse",
+]

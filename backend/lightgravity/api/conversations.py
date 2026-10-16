@@ -22,12 +22,13 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..contracts import AppError, ErrorCode
 from ..store import EntityNotFound
 from ..store.ids import is_slug
+from ..team import COOKIE_NAME
 from .context import ApiContext, get_context
 
 #: Reserved, stable conversation id for the singleton global entry.  A
@@ -49,6 +50,10 @@ class GlobalMessageRequest(BaseModel):
     agent_ref: str | None = None
     #: Additive optional selected-material refs (docs/08 §6.6.1 / docs/10).
     selected_sources: list[dict[str, Any]] | None = None
+
+
+def _session_cookie(request: Request) -> str | None:
+    return request.cookies.get(COOKIE_NAME)
 
 
 def _authorize_source(
@@ -102,6 +107,7 @@ def build_conversations_router() -> APIRouter:
     @router.post("/conversations/global/messages")
     async def append_global_message(
         payload: GlobalMessageRequest,
+        request: Request,
         ctx: Annotated[ApiContext, Depends(get_context)],
     ) -> dict[str, Any]:
         _authorize_source(ctx, payload.workspace_ref, payload.agent_ref)
@@ -115,12 +121,26 @@ def build_conversations_router() -> APIRouter:
             message["correlation_id"] = payload.correlation_id
         if payload.selected_sources is not None:
             message["selected_sources"] = payload.selected_sources
+        # LG-050: the author is server-injected from the resolved session, never
+        # from the request.  ``GlobalMessageRequest`` forbids an ``author`` field
+        # (extra="forbid"), so a client-supplied author is a 422 before this runs.
+        if ctx.team is not None:
+            identity = ctx.team.resolve(_session_cookie(request))
+            if identity is not None:
+                message["author"] = {
+                    "kind": "user",
+                    "username": identity.username,
+                    "role": identity.role,
+                }
         result = await ctx.coordinator.submit_global_message(
             GLOBAL_CONVERSATION_ID,
             message,
             request_id=payload.request_id,
         )
-        return result.to_dict()
+        response = result.to_dict()
+        if response.get("kind") == "recorded":
+            response["reply"] = None
+        return response
 
     return router
 

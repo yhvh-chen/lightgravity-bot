@@ -17,19 +17,25 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, Query
+from fastapi import APIRouter, Depends, Header, Query, Request
 from fastapi.responses import StreamingResponse
 
+from ..team import COOKIE_NAME
 from .context import ApiContext, get_context
 from .eventbus import format_sse, parse_stream_cursor
 
 #: Keep-alive comment interval so proxies do not drop an idle subscription.
 _HEARTBEAT_SECONDS = 15.0
+#: Team mode re-checks the session this often so a logout/expiry tears down an
+#: already-open stream instead of letting it outlive the session.
+_SESSION_CHECK_SECONDS = 2.0
 _REPLAY_PAGE = 1000
 
 
 async def _event_source(
-    ctx: ApiContext, parsed: tuple[str, int] | None
+    ctx: ApiContext,
+    parsed: tuple[str, int] | None,
+    session_id: str | None = None,
 ) -> AsyncIterator[str]:
     stream_filter = parsed[0] if parsed is not None else None
     last_seq = parsed[1] if parsed is not None else 0
@@ -48,10 +54,16 @@ async def _event_source(
                     yield format_sse(record)
                 if len(records) < _REPLAY_PAGE:
                     break
+        wait_seconds = _SESSION_CHECK_SECONDS if ctx.team is not None else _HEARTBEAT_SECONDS
         while True:
+            # LG-050: an already-established stream must die with its session.
+            if ctx.team is not None and ctx.team.resolve(session_id) is None:
+                return
             try:
-                live_record = await subscription.receive(timeout=_HEARTBEAT_SECONDS)
+                live_record = await subscription.receive(timeout=wait_seconds)
             except TimeoutError:
+                if ctx.team is not None:
+                    continue
                 yield ": keep-alive\n\n"
                 continue
             if live_record is None:
@@ -70,6 +82,7 @@ def build_events_router() -> APIRouter:
 
     @router.get("/events/stream")
     async def event_stream(
+        request: Request,
         ctx: Annotated[ApiContext, Depends(get_context)],
         cursor: Annotated[str | None, Query()] = None,
         last_event_id: Annotated[str | None, Header(alias="Last-Event-ID")] = None,
@@ -77,8 +90,9 @@ def build_events_router() -> APIRouter:
         # Parse before returning so an invalid cursor yields a real 422 error
         # envelope instead of a half-started stream.
         parsed = parse_stream_cursor(cursor or last_event_id)
+        session_id = request.cookies.get(COOKIE_NAME) if ctx.team is not None else None
         return StreamingResponse(
-            _event_source(ctx, parsed),
+            _event_source(ctx, parsed, session_id),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",

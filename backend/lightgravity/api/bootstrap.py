@@ -468,7 +468,15 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         log(warnings[-1])
 
     token = options.token or resolve_runtime_token(os.environ)
-    access: AccessPolicy = LocalAccessPolicy(token=token.value)
+    # LG-050: in team mode the session cookie is the only identity and the
+    # legacy runtime token is neither required nor accepted for team roles.
+    # create_app builds the TeamAccessPolicy from the settings; single-user mode
+    # keeps the exact LG-020 LocalAccessPolicy/token behaviour.
+    access: AccessPolicy | None
+    if settings.team_mode:
+        access = None
+    else:
+        access = LocalAccessPolicy(token=token.value)
 
     responder = _dialogue_responder(connections, log)
 
@@ -502,7 +510,11 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
     )
     frontend_served = False
     if options.serve_frontend:
-        frontend_served = mount_frontend(app, dist, token.value, log=log)
+        # LG-050: team mode must not hand the runtime token to the page (it is
+        # not identity); inject an empty value so old HTML cannot use it as a
+        # back door while the auth flow uses the session cookie instead.
+        injected = "" if settings.team_mode else token.value
+        frontend_served = mount_frontend(app, dist, injected, log=log)
         if not frontend_served:
             warnings.append(
                 f"frontend build not found at {dist}; serving minimal bootstrap page"
