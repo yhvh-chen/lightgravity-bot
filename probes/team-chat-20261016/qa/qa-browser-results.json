@@ -1,0 +1,19 @@
+{
+    "url": "http://127.0.0.1:37781",
+    "firefox": "/snap/bin/firefox",
+    "checks": {
+        "userContextsIsolated": true,
+        "aliceLogin": true,
+        "bobLogin": true,
+        "aliceSeesOwnWithAuthor": true,
+        "bobSawAliceMessageWithAuthor": true,
+        "botReplyVisible": true,
+        "aliceSeesBotReply": true,
+        "botReplyAuthor": true,
+        "aliceLogoutShowsGate": true,
+        "bobSessionIndependent": true,
+        "browserOk": true
+    },
+    "ok": true,
+    "browser": "firefox/158.0"
+}

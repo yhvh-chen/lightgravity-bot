@@ -1,0 +1,13 @@
+# lg050_browser_e2e firefox=/snap/bin/firefox
+# profile=/home/yhvh/snap/firefox/current/lg050qa-4077694-3Sc4Sm bidi-port=33087 url=http://127.0.0.1:37781
+# session.new firefox/158.0 headless=true
+# contexts alice=ad851fa2-9270-44ee-9025-c30ec58d3e8c bob=39e3c917-707c-4c5c-8227-5adc0ef065b0
+# alice login form ready
+# alice logged in as "alice"
+# bob logged in as "bob"
+# alice send -> sent
+# bob saw alice message, author="alice"
+# bob @bot send -> sent
+# assistant before=0 after=1 aliceSees=shared authors=["bot","2026-10-16T11:25:19.047Z"]
+# after alice logout, bob identity="bob"
+RESULT {"url":"http://127.0.0.1:37781","firefox":"/snap/bin/firefox","checks":{"userContextsIsolated":true,"aliceLogin":true,"bobLogin":true,"aliceSeesOwnWithAuthor":true,"bobSawAliceMessageWithAuthor":true,"botReplyVisible":true,"aliceSeesBotReply":true,"botReplyAuthor":true,"aliceLogoutShowsGate":true,"bobSessionIndependent":true,"browserOk":true},"ok":true,"browser":"firefox/158.0"}

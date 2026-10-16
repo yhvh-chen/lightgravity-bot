@@ -1,0 +1,69 @@
+# data=/tmp/lg050-cli-7AtrZO port=60259 dist=/tmp/lg-team-qa-20261016/frontend/dist
+===== user add (documented getpass flow) =====
+/home/yhvh/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/getpass.py:91: GetPassWarning: Can not control echo on the terminal.
+  passwd = fallback_getpass(prompt, stream)
+Warning: Password input may be echoed.
+Password: 
+Warning: Password input may be echoed.
+Confirm password: 
+{
+  "added": "alice",
+  "role": "admin",
+  "created_at": "2026-10-16T11:25:48.314Z",
+  "accounts_file": "/tmp/lg050-cli-7AtrZO/team/accounts.json"
+}
+/home/yhvh/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/lib/python3.12/getpass.py:91: GetPassWarning: Can not control echo on the terminal.
+  passwd = fallback_getpass(prompt, stream)
+Warning: Password input may be echoed.
+Password: 
+Warning: Password input may be echoed.
+Confirm password: 
+{
+  "added": "bob",
+  "role": "member",
+  "created_at": "2026-10-16T11:25:48.894Z",
+  "accounts_file": "/tmp/lg050-cli-7AtrZO/team/accounts.json"
+}
+===== user list (no secrets) =====
+{
+  "accounts": [
+    {
+      "username": "alice",
+      "role": "admin",
+      "created_at": "2026-10-16T11:25:48.314Z"
+    },
+    {
+      "username": "bob",
+      "role": "member",
+      "created_at": "2026-10-16T11:25:48.894Z"
+    }
+  ],
+  "accounts_file": "/tmp/lg050-cli-7AtrZO/team/accounts.json"
+}
+===== start (team mode, loopback, built frontend) =====
+{"started": true, "pid": 4079808, "url": "http://127.0.0.1:60259"}
+===== anonymous /auth/me =====
+{"mode":"team","authenticated":false,"username":null,"role":null}
+===== browser page carries empty team token =====
+__LG_RUNTIME_TOKEN__=""
+===== login (cookie jar) =====
+{"username":"alice","role":"admin"}
+===== admin /auth/me + /tasks =====
+{"mode":"team","authenticated":true,"username":"alice","role":"admin"}
+GET /tasks -> 200
+===== anonymous business read is 401 =====
+anon GET /tasks -> 401
+===== LAN / Host boundary (default loopback only) =====
+Host evil.example -> 400
+Origin http://evil.example -> 403
+===== stop =====
+{
+  "stopped": true,
+  "forced": false,
+  "pid": 4079808,
+  "message": "process 4079808 stopped after SIGTERM"
+}
+curl: (7) Failed to connect to 127.0.0.1 port 60259 after 0 ms: Could not connect to server
+after stop -> 000
+after stop -> connection refused (expected)
+===== CLI/START SMOKE DONE =====
