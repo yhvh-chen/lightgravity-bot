@@ -47,6 +47,8 @@ class GlobalMessageRequest(BaseModel):
     request_id: str | None = None
     workspace_ref: str | None = None
     agent_ref: str | None = None
+    #: Additive optional selected-material refs (docs/08 §6.6.1 / docs/10).
+    selected_sources: list[dict[str, Any]] | None = None
 
 
 def _authorize_source(
@@ -111,6 +113,8 @@ def build_conversations_router() -> APIRouter:
         }
         if payload.correlation_id:
             message["correlation_id"] = payload.correlation_id
+        if payload.selected_sources is not None:
+            message["selected_sources"] = payload.selected_sources
         result = await ctx.coordinator.submit_global_message(
             GLOBAL_CONVERSATION_ID,
             message,

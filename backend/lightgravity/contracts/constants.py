@@ -3,6 +3,18 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
+#: docs/08 §13: 1.12.0 (2026-10-16) is the additive MINOR bump for LG-043's
+#: selected-material implementation (frozen in ``1.12.0`` reserved by LG-042):
+#: the message envelope gains the additive optional ``selected_sources`` field
+#: (≤3 refs ``{source_id, source_version?, content_hash?}``) and reply/Run data
+#: gains the additive ``resolved_source_bindings`` / ``context_truncated`` /
+#: ``provided_context_note`` fields (docs/08 §6.6.1, docs/10).  Total bounded at
+#: 12000 Unicode chars with explicit truncation metadata, formal-first with a
+#: machine fallback, and stale/revoked/missing/cross-Task refs are rejected
+#: before any product model dispatch.  No new endpoints, error codes, enums or
+#: migration directions; legacy clients that omit the field are byte-for-byte
+#: unchanged.
+#:
 #: docs/08 §13: 1.11.0 (2026-10-16) is the conservative additive MINOR bump
 #: registering the LG-031 runtime/API/SDK integration's actual public-compat
 #: changes (R1 observation O3), replacing the earlier "implementation-note,
@@ -96,7 +108,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.11.0"
+CONTRACT_VERSION = "1.12.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

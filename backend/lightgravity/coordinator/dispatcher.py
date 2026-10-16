@@ -89,10 +89,25 @@ class DispatchContext:
     #: each node *its own* native conversation instead of a single run-level one
     #: (LG-016).  ``None`` for a fresh Run.
     prior_run: Mapping[str, Any] | None = None
+    #: LG-043: the bounded, revalidated selected-material body (already wrapped
+    #: as untrusted data) that **both** the chat reply and the worker context
+    #: use.  ``None`` means no selected sources were attached (legacy).
+    selected_body: str | None = None
+    #: LG-043: the resolved/persisted bindings for this Run (internal evidence).
+    selected_bindings: tuple[Mapping[str, Any], ...] = ()
 
     def to_execute_request(self) -> ExecuteRequest:
         """Build the frozen adapter request from this context."""
 
+        instructions = self.instructions
+        if self.selected_body:
+            # Same exact body the chat reply used; appended as untrusted data,
+            # clearly delimited, never as an instruction.
+            instructions = (
+                f"{instructions}\n\n{self.selected_body}"
+                if instructions
+                else self.selected_body
+            )
         return ExecuteRequest(
             task_id=self.task_id,
             run_id=self.run_id,
@@ -100,7 +115,7 @@ class DispatchContext:
             attempt=self.attempt,
             objective=self.objective,
             acceptance_criteria=self.acceptance_criteria,
-            instructions=self.instructions,
+            instructions=instructions,
             workspace_path=self.workspace_path,
             allowed_tools=self.allowed_tools,
             skill_refs=self.skill_refs,

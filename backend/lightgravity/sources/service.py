@@ -446,6 +446,59 @@ class SourceService:
 
         return ContentStore(source_root=self._store.source_dir(source_id))
 
+    # ------------------------------------------------- selected-material reads
+    def selection_available(self, source_id: str) -> None:
+        """Fail closed when a source cannot serve selected content.
+
+        Applies the same revoke/aliveness gate the LG-040 availability path
+        uses: a revoked source returns ``not_found`` (404) with
+        ``details.revoked=true`` and never serves a byte (docs/08 §6.6).
+        """
+
+        record = self._store.read_source(source_id)
+        _ensure_available(record)
+
+    def selection_layer(
+        self, source_id: str
+    ) -> tuple[str, str, int, str] | None:
+        """Return ``(layer, body, source_version, content_hash)`` for selection.
+
+        Formal content is preferred; the machine derivative is the fallback
+        (docs/10 §3).  No new inference path is entered.  ``None`` means the
+        source has no readable selected body layer.
+        """
+
+        record = self._store.read_source(source_id)
+        content = self._content_store(source_id)
+        formal = content.read_formal()
+        source_version = record.source_version
+        content_hash = record.content_digest or ""
+        layer = "formal"
+        body = formal
+        if body is None:
+            layer = "machine"
+            body = content.read_machine_markdown(source_version)
+        if body is None:
+            return None
+        return (layer, body, source_version, content_hash)
+
+    def selection_scope_ok(self, record: SourceRecord, task_ref: str | None) -> bool:
+        """Whether a source may be selected from ``task_ref`` (docs/10 §1/§5).
+
+        A source scoped to a *different* Task can never be selected; a global
+        source (no Task/project scope) may be selected from any Task.
+        """
+
+        scope = record.scope
+        if scope.task_ref is None:
+            return True
+        return scope.task_ref == task_ref
+
+    def selected_source_resolver(self, task_ref: str | None) -> "ScopedSelectionResolver":
+        """Build a Task-scoped resolver for selected-material resolution."""
+
+        return ScopedSelectionResolver(self, task_ref)
+
     def content_view(self, source_id: str, *, kind: str = "auto") -> dict[str, Any]:
         """Preview the formal version if present, else the machine derivative.
 
@@ -736,6 +789,7 @@ class SourceService:
         shutil.rmtree(root)
 
     # ---------------------------------------------------------------- internals
+    # (read views below; selection helpers above)
     def _source_view(self, record: SourceRecord) -> dict[str, Any]:
         entity = record.entity
         scope = record.scope
@@ -783,6 +837,44 @@ class SourceService:
             "created_at": entity.get("created_at"),
             "updated_at": entity.get("updated_at"),
         }
+
+
+class ScopedSelectionResolver:
+    """A Task-scoped adapter exposing the :class:`SelectionSourceResolver` shape.
+
+    Cross-Task references are refused with ``reference_invalid`` **before** any
+    layer is read; a revoked source follows the revoke fail-closed path; a
+    source whose scope belongs to another Task never crosses over.
+    """
+
+    def __init__(self, service: SourceService, task_ref: str | None) -> None:
+        self._service = service
+        self._task_ref = task_ref
+
+    def _record(self, source_id: str) -> SourceRecord:
+        try:
+            record = self._service.store.read_source(source_id)
+        except EntityNotFound as exc:
+            raise AppError(
+                ErrorCode.REFERENCE_INVALID,
+                f"selected source {source_id!r} does not resolve",
+                details={"source_id": source_id},
+            ) from exc
+        if not self._service.selection_scope_ok(record, self._task_ref):
+            raise AppError(
+                ErrorCode.REFERENCE_INVALID,
+                f"selected source {source_id!r} is scoped to another Task",
+                details={"source_id": source_id},
+            )
+        return record
+
+    def selection_available(self, source_id: str) -> None:
+        self._record(source_id)
+        self._service.selection_available(source_id)
+
+    def selection_layer(self, source_id: str) -> tuple[str, str, int, str] | None:
+        self._record(source_id)
+        return self._service.selection_layer(source_id)
 
 
 def build_source_service(
@@ -849,4 +941,11 @@ def build_source_service(
     )
 
 
-__all__ = ["SourceService", "ProjectResolver", "TaskReader", "build_source_service", "MAX_INLINE_BYTES"]
+__all__ = [
+    "SourceService",
+    "ProjectResolver",
+    "TaskReader",
+    "ScopedSelectionResolver",
+    "build_source_service",
+    "MAX_INLINE_BYTES",
+]

@@ -220,6 +220,28 @@ def create_app(
     app.state.connection_service = connections
     app.state.verification = verification_service
 
+    # LG-043: share the single per-app source service with the coordinator so a
+    # message's ``selected_sources`` resolve against the same authoritative
+    # store the sources router reads.  Built lazily and cached on app.state.
+    def _source_service_provider() -> Any:
+        cached = getattr(app.state, "source_service", None)
+        if cached is not None:
+            return cached
+        from ..sources import build_source_service
+
+        service = build_source_service(
+            data_dir=resolved.data_dir,
+            task_store=broadcasting,
+            resolve_path=lambda relative, write: broadcasting.resolve_path(
+                relative, write=write
+            ),
+            events=broadcasting,
+        )
+        app.state.source_service = service
+        return service
+
+    resolved_coordinator.set_source_service_provider(_source_service_provider)
+
     @app.exception_handler(AppError)
     async def _app_error_handler(request: Request, exc: AppError) -> JSONResponse:
         request_id = getattr(request.state, "request_id", None)

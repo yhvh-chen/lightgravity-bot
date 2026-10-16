@@ -46,6 +46,9 @@ class AppendMessageRequest(BaseModel):
     #: Additive structured resource-change proposal (docs/08 §5.2 / LG-015).
     #: Validated and applied by the coordinator through ``ResourceService``.
     resource_proposal: dict[str, Any] | None = None
+    #: Additive optional selected-material refs (docs/08 §6.6.1 / docs/10).
+    #: Opaque ``{source_id, source_version?, content_hash?}``; ≤3 entries.
+    selected_sources: list[dict[str, Any]] | None = None
 
 
 def build_router(coordinator: Coordinator) -> APIRouter:
@@ -87,6 +90,8 @@ def build_router(coordinator: Coordinator) -> APIRouter:
             if policy is not None:
                 policy.authorize(request, sensitive=True)
             message["resource_proposal"] = payload.resource_proposal
+        if payload.selected_sources is not None:
+            message["selected_sources"] = payload.selected_sources
         result = await coordinator.submit_task_message(task_id, message)
         return result.to_dict()
 

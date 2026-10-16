@@ -30,6 +30,13 @@ from typing import Any, Protocol, cast, runtime_checkable
 
 from lightgravity.contracts import AppError, ErrorCode, EventType, TaskPhase, TaskStatus
 from lightgravity.resources import ResourceService
+from lightgravity.sources.selection import (
+    SelectedContext,
+    compose_prompt,
+    parse_selected_sources,
+    resolve_context_from_snapshot,
+    resolve_selected_sources,
+)
 from lightgravity.store import (
     EntityNotFound,
     LockConflict,
@@ -297,6 +304,7 @@ class Coordinator:
         rework: ReworkReviewer | None = None,
         resource_service: ResourceService | None = None,
         process_probe: ProcessProbe | None = None,
+        source_service: Any | None = None,
     ) -> None:
         self._store = store
         self._owner = owner or f"coordinator:{os.getpid()}"
@@ -324,6 +332,14 @@ class Coordinator:
         self._verification = verification
         self._rework = rework
         self._resource_service = resource_service
+        #: Optional LG-043 selected-material service.  When ``None`` the
+        #: selected-material fields are still accepted at the wire boundary but
+        #: resolution reports an honest ``capability_unavailable`` instead of
+        #: pretending to read sources.
+        self._source_service = source_service
+        #: Late-bound provider used by the API assembly to share the same
+        #: per-app ``app.state.source_service`` the sources router builds.
+        self._source_service_provider: Callable[[], Any | None] | None = None
         self._resource_dir = resolved_data_dir
         self._control = ControlService(
             self._store, self._writer, self._queue, self._dispatcher, owner=self._owner
@@ -536,6 +552,7 @@ class Coordinator:
         workspace_ref: str | None,
         agent_ref: str | None,
         enqueue: bool,
+        selected_trigger: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         task_id = new_id("task")
         content = _task_content(
@@ -560,6 +577,12 @@ class Coordinator:
             {"title": title, "request_id": request_id},
             task_ref=task_id,
         )
+        # Program-frozen Run trigger association (LG-043 followup): the message
+        # that caused this Task to be queued owns the selected-material context
+        # for the Run it will spawn.  Stored as internal Task metadata (existing
+        # controlled SoT, no public field), transferred to the Run at open time.
+        if selected_trigger is not None:
+            self._writer.write_task(task_id, {"selected_trigger": dict(selected_trigger)})
         queue_state = "not_queued"
         if enqueue:
             queue_state = self._queue.enqueue(task_id)
@@ -590,6 +613,12 @@ class Coordinator:
         existing = self._idempotency.lookup(key)
         if existing is not None:
             return self._result_from(existing)
+        # LG-043: resolve optional selected sources before any side effect/model
+        # call.  A malformed/stale/revoked/cross-Task ref is rejected here.
+        selected = self._resolve_selected(None, message)
+        if selected is not None:
+            message = dict(message)
+            message["selected_context"] = selected.snapshot()
         record = self._global.append(conversation_id, message)
         classification = self._classifier(str(message.get("content", "")))
         result = await self._route_global(
@@ -599,6 +628,7 @@ class Coordinator:
             classification=classification,
             task_ref=self._message_task_ref(message),
             request_id=request_id or message_id,
+            selected=selected,
         )
         self._idempotency.record(key, result.to_dict())
         return result
@@ -612,19 +642,23 @@ class Coordinator:
         classification: Classification,
         task_ref: str | None,
         request_id: str,
+        selected: SelectedContext | None = None,
     ) -> CoordinatorResult:
         content = str(message.get("content", ""))
         if classification.next_action in {"direct", "bounded_read"}:
-            reply = self._responder(content, classification)
+            reply = self._responder(compose_prompt(content, selected), classification)
+            data: dict[str, Any] = {
+                "intent": classification.intent.value,
+                "bounded_tools": list(classification.bounded_tools),
+                "creates_task": False,
+            }
+            if selected is not None:
+                data.update(selected.bindings_data())
             return CoordinatorResult(
                 kind=classification.next_action,
                 reply=reply,
                 conversation_id=conversation_id,
-                data={
-                    "intent": classification.intent.value,
-                    "bounded_tools": list(classification.bounded_tools),
-                    "creates_task": False,
-                },
+                data=data,
             )
         if classification.next_action == "create_task":
             title = content.strip().splitlines()[0][:120] or "New task"
@@ -640,6 +674,9 @@ class Coordinator:
                     workspace_ref=None,
                     agent_ref=None,
                     enqueue=True,
+                    selected_trigger=self._trigger_binding(
+                        str(message.get("message_id") or request_id), selected
+                    ),
                 )
 
             created = self._idempotency.execute(f"message-task:{request_id}", producer)
@@ -690,6 +727,12 @@ class Coordinator:
         existing = self._idempotency.lookup(key)
         if existing is not None:
             return self._result_from(existing)
+        # LG-043: resolve optional selected sources before persisting/dispatching.
+        # Classification below still uses only the original user content.
+        selected = self._resolve_selected(task_id, message)
+        if selected is not None:
+            message = dict(message)
+            message["selected_context"] = selected.snapshot()
         # Persist first; this is itself idempotent on message_id.
         self._store.append_message(task_id, message)
         if message.get("resource_proposal") is not None:
@@ -714,6 +757,21 @@ class Coordinator:
             ) else "pause"
             result = await self.request_control(task_id, action, request_id=message_id)
         elif classification.next_action == "retry":
+            # A retry rebinds the Run trigger only when it actually opens a fresh
+            # queued Run.  If the Task is already queued/executing, a later
+            # message must NOT overwrite the pending Run's trigger: that Run
+            # still uses its own trigger's exact saved selection (docs/10 §5/§6).
+            # Bind *before* enqueue so the claim/dispatch loop can never open the
+            # Run between the state transition and the binding write.
+            phase = str(self._store.read("task", task_id).entity.get("phase", ""))
+            already_queued = phase in {
+                TaskPhase.QUEUED.value,
+                TaskPhase.PLANNING.value,
+                TaskPhase.RECRUITING.value,
+                TaskPhase.EXECUTING.value,
+            }
+            if not already_queued:
+                self._bind_selected_trigger(task_id, message_id, selected)
             state = self._queue.enqueue(task_id)
             result = CoordinatorResult(
                 kind="retry",
@@ -722,11 +780,17 @@ class Coordinator:
                 queue_state=state,
             )
         elif classification.next_action in {"direct", "bounded_read"}:
+            data: dict[str, Any] = {
+                "intent": classification.intent.value,
+                "creates_run": False,
+            }
+            if selected is not None:
+                data.update(selected.bindings_data())
             result = CoordinatorResult(
                 kind=classification.next_action,
-                reply=self._responder(content, classification),
+                reply=self._responder(compose_prompt(content, selected), classification),
                 task_id=task_id,
-                data={"intent": classification.intent.value, "creates_run": False},
+                data=data,
             )
         else:
             result = CoordinatorResult(
@@ -1283,6 +1347,12 @@ class Coordinator:
             "ended_at": None,
             "fail_reason": None,
         }
+        # Freeze the Run's selected-material binding to its exact trigger message
+        # (internal metadata; no public field).  ``None`` means the trigger had
+        # no selection, so this Run must not inherit another message's context.
+        trigger = task.entity.get("selected_trigger")
+        if isinstance(trigger, dict):
+            run_content["selected_trigger"] = dict(trigger)
         if findings_list:
             run_content["review_findings"] = findings_list
         cast(_BodyStore, self._store).create(
@@ -1314,6 +1384,126 @@ class Coordinator:
         )
         return run_id
 
+    def _selected_resolver(self, task_ref: str | None) -> Any:
+        """Return a Task-scoped selection resolver, or raise honestly when unwired.
+
+        Raised errors happen **before** any product model dispatch.
+        """
+
+        service = self._source_service
+        if service is None and self._source_service_provider is not None:
+            try:
+                service = self._source_service_provider()
+            except Exception:  # noqa: BLE001 - a wiring gap is capability_unavailable
+                service = None
+        if service is None:
+            raise AppError(
+                ErrorCode.CAPABILITY_UNAVAILABLE,
+                "selected sources are not available: no source service is wired",
+                details={"capability": "selected_sources"},
+            )
+        build = getattr(service, "selected_source_resolver", None)
+        if build is None:  # pragma: no cover - defensive wiring gap
+            raise AppError(
+                ErrorCode.CAPABILITY_UNAVAILABLE,
+                "selected sources are not available",
+                details={"capability": "selected_sources"},
+            )
+        return build(task_ref)
+
+    def set_source_service_provider(
+        self, provider: Callable[[], Any | None] | None
+    ) -> None:
+        """Late-bind the per-app source service (LG-043 API assembly)."""
+
+        self._source_service_provider = provider
+
+    def _resolve_selected(
+        self, task_ref: str | None, message: dict[str, Any]
+    ) -> SelectedContext | None:
+        """Resolve a message's optional ``selected_sources`` before any model call.
+
+        Returns ``None`` for legacy messages that omit the field, so the
+        no-selection path stays byte-for-byte unchanged.  A malformed ref,
+        stale/revoked/cross-Task source or unwired service raises the frozen
+        error **before** any product model dispatch.
+        """
+
+        refs = parse_selected_sources(message.get("selected_sources"))
+        if not refs:
+            return None
+        resolver = self._selected_resolver(task_ref)
+        return resolve_selected_sources(resolver, refs)
+
+    @staticmethod
+    def _trigger_binding(
+        message_id: str, selected: SelectedContext | None
+    ) -> dict[str, Any]:
+        """Program-frozen Run trigger binding (internal metadata only).
+
+        Records the exact message that triggered the queued work and the
+        resolved selected-context snapshot at that moment.  ``snapshot`` is
+        ``None`` when the trigger carried no selection (legacy/no-selection), so
+        the Run it spawns never inherits a different message's selection.
+        """
+
+        return {
+            "message_id": message_id,
+            "snapshot": selected.snapshot() if selected is not None else None,
+        }
+
+    def _bind_selected_trigger(
+        self, task_id: str, message_id: str, selected: SelectedContext | None
+    ) -> None:
+        """Bind the Task's queued Run to its exact trigger message.
+
+        Called only when a message actually opens a fresh queued Run, and it
+        replaces any earlier binding (including one whose ``snapshot`` is
+        ``None``), so a Run never silently reuses an older selection
+        (docs/10 §5/§6).
+        """
+
+        try:
+            self._writer.write_task(
+                task_id, {"selected_trigger": self._trigger_binding(message_id, selected)}
+            )
+        except EntityNotFound:  # pragma: no cover - task exists at call sites
+            return
+
+    def _run_selected_snapshot(self, run_id: str) -> dict[str, Any] | None:
+        """The selected snapshot bound to *this Run's* trigger message.
+
+        Reads the internal ``selected_trigger`` metadata written when the Run
+        was opened (from the Task's frozen trigger association).  Never scans
+        the conversation for a "latest" snapshot: a Run must use the selection
+        of its own trigger, not a later message's.
+        """
+
+        try:
+            run = self._store.read("run", run_id).entity
+        except EntityNotFound:
+            return None
+        trigger = run.get("selected_trigger")
+        if not isinstance(trigger, dict):
+            return None
+        snapshot = trigger.get("snapshot")
+        return snapshot if isinstance(snapshot, dict) else None
+
+    def _worker_selected_context(self, task_id: str, run_id: str) -> SelectedContext | None:
+        """Revalidate the Run-bound selected snapshot before worker dispatch.
+
+        Uses the *saved* bytes/refs from the Run's trigger message and re-reads
+        current source state; a changed/revoked source is reported as
+        ``source_stale``/``not_found`` rather than silently replayed with
+        different content (docs/10 §5/§6).
+        """
+
+        snapshot = self._run_selected_snapshot(run_id)
+        if snapshot is None:
+            return None
+        resolver = self._selected_resolver(task_id)
+        return resolve_context_from_snapshot(resolver, snapshot)
+
     def _build_context(self, task: Versioned, run_id: str) -> DispatchContext:
         entity = task.entity
         criteria = entity.get("acceptance_criteria") or []
@@ -1329,6 +1519,11 @@ class Coordinator:
             # non-secret and outside the Task Markdown dir (docs/02 §SDK session
             # 原生格式用于恢复).
             save_dir = self._native_session_dir(task.entity_id)
+        # LG-043: revalidate the persisted selected snapshot *before* worker
+        # dispatch and pass the same exact body the chat reply used.  A source
+        # that changed/revoked since resolution raises here (source_stale /
+        # not_found) instead of dispatching stale authorization.
+        selected = self._worker_selected_context(task.entity_id, run_id)
         return DispatchContext(
             task_id=task.entity_id,
             run_id=run_id,
@@ -1346,6 +1541,10 @@ class Coordinator:
             conversation_id=conversation_id,
             continuation_mode=continuation_mode,
             prior_run=self._prior_run_for(run_id),
+            selected_body=selected.body if selected else None,
+            selected_bindings=(
+                tuple(b.to_dict() for b in selected.bindings) if selected else ()
+            ),
         )
 
     def _run_attempt(self, run_id: str) -> int:
