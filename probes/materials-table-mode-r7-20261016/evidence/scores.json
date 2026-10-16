@@ -1,0 +1,77 @@
+{
+  "calls": {
+    "1": {
+      "sample": "LG035-R7-T1",
+      "input_sha256": "39138a971d605f65d10b5df3a13e35c7cec5d3710bc38d55e6eb656fc1219652",
+      "media_type": "image/png",
+      "processing_status": "succeeded",
+      "prompt_kind": "table",
+      "request_prompt_sha256": "4c7d8ec40e76bb36d018ec548ed85dee1dcfb77cee9510b7b86df676bd34fa76",
+      "default_prompt_sha256": "7cb03181c5220ca42c767951205de2a243a344145ad2e0c5df4cf9fc164d2171",
+      "default_prompt_unchanged": false,
+      "table": {
+        "parse_method": "markdown_pipe",
+        "machine_rows": 8,
+        "machine_cols": 3,
+        "truth_rows": 8,
+        "truth_cols": 3,
+        "rows_exact": true,
+        "cols_exact": true,
+        "cell_cer": 0.0,
+        "symbol_token_checks": [
+          {
+            "token": "m",
+            "machine_cell": "m",
+            "exact_after_nfkc": true
+          },
+          {
+            "token": "kg",
+            "machine_cell": "kg",
+            "exact_after_nfkc": true
+          },
+          {
+            "token": "s",
+            "machine_cell": "s",
+            "exact_after_nfkc": true
+          },
+          {
+            "token": "A",
+            "machine_cell": "A",
+            "exact_after_nfkc": true
+          },
+          {
+            "token": "K",
+            "machine_cell": "K",
+            "exact_after_nfkc": true
+          },
+          {
+            "token": "mol",
+            "machine_cell": "mol",
+            "exact_after_nfkc": true
+          },
+          {
+            "token": "cd",
+            "machine_cell": "cd",
+            "exact_after_nfkc": true
+          }
+        ],
+        "symbol_tokens_all_exact": true,
+        "structure_pass": true,
+        "table_gate_pass": true,
+        "table_whole_cell_cer_context": 0.0
+      }
+    },
+    "2": {
+      "sample": "LG035-ZH-Z1",
+      "input_sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+      "media_type": "image/jpeg",
+      "processing_status": "succeeded",
+      "prompt_kind": "default",
+      "request_prompt_sha256": "7cb03181c5220ca42c767951205de2a243a344145ad2e0c5df4cf9fc164d2171",
+      "default_prompt_sha256": "7cb03181c5220ca42c767951205de2a243a344145ad2e0c5df4cf9fc164d2171",
+      "default_prompt_unchanged": true,
+      "z1_page_cer": 0.042328042328042326,
+      "z1_page_gate_pass": true
+    }
+  }
+}

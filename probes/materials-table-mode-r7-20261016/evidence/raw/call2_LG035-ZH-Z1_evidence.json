@@ -1,0 +1,46 @@
+{
+  "requests": [
+    {
+      "input_sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+      "input_bytes": 333996,
+      "media_type": "image/jpeg",
+      "page": null,
+      "max_tokens": 4096,
+      "prompt_override": null,
+      "prompt_sha256": "7cb03181c5220ca42c767951205de2a243a344145ad2e0c5df4cf9fc164d2171",
+      "default_prompt_sha256": "7cb03181c5220ca42c767951205de2a243a344145ad2e0c5df4cf9fc164d2171"
+    }
+  ],
+  "evidence": [
+    {
+      "source_id": "source_01M515N6430AWYY19T9NJ77DHP",
+      "source_version": 1,
+      "original": "lg035_truth_zh_laojielao_p10.jpg",
+      "page": null,
+      "input_sha256": "5c73b9d07ba2955c90efd96efc9eef83b3bf55e65e7774249a22437747d0e64f",
+      "outcome": "succeeded",
+      "detail": {
+        "model": "qwen3.8-27b",
+        "prompt_tokens": 1262,
+        "completion_tokens": 472,
+        "latency_seconds": 28.27,
+        "finish_reason": "stop",
+        "raw_response_sha256": "349f354d41ddec66c084646cd1e60d5127dba5abadc056c1f03507a7f174bc65",
+        "prompt_kind": "default",
+        "prompt_sha256": "7cb03181c5220ca42c767951205de2a243a344145ad2e0c5df4cf9fc164d2171",
+        "table_classification": {
+          "is_table": false,
+          "reason": "undecodable/unsupported input: not a PNG",
+          "dominant_region": null,
+          "column_count": 0,
+          "line_fraction": 0.0,
+          "rules_in_region": 0,
+          "line_consistency": 0.0,
+          "format_supported": false
+        }
+      },
+      "at": "2026-10-16T01:37:04.272Z"
+    }
+  ],
+  "processing_status": "succeeded"
+}
