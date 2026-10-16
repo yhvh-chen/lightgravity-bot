@@ -18,6 +18,44 @@
 import { apiRequest } from './client'
 import type { Attachment } from './types'
 
+/* ------------------------------------------- selected-material (LG-044) contract
+ *
+ * Additive, optional, non-secret shapes frozen by LG-042 in
+ * `docs/10-selected-material-prototype.md` §2/§4/§9. Copied verbatim from §9 so
+ * the frontend request/response wire matches the backend owner (LG-043) exactly.
+ */
+
+/** One selected, already-ingested source ref request item (docs/10 §2). */
+export interface SelectedSourceRef {
+  source_id: string
+  source_version?: number
+  content_hash?: string
+}
+
+/** One program-resolved source binding returned by the backend (docs/10 §4). */
+export interface ResolvedSourceBinding {
+  source_id: string
+  source_version: number
+  content_hash: string
+  layer: 'formal' | 'machine'
+  locator: string
+  char_count: number
+  truncated: boolean
+  truncation: null | {
+    reason: string
+    original_char_count: number
+    kept_char_count: number
+    max_total: number
+  }
+}
+
+/** Additive result `data` fields for a reply (docs/10 §4/§9). */
+export interface ResolvedSourceBindingsData {
+  resolved_source_bindings?: ResolvedSourceBinding[]
+  context_truncated?: boolean
+  provided_context_note?: string
+}
+
 export interface ChatMessage {
   message_id: string
   role: string
@@ -31,6 +69,12 @@ export interface ChatMessage {
   seq?: number
   /** Additive resource-proposal outcome written back by the coordinator. */
   resource_result?: { status?: string } | null
+  /**
+   * Additive selected-material outcome (docs/10 §4). Persisted assistant
+   * messages MAY carry the resolved bindings; absent on legacy responses, in
+   * which case the view renders exactly as before.
+   */
+  data?: ResolvedSourceBindingsData | null
 }
 
 export interface ChatMessagePage {
@@ -60,6 +104,44 @@ export interface ChatMessageWire {
   task_ref?: string | null
   conversation_ref?: string | null
   resource_result?: { status?: string } | null
+  /** Additive selected-material fields (docs/10 §4); absent on legacy rows. */
+  resolved_source_bindings?: ResolvedSourceBinding[] | null
+  context_truncated?: boolean | null
+  provided_context_note?: string | null
+  data?: ResolvedSourceBindingsData | null
+}
+
+/** Extract the additive selected-material fields from either envelope shape. */
+function normalizeBindingsData(
+  wire: ChatMessageWire,
+  inner: Partial<ChatMessage>,
+): ResolvedSourceBindingsData | null {
+  const nestedData = (inner.data ?? wire.data) as ResolvedSourceBindingsData | null | undefined
+  const nestedBindings = Array.isArray(nestedData?.resolved_source_bindings)
+    ? nestedData?.resolved_source_bindings
+    : null
+  const flatBindings = Array.isArray(wire.resolved_source_bindings)
+    ? wire.resolved_source_bindings
+    : null
+  const bindings = nestedBindings ?? flatBindings
+  const contextTruncated =
+    typeof nestedData?.context_truncated === 'boolean'
+      ? nestedData.context_truncated
+      : typeof wire.context_truncated === 'boolean'
+        ? wire.context_truncated
+        : undefined
+  const note =
+    typeof nestedData?.provided_context_note === 'string'
+      ? nestedData.provided_context_note
+      : typeof wire.provided_context_note === 'string'
+        ? wire.provided_context_note
+        : undefined
+  if (!bindings && contextTruncated === undefined && note === undefined) return null
+  return {
+    ...(bindings ? { resolved_source_bindings: bindings } : {}),
+    ...(contextTruncated !== undefined ? { context_truncated: contextTruncated } : {}),
+    ...(note !== undefined ? { provided_context_note: note } : {}),
+  }
 }
 
 function normalizeMessage(wire: ChatMessageWire): ChatMessage {
@@ -79,6 +161,7 @@ function normalizeMessage(wire: ChatMessageWire): ChatMessage {
     conversation_ref: inner.conversation_ref ?? wire.conversation_ref ?? null,
     seq: wire.seq,
     resource_result: inner.resource_result ?? wire.resource_result ?? null,
+    data: normalizeBindingsData(wire, inner),
   }
 }
 
@@ -101,7 +184,14 @@ export interface ChatApi {
   readMessages(scope: ChatScope, cursor?: string | null, signal?: AbortSignal): Promise<ChatMessagePage>
   sendMessage(
     scope: ChatScope,
-    body: { message_id: string; content: string; attachments?: Attachment[]; request_id?: string },
+    body: {
+      message_id: string
+      content: string
+      attachments?: Attachment[]
+      request_id?: string
+      /** Additive, optional selected-material refs (docs/10 §2). */
+      selected_sources?: SelectedSourceRef[]
+    },
     signal?: AbortSignal,
   ): Promise<ChatSubmitResult>
   createTask(
@@ -174,6 +264,11 @@ export function createChatApi(): ChatApi {
         attachments: body.attachments ?? [],
       }
       if (body.request_id) payload.request_id = body.request_id
+      // Only send the key when there is a real selection: omitting it keeps
+      // the legacy request byte-identical (docs/10 §2, §8).
+      if (body.selected_sources && body.selected_sources.length > 0) {
+        payload.selected_sources = body.selected_sources
+      }
       return apiRequest<ChatSubmitResult>(path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

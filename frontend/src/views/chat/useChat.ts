@@ -14,13 +14,43 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { ApiError } from '../../api/client'
-import { chatApi, newRuntimeId, type ChatApi, type ChatMessage, type ChatScope } from '../../api/chat'
+import {
+  chatApi,
+  newRuntimeId,
+  type ChatApi,
+  type ChatMessage,
+  type ChatScope,
+  type ChatSubmitResult,
+  type ResolvedSourceBindingsData,
+  type SelectedSourceRef,
+} from '../../api/chat'
 import type { Attachment } from '../../api/types'
 
 export interface ChatSendOutcome {
   /** Newly created Task id, when the message started one. */
   createdTaskRef: string | null
   reply: string | null
+  /** Additive selected-material outcome for this reply (docs/10 §4). */
+  resolvedSources: ResolvedSourceBindingsData | null
+}
+
+/** Read the additive selected-material fields off a submit result `data`. */
+export function resolvedSourcesFromResult(
+  result: ChatSubmitResult,
+): ResolvedSourceBindingsData | null {
+  const data = result.data as ResolvedSourceBindingsData | undefined
+  if (!data) return null
+  const bindings = Array.isArray(data.resolved_source_bindings)
+    ? data.resolved_source_bindings
+    : undefined
+  const hasContextFlag = typeof data.context_truncated === 'boolean'
+  const hasNote = typeof data.provided_context_note === 'string'
+  if (!bindings && !hasContextFlag && !hasNote) return null
+  return {
+    ...(bindings ? { resolved_source_bindings: bindings } : {}),
+    ...(hasContextFlag ? { context_truncated: data.context_truncated } : {}),
+    ...(hasNote ? { provided_context_note: data.provided_context_note } : {}),
+  }
 }
 
 export interface UseChatResult {
@@ -30,7 +60,11 @@ export interface UseChatResult {
   sending: boolean
   sendError: ApiError | null
   refresh: () => void
-  send: (content: string, attachments?: Attachment[]) => Promise<ChatSendOutcome>
+  send: (
+    content: string,
+    attachments?: Attachment[],
+    selectedSources?: SelectedSourceRef[],
+  ) => Promise<ChatSendOutcome>
   clearSendError: () => void
 }
 
@@ -79,9 +113,13 @@ export function useChat(scope: ChatScope, api: ChatApi = chatApi): UseChatResult
   }, [api, taskRef, reloadKey])
 
   const send = useCallback(
-    async (content: string, attachments: Attachment[] = []): Promise<ChatSendOutcome> => {
+    async (
+      content: string,
+      attachments: Attachment[] = [],
+      selectedSources?: SelectedSourceRef[],
+    ): Promise<ChatSendOutcome> => {
       const trimmed = content.trim()
-      if (!trimmed) return { createdTaskRef: null, reply: null }
+      if (!trimmed) return { createdTaskRef: null, reply: null, resolvedSources: null }
       const messageId = pendingId.current ?? newRuntimeId('msg')
       pendingId.current = messageId
       setSending(true)
@@ -89,7 +127,14 @@ export function useChat(scope: ChatScope, api: ChatApi = chatApi): UseChatResult
       try {
         const result = await api.sendMessage(
           { taskRef },
-          { message_id: messageId, content: trimmed, attachments },
+          {
+            message_id: messageId,
+            content: trimmed,
+            attachments,
+            ...(selectedSources && selectedSources.length > 0
+              ? { selected_sources: selectedSources }
+              : {}),
+          },
         )
         pendingId.current = null
         const createdTaskRef =
@@ -99,7 +144,11 @@ export function useChat(scope: ChatScope, api: ChatApi = chatApi): UseChatResult
               ? (result.data.task_id as string)
               : null
         setReloadKey((key) => key + 1)
-        return { createdTaskRef, reply: result.reply ?? null }
+        return {
+          createdTaskRef,
+          reply: result.reply ?? null,
+          resolvedSources: resolvedSourcesFromResult(result),
+        }
       } catch (cause) {
         // Keep the same id so an explicit retry is idempotent server-side.
         setSendError(asApiError(cause))

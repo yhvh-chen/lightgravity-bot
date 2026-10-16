@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 
 import { getRuntimeToken } from '../../api/auth'
-import { type ChatApi } from '../../api/chat'
+import { type ChatApi, type ResolvedSourceBindingsData } from '../../api/chat'
 import {
   createSourcesApi,
   type SourcesApi,
@@ -17,9 +17,12 @@ import { Icon } from '../../components/icons'
 import { MarkdownViewer } from '../../components/MarkdownViewer'
 import { StatusBadge } from '../../components/StatusBadge'
 import { ChatMaterialIntake } from './ChatMaterialIntake'
+import { ChatSourcePicker } from './ChatSourcePicker'
 import { ChatSourceSearch } from './ChatSourceSearch'
+import { ChatSources } from './ChatSources'
 import { useChat } from './useChat'
 import { useChatMaterials } from './useChatMaterials'
+import { useChatSelection } from './useChatSelection'
 
 export interface ChatBodyProps {
   /** `main` = Chat view body; `rail` = right column on other views. */
@@ -51,10 +54,14 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
   const { state, dispatch } = useShell()
   const taskRef = state.taskRef
   const chat = useChat({ taskRef }, api)
-  const materials = useChatMaterials(
-    sourcesApi ?? createSourcesApi(sourcesRuntime ?? { getApiToken: getRuntimeToken }),
-  )
+  const resolvedSourcesApi =
+    sourcesApi ?? createSourcesApi(sourcesRuntime ?? { getApiToken: getRuntimeToken })
+  const materials = useChatMaterials(resolvedSourcesApi)
+  const selection = useChatSelection(taskRef)
   const [materialNotice, setMaterialNotice] = useState<string | null>(null)
+  // Resolved source bindings for the most recent send in this scope, so the
+  // freshly returned reply can show its Sources before/without a reload.
+  const [lastSendSources, setLastSendSources] = useState<ResolvedSourceBindingsData | null>(null)
   const key = draftKey(taskRef)
   const draft = state.drafts[key] ?? ''
   const [notice, setNotice] = useState<string | null>(null)
@@ -62,11 +69,23 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
   const [attachmentError, setAttachmentError] = useState<string | null>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
+  // Scope change (including Task switch) drops any transient reply Sources so it
+  // can never leak across Task boundaries (docs/10 §1, §8).
+  useEffect(() => {
+    setLastSendSources(null)
+  }, [taskRef])
+
   useEffect(() => {
     if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight
   }, [chat.messages.length])
 
   const scopeLabel = taskRef ?? 'Global'
+
+  const openSourceInFiles = (sourceId: string) => {
+    // Meaningful backlink: open the real material in Files, keep the Task scope.
+    dispatch({ type: 'selectItem', itemRef: `source:${sourceId}` })
+    dispatch({ type: 'setView', view: 'files' })
+  }
 
   const handleAddAttachment = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value.trim()
@@ -85,11 +104,17 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
       path: item.path,
       media_type: item.media_type,
     }))
+    const selectedRefs = selection.requestRefs
     setNotice(null)
     try {
-      const outcome = await chat.send(draft, payload)
+      const outcome = await chat.send(draft, payload, selectedRefs)
       dispatch({ type: 'setDraft', key, value: '' })
       setAttachments([])
+      // Implementation choice (docs/10 §8): clear the selection once the rule
+      // backend accepts the send, because the refs are now bound to that
+      // message; a failed send keeps them so an explicit retry reuses them.
+      if (selectedRefs && selectedRefs.length > 0) selection.clear()
+      setLastSendSources(outcome.resolvedSources)
       if (outcome.createdTaskRef) {
         setNotice(`Created Task ${outcome.createdTaskRef}. Opening its Board scope.`)
         dispatch({ type: 'selectTask', taskRef: outcome.createdTaskRef })
@@ -187,6 +212,8 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
                 ))}
               </ul>
             ) : null}
+            {/* Persisted reply bindings (legacy rows have no `data` ⇒ nothing). */}
+            <ChatSources data={message.data} onOpen={openSourceInFiles} />
           </article>
         ))}
       </div>
@@ -228,15 +255,23 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
           onDismiss={materials.dismiss}
         />
         <ChatSourceSearch
-          api={
-            sourcesApi ?? createSourcesApi(sourcesRuntime ?? { getApiToken: getRuntimeToken })
-          }
+          api={resolvedSourcesApi}
           taskRef={taskRef}
-          onOpen={(sourceId) => {
-            // Prefer Files for inspection; keep the Task scope and open the source.
-            dispatch({ type: 'selectItem', itemRef: `source:${sourceId}` })
-            dispatch({ type: 'setView', view: 'files' })
-          }}
+          onOpen={(sourceId) => openSourceInFiles(sourceId)}
+        />
+        {/* Reply-time Sources from the just-returned send (not yet reloaded). */}
+        {lastSendSources ? (
+          <ChatSources data={lastSendSources} onOpen={openSourceInFiles} />
+        ) : null}
+        <ChatSourcePicker
+          api={resolvedSourcesApi}
+          taskRef={taskRef}
+          selection={selection.selection}
+          atLimit={selection.atLimit}
+          onToggle={selection.toggle}
+          onRemove={selection.remove}
+          onClear={selection.clear}
+          disabled={chat.sending}
         />
         {attachments.length > 0 ? (
           <ul className="lg-chat__chip-row" aria-label="Pending attachments">
