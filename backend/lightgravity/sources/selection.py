@@ -169,11 +169,18 @@ class SelectionSourceResolver(Protocol):
     resolver never returns an absolute path.
     """
 
-    def selection_layer(self, source_id: str) -> tuple[str, str, int, str] | None:
+    def selection_layer(
+        self, source_id: str
+    ) -> tuple[str, str | None, int, str] | None:
         """Return ``(layer, body, source_version, content_hash)`` or ``None``.
 
         ``None`` means the source entity does not exist / is not readable as a
-        selected source; the caller maps that to ``reference_invalid``.
+        selected source; the caller maps that to ``reference_invalid``.  A
+        ``body`` of ``None`` means the source *exists* but has no readable body
+        layer (a genuine capability gap, not a bad reference).  The version and
+        hash are always returned when the source is resolvable so a stale
+        ``source_version``/``content_hash`` can be reported as ``source_stale``
+        **before** the missing-body gap (docs/10 §5).
         """
 
     def selection_available(self, source_id: str) -> None:
@@ -291,6 +298,14 @@ def resolve_selected_sources(
     any_truncated = False
 
     for ref in refs:
+        # Ordering is part of the frozen docs/10 §5 contract:
+        #   1. existence / cross-Task  -> reference_invalid (422)
+        #   2. revoke                  -> not_found (404)
+        #   3. stale version/hash       -> source_stale (409), even with no body
+        #   4. missing/unreadable body  -> capability_unavailable (503)
+        # ``selection_available`` enforces (1)+(2); the version/hash check must
+        # precede the body check so a valid-but-bodyless source with an expired
+        # expected version still reports stale, not a reference/capability gap.
         resolver.selection_available(ref.source_id)
         resolved = resolver.selection_layer(ref.source_id)
         if resolved is None:
@@ -300,12 +315,6 @@ def resolve_selected_sources(
                 details={"source_id": ref.source_id},
             )
         layer, body, source_version, content_hash = resolved
-        if body is None or not body.strip():
-            raise AppError(
-                ErrorCode.CAPABILITY_UNAVAILABLE,
-                f"selected source {ref.source_id!r} has no readable body",
-                details={"source_id": ref.source_id, "layer": layer},
-            )
         if ref.source_version is not None and ref.source_version != source_version:
             raise AppError(
                 ErrorCode.SOURCE_STALE,
@@ -325,6 +334,12 @@ def resolve_selected_sources(
                     "expected_hash": ref.content_hash,
                     "actual_hash": content_hash,
                 },
+            )
+        if body is None or not body.strip():
+            raise AppError(
+                ErrorCode.CAPABILITY_UNAVAILABLE,
+                f"selected source {ref.source_id!r} has no readable body",
+                details={"source_id": ref.source_id, "layer": layer},
             )
 
         original_count = len(body)

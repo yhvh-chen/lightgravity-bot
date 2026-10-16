@@ -1,0 +1,11 @@
+status: extracted | derivatives: [{'kind': 'machine_markdown', 'path': 'derivative/machine.v1.md', 'source_version': 1, 'content_hash': '67ad4c5f4b4a28fd09befa4a9da3ebb91ddcd5b0091c2437c7ce66470f54e983', 'model_version': 'none'}, {'kind': 'page_map', 'path': 'derivative/machine.v1.pages.json', 'source_version': 1, 'content_hash': '07d1a681dc09b1d281e83b214cfb75f43dcb9d0dbe319603df8bba1b27abf852', 'model_version': 'none'}]
+job: succeeded done
+content_view kind: machine | path: derivative/machine.v1.md
+record_type line: ['record_type: machine_native_text']
+extractor line: ['extractor: native-utf8-text']
+native body exact: True
+selection_layer layer: machine
+binary status: received | derivatives: []
+binary content_view: not_found
+binary selection_layer: ('machine', None, 1, 'feb1aba6fea741741b1bbcc974f74fed337b535b8eec7223b6dd15d7108f08e3')
+malformed status: failed | job: failed | reason: native text original is not valid UTF-8

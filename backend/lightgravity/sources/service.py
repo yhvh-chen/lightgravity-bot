@@ -26,7 +26,7 @@ from typing import Any, Callable, Protocol
 
 from lightgravity.contracts import AppError, ErrorCode
 from lightgravity.store.clock import to_iso, utcnow
-from lightgravity.store.errors import EntityNotFound, RevisionConflict
+from lightgravity.store.errors import ConfigInvalid, EntityNotFound, RevisionConflict
 
 from .intake import IntakeService, ReceiveRequest
 from .models import IntakeJobRecord, ReceiptEntry, ReceiveResult, SourceRecord
@@ -245,21 +245,23 @@ class SourceService:
                 "source file exceeds the intake size limit",
                 details={"path": path, "max_bytes": MAX_INLINE_BYTES},
             )
-        return self._intake.receive(
-            ReceiveRequest(
-                request_id=request_id,
-                filename=filename or target.name,
-                data=data,
-                media_type=media_type,
-                title=title,
-                title_origin=title_origin,
-                scope_task_ref=task_ref,
-                project_ref=project_ref,
-                inbox_ref=inbox_ref,
-                origin_kind=origin_kind,
-                external_ref=external_ref,
-                fetched=fetched,
-                claimed_payload_hash=payload_hash,
+        return self._auto_extract_native_text(
+            self._intake.receive(
+                ReceiveRequest(
+                    request_id=request_id,
+                    filename=filename or target.name,
+                    data=data,
+                    media_type=media_type,
+                    title=title,
+                    title_origin=title_origin,
+                    scope_task_ref=task_ref,
+                    project_ref=project_ref,
+                    inbox_ref=inbox_ref,
+                    origin_kind=origin_kind,
+                    external_ref=external_ref,
+                    fetched=fetched,
+                    claimed_payload_hash=payload_hash,
+                )
             )
         )
 
@@ -297,22 +299,127 @@ class SourceService:
                 "inline source exceeds the intake size limit",
                 details={"max_bytes": MAX_INLINE_BYTES},
             )
-        return self._intake.receive(
-            ReceiveRequest(
-                request_id=request_id,
-                filename=filename,
-                data=data,
-                media_type=media_type,
-                title=title,
-                title_origin=title_origin,
-                scope_task_ref=task_ref,
-                project_ref=project_ref,
-                inbox_ref=inbox_ref,
-                origin_kind=origin_kind,
-                external_ref=external_ref,
-                fetched=fetched,
-                claimed_payload_hash=payload_hash,
+        return self._auto_extract_native_text(
+            self._intake.receive(
+                ReceiveRequest(
+                    request_id=request_id,
+                    filename=filename,
+                    data=data,
+                    media_type=media_type,
+                    title=title,
+                    title_origin=title_origin,
+                    scope_task_ref=task_ref,
+                    project_ref=project_ref,
+                    inbox_ref=inbox_ref,
+                    origin_kind=origin_kind,
+                    external_ref=external_ref,
+                    fetched=fetched,
+                    claimed_payload_hash=payload_hash,
+                )
             )
+        )
+
+    # ------------------------------------------------------------- extraction
+    def _auto_extract_native_text(self, result: ReceiveResult) -> ReceiveResult:
+        """Run the model-free UTF-8 text extraction right after a receive.
+
+        This is the minimal real *pump*: a native ``text/*`` upload is turned
+        into its machine derivative synchronously so the receipt reaches a
+        terminal state with a readable body (docs/09 lifecycle
+        ``received → processing → extracted``).  PDF/image originals are left at
+        ``received`` and only extracted through the existing explicit
+        ``reprocess`` action, so OCR stays unchanged.  A deduplicated re-receive
+        of an already-extracted source is a no-op.
+
+        The pump is best-effort: a corpus that fails native extraction must not
+        turn a successful *receive* into a 5xx.  Failures are recorded on the
+        source/receipt honestly (``status=failed``), never as a fabricated body.
+        """
+
+        record = result.source
+        original = record.entity.get("original")
+        original = original if isinstance(original, dict) else {}
+        media_type = original.get("media_type")
+        if self._processing is None or not self._processing.is_native_text(media_type):
+            return result
+        if record.status == "extracted":
+            return result
+        outcome: Any = None
+        try:
+            outcome = self._processing.process(record.source_id, job_id=result.job.job_id)
+        except AppError:
+            # A recorded failure is the honest outcome; the original stays.
+            pass
+        self._append_extraction_receipt(result, media_type, outcome)
+        return self._reload_receive_result(result)
+
+    def _append_extraction_receipt(
+        self, result: ReceiveResult, media_type: str | None, outcome: Any
+    ) -> None:
+        """Record the synchronous native-extraction outcome on the receipt.
+
+        The receipt is a projection of real file state; this line states the
+        terminal extraction result honestly (no fabricated body) so a client
+        polling the receipt stops on done (docs/11 Flow A step A1).
+        """
+
+        try:
+            source = self._store.read_source(result.source.source_id)
+        except (EntityNotFound, ConfigInvalid):
+            return
+        original = source.entity.get("original")
+        original = original if isinstance(original, dict) else {}
+        filename = original.get("filename")
+        if not isinstance(filename, str) or not filename:
+            filename = result.job.entity.get("filename") or "original"
+        status = getattr(outcome, "status", None) or source.status
+        extracted = status == "succeeded" and source.status == "extracted"
+        reason = getattr(outcome, "reason", None)
+        receipt = ReceiptEntry(
+            source_id=source.source_id,
+            filename=str(filename),
+            status="extracted" if extracted else "failed",
+            stage="done" if extracted else "extracting",
+            detail=(
+                "native UTF-8 text extracted (model-free)"
+                if extracted
+                else (reason or "native UTF-8 text extraction failed")
+            ),
+            searchable=extracted,
+            original_path=original.get("path") if isinstance(original.get("path"), str) else None,
+            formal_path=(
+                f"derivative/machine.v{source.source_version}.md" if extracted else None
+            ),
+            content_hash=source.content_digest,
+            source_version=source.source_version,
+            at=to_iso(utcnow()),
+            error_code=None if extracted else "capability_unavailable",
+        )
+        self._store.append_receipt(source.source_id, receipt)
+
+    def _reload_receive_result(self, result: ReceiveResult) -> ReceiveResult:
+        """Re-read the source, job and receipts after the pump.
+
+        The synchronous extraction advances both the source (``received`` →
+        ``extracted``/``failed``) and the intake job (``queued`` → terminal),
+        so the receive response must reflect the post-pump state rather than
+        the pre-pump snapshot.
+        """
+
+        try:
+            source = self._store.read_source(result.source.source_id)
+        except (EntityNotFound, ConfigInvalid):
+            return result
+        try:
+            job = self._store.read_job(result.job.job_id)
+        except (EntityNotFound, ConfigInvalid):
+            job = result.job
+        return ReceiveResult(
+            source=source,
+            job=job,
+            deduplicated=result.deduplicated,
+            created=result.created,
+            receipts=self._store.read_receipts(source.source_id),
         )
 
     # ------------------------------------------------------------------- inbox
@@ -460,12 +567,15 @@ class SourceService:
 
     def selection_layer(
         self, source_id: str
-    ) -> tuple[str, str, int, str] | None:
+    ) -> tuple[str, str | None, int, str] | None:
         """Return ``(layer, body, source_version, content_hash)`` for selection.
 
         Formal content is preferred; the machine derivative is the fallback
-        (docs/10 §3).  No new inference path is entered.  ``None`` means the
-        source has no readable selected body layer.
+        (docs/10 §3).  No new inference path is entered.  The version and hash
+        are returned even when neither layer has a readable body (``body`` is
+        ``None``) so the caller can report a stale reference as ``source_stale``
+        before the missing-body ``capability_unavailable`` gap.  ``None`` is
+        reserved for a source that cannot be resolved at all (docs/10 §5).
         """
 
         record = self._store.read_source(source_id)
@@ -478,8 +588,6 @@ class SourceService:
         if body is None:
             layer = "machine"
             body = content.read_machine_markdown(source_version)
-        if body is None:
-            return None
         return (layer, body, source_version, content_hash)
 
     def selection_scope_ok(self, record: SourceRecord, task_ref: str | None) -> bool:
@@ -872,7 +980,9 @@ class ScopedSelectionResolver:
         self._record(source_id)
         self._service.selection_available(source_id)
 
-    def selection_layer(self, source_id: str) -> tuple[str, str, int, str] | None:
+    def selection_layer(
+        self, source_id: str
+    ) -> tuple[str, str | None, int, str] | None:
         self._record(source_id)
         return self._service.selection_layer(source_id)
 

@@ -1,0 +1,6 @@
+status: received | derivatives: []
+content_digest: 14b2a0886d7207769a87c9a852b85ef0b09f0f027a7ab1e9a4c44bb2a66ca539
+content_view ERROR: not_found | no machine content exists for source 'source_01M51YJ99QSHZZD4XE2066Z2D0'
+selection_layer: None
+process_source: {'source_id': 'source_01M51YJ99QSHZZD4XE2066Z2D0', 'source_version': 1, 'status': 'failed', 'total_pages': 0, 'succeeded_pages': 0, 'failed_pages': 0, 'model': 'unavailable', 'derivative_path': None, 'reason': 'unsupported media type for OCR: text/plain'}
+content_view after process ERROR: not_found | no machine content exists for source 'source_01M51YJ99QSHZZD4XE2066Z2D0'
