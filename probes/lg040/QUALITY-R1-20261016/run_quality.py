@@ -210,12 +210,29 @@ def main() -> int:
          "--host", "127.0.0.1", "--port", str(APP_PORT), "--log-level", "warning"],
         cwd=str(ROOT), env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
     )
+    # counting hard-cap proxy in front of the authorized LAN endpoint
+    proxy_proc = subprocess.Popen(
+        [sys.executable, str(HERE / "counting_proxy.py"), str(PROXY_PORT)],
+        cwd=str(HERE), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+    )
     try:
         if not wait_for_server(APP):
             out = app_proc.stdout.read() if app_proc.stdout else ""
             log("app failed to start:\n" + out[-2000:])
             return 2
         log(f"app up on {APP}")
+
+        # optional bounded health/models GET (<=2 for this slice); direct to proxy (not the app)
+        import urllib.request
+        try:
+            with urllib.request.urlopen(BASE + "/v1/models", timeout=15) as r:
+                models = json.loads(r.read())
+            rec.add(phase="models_get", http=r.status, models=[m.get("id") for m in models.get("data", [])])
+            (EVIDENCE / "models.json").write_text(json.dumps(models, indent=2)[:20000], encoding="utf-8")
+            log(f"models GET ok: {[m.get('id') for m in models.get('data', [])]}")
+        except Exception as exc:
+            rec.add(phase="models_get", error=type(exc).__name__)
+            log(f"models GET failed: {exc}")
 
         client = httpx.Client(base_url=APP, timeout=180)
         rec_client = httpx.Client(base_url=APP, timeout=180)
@@ -356,14 +373,15 @@ def main() -> int:
         rec.dump("call_recorder.json")
         return 0
     finally:
-        try:
-            app_proc.terminate()
+        for proc in (app_proc, proxy_proc):
             try:
-                app_proc.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                app_proc.kill()
-        except Exception:
-            pass
+                proc.terminate()
+                try:
+                    proc.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":
