@@ -1,0 +1,88 @@
+{
+  "checks": [
+    {
+      "name": "failure_path_recorded",
+      "passed": true,
+      "detail": {
+        "records": 1,
+        "error_class": "RuntimeError",
+        "error": "stub deliberate failure"
+      }
+    },
+    {
+      "name": "hard_cap_before_http",
+      "passed": true,
+      "detail": {
+        "cap_error": true,
+        "emitted": 2,
+        "stub_calls": 2
+      }
+    },
+    {
+      "name": "query_vector_persisted",
+      "passed": true,
+      "detail": {
+        "dim": 768,
+        "len": 768,
+        "usage": {
+          "prompt_tokens": 7,
+          "total_tokens": 7
+        }
+      }
+    },
+    {
+      "name": "verified_hit_has_no_score",
+      "passed": true,
+      "detail": {
+        "fields": [
+          "basis",
+          "content_hash",
+          "locators",
+          "reason",
+          "scope",
+          "snippet",
+          "source_id",
+          "source_version",
+          "stale",
+          "title",
+          "verified"
+        ]
+      }
+    },
+    {
+      "name": "candidate_has_score",
+      "passed": true,
+      "detail": {
+        "candidate_fields": [
+          "basis",
+          "content_hash",
+          "dim",
+          "fragment_hash",
+          "kind",
+          "locators",
+          "model",
+          "score",
+          "source_id",
+          "source_version",
+          "text",
+          "title"
+        ]
+      }
+    },
+    {
+      "name": "r5_vectors_header_and_dims",
+      "passed": true,
+      "detail": {
+        "header": {
+          "cache_version": 1,
+          "dim": 768,
+          "model": "embeddinggemma-2-Q8_0",
+          "record": "header"
+        },
+        "entries": 10,
+        "all_finite_nonzero": true
+      }
+    }
+  ],
+  "all_pass": true
+}

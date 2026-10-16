@@ -1,0 +1,2 @@
+{"seq": 1, "kind": "query", "ts": 1792113749.312, "q": "Q_IMG_ZH", "text_sha256": "b23cfe0071d1db3d77c8abc21ed25700951d2e976f2c546ce94c2a197e492d99", "text_bytes": 30, "timeout_seconds": 90.0}
+{"seq": 2, "kind": "query", "ts": 1792113749.434, "q": "Q_NEG_ZH", "text_sha256": "5bca7dabebdcb6f77f5c40d61e0755a14d9265f2065e0ab7472ac82146957e68", "text_bytes": 41, "timeout_seconds": 90.0}
