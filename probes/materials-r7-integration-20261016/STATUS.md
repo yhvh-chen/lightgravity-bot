@@ -11,7 +11,7 @@ updated: "2026-10-16"
 
 - `phase = INTEGRATED`（A→B→C→D→E 顺序 `--no-ff` 已合入 `main`；LG-035 置 done；LG-037 保持 in-progress）。主代理只 PM，无嵌套派工、无新模型探针。
 - Base (pre-merge) `main@2d76c83`（clean、预期）。
-- **Post-merge main**: 见下（提交精确 HEAD 见收尾提交后的 `git rev-parse HEAD`；合并链 `89b0cc1`→`7eb88fe`→`e8a8e40`→`95b66bf`→`5f84503`）。
+- **Post-merge main**: `e962fd5` (PM docs commit on top of merge chain `89b0cc1`→`7eb88fe`→`e8a8e40`→`95b66bf`→`5f84503`).
 
 ## Merge chain (real, no conflicts, no duplicate pick)
 
