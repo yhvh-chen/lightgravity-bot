@@ -7,241 +7,204 @@ updated: "2026-10-16"
 
 # LightGravity Bot
 
-> 当前更新（2026-10-16）：共享团队版已本地合入 `main`，契约 **1.13.0**。LG-050 独立 QA 为 **PASS_WITH_LIMITATIONS**：58 项真实 HTTP 检查、Firefox 双用户上下文的登录/轮询互见/退出通过。主目录前端生产包已重建；现有服务未重启、未发布部署。下方长段开发过程与任务数量为历史快照；本次运行方法见“团队模式”。[QA 证据](probes/team-chat-20261016/qa/QA-REPORT.md)
+**把资料和目标交给团队 Bot，让 AI 团队执行工作、检查结果，交付你能验收的成果。**
 
-> 更新：2026-10-16。设计与 27 项首版开发任务已落盘（2026-10-15 新增 14 项扩展任务，共 41 项，见 [BACKLOG](BACKLOG.md)），首版接口契约（docs/08，契约版本 1.13.0）已冻结；用户已确认首版先用 DeepSeek，首版真实执行后端为已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）+ loopback 认证代理接 DeepSeek，此前的 Gemini 认证阻塞已解除。**当前批次（2026-10-16）：LG-050 共享团队聊天与简单认证 MVP 已实施并串行集成到候选分支 `feat/team-integration-20261016`（契约加性 MINOR 1.13.0；团队模式显式开启、默认单用户不变；已通过独立集中 QA（PASS_WITH_LIMITATIONS），含真实浏览器双用户验收）；LG-040 资料接入与 Embedding 集中版本 QA 已完成并置 `done`（版本 QA 技术验收，依独立治理报告 TRANSITION-QA-20261016 PASS_WITH_LIMITATIONS；用户最终验收 PENDING、未发布）；LG-037 已 done；LG-041 仍 todo 且阻塞于中文 ASR 质量门。任务 CLI：`41 tasks / 0 diagnostics`、`digest` 40 done / 1 todo / 0 in-progress、`ready=[]`。**以下为 2026-10-15 时点的首版开发过程记录（历史保留）。LG-001～012、LG-014、LG-015、LG-020、LG-025、LG-026 共 17 项已完成并整合到 `main`（均为**待版本 QA**，其中 LG-010 已通过独立版本 QA）：工程骨架可运行、SDK 探针、存储层、资源配置编译、左侧导航壳层、正式 executor + loopback 认证代理、常驻消息路由与 Task 队列、自动组队与依赖调度、模型设置与凭证后端、产物验证与人工验收、查询 API 与持久事件订阅、Settings 模型接入页面、Team/Resources 管理视图与受控资源写入、本地启动/停止与一体分发入口。集成后已把验证服务与资源停止接口注入 `create_app`，accept/reject 合并进 API actions，并新增只读 `GET /tasks/{id}/acceptance` 与单例全局对话 `GET/POST /api/v1/conversations/global/messages`。主前端构建现已挂载 Settings、Files、Team 与 Resources 视图，分别接线 `/api/v1/settings*`、`/api/v1/files*`、`/api/v1/team/*` 与 `/api/v1/resources/*`；Files 上传复用 LG-026 运行时 token helper 注入 `X-LG-Token`，无 token 时上传如实返回 `unauthorized`。Team/Resources 受控修改经 Task 对话提议：`POST /api/v1/tasks/{id}/messages` 携带 `resource_proposal` 时执行 sensitive 授权，`message_id` 幂等、`expected_revision` 版本检查，实际结果写回同一 Task 对话；该路径不创建 Run、不等待代码 worker，也不热替换活跃 Member 配置（docs/08 1.4.0 登记 `PATCH /resources/{kind}/{id}`、`GET /team/available`、`GET /team/members`）。LG-020 已提供 `lightgravity start/stop/status/init` 与一体分发：默认 loopback、`data/workspace/secret/dist` 隔离、首个启动在内存握手运行时 token 并注入 `index.html`（`__LG_RUNTIME_TOKEN__`，前端 `auth.ts` 读取后自动带 `X-LG-Token`），敏感写默认拒绝、缺认证可读历史/设置；首次启动幂等种子 `lg-default-worker`（仅 `view-file`/`create-file`/`edit-file` 三个 workspace 受限工具，无 `run-command`/web 无边界工具），Settings-only 建连接/存凭证/静态测试/设 worker 默认后新 Task 可用默认 worker，Run/Member 在招募时冻结非秘密 `connection_pin`（docs/08 1.5.0）。同时注册 canonical evidence 产物在 Task 产物 API 的预览/下载：`GET /tasks/{id}/artifacts`、`.../artifacts/content`、`.../artifacts/download`，仅接受 `evidence:<run_id>/<name>@sha256:<hex>` 并经 Task/Run evidence resolver 授权，拒绝原始绝对路径/跨 Task/跨 Run/摘要不符。敏感写仍由后端 `LocalAccessPolicy` 默认拒绝。LG-013 已按真实 API 接线把 Chat/Board 接入真实历史与 phase（不再为占位/mock），**实施已通过本包验收并置 done**；其中直答走新增的 `coordinator/dialogue.py`（无工具单次模型轮，未配置默认协调连接/凭证时诚实 `unavailable`，不伪造 AI），经 `create_app(responder=...)` + bootstrap 注入，现有 Resource/Verifier 端口保留；但**真实浏览器 HTTP 业务路径仍归版本门 LG-021/022**，不等于完整浏览器 HTTP 端到端。LG-027 已就设置/凭证生命周期完成独立专项版本 QA 并判定 **pass**（真实 CLI + 真实 HTTP + `file://` 真实构建渲染，范围见其报告），**该范围限于设置/凭证的 CLI/HTTP 与浏览器渲染，不等于完整浏览器 HTTP 端到端**；其真实模型调用计数产品未暴露，报告中的旧上限 5 + 恢复硬上限 4 仅为指令/运行预算，**不视为已验证实际调用次数或精确上界**。旧 QA“浏览器全 HTTP/fetch 阻断”结论已被 root [browser-diagnostics](probes/browser-diagnostics/README.md) 诊断推翻并精确更正：真实 loopback HTTP 的 `fetch`/SSE 可用，仅顶层 `Page.navigate` 到 `http://` 在本机 headless 挂起；原报告作为历史保留。LG-016 恢复反重放守卫（暂停/取消确认、中断恢复、跨 Run 原生会话续接、稳定 reuse identity 与 `recovery_required`）已整合到 `main`；**完整 checkpoint skip 调度尚未实现，不夸大恢复能力**。LG-006 以真实 DeepSeek（实际发送 `deepseek-v4-flash`，上游返回 `deepseek-flash`）在临时授权工作区跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复与确认取消，真实模型调用总数 12（硬上限 12），进程无残留；证据见 [tests/adapter/evidence](tests/adapter/evidence/README.md)。LG-009/LG-012 的真实 SDK 端到端已在 LG-010 完成，浏览器验收仍留 LG-021/LG-022。LG-010 最小真实开发闭环经独立版本 QA 判定 **pass/done**：首轮报告的 executor 绝对 `diff_ref` 误判与交付后未自动触发验证两项阻断已返修，第 2 轮复验又发现携带 `target_run_id` 的重复 ack 非幂等，已按 Task 作用域幂等键返修并由独立 QA 复核确认消除（`probes/lg010/reports/lg010-qa-r2-after-refix.md`）。真实 DeepSeek 链路证据基点 `ffe7a63`（交付后自动到 `awaiting_acceptance`、真实文件/diff/usage、停止释放、绑定版本 accept、stale 拒绝），累计真实调用 12（硬上限 14，`within_cumulative_cap_14=true`）；QA 候选核心证据 `ffe7a63`/`ed014c5`、复现脚本 `lg010_accept_repro_r1.py`/`r2.py` 与 `lg010_check_repro_r1.py`。**此 QA 只覆盖契约 1.3.1 core 的最小后端闭环，并非 1.5 全功能 QA**：LG-015/020 的新资源/启动功能仍未验收，分别留 LG-027 与 LG-021/LG-022；未部署。
+LightGravity Bot 是面向个人与小团队的 AI 工作空间。它把资料、对话、任务与交付记录放在一起：你提出目标，系统按需组织 AI 执行者完成工作，经过检查与独立复核，再交给你决定是否验收。
 
-**个人与小团队 AI 工作助手（执行型 Agent）：把资料和目标交给它，它帮你整理、查找并完成工作，过程与成果保存在你掌握的文件中。**
+基于 **Antigravity SDK** 构建执行能力，接入 **EmbeddingGemma 2** 作为可选语义检索后端。任务和资源以 Markdown 文件描述，过程与成果保存在用户掌握的文件中。
 
-LightGravity Bot 接收资料、问题和目标：简单问答直接处理，需要交付时创建任务并按需组队，执行、验证、保存成果；Chat 统一接资料、提目标、看结果，Files 负责整理、归档、预览与来源追溯；进入待验收时释放临时队伍，常驻服务继续等待指令。
+[快速开始](#快速开始) · [团队模式](#团队模式) · [技术架构](#技术架构) · [验证与当前限制](#验证与当前限制) · [文档](#文档)
 
-统一目标定位由原开发任务助手扩展而来：资料整理检索与任务执行验收衔接；原件、正式内容与元数据仍以文件为事实源，词法与可选向量索引只作可重建缓存。**用户掌握文件不等于所有推理都在本地运行**——模型与后端仍走已验收的接入路径。
+> **开发预览 · 2026-10-16**：已有真实 SDK 交付与共享团队聊天的专项验证。当前用户反馈多个页面出现 `Scope not found`、`Not Found` 等加载错误，尚待定位修复；界面简化也待实施。以下介绍区分现有机制、验证范围与探索方向，不代表当前安装即可获得完整可用体验。[问题记录](PROJECT.md#2026-10-16页面不可用与界面调整反馈仅记录待实施)
 
-内部编排不因定位扩展而反转：仍由程序控制权限、状态、预算与调度，worker 按需协作，默认不存在独立常驻模型编排 agent；不声称已实现完整的自主领取或点对点协作。本定位不引入 AIOS、全自动无人值守、外部聊天渠道或企业组织平台，不增加额外承诺。
+## 从资料到交付
 
-首版仍以开发任务验证交付闭环：在一个明确的项目工作区里完成小型代码修改，留下代码差异、检查结果与交付说明。资料摄取与检索**待实现、接口未冻结**（方向见 [docs/09](docs/09-source-intake-and-retrieval.md)），中文 ASR 尚未打通，Office 等格式未实测；不宣称当前已全面具备上述能力。
+一项工作往往需要同时处理资料、上下文、执行进度和结果检查。LightGravity 围绕任务保存这些内容，让每次补充、返修和验收都有可以继续的工作记录。
 
-## 为什么重新设计
-
-LightGravity Bot 从 Olav OS 的使用经验中重新设计更小的产品。保留文件即事实源、对话管理项目、任务依赖、人机决策和可复核交付的思想，避免为了复用代码而连带引入完整组织系统、历史运行时和兼容逻辑。
-
-它不是先复制一套 Olav OS 再裁剪，也不预设旧底座为运行依赖。组件是否移植，要根据实际依赖、许可证和维护成本决定。现有技术债的具体范围仍需调查，不能把重写天然视为更便宜。
-
-## 用户入口
-
-| 视图 | 用户用途 |
-|---|---|
-| Chat | 提出目标、补充信息、查看汇报、作出决定 |
-| Board | 查看任务依赖、执行情况、验证结果与阻塞 |
-| Files | 查看输入资料、工作成果和验收证据，上传与下载文件 |
-| Team | 查看待招募角色和当前 Task／Run 的已招募成员 |
-| Resources | 管理 Connections、Session Profiles、Hooks、MCP、Tools、Triggers 与 Skills |
-| Settings | 底部齿轮入口，接入模型、管理凭证、测试连接和设置默认模型 |
-
-五个工作入口采用 Olav OS 风格的固定左侧窄图标导航，底部另放 Settings；上方不再放一级 tabs。Agent 合并到 Team，其他配置集中到 Resources。Settings 与 Connections 使用同一份配置，不维护重复模型列表。顶栏显示任务范围、面板开关与通知。
-
-Task 是主要操作入口：一项任务一个目录、一份 TASK.md、一条用户对话历史。工作视图围绕同一任务展示，Resources 提供共享配置与任务实际引用；Project 是可选的共享背景，Run 是内部执行尝试。
-
-任务、角色及 SDK 资源采用 Markdown＋YAML frontmatter 描述与渲染，程序校验后编译为 SDK 配置。日志与 SDK 会话保持各自格式，不重复保存当前业务状态。
-
-## 首版使用指南（安装 / 启动 / 配置 / 使用 / 恢复）
-
-> 本节面向使用首版的人；开发实现与证据见 [当前进展](#当前进展截至-2026-10-15) 与 [文档入口](#文档入口)。
-> 绑定首版核心稳定产品树 `e0a8cec`（= `main` `66b2b10` 产品路径，逐字节相同），契约 `1.10.0`、SDK `google-antigravity==0.1.22`。
-> L0 首版私评包（含 portable 使用说明、NOTICE、manifest、sha256）见 [probes/lg024/STAGE-B](probes/lg024/STAGE-B/)，**未发布、未授予公开再分发**。
-
-### 安装与启动
-
-```bash
-uv sync                                   # 按 uv.lock 从公开来源 / 本地缓存重建后端依赖
-uv run lightgravity start \
-  --data-dir ./bot-data --workspace-root ./bot-data/workspaces \
-  --secret-store ./secrets --host 127.0.0.1 --port 8000
-# 浏览器打开 http://127.0.0.1:8000/ ；make serve 会先构建前端再启动
+```text
+资料 + 目标
+    ↓
+对话与任务 → 按需组队 → 执行与产物
+                            ↓
+                     机器检查 + 独立复核
+                            ↓
+                       用户验收与返修
 ```
 
-`lightgravity start | status [--deep] | stop | init` 为入口；**默认仅 loopback**，首启在**内存**握手运行时 token 并注入页面；**敏感写默认拒绝**；首启幂等种子 `lg-default-worker` 仅含 `view-file`/`create-file`/`edit-file` 三个 workspace 受限工具。
+- **用同一份资料推进工作。** 手动选定已摄取资料，将有版本绑定的文本上下文交给对话或执行任务。
+- **围绕交付组织 AI 团队。** 普通问答直接处理；需要交付时创建任务，按规则生成计划、选择角色并协调执行。
+- **查看结果与检查依据。** 保留产物、代码差异、检查记录与来源绑定，支持后续补充和返修。
+- **掌握自己的工作文件。** Markdown + YAML 保存任务与配置，JSONL 保存消息和事件，检索索引作为可重建缓存。
 
-### Settings：worker 与独立 reviewer
+适合先在一个明确的工作区里尝试有边界的开发任务，或复现“选定资料 → 生成文件 → 复核验收”的示例。研究、文档与其他知识工作是扩展方向，具体可用范围见下方验证记录。
 
-- Settings → Connections 建连接 / 存凭证（只存引用，不写真实密钥）；非交互 `lightgravity init --connection-id <id> --credential-ref <REF> [--set-worker-default]` 幂等。
-- 设 `default_worker_connection_ref` 后，新 Task 招募用该默认（Run/Member 冻结非秘密 `connection_pin`）。
-- 设 `default_reviewer_connection_ref` 指定**独立 reviewer**；**未配置时诚实 `unavailable` 且阻止 accept**，**程序机器门 ≠ 独立复核**，不静默回退 worker。
-- 自主协作开关 `decentralized_claim_enabled`/`collab_requests_enabled` **默认关闭**，走确定性 `plan_source=rules`。
+## 一个团队 Bot，两种协作
 
-### Chat 轻问答与交付 Task
+**人和人共享工作。** 在团队模式下，每个人使用独立账号，在同一工作区共享聊天、任务与资料。普通群聊保存为团队上下文，显式 `@bot` 才触发助手；Task 内消息按任务对话规则处理。
 
-- **轻问答**：Chat 直问直答（无工具单次直答）；未配置默认协调连接/凭证时诚实 `unavailable`，不伪造 AI。
-- **交付 Task**：Chat 提目标 → **程序按规则生成最小计划**（不调用模型）→ 招募最小团队 → 调度执行 → 机器检查 + 独立复核 → 待验收 → **人工最终验收**；worker 自报完成只进待验证。
+**AI 按任务组队。** 系统根据任务选择角色与技能，协调执行者、检查与独立复核。临时 AI 成员随运行创建和释放，工作记录与成果持续保留。人类账号与 AI 成员是两类实体。
 
-### Files：资料原件与来源
+当前团队版提供单共享工作区、管理员与普通成员角色。管理员管理账号、模型与凭证；现阶段全部团队资料共享，暂不提供私聊、私有资料或多租户隔离。
 
-Files 只读预览/下载、受控上传（`X-LG-Token`，无 token 时上传如实 `unauthorized`），检查符号链接与路径逃逸。**资料接入方向已确认（[docs/09](docs/09-source-intake-and-retrieval.md)）**：Chat 为唯一常规资料接入入口，Files 负责预览/来源追溯/归档/校订/重处理/下载；**schema/API 未冻结、摄取/检索未实现**，现有上传属历史实现。
+## 任务本体：让工作有明确的结构
 
-### Resources 与恢复入口
+我们用“任务本体（Task Ontology）”描述 LightGravity 的工作模型：明确有哪些对象、对象如何关联、允许哪些动作，以及完成需要什么证据。
 
-- Resources 分类：Connections、Session Profiles、Hooks、MCP、Tools、Triggers、Skills；`enabled` 不等于已运行/可用，健康未知如实 `unknown`。
-- **恢复**：暂停/取消/断连/会话关闭/完成分别处理；**确认真实停止才写终止**；浏览器断线不取消后端工作，重连按游标补齐。
-- **未知副作用不自动重放**：进 `recovery_required` 诚实停车、保留 `session_refs`；**完整 checkpoint skip 调度未实现**。诊断入口 `GET /api/v1/diagnostics/generation`（`persistent` 跨重启不归零、损坏给 `corrupt`）。
+| 对象 | 表达什么 |
+|---|---|
+| Task | 用户目标、需求与验收条件 |
+| Run / Subtask | 一次执行尝试及其中的工作节点 |
+| Role / Member | 角色模板与本次实际参与的 AI 成员 |
+| Source / Artifact | 输入资料与交付产物，以及版本和来源 |
+| 资源与验收记录 | 执行依赖、检查结果与用户决定 |
 
-> **不宣传为可用**：资料摄取/检索（docs/09）、中文 ASR（LG-039 负结论）、Office 格式、完整 checkpoint skip；自主协作默认 off。真实模型调用只走唯一已验收路径，且需明确测试环境与预算。
+当前基础是显式 schema、稳定引用和程序校验的状态转换。“任务本体”是对这套结构的概括；通用本体推理、知识图谱推理与自动业务建模仍不在当前承诺内。详见 [Task 与资源契约](docs/02-task-and-sdk-resources.md)及[接口与状态契约](docs/08-interface-contract.md)。
 
-## 当前进展（截至 2026-10-16）
+## 向受控的自组织 Swarm 演进
 
-> **最新状态（2026-10-16，LG-040 RELEASE-CLOSE 收口；LG-040 置 done）**：任务 CLI（backlog 专用根）`validate` **41 tasks / 0 diagnostics**；`digest` complete=true → **1 todo / 0 in-progress / 40 done**；`ready=[]`；唯一 decision = **LG-041（质量门）**。
-> **LG-040 已 `done`（版本 QA 技术验收）**：唯一治理独立 QA [TRANSITION-QA-20261016](probes/lg040/TRANSITION-QA-20261016/REPORT.md)（候选 **`30029eb`**）**PASS_WITH_LIMITATIONS、0 个 open important issue**，含 fresh actual 证据（fresh build EXIT 0 + bundle CSS hash 绑定、transition max overshoot **0**、starvation **0/1986**、宽度 **19/19**、**bounded readiness ready=true @76ms，2s 上界保留**）。收口顺序 `--no-ff` 合并 `925f828`/`8a4560a`/`30029eb`/`7fd0f61` 至 HEAD **`7cc94b5`**（无冲突）；`backend/`、`tests/`、`docs/` 自 `fc9f74b` 未变，产品增量仅 `frontend/src/app/shell.css`；契约 **`1.11.0`**、SDK **`0.1.22`** 不变。详情 [RELEASE-CLOSE REPORT](probes/lg040/RELEASE-CLOSE-20261016/REPORT.md)。
->
-> **选定资料快速原型（LG-042～047）进度（2026-10-16）**：LG-043 后端（A，含 run/message 触发绑定修正 R1）、LG-044 前端（B）、LG-045 示例/指南（C）三线已实现完成并经 LG-046 **串行 `--no-ff` 整合候选**（[D-INTEGRATION REPORT](probes/prototype-selected-material-20261016/D-INTEGRATION/REPORT.md)）。集成候选实际检查：后端 `mypy` 139 files clean、`pytest tests/` **908 passed / 2 skipped**（EXIT 0），前端 `tsc`/`vite build` EXIT 0（前端树与 B `552d839` 逐字节一致），C fixture checker EXIT 0。契约已 finalsync 至 **`1.12.0`**（加性可选消息字段 `selected_sources` + 响应 `resolved_source_bindings` + 加性 Task/Run 实体字段 `selected_trigger`），SDK `0.1.22` 不变。**LG-043～046 实现完成，LG-047 命名里程碑独立版本 QA 尚未执行**（真实 SDK/DeepSeek 端到端 + 浏览器验收归 LG-047，产品真实生成 0）；未发布/未部署。
->
-> **LG-047 R1 返修与 R2 集成候选（2026-10-16）**：独立 QA R1 冻结 `57809d4` 判 **FAIL**（原生文本上传无正文、普通文件交付计划校验失败、助手回答/来源未入历史）；F（[F-INTAKE-FIX-R1](probes/prototype-selected-material-20261016/F-INTAKE-FIX-R1/REPORT.md)，`sources/**`）与 G（[G-DIALOGUE-FIX-R1](probes/prototype-selected-material-20261016/G-DIALOGUE-FIX-R1/REPORT.md)，`coordinator/**`）在**互不重叠**的 worktree 内完成返修并经本 H **串行 `--no-ff` 集成**（[H-R1-INTEGRATION REPORT](probes/prototype-selected-material-20261016/H-R1-INTEGRATION/REPORT.md)）。合并候选实际检查：后端 `mypy` 139 files clean、**`pytest -q` 930 passed / 2 skipped**（EXIT 0，F+G 联合一次全量）；前端未改动（仍绑定 B `552d839`）故未重跑 `tsc`/build。R1 修复事实：原生 `text/plain`/markdown 上传**模型免调用**抽出可读正文（**PDF/图像仍走显式 OCR 不变**）；选定回答（含来源绑定）持久化进会话历史且 `message_id` 幂等；无选材普通 Chat 交付走确定性最小文件计划。`Sources` 仍是**提供的上下文、非已验证引用**。**LG-047 仍在进行、未 PASS/done**，真实 SDK/DeepSeek + 浏览器验收归独立 **QA-R2**（新冻结候选上的独立工作树）；R2 新增产品请求硬上限 **8 次**（retry 0、转发前硬限额、账本跨重启不归零），**不宣称原 12 次 campaign 已全程核实**（R1 已知 1 次真实请求及失败样本单列保留）。
-> **历史 `8a4560a` 明确不采信为收口**（其 `readyAtMs 2592` 用 8000ms 上界，仅作历史保留）。
-> **LG-037 已 `done`（待 LG-040 集中版本 QA 的范围现已被 LG-040 覆盖）**：可选向量实现完成、机制/ACL/降级已证；旧 R5 图片硬门 FAIL / G2 冻结图片实验 FAIL 作为**历史质量结果保留且不 waived**（图片 rank 2 落后同内容文本 twin rank 1）。**LG-041 仍 `todo`、阻塞于中文 ASR 质量门（任何语言均无 ASR）**。**用户最终验收 PENDING、未发布**。
-> **限制如实结转（无广义质量声明）**：TIFF 诚实不支持；原 BROWSER 全局 OCR 计数 **UNKNOWN ≥2**、成本 unknown（**不声称硬预算已核验**）；质量 2 OCR + 17 embedding、英文为主小样本；revoke `404` 门与 `archived` 布尔为**分离契约**；后端完整 pytest **863 passed / 5 skipped**（首次有效完成运行）。下方表格为 2026-10-15 历史局部证据，保留不改。
->
-> **上一批次（2026-10-16，Materials R7 集成 + LG-035 置 done；历史保留）**：`digest` 当时为 2 todo / 1 in-progress / 38 done；
-> 本包为**真实本地集成**，0 新增产品 LAN 调用、0 新模型探针：A（fixtures：真实 NIST SP 811 表格 3×8 + 人工真值、混合 2 页 PDF 文本层已核）`f21d6e3`、B（layout：可选有界 `layout.py` + init 导出 + 测试，跨尺度 1/2/4 同一 `[1,2,1,1]`）`8182d36`、
-> C（端点诊断：真实 2 embedding POST 成功 + 2 GET，首次完整排名 `Q_IMG_ZH` rank **7/10** score **0.725667**、`margin_to_prev` **0.00037**）`1cfa417`、D（OCR cohort：3 POST + 1 GET，默认管线真实表格 **FAIL**（0 行/列）、MIX p1 CER **0.0295**/p2 **0.0000** PASS）`97c4f8f`、
-> E（可选表格模式，基点 `8182d36`）`4917413`：**默认 OFF**、程序侧真实网格分类器仅对可信表格路由通用 Markdown 提示词，真实产品路径 2 OCR POST + 1 health GET → T1 真实 8×3 网格 cell CER **0.0**、符号 7/7 PASS，Z1 CER **0.0423**（默认提示词哈希不变）PASS。
-> 五包按 A→B→C→D→E 顺序 `--no-ff` 合并（无冲突、E 因 descends B 无重复 pick）；合并候选 `mypy` **138 files clean**、`pytest tests/sources` **147 passed, 1 skipped**、`test_layout`+`test_table_mode` **28 passed**、离线 gate **ALL_OK**。
-> **LG-035 置 `done`（待 LG-040 集中版本 QA）**：原始验收条件（真实清晰页、低质量诚实降级、多页、中文印刷、**真实 grid + 人工真值 + 可选表格模式**、混合、机器/正式分离）已由真实 receipt 覆盖；**历史 R3/R4/R5/R6/R7-cohort 表格 FAIL 全部保留**，不宣称统计级/全类表格质量通过。
-> **in-progress = LG-037（可选向量：新排名取到但旧 R5 图片硬门 FAIL 不变、无跨模态质量结论）**；**todo = LG-040（资料/Embedding 集中验收，未解锁）、LG-041（中文 ASR 质量锁，未解锁）**。代码契约 **`1.11.0`**、SDK **`0.1.22`**。
-> **当前下一步**：命名的 **LG-040 集中版本 QA**（真实浏览器上传/归属/OCR/校订/检索/重处理/撤销删除/索引重建 + 跨模态质量 + 资源成本）；
-> 向量需**更大更平衡跨模态语料 + 分数 margin 诊断**（不自动采样、不在冻结 R5 查询上调阈值）。集成报告 [probes/materials-r7-integration-20261016/REPORT.md](probes/materials-r7-integration-20261016/REPORT.md)。下方表格为 2026-10-15 历史局部证据，保留不改。
->
-> **2026-10-16 用户明确市场范围（前瞻决定，非追溯实验通过）**：用户接受**以英文市场为主、当前中文表现可接受**（限制照实披露），**英文为发布 QA 主要语言**。因此**中文图片排名 7 不再单独阻断英文导向版本的 QA**（旧中文图片硬门 FAIL 仍作为**历史质量结果**保留并披露，不重算、不调阈值、原始 R3–R7 报告字节不改）。LG-037 实现已完成、机制/ACL/降级已证，并已有**真实英文图片查询 rank1**（`Q_IMG_EN`）与音频示例；但**完整英文语料/浏览器 QA 尚未执行**，**英文 E2E 尚未被证明**。这是**范围/接受**决定，**不表示用户接受整个产品/QA/发布**，本包**不执行任何 QA**。**LG-040 仍需在版本 PASS 前覆盖英文主线的完整质量/端到端**；中文以当前水平支持、抽样回归、限制照实披露，**安全/数据丢失/权限/假成功在所有语言下始终阻断**。**LG-041 中文 ASR 仍延期/未实现/质量受阻**，本决定**不解除其锁**，**英文市场不等同支持英文 ASR**。契约保持 `1.11.0`、SDK `0.1.22`、默认 OFF 不变。
+我们希望探索：**多个 Agent 如何围绕共同目标分工协作，在明确权限和预算内交付可验收的成果。**
 
-| 任务 | 状态 | 实际证据与限制 |
-|---|---|---|
-| LG-001 契约 | done | [docs/08](docs/08-interface-contract.md) 首版契约已冻结（LG-001 为 1.0.0，2026-10-15 MINOR 升至 1.1.0，首版后端改为 DeepSeek） |
-| LG-002 工程骨架 | done | 后端 health/version、前端占位壳、check 入口可用 |
-| LG-003 SDK 探针 | done（带限制） | 固定 `google-antigravity==0.1.22`；文件工具、结构化输出、工具事件、预算停止、取消、会话保存/恢复、skills（文件与 inline）、`read_url_content` 经真实 DeepSeek 实测通过；Gemini Developer API／Vertex 未验收（非首版路径，不作默认）；`search_web` 在非 Gemini 端点不可用。见 [LG-003 报告](probes/lg003-antigravity/reports/LG-003-report.md) |
-| LG-004 存储层 | done（待版本 QA） | `backend/lightgravity/store/` + `tests/store/`；整合后局部 69 passed、全量后端 82 passed、mypy 无问题 |
-| LG-005 资源编译 | done（待版本 QA） | `backend/lightgravity/adapter/` + `tests/adapter/`；refs/skills/tools/hooks/connection/session 解析、权限不扩大、秘密脱敏、unsupported 标记 unavailable、SDK 配置可编译；局部 51 passed、全量后端 133 passed、mypy 无问题 |
-| LG-011 前端壳层 | done（待版本 QA） | `frontend/src/app/` 壳层与路由、`components/` 共享组件、`api/` 客户端与 `/health` 探测、`views/` 入口与占位；局部 19 vitest、23/23 无依赖 Chrome 浏览器检查、`tsc`/`vite build` 通过；**未做真实后端联调**，业务端点显示未接入/空态 |
-| LG-006 Executor Adapter | done（待版本 QA） | `backend/lightgravity/adapter/` 正式 executor + loopback 认证代理 + 稳定边界类型；真实 DeepSeek 跑通文件写入/diff、结构化结果、用量、预算停止、会话恢复、确认取消，真实调用 12（上限 12），进程无残留；证据 [tests/adapter/evidence](tests/adapter/evidence/README.md) |
-| LG-007 消息路由与队列 | done（待版本 QA） | `backend/lightgravity/coordinator/`（classification/logs/queue/state/dispatcher/service/api）；局部 30 passed、全后端 187 passed、mypy 无问题；执行证据用 in-process `FakeExecutor`（mock），真实 SDK 端到端留 LG-010 |
-| LG-008 自动组队与依赖调度 | done（待版本 QA） | `backend/lightgravity/coordinator/`（planner/recruiter/scheduler/graph）；局部 coordinator 57 passed、全后端 247 passed、mypy 无问题（58 files）；默认 `max_parallel=1`，真实并行写代码留 LG-018 |
-| LG-025 模型设置与凭证后端 | done（待版本 QA） | `backend/lightgravity/settings/`；局部 33 passed、全后端 189 passed、mypy 无问题（46 files）；分层连接测试 `overall=verified`（`tool_probe`/`structured_output`=skipped） |
-| LG-026 Settings 模型接入页面 | done（待版本 QA，已挂载） | `frontend/src/views/settings/**`、`frontend/src/api/settings.ts`、`frontend/src/api/auth.ts`（运行时 token helper）；已由整合 owner 挂到 `views/registry.tsx` 既有 Settings 入口并删除旧占位；局部 `tsc` 通过、vitest 32 passed、`vite build` 成功（主构建含 Settings：CSS 20.29 kB / JS 193.02 kB）；真实接口证据为执行者临时 server + 1 次 DeepSeek 调用；敏感写默认拒绝、首次启动 token 握手未实现（LG-020），浏览器 QA 留 LG-021/027 |
-| LG-009 验证与人工验收 | done（待版本 QA） | `backend/lightgravity/verify/`；局部 26 passed、全后端 273 passed、mypy 无问题（64 files）；机器检查只跑程序已注册且 Task `checks` 授权的项，停止门未确认不释放，accept/reject 绑定 requirements/候选版本并按 `request_id` 幂等；真实 SDK 端到端留 LG-010 |
-| LG-010 最小真实开发闭环 | **done（独立版本 QA pass）** | 独立 QA 报告 `probes/lg010/reports/lg010-qa-r2-after-refix.md`；真实 DeepSeek 链路（基点 `ffe7a63`）跑通交付后自动 `awaiting_acceptance`、真实文件/diff/usage、停止释放、绑定版本 accept、stale 拒绝；重复 ack 幂等按 Task 作用域键返修并经独立复验消除（`tests/api/test_tasks_accept_replay.py`、`probes/lg010/lg010_accept_repro_r1.py`/`r2.py`）；真实调用累计 12/14；**只覆盖契约 1.3.1 core 最小后端闭环，非 1.5 全功能 QA** |
-| LG-012 查询 API 与事件订阅 | done（待版本 QA） | `backend/lightgravity/api/`；局部 30 passed、全后端 246 passed、mypy 无问题（61 files）；tasks/resources/files/SSE/settings 路由真实装配，事件先落盘再广播、游标重放去重、断线不取消 Run；SSE 用进程内 ASGI 驱动验证，真实 uvicorn/浏览器留 LG-021/022 |
-| LG-014 Files 上传/下载与证据预览 | done（待版本 QA，已挂载） | `backend/lightgravity/api/files.py`（有界上传/下载、`expected_revision`、原子替换、越界/secret 拒绝，docs/08 §4.3 自 1.3.1 标为实现）、`frontend/src/views/files/**`；已由整合 owner 挂到 `views/registry.tsx` 并删除旧占位；上传默认复用 LG-026 运行时 token helper，无 token 时只读可用、上传如实 `unauthorized`；上传 token 首次启动握手归 LG-020，浏览器 QA 留 LG-021 |
-| LG-015 Team 与 Resources 管理视图 | done（待版本 QA，已挂载） | `backend/lightgravity/resources/**`（目录/诊断/引用/受控写入）、`api/resources.py` 的 `PATCH /resources/{kind}/{id}` 与 `GET /team/available`/`GET /team/members`、`coordinator/resource_commands.py` 与 `service.py` 的消息级 `resource_proposal` 分支；`frontend/src/views/{team,resources}/**` 与数据驱动 `Context` 资源栏；整合后前端类型/测试/构建通过；契约 1.4.0 登记 3 个新端点与消息加性字段；无 Task 时只引导不假写，资源健康如实 unknown，浏览器/E2E 留 LG-021/022 |
-| LG-020 启动检查与本地分发入口 | done（待版本 QA，已整合） | `backend/lightgravity/runtime/**`、`api/bootstrap.py`、`cli.py`/`__main__.py`、`pyproject` scripts、`Makefile` targets；`lightgravity start/stop/status/init`，默认 loopback、token 内存握手与 `index.html` 注入、Host/Origin 守卫、敏感写默认拒绝、缺认证可读历史/设置；首启幂等种子 `lg-default-worker`（**有界**文件工具 `view-file`/`create-file`/`edit-file`，无 `run-command`/web）；Settings-only 建连接/存凭证/静态测试/设默认后新 Task 可达 executor，Run/Member 固定非秘密 `connection_pin`；真实 dist 子进程 start→握章→stop 验证；真实 DeepSeek 2 次（同一 gated 用例，硬上限各 1）；docs/08 1.5.0 登记 `connection_pin` 与 evidence 预览/下载端点；待首版 QA（LG-021/022/027） || LG-013 接入 Task Chat 与真实看板 | done（实施，待版本 QA） | `backend/lightgravity/coordinator/dialogue.py`（无工具单次直答；无默认协调连接/凭证时诚实 `unavailable`，不伪造 AI）、`api/app.py` 与 `api/bootstrap.py` 的 `responder` 注入；`frontend/src/api/{chat,tasks,events}.ts` 与 `frontend/src/views/{chat,board}/**` 真实接线，移除看板 mock 任务；测试 `tests/coordinator/test_dialogue.py`、`tests/api/test_lg013_chat_board_flow.py`、`frontend/tests/{chat,board,chatApi}`；本包实施验收通过（真实 API 接线 + 服务层真实 HTTP + 局部证据），**真实浏览器 HTTP 业务路径仍归版本门 LG-021/022**（本机 Chrome top-level `Page.navigate` 到 loopback 会挂起，见 browser-diagnostics 更正），**不等于完整浏览器 HTTP 端到端**；整合期补做 **1 次**有界同真实模型只读直答探针（`probes/lg013/evidence/lg013-direct-answer-probe.json`，真实答 `"Four."`，不创建 Task/Run/Member、不写控制文件） |
-| LG-027 验收模型设置与凭证生命周期 | **done（独立版本 QA pass，范围受限）** | `probes/lg027/reports/lg027-qa-report.md`；真实 CLI + 真实 HTTP 跑通 Settings→分层测试→设默认→新 Task 真实执行（`tests/e2e/settings/**`、`probes/lg027/scripts/lg027_settings_path.py`）；**仅覆盖设置/凭证 CLI+HTTP 链路与浏览器渲染**（`file://` 真实构建渲染证据），**不等于完整浏览器 HTTP 端到端**；密钥不入存储/日志/响应/浏览器；活跃 Member 不热换、新招募用新配置。真实调用计数**未知**：产品未暴露调用计数器，报告中的旧上限 5 + 恢复硬上限 4 只是**指令/运行预算**，不是已验证的实际调用次数或精确上界 |
+当前由程序负责计划校验、组队、依赖调度和状态写入，worker 负责执行；自主领取与协作请求默认关闭，SDK 内部委派关闭。动态组队是已有机制，**自组织 Swarm 是进一步探索的方向**。
 
-- 上述 done 为执行者局部证据，**除 LG-010、LG-027 外均不是版本 QA 结论**；LG-003 已实测的 DeepSeek（OpenAI-compatible）路径是 docs/08 v1.7.0 确定的（1.1.0 起）真实后端，LG-006 已在该路径上实现正式 executor + 产品侧 loopback 认证代理。LG-010 已通过独立版本 QA（最小后端闭环），但其收尾是**基于契约 1.3.1 core**、不覆盖 1.5 新资源/启动功能；LG-015、LG-020 仍待 LG-021/LG-022 版本 QA 门集中验证（LG-027 已就其设置/凭证子范围 pass）。
-- LG-013 实施已按真实 API 接线通过本包验收并置 `done`，但**完整浏览器业务路径（真实浏览器 HTTP 创建/继续任务、交付审阅与验收停止释放）仍归 LG-021/022**，不能据此宣称完整网页可用。
-- 旧 QA「浏览器全 HTTP/fetch 阻断」结论已被 root `probes/browser-diagnostics` 诊断推翻并精确更正：真实 loopback HTTP 的 `fetch` 与 SSE 从 `file://`/`about:blank` shell 可用，仅**顶层 `Page.navigate` 到 `http://` 在本机 headless Chrome 挂起**（见 [browser-diagnostics README](probes/browser-diagnostics/README.md)）。原报告按历史保留，更正不改写旧文。
-- 下一步（已更新至 2026-10-16）：LG-016/LG-017/LG-018/LG-019/LG-021/LG-022/LG-023/LG-024 已 done；LG-028～032 已交付，**LG-031/LG-032 已依据独立门 done（032 仅评估范围）**；LG-033/034/036/038 已 done 待 LG-040；**LG-035 已 done（待 LG-040 集中版本 QA）**、**LG-037 仍 in-progress**；**LG-040/041 未解锁**。**完整 checkpoint skip 调度仍未实现**。契约保持 `1.11.0`，SDK `0.1.22`。Materials R7 五包 A→B→C→D→E 已 `--no-ff` 合入 `main`（HEAD 见 PROGRESS），集成候选 mypy 138 files clean、`pytest tests/sources` 147 passed/1 skipped；**LG-035 按原始验收条件真实覆盖置 done**（表格由可选 `LIGHTGRAVITY_OCR_TABLE_MODE` 真实 8×3 网格 + 人工真值 PASS 覆盖，默认 OFF、默认管线不变；历史表格 FAIL 保留），下一步为已被命名的 LG-040 集中版本 QA（[R7 集成 REPORT](probes/materials-r7-integration-20261016/REPORT.md)）。**LG-037 真实新排名（rank 7/10、margin 0.00037）取到，但旧 R5 图片硬门 FAIL 不变、无跨模态质量结论、不 done、不解锁 LG-040/041**。
-- **计划标记（资料接入与检索）**：方向已确认并落盘到 [docs/09](docs/09-source-intake-and-retrieval.md)，2026-10-15 已正式排入资料线 [LG-033～041](BACKLOG.md)，但**未实现、接口未冻结**；其中中文 ASR 先由 LG-039 做质量验证，达标后再由 LG-041 条件接入，且不作为 LG-040 的硬依赖；图片/PDF、词法、可选向量与 Chat/Files 统一由 LG-040 集中 QA。实施前须按 [docs/08 §13](docs/08-interface-contract.md) 变更控制冻结接口并升版；不改变现有 LG 任务状态与优先级。
-- **计划标记（去中心化协作）**：[LG-028～032](BACKLOG.md) 已正式排期（契约 → 原子领取/租约 → 同伴交接 → 隔离执行与 QA/返修整合 → 集中版本验收），但**完整自主协作尚未实现、接口未冻结**；不改变现有任务状态，也不把已有“无独立编排”QA 当作去中心化验收。
+演进中持续保留三条边界：
 
-## 团队模式
+- 工作由明确任务和授权驱动，Agent 的角色或技能不扩大权限。
+- 预算覆盖执行、验证、返修与失败尝试，成本按完整交付生命周期评估。
+- 执行结果经过检查与复核，由用户最终验收；结束或中断需确认真实停止。
 
-一个共享工作区，每人独立账号；共享聊天、任务与资料。普通群聊只保存消息，`@bot` 才触发助手；Task 内消息沿原有方式处理。管理员管理系统配置、模型与凭证，普通成员参与任务和资料协作。约 3 秒轮询同步，后台标签页恢复可见后补齐。首版没有私聊或私有资料，会话随服务重启失效。
+## 技术架构
+
+| 层 | 技术与职责 |
+|---|---|
+| 工作空间 | Python 后端与网页界面，连接对话、任务、资料和团队 |
+| 协调与控制 | 程序管理路由、计划校验、依赖调度、权限、预算和状态 |
+| Agent 执行 | **Antigravity SDK**：承接 Agent 执行、工具调用与原生会话 |
+| 当前生成模型路径 | `google-antigravity==0.1.22` → `LocalOpenAIAgentConfig` → loopback 认证代理 → **DeepSeek** |
+| 可选向量检索 | **EmbeddingGemma 2** 服务：补充语义与媒体检索；未配置或不可用时保留词法检索和原件查看 |
+| 持久化 | Markdown + YAML、JSONL 与 SDK 原生会话存储；索引可删除重建 |
+
+[Antigravity SDK](https://github.com/google-antigravity/antigravity-sdk-python) 提供执行基础；LightGravity 在其上连接任务、资料、团队和交付验收流程。“基于 Antigravity SDK”不表示当前生成模型使用 Gemini，Gemini / Vertex 路径尚未验收。
+
+[EmbeddingGemma 2](https://ai.google.dev/gemma/docs/embeddinggemma/model_card_2?hl=en) 支持统一多模态向量表示。项目通过可配置服务接入，默认禁用，不绑定开发机端点。现有跨模态验证仍有质量限制，模型支持的模态不等于产品已完成全部接入；embedding 也不等于 OCR 或语音转写。
+
+用户掌握文件与部署环境，模型请求仍会发送到所配置的服务；当前不承诺全离线推理或任意模型即插即用。
+
+## 快速开始
+
+### 版本要求
+
+- Python `>=3.12,<3.13`
+- uv `0.12.x`
+- Node.js `22 LTS`、npm `10.x`
+- GNU make（使用统一开发命令时需要）
+
+以下在仓库根目录执行。命令沿用现有启动流程；当前页面问题见[验证与当前限制](#验证与当前限制)。
+
+### 安装与启动
 
 ```bash
 uv sync
 npm --prefix frontend ci
 npm --prefix frontend run build
 
-# 交互输入口令，不把口令放在命令行参数中
+uv run lightgravity start \
+  --data-dir ./bot-data \
+  --workspace-root ./bot-data/workspaces \
+  --secret-store ./secrets \
+  --host 127.0.0.1 --port 8000
+```
+
+浏览器打开 `http://127.0.0.1:8000/`。端口已被占用时选择其他端口。运行数据、工作区与秘密存储应使用各自目录，真实凭证不要写进仓库或对话。
+
+### 接入模型
+
+1. 在 **Settings → Models & Providers / Connections** 创建连接并保存凭证。
+2. 测试连接，设置协调问答连接与默认 worker 连接。
+3. 为交付验收配置独立 reviewer 连接；缺少可用 reviewer 时无法完成验收。
+
+凭证通过受保护接口保存引用；模型与默认配置的详细说明见[模型设置](docs/07-settings-and-models.md)。首次尝试建议使用已有真实验证的 DeepSeek 路径。
+
+### 尝试一条交付流程
+
+从明确的小任务开始，例如在授权工作区内生成一份文件。检查任务状态、文件内容和复核记录，再决定验收或返修。
+
+也可以按照[选定资料示例指南](docs/11-selected-material-demo.md)，使用[示例资料](examples/selected-material-prototype/README.md)复现资料绑定与文件交付。示例采用人工编写的样本资料，有独立真实 SDK 生命周期验证记录；它不代表所有输入类型或任务都已验证。
+
+服务提供 `lightgravity start / status / stop` 生命周期命令；浏览器关闭或断线不会自动取消后台任务。
+
+## 团队模式
+
+先创建账号，口令通过交互输入：
+
+```bash
 uv run lightgravity user add --username alice --role admin --data-dir ./bot-data
 uv run lightgravity user add --username bob --role member --data-dir ./bot-data
+```
 
+启动时显式开启团队模式：
+
+```bash
 LIGHTGRAVITY_TEAM_MODE=1 uv run lightgravity start \
-  --data-dir ./bot-data --workspace-root ./bot-data/workspaces \
-  --secret-store ./secrets --host 127.0.0.1 --port 8000
+  --data-dir ./bot-data \
+  --workspace-root ./bot-data/workspaces \
+  --secret-store ./secrets \
+  --host 127.0.0.1 --port 8000
 ```
 
-打开 `http://127.0.0.1:8000/` 登录。已有服务占用端口时选择其他端口；本次没有重启已有服务。管理员在 Settings 配置现有模型连接与凭证；本次认证与协作 QA 使用确定性 responder，没有重新验证真实 SDK 交付链路。
+打开 `http://127.0.0.1:8000/` 登录。默认使用单用户模式；不设置 `LIGHTGRAVITY_TEAM_MODE` 即可保留该方式。
 
-多台电脑可分别执行 `ssh -L 8000:127.0.0.1:8000 <server>`，再访问各自的 `http://127.0.0.1:8000/`。默认保持 loopback；LAN 监听须同时配置 `--host` 与 `--allow-host`，凭证管理仍受 loopback origin 限制。关闭团队模式时不设置 `LIGHTGRAVITY_TEAM_MODE`，保留单用户方式。[契约与限制](docs/08-interface-contract.md) · [实施与测试](probes/team-chat-20261016/README.md)
+多人访问远端实例时，可在各自电脑使用 SSH 转发：
 
-## 本地运行与检查（工程骨架）
+```bash
+ssh -L 8000:127.0.0.1:8000 <server>
+```
 
-工程骨架由 LG-002 建立，LG-004 已加入后端存储层，LG-005 已加入 adapter 资源配置编译并把 Antigravity SDK `0.1.22` 锁定为产品依赖，LG-006 已实现正式 executor + loopback 认证代理（真实 DeepSeek 路径，见 [tests/adapter/evidence](tests/adapter/evidence/README.md)），LG-007/LG-008 已实现 coordinator 消息路由、队列与自动组队调度，LG-009/LG-012 已实现验证/验收与查询 API，并由 `create_app` 装配 `FileStore`→`BroadcastingStore`→`Coordinator`、挂载 `/api/v1` 全部路由、lifespan 启停常驻 Coordinator。默认执行器仍是诚实的 `UnavailableExecutor`（不伪装可执行）；真实 SDK executor 由 LG-010 注入。前端壳已存在；Settings、Files、Team 与 Resources 视图已挂载并分别接入 `/api/v1/settings*`、`/api/v1/files*`、`/api/v1/team/*`、`/api/v1/resources/*`（敏感写与受控资源提议在 LG-020 握手前默认拒绝，只读可用）；Chat/Board 已由 LG-013 接入真实历史与 phase（不再为占位/mock），直答走新增无工具直答路径（未配置默认协调连接时诚实 `unavailable`）；真实浏览器 HTTP 业务路径仍留 LG-021/022。
+团队消息约每 3 秒轮询同步，后台标签页恢复可见后补齐；登录会话随服务重启失效。默认保持 loopback 监听，LAN 部署与访问限制见[接口契约](docs/08-interface-contract.md)。
 
-### 版本要求
+## 验证与当前限制
 
-| 组件 | 要求 | LG-002 已验证版本 |
+下列是截至 2026-10-16 的专项证据，各报告的范围和限制仍适用：
+
+| 范围 | 已有证据 | 证据边界 |
 |---|---|---|
-| Python | `>=3.12,<3.13`（`.python-version` 为 `3.12`） | 3.12.13 |
-| uv | `0.12.x` | 0.12.1 |
-| Node.js | 22 LTS | v22.23.2 |
-| npm | 10.x | 10.9.8 |
-| GNU make | 统一入口 | `/usr/bin/make` |
+| 选定资料交付 | 原生文本上传 → SDK 执行与验证节点 → 独立模型复核 → 停止确认 → 人工验收 API；独立 QA 为 PASS_WITH_LIMITATIONS | 冻结候选上的一条完整生命周期；不代表所有任务或资料类型通过。[报告](probes/prototype-selected-material-20261016/N-R3-LIFECYCLE/REPORT-N-R3-LIFECYCLE-20261016.md) |
+| 团队协作 | 58 项真实 HTTP 检查，Firefox 双用户登录、消息互见与退出；独立 QA 为 PASS_WITH_LIMITATIONS | 该专项使用确定性 responder，未重新验证真实模型交付。[报告](probes/team-chat-20261016/qa/QA-REPORT.md) |
+| 资料接入与检索 | 资料处理、检索与界面整合已有集中版本 QA | 质量样本有限，中文图片检索历史失败保留，不宣称广义跨模态质量通过。[报告](probes/lg040/TRANSITION-QA-20261016/REPORT.md) |
 
-### 启动后端
+当前重点限制：
 
-```bash
-uv sync                # 创建 .venv 并按 uv.lock 安装
-make run               # 默认 127.0.0.1:8000，仅监听 loopback
-curl http://127.0.0.1:8000/api/v1/health
-```
+- **页面可用性待修复。** 用户反馈 Files、Team、Models & Providers 等页面加载失败；原因尚未核实。导航、搜索、对话框及个人／团队切换的调整已记录、待实施。
+- **来源绑定不等于引用核验。** 选定资料作为提供给模型的上下文，尚未逐段验证模型引用。
+- **媒体能力有边界。** PDF / 图片走显式 OCR 处理；当前无可用 ASR，中文转写待质量门通过，Office 等格式未全面实测。
+- **恢复能力有边界。** 未知副作用不会自动重放；完整 checkpoint 跳过调度尚未实现。
+- **部署与最终验收分开。** 本地集成和历史 QA 不代表当前服务已更新、已发布或已获用户最终验收。
 
-### 启动前端壳
+## 开发与参与
 
-```bash
-npm --prefix frontend ci      # 按 package-lock.json 精确安装
-make frontend-dev             # http://127.0.0.1:5173，/api 代理到后端
-```
-
-### 测试、类型与构建入口
+欢迎围绕可复现的问题、真实任务样本和有明确验收条件的改进参与。报告问题时请附版本、重现步骤、预期与实际结果；日志中移除凭证与个人资料。
 
 ```bash
-make check            # 后端 mypy + pytest
-make frontend-check   # 前端 tsc --noEmit + vitest run
-make check-all        # 二者合并
-make frontend-build   # 前端生产构建
+make run               # 后端，默认 127.0.0.1:8000
+make frontend-dev      # 前端开发服务，默认 127.0.0.1:5173
+make check             # 后端类型检查与测试
+make frontend-check    # 前端类型检查与测试
+make check-all         # 前后端检查
+make frontend-build    # 前端生产构建
 ```
 
-### 配置与数据
+开发前阅读 [AGENTS.md](AGENTS.md) 与 [agent.md](agent.md)，涉及前端再读 [design.md](design.md)。运行配置示例见 [.env.example](.env.example)。依赖与复用内容的许可须按各自声明核对；上游许可不自动代表本仓库全部内容采用同一许可。
 
-- 复制 `.env.example` 为 `.env` 并按需修改；示例文件不含真实凭证，仓库不保存秘密。
-- 运行数据根 `LIGHTGRAVITY_DATA_DIR`（默认 `./bot-data`）与源码分离并已 gitignore；工作区根与秘密存储边界见 docs/08 §10。
-- 路径默认相对进程工作目录，克隆后无需开发机绝对路径即可运行。
+## 文档
 
-## 文档入口
+| 入口 | 内容 |
+|---|---|
+| [项目手册](PROJECT.md) · [进展记录](PROGRESS.md) | 定位、决策、开发历史与已知问题 |
+| [开发看板](BACKLOG.md) · [滚动排期](docs/06-roadmap.md) | 任务、依赖与阶段验收 |
+| [架构设计](docs/01-design.md) · [Task 与资源](docs/02-task-and-sdk-resources.md) | 工作模型、模块边界与资源配置 |
+| [SDK 审计](docs/03-sdk-capability-audit.md) · [Bot 行为](docs/04-bot-behavior.md) | 执行基础、消息路由与运行规则 |
+| [导航设计](docs/05-navigation-and-team.md) · [模型设置](docs/07-settings-and-models.md) | 现有页面设计、连接与凭证；最新界面调整以项目手册反馈为准 |
+| [接口与状态契约](docs/08-interface-contract.md) | 当前契约 1.13.0，API、状态、权限与变更记录 |
+| [资料接入与检索](docs/09-source-intake-and-retrieval.md) | 原件、派生内容、索引与质量边界 |
+| [选定资料原型](docs/10-selected-material-prototype.md) · [示例指南](docs/11-selected-material-demo.md) | 资料绑定机制与可复现流程 |
 
-- [当前进展与续接记录](PROGRESS.md)：2026-10-15 本地检查点、待合并成果、DeepSeek 阻塞与恢复顺序。
-
-- 项目开发技能位于 `.agents/skills/`：已安装 Olav Tasks 的 6 个技能，来源版本与文件哈希见 [.agents/skills/olav-tasks-source.json](.agents/skills/olav-tasks-source.json)，许可证见 [.agents/skills/OLAV-TASKS-LICENSE](.agents/skills/OLAV-TASKS-LICENSE)。
-- [开发约束](agent.md)：项目范围、架构、SDK 接入、状态写入、验证与交付规则；[AGENTS.md](AGENTS.md) 提供自动发现入口。
-- [前端约束](design.md)：视觉 tokens、左侧多栏布局、组件、页面交互、响应式与浏览器验收。
-- [开发看板](BACKLOG.md)：41 项开发任务（27 项首版 + 新增 14 项扩展 LG-028～041），使用 `olav.tasks/v1` 管理。
-- [滚动排期](docs/06-roadmap.md)：阶段、依赖、验收门与当前未定的日历安排。
-- [模型设置](docs/07-settings-and-models.md)：Settings、Connection 事实源、凭证、分层测试和默认模型。
-- [首版接口与状态契约](docs/08-interface-contract.md)：冻结的最小技术栈、API/事件/实体状态、Store/Adapter 边界、错误语义、工作区授权与后续文件归属（契约版本 1.13.0；1.13.0 为 LG-050 共享团队模式加性 MINOR（默认关闭、新增 `/auth/me|login|logout`、服务端消息 `author` 与 `forbidden` 错误码，见 §14 与 [probes/team-chat-20261016](probes/team-chat-20261016/README.md)）；此前 1.12.0 为 LG-042 冻结、LG-043 实现的“手动选定已摄取资料”快速原型加性 MINOR（详见 [docs/10](docs/10-selected-material-prototype.md)）：消息信封加性可选 `selected_sources`（≤3 来源、`{source_id, source_version?, content_hash?}`）与结果 `data` 加性可选 `resolved_source_bindings`/`context_truncated`/`provided_context_note`，另有加性可选 Task/Run 实体字段 `selected_trigger={message_id,snapshot}`（Run 只用自身触发消息的精确选定）；不新增端点/错误码/枚举/迁移方向，旧客户端省略字段行为不变；此前 1.11.0 为 LG-031 runtime/API/SDK 集成落地后的保守加性 MINOR（取代 `1.10.0` 的“实现说明增补（无版本变化）”口径）：R1 观察 O3 指出两处公开兼容变化——① 四个去中心化端点（`discoverable`/`claim_requests`/`lease/renew`/`lease/release`）请求体 `owner` 由 `1.6.0` 冻结时事实采用的 required/端点采用放宽为 **optional/仅一致性校验、不再授权**（授权仅取程序冻结 grant）；② `ExecutionGrant` 加性新增进程内非持久 `lease_owner`（`effective_lease_owner = lease_owner or member_ref`）；旧客户端传 `owner` 仍可用（但不获授权），不传亦可用，无端点/枚举/错误码/实体 schema/迁移方向变化，未认证 default-deny/不落盘边界不变；此前 1.10.0 为 LG-022 第二轮针对性返修（REFIX-R2）的加性 MINOR：① 停止门除 `cleanup=done` 外可接受权威适配器停止确认事实（SDK session `__aexit__` / loopback 代理真实关闭），Run 加性新增可选 `reviewer_cleanup`；未知/仍活跃/关闭失败保留 `unconfirmed` 与 `session_refs`，不伪 `done`；② `GET /api/v1/diagnostics/generation` 加性新增 `persistent`（及损坏时 `corrupt`/`reason`）：全局生成计数改为受控 dataRoot 下的持久账本，转发前持久预留，跨重启不归零，损坏绝不当 0；不新增端点/枚举/迁移方向；此前 1.9.0 为返修后串行集成收拢的加性 MINOR：新增可逆归档字段 `archived` 与 `archive`/`unarchive` 动作（归档保留检索/打开/权限，区别于使资料不可用的 `revoke`），并挂载可选向量端点 `/vector/status`、`/vector/search`、`/vector/rebuild`（默认禁用、不可用时词法/原件仍可用）；1.8.0 为 LG-022 首版集中 QA 阻断项 D1/D2 返修 R1 的 MINOR：加性新增 `verifying → recovery_required` 与 `repairing → recovery_required` 两个合法迁移方向，并新增只读诊断端点 `GET /api/v1/diagnostics/generation`（进程全局上游生成请求计数 `{count,limit,remaining}`，转发前计数）；1.7.0 为 LG-017 返修 R1 的加性 MINOR：新增独立复核者设置角色/字段 `default_reviewer_connection_ref`、Task 返修账本 `reviewer`/`reviewer_kind`/`model_usage` 与 review/rework 事件 payload `reviewer_kind`/`model_calls`/`usage`，并明确独立复核语义——程序机器门不等于独立复核、无可用 reviewer ⇒ `unavailable` 且阻止 accept，不新增端点/枚举；1.6.0 加性、默认关闭地冻结 LG-028 去中心化协作与 LG-033 资料摄取/检索新线接口，**仅冻结接口、尚未实现**，集中 QA 见 LG-032/LG-040）。
-- [资料接入与检索设计](docs/09-source-intake-and-retrieval.md)：**方向已确认、待实现**；Chat 为唯一常规资料接入入口、原件/派生/缓存分层、处理与检索生命周期、分阶段验收与实测局限。API/schema **未冻结**，实施前须按 docs/08 §13 冻结接口并升版。
-- [项目手册](PROJECT.md)：目标、优先级、完成定义和已确认决策。
-- [产品与架构设计](docs/01-design.md)：调度器、executor、组队、文件事实源、状态与首版交付顺序。
-- [Task 与 SDK 资源契约](docs/02-task-and-sdk-resources.md)：任务目录、对话、frontmatter 渲染及 Agent／Connections／Conversation／Hooks／MCP／Tools／Triggers 的映射。
-- [SDK 能力审计](docs/03-sdk-capability-audit.md)：核心能力覆盖矩阵、frontmatter 配置块、运行时边界及首版取舍。
-- [Bot 行为契约](docs/04-bot-behavior.md)：消息路由、轻任务、队列、需求变更、通知、暂停取消、待验收与资源释放。
-- [左侧导航、Team 与 Resources](docs/05-navigation-and-team.md)：四栏壳层、五个一级入口、招募视图、SDK 资源管理及关联导航。
-
-## 首版边界
-
-- 一个占用执行槽的交付 Run，其他 Task 可以排队；最多三个 worker、两个并行子任务、一轮自动返修，待运行验证后调整。已停止的待用户或待验收 Run 不占槽。
-- 首个执行后端采用 Antigravity SDK，保留 adapter 边界，不同时实现多个 SDK。
-- agency-agents 作为候选角色内容来源，从少量开发角色开始。
-- 使用 SDK 原生 skills 加载与基础文件、命令、网页工具；按成员绑定角色、技能、工具权限与工作区，不重建通用技能执行层。首版为 `google-antigravity==0.1.22` 的 OpenAI-compatible（`LocalOpenAIAgentConfig`）→ DeepSeek 路径（LG-003 已实测，LG-006 实现产品侧代理）；`search_web` 标记不可用；Gemini/Vertex 未验收，待各自探针通过后开放。
-- 临时角色实例随运行创建和释放，项目与产物长期保存。
-- **默认不存在独立常驻编排模型**，也不要求每次 Task/Run 先调用模型规划：明确目标由程序生成最小合法计划后直接交 worker；模型拆解是有界按需能力（可注入提议接口保留、**真实模型后端未接线**），仅在显式记录触发原因时采纳，候选计划仍经同一程序校验。程序原子写/租约、文件事实源、机器验证与独立复核、人工验收、停止确认均保留；worker 不写控制态；SDK 内部委派仍关闭。
-- 规划/编排取舍的成本按同一验收门下的全交付生命周期（执行＋验证＋返修＋复验＋失败尝试）评估；未完成样本不计作已交付成本，也不用失败高成本样本的中位数推断完整收益。
-- 人工最终验收；worker 自报完成只能进入待验证。
-- 单用户本地网页入口，简单问答不组队；后台执行独立于浏览器连接，支持 Task 队列与网页未读通知。云端入口、外部聊天渠道和自主触发另行推进。
-- 先实现必要的文件树、预览、上传、下载和任务产物关联。
-- 资料接入方向已确认：**Chat 是唯一常规资料接入入口**（上传/拖拽/粘贴链接），Files 负责预览/来源追溯/归档调整/校订/重处理/下载；上传处理是**受控摄取作业**，不自动创建交付 Task/Run/团队。现有 Files 上传 API/UI 属历史实现，交互收拢**尚未迁移**；目标设计见 [docs/09](docs/09-source-intake-and-retrieval.md)，**未实现、接口未冻结**。
-
-## 参考与参赛边界
-
-- [Antigravity SDK](https://github.com/google-antigravity/antigravity-sdk-python)：执行与会话基础，接口、平台支持和云端运行须实测。
-- [agency-agents](https://github.com/msitarzewski/agency-agents)：候选角色模板，不能替代调度与执行系统。
-- [Olav OS](../olav-os/)：编排与工作台设计参考，不是本项目已确定的运行依赖。
-- [Olav Tasks](../olav-tasks/)：Markdown 项目管理、看板和聊天集成参考，不是本项目已确定的运行依赖。
-
-本项目首先按产品目标推进，不以参赛资格作为已确认事实。AI Builder Cup FAQ 明确限制赛前已有项目及基于已有项目的提交；未公开、新建目录、重新命名或重写实现均不能自动证明合格。复用既有代码、角色或其他资产的允许范围，应取得主办方明确答复。[官方 FAQ](https://aibuildercup.com/Faqs.html)
+执行基础来自 Antigravity SDK，可选向量检索接入 EmbeddingGemma 2；角色内容与设计参考见 [agent.md](agent.md)。本项目的运行不依赖开发机上的 Olav OS 或 Olav Tasks 参考目录。
