@@ -1,0 +1,588 @@
+{
+  "url": "http://127.0.0.1:60577/",
+  "tested_at": "2026-10-16T07:08:09.072Z",
+  "counts": {
+    "total": 19,
+    "passed": 19,
+    "failed": 0
+  },
+  "results": [
+    {
+      "name": "real same-origin http document",
+      "ok": true,
+      "detail": {
+        "origin": "http://127.0.0.1:60577"
+      }
+    },
+    {
+      "name": "Files Materials reachable",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Files Materials narrow-390: no horizontal overflow (doc scrollWidth <= innerWidth+2)",
+      "ok": true,
+      "detail": {
+        "innerWidth": 390,
+        "docScrollWidth": 390,
+        "nOffenders": 3,
+        "offenders": [
+          {
+            "tag": "span",
+            "cls": "lg-visually-hidden",
+            "rect": {
+              "x": 11,
+              "right": 12,
+              "width": 1
+            },
+            "scrollW": 103,
+            "clientW": 1,
+            "minWidth": "0px",
+            "gridTemplateColumns": "none",
+            "display": "block",
+            "overflowX": "hidden"
+          },
+          {
+            "tag": "span",
+            "cls": "lg-files__note",
+            "rect": {
+              "x": 40,
+              "right": 337,
+              "width": 297
+            },
+            "scrollW": 297,
+            "clientW": 0,
+            "minWidth": "0px",
+            "gridTemplateColumns": "none",
+            "display": "inline",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "strong",
+            "cls": "",
+            "rect": {
+              "x": 91,
+              "right": 132,
+              "width": 40
+            },
+            "scrollW": 40,
+            "clientW": 0,
+            "minWidth": "0px",
+            "gridTemplateColumns": "none",
+            "display": "inline",
+            "overflowX": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Files Materials narrow-390: list AND detail panels both NONZERO width",
+      "ok": true,
+      "detail": {
+        "listW": 310,
+        "detailW": 310
+      }
+    },
+    {
+      "name": "Files Materials mid-1024: no horizontal overflow (doc scrollWidth <= innerWidth+2)",
+      "ok": true,
+      "detail": {
+        "innerWidth": 1024,
+        "docScrollWidth": 1024,
+        "nOffenders": 22,
+        "offenders": [
+          {
+            "tag": "span",
+            "cls": "lg-visually-hidden",
+            "rect": {
+              "x": 11,
+              "right": 12,
+              "width": 1
+            },
+            "scrollW": 78,
+            "clientW": 1,
+            "minWidth": "0px",
+            "gridTemplateColumns": "none",
+            "display": "block",
+            "overflowX": "hidden"
+          },
+          {
+            "tag": "nav",
+            "cls": "lg-rail",
+            "rect": {
+              "x": 0,
+              "right": 56,
+              "width": 56
+            },
+            "scrollW": 128,
+            "clientW": 55,
+            "minWidth": "auto",
+            "gridTemplateColumns": "none",
+            "display": "flex",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "ul",
+            "cls": "lg-rail__list",
+            "rect": {
+              "x": 0,
+              "right": 55,
+              "width": 55
+            },
+            "scrollW": 128,
+            "clientW": 55,
+            "minWidth": "auto",
+            "gridTemplateColumns": "none",
+            "display": "flex",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "li",
+            "cls": "",
+            "rect": {
+              "x": 8,
+              "right": 48,
+              "width": 40
+            },
+            "scrollW": 89,
+            "clientW": 40,
+            "minWidth": "auto",
+            "gridTemplateColumns": "none",
+            "display": "list-item",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "button",
+            "cls": "lg-rail__item",
+            "rect": {
+              "x": 8,
+              "right": 48,
+              "width": 40
+            },
+            "scrollW": 88,
+            "clientW": 38,
+            "minWidth": "0px",
+            "gridTemplateColumns": "none",
+            "display": "flex",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "li",
+            "cls": "",
+            "rect": {
+              "x": 8,
+              "right": 48,
+              "width": 40
+            },
+            "scrollW": 97,
+            "clientW": 40,
+            "minWidth": "auto",
+            "gridTemplateColumns": "none",
+            "display": "list-item",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "button",
+            "cls": "lg-rail__item",
+            "rect": {
+              "x": 8,
+              "right": 48,
+              "width": 40
+            },
+            "scrollW": 96,
+            "clientW": 38,
+            "minWidth": "0px",
+            "gridTemplateColumns": "none",
+            "display": "flex",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "li",
+            "cls": "",
+            "rect": {
+              "x": 8,
+              "right": 48,
+              "width": 40
+            },
+            "scrollW": 88,
+            "clientW": 40,
+            "minWidth": "auto",
+            "gridTemplateColumns": "none",
+            "display": "list-item",
+            "overflowX": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Files Materials mid-1024: list AND detail panels both NONZERO width",
+      "ok": true,
+      "detail": {
+        "listW": 276,
+        "detailW": 276
+      }
+    },
+    {
+      "name": "Files Materials desktop-1440: no horizontal overflow (doc scrollWidth <= innerWidth+2)",
+      "ok": true,
+      "detail": {
+        "innerWidth": 1440,
+        "docScrollWidth": 1440,
+        "nOffenders": 21,
+        "offenders": [
+          {
+            "tag": "span",
+            "cls": "lg-visually-hidden",
+            "rect": {
+              "x": 11,
+              "right": 12,
+              "width": 1
+            },
+            "scrollW": 78,
+            "clientW": 1,
+            "minWidth": "0px",
+            "gridTemplateColumns": "none",
+            "display": "block",
+            "overflowX": "hidden"
+          },
+          {
+            "tag": "nav",
+            "cls": "lg-rail",
+            "rect": {
+              "x": 0,
+              "right": 56,
+              "width": 56
+            },
+            "scrollW": 128,
+            "clientW": 55,
+            "minWidth": "auto",
+            "gridTemplateColumns": "none",
+            "display": "flex",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "ul",
+            "cls": "lg-rail__list",
+            "rect": {
+              "x": 0,
+              "right": 55,
+              "width": 55
+            },
+            "scrollW": 128,
+            "clientW": 55,
+            "minWidth": "auto",
+            "gridTemplateColumns": "none",
+            "display": "flex",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "li",
+            "cls": "",
+            "rect": {
+              "x": 8,
+              "right": 48,
+              "width": 40
+            },
+            "scrollW": 89,
+            "clientW": 40,
+            "minWidth": "auto",
+            "gridTemplateColumns": "none",
+            "display": "list-item",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "button",
+            "cls": "lg-rail__item",
+            "rect": {
+              "x": 8,
+              "right": 48,
+              "width": 40
+            },
+            "scrollW": 88,
+            "clientW": 38,
+            "minWidth": "0px",
+            "gridTemplateColumns": "none",
+            "display": "flex",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "li",
+            "cls": "",
+            "rect": {
+              "x": 8,
+              "right": 48,
+              "width": 40
+            },
+            "scrollW": 97,
+            "clientW": 40,
+            "minWidth": "auto",
+            "gridTemplateColumns": "none",
+            "display": "list-item",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "button",
+            "cls": "lg-rail__item",
+            "rect": {
+              "x": 8,
+              "right": 48,
+              "width": 40
+            },
+            "scrollW": 96,
+            "clientW": 38,
+            "minWidth": "0px",
+            "gridTemplateColumns": "none",
+            "display": "flex",
+            "overflowX": "visible"
+          },
+          {
+            "tag": "li",
+            "cls": "",
+            "rect": {
+              "x": 8,
+              "right": 48,
+              "width": 40
+            },
+            "scrollW": 88,
+            "clientW": 40,
+            "minWidth": "auto",
+            "gridTemplateColumns": "none",
+            "display": "list-item",
+            "overflowX": "visible"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Files Materials desktop-1440: list AND detail panels both NONZERO width",
+      "ok": true,
+      "detail": {
+        "listW": 320,
+        "detailW": 360
+      }
+    },
+    {
+      "name": "Files Materials narrow-390: long hash/path wrap, no clipping, no page overflow",
+      "ok": true,
+      "detail": {
+        "overflow": false,
+        "docScrollWidth": 390,
+        "nFacts": 4,
+        "hasLongHashLike": false,
+        "clipped": []
+      }
+    },
+    {
+      "name": "Files Materials mid-1024: long hash/path wrap, no clipping, no page overflow",
+      "ok": true,
+      "detail": {
+        "overflow": false,
+        "docScrollWidth": 1024,
+        "nFacts": 4,
+        "hasLongHashLike": false,
+        "clipped": []
+      }
+    },
+    {
+      "name": "Files Materials desktop-1440: long hash/path wrap, no clipping, no page overflow",
+      "ok": true,
+      "detail": {
+        "overflow": false,
+        "docScrollWidth": 1440,
+        "nFacts": 4,
+        "hasLongHashLike": false,
+        "clipped": []
+      }
+    },
+    {
+      "name": "Files Materials narrow-390: English actions preserved and in-viewport",
+      "ok": true,
+      "detail": {
+        "names": [
+          "Save correction",
+          "Archive",
+          "Reprocess (OCR)",
+          "Download original",
+          "Download formal"
+        ],
+        "actions": [
+          {
+            "text": "Save correction",
+            "visible": true,
+            "inViewport": true,
+            "right": 167
+          },
+          {
+            "text": "Archive",
+            "visible": true,
+            "inViewport": true,
+            "right": 250
+          },
+          {
+            "text": "Reprocess (OCR)",
+            "visible": true,
+            "inViewport": true,
+            "right": 174
+          },
+          {
+            "text": "Download original",
+            "visible": true,
+            "inViewport": true,
+            "right": 328
+          },
+          {
+            "text": "Download formal",
+            "visible": true,
+            "inViewport": true,
+            "right": 180
+          }
+        ]
+      }
+    },
+    {
+      "name": "Files Materials mid-1024: English actions preserved and in-viewport",
+      "ok": true,
+      "detail": {
+        "names": [
+          "Save correction",
+          "Archive",
+          "Reprocess (OCR)",
+          "Download original",
+          "Download formal"
+        ],
+        "actions": [
+          {
+            "text": "Save correction",
+            "visible": true,
+            "inViewport": true,
+            "right": 469
+          },
+          {
+            "text": "Archive",
+            "visible": true,
+            "inViewport": true,
+            "right": 551
+          },
+          {
+            "text": "Reprocess (OCR)",
+            "visible": true,
+            "inViewport": true,
+            "right": 476
+          },
+          {
+            "text": "Download original",
+            "visible": true,
+            "inViewport": true,
+            "right": 488
+          },
+          {
+            "text": "Download formal",
+            "visible": true,
+            "inViewport": true,
+            "right": 482
+          }
+        ]
+      }
+    },
+    {
+      "name": "Files Materials desktop-1440: English actions preserved and in-viewport",
+      "ok": true,
+      "detail": {
+        "names": [
+          "Save correction",
+          "Archive",
+          "Reprocess (OCR)",
+          "Download original",
+          "Download formal"
+        ],
+        "actions": [
+          {
+            "text": "Save correction",
+            "visible": true,
+            "inViewport": true,
+            "right": 801
+          },
+          {
+            "text": "Archive",
+            "visible": true,
+            "inViewport": true,
+            "right": 883
+          },
+          {
+            "text": "Reprocess (OCR)",
+            "visible": true,
+            "inViewport": true,
+            "right": 1025
+          },
+          {
+            "text": "Download original",
+            "visible": true,
+            "inViewport": true,
+            "right": 820
+          },
+          {
+            "text": "Download formal",
+            "visible": true,
+            "inViewport": true,
+            "right": 968
+          }
+        ]
+      }
+    },
+    {
+      "name": "long material name/path does not force page overflow at 390",
+      "ok": true,
+      "detail": {
+        "longName": {
+          "previewName": "clear_real.pdf",
+          "entryName": "clear_real.pdf",
+          "nameEllipsis": {
+            "overflow": "hidden",
+            "textOverflow": "ellipsis",
+            "whiteSpace": "nowrap",
+            "minWidth": "0px"
+          }
+        },
+        "overflow": false,
+        "docScrollWidth": 390
+      }
+    },
+    {
+      "name": "Materials preview body keeps its own scroll (no page-level clipping)",
+      "ok": true,
+      "detail": {
+        "present": true,
+        "overflowY": "auto",
+        "overflowX": "auto",
+        "scrollH": 216,
+        "clientH": 216,
+        "canScroll": true
+      }
+    },
+    {
+      "name": "Chat reachable at 390",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Chat 390 unchanged: no horizontal overflow and search still present",
+      "ok": true,
+      "detail": {
+        "innerWidth": 390,
+        "docScrollWidth": 390,
+        "hasSearch": true,
+        "nOffenders": 4
+      }
+    },
+    {
+      "name": "desktop 1440 Materials layout is still the normal two-panel grid",
+      "ok": true,
+      "detail": {
+        "gridTemplateColumns": "320px 360px",
+        "sideBySide": true,
+        "listW": 320,
+        "detailW": 360
+      }
+    }
+  ]
+}

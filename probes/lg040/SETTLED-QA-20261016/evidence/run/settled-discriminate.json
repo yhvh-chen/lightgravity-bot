@@ -1,0 +1,77 @@
+{
+ "url": "http://127.0.0.1:58567/",
+ "bound_ms": 2000,
+ "captured_at": "2026-10-16T07:05:12.007Z",
+ "scenarios": {
+  "A_chat390_then_Files_noReload": {
+   "before": {
+    "vw": 390,
+    "doc": 390,
+    "mmCompact": true,
+    "mmMobile": true,
+    "railPresent": false,
+    "railW": null,
+    "railRight": null,
+    "listW": 0,
+    "detailW": 0,
+    "detailRendered": false,
+    "overflow": false,
+    "view": null,
+    "drawerPresent": false
+   },
+   "settledAt": null,
+   "nSamples": 0,
+   "samples": [],
+   "final": {
+    "vw": 390,
+    "doc": 390,
+    "mmCompact": true,
+    "mmMobile": true,
+    "railPresent": false,
+    "railW": null,
+    "railRight": null,
+    "listW": 0,
+    "detailW": 0,
+    "detailRendered": false,
+    "overflow": false,
+    "view": null,
+    "drawerPresent": false
+   }
+  },
+  "B_initial390_reload_then_Files": {
+   "before": {
+    "vw": 390,
+    "doc": 390,
+    "mmCompact": true,
+    "mmMobile": true,
+    "railPresent": false,
+    "railW": null,
+    "railRight": null,
+    "listW": 0,
+    "detailW": 0,
+    "detailRendered": false,
+    "overflow": false,
+    "view": null,
+    "drawerPresent": false
+   },
+   "settledAt": null,
+   "nSamples": 0,
+   "samples": [],
+   "final": {
+    "vw": 390,
+    "doc": 390,
+    "mmCompact": true,
+    "mmMobile": true,
+    "railPresent": false,
+    "railW": null,
+    "railRight": null,
+    "listW": 0,
+    "detailW": 0,
+    "detailRendered": false,
+    "overflow": false,
+    "view": null,
+    "drawerPresent": false
+   }
+  }
+ }
+}
