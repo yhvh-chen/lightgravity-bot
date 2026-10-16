@@ -7,9 +7,24 @@ updated: "2026-10-16"
 
 # 当前进展与续接记录
 
-> **2026-10-16 LG-040 已按英文主线开始集中版本 QA 的 claim + 规划派工准备（本节为最新事实）；其下「用户市场范围决定检查点」等各节整体标记为历史，保留不改。**
+> **2026-10-16 LG-040 已收口并置 `done`（版本 QA 技术验收按治理报告 TRANSITION-QA-20261016 PASS_WITH_LIMITATIONS；用户最终验收仍 PENDING、未发布）（本节为最新事实）；其下所有早于本节的段落整体标记为历史，保留不改。**
 
-## 2026-10-16 LG-040 集中版本 QA — claim + 派工准备开始（PM only；本包产品推理 0/网络 0；**本包不执行 QA、不置 done**）
+## 2026-10-16 LG-040 RELEASE-CLOSE 收口（置 done；PM/integration only；产品运行时改动 0/网络 0/无 push/deploy）
+
+本节为**当前事实**。收口依据为**独立治理 QA** `probes/lg040/TRANSITION-QA-20261016/REPORT.md`（tip `7fd0f61`，候选 `30029eb`）**PASS_WITH_LIMITATIONS、0 个 open important issue**；详情 [RELEASE-CLOSE REPORT](probes/lg040/RELEASE-CLOSE-20261016/REPORT.md)。
+
+- **结论**：LG-040 `status` 置 **`done`**；**版本 QA 技术验收**按治理报告满足，**用户最终验收仍 PENDING**，**未发布/未部署**。LG-041 仍 `todo`、阻塞于 ASR/质量门。
+- **顺序 `--no-ff` 合并（无冲突、无意外停车）**：`qa/lg040-final-20261016@925f828`→`88e5d4c`、`qa/lg040-settled-20261016@8a4560a`→`231644f`、`fix/lg040-transition-20261016@30029eb`→`f2b2ef3`、`qa/lg040-transition-20261016@7fd0f61`→收口 HEAD **`7cc94b5`**；四个源 tip 均为 HEAD 祖先。
+- **产品绑定**：`backend/frontend/tests` 树哈希在 `HEAD == 30029eb == 7fd0f61`；`fc9f74b..HEAD` 产品增量**仅** `frontend/src/app/shell.css`（+18/−1，transition CSS），`backend/`、`tests/`、`docs/` 逐字节不变；契约 `1.11.0`、SDK `0.1.22` 不变；收口包**未做运行时改动**。
+- **治理 QA fresh actual**：fresh build（`tsc`/`vite build` EXIT 0 + bundle CSS hash 绑定）+ transition max overshoot **0** + starvation **0/1986** + 宽度 **19/19** + **bounded readiness ready=true @76ms，2s 上界保留（未放宽为 8s）**。
+- **历史 8a4560a 明确不采信为收口**：其 `readyAtMs 2592` 使用 **8000ms** 上界，仅作历史保留、**不洗白**。
+- **限制/计数如实结转（不 waived、无广义质量声明）**：G2 冻结图片实验仍 FAIL、TIFF 不支持、原 BROWSER 全局 OCR 计数 UNKNOWN ≥2 成本 unknown（不声称硬预算已核验）、2 OCR + 17 embedding、英文为主小样本、任何语言无 ASR、中文 rank 7、revoke `404` 门与 `archived` 布尔分离、Files/CSS 修复窄范围；后端完整 pytest **863 passed / 5 skipped**（首次有效运行）。
+- **CLI（收口后）**：`validate` **41 tasks / 0 diagnostics**；`digest` **40 done / 1 todo / 0 in-progress**、`ready=[]`；LG-041 由质量门阻塞。未新建 Task/Run。
+- **计数**：本包网络 0 / 模型 0 / 产品推理 0 / 产品运行时代码改动 0；pi 成本 unknown 非 0；无 push/deploy/publish；历史分支/worktree/raw 全保留。
+
+---
+
+## 2026-10-16 LG-040 集中版本 QA — claim + 派工准备开始（历史；PM only；**本包不执行 QA、不置 done**）
 
 - **开工核对（只读）**：`main@2f277fa` clean、无 stash/外部 main 写入者；Node CLI `validate` **41 tasks / 0 diagnostics**、`ready` **仅 LG-040**。
 - **原子 claim**：`tasks claim ... LG-040 --as agent:pi-lg040` 首次成功（`already=false`，version `a67971c3…`）→ LG-040 `in-progress`。**未绕过 claim、未手改状态；未置 done、未宣 QA pass。**

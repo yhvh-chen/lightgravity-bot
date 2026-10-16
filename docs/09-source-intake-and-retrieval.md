@@ -1,16 +1,14 @@
 ---
-title: "资料接入与检索设计（方向已确认，待实现）"
+title: "资料接入与检索设计（方向已确认；核心已实现，集中 QA 已完成）"
 doc_type: design
 category: product
-updated: "2026-10-15"
+updated: "2026-10-16"
 ---
 
-# 资料接入与检索设计（方向已确认，待实现）
+# 资料接入与检索设计（方向已确认；核心已实现，集中 QA 已完成）
 
-> 性质：**方向已确认、接口已按 docs/08 1.6.0 加性冻结（仍待实现）**。本文记录用户已确认的接入与检索方向，供后续实现引用；
-> **不代表任何功能已实现**。API、schema、事件、实体与状态枚举已在 [首版接口与状态契约](08-interface-contract.md)
-> `1.6.0`（2026-10-16）MINOR 加性冻结（§4.3 端点、§5.1 事件、§6.6 实体），但**仅冻结接口、尚未实现**；
-> 实现前不得先于该版契约扩展语义。集中 QA 归 LG-040。
+> 性质：**方向已确认、接口已按 docs/08 加性冻结；核心摄取/检索已实现并由 LG-040 集中版本 QA 覆盖（当前契约 1.11.0）**。本文记录用户已确认的接入与检索方向。API、schema、事件、实体与状态枚举在 [首版接口与状态契约](08-interface-contract.md) 加性冻结（自 `1.6.0`；§4.3 端点、§5.1 事件、§6.6 实体）；实现前仍不得先于当前契约扩展语义。
+> **集中 QA 已完成**：LG-040 依独立治理报告 [TRANSITION-QA-20261016](../probes/lg040/TRANSITION-QA-20261016/REPORT.md) **PASS_WITH_LIMITATIONS、0 个 open important issue** 置 `done`（版本 QA 技术验收；**用户最终验收 PENDING、未发布**；[RELEASE-CLOSE](../probes/lg040/RELEASE-CLOSE-20261016/REPORT.md)）。限制如实保留：**任何语言均无 ASR（中文转写仍由 LG-041 条件接入）**、TIFF 不支持、G2 冻结图片实验 FAIL、英文为主小样本。本文以下正文（含“待实现”时的设计说明与分阶段建议）为**历史设计记录，保留不改**。
 >
 > 现有 Files 上传/下载 API 与 UI 是**历史实现**（`docs/08` §4.3 已登记的
 > `POST /files/upload`、`GET /files/download`，[frontend/src/views/files/FilesView.tsx](../frontend/src/views/files/FilesView.tsx)、
