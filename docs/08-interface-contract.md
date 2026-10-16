@@ -2,11 +2,13 @@
 title: "首版接口与状态契约（v1）"
 doc_type: specification
 category: architecture
-contract_version: "1.12.0"
+contract_version: "1.13.0"
 updated: "2026-10-16"
 ---
 
 # 首版接口与状态契约（v1）
+
+> **当前契约 1.13.0（2026-10-16，LG-050 加性 MINOR）**：新增显式启用的共享团队模式、账号会话端点、服务端消息作者及 `forbidden` 错误码。范围与接口冻结见 §14；当前正在实施，未通过版本 QA。默认单用户行为保持；下方长段版本记录自 1.12.0 起为历史沿革，不是当前版本号。
 
 > 性质：LG-001 冻结的候选实现契约。它把 [产品与架构设计](01-design.md)、[Task 与 SDK 资源契约](02-task-and-sdk-resources.md)、[Bot 行为契约](04-bot-behavior.md)、[SDK 能力审计](03-sdk-capability-audit.md)、[导航设计](05-navigation-and-team.md)、[模型设置](07-settings-and-models.md) 收敛到可实现的接口与状态边界，不新增产品能力，也不代表功能已实现或经过运行时验证。
 >
@@ -805,6 +807,39 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 | 独立复核者配置/装配/无 reviewer 阻止 accept/真实 SDK reviewer 路径（§5.1、§6.1、§6.5、§9） | LG-017、**LG-022（集中 QA）** |
 | 去中心化发现/领取/租约 fencing/协作/预算（§4.3、§5.1、§6.2、§6.3） | LG-029、LG-030、LG-031、**LG-032（集中 QA）** |
 | 资料摄取/来源版本/去重/回源/索引失效与可选向量降级（§4.3、§5.1、§6.6） | LG-034～038、LG-039、**LG-040（集中 QA）** |
+
+## 14. 共享团队模式（1.13.0，LG-050，接口冻结、实施中）
+
+团队模式显式开启，一个共享工作区，所有登录成员共享聊天、Task 和资料。此模式不承诺私聊、私有资料或多租户隔离；默认关闭，原单用户路由保持。
+
+### 14.1 配置与账号
+
+- `LIGHTGRAVITY_TEAM_MODE` 默认 false；`1/true/yes/on` 开启。
+- `LIGHTGRAVITY_TEAM_ACCOUNTS` 默认受控数据根下 `team/accounts.json`；账号配置是独立事实源，不能由 Files 接口读取。只存口令盐与哈希，原子写入，不能再另维护一份权威配置。
+- `LIGHTGRAVITY_TEAM_SESSION_TTL_SECONDS` 默认 28800；会话暂存服务端内存，服务重启后重新登录。
+- `LIGHTGRAVITY_TEAM_COOKIE_SECURE` 默认 false（本地 HTTP）；HTTPS 使用时可显式开启。cookie `lg_session` 使用 `HttpOnly; SameSite=Lax; Path=/`，配合同源 Host/Origin 守卫。
+- `LIGHTGRAVITY_TEAM_BOT_MENTION` 默认 `@bot`，匹配消息首部（允许前导空白，后接空白、标点或结束）。
+- 本地账号管理由 CLI 提供 `user add` / `user list`，口令经交互输入，禁止放到命令行参数、错误或日志。账号角色仅 `admin`、`member`。
+
+### 14.2 HTTP 端点与授权
+
+| 端点 | 请求与响应 |
+|---|---|
+| `GET /api/v1/auth/me` | 匿名可读；`{mode:"team",authenticated:false,username:null,role:null}`；已登录填真实用户名/角色。单用户模式返回 `{mode:"single",authenticated:true,username:null,role:"admin"}` |
+| `POST /api/v1/auth/login` | `{username,password}`；成功 `{username,role}` 并设置不透明会话 cookie；无此用户与口令错误统一 `401 unauthorized`。单用户模式 404 |
+| `POST /api/v1/auth/logout` | 撤销会话并清 cookie，204；重复操作幂等 |
+
+团队模式匿名访问所有业务 API（含历史、文件、下载、事件）均 401；`auth/me`、`auth/login` 与健康检查除外。已登录成员可以协作普通任务、读写共享资料。系统管理写（模型连接、秘密凭证、Settings、资源配置，含 Task `resource_proposal` 间接路径）仅管理员；非管理员返回 `403 forbidden`，沿用统一错误信封、`retryable:false`。`X-LG-Token` 与请求体自报角色不能替代用户会话或提升权限。团队模式前端不注入运行时管理 token。
+
+### 14.3 消息与同步
+
+- 消息新增加性可选 `author:{kind,username,role}`：服务端取登录身份写入，禁止客户端伪造。人类 `kind:"user"`，bot 回复 `kind:"bot"`；旧消息无 author 时保留原样，前端标为历史未知作者。
+- 团队全局普通消息仅持久化，返回 `kind:"recorded"`、`reply:null`、`data:{intent:"recorded",creates_task:false}`，不调用模型或新建 Task。
+- 仅显式 mention 的全局消息去除前缀后进入原分类与任务路由。Task 内显式消息沿既有行为，不要求 mention。
+- 持久化与请求幂等、并发序号保持；bot 回合有序处理。全局消息同步先采用约 3 秒轮询既有读取接口，游标补齐、按消息 ID 去重；页面隐藏暂停，失效登录返回登录界面。不把全局轮询宣称为新增 SSE 事件流。
+- 默认单用户模式不要求 mention，旧客户端省略加性字段时保持现有行为。不修改 Task/Run 状态枚举或迁移方向。真实 SDK 执行能力沿原验收记录，本次不能以认证测试替代真实 SDK 验收。
+
+本节只是新增接口与范围冻结，运行命令、实现偏差和集中 QA 证据须由 LG-050 的交付记录补充，不代表功能已交付。
 
 ## 参考
 

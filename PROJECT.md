@@ -43,6 +43,14 @@ updated: "2026-10-16"
 
 ## 决策日志
 
+### 2026-10-16：共享团队聊天与简单认证快速原型（LG-050，实施中）
+
+- 用户提出参考 Olav OS 团队聊天，将单人 bot 扩展为多人协作。最小实施假设为一个共享工作区、独立本地账号、共享群聊；私聊、私有资料、多租户与组织治理暂缓。此条为本次新增范围，不把历史单用户边界当作阻止实施的授权门。
+- 团队模式显式开启，默认保留已有单用户使用方式；消息作者从服务端登录身份取得，人际消息只持久化，`@bot` 显式触发已有问答/任务路由。管理员负责账号、模型和凭证配置。
+- 参考调查由 pi 只读完成：Olav OS `dev_docs/01-ce-design.md:68` 的 mention 策略属于 IM 渠道；网页 `team-chat.tsx`/`chat-file-store.ts` 有目录共享会话与作者，但每条用户消息仍排 bot turn。仅借鉴必要机制，避免把其网页聊天当作已实现 mention 门控。
+- 命名里程碑 **LG-050 共享团队聊天与简单认证 MVP**：后端与前端使用独立 worktree、明确接口并行实施；集成候选完成后交独立 pi 集中 QA。验收覆盖双用户共享、身份可信、匿名拒绝、管理员门禁、普通消息零模型触发、显式触发幂等、并发同步与退出失效。任务与证据见 [LG-050](backlog/tasks/LG-050.md)。
+- 当前仅调查与实施安排已完成，产品能力尚未交付；未发布、未部署，用户已有 `PROGRESS.md` 改动保留。
+
 ### 2026-10-16：LG-049/ N-R3-LIFECYCLE 实际 PASS_WITH_LIMITATIONS 复核闭环 → 置 LG-049 与 LG-047 `done`；PM/docs 集成（root PM）
 
 - **依据**：独立 LG-049 在**冻结既有产品**上真实跑通**一条完整 SDK 交付生命周期**，补齐 I-R2 的全部 FAIL 缺口：原生 API 上传 alpha（`content_hash=d34f0ca58b8d…`，receipt `native UTF-8 text extracted (model-free)`，**无 seeded derivative**）→ EXACT 前失败目标 `delivery/create_task` → 程序规则计划 `deliver`+`verify` → 真实 SDK worker **6 事实全对** → **`verify` 节点 passed（R2 曾 429）** → 机器门通过 → **真实独立 ModelReviewer `outcome=passed`（`reviewer_kind=model`，`model_calls=1`）** → **worker `cleanup=done`+`member.released` 与 reviewer `reviewer_cleanup.confirmed=true` 于 accept 前 CONFIRMED** → API accept（乐观 revision）→ `done` → artifact refs 真实 body + history Sources 匹配。**8/16 前向**（deliver 2 + verify 5 + reviewer 1）。

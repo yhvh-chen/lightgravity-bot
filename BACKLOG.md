@@ -134,6 +134,10 @@ updated: "2026-10-16"
 - [LG-040 集中验收资料接入与 Embedding 版本](backlog/tasks/LG-040.md)
 - [LG-041 质量达标后接入中文转写与音频来源索引](backlog/tasks/LG-041.md)
 
+## H. 共享团队版快速原型
+
+- [LG-050 共享团队聊天与简单认证 MVP（命名里程碑）](backlog/tasks/LG-050.md)
+
 ## CLI
 
 当前机器 PATH 未发现 olav-tasks，可使用已存在的本地构建，不为本次规划安装包：
