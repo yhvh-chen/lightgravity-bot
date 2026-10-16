@@ -1,0 +1,43 @@
+{
+  "kind": "fake-models",
+  "sdk": false,
+  "F_upload_status": "extracted",
+  "F_upload_derivatives": 2,
+  "F_content_status": 200,
+  "F_body_has_ORION71": true,
+  "G_kind": "task",
+  "G_task_id": "task_01M52053BVME59MT87EB8W5A8N",
+  "G_derived_acceptance": true,
+  "G_workspace_ref": true,
+  "G_phase_after_dispatch": "waiting_user",
+  "G_dispatched_requests": 2,
+  "G_worker_got_body": true,
+  "G_worker_has_workspace": true,
+  "G_answer_kind": "direct",
+  "G_history_ids": [
+    "h-smoke-deliver",
+    "h-smoke-answer",
+    "assistant:h-smoke-answer"
+  ],
+  "G_assistant_persisted": true,
+  "G_assistant_bindings": [
+    "source_01M520538SXSDW689805ZJASH0"
+  ],
+  "G_assistant_has_selected_context": true,
+  "G_retry_status": 200,
+  "G_history_count_after_retry": 3,
+  "G_duplicate_assistant_rows": 1,
+  "G_extra_dispatch_on_retry": 0,
+  "tmp_dir": "/tmp/lg047-h-smoke-7oul8oi0"
+}
+
+=== CHECKS ===
+  [OK] F readable native body
+  [OK] F terminal extracted/done
+  [OK] G routed to task
+  [OK] G derived acceptance+workspace
+  [OK] G plan validated (phase advanced)
+  [OK] G worker dispatched with exact body+workspace
+  [OK] G assistant persisted with bindings
+  [OK] G idempotent retry (no dup row, no re-dispatch)
+SMOKE_EXIT=0

@@ -43,6 +43,14 @@ updated: "2026-10-16"
 
 ## 决策日志
 
+### 2026-10-16：LG-047 R1 FAIL → F+G 并行返修 → H 串行集成候选（R2 预算重规划）
+
+- **R1 结论**：独立 QA R1 冻结 `57809d4`（[E-QA REPORT](probes/prototype-selected-material-20261016/E-QA/REPORT.md)）判 **FAIL**，四项缺陷：原生文本上传无正文、普通文件交付规则计划校验失败、选材回答/来源未入历史、零调用负例 N2/N5 错误码偏离冻结 docs/11。该报告与 `seed_machine.py` 辅助正文工具**作为 AUX 保留**，**不得**当作真实上传主流程证明。
+- **返修与集成**：F（[F-INTAKE-FIX-R1](probes/prototype-selected-material-20261016/F-INTAKE-FIX-R1/REPORT.md)，`fix/proto-material-intake-r1-20261016` @`1821394`，代码 `09edad2`，owner `sources/**`）修复原生 UTF-8 模型免调用文本接入 + 冻结来源错误顺序；G（[G-DIALOGUE-FIX-R1](probes/prototype-selected-material-20261016/G-DIALOGUE-FIX-R1/REPORT.md)，`fix/proto-material-dialogue-r1-20261016` @`8641010`，owner `coordinator/**`）修复助手历史持久化 + 无选材普通 Chat 的确定性最小交付计划。两线**文件归属互不重叠**，由 H 在 `main` 串行 `--no-ff` 集成（[H-R1-INTEGRATION REPORT](probes/prototype-selected-material-20261016/H-R1-INTEGRATION/REPORT.md)）。
+- **集成实际检查**：后端 `mypy` 139 files clean、**`pytest -q` 930 passed / 2 skipped**（EXIT 0，F+G 联合一次全量）；前端未改动（仍绑定 B `552d839`）故未重跑 `tsc`/build；本地零模型 API 冒烟确认 F 原生文本自动泵与 G 历史/计划均接入**实际工厂默认**（fake-models，本地-only，**非 SDK 证据**）。全部**无真实产品模型/网络调用**。
+- **契约（docs/10 措辞校正）**：旧“省略字段 ⇒ 逐字节不变”限定为**可选请求省略与既有响应 wire/模型上下文兼容**；**不**包含两项已记录 R1 bug 修复（助手历史持久化使旧历史行数不同；无选材普通文件交付默认规则计划修好），不宣称历史行数逐字节一致。docs/11 记录 R1 事实：原生文本成功无需 OCR、**PDF/图像仍走显式 OCR**、回答历史已持久化、确定性文件计划、`Sources` **非已验证引用**。
+- **验收与预算**：LG-047 **仍进行中、未 PASS/done**；保留 `57809d4` QA 候选冻结与全部 raw FAIL/种子辅助。**PM 重规划 R2**：在**新冻结候选**上新建独立 QA-R2 持久工作树/分支，独立 pi 执行；**新增产品请求硬上限 8 次**（含失败/worker/reviewer，retry 0、转发前硬限额、账本跨重启不归零、campaign 不重置）；R1 已知 1 次真实请求与失败样本**单列保留**，**不宣称原 12 次 campaign 全程已核实**。本集成产品推理 0。**041 保持 `todo` 不变**，LG-040 既有结论及所有先前边界/超范围不变。
+
 ### 2026-10-16：选定资料快速原型规划——契约 MINOR 1.12.0 预留 + 三并行工作包（LG-042～047）
 
 - **PM 决定**：规划并冻结“手动选定已摄取资料 → Chat 回答 / 单 worker 交付”快速原型。新建任务 LG-042～047（CLI `backlog`）：042 冻结契约（owner `pi-proto-prepare`）→ 043 后端（A，与 044 并行，仅依赖 042）→ 044 前端（B）+ 045 Demo（C）并行 → 046 串行整合 → 047 **命名里程碑独立版本 QA**。**041 保持 `todo` 不变**。

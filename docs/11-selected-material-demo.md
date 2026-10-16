@@ -34,6 +34,13 @@ the feature is finished.
 > model results.** See [`examples/selected-material-prototype/README.md`](../examples/selected-material-prototype/README.md).
 > The expected facts live in
 > [`examples/selected-material-prototype/expected-facts.json`](../examples/selected-material-prototype/expected-facts.json).
+>
+> **R1 返修后的事实（2026-10-16，F+G 合并候选，待独立 R2 复验；非版本 PASS）**：
+> - **原生文本成功，无需 OCR**：`text/plain`（及 `text/markdown`、`text/x-markdown`、`text/x-log`、`application/x-ndjson`）上传后由**原生 UTF-8 模型免调用**提取器同步落盘为一个 machine 派生件（`extractor=native-utf8-text`、`model=none`），可经 `GET /sources/{id}/content?kind=auto` 读到正文。非 UTF-8 或超限（2 MB）如实 `failed` 且不留伪造正文。
+> - **PDF/图像处理不变，仍走显式 OCR 路径**：这两种媒体类型上传保持 `received`，需显式 `reprocess` 触发既有 OCR；原生文本修复**不改**该路径。
+> - **选定回答（含来源）已持久化进历史**：每个 `direct`/`bounded_read` 回答把助手行 `assistant:<message_id>`（携带 `resolved_source_bindings` 与 `selected_context` 快照）写入同一会话 SoT，`GET .../messages` 可重放；重试同一 `message_id` 幂等（不重复落库、不重复派发）。**旧的“无助手历史”行为是已修复的 bug；旧会话历史不再行数逐字节一致。**
+> - **无选材普通 Chat 交付使用确定性文件计划**：请求未命名验收条件/工作区时，程序派生可检查验收条件并在授权根内预置 Task 工作区，使**未改动**的 `PlanValidator` 接受原型的最小单 worker 规则计划。
+> - **`Sources` 仍不是已验证引用**：绑定只说明程序提供了哪些文本，引用**未经 span 验证**；一切仍以人工比对 fixture truth 为准。
 
 ## 0. What this prototype is (and is not)
 
@@ -67,8 +74,9 @@ text was provided.
 ## 1. Prerequisites
 
 - A working checkout of this repository **on the integrated branch `main`
-  after LG-046 has landed** (LG-043 backend + LG-044 frontend merged) — this
-  is the current state of `main` as of 2026-10-16.
+  after LG-046 has landed and the LG-047 R1 repairs (F+G) are merged**
+  (LG-043 backend + LG-044 frontend + R1 native-intake/history/plan repairs)
+  — this is the current state of the R2 QA candidate as of 2026-10-16.
   **Do not run this guide on the demo owner branch
   `dev/proto-material-demo-20261016`** — that branch only contains the demo
   assets and the base product; it is **not** a working prototype base because
@@ -204,6 +212,13 @@ curl -sS -X POST http://127.0.0.1:8000/api/v1/sources \
   receipt showing the file) before selecting. The guide deliberately does not
   pin an exact polling interval — poll the receipt endpoint and stop when it
   reports done:
+>
+> **R1 fact:** for a **native text** `media_type` the program runs a minimal
+> synchronous **model-free** pump after receive, so the source reaches terminal
+> `extracted`/`done` and a machine derivative exists without any OCR or manual
+> seed. For **PDF/image** the source stays `received` until you call the
+> explicit `reprocess` OCR action (unchanged). If a selection reports
+> `capability_unavailable` (**503**) the source has no readable body yet.
 
 ```bash
 curl -sS http://127.0.0.1:8000/api/v1/sources/<SOURCE_ID>/receipt \
@@ -277,6 +292,13 @@ Compare the reply to `expected-facts.json`. The program has already told you
 which text it provided; your job in QA is only to check whether the answer is
 consistent with that text and the fixture truth, and whether decoy values
 leaked.
+>
+> **R1 fact — reopen the history:** the assistant answer (and, when a selection
+> was present, its `resolved_source_bindings` / `selected_context` snapshot) is
+> persisted in the **same conversation** the user message used, so a reopen of
+> `GET /api/v1/tasks/{task_id}/messages` (or the singleton
+> `/api/v1/conversations/global/messages`) shows the `assistant:<message_id>`
+> row. `Sources` still means *provided context*, **not** verified citations.
 
 > **Expected outcome (conditional, not a measurement):** if the selected
 > source, the real `ModelDialogue` path and the environment are all healthy,
@@ -304,6 +326,12 @@ Send it as a Task message with `selected_sources` exactly as in A2. The key
 point: the request names a **concrete deliverable** (a Markdown file with
 specific facts). Do **not** phrase it as open-ended research or a full
 document project — that capability is **not** what this prototype validates.
+>
+> **R1 fact:** an ordinary Chat delivery that names neither acceptance criteria
+> nor a workspace now gets a program-derived checkable acceptance criterion and
+> an authorized Task workspace, so the unchanged `PlanValidator` accepts the
+> minimal single-worker rule plan (previously the default delivery failed plan
+> validation). No planner model call is added.
 
 ### Step B2 — wait for the delivery to reach acceptance
 

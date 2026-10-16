@@ -7,7 +7,19 @@ updated: "2026-10-16"
 
 # 当前进展与续接记录
 
-> **2026-10-16 选定资料快速原型规划（最新事实）**：新建 LG-042～047，契约 MINOR `1.12.0` 预留，三并行 worktree 未启动；其下 LG-040 收口节为当前已完成的上一事实，再往下为历史保留不改。
+> **2026-10-16 选定资料快速原型（最新事实）**：LG-042～046 实施/整合完成，LG-047 QA R1 判 FAIL（`57809d4`）；F+G 并行返修已由 H 串行集成到 `main` 形成 R2 候选（F+G 联合全量 `pytest -q` 930 passed / 2 skipped、mypy 139 clean，均 EXIT 0）；**LG-047 仍进行中、未 PASS/done**，独立 QA-R2 待执行，R2 新增产品请求硬上限 8 次。其下 LG-040 收口节为上一已完成事实，再往下为历史保留不改。
+
+## 2026-10-16 LG-047 R1 FAIL → F+G 返修 → H 串行集成候选（PM/integration only；产品推理 0/网络 0）
+
+本节为**当前事实**。由 root PM 重规划、F/G 返修 owner 与 H 集成 owner 推进。
+
+- **R1 结论**：独立 QA R1 冻结 `57809d4`（[E-QA REPORT](probes/prototype-selected-material-20261016/E-QA/REPORT.md)）判 **FAIL**：原生文本上传无正文、普通文件交付计划校验失败、选材回答/来源未入历史、N2/N5 错误码偏离冻结 docs/11。该报告与 `seed_machine.py` 辅助正文工具作为 **AUX 保留**，不作真实上传证明。
+- **返修 owner**：F `fix/proto-material-intake-r1-20261016` @`1821394`（代码 `09edad2`，`backend/lightgravity/sources/**` + `tests/sources/**`）：原生 UTF-8 模型免调用文本接入 + 冻结来源错误顺序；G `fix/proto-material-dialogue-r1-20261016` @`8641010`（`backend/lightgravity/coordinator/**` + `tests/coordinator/**` + `tests/api` 自身行）：助手回答历史持久化 + 无选材普通 Chat 确定性最小交付计划。两线文件归属**互不重叠**，经核对确认。
+- **串行集成（H）**：`main` 依次 `--no-ff` 合并 `57809d4`（E-QA 冻结，保留）→ F `1821394` → G `8641010`；F/G 源文件与测试集不重叠，**无技术冲突**。集成候选见 [H-R1-INTEGRATION REPORT](probes/prototype-selected-material-20261016/H-R1-INTEGRATION/REPORT.md)。
+- **集成实际检查（真实 EXIT）**：`PYTHONPATH=backend mypy backend/lightgravity` **139 files clean**；`PYTHONPATH=backend pytest -q` **930 passed / 2 skipped**（EXIT 0，F+G 联合一次全量）；前端未改动（绑定 B `552d839`）故未重跑 `tsc`/build；本地零模型 API 冒烟（fake-models，**非 SDK 证据**）确认 F/G 均接入**实际工厂默认**。均无真实产品模型/网络调用。
+- **契约与 docs 校正**：docs/10 旧“逐字节不变”限定为**可选请求省略与既有响应 wire/模型上下文兼容**，**不**含已记录 R1 bug 修复（助手历史、默认交付计划）；docs/11 记录 R1 事实（原生文本成功无需 OCR、PDF/图像仍走显式 OCR、回答历史已持久化、确定性文件计划、`Sources` 非已验证引用）；task 047 D 报告相对链接修正为 `../../probes/...`。`contract_version` 仍 **`1.12.0`**（未升版）。
+- **验收与预算**：LG-047 **仍进行中、未 PASS/done**；新建独立 **QA-R2** 持久工作树/分支于**新冻结候选**，独立 pi 执行。**R2 新增产品请求硬上限 8 次**（含失败/worker/reviewer，retry 0、转发前硬限额、账本跨重启不归零、campaign 不重置）；R1 已知 1 次真实请求与失败样本单列保留，**不宣称原 12 次 campaign 全程已核实**。本集成产品推理 **0**。**041 保持 `todo` 不变**。
+- **计数**：本包网络 0 / 模型 0 / 产品推理 0；pi 成本 unknown 非 0。
 
 ## 2026-10-16 选定资料快速原型规划（LG-042～047；PM only；产品推理 0/网络 0）
 
