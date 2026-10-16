@@ -27,7 +27,7 @@ import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[3]
+ROOT = HERE.parents[2]
 CORPUS = HERE / "corpus"
 EVIDENCE = HERE / "evidence"
 EVIDENCE.mkdir(parents=True, exist_ok=True)
@@ -222,17 +222,8 @@ def main() -> int:
             return 2
         log(f"app up on {APP}")
 
-        # optional bounded health/models GET (<=2 for this slice); direct to proxy (not the app)
-        import urllib.request
-        try:
-            with urllib.request.urlopen(BASE + "/v1/models", timeout=15) as r:
-                models = json.loads(r.read())
-            rec.add(phase="models_get", http=r.status, models=[m.get("id") for m in models.get("data", [])])
-            (EVIDENCE / "models.json").write_text(json.dumps(models, indent=2)[:20000], encoding="utf-8")
-            log(f"models GET ok: {[m.get('id') for m in models.get('data', [])]}")
-        except Exception as exc:
-            rec.add(phase="models_get", error=type(exc).__name__)
-            log(f"models GET failed: {exc}")
+        # health/models GET: budget already consumed by earlier attempts (2 actual LAN GETs);
+        # do NOT issue more in this run.
 
         client = httpx.Client(base_url=APP, timeout=180)
         rec_client = httpx.Client(base_url=APP, timeout=180)
@@ -242,9 +233,12 @@ def main() -> int:
         for entry in labels["corpus"]:
             doc_id = entry["doc_id"]
             rel = entry["path"]
-            p = (ROOT / rel) if rel.startswith("probes") else (HERE / rel)
-            if not p.is_file():
+            if rel.startswith("probes"):
+                p = ROOT / rel
+            else:
                 p = HERE / rel
+            if not p.is_file():
+                p = ROOT / rel
             data = p.read_bytes()
             b64 = base64.b64encode(data).decode("ascii")
             resp = client.post("/api/v1/sources", json={
@@ -352,7 +346,7 @@ def main() -> int:
         (EVIDENCE / "lexical_queries.json").write_text(json.dumps(lexresults, indent=2), encoding="utf-8")
 
         # rebuild reproduction: delete cache then rebuild
-        cache_file = data_dir / "sources-index" / "vectors"
+        cache_file = data_dir / "sources-index" / "vectors" / "vectors.jsonl"
         rec.add(phase="cache_delete", path=str(cache_file), existed=cache_file.exists())
         if cache_file.exists():
             cache_file.unlink()

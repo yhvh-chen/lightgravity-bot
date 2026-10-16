@@ -1,0 +1,353 @@
+{
+  "notes": [],
+  "per_query": {
+    "Q1": {
+      "text": "SI base unit for electric current",
+      "positive": "D1",
+      "index_status": "ok",
+      "vector_order": [
+        "D1",
+        "MIX",
+        "D2",
+        "D4"
+      ],
+      "vector_scores": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "top1_correct": true,
+      "negative_false_hits_top5": null,
+      "lexical_order": [],
+      "lexical_status": "ok"
+    },
+    "Q2": {
+      "text": "quick brown dog jumped over the lazy fox",
+      "positive": "D2",
+      "index_status": "ok",
+      "vector_order": [
+        "D2",
+        "MIX",
+        "D1",
+        "D4"
+      ],
+      "vector_scores": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "top1_correct": true,
+      "negative_false_hits_top5": null,
+      "lexical_order": [
+        "D2"
+      ],
+      "lexical_status": "ok"
+    },
+    "Q3": {
+      "text": "scanned page of twelve point text with the quick brown fox sentence",
+      "positive": "D3",
+      "index_status": "ok",
+      "vector_order": [
+        "D2",
+        "MIX",
+        "D1",
+        "D4"
+      ],
+      "vector_scores": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "recall@1": 0.0,
+      "recall@3": 0.0,
+      "recall@5": 0.0,
+      "mrr": 0.0,
+      "top1_correct": false,
+      "negative_false_hits_top5": null,
+      "lexical_order": [],
+      "lexical_status": "ok"
+    },
+    "Q4": {
+      "text": "spoken recording of the Wikipedia article about the Chinese language",
+      "positive": "D4",
+      "index_status": "ok",
+      "vector_order": [
+        "D4",
+        "D2",
+        "MIX",
+        "D1"
+      ],
+      "vector_scores": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "recall@1": 1.0,
+      "recall@3": 1.0,
+      "recall@5": 1.0,
+      "mrr": 1.0,
+      "top1_correct": true,
+      "negative_false_hits_top5": null,
+      "lexical_order": [],
+      "lexical_status": "ok"
+    },
+    "QN": {
+      "text": "renormalization of lattice quantum chromodynamics gauge fields",
+      "positive": null,
+      "index_status": "ok",
+      "vector_order": [
+        "D1",
+        "D2",
+        "MIX",
+        "D4"
+      ],
+      "vector_scores": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "recall@1": null,
+      "recall@3": null,
+      "recall@5": null,
+      "mrr": 0.0,
+      "top1_correct": null,
+      "negative_false_hits_top5": 4,
+      "lexical_order": [],
+      "lexical_status": "ok"
+    }
+  },
+  "gates": {
+    "G1_text": "PASS",
+    "G2_image": "FAIL",
+    "G3_audio_indicative": "PASS",
+    "G4_negative_informational": 4
+  },
+  "cache": {
+    "model": "embeddinggemma-2-Q8_0",
+    "dim": 768,
+    "cache_version": 1,
+    "documents": 4,
+    "kinds": {
+      "D1": "text",
+      "D2": "text",
+      "D4": "audio",
+      "MIX": "text"
+    },
+    "fragment_hashes": {
+      "D1": "f28a95b0b17e468bb6c9ac9d0fc37365822af733be8374798155197e1f4598d5",
+      "D2": "f0e62a3c4aa88b9ed3f1de5167d496fda1ee4e5dc6d0cfecd463e946fa00c1d4",
+      "D4": "1eede9d1b03022f5c01332a65148a076dc61c32eb5dc0a4cc82d8b5995e6cad0",
+      "MIX": "df9f1b9a68a27427388be0b5431d253915aae8f3e54e821968644d5054b4847a"
+    }
+  },
+  "raw_embedding_calls": 9,
+  "independent_cosine_recompute": [
+    {
+      "raw_file": "03_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 181,
+        "total_tokens": 181
+      },
+      "is_doc_vector": true,
+      "matched_service_query": "Q1",
+      "recomputed_order": [
+        "D1",
+        "MIX",
+        "D2",
+        "D4"
+      ],
+      "recomputed_scores": [
+        1.0,
+        0.773672,
+        0.722864,
+        0.681515
+      ]
+    },
+    {
+      "raw_file": "04_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 104,
+        "total_tokens": 104
+      },
+      "is_doc_vector": true,
+      "matched_service_query": "Q2",
+      "recomputed_order": [
+        "D2",
+        "MIX",
+        "D1",
+        "D4"
+      ],
+      "recomputed_scores": [
+        1.0,
+        0.791926,
+        0.722864,
+        0.715942
+      ]
+    },
+    {
+      "raw_file": "06_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 254,
+        "total_tokens": 254
+      },
+      "is_doc_vector": true,
+      "matched_service_query": null,
+      "recomputed_order": [
+        "D4",
+        "D2",
+        "D1",
+        "MIX"
+      ],
+      "recomputed_scores": [
+        1.0,
+        0.715942,
+        0.681515,
+        0.659875
+      ]
+    },
+    {
+      "raw_file": "07_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 966,
+        "total_tokens": 966
+      },
+      "is_doc_vector": true,
+      "matched_service_query": null,
+      "recomputed_order": [
+        "MIX",
+        "D2",
+        "D1",
+        "D4"
+      ],
+      "recomputed_scores": [
+        1.0,
+        0.791926,
+        0.773672,
+        0.659875
+      ]
+    },
+    {
+      "raw_file": "08_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 8,
+        "total_tokens": 8
+      },
+      "is_doc_vector": false,
+      "matched_service_query": "Q1",
+      "recomputed_order": [
+        "D1",
+        "MIX",
+        "D2",
+        "D4"
+      ],
+      "recomputed_scores": [
+        0.793916,
+        0.712846,
+        0.655183,
+        0.61179
+      ]
+    },
+    {
+      "raw_file": "09_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 10,
+        "total_tokens": 10
+      },
+      "is_doc_vector": false,
+      "matched_service_query": "Q2",
+      "recomputed_order": [
+        "D2",
+        "MIX",
+        "D1",
+        "D4"
+      ],
+      "recomputed_scores": [
+        0.775695,
+        0.632386,
+        0.63173,
+        0.630773
+      ]
+    },
+    {
+      "raw_file": "10_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 15,
+        "total_tokens": 15
+      },
+      "is_doc_vector": false,
+      "matched_service_query": "Q2",
+      "recomputed_order": [
+        "D2",
+        "MIX",
+        "D1",
+        "D4"
+      ],
+      "recomputed_scores": [
+        0.807764,
+        0.722642,
+        0.672681,
+        0.642477
+      ]
+    },
+    {
+      "raw_file": "11_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 12,
+        "total_tokens": 12
+      },
+      "is_doc_vector": false,
+      "matched_service_query": "Q4",
+      "recomputed_order": [
+        "D4",
+        "D2",
+        "MIX",
+        "D1"
+      ],
+      "recomputed_scores": [
+        0.859191,
+        0.713232,
+        0.671878,
+        0.665041
+      ]
+    },
+    {
+      "raw_file": "12_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 12,
+        "total_tokens": 12
+      },
+      "is_doc_vector": false,
+      "matched_service_query": "QN",
+      "recomputed_order": [
+        "D1",
+        "D2",
+        "MIX",
+        "D4"
+      ],
+      "recomputed_scores": [
+        0.673333,
+        0.658876,
+        0.645684,
+        0.610093
+      ]
+    }
+  ],
+  "independent_agreement": {
+    "query_bodies": 5,
+    "query_bodies_matched_to_service_order": 7,
+    "all_query_orders_reproduced": true
+  }
+}

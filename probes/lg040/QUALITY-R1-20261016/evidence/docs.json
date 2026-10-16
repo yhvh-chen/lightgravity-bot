@@ -1,0 +1,35 @@
+{
+  "D1": {
+    "source_id": "source_01M51N8WPMXQDNZXQJFM63B291",
+    "kind": "text",
+    "sha256": "fa74a73e43a5bb631954b4d9a0998c84e757e8dcb7fece0754bd691409b2d7ec",
+    "intake_status": 201,
+    "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg040-quality-r1-20261016/probes/lg040/QUALITY-R1-20261016/corpus/d1_si_units.txt"
+  },
+  "D2": {
+    "source_id": "source_01M51N8WQ4VMKE46407AP9JXF6",
+    "kind": "text",
+    "sha256": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed",
+    "intake_status": 201,
+    "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg040-quality-r1-20261016/probes/lg040/QUALITY-R1-20261016/corpus/d2_phototest_gold.txt"
+  },
+  "D3": {
+    "source_id": "source_01M51N8WQWF748WMW0XPKSZXGS",
+    "kind": "image",
+    "sha256": "d2241a1eb6d6cd2eb6544b8e228c2862c852b7467d16ed636caa32179b780692",
+    "intake_status": 201,
+    "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg040-quality-r1-20261016/probes/lg035/fixtures/phototest.tif"
+  },
+  "D4": {
+    "source_id": "source_01M51N8WRG42DM90N5SSDZB3W4",
+    "kind": "audio",
+    "sha256": "1eede9d1b03022f5c01332a65148a076dc61c32eb5dc0a4cc82d8b5995e6cad0",
+    "intake_status": 201,
+    "path": "/home/yhvh/code/lightgravity-bot-worktrees/lg040-quality-r1-20261016/probes/lg040/QUALITY-R1-20261016/corpus/d4_audio_10s.wav"
+  },
+  "MIX": {
+    "source_id": "source_01M51N8WZ5TM1H8AJ503TN35GK",
+    "kind": "pdf",
+    "sha256": "0f7286016cc22717d4dab67319180604be097374b4d07a53fe68332c9f68ada5"
+  }
+}

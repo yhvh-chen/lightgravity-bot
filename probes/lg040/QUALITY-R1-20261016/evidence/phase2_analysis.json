@@ -1,0 +1,225 @@
+{
+  "offline_only": true,
+  "new_model_calls": 0,
+  "cache": {
+    "documents": 5,
+    "model": "embeddinggemma-2-Q8_0",
+    "dim": 768,
+    "kinds": {
+      "D1": "text",
+      "D2": "text",
+      "D4": "audio",
+      "MIX": "text",
+      "D3": "image"
+    }
+  },
+  "png_image_vector_present": true,
+  "cache_delete_rebuild": {
+    "cache_deleted": true,
+    "rebuilt": true,
+    "documents": 5,
+    "indexed": 5,
+    "not_indexed": [],
+    "rebuild_wall_s": 10.355
+  },
+  "phase2_raw_order": {
+    "D1_build": {
+      "raw_file": "01_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 181,
+        "total_tokens": 181
+      },
+      "recomputed_order": [
+        "D1",
+        "MIX",
+        "D2",
+        "D4",
+        "D3"
+      ],
+      "recomputed_scores": [
+        1.0,
+        0.773672,
+        0.722864,
+        0.681515,
+        0.599612
+      ]
+    },
+    "D2_build": {
+      "raw_file": "02_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 104,
+        "total_tokens": 104
+      },
+      "recomputed_order": [
+        "D2",
+        "D3",
+        "MIX",
+        "D1",
+        "D4"
+      ],
+      "recomputed_scores": [
+        1.0,
+        0.834924,
+        0.791926,
+        0.722864,
+        0.715942
+      ]
+    },
+    "D4_build": {
+      "raw_file": "03_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 254,
+        "total_tokens": 254
+      },
+      "recomputed_order": [
+        "D4",
+        "D2",
+        "D1",
+        "MIX",
+        "D3"
+      ],
+      "recomputed_scores": [
+        1.0,
+        0.715942,
+        0.681515,
+        0.659875,
+        0.622968
+      ]
+    },
+    "MIX_build": {
+      "raw_file": "04_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 966,
+        "total_tokens": 966
+      },
+      "recomputed_order": [
+        "MIX",
+        "D2",
+        "D1",
+        "D3",
+        "D4"
+      ],
+      "recomputed_scores": [
+        1.0,
+        0.791926,
+        0.773672,
+        0.690437,
+        0.659875
+      ]
+    },
+    "D3png_build": {
+      "raw_file": "05_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 134,
+        "total_tokens": 134
+      },
+      "recomputed_order": [
+        "D3",
+        "D2",
+        "MIX",
+        "D4",
+        "D1"
+      ],
+      "recomputed_scores": [
+        1.0,
+        0.834924,
+        0.690437,
+        0.622968,
+        0.599612
+      ]
+    },
+    "Q3_rebuilt": {
+      "raw_file": "06_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 15,
+        "total_tokens": 15
+      },
+      "recomputed_order": [
+        "D2",
+        "D3",
+        "MIX",
+        "D1",
+        "D4"
+      ],
+      "recomputed_scores": [
+        0.807764,
+        0.762977,
+        0.722642,
+        0.672681,
+        0.642477
+      ]
+    },
+    "Q1_rebuilt": {
+      "raw_file": "07_embedding_POST.json",
+      "usage": {
+        "prompt_tokens": 8,
+        "total_tokens": 8
+      },
+      "recomputed_order": [
+        "D1",
+        "MIX",
+        "D2",
+        "D4",
+        "D3"
+      ],
+      "recomputed_scores": [
+        0.793916,
+        0.712846,
+        0.655183,
+        0.61179,
+        0.5636
+      ]
+    }
+  },
+  "Q3_rebuilt_service_order": [
+    "D2",
+    "D3",
+    "MIX",
+    "D1",
+    "D4"
+  ],
+  "Q1_rebuilt_service_order": [
+    "D1",
+    "MIX",
+    "D2",
+    "D4",
+    "D3"
+  ],
+  "Q3_rebuilt_metrics": {
+    "recall@1": 0.0,
+    "recall@3": 1.0,
+    "recall@5": 1.0,
+    "mrr": 0.5,
+    "top1_correct": false
+  },
+  "Q1_rebuilt_metrics": {
+    "recall@1": 1.0,
+    "recall@3": 1.0,
+    "recall@5": 1.0,
+    "mrr": 1.0,
+    "top1_correct": true
+  },
+  "independent_agreement": {
+    "Q3_rebuilt": true,
+    "Q1_rebuilt": true,
+    "recomputed_Q3": [
+      "D2",
+      "D3",
+      "MIX",
+      "D1",
+      "D4"
+    ],
+    "recomputed_Q1": [
+      "D1",
+      "MIX",
+      "D2",
+      "D4",
+      "D3"
+    ]
+  },
+  "gates_phase2": {
+    "G2_image_rebuilt": "FAIL",
+    "G2_note": "image source ranked at position 2 (1-based) among rebuilt 5-doc index",
+    "G1_reproducibility_rebuilt": "PASS"
+  }
+}

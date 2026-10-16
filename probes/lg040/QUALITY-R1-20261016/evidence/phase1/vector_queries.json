@@ -1,0 +1,592 @@
+{
+  "Q1": {
+    "query": "SI base unit for electric current",
+    "kind": [
+      "term"
+    ],
+    "hits": [
+      {
+        "source_id": "source_01M51N8WPMXQDNZXQJFM63B291",
+        "source_version": 1,
+        "content_hash": "fa74a73e43a5bb631954b4d9a0998c84e757e8dcb7fece0754bd691409b2d7ec",
+        "basis": "formal",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D1",
+        "locators": [
+          {
+            "layer": "formal",
+            "path": "formal/FORMAL.md"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WZ5TM1H8AJ503TN35GK",
+        "source_version": 1,
+        "content_hash": "0f7286016cc22717d4dab67319180604be097374b4d07a53fe68332c9f68ada5",
+        "basis": "machine",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q MIXED PDF",
+        "locators": [
+          {
+            "input_sha256": "265f187a8345146435282a6bf898141d748a50b086b8377d4e72fa916150f571",
+            "layer": "machine",
+            "model": "qwen3.8-27b",
+            "page": 1
+          },
+          {
+            "input_sha256": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276",
+            "layer": "machine",
+            "model": "qwen3.8-27b",
+            "page": 2
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WQ4VMKE46407AP9JXF6",
+        "source_version": 1,
+        "content_hash": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed",
+        "basis": "formal",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D2",
+        "locators": [
+          {
+            "layer": "formal",
+            "path": "formal/FORMAL.md"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WRG42DM90N5SSDZB3W4",
+        "source_version": 1,
+        "content_hash": "1eede9d1b03022f5c01332a65148a076dc61c32eb5dc0a4cc82d8b5995e6cad0",
+        "basis": "original",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D4",
+        "locators": [
+          {
+            "layer": "original",
+            "media_type": "audio/wav",
+            "path": "original/d4_audio_10s.wav"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      }
+    ],
+    "stale": [],
+    "skipped": [],
+    "index_status": "ok",
+    "vector_model": "embeddinggemma-2-Q8_0",
+    "dim": 768,
+    "lexical_fallback": false,
+    "authorized_scope": {
+      "task_ref": null,
+      "project_ref": null,
+      "inbox_ref": null,
+      "include_global": true
+    },
+    "_wall_s": 7.101
+  },
+  "Q2": {
+    "query": "quick brown dog jumped over the lazy fox",
+    "kind": [
+      "term"
+    ],
+    "hits": [
+      {
+        "source_id": "source_01M51N8WQ4VMKE46407AP9JXF6",
+        "source_version": 1,
+        "content_hash": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed",
+        "basis": "formal",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D2",
+        "locators": [
+          {
+            "layer": "formal",
+            "path": "formal/FORMAL.md"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WZ5TM1H8AJ503TN35GK",
+        "source_version": 1,
+        "content_hash": "0f7286016cc22717d4dab67319180604be097374b4d07a53fe68332c9f68ada5",
+        "basis": "machine",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q MIXED PDF",
+        "locators": [
+          {
+            "input_sha256": "265f187a8345146435282a6bf898141d748a50b086b8377d4e72fa916150f571",
+            "layer": "machine",
+            "model": "qwen3.8-27b",
+            "page": 1
+          },
+          {
+            "input_sha256": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276",
+            "layer": "machine",
+            "model": "qwen3.8-27b",
+            "page": 2
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WPMXQDNZXQJFM63B291",
+        "source_version": 1,
+        "content_hash": "fa74a73e43a5bb631954b4d9a0998c84e757e8dcb7fece0754bd691409b2d7ec",
+        "basis": "formal",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D1",
+        "locators": [
+          {
+            "layer": "formal",
+            "path": "formal/FORMAL.md"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WRG42DM90N5SSDZB3W4",
+        "source_version": 1,
+        "content_hash": "1eede9d1b03022f5c01332a65148a076dc61c32eb5dc0a4cc82d8b5995e6cad0",
+        "basis": "original",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D4",
+        "locators": [
+          {
+            "layer": "original",
+            "media_type": "audio/wav",
+            "path": "original/d4_audio_10s.wav"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      }
+    ],
+    "stale": [],
+    "skipped": [],
+    "index_status": "ok",
+    "vector_model": "embeddinggemma-2-Q8_0",
+    "dim": 768,
+    "lexical_fallback": false,
+    "authorized_scope": {
+      "task_ref": null,
+      "project_ref": null,
+      "inbox_ref": null,
+      "include_global": true
+    },
+    "_wall_s": 0.084
+  },
+  "Q3": {
+    "query": "scanned page of twelve point text with the quick brown fox sentence",
+    "kind": [
+      "term"
+    ],
+    "hits": [
+      {
+        "source_id": "source_01M51N8WQ4VMKE46407AP9JXF6",
+        "source_version": 1,
+        "content_hash": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed",
+        "basis": "formal",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D2",
+        "locators": [
+          {
+            "layer": "formal",
+            "path": "formal/FORMAL.md"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WZ5TM1H8AJ503TN35GK",
+        "source_version": 1,
+        "content_hash": "0f7286016cc22717d4dab67319180604be097374b4d07a53fe68332c9f68ada5",
+        "basis": "machine",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q MIXED PDF",
+        "locators": [
+          {
+            "input_sha256": "265f187a8345146435282a6bf898141d748a50b086b8377d4e72fa916150f571",
+            "layer": "machine",
+            "model": "qwen3.8-27b",
+            "page": 1
+          },
+          {
+            "input_sha256": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276",
+            "layer": "machine",
+            "model": "qwen3.8-27b",
+            "page": 2
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WPMXQDNZXQJFM63B291",
+        "source_version": 1,
+        "content_hash": "fa74a73e43a5bb631954b4d9a0998c84e757e8dcb7fece0754bd691409b2d7ec",
+        "basis": "formal",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D1",
+        "locators": [
+          {
+            "layer": "formal",
+            "path": "formal/FORMAL.md"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WRG42DM90N5SSDZB3W4",
+        "source_version": 1,
+        "content_hash": "1eede9d1b03022f5c01332a65148a076dc61c32eb5dc0a4cc82d8b5995e6cad0",
+        "basis": "original",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D4",
+        "locators": [
+          {
+            "layer": "original",
+            "media_type": "audio/wav",
+            "path": "original/d4_audio_10s.wav"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      }
+    ],
+    "stale": [],
+    "skipped": [],
+    "index_status": "ok",
+    "vector_model": "embeddinggemma-2-Q8_0",
+    "dim": 768,
+    "lexical_fallback": false,
+    "authorized_scope": {
+      "task_ref": null,
+      "project_ref": null,
+      "inbox_ref": null,
+      "include_global": true
+    },
+    "_wall_s": 0.052
+  },
+  "Q4": {
+    "query": "spoken recording of the Wikipedia article about the Chinese language",
+    "kind": [
+      "term"
+    ],
+    "hits": [
+      {
+        "source_id": "source_01M51N8WRG42DM90N5SSDZB3W4",
+        "source_version": 1,
+        "content_hash": "1eede9d1b03022f5c01332a65148a076dc61c32eb5dc0a4cc82d8b5995e6cad0",
+        "basis": "original",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D4",
+        "locators": [
+          {
+            "layer": "original",
+            "media_type": "audio/wav",
+            "path": "original/d4_audio_10s.wav"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WQ4VMKE46407AP9JXF6",
+        "source_version": 1,
+        "content_hash": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed",
+        "basis": "formal",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D2",
+        "locators": [
+          {
+            "layer": "formal",
+            "path": "formal/FORMAL.md"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WZ5TM1H8AJ503TN35GK",
+        "source_version": 1,
+        "content_hash": "0f7286016cc22717d4dab67319180604be097374b4d07a53fe68332c9f68ada5",
+        "basis": "machine",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q MIXED PDF",
+        "locators": [
+          {
+            "input_sha256": "265f187a8345146435282a6bf898141d748a50b086b8377d4e72fa916150f571",
+            "layer": "machine",
+            "model": "qwen3.8-27b",
+            "page": 1
+          },
+          {
+            "input_sha256": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276",
+            "layer": "machine",
+            "model": "qwen3.8-27b",
+            "page": 2
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WPMXQDNZXQJFM63B291",
+        "source_version": 1,
+        "content_hash": "fa74a73e43a5bb631954b4d9a0998c84e757e8dcb7fece0754bd691409b2d7ec",
+        "basis": "formal",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D1",
+        "locators": [
+          {
+            "layer": "formal",
+            "path": "formal/FORMAL.md"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      }
+    ],
+    "stale": [],
+    "skipped": [],
+    "index_status": "ok",
+    "vector_model": "embeddinggemma-2-Q8_0",
+    "dim": 768,
+    "lexical_fallback": false,
+    "authorized_scope": {
+      "task_ref": null,
+      "project_ref": null,
+      "inbox_ref": null,
+      "include_global": true
+    },
+    "_wall_s": 0.048
+  },
+  "QN": {
+    "query": "renormalization of lattice quantum chromodynamics gauge fields",
+    "kind": [
+      "term"
+    ],
+    "hits": [
+      {
+        "source_id": "source_01M51N8WPMXQDNZXQJFM63B291",
+        "source_version": 1,
+        "content_hash": "fa74a73e43a5bb631954b4d9a0998c84e757e8dcb7fece0754bd691409b2d7ec",
+        "basis": "formal",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D1",
+        "locators": [
+          {
+            "layer": "formal",
+            "path": "formal/FORMAL.md"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WQ4VMKE46407AP9JXF6",
+        "source_version": 1,
+        "content_hash": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed",
+        "basis": "formal",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D2",
+        "locators": [
+          {
+            "layer": "formal",
+            "path": "formal/FORMAL.md"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WZ5TM1H8AJ503TN35GK",
+        "source_version": 1,
+        "content_hash": "0f7286016cc22717d4dab67319180604be097374b4d07a53fe68332c9f68ada5",
+        "basis": "machine",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q MIXED PDF",
+        "locators": [
+          {
+            "input_sha256": "265f187a8345146435282a6bf898141d748a50b086b8377d4e72fa916150f571",
+            "layer": "machine",
+            "model": "qwen3.8-27b",
+            "page": 1
+          },
+          {
+            "input_sha256": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276",
+            "layer": "machine",
+            "model": "qwen3.8-27b",
+            "page": 2
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      },
+      {
+        "source_id": "source_01M51N8WRG42DM90N5SSDZB3W4",
+        "source_version": 1,
+        "content_hash": "1eede9d1b03022f5c01332a65148a076dc61c32eb5dc0a4cc82d8b5995e6cad0",
+        "basis": "original",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "title": "LG040Q D4",
+        "locators": [
+          {
+            "layer": "original",
+            "media_type": "audio/wav",
+            "path": "original/d4_audio_10s.wav"
+          }
+        ],
+        "snippet": "",
+        "verified": true,
+        "stale": false,
+        "reason": null
+      }
+    ],
+    "stale": [],
+    "skipped": [],
+    "index_status": "ok",
+    "vector_model": "embeddinggemma-2-Q8_0",
+    "dim": 768,
+    "lexical_fallback": false,
+    "authorized_scope": {
+      "task_ref": null,
+      "project_ref": null,
+      "inbox_ref": null,
+      "include_global": true
+    },
+    "_wall_s": 0.055
+  }
+}

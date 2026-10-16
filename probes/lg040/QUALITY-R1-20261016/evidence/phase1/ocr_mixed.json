@@ -1,0 +1,11 @@
+{
+  "source_id": "source_01M51N8WZ5TM1H8AJ503TN35GK",
+  "source_version": 1,
+  "status": "succeeded",
+  "total_pages": 2,
+  "succeeded_pages": 2,
+  "failed_pages": 0,
+  "model": "qwen3.8-27b",
+  "derivative_path": "derivative/machine.v1.md",
+  "reason": null
+}

@@ -1,0 +1,7 @@
+{"ts": 1792131093.2943697, "method": "POST", "path": "/v1/embeddings", "kind": "embedding", "status": 200, "forwarded": true, "latency_s": 0.062, "resp_bytes": 16504, "raw_file": "raw_responses/01_embedding_POST.json"}
+{"ts": 1792131093.3201845, "method": "POST", "path": "/v1/embeddings", "kind": "embedding", "status": 200, "forwarded": true, "latency_s": 0.015, "resp_bytes": 16432, "raw_file": "raw_responses/02_embedding_POST.json"}
+{"ts": 1792131093.3976603, "method": "POST", "path": "/v1/embeddings", "kind": "embedding", "status": 200, "forwarded": true, "latency_s": 0.063, "resp_bytes": 16417, "raw_file": "raw_responses/03_embedding_POST.json"}
+{"ts": 1792131093.4547484, "method": "POST", "path": "/v1/embeddings", "kind": "embedding", "status": 200, "forwarded": true, "latency_s": 0.045, "resp_bytes": 16494, "raw_file": "raw_responses/04_embedding_POST.json"}
+{"ts": 1792131103.5417802, "method": "POST", "path": "/v1/embeddings", "kind": "embedding", "status": 200, "forwarded": true, "latency_s": 10.073, "resp_bytes": 16470, "raw_file": "raw_responses/05_embedding_POST.json"}
+{"ts": 1792131103.5719411, "method": "POST", "path": "/v1/embeddings", "kind": "embedding", "status": 200, "forwarded": true, "latency_s": 0.01, "resp_bytes": 16447, "raw_file": "raw_responses/06_embedding_POST.json"}
+{"ts": 1792131103.6233761, "method": "POST", "path": "/v1/embeddings", "kind": "embedding", "status": 200, "forwarded": true, "latency_s": 0.02, "resp_bytes": 16459, "raw_file": "raw_responses/07_embedding_POST.json"}
