@@ -1,0 +1,39 @@
+Guide for the Use of the International System of Units (SI)
+
+4.1 SI base units
+
+Table 1 gives the seven base quantities, assumed to be mutually independent, on which the SI is founded, and the names and symbols of their respective units, called "SI base units." Definitions of the SI base units are given in Appendix A. The kelvin and its symbol K are also used to express the value of a temperature interval or a temperature difference (see Sec. 8.5).
+
+Table 1. SI base units
+Base quantity Name SI base unit Symbol
+length meter m
+mass kilogram kg
+time second s
+electric current ampere A
+thermodynamic temperature kelvin K
+amount of substance mole mol
+luminous intensity candela cd
+
+4.2 SI derived units
+
+Derived units are expressed algebraically in terms of base units or other derived units. The symbols for derived units are obtained by means of the mathematical operations of multiplication and division. For example, the derived unit for the derived quantity molar mass (mass divided by amount of substance) is the kilogram per mole, symbol kg/mol. Additional examples of derived units expressed in terms of SI base units are given in Table 2. (The rules and style conventions for printing and using SI unit symbols are given in Secs. 6.1.1 to 6.1.8.)
+
+Table 2. Examples of SI coherent derived units expressed in terms of SI base units
+Derived quantity Name SI coherent derived unit Symbol
+area square meter m²
+volume cubic meter m³
+speed, velocity meter per second m/s
+acceleration meter per second squared m/s²
+wavenumber reciprocal meter m⁻¹
+density, mass density kilogram per cubic meter kg/m³
+specific volume cubic meter per kilogram m³/kg
+current density ampere per square meter A/m²
+magnetic field strength ampere per meter A/m
+luminance candela per square meter cd/m²
+amount-of-substance concentration amount concentration, concentration mole per cubic meter mol/m³
+
+4.2.1 SI coherent derived units with special names and symbols
+
+Certain SI coherent derived units have special names and symbols; these are given in Table 3. Consistent with the discussion in Sec. 4, the radian and steradian, which are the two former supplementary units, are included in Table 3. The last four units in Table 3 were introduced into the SI for reasons of safeguarding human health.
+
+4

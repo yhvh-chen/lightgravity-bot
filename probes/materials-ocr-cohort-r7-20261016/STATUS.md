@@ -34,6 +34,17 @@ executable PLAN in a separate commit BEFORE any POST.
   hashes match the frozen manifest. `offline_check.py` parser/ledger check PASS.
 * **R3 (freeze)**: PLAN + harness committed BEFORE any POST (this commit).
 
-## Next
+## Live run
 
-Live 3-call run, then score, then REPORT.
+* **R4 (live)**: 1 health GET 200. 3/3 planned POST ok (`finish_reason=stop`), serial, retry 0.
+  reservation→raw persisted per call before scoring. Latency 86.05/38.37/7.15 s; tokens
+  878/158, 2022/621, 276/113. No timeout, no replay, no adaptive extras.
+* **R5 (score)**: table hardgate **FAIL** (machine rows 0 / cols 0, `parse_method=none`,
+  cell CER 1.0 — model emitted a flat one-token-per-line list, no grid; no GT fill).
+  MIX p1 **PASS** page CER 0.0295; MIX p2 **PASS** page CER 0.0000.
+* **R6 (report)**: `REPORT.md` + errata note written; all changes inside this package only.
+
+## Result
+
+Table hardgate **FAIL**; mixed-page gates **PASS**. LG-035 stays **in-progress**, LG-040/041
+not unlocked, R3/R4/R5 FAIL unchanged. No self-marked done.

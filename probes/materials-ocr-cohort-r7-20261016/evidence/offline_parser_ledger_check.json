@@ -60,9 +60,21 @@
       }
     },
     {
-      "name": "ledger_present",
+      "name": "ledger_reservation_before_raw",
       "ok": true,
-      "detail": "no live ledger yet (offline pre-POST)"
+      "detail": {
+        "kinds": [
+          "health",
+          "reservation",
+          "raw_response",
+          "reservation",
+          "raw_response",
+          "reservation",
+          "raw_response"
+        ],
+        "reservations": 3,
+        "raw": 3
+      }
     }
   ],
   "all_ok": true
