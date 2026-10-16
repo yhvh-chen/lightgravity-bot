@@ -18,6 +18,11 @@ the feature is finished.
 > run has passed. Any result you obtain is an *observation* to compare against
 > the fixture truth, and only LG-047 may declare version acceptance.
 >
+> **Run it on `main` after LG-046.** The demo branch
+> `dev/proto-material-demo-20261016` is not an integrated prototype base; see
+> §1 for the exact pre-integration behavior (unknown `selected_sources` ⇒
+> `422 validation_failed`, not a `404`/`not_ready` route).
+>
 > **Fixture data is human-written SAMPLE data, not OCR output and not measured
 > model results.** See [`examples/selected-material-prototype/README.md`](../examples/selected-material-prototype/README.md).
 > The expected facts live in
@@ -54,14 +59,42 @@ text was provided.
 
 ## 1. Prerequisites
 
-- A working checkout of this repository on this task's branch
-  (`dev/proto-material-demo-20261016`).
+- A working checkout of this repository **on the integrated branch `main`
+  after LG-046 has landed** (LG-043 backend + LG-044 frontend merged).
+  **Do not run this guide on the demo owner branch
+  `dev/proto-material-demo-20261016`** — that branch only contains the demo
+  assets and the base product; it is **not** a working prototype base because
+  the `selected_sources` field is not implemented there.
 - Python `>=3.12,<3.13`, `uv 0.12.x`, Node 22 / npm 10, GNU make
   (see [README](../README.md) "版本要求").
 - The two prototype owner worktrees are integrated (LG-043 backend, LG-044
-  frontend). Until LG-046 integration lands, treat every endpoint below as
-  "per the frozen contract" and expect `404`/`not_ready` if the route is not
-  registered yet — **do not assume it is available**.
+  frontend). **Until LG-046 integration lands on `main`, the selection field
+  is not implemented on top of the existing base.**
+
+### What "not integrated yet" actually looks like (do not invent a `not_ready` error)
+
+The routes in this guide (`POST /api/v1/sources`, the receipt/content
+endpoints, `POST /api/v1/tasks/{task_id}/messages` and
+`POST /api/v1/conversations/global/messages`) **already exist** in the base.
+They are **not** "unregistered routes returning `404`", and there is **no**
+`not_ready` error code in the base. What is missing before LG-046 is only the
+**additive optional `selected_sources` field** on the two message DTOs.
+
+Because the base request DTOs are declared with
+`ConfigDict(extra="forbid")` (see `backend/lightgravity/coordinator/api.py`
+`AppendMessageRequest` and `backend/lightgravity/api/conversations.py`
+`GlobalMessageRequest`), sending `selected_sources` to a **not-yet-integrated**
+base is rejected as an **unknown field** with `validation_failed` (**422**),
+not `404` and not a fabricated `not_ready` code. The upload and source-read
+endpoints work unchanged on the base. So:
+
+- On the **integrated `main` after LG-046**: the message request accepts
+  `selected_sources` and the flows below apply as written.
+- On the **base / pre-integration branch**: upload and source reads still work,
+  but any message carrying `selected_sources` may return `422`
+  `validation_failed` because the field is not yet registered. Record that as
+  "field not integrated yet", **not** as a prototype defect and **not** as a
+  `not_ready` response.
 
 ### Start the app with the existing CLI (do not invent commands)
 
@@ -171,7 +204,12 @@ curl -sS http://127.0.0.1:8000/api/v1/sources/<SOURCE_ID>/receipt \
 ### Step A2 — select 1–2 sources and ask a fact question
 
 Send a message that carries the additive optional `selected_sources` array.
-Use the **real** `source_id` / `source_version` / `content_hash` captured in A1:
+Use the **real** `source_id` / `source_version` / `content_hash` captured in A1.
+
+The actual registered message request DTOs (both task and global) require
+`message_id` and `content`; `role` is **optional** and defaults to `"user"`.
+The sample below includes all currently-required fields plus an explicit
+`role` for clarity:
 
 ```bash
 curl -sS -X POST http://127.0.0.1:8000/api/v1/tasks/<TASK_ID>/messages \
@@ -179,6 +217,7 @@ curl -sS -X POST http://127.0.0.1:8000/api/v1/tasks/<TASK_ID>/messages \
   -H 'X-LG-Token: <UI_TOKEN>' \
   -d '{
     "message_id": "msg_sample_q1_001",
+    "role": "user",
     "content": "Using only the selected brief, what is the project code name, the programme owner, the primary launch date, and the total approved budget?",
     "selected_sources": [
       { "source_id": "<SOURCE_ID_FROM_A1>",
@@ -187,6 +226,13 @@ curl -sS -X POST http://127.0.0.1:8000/api/v1/tasks/<TASK_ID>/messages \
     ]
   }'
 ```
+
+> **Wire caveat (verified against the actual DTO).** `selected_sources` is an
+> **additive optional** field that only exists once LG-043/LG-046 is integrated.
+> On the base DTOs (`extra="forbid"`) it is an unknown key and the request is
+> rejected with `validation_failed` (**422**) — not `404`, not `not_ready`.
+> The same applies to the singleton global route; legacy senders that omit the
+> field behave exactly as before (§1, docs/10 §2 risk note).
 
 - **Task scope:** selecting a source whose `scope.task_ref` differs from the
   current Task and is not `global` is rejected with `reference_invalid` (422)
@@ -375,8 +421,10 @@ leave the version gate to LG-047.
 - This guide contains no hardcoded real source id or real hash, and no secret.
   IDs and hashes are always taken from the actual upload response.
 - Endpoints are described per the frozen [docs/10](10-selected-material-prototype.md)
-  / [docs/08](08-interface-contract.md) §6.6.1 contract; if integration has not
-  landed, a route may legitimately return `404`/`not_ready`.
+  / [docs/08](08-interface-contract.md) §6.6.1 contract. The message routes
+  themselves are not new; only the `selected_sources` field is additive. Before
+  LG-046 integration, selecting a source over the message route is rejected as
+  an unknown field (`422 validation_failed`), **not** with `404`/`not_ready`.
 
 ## See also
 
