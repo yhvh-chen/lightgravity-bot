@@ -1,0 +1,66 @@
+{
+  "captured_at": "2026-10-16T07:18:02.671Z",
+  "note": "single end-state, after ALL browser actions and LOCAL revoke on this owner copy",
+  "url": "http://127.0.0.1:34515/",
+  "sources": [
+    {
+      "id": "source_01M51N3TJT5QQGYGNB92V5C7MH",
+      "title": "clear_real.pdf",
+      "status": "extracted",
+      "archived": false,
+      "index": {
+        "lexical": "indexed",
+        "lexical_hash": "f50ce4dfc4390a6318179148bc88c593b88d194e8f9c0ba3c20555afb51b40e6",
+        "vector": "disabled",
+        "vector_model": null
+      },
+      "scope": {
+        "task_ref": null,
+        "project_ref": null,
+        "inbox_ref": null
+      }
+    },
+    {
+      "id": "source_01M51N3TRHB3Y5KQ5SAPSBEFRB",
+      "title": "honest_table_grid_scale4.png",
+      "status": "archived",
+      "archived": false,
+      "index": {
+        "lexical": "not_indexed",
+        "lexical_hash": null,
+        "vector": "disabled",
+        "vector_model": null
+      },
+      "scope": {
+        "task_ref": null,
+        "project_ref": null,
+        "inbox_ref": null
+      }
+    },
+    {
+      "id": "source_01M51N7RKD2EK3A2JD9HVGQ67A",
+      "title": "g.txt",
+      "status": "received",
+      "archived": false,
+      "index": {
+        "lexical": "not_indexed",
+        "lexical_hash": null,
+        "vector": "disabled",
+        "vector_model": null
+      },
+      "scope": {
+        "task_ref": null,
+        "project_ref": null,
+        "inbox_ref": null
+      }
+    }
+  ],
+  "uiFileExplorer": {
+    "entries": [
+      "clear_real.pdf extracted · v1",
+      "honest_table_grid_scale4.png archived · v1",
+      "g.txt received · v1"
+    ],
+    "status": null
+  }
+}

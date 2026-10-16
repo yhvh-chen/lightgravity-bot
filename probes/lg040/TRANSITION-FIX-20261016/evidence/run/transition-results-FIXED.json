@@ -1,0 +1,819 @@
+{
+ "url": "http://127.0.0.1:36339/",
+ "bound_ms": 2000,
+ "captured_at": "2026-10-16T07:13:12.291Z",
+ "states": [
+  {
+   "state": "steady_1440_chat",
+   "nSamples": 55,
+   "maxOvershoot": 0,
+   "maxDoc": 1440,
+   "maxRailW": 0,
+   "nOver2": 0,
+   "firstOver": null,
+   "lastOver": null,
+   "firstSamples": [
+    {
+     "t": 0,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 8,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 24,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 40,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 57,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 74,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 0
+    }
+   ],
+   "lastSamples": [
+    {
+     "t": 808,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 825,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 841,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 857,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 874,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 890,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 0
+    }
+   ]
+  },
+  {
+   "state": "steady_1440_files",
+   "nSamples": 55,
+   "maxOvershoot": 0,
+   "maxDoc": 1440,
+   "maxRailW": 360,
+   "nOver2": 0,
+   "firstOver": null,
+   "lastOver": null,
+   "firstSamples": [
+    {
+     "t": 0,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 16,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 32,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 49,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 65,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 83,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    }
+   ],
+   "lastSamples": [
+    {
+     "t": 817,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 833,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 850,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 866,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 883,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 899,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    }
+   ]
+  },
+  {
+   "state": "steady_390_files",
+   "nSamples": 44,
+   "maxOvershoot": 0,
+   "maxDoc": 390,
+   "maxRailW": 0,
+   "nOver2": 0,
+   "firstOver": null,
+   "lastOver": null,
+   "firstSamples": [
+    {
+     "t": 0,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 0,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 16,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 34,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 50,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 67,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    }
+   ],
+   "lastSamples": [
+    {
+     "t": 617,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 634,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 650,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 667,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 683,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 701,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    }
+   ]
+  },
+  {
+   "state": "steady_1024_files",
+   "nSamples": 44,
+   "maxOvershoot": 0,
+   "maxDoc": 1024,
+   "maxRailW": 360,
+   "nOver2": 0,
+   "firstOver": null,
+   "lastOver": null,
+   "firstSamples": [
+    {
+     "t": 0,
+     "vw": 1024,
+     "doc": 1024,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 1,
+     "vw": 1024,
+     "doc": 1024,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 17,
+     "vw": 1024,
+     "doc": 1024,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 34,
+     "vw": 1024,
+     "doc": 1024,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 50,
+     "vw": 1024,
+     "doc": 1024,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 67,
+     "vw": 1024,
+     "doc": 1024,
+     "over": 0,
+     "railW": 360
+    }
+   ],
+   "lastSamples": [
+    {
+     "t": 617,
+     "vw": 1024,
+     "doc": 1024,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 634,
+     "vw": 1024,
+     "doc": 1024,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 650,
+     "vw": 1024,
+     "doc": 1024,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 667,
+     "vw": 1024,
+     "doc": 1024,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 684,
+     "vw": 1024,
+     "doc": 1024,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 700,
+     "vw": 1024,
+     "doc": 1024,
+     "over": 0,
+     "railW": 360
+    }
+   ]
+  },
+  {
+   "state": "steady_1440_files_again",
+   "nSamples": 43,
+   "maxOvershoot": 0,
+   "maxDoc": 1440,
+   "maxRailW": 360,
+   "nOver2": 0,
+   "firstOver": null,
+   "lastOver": null,
+   "firstSamples": [
+    {
+     "t": 1,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 11,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 27,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 44,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 61,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 78,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    }
+   ],
+   "lastSamples": [
+    {
+     "t": 610,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 627,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 644,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 660,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 677,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 694,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    }
+   ]
+  }
+ ],
+ "transition": {
+  "resize_1440_to_390_files": {
+   "nSamples": 195,
+   "maxOvershoot": 0,
+   "maxDoc": 1440,
+   "maxRailW": 360,
+   "nOver2": 0,
+   "firstOver": null,
+   "lastOver": null,
+   "firstSamples": [
+    {
+     "t": 0,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 0,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 19,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 34,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 49,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 67,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    }
+   ],
+   "lastSamples": [
+    {
+     "t": 3134,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 3150,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 3167,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 3184,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 3201,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 3217,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    }
+   ]
+  },
+  "nav_390_chat_to_files": {
+   "nSamples": 125,
+   "maxOvershoot": 0,
+   "maxDoc": 390,
+   "maxRailW": 0,
+   "nOver2": 0,
+   "firstOver": null,
+   "lastOver": null,
+   "firstSamples": [
+    {
+     "t": 0,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 0,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 17,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 35,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 50,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 67,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    }
+   ],
+   "lastSamples": [
+    {
+     "t": 1968,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 1984,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 2001,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 2017,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 2034,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 2050,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    }
+   ]
+  },
+  "roundtrip_390_1440_390_files": {
+   "nSamples": 252,
+   "maxOvershoot": 0,
+   "maxDoc": 1440,
+   "maxRailW": 360,
+   "nOver2": 0,
+   "firstOver": null,
+   "lastOver": null,
+   "firstSamples": [
+    {
+     "t": 0,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 4,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 54,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 57,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 79,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    },
+    {
+     "t": 87,
+     "vw": 1440,
+     "doc": 1440,
+     "over": 0,
+     "railW": 360
+    }
+   ],
+   "lastSamples": [
+    {
+     "t": 4104,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 4120,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 4137,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 4153,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 4171,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    },
+    {
+     "t": 4187,
+     "vw": 390,
+     "doc": 390,
+     "over": 0,
+     "railW": 0
+    }
+   ]
+  }
+ },
+ "final390": {
+  "innerWidth": 390,
+  "docScrollWidth": 390,
+  "bodyScrollWidth": 390,
+  "mmCompact": true,
+  "chatRailPresent": false,
+  "chatRailW": 0,
+  "materialsPresent": false,
+  "listPanel": null,
+  "detailPanel": null,
+  "entries": 0
+ },
+ "verdict": {
+  "bound_ms": 2000,
+  "transition_no_overflow": {
+   "resize_1440_to_390_files": true,
+   "nav_390_chat_to_files": true,
+   "roundtrip_390_1440_390_files": true
+  },
+  "steady_no_overflow": {
+   "steady_1440_chat": true,
+   "steady_1440_files": true,
+   "steady_390_files": true,
+   "steady_1024_files": true,
+   "steady_1440_files_again": true
+  },
+  "all_transitions_clean": true,
+  "all_steady_clean": true
+ }
+}

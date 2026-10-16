@@ -1,0 +1,21 @@
+{
+  "schema": "lightgravity.bot/v1",
+  "kind": "source_derivative",
+  "derivative": "page_map",
+  "source_version": 1,
+  "filename": "honest_table_grid_scale4.png",
+  "model": "qwen3.8-27b",
+  "extractor": "lg035-ocr",
+  "status": "succeeded",
+  "total_pages": 1,
+  "pages": [
+    {
+      "page": null,
+      "text": "|  | SI base unit |  |\n|---|---|---|\n| Base quantity | Name | Symbol |\n| length | meter | m |\n| mass | kilogram | kg |\n| time | second | s |\n| electric current | ampere | A |\n| thermodynamic temperature | kelvin | K |\n| amount of substance | mole | mol |\n| luminous intensity | candela | cd |",
+      "input_sha256": "39138a971d605f65d10b5df3a13e35c7cec5d3710bc38d55e6eb656fc1219652",
+      "model": "qwen3.8-27b",
+      "status": "succeeded",
+      "error": null
+    }
+  ]
+}
