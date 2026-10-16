@@ -108,7 +108,15 @@ artifact data (0 new model calls by design):
 - New backlog Task/Run: **0** · SDK/default-model changes: **0**.
 - pi cost: unknown, **not 0**.
 
-## 7. Status
+## 7. Wrapper-exit note (original setup package)
+
+- The **original setup/planning wrapper** (`lg040-prepare-r1-20261016.txt`, which produced the
+  `2f277fa`-based planning commit `dd4ca81`) exited **143** — but this was the **harness wall-clock
+  SIGTERM firing AFTER the commit had already landed**, not a normal prior exit and not an
+  interrupted mid-work commit. It left `main` clean at `dd4ca81`; no work was lost and no unknown
+  side effect required replay. Recorded here for honesty; it does not affect this candidate.
+
+## 8. Status
 
 - Candidate **prepared, awaiting independent retest**. Not done, not blocked;
   no decision required here. LG-040 remains **in-progress**.
