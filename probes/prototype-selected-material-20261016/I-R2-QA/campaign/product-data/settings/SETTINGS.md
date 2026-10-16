@@ -8,5 +8,5 @@ claim_lease_seconds: 300
 schema: lightgravity.bot/v1
 kind: settings
 id: settings
-revision: 3
+revision: 13
 ---

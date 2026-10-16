@@ -1,0 +1,246 @@
+{
+  "results": [
+    {
+      "name": "real same-origin document",
+      "ok": true,
+      "detail": {
+        "origin": "http://127.0.0.1:32967"
+      }
+    },
+    {
+      "name": "fixture byte route reachable from page",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "fixture bytes hash-verified from page",
+      "ok": true,
+      "detail": {
+        "sha": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f",
+        "header": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f"
+      }
+    },
+    {
+      "name": "B1 upload alpha via real <input type=file>",
+      "ok": true,
+      "detail": {
+        "bytes": 1701,
+        "name": "alpha-brief.txt",
+        "type": "text/plain"
+      }
+    },
+    {
+      "name": "B1 receipt reaches native extracted/success (no OCR)",
+      "ok": true,
+      "detail": {
+        "text": "alpha-brief.txt\nsuccess\nsource_01M521GDB7S4XB86X3WKPD2B6W · v1\n#d34f0ca58b8d\nlexical: not_indexed\nstage: received\n\nnot indexed — no trusted body yet\n\nRefresh state\nDismiss",
+        "sourceId": "source_01M521GDB7S4XB86X3WKPD2B6W",
+        "done": true
+      }
+    },
+    {
+      "name": "B1 source has a real version+hash",
+      "ok": true,
+      "detail": {
+        "status": "extracted",
+        "version": 1,
+        "hash": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f"
+      }
+    },
+    {
+      "name": "B1 GET content returns the native body (noqa fixture)",
+      "ok": true,
+      "detail": {
+        "kind": "machine",
+        "chars": 2223,
+        "orion": true,
+        "extractor": null
+      }
+    },
+    {
+      "name": "B2 fresh alpha selected in real picker (chip carries fresh source id)",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "chips": 1,
+        "chipText": "alpha-brief.txt\nsource_01M521GDB7S4XB86X3WKPD2B6W · v1\n#d34f0ca58b8d\nglobal\n×",
+        "hasFreshId": true,
+        "text": "Select materials (1/3)\nscope: Global\nClear selection\nalpha-brief.txt\nsource_01M521GDB7S4XB86X3WKPD2B6W · v1\n#d34f0ca58b8d\nglobal\n×\nalpha-brief.txt\ntask\nextracted\nsource_01M520Q7XEKCY59NJSX2KWBSG2 · v1\ncross-task-negative.txt\ntask\nextracted\nsource_01M520Q83MTVKQ6PDQ504B91M9 · v1\nopaque\ntask\nreceived\nsource_01M520QCBV2EWJ9QQ60CJX0XV1 · v1\nno ingested body yet — not selectable\nrevoke alpha\ntask\narchi"
+      }
+    },
+    {
+      "name": "B3 question submitted",
+      "ok": true,
+      "detail": {
+        "ok": true
+      }
+    },
+    {
+      "name": "B3 real assistant answer returned",
+      "ok": true,
+      "detail": {
+        "text": "ORION-71 — owner Halden Reyes — launch 2027-03-14 — total approved budget 418,250 EUR."
+      }
+    },
+    {
+      "name": "B3 answer contains all required fixture facts",
+      "ok": false,
+      "detail": {
+        "missing": [
+          "PRJ-ORION-71",
+          "CB-8842"
+        ]
+      }
+    },
+    {
+      "name": "B3 answer contains NO decoy facts",
+      "ok": true,
+      "detail": {
+        "decoyLeak": []
+      }
+    },
+    {
+      "name": "B4 Sources block renders (provided context, not verified)",
+      "ok": true,
+      "detail": {
+        "text": "Sources\nprovided context\nsource_01M521GDB7S4XB86X3WKPD2B6W\nv1\nmachine\n#d34f0ca58b8d\nlocator: source_01M521GDB7S4XB86X3WKPD2B6W#v1\n2223 chars\nOpen in Files\n\nSources are provided as context; citations are NOT span-verified.",
+        "title": "Sources",
+        "badge": "provided context",
+        "note": "Sources are provided as context; citations are NOT span-verified.",
+        "hasFilesLink": true
+      }
+    },
+    {
+      "name": "B5 reload keeps assistant answer (exactly one)",
+      "ok": true,
+      "detail": {
+        "text": "ORION-71 — owner Halden Reyes — launch 2027-03-14 — total approved budget 418,250 EUR.",
+        "sourcesText": "Sources\nprovided context\nsource_01M521GDB7S4XB86X3WKPD2B6W\nv1\nmachine\n#d34f0ca58b8d\nlocator: source_01M521GDB7S4XB86X3WKPD2B6W#v1\n2223 chars\nOpen in Files\n\nSources are provided as context; citations are NOT span-verified.",
+        "sourcesCount": 1,
+        "answerCount": 1
+      }
+    },
+    {
+      "name": "B5 reload keeps the same Sources (>=1, alpha)",
+      "ok": true,
+      "detail": {
+        "text": "ORION-71 — owner Halden Reyes — launch 2027-03-14 — total approved budget 418,250 EUR.",
+        "sourcesText": "Sources\nprovided context\nsource_01M521GDB7S4XB86X3WKPD2B6W\nv1\nmachine\n#d34f0ca58b8d\nlocator: source_01M521GDB7S4XB86X3WKPD2B6W#v1\n2223 chars\nOpen in Files\n\nSources are provided as context; citations are NOT span-verified.",
+        "sourcesCount": 1,
+        "answerCount": 1
+      }
+    },
+    {
+      "name": "B5 no duplicate answer after reload",
+      "ok": true,
+      "detail": {
+        "answerCount": 1
+      }
+    },
+    {
+      "name": "B6 Open in Files navigates to real material",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "hasAlpha": true,
+        "url": "http://127.0.0.1:32967/?view=files&item=source%3Asource_01M521GDB7S4XB86X3WKPD2B6W",
+        "text": "LG\nLightGravity Bot\nScope\nRun\n4\nWide layout\nChat\nBoard\nFiles\nTeam\nResources\nSettings\nFILES\nWorkspace\n\nSelect a Task scope to browse its files.\n\nTASK SCOPE\nGlobal workspace\nPATH\n/\nCopy path\nWorkspace files\nMaterials\nMATERIALS\nSame source as Chat. Archive, correct, reprocess and download here.\nalpha-brief.txt\nextracted · v1\ncross-task-negative.txt\nextracted · v1\nopaque\nreceived · v1\nrevoke alpha\narc"
+      }
+    },
+    {
+      "name": "B7 width 1440 no horizontal overflow",
+      "ok": true,
+      "detail": {
+        "overflow": 0,
+        "navVisible": true,
+        "chatVisible": true,
+        "clipped": 0,
+        "scrollWidth": 1440,
+        "clientWidth": 1440
+      }
+    },
+    {
+      "name": "B7 width 1024 no horizontal overflow",
+      "ok": true,
+      "detail": {
+        "overflow": 0,
+        "navVisible": true,
+        "chatVisible": true,
+        "clipped": 0,
+        "scrollWidth": 1024,
+        "clientWidth": 1024
+      }
+    },
+    {
+      "name": "B7 width 390 no horizontal overflow",
+      "ok": true,
+      "detail": {
+        "overflow": 0,
+        "navVisible": false,
+        "chatVisible": false,
+        "clipped": 0,
+        "scrollWidth": 390,
+        "clientWidth": 390
+      }
+    },
+    {
+      "name": "B7 1440->390 transition settles (max overshoot 0) <=2s",
+      "ok": true,
+      "detail": {
+        "readinessMs": 99
+      }
+    }
+  ],
+  "genBefore": {
+    "generation": {
+      "count": 1,
+      "limit": 8,
+      "remaining": 7,
+      "corrupt": false,
+      "persistent": true
+    }
+  },
+  "genAfter": {
+    "generation": {
+      "count": 2,
+      "limit": 8,
+      "remaining": 6,
+      "corrupt": false,
+      "persistent": true
+    }
+  },
+  "sid": "source_01M521GDB7S4XB86X3WKPD2B6W",
+  "srcInfo": {
+    "status": "extracted",
+    "version": 1,
+    "hash": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f"
+  },
+  "contentRead": {
+    "kind": "machine",
+    "chars": 2223,
+    "orion": true,
+    "extractor": null
+  },
+  "sourcesBlock": {
+    "text": "Sources\nprovided context\nsource_01M521GDB7S4XB86X3WKPD2B6W\nv1\nmachine\n#d34f0ca58b8d\nlocator: source_01M521GDB7S4XB86X3WKPD2B6W#v1\n2223 chars\nOpen in Files\n\nSources are provided as context; citations are NOT span-verified.",
+    "title": "Sources",
+    "badge": "provided context",
+    "note": "Sources are provided as context; citations are NOT span-verified.",
+    "hasFilesLink": true
+  },
+  "required": [
+    "ORION-71",
+    "Halden Reyes",
+    "2027-03-14",
+    "418,250",
+    "PRJ-ORION-71",
+    "CB-8842"
+  ],
+  "missing": [
+    "PRJ-ORION-71",
+    "CB-8842"
+  ],
+  "decoyLeak": []
+}

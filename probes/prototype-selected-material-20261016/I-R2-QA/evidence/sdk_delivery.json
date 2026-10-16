@@ -1,0 +1,236 @@
+{
+  "base": "http://127.0.0.1:54245",
+  "steps": {
+    "source_check": {
+      "status": 200,
+      "status_field": "extracted",
+      "source_version": 1,
+      "content_hash": "d34f0ca58b8dbfbd4c9ac29be31aba7122500cb1a3317e3c19a6ed7b3d59af6f",
+      "scope": {
+        "task_ref": null,
+        "project_ref": null,
+        "inbox_ref": null
+      },
+      "version_ok": true,
+      "hash_ok": true,
+      "readable_chars": 2223,
+      "has_orion": true
+    },
+    "global_message": {
+      "status": 200,
+      "kind": "task",
+      "task_id": "task_01M522A80FHRPQ1ZCRHFZ60PAM",
+      "queue_state": "queued",
+      "data": {
+        "intent": "delivery",
+        "creates_task": true
+      },
+      "reply": "\u5df2\u521b\u5efa Task task_01M522A80FHRPQ1ZCRHFZ60PAM\uff08queued\uff09\u3002"
+    },
+    "task_final": {
+      "phase": "executing",
+      "status": "in-progress",
+      "workspace_ref": "tasks/task_01M522A80FHRPQ1ZCRHFZ60PAM",
+      "acceptance": {
+        "status": "pending",
+        "requirements_revision": null,
+        "deliverable_revision": null,
+        "evidence_refs": [],
+        "decided_at": null,
+        "decision_ref": null
+      },
+      "active_run": "run_01M522A85348ECGTNWWHQARWJ1",
+      "run_state": "executing",
+      "run_id": "run_01M522A85348ECGTNWWHQARWJ1",
+      "run_stop": {}
+    },
+    "events_tail": [
+      {
+        "type": "task.created",
+        "payload": {
+          "title": "Create the deliverable orion-summary.md (Markdown) using only the selected brief. It must contain the project name, prog",
+          "request_id": "message:msg_r2sdk_1792144646"
+        },
+        "run_ref": null
+      },
+      {
+        "type": "task.phase_changed",
+        "payload": {
+          "from": "intake",
+          "to": "queued"
+        },
+        "run_ref": null
+      },
+      {
+        "type": "queue.enqueued",
+        "payload": {
+          "order": 5,
+          "revision": 2
+        },
+        "run_ref": null
+      },
+      {
+        "type": "run.created",
+        "payload": {
+          "run_id": "run_01M522A85348ECGTNWWHQARWJ1",
+          "attempt": 1,
+          "continuation": "fresh",
+          "source_run_id": null
+        },
+        "run_ref": "run_01M522A85348ECGTNWWHQARWJ1"
+      },
+      {
+        "type": "task.phase_changed",
+        "payload": {
+          "from": "queued",
+          "to": "planning"
+        },
+        "run_ref": "run_01M522A85348ECGTNWWHQARWJ1"
+      },
+      {
+        "type": "task.status_changed",
+        "payload": {
+          "from": "todo",
+          "to": "in-progress"
+        },
+        "run_ref": "run_01M522A85348ECGTNWWHQARWJ1"
+      },
+      {
+        "type": "queue.claimed",
+        "payload": {
+          "owner": "coordinator:3917641",
+          "run_id": "run_01M522A85348ECGTNWWHQARWJ1"
+        },
+        "run_ref": "run_01M522A85348ECGTNWWHQARWJ1"
+      },
+      {
+        "type": "task.phase_changed",
+        "payload": {
+          "from": "planning",
+          "to": "recruiting",
+          "reason": "recruit minimal team"
+        },
+        "run_ref": "run_01M522A85348ECGTNWWHQARWJ1"
+      },
+      {
+        "type": "member.recruited",
+        "payload": {
+          "member_ref": "member_01M522A8C5KP2JBB1XSCC11MWE",
+          "role_ref": "lg-default-worker",
+          "config_hash": "e771605217eee8f28d3d2ca79014678f2331a5ddddec52614391dbc6b762b5ec",
+          "template_version": "0",
+          "capabilities": [
+            "implementation",
+            "verification"
+          ]
+        },
+        "run_ref": "run_01M522A85348ECGTNWWHQARWJ1"
+      },
+      {
+        "type": "task.phase_changed",
+        "payload": {
+          "from": "recruiting",
+          "to": "executing",
+          "reason": "execute subtask graph"
+        },
+        "run_ref": "run_01M522A85348ECGTNWWHQARWJ1"
+      },
+      {
+        "type": "subtask.state_changed",
+        "payload": {
+          "subtask_ref": "subtask_01M522A8C5XZ0SH2CQP3GXS07W",
+          "from": "pending",
+          "to": "ready",
+          "reason": "dependencies satisfied"
+        },
+        "run_ref": "run_01M522A85348ECGTNWWHQARWJ1"
+      },
+      {
+        "type": "subtask.state_changed",
+        "payload": {
+          "subtask_ref": "subtask_01M522A8C5XZ0SH2CQP3GXS07W",
+          "from": "ready",
+          "to": "running",
+          "owner": "graph-dispatcher:3917641",
+          "lease_expires_at": "2026-10-16T10:02:27.178Z"
+        },
+        "run_ref": "run_01M522A85348ECGTNWWHQARWJ1"
+      }
+    ],
+    "artifacts": {
+      "status": 200,
+      "categories": {
+        "inputs": [],
+        "candidates": [],
+        "deliverables": [],
+        "evidence": [],
+        "other": []
+      },
+      "candidate_ref": null,
+      "deliverable_ref": null,
+      "workspace_path": null,
+      "deliverable_chars": 0
+    },
+    "accept": {
+      "request": {
+        "action": "accept",
+        "request_id": "qa-r2-accept-msg_r2sdk_1792144646",
+        "expected_revision": 6,
+        "expected_requirements_revision": 1,
+        "expected_deliverable_revision": 0,
+        "target_run_id": "run_01M522A85348ECGTNWWHQARWJ1"
+      },
+      "status": 409,
+      "result_status": null,
+      "body": {
+        "error": {
+          "code": "illegal_transition",
+          "message": "task phase 'executing' has no pending acceptance decision",
+          "details": {
+            "task_id": "task_01M522A80FHRPQ1ZCRHFZ60PAM",
+            "phase": "executing",
+            "action": "accept"
+          },
+          "retryable": false,
+          "request_id": null
+        }
+      }
+    }
+  },
+  "started": 1792144646.1181238,
+  "gen_before": {
+    "count": 2,
+    "limit": 8,
+    "remaining": 6,
+    "corrupt": false,
+    "persistent": true
+  },
+  "deliverable_text": null,
+  "facts_found": {
+    "project name / code": false,
+    "programme owner": false,
+    "primary launch date": false,
+    "total approved budget": false,
+    "project ID": false,
+    "change ticket": false
+  },
+  "facts_all_present": false,
+  "gen_after": {
+    "count": 3,
+    "limit": 8,
+    "remaining": 5,
+    "corrupt": false,
+    "persistent": true
+  },
+  "finished": 1792144648.397366,
+  "summary": {
+    "task_id": "task_01M522A80FHRPQ1ZCRHFZ60PAM",
+    "final_phase": "executing",
+    "deliverable_chars": 0,
+    "facts_all_present": false,
+    "accept_status": 409,
+    "accept_result_status": null,
+    "gen_before": 2,
+    "gen_after": 3
+  }
+}

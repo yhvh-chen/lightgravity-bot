@@ -26,7 +26,15 @@ DATA_DIR = CAMPAIGN / "product-data"
 TOKEN = "qa-r2-token-not-a-credential"
 
 
-def wait_health(port: int, timeout: float = 90.0) -> bool:
+def wait_health(port: int, timeout: float = 30.0) -> bool:
+    """Poll the app health on a KNOWN real port with a small finite bound.
+
+    FIX (R2 harness defect): never call this with port 0. Port 0 can never
+    connect, so the loop would burn the entire timeout. The ready file carries
+    the real port; resolve it first, then call wait_health(real_port).
+    """
+    if not port:
+        return False
     t0 = time.time()
     while time.time() - t0 < timeout:
         try:
@@ -70,21 +78,25 @@ def main() -> int:
                             start_new_session=True)
     rc = 999
     try:
-        if not wait_health(0 if args.port == 0 else args.port) and not ready.exists():
-            pass
-        # discover port from ready file
+        # FIX: never probe port 0. Wait (bounded) for the ready file, which
+        # carries the REAL port the product app actually bound, then health-check
+        # that real port with a small finite bound. This removes the ~90s dead
+        # wait the old code self-inflicted via wait_health(0).
         port = args.port
         t0 = time.time()
-        while time.time() - t0 < 90:
+        while time.time() - t0 < 30:
             if ready.exists():
-                port = json.loads(ready.read_text())["port"]
+                try:
+                    port = json.loads(ready.read_text())["port"]
+                except Exception:
+                    port = args.port
                 break
             if proc.poll() is not None:
                 print(f"server exited early rc={proc.returncode}")
                 return 2
-            time.sleep(0.2)
-        if not wait_health(port):
-            print("health never came up")
+            time.sleep(0.1)
+        if not wait_health(port, timeout=15.0):
+            print(f"health never came up on real port {port}")
             return 3
         base = f"http://127.0.0.1:{port}"
         resolved = [c.replace("{base}", base) for c in cmd]

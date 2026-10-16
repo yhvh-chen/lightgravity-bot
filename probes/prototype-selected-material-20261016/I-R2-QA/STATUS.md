@@ -1,6 +1,43 @@
 # STATUS — LG-047 R2 independent version QA (IN PROGRESS)
 
-**Verdict (not final):** IN PROGRESS — no PASS declared.
+**Verdict (not final):** IN PROGRESS — SDK hard flow PARTIAL; R2 budget EXHAUSTED (8/8).
+
+## Latest (SDK delivery, 2026-10-16 ~21:06)
+
+- Real SDK delivery ATTEMPTED twice via the actual API on the fresh global
+  native-alpha source `source_01M521GDB7S4XB86X3WKPD2B6W` (verified v1 /
+  d34f0ca58b8d / readable 2223 chars; no seeding). See `REPORT-I-R2-20261016.md`
+  §4 and raw in `raw/sdk-attempt2/`.
+- **Positive:** real SDK worker wrote `orion-summary.md` with all six fixture
+  facts correct from the selected brief; `deliver` subtask `passed`;
+  `plan_source: rules`; program workspace + derived acceptance present.
+- **Failure:** the program-added independent `verify` subtask hit `429 local auth
+  proxy call budget exhausted`; Task → `failed`; acceptance never opened, so the
+  real ModelReviewer / stop-gate / QA accept were NOT reached (UNVERIFIED).
+- **Budget:** product ledger `generation.count.json = 8/8`; campaign mirror
+  reconciled to **8/8, remaining 0**. No further real product call is possible.
+- Attempt 1 was an INVALID QA-harness poll bug (2.28s premature teardown → WS
+  1006), not a product defect; recorded in `evidence/sdk_attempt1_harness_bug.json`.
+- Two important product findings recorded: (1) classifier false-positive on
+  “approved” → DECISION; (2) a correct deliverable can still FAIL because the
+  program-added `verify` turn exhausts the node/proxy call budget.
+
+## Continuation (2026-10-16 20:35+)
+
+- Prior I-worker (bounded `3850676` / `pi` `3850698`, spec
+  `prototype-I-independent-r2-qa-20261016.txt`) STOPPED by exact TERM on PM
+  handoff continuation (`prototype-I-r2-handoff-continue-20261016.txt`, this
+  worker `3872734`/`3872736`). No product request was in flight at stop
+  (generation counter still `1`); orphaned harness `with_server`/`launch_app`
+  from its in-flight chatflow invocation reaped; data/ledger preserved; port
+  `8123` (separate owner) untouched.
+- **Harness defect root-caused (read-only triage `prototype-R2-harness-triage-REPORT.md`) and FIXED**
+  in `scripts/with_server.py`: the entry-time `wait_health(0 if port==0)` poll
+  always burned the full 90s because port 0 can never connect. Fix: resolve the
+  REAL port from the ready file first, then health-check that real port with a
+  small finite bound. Old script preserved as
+  `scripts/with_server.py.historical-port0-bug`. Boot+health now ~1s (measured),
+  no product calls. This is a QA-harness fix only; product untouched.
 
 ## Candidate binding (worktree)
 
@@ -53,7 +90,20 @@ at the main repo); with `PYTHONPATH=<own>/backend`,
   `raw/guard_selftest.txt` → all checks pass.
 - Product persistent generation ledger root: `campaign/product-data/generation/`
   (survives restart; pre-forward reserve; corrupt ⇒ deny).
-- **R2 product requests used: 0 / 8** (as of this checkpoint).
+- **R2 product requests used: 8 / 8** (remaining 0). Spends: #1 accidental N4
+  direct answer; #2 real chatflow UI question; #3 attempt-1 aborted forward;
+  #4–#8 SDK attempt-2 worker forwards (see `REPORT-I-R2-20261016.md` §4).
+
+### Prior negative evidence (already captured, 0 additional calls)
+
+- `evidence/negatives.json`: N1 >3 refs 422 `validation_failed` PASS; N2 stale
+  version 409 `source_stale` PASS; N3 stale hash 409 PASS; N5 cross-Task 422
+  `reference_invalid` PASS; N6 missing ref 422 PASS; N7 unreadable body 503
+  `capability_unavailable` PASS. **N4 preserved as FAIL**: the revoke harness
+  sent an extra forbidden `request_id` → 422, then an accidental genuine direct
+  answer was produced (the 1 spent call). Not rerun (no lowering of semantics).
+- `evidence/revoked.json`: corrected revoke action 200 `revoked:true` + selection
+  404 `not_found` (recorded, **not** repeated as a model call).
 
 ### Known R1 (recorded separately, not counted as R2, not a PASS)
 

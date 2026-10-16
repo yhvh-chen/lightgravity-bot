@@ -1,0 +1,6 @@
+# LG-047 R2 QA probe — exclude runtime clones / binary session DBs from commits.
+# These are preserved on disk; they are just not versioned (large runtime blobs,
+# potential secret metadata in native SDK session DBs).
+campaign/product-data/workspaces/.lg-worktrees/
+campaign/product-data/native-sessions/
+__pycache__/
