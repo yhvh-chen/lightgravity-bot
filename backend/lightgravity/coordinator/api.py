@@ -23,6 +23,18 @@ from pydantic import BaseModel, ConfigDict, Field
 from .service import Coordinator
 
 
+def _team_identity(request: Request) -> Any | None:
+    """Resolve the server-side team identity for a request, if team mode is on."""
+
+    context = getattr(request.app.state, "context", None)
+    service = getattr(context, "team", None) if context is not None else None
+    if service is None:
+        return None
+    from ..team import COOKIE_NAME
+
+    return service.resolve(request.cookies.get(COOKIE_NAME))
+
+
 class CreateTaskRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -82,13 +94,23 @@ def build_router(coordinator: Coordinator) -> APIRouter:
             message["correlation_id"] = payload.correlation_id
         if payload.task_ref:
             message["task_ref"] = payload.task_ref
+        # LG-050: author is server-injected from the resolved team session; the
+        # request body cannot self-report it (role alone is not identity).
+        identity = _team_identity(request)
+        if identity is not None:
+            message["author"] = {
+                "kind": "user",
+                "username": identity.username,
+                "role": identity.role,
+            }
         if payload.resource_proposal is not None:
             # A resource proposal is a control change: require the same
             # injected authorization as the direct controlled PATCH, so the
             # conversation path cannot become an unauthenticated back door.
+            # In team mode it is additionally admin-only.
             policy = getattr(request.app.state, "access_policy", None)
             if policy is not None:
-                policy.authorize(request, sensitive=True)
+                policy.authorize(request, sensitive=True, admin=True)
             message["resource_proposal"] = payload.resource_proposal
         if payload.selected_sources is not None:
             message["selected_sources"] = payload.selected_sources

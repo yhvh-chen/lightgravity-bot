@@ -121,6 +121,8 @@ class ActionState(StrEnum):
 class ErrorCode(StrEnum):
     INVALID_REQUEST = "invalid_request"
     UNAUTHORIZED = "unauthorized"
+    #: Additive LG-050: authenticated but lacking the required role.
+    FORBIDDEN = "forbidden"
     PATH_OUTSIDE_WORKSPACE = "path_outside_workspace"
     NOT_FOUND = "not_found"
     REVISION_CONFLICT = "revision_conflict"

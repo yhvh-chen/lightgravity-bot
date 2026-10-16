@@ -35,7 +35,9 @@ TOKEN_HEADER = "X-LG-Token"
 class AccessPolicy(Protocol):
     """Decides whether a request may proceed (raises :class:`AppError` if not)."""
 
-    def authorize(self, request: Request, *, sensitive: bool) -> None: ...
+    def authorize(
+        self, request: Request, *, sensitive: bool, admin: bool = False
+    ) -> None: ...
 
 
 class LocalAccessPolicy:
@@ -60,7 +62,12 @@ class LocalAccessPolicy:
     def token_configured(self) -> bool:
         return bool(self._token)
 
-    def authorize(self, request: Request, *, sensitive: bool) -> None:
+    def authorize(
+        self, request: Request, *, sensitive: bool, admin: bool = False
+    ) -> None:
+        # ``admin`` is a team-mode role concept; in single-user mode the local
+        # operator is implicitly the administrator, so it is ignored here and
+        # the frozen token/loopback rules are unchanged.
         supplied = request.headers.get(TOKEN_HEADER)
         if not _is_loopback(request):
             if not self._token:
@@ -104,8 +111,29 @@ class LocalAccessPolicy:
 
 def is_sensitive_request(request: Request) -> bool:
     path = request.url.path
-    return request.method.upper() in _SENSITIVE_METHODS and (
+    if request.method.upper() in _SENSITIVE_METHODS and (
         path == SENSITIVE_PREFIX or path.startswith(SENSITIVE_PREFIX + "/")
+    ):
+        return True
+    # LG-050 additive: a controlled resource mutation is a protected write too
+    # (the route already re-checks; this keeps the global dependency honest).
+    return request.method.upper() in {"PATCH", "PUT", "DELETE"} and (
+        path == "/api/v1/resources" or path.startswith("/api/v1/resources/")
+    )
+
+
+def is_admin_only_request(request: Request) -> bool:
+    """Whether the request targets an admin-only surface (team mode).
+
+    In single-user mode this is not consulted for behaviour; it exists so the
+    team policy and the global dependency agree on exactly one classification.
+    """
+
+    path = request.url.path
+    if path == SENSITIVE_PREFIX or path.startswith(SENSITIVE_PREFIX + "/"):
+        return True
+    return request.method.upper() in {"PATCH", "PUT", "DELETE"} and (
+        path == "/api/v1/resources" or path.startswith("/api/v1/resources/")
     )
 
 
@@ -115,7 +143,11 @@ def require_access(request: Request) -> None:
     policy: AccessPolicy | None = getattr(request.app.state, "access_policy", None)
     if policy is None:
         policy = LocalAccessPolicy()
-    policy.authorize(request, sensitive=is_sensitive_request(request))
+    policy.authorize(
+        request,
+        sensitive=is_sensitive_request(request),
+        admin=is_admin_only_request(request),
+    )
 
 
 def _is_loopback(request: Request) -> bool:
@@ -131,6 +163,7 @@ __all__ = [
     "LocalAccessPolicy",
     "SENSITIVE_PREFIX",
     "TOKEN_HEADER",
+    "is_admin_only_request",
     "is_sensitive_request",
     "require_access",
 ]

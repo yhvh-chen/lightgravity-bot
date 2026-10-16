@@ -152,16 +152,21 @@ def _describe(child: str, root_real: str) -> dict[str, Any] | None:
 
 
 def _reject_secret(ctx: ApiContext, target: Path, original: str) -> None:
-    """Refuse any read/write whose resolved path is inside the secret store."""
+    """Refuse any read/write whose resolved path is inside the secret store
+    or the controlled team-state directory (accounts are never exposed via
+    Files, even if the workspace root is misconfigured to contain them)."""
 
-    secret_root = os.path.realpath(str(ctx.secret_store.directory))
+    protected = [os.path.realpath(str(ctx.secret_store.directory))]
+    if ctx.settings.team_mode:
+        protected.append(os.path.realpath(str(ctx.settings.team_root)))
     resolved = os.path.realpath(str(target))
-    if _within(resolved, secret_root):
-        raise AppError(
-            ErrorCode.PATH_OUTSIDE_WORKSPACE,
-            "path resolves inside the secret store",
-            details={"path": original, "secret_store": secret_root},
-        )
+    for root in protected:
+        if _within(resolved, root):
+            raise AppError(
+                ErrorCode.PATH_OUTSIDE_WORKSPACE,
+                "path resolves inside a protected store",
+                details={"path": original},
+            )
 
 
 def _content_disposition(filename: str) -> str:
