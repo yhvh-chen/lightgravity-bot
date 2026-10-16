@@ -1,0 +1,29 @@
+PROJECT ORION-99 — DRAFT DECOY NOTE (SAMPLE FICTION)
+================================================================
+
+NOTE: This is human-written SAMPLE data for the selected-material
+prototype. It is NOT OCR output and NOT a measured model result.
+
+PURPOSE OF THIS FILE (read first):
+This note is a CONTradictory DECOY. It is intended to be left
+UNSELECTED during the prototype flow. It deliberately assigns
+DIFFERENT values to the same-sounding project name as the real
+selected brief (alpha-brief.txt, project ORION-71), so that a QA run
+can prove that the model's answer follows the SELECTED source only.
+If an answer quotes these decoy values, that is evidence of context
+leakage or hallucination, not a correct result.
+
+Project code name .......... ORION-99   (decoy: alpha brief says ORION-71)
+Programme owner ............ Not Halden Reyes — this note names Dana Whitfield
+Primary launch date ........ 2028-09-01 (decoy: alpha brief says 2027-03-14)
+Total approved budget ...... 999,999 EUR (decoy: alpha brief says 418,250 EUR)
+Project ID ................. PRJ-ORION-99 (decoy: alpha says PRJ-ORION-71)
+Change-board ticket ........ CB-0000 (decoy: alpha says CB-8842)
+
+Decoy scope summary
+-------------------
+This decoy claims the relay samples at 99.9 Hz (alpha brief says 11.5 Hz)
+and names the relay RT-99.9 (alpha brief names RT-11.5). None of these
+values are true for ORION-71. They exist only to be contradicted.
+
+END OF SAMPLE DECOY — gamma-decoy.txt
