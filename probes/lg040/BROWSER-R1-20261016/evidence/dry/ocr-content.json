@@ -1,0 +1,31 @@
+{
+  "source1": {
+    "source_id": "source_01M51N0XZ8N97XBYTTQ6S7N1V5",
+    "status": "failed",
+    "index": {
+      "lexical": "not_indexed",
+      "lexical_hash": null,
+      "vector": "disabled",
+      "vector_model": null
+    },
+    "content": {
+      "source_id": "source_01M51N0XZ8N97XBYTTQ6S7N1V5",
+      "kind": "machine",
+      "path": "derivative/machine.v1.md",
+      "media_type": "text/markdown; charset=utf-8",
+      "content": "---\nschema: lightgravity.bot/v1\nkind: source_derivative\nrecord_type: machine_ocr\nsource_version: 1\nextractor: lg035-ocr\nextractor_model: unavailable\nextraction_status: failed\nsource_file: clear_real.pdf\ntotal_pages: 1\n---\n\n# Machine OCR — clear_real.pdf\n\n> Machine transcription. Authoritative human edits live in `formal/FORMAL.md`; reprocessing replaces this file only.\n\n## Page 1 — failed\n\n<!-- original: clear_real.pdf page=1 status=failed -->\n\nPage 1 was not transcribed: OCR backend unavailable: LIGHTGRAVITY_OCR_BASE_URL/LIGHTGRAVITY_OCR_MODEL are not set; OCR stays disabled.\n",
+      "formal_present": false
+    }
+  },
+  "source2": {
+    "source_id": "source_01M51N0Y55FF319MZ0964SG7C5",
+    "content": {
+      "source_id": "source_01M51N0Y55FF319MZ0964SG7C5",
+      "kind": "machine",
+      "path": "derivative/machine.v1.md",
+      "media_type": "text/markdown; charset=utf-8",
+      "content": "---\nschema: lightgravity.bot/v1\nkind: source_derivative\nrecord_type: machine_ocr\nsource_version: 1\nextractor: lg035-ocr\nextractor_model: unavailable\nextraction_status: failed\nsource_file: honest_table_grid_scale4.png\ntotal_pages: 1\n---\n\n# Machine OCR — honest_table_grid_scale4.png\n\n> Machine transcription. Authoritative human edits live in `formal/FORMAL.md`; reprocessing replaces this file only.\n\n## Page 1 — failed\n\n<!-- original: honest_table_grid_scale4.png page=1 status=failed -->\n\nPage 1 was not transcribed: OCR backend unavailable: LIGHTGRAVITY_OCR_BASE_URL/LIGHTGRAVITY_OCR_MODEL are not set; OCR stays disabled.\n",
+      "formal_present": false
+    }
+  }
+}

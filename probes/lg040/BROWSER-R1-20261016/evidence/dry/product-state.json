@@ -1,0 +1,146 @@
+{
+  "before": {
+    "items": [],
+    "next_cursor": null
+  },
+  "final": {
+    "items": [
+      {
+        "id": "source_01M51N0XZ8N97XBYTTQ6S7N1V5",
+        "source_id": "source_01M51N0XZ8N97XBYTTQ6S7N1V5",
+        "title": "clear_real.pdf",
+        "title_origin": "user",
+        "status": "failed",
+        "archived": false,
+        "revision": 3,
+        "etag": "\"3\"",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "origin": {
+          "kind": "upload",
+          "external_ref": null,
+          "fetched": false
+        },
+        "content_hash": "89c6b42242d0aa16efdb7ff814604c4bfc5214e0bbdd040ead67dcf453d9ec0f",
+        "stat_revision": null,
+        "source_version": 1,
+        "original": {
+          "path": "original/clear_real.pdf",
+          "media_type": "application/pdf",
+          "bytes": 5176,
+          "archived_at": null
+        },
+        "derivatives": [],
+        "formal": {
+          "path": "formal/FORMAL.md",
+          "revision": 1,
+          "edited_by": "user"
+        },
+        "index": {
+          "lexical": "indexed",
+          "lexical_hash": "02d66f99b3de9bf3b12395e7b3ef989adb614dc458f6ed5adc53730b577f3211",
+          "vector": "disabled",
+          "vector_model": null
+        },
+        "receipt_ref": "receipt.jsonl",
+        "created_at": "2026-10-16T06:05:09.480Z",
+        "updated_at": "2026-10-16T06:05:24.973Z",
+        "path": "sources/source_01M51N0XZ8N97XBYTTQ6S7N1V5/SOURCE.md"
+      },
+      {
+        "id": "source_01M51N0Y55FF319MZ0964SG7C5",
+        "source_id": "source_01M51N0Y55FF319MZ0964SG7C5",
+        "title": "honest_table_grid_scale4.png",
+        "title_origin": "user",
+        "status": "archived",
+        "archived": false,
+        "revision": 3,
+        "etag": "\"3\"",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "origin": {
+          "kind": "upload",
+          "external_ref": null,
+          "fetched": false
+        },
+        "content_hash": "39138a971d605f65d10b5df3a13e35c7cec5d3710bc38d55e6eb656fc1219652",
+        "stat_revision": null,
+        "source_version": 1,
+        "original": {
+          "path": "original/honest_table_grid_scale4.png",
+          "media_type": "image/png",
+          "bytes": 33716,
+          "archived_at": null
+        },
+        "derivatives": [],
+        "formal": {
+          "path": null,
+          "revision": null,
+          "edited_by": null
+        },
+        "index": {
+          "lexical": "not_indexed",
+          "lexical_hash": null,
+          "vector": "disabled",
+          "vector_model": null
+        },
+        "receipt_ref": "receipt.jsonl",
+        "created_at": "2026-10-16T06:05:09.670Z",
+        "updated_at": "2026-10-16T06:05:28.239Z",
+        "path": "sources/source_01M51N0Y55FF319MZ0964SG7C5/SOURCE.md"
+      },
+      {
+        "id": "source_01M51N1MA2QEH1PHNPBYQPBSPS",
+        "source_id": "source_01M51N1MA2QEH1PHNPBYQPBSPS",
+        "title": "g.txt",
+        "title_origin": "user",
+        "status": "received",
+        "archived": false,
+        "revision": 0,
+        "etag": "\"0\"",
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "origin": {
+          "kind": "upload",
+          "external_ref": null,
+          "fetched": false
+        },
+        "content_hash": "cd0aa9856147b6c5b4ff2b7dfee5da20aa38253099ef1b4a64aced233c9afe29",
+        "stat_revision": null,
+        "source_version": 1,
+        "original": {
+          "path": "original/g.txt",
+          "media_type": "text/plain",
+          "bytes": 1,
+          "archived_at": null
+        },
+        "derivatives": [],
+        "formal": {
+          "path": null,
+          "revision": null,
+          "edited_by": null
+        },
+        "index": {
+          "lexical": "not_indexed",
+          "lexical_hash": null,
+          "vector": "disabled",
+          "vector_model": null
+        },
+        "receipt_ref": "receipt.jsonl",
+        "created_at": "2026-10-16T06:05:32.356Z",
+        "updated_at": "2026-10-16T06:05:32.356Z",
+        "path": "sources/source_01M51N1MA2QEH1PHNPBYQPBSPS/SOURCE.md"
+      }
+    ],
+    "next_cursor": null
+  }
+}

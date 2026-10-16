@@ -1,0 +1,271 @@
+{
+  "url": "http://127.0.0.1:53129/",
+  "tested_at": "2026-10-16T06:05:37.713Z",
+  "counts": {
+    "total": 31,
+    "passed": 28,
+    "failed": 3
+  },
+  "results": [
+    {
+      "name": "real same-origin http document",
+      "ok": true,
+      "detail": {
+        "origin": "http://127.0.0.1:53129",
+        "url": "http://127.0.0.1:53129/"
+      }
+    },
+    {
+      "name": "fixture byte route reachable from page",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "Chat English material intake renders",
+      "ok": true,
+      "detail": {
+        "hasMaterials": true,
+        "noTaskText": true,
+        "uploadBtn": true,
+        "recordLink": true,
+        "searchInput": true,
+        "emptyMaterials": true,
+        "lang": "en"
+      }
+    },
+    {
+      "name": "Chat empty state English",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Chat states no delivery Task created",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "API sources empty before upload",
+      "ok": true,
+      "detail": 200
+    },
+    {
+      "name": "upload1 real clear_real.pdf selected in real <input type=file>",
+      "ok": true,
+      "detail": {
+        "bytes": 5176,
+        "type": "application/pdf",
+        "name": "clear_real.pdf"
+      }
+    },
+    {
+      "name": "upload1 receipt shows real source id (no Task/Run)",
+      "ok": true,
+      "detail": {
+        "text": "clear_real.pdf\nreceived\nsource_01M51N0XZ8N97XBYTTQ6S7N1V5 · v1\n#89c6b42242d0\nlexical: not_indexed\nstage: received\n\nnot indexed — no trusted body yet\n\nRefresh state\nDismiss",
+        "sourceId": "source_01M51N0XZ8N97XBYTTQ6S7N1V5",
+        "failed": false
+      }
+    },
+    {
+      "name": "upload2 real NIST table PNG selected",
+      "ok": true,
+      "detail": {
+        "bytes": 33716,
+        "type": "image/png",
+        "name": "honest_table_grid_scale4.png"
+      }
+    },
+    {
+      "name": "upload2 receipt shows real source id",
+      "ok": true,
+      "detail": {
+        "text": "honest_table_grid_scale4.png\nreceived\nsource_01M51N0Y55FF319MZ0964SG7C5 · v1\n#39138a971d60\nlexical: not_indexed\nstage: received\n\nnot indexed — no trusted body yet\n\nRefresh state\nDismiss",
+        "sourceId": "source_01M51N0Y55FF319MZ0964SG7C5"
+      }
+    },
+    {
+      "name": "global upload attributed to inbox (no task_ref)",
+      "ok": true,
+      "detail": {
+        "scope": {
+          "task_ref": null,
+          "project_ref": null,
+          "inbox_ref": null
+        },
+        "status": "received"
+      }
+    },
+    {
+      "name": "Files view opens with Materials tab (English)",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Files Materials lists the same 2 sources",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "count": 2,
+        "text": "MATERIALS\nSame source as Chat. Archive, correct, reprocess and download here.\nclear_real.pdf\nreceived · v1\nhonest_table_grid_scale4.png\nreceived · v1\n\nNo material selected\n\nSelect a material to previe"
+      }
+    },
+    {
+      "name": "Files opens source with preview + English actions",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "facts": "Source\nsource_01M51N0XZ8N97XBYTTQ6S7N1V5\nVersion / hash\nv1 · #89c6b42242d0aa16\nIndex\nlexical: not_indexed · vector: disabled\nScope\nglobal",
+        "actions": [
+          "Save correction",
+          "Archive",
+          "Reprocess (OCR)",
+          "Download original",
+          "Download formal"
+        ]
+      }
+    },
+    {
+      "name": "OCR reprocess #1 (clear_real scan) returned a status",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "status": "Reprocess started into a new machine derivative (formal version preserved)."
+      }
+    },
+    {
+      "name": "source1 status after OCR is real (extracted/indexed or failed-honest)",
+      "ok": true,
+      "detail": {
+        "status": "failed",
+        "index": {
+          "lexical": "not_indexed",
+          "lexical_hash": null,
+          "vector": "disabled",
+          "vector_model": null
+        }
+      }
+    },
+    {
+      "name": "dry-mode OCR failure is reported honestly (failure not shown as success)",
+      "ok": false,
+      "detail": {
+        "real_status": "failed",
+        "ui_toast": "Reprocess started into a new machine derivative (formal version preserved).",
+        "false_success": true
+      }
+    },
+    {
+      "name": "Files opens source 2 (NIST table)",
+      "ok": true,
+      "detail": {
+        "ok": true
+      }
+    },
+    {
+      "name": "OCR reprocess #2 (NIST table) returned a status",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "status": "Reprocess started into a new machine derivative (formal version preserved)."
+      }
+    },
+    {
+      "name": "Chat search available after switch",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "search returns a real source hit with v+hash",
+      "ok": false,
+      "detail": {
+        "ok": false,
+        "reason": "Search\n\nNo matching material\n\nNothing in your authorized scope matched. Materials with no trusted body are not indexed."
+      }
+    },
+    {
+      "name": "Files formal editor reachable",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "formal correction saved (English success text)",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "status": "Saved formal version (revision 2). Machine derivative untouched."
+      }
+    },
+    {
+      "name": "download original via UI",
+      "ok": true,
+      "detail": {
+        "label": "Download original",
+        "ok": true,
+        "status": "Downloaded clear_real.pdf (original)."
+      }
+    },
+    {
+      "name": "download formal via UI",
+      "ok": true,
+      "detail": {
+        "label": "Download formal",
+        "ok": true,
+        "status": "Downloaded FORMAL.md (formal)."
+      }
+    },
+    {
+      "name": "search rebuild_if_missing returns hit with hash back-check",
+      "ok": false,
+      "detail": {
+        "status": 200,
+        "hits": 0
+      }
+    },
+    {
+      "name": "revoke via real API action (no UI revoke control exists)",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "revoked source is honestly unavailable (status archived, vector disabled)",
+      "ok": true,
+      "detail": {
+        "status": "archived",
+        "index": {
+          "lexical": "not_indexed",
+          "lexical_hash": null,
+          "vector": "disabled",
+          "vector_model": null
+        }
+      }
+    },
+    {
+      "name": "unauthorized sensitive Settings write surfaces honest failure",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "text": "Request failed\n\nmissing or invalid local access token (unauthorized)"
+      }
+    },
+    {
+      "name": "loopback Chat upload without token is NOT gated (documented backend policy fact)",
+      "ok": true,
+      "detail": {
+        "status": 201
+      }
+    },
+    {
+      "name": "narrow 390 no horizontal overflow + intake present",
+      "ok": true,
+      "detail": {
+        "w": 390,
+        "overflow": false,
+        "fileInput": true
+      }
+    }
+  ]
+}
