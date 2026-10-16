@@ -1,0 +1,82 @@
+# Public source boundary: tracked files remain tracked in the internal repository.
+# Publish a fresh allowlisted source snapshot; never push internal Git history.
+
+# Internal development documents and agent configuration (root only)
+/AGENTS.md
+/agent.md
+/design.md
+/PROJECT.md
+/PROGRESS.md
+/BACKLOG.md
+/docs/
+/backlog/
+/.agents/
+/probes/
+/qa/
+/examples/
+/github-export*/
+
+# Tests and test evidence
+/tests/
+/frontend/tests/
+**/__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+.coverage
+.coverage.*
+coverage/
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+
+# Environment and private credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+/secrets/
+
+# Runtime data, local databases, worktrees and caches
+/bot-data/
+/.worktrees/
+/worktrees/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+*.pid
+.cache/
+
+# Python environments and generated packages
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+/build/
+/dist/
+
+# Frontend dependencies and generated output
+node_modules/
+/frontend/dist/
+*.tsbuildinfo
+
+# Editor and operating system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+*~

@@ -1,0 +1,389 @@
+/*
+ * Files view styles (LG-014). Scoped to the files view; reuses the LG-011
+ * token variables so the restrained workbench look stays consistent.
+ */
+
+.lg-files {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+  height: 100%;
+  min-width: 0;
+  padding: var(--lg-space-4);
+  overflow: hidden;
+}
+
+.lg-files__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lg-files__scope,
+.lg-files__path {
+  display: flex;
+  gap: var(--lg-space-2);
+  align-items: center;
+  min-width: 0;
+}
+
+.lg-files__scope-label,
+.lg-files__path-label {
+  color: var(--lg-color-text-subtle);
+  font-size: var(--lg-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lg-files__scope-value,
+.lg-files__path-value {
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--lg-font-size-sm);
+}
+
+.lg-files__path-value {
+  font-family: var(--lg-font-mono);
+}
+
+.lg-files__status {
+  margin: 0;
+  padding: var(--lg-space-2) var(--lg-space-3);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+  font-size: var(--lg-font-size-sm);
+}
+
+.lg-files__status--success {
+  border-color: var(--lg-color-success);
+  background: var(--lg-color-success-soft);
+  color: var(--lg-color-success);
+}
+
+.lg-files__status--error {
+  border-color: var(--lg-color-error);
+  background: var(--lg-color-error-soft);
+  color: var(--lg-color-error);
+}
+
+.lg-files__status--neutral {
+  background: var(--lg-color-surface-2);
+}
+
+.lg-files__artifacts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  padding: var(--lg-space-3);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+  background: var(--lg-color-panel);
+}
+
+.lg-files__section-title {
+  margin: 0;
+  font-size: var(--lg-font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--lg-color-text-muted);
+}
+
+.lg-files__artifact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--lg-space-3);
+}
+
+.lg-files__artifact-title {
+  margin: 0 0 var(--lg-space-1);
+  font-size: var(--lg-font-size-sm);
+}
+
+.lg-files__count {
+  color: var(--lg-color-text-subtle);
+  font-weight: 400;
+}
+
+.lg-files__artifact-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-files__artifact-link {
+  display: block;
+  width: 100%;
+  padding: var(--lg-space-1) 0;
+  border: none;
+  background: none;
+  color: var(--lg-color-accent);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lg-files__artifact-link:hover {
+  text-decoration: underline;
+}
+
+.lg-files__note {
+  margin: 0;
+  color: var(--lg-color-text-subtle);
+  font-size: var(--lg-font-size-xs);
+}
+
+.lg-files__body {
+  display: grid;
+  grid-template-columns: minmax(200px, 280px) minmax(0, 1fr);
+  gap: var(--lg-space-3);
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+}
+
+.lg-files__tree-panel,
+.lg-files__preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  min-height: 0;
+  min-width: 0;
+  padding: var(--lg-space-3);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+  background: var(--lg-color-panel);
+  overflow: auto;
+}
+
+.lg-files__breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: var(--lg-font-size-xs);
+  overflow: hidden;
+}
+
+.lg-files__crumb {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--lg-color-accent);
+  cursor: pointer;
+  font-family: var(--lg-font-mono);
+}
+
+.lg-files__tree {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-files__entry {
+  display: flex;
+  gap: var(--lg-space-2);
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 36px;
+  padding: var(--lg-space-2);
+  border: none;
+  border-radius: var(--lg-radius-control);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lg-files__entry:hover {
+  background: var(--lg-color-surface-2);
+}
+
+.lg-files__entry.is-selected {
+  background: var(--lg-color-accent-soft);
+}
+
+.lg-files__entry-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lg-files__entry-meta {
+  flex-shrink: 0;
+  color: var(--lg-color-text-subtle);
+  font-size: var(--lg-font-size-xs);
+}
+
+.lg-files__preview-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-2);
+  align-items: center;
+}
+
+.lg-files__preview-name {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--lg-font-mono);
+  font-size: var(--lg-font-size-sm);
+}
+
+.lg-files__preview-body {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.lg-files__code {
+  margin: 0;
+  padding: var(--lg-space-3);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-surface-2);
+  font-family: var(--lg-font-mono);
+  font-size: var(--lg-font-size-sm);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.lg-files__image {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+}
+
+.lg-files__upload {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-2);
+  align-items: center;
+}
+
+@media (max-width: 700px) {
+  .lg-files__body {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------------------------------------- materials */
+/* LG-038: Files Materials surface (same source state as Chat). Minimal. */
+
+.lg-files__surface-tabs {
+  display: flex;
+  gap: var(--lg-space-1);
+}
+
+.lg-files__surface-tab {
+  padding: var(--lg-space-1) var(--lg-space-3);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-panel);
+  color: var(--lg-color-text-muted);
+  font: inherit;
+  font-size: var(--lg-font-size-sm);
+  cursor: pointer;
+}
+
+.lg-files__surface-tab.is-active {
+  background: var(--lg-color-accent-soft);
+  color: var(--lg-color-accent);
+  border-color: var(--lg-color-accent);
+}
+
+.lg-files-materials {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+  /* Files is rendered inside a flex column (`.lg-files`); without this the
+   * section sizes to its content's max-content width and pushes the app
+   * shell wider than the viewport on narrow screens (LG-040). */
+  min-width: 0;
+}
+
+.lg-files-materials__body {
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+  gap: var(--lg-space-3);
+  min-width: 0;
+}
+
+.lg-files-materials__list-panel,
+.lg-files-materials__detail-panel {
+  /* Grid children default to min-width:auto, so long file names / hashes /
+   * paths would force the track to grow instead of wrapping. */
+  min-width: 0;
+}
+
+.lg-files-materials__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+
+.lg-files-materials__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-3);
+  margin: 0;
+  min-width: 0;
+}
+
+.lg-files-materials__facts dd {
+  /* Long source ids / content hashes must wrap, not widen the panel. */
+  overflow-wrap: anywhere;
+}
+
+.lg-files-materials__facts dt {
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-subtle);
+}
+
+.lg-files-materials__facts dd {
+  margin: 0;
+  font-size: var(--lg-font-size-sm);
+  color: var(--lg-color-text);
+}
+
+.lg-files-materials__editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+}
+
+.lg-files-materials__textarea {
+  min-height: 160px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-family: var(--lg-font-mono, monospace);
+}
+
+.lg-files-materials__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-2);
+}
+
+/* Stack list above detail before the two-column floor (220px) plus the
+ * non-wrapping detail content can be squeezed toward zero. The threshold
+ * accounts for the app-shell chrome (56 rail + 240 context + 360 chat) which
+ * stays inline down to 1023px, so at 1024px the content area is only ~330px
+ * wide and a 220px list column would leave the detail panel at ~0 width. */
+@media (max-width: 1199px) {
+  .lg-files-materials__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

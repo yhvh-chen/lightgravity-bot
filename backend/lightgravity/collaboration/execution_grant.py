@@ -1,0 +1,517 @@
+"""Program-frozen worker execution identity and restricted tool proxy (LG-031).
+
+This module closes the LG-029/LG-030 boundary: a *worker* must never prove who
+it is with a body field, and must never hold a global management token.  Instead
+the program (the graph dispatcher) **mints an opaque, process-local execution
+grant** for the exact ``(run, subtask, member, fence)`` it just claimed, hands
+only that opaque token to the executor, and revokes it when the execution is
+stopped/confirmed.  The grant is the only thing the SDK-side tool proxy may
+present, and it authorizes *only* the nodes of its own Run/Task plus the frozen
+budget - it is not a capability to read/write arbitrary control state.
+
+Two enforcement surfaces use the same grant registry:
+
+* :func:`resolve_worker_identity` is wired into ``ApiContext.worker_identity``
+  so an in-process/HTTP caller presenting ``X-LG-Execution-Grant`` is bound to
+  the member the *program* recorded - never to a request body.
+* :class:`RestrictedPeerTool` is a minimal SDK custom tool (a plain callable)
+  that routes a peer request through the in-process :class:`PeerService`.  It
+  checks the grant before ever touching the service, so a worker cannot ask for
+  a node it was not authorized to see, and cannot exceed the frozen budget.
+
+Everything here is deterministic, model-free and additive.  The default path
+(no grant minted) leaves the deterministic scheduler unchanged.
+"""
+
+from __future__ import annotations
+
+import secrets
+import threading
+import time
+from dataclasses import dataclass, field
+from typing import Any, Callable
+
+#: Default lifetime of a minted grant if the caller does not freeze one.  A
+#: grant is also revoked explicitly on stop; the TTL is the fail-safe so a
+#: crashed dispatcher cannot leave an unbounded credential behind.
+DEFAULT_GRANT_SECONDS = 3600
+
+
+@dataclass(slots=True)
+class ExecutionGrant:
+    """An opaque, non-transferable worker execution identity (never a secret)."""
+
+    grant_id: str
+    task_id: str
+    run_id: str
+    subtask_id: str
+    member_ref: str
+    fence: int
+    authorized_node_refs: frozenset[str]
+    max_collab_calls: int
+    budget_remaining: int | None
+    expires_at: float
+    revoked: bool = False
+    collab_calls: int = 0
+    #: Program-frozen **lease owner** for the collaboration authority: the exact
+    #: identity string the graph used when it claimed the node through the fenced
+    #: :class:`CollaborationService`, and therefore the only identity that may
+    #: renew/release that lease over HTTP.  It defaults to ``member_ref`` (a bound
+    #: node grant where the worker member *is* the claimant), but a candidate-pool
+    #: grant whose ``member_ref`` is the selecting member can freeze the
+    #: program-side owner explicitly so the API never derives it from a body.  A
+    #: request body can never set/override this value.
+    lease_owner: str | None = None
+    #: Non-secret provenance for honest reporting/tests.
+    origin: str = "graph-dispatcher"
+    #: ``node`` (bound to one execution) or ``pool`` (discovery only: authorizes
+    #: *requesting* a claim for an authorized node but cannot read/write one).  A
+    #: pool grant is what an autonomous worker starts with before it has chosen
+    #: a node; the program upgrades it to a node grant on an accepted claim.
+    kind: str = "node"
+    #: Number of accepted autonomous claim requests made through this grant.
+    claims_granted: int = 0
+    #: Maximum number of claim *reservations* a pool grant may make.  ``None``
+    #: means unbounded (legacy pool grants).  A candidate-pool grant fixes this
+    #: to the legal candidate count so a worker's selection attempts are bounded
+    #: and cannot be used to enumerate/deny legal candidates indefinitely.
+    max_claims: int | None = None
+
+    def covers_node(self, node_ref: str) -> bool:
+        return node_ref in self.authorized_node_refs
+
+    @property
+    def effective_lease_owner(self) -> str:
+        """The frozen lease owner, defaulting to the authenticated member ref."""
+
+        return self.lease_owner or self.member_ref
+
+    def active(self, *, now: float | None = None) -> bool:
+        if self.revoked:
+            return False
+        moment = time.time() if now is None else now
+        return moment < self.expires_at
+
+    def to_dict(self) -> dict[str, Any]:
+        """A redacted, non-secret view (never the token itself)."""
+
+        return {
+            "grant_id": self.grant_id,
+            "task_id": self.task_id,
+            "run_id": self.run_id,
+            "subtask_id": self.subtask_id,
+            "member_ref": self.member_ref,
+            "lease_owner": self.effective_lease_owner,
+            "fence": self.fence,
+            "authorized_node_refs": sorted(self.authorized_node_refs),
+            "max_collab_calls": self.max_collab_calls,
+            "budget_remaining": self.budget_remaining,
+            "collab_calls": self.collab_calls,
+            "origin": self.origin,
+            "kind": self.kind,
+            "claims_granted": self.claims_granted,
+            "max_claims": self.max_claims,
+        }
+
+
+class ExecutionGrantRegistry:
+    """Thread-safe, process-local registry of minted execution grants.
+
+    It is deliberately **not** persisted: a grant is runtime authority, not
+    durable state.  After a restart every old grant is gone, so a stale token
+    can never regain authority by replay.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.RLock()
+        self._by_token: dict[str, ExecutionGrant] = {}
+        self._by_subtask: dict[str, str] = {}
+
+    # ----------------------------------------------------------------- minting
+    def mint(
+        self,
+        *,
+        task_id: str,
+        run_id: str,
+        subtask_id: str,
+        member_ref: str,
+        fence: int,
+        authorized_node_refs: frozenset[str] | set[str] | tuple[str, ...],
+        max_collab_calls: int = 0,
+        budget_remaining: int | None = None,
+        ttl_seconds: int = DEFAULT_GRANT_SECONDS,
+        origin: str = "graph-dispatcher",
+        kind: str = "node",
+        max_claims: int | None = None,
+        lease_owner: str | None = None,
+    ) -> tuple[str, ExecutionGrant]:
+        """Mint a fresh grant and return ``(opaque_token, grant)``.
+
+        Minting a new grant for a Subtask revokes any prior one (a re-claim with
+        a new fence must invalidate the old holder's identity).
+        """
+
+        token = f"lgxg_{secrets.token_urlsafe(32)}"
+        grant = ExecutionGrant(
+            grant_id=f"grant_{secrets.token_hex(8)}",
+            task_id=task_id,
+            run_id=run_id,
+            subtask_id=subtask_id,
+            member_ref=member_ref,
+            fence=fence,
+            authorized_node_refs=frozenset(str(ref) for ref in authorized_node_refs),
+            max_collab_calls=max_collab_calls,
+            budget_remaining=budget_remaining,
+            expires_at=time.time() + max(1, ttl_seconds),
+            origin=origin,
+            kind=kind,
+            max_claims=max_claims,
+            lease_owner=lease_owner,
+        )
+        with self._lock:
+            prior = self._by_subtask.get(subtask_id)
+            if prior is not None:
+                old = self._by_token.get(prior)
+                if old is not None:
+                    old.revoked = True
+            self._by_token[token] = grant
+            self._by_subtask[subtask_id] = token
+        return token, grant
+
+    # --------------------------------------------------------------- resolving
+    def resolve(self, token: str | None, *, now: float | None = None) -> ExecutionGrant | None:
+        if not isinstance(token, str) or not token:
+            return None
+        with self._lock:
+            grant = self._by_token.get(token)
+            if grant is None or not grant.active(now=now):
+                return None
+            return grant
+
+    def resolve_worker_identity(self, token: str | None) -> str | None:
+        grant = self.resolve(token)
+        return grant.member_ref if grant is not None else None
+
+    def grant_claim(self, token: str) -> tuple[bool, ExecutionGrant | None]:
+        """Atomically reserve one autonomous claim for a *pool* grant.
+
+        Only a ``kind="pool"`` grant may claim, and only while it is active; the
+        reservation is what makes two concurrent workers racing for the same node
+        observable (the loser sees a definite refusal).
+        """
+
+        with self._lock:
+            grant = self._by_token.get(token)
+            if grant is None or not grant.active():
+                return False, None
+            if grant.kind != "pool":
+                return False, grant
+            if grant.max_claims is not None and grant.claims_granted >= grant.max_claims:
+                return False, grant
+            grant.claims_granted += 1
+            return True, grant
+
+    def consume_collab_call(self, token: str) -> tuple[bool, ExecutionGrant | None]:
+        """Atomically reserve one frozen collaboration call for ``token``.
+
+        Returns ``(allowed, grant)``.  A grant with a zero/absent collaboration
+        allowance refuses, so a worker cannot exceed the program's budget by
+        simply calling the tool again.
+        """
+
+        with self._lock:
+            grant = self._by_token.get(token)
+            if grant is None or not grant.active():
+                return False, None
+            if grant.collab_calls >= grant.max_collab_calls:
+                return False, grant
+            grant.collab_calls += 1
+            return True, grant
+
+    # --------------------------------------------------------------- revoking
+    def revoke_token(self, token: str | None) -> bool:
+        if not isinstance(token, str) or not token:
+            return False
+        with self._lock:
+            grant = self._by_token.pop(token, None)
+            if grant is None:
+                return False
+            grant.revoked = True
+            if self._by_subtask.get(grant.subtask_id) == token:
+                self._by_subtask.pop(grant.subtask_id, None)
+            return True
+
+    def revoke_subtask(self, subtask_id: str) -> bool:
+        with self._lock:
+            token = self._by_subtask.get(subtask_id)
+        return self.revoke_token(token)
+
+    def revoke_run(self, run_id: str) -> int:
+        with self._lock:
+            tokens = [
+                token
+                for token, grant in self._by_token.items()
+                if grant.run_id == run_id
+            ]
+        return sum(1 for token in tokens if self.revoke_token(token))
+
+    def active_grants(self) -> list[ExecutionGrant]:
+        with self._lock:
+            return [grant for grant in self._by_token.values() if grant.active()]
+
+
+#: Process-wide registry.  This is the single seam the graph dispatcher (mint)
+#: and the API context (resolve) share; tests may construct their own registry.
+_DEFAULT_REGISTRY = ExecutionGrantRegistry()
+
+
+def default_registry() -> ExecutionGrantRegistry:
+    return _DEFAULT_REGISTRY
+
+
+def reset_default_registry() -> None:
+    """Test helper: drop every process-wide grant (never used in production)."""
+
+    global _DEFAULT_REGISTRY
+    _DEFAULT_REGISTRY = ExecutionGrantRegistry()
+
+
+def resolve_worker_identity(
+    request: Any,
+    *,
+    registry: ExecutionGrantRegistry | None = None,
+    header: str = "X-LG-Execution-Grant",
+) -> str | None:
+    """Resolve the program-frozen member for an inbound request.
+
+    The token is read from a request header; the body is never consulted.  A
+    missing/expired/revoked token resolves to ``None`` (default-deny), so a
+    local/web caller cannot impersonate a worker just by naming one.
+    """
+
+    resolved = registry or _DEFAULT_REGISTRY
+    token: str | None = None
+    try:
+        headers = getattr(request, "headers", None)
+        if headers is not None:
+            token = headers.get(header)
+    except Exception:  # noqa: BLE001 - a weird request object must deny, not crash
+        token = None
+    return resolved.resolve_worker_identity(token)
+
+
+@dataclass(slots=True)
+class PeerToolResult:
+    """The minimal, structured reply a restricted peer tool hands back."""
+
+    ok: bool
+    reason: str
+    state: str
+    detail: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"ok": self.ok, "reason": self.reason, "state": self.state, **self.detail}
+
+
+def make_restricted_peer_tool(
+    *,
+    registry: ExecutionGrantRegistry,
+    token: str,
+    peer_service_factory: Callable[[], Any],
+    run_id: str,
+    node_ref: str,
+    from_member_ref: str,
+    default_mode: str = "summarize",
+) -> Callable[..., dict[str, Any]]:
+    """Build an SDK custom tool bound to one frozen execution grant.
+
+    The callable is what the SDK agent may invoke.  It performs **no** HTTP and
+    takes **no** identity from arguments: the member, run and authorization come
+    from the program-minted grant.  A request for a node outside the grant's
+    authorized set, an exhausted collaboration budget, or a revoked grant is
+    refused with a machine reason and never reaches the peer service.
+    """
+
+    def request_peer(
+        to_member_ref: str | None = None,
+        node_ref_override: str | None = None,
+        summary: str = "",
+        mode: str = default_mode,
+        handoff_refs: list[str] | None = None,
+        request_id: str | None = None,
+    ) -> dict[str, Any]:
+        grant = registry.resolve(token)
+        if grant is None:
+            return PeerToolResult(
+                ok=False, reason="grant_revoked_or_expired", state="rejected"
+            ).to_dict()
+        target_node = node_ref_override or node_ref
+        if not grant.covers_node(target_node):
+            return PeerToolResult(
+                ok=False,
+                reason="node_not_authorized",
+                state="rejected",
+                detail={"node_ref": target_node, "run_ref": grant.run_id},
+            ).to_dict()
+        allowed, grant_after = registry.consume_collab_call(token)
+        if not allowed:
+            reason = "grant_revoked_or_expired" if grant_after is None else "budget_exhausted"
+            return PeerToolResult(
+                ok=False, reason=reason, state="rejected"
+            ).to_dict()
+        service = peer_service_factory()
+        result = service.request(
+            run_id,
+            request_id=request_id or f"tool_{secrets.token_hex(8)}",
+            from_member_ref=from_member_ref,
+            to_member_ref=to_member_ref,
+            mode=mode,
+            summary=summary,
+            node_ref=target_node,
+            message_id=f"msg_tool_{secrets.token_hex(8)}",
+            correlation_id=f"corr_tool_{secrets.token_hex(8)}",
+            handoff_refs=handoff_refs or [],
+            # The identity comes from the grant, never from tool arguments.
+            authenticated_member_ref=grant.member_ref,
+        )
+        payload = result.to_dict()
+        return PeerToolResult(
+            ok=payload.get("state") in {"requested", "resolved"},
+            reason=str(payload.get("reason") or payload.get("state") or "unknown"),
+            state=str(payload.get("state") or "unknown"),
+            detail={"result": payload},
+        ).to_dict()
+
+    request_peer.__name__ = "request_peer"
+    request_peer.__doc__ = (
+        "Request a controlled handoff/coordination with a peer member of this "
+        "run.  Identity, run scope and budget are fixed by the program; only "
+        "authorized nodes of this run can be addressed."
+    )
+    return request_peer
+
+
+def make_restricted_claim_tool(
+    *,
+    registry: ExecutionGrantRegistry,
+    token: str,
+    discover: Callable[[], Any],
+    claim_callback: Callable[[str, str], Any],
+) -> Callable[..., dict[str, Any]]:
+    """Build a worker-facing *autonomous* discovery/claim request tool.
+
+    This is the minimal safe request channel the R1 gap requires: a worker with a
+    program-frozen ``kind="pool"`` grant may (a) ask the program which nodes it
+    is *allowed* to see, and (b) *propose* a claim for one of them.  The program
+    - never the model - owns identity, authorization and the atomic grant:
+
+    * identity comes from the frozen grant (never from tool arguments);
+    * the discover projection is the program's authorized view for this member;
+    * a claim for a node outside that view is refused before any service call;
+    * the reservation is atomic, so a race has one winner and a definite refusal;
+    * the returned receipt is **redacted** - it carries the decision and fence but
+      never a grant token, so nothing credential-like enters the model prompt.
+
+    ``claim_callback(node_ref, request_id)`` is executed by the program and must
+    itself authenticate/validate and mint the node grant; its structured reply is
+    folded into the redacted receipt.
+    """
+
+    def discover_and_request_claim(
+        node_ref: str | None = None,
+        request_id: str | None = None,
+        summary: str = "",
+    ) -> dict[str, Any]:
+        grant = registry.resolve(token)
+        if grant is None or grant.kind != "pool":
+            return PeerToolResult(
+                ok=False, reason="grant_revoked_or_expired", state="rejected"
+            ).to_dict()
+        view = discover()
+        candidates = [
+            {
+                "node_ref": candidate.subtask_id,
+                "capability": getattr(candidate, "capability", None),
+                "key": getattr(candidate, "key", None),
+                # The worker must know *what artifact to build* to act on an
+                # authorized node.  The discovery projection already carries the
+                # program-owned objective/acceptance; without it a product-path
+                # worker cannot tell which file its node owns (the R2 probe hid
+                # this by hand-feeding a path).  Additive, non-secret.
+                "objective": getattr(candidate, "objective", None),
+                "write": getattr(candidate, "write", None),
+            }
+            for candidate in getattr(view, "candidates", ())
+        ]
+        if node_ref is None:
+            # Discovery-only call: nothing is claimed.
+            return PeerToolResult(
+                ok=True,
+                reason="discovered",
+                state="discovered",
+                detail={
+                    "candidates": candidates,
+                    "run_ref": getattr(view, "run_ref", grant.run_id),
+                },
+            ).to_dict()
+        visible = {item["node_ref"] for item in candidates}
+        if node_ref not in visible:
+            return PeerToolResult(
+                ok=False,
+                reason="not_discoverable",
+                state="rejected",
+                detail={"node_ref": node_ref, "candidates": candidates},
+            ).to_dict()
+        reserved, pooled = registry.grant_claim(token)
+        if not reserved:
+            reason = "grant_revoked_or_expired" if pooled is None else "claim_not_permitted"
+            return PeerToolResult(ok=False, reason=reason, state="rejected").to_dict()
+        receipt = claim_callback(node_ref, request_id or f"claim_{secrets.token_hex(8)}")
+        payload = receipt if isinstance(receipt, dict) else {"state": str(receipt)}
+        granted = bool(payload.get("granted"))
+        detail: dict[str, Any] = {
+            "node_ref": node_ref,
+            "fence": payload.get("fence"),
+            "lease_expires_at": payload.get("lease_expires_at"),
+            "request_id": payload.get("request_id"),
+            "reason": payload.get("reason"),
+        }
+        # Additive: on an accepted claim the program hands back the *binding* of
+        # the node the worker itself selected (isolated workspace, upstream
+        # versioned refs, capability/objective).  This is program-owned metadata
+        # (never a token) so the worker knows where to write the artifact it owns;
+        # it does not move control authority - the program still applies the
+        # result to the chosen node and owns state/manifest/verification.
+        binding = payload.get("binding")
+        if granted and isinstance(binding, dict):
+            detail["binding"] = binding
+        return PeerToolResult(
+            ok=granted,
+            reason=str(payload.get("reason") or ("granted" if granted else "refused")),
+            state="granted" if granted else "refused",
+            # Redacted receipt: no token, only the program's decision + fence.
+            detail=detail,
+        ).to_dict()
+
+    discover_and_request_claim.__name__ = "discover_and_request_claim"
+    discover_and_request_claim.__doc__ = (
+        "Discover the nodes this worker is authorized to see and optionally "
+        "request to claim one.  Call with no node_ref to only list candidates; "
+        "call with node_ref to propose a claim.  The program authenticates this "
+        "worker, validates capability/dependencies/budget and grants atomically; "
+        "the reply is a redacted decision, not a credential."
+    )
+    return discover_and_request_claim
+
+
+__all__ = [
+    "DEFAULT_GRANT_SECONDS",
+    "ExecutionGrant",
+    "ExecutionGrantRegistry",
+    "PeerToolResult",
+    "default_registry",
+    "make_restricted_claim_tool",
+    "make_restricted_peer_tool",
+    "reset_default_registry",
+    "resolve_worker_identity",
+]

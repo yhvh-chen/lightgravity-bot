@@ -1,0 +1,289 @@
+/*
+ * Chat view styles (LG-013). Additive to shell.css tokens.
+ */
+
+.lg-chat__attachments {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-2);
+  font-size: var(--lg-font-size-xs);
+}
+
+.lg-chat__attachments li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lg-space-1);
+}
+
+.lg-chat__chip-row {
+  list-style: none;
+  margin: 0 0 var(--lg-space-2);
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-2);
+}
+
+.lg-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lg-space-1);
+  padding: 2px var(--lg-space-2);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-pill);
+  background: var(--lg-color-surface-2);
+  font-size: var(--lg-font-size-xs);
+}
+
+.lg-chat__attach {
+  display: block;
+  margin-bottom: var(--lg-space-2);
+}
+
+.lg-input {
+  width: 100%;
+  padding: var(--lg-space-2);
+  border: 1px solid var(--lg-color-border-strong);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-panel);
+  color: var(--lg-color-text);
+  font-family: var(--lg-font-sans);
+  font-size: var(--lg-font-size-sm);
+}
+
+.lg-link-button {
+  margin-left: var(--lg-space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--lg-color-accent);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.lg-notice--error {
+  color: var(--lg-color-error);
+}
+
+/* ---------------------------------------------------------------- materials */
+/* LG-038: Chat material intake + source search. Uses only shared tokens. */
+
+.lg-materials,
+.lg-source-search {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  padding: var(--lg-space-2) var(--lg-space-3);
+  border-top: 1px solid var(--lg-color-border);
+}
+
+.lg-materials__header,
+.lg-materials__item-head,
+.lg-source-search__hit-head,
+.lg-source-search__hit-meta,
+.lg-materials__item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-2);
+}
+
+.lg-materials__title {
+  font-size: var(--lg-font-size-sm);
+  font-weight: 600;
+  color: var(--lg-color-text);
+}
+
+.lg-materials__scope,
+.lg-materials__hint,
+.lg-materials__empty,
+.lg-materials__detail,
+.lg-materials__flag {
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-muted);
+}
+
+.lg-materials__drop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-2);
+  padding: var(--lg-space-2);
+  border: 1px dashed var(--lg-color-border-strong);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-surface-2);
+}
+
+.lg-materials__drop.is-active {
+  border-color: var(--lg-color-accent);
+  background: var(--lg-color-accent-soft);
+}
+
+.lg-materials__link {
+  display: flex;
+  gap: var(--lg-space-2);
+  align-items: center;
+}
+
+.lg-materials__link .lg-input {
+  flex: 1 1 auto;
+}
+
+.lg-materials__list,
+.lg-source-search__hits {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-materials__item,
+.lg-source-search__hit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  padding: var(--lg-space-2);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-panel);
+}
+
+.lg-materials__name {
+  font-size: var(--lg-font-size-sm);
+  font-weight: 600;
+  color: var(--lg-color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40ch;
+}
+
+.lg-materials__item-actions {
+  display: flex;
+  gap: var(--lg-space-2);
+}
+
+.lg-source-search__snippet {
+  margin: 0;
+  font-size: var(--lg-font-size-sm);
+  color: var(--lg-color-text-muted);
+}
+
+.lg-source-search__stale {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-2);
+}
+
+/* ---------------------------------------------------- selected materials */
+/* LG-044: manual selected-material picker + reply Sources (docs/10). Shares
+   the Material tokens; no new colors or components introduced. */
+
+.lg-source-picker,
+.lg-chat-sources {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  padding: var(--lg-space-2) var(--lg-space-3);
+  border-top: 1px solid var(--lg-color-border);
+}
+
+.lg-source-picker__row,
+.lg-chat-sources__header,
+.lg-chat-sources__item-head,
+.lg-chat-sources__item-meta,
+.lg-source-picker__item .lg-materials__item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-2);
+}
+
+.lg-source-picker__scope,
+.lg-source-picker__hint {
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-muted);
+}
+
+.lg-source-picker__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-source-picker__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  padding: var(--lg-space-2);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-surface-2);
+}
+
+.lg-source-picker__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.lg-source-picker__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  padding: var(--lg-space-1) 0;
+}
+
+.lg-source-picker__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lg-space-2);
+  min-height: 36px;
+}
+
+.lg-chat-sources__title {
+  font-size: var(--lg-font-size-sm);
+  font-weight: 600;
+  color: var(--lg-color-text);
+}
+
+.lg-chat-sources__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-chat-sources__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  padding: var(--lg-space-2);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-panel);
+}
+
+.lg-chat-sources__note,
+.lg-chat-sources__truncation {
+  margin: 0;
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-muted);
+}
