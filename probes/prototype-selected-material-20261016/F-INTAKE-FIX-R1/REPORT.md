@@ -5,8 +5,8 @@ PASS claim). **Branch:** `fix/proto-material-intake-r1-20261016`.
 **Base HEAD at report time:** `1d7095c`. See the final commit section for the
 exact committed SHA.
 
-> Companion diagnosis: `probes/prototype-selected-material-20261016/F-INTAKE-FIX-R1/DIAGNOSIS.md`.
-> Durable raw logs: `.../F-INTAKE-FIX-R1/raw/`.
+> Companion diagnosis: `DIAGNOSIS.md` (this directory).
+> Durable raw logs: `raw/` (this directory).
 
 ## 0. Prior-writer / process check (done first)
 
@@ -179,8 +179,7 @@ Committed files (F backend source + owned test edits + probe; **no** symlinks,
 - `tests/sources/test_intake_jobs.py`
 - `tests/sources/test_sources_api.py`
 - `tests/sources/test_lg047_intake_r1.py`
-- `probes/prototype-selected-material-20261016/F-INTAKE-FIX-R1/**`
-- `REPORT.md`
+- `probes/prototype-selected-material-20261016/F-INTAKE-FIX-R1/**` (includes this `REPORT.md`)
 
 Final HEAD SHA and `git status` are recorded at the end of this report.
 
