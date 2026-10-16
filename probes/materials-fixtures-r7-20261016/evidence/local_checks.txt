@@ -1,0 +1,73 @@
+# LG-035 R7 — local checks (raw output)
+date_utc: 2026-10-16T01:22:34Z
+
+## sha256
+788dd8f0bcb0ec06e40c300690266742532a7e760a93be57764b77ed0ef3482f  sources/nist-sp811/nistspecialpublication811e2008.pdf
+42d50ff2eb76019f346bd6a215f00406d1a6c0629255c8641b063945d9a3b5ed  fixtures/born_digital_table_page16_full_scale2.png
+6925e05e3e6eb71528b6dce2e1c393df987d4f3afed858a32bcf053fa562dd7c  fixtures/born_digital_table_region_scale2.png
+39138a971d605f65d10b5df3a13e35c7cec5d3710bc38d55e6eb656fc1219652  fixtures/honest_table_grid_scale4.png
+0f7286016cc22717d4dab67319180604be097374b4d07a53fe68332c9f68ada5  fixtures/mixed_born_digital_plus_scan.pdf
+02a4ada1be2c38d356034bf79a1b856394f3cbac5a2bfd8ca0d11bc780d4f39d  truth/LG035-R7-T1.table.json
+863ce99ced811db3b20fce95fbfad6c756bb521f865e80d77e66f80f0193a8a9  truth/TRUTH-MANIFEST.json
+
+## mixed fixture pdfinfo
+Creator:         PDFium
+Producer:        PDFium
+CreationDate:    Fri Oct 16 23:21:33 2026 AEDT
+Custom Metadata: no
+Metadata Stream: no
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           2
+Encrypted:       no
+Page size:       612 x 792 pts (letter)
+Page rot:        0
+File size:       103371 bytes
+Optimized:       no
+PDF version:     1.7
+
+## mixed page1 text layer (native, first 6 lines)
+Guide for the Use of the International System of Units (SI)
+
+4.1
+
+SI base units
+
+
+## mixed page2 text bytes (expect only form-feed => no text layer)
+0000000  \f
+0000001
+
+## verify_truth.py output
+== native text rect rows in table region ==
+   'Base quantity Name Symbol'
+   'length meter m'
+   'mass kilogram kg'
+   'time second s'
+   'electric current ampere A'
+   'thermodynamic temperature kelvin K'
+   'amount of substance mole mol'
+   'luminous intensity candela cd'
+
+== cell-text presence in native layer ==
+  expected cells: 24
+  missing (not found byte-exact): []
+
+== structure counts ==
+  truth n_cols = 3 (expect 3)
+  truth n_rows_data = 7 (expect 7)
+
+== mixed fixture text-layer split ==
+  pages = 2 (expect 2)
+  page1 native_text_layer_present = True (expect True)
+  page2 native_text_layer_present = False (expect False)
+
+RESULT: PASS
+
+## grid geometry (rules/gutters) from rasterized crop
+crop dims: 1739 x 442
+horizontal full-width rules at rows: [2, 3, 98, 99, 422, 423]
+vertical full-height rules at cols: []
