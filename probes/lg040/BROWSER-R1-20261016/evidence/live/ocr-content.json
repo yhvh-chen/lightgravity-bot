@@ -1,0 +1,31 @@
+{
+  "source1": {
+    "source_id": "source_01M51N3TJT5QQGYGNB92V5C7MH",
+    "status": "extracted",
+    "index": {
+      "lexical": "not_indexed",
+      "lexical_hash": null,
+      "vector": "disabled",
+      "vector_model": null
+    },
+    "content": {
+      "source_id": "source_01M51N3TJT5QQGYGNB92V5C7MH",
+      "kind": "machine",
+      "path": "derivative/machine.v1.md",
+      "media_type": "text/markdown; charset=utf-8",
+      "content": "---\nschema: lightgravity.bot/v1\nkind: source_derivative\nrecord_type: machine_ocr\nsource_version: 1\nextractor: lg035-ocr\nextractor_model: qwen3.8-27b\nextraction_status: succeeded\nsource_file: clear_real.pdf\ntotal_pages: 1\n---\n\n# Machine OCR — clear_real.pdf\n\n> Machine transcription. Authoritative human edits live in `formal/FORMAL.md`; reprocessing replaces this file only.\n\n## Page 1\n\n<!-- original: clear_real.pdf page=1 input_sha256=1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276 -->\n\nThis is a lot of 12 point text to test the\nocr code and see if it works on all types\nof file format.\nThe quick brown dog jumped over the\nlazy fox. The quick brown dog jumped\nover the lazy fox. The quick brown dog\njumped over the lazy fox. The quick\nbrown dog jumped over the lazy fox.\n",
+      "formal_present": false
+    }
+  },
+  "source2": {
+    "source_id": "source_01M51N3TRHB3Y5KQ5SAPSBEFRB",
+    "content": {
+      "source_id": "source_01M51N3TRHB3Y5KQ5SAPSBEFRB",
+      "kind": "machine",
+      "path": "derivative/machine.v1.md",
+      "media_type": "text/markdown; charset=utf-8",
+      "content": "---\nschema: lightgravity.bot/v1\nkind: source_derivative\nrecord_type: machine_ocr\nsource_version: 1\nextractor: lg035-ocr\nextractor_model: qwen3.8-27b\nextraction_status: succeeded\nsource_file: honest_table_grid_scale4.png\ntotal_pages: 1\n---\n\n# Machine OCR — honest_table_grid_scale4.png\n\n> Machine transcription. Authoritative human edits live in `formal/FORMAL.md`; reprocessing replaces this file only.\n\n## Page 1\n\n<!-- original: honest_table_grid_scale4.png page=1 input_sha256=39138a971d605f65d10b5df3a13e35c7cec5d3710bc38d55e6eb656fc1219652 -->\n\n|  | SI base unit |  |\n|---|---|---|\n| Base quantity | Name | Symbol |\n| length | meter | m |\n| mass | kilogram | kg |\n| time | second | s |\n| electric current | ampere | A |\n| thermodynamic temperature | kelvin | K |\n| amount of substance | mole | mol |\n| luminous intensity | candela | cd |\n",
+      "formal_present": false
+    }
+  }
+}
