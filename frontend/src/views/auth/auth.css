@@ -1,0 +1,73 @@
+/* Team login gate (LG-050). Uses the shared design tokens only. */
+
+.lg-auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--lg-space-5);
+  background: var(--lg-color-bg);
+}
+
+.lg-auth__card {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-4);
+  padding: var(--lg-space-6);
+  background: var(--lg-color-panel);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+}
+
+.lg-auth__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--lg-space-3);
+}
+
+.lg-auth__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-accent-soft);
+  color: var(--lg-color-accent);
+  font-weight: 700;
+}
+
+.lg-auth__title {
+  margin: 0;
+  font-size: var(--lg-font-size-lg);
+  color: var(--lg-color-text);
+}
+
+.lg-auth__subtitle {
+  margin: var(--lg-space-1) 0 0;
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-subtle);
+}
+
+.lg-auth__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+}
+
+.lg-auth__label {
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-muted);
+}
+
+.lg-auth__submit {
+  width: 100%;
+}
+
+.lg-auth__hint {
+  margin: 0;
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-subtle);
+}

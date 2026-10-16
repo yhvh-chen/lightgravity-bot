@@ -29,8 +29,11 @@ def test_frozen_constants() -> None:
     # ``ExecutionGrant.lease_owner``) -> 1.12.0 (LG-043 selected-material
     # implementation: additive optional message ``selected_sources`` +
     # reply/Run data ``resolved_source_bindings``/``context_truncated``/
-    # ``provided_context_note``).  Additive MINOR only.
-    assert CONTRACT_VERSION == "1.12.0"
+    # ``provided_context_note``) -> 1.13.0 (LG-050 shared team mode
+    # implementation: additive team-mode switch, ``/auth/me|login|logout``,
+    # server-written message ``author`` and the ``forbidden`` error code).
+    # Additive MINOR only.
+    assert CONTRACT_VERSION == "1.13.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 

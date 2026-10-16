@@ -3,6 +3,16 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
+#: docs/08 §13: 1.13.0 (2026-10-16) is the additive MINOR bump for LG-050's
+#: shared-team-mode implementation (interface frozen in ``1.13.0`` by the PM):
+#: an explicitly-enabled team mode (default off, single-user unchanged), the
+#: ``/api/v1/auth/me|login|logout`` session endpoints, the server-written
+#: additive optional message ``author`` field, the ``forbidden`` (403) error
+#: code, and the read-only ``GET /auth/me`` single/team discriminator.  No
+#: existing endpoint, enum or migration direction changes; anonymous access to
+#: business APIs is default-deny in team mode and the legacy ``X-LG-Token``
+#: never contributes team identity.
+#:
 #: docs/08 §13: 1.12.0 (2026-10-16) is the additive MINOR bump for LG-043's
 #: selected-material implementation (frozen in ``1.12.0`` reserved by LG-042):
 #: the message envelope gains the additive optional ``selected_sources`` field
@@ -108,7 +118,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.12.0"
+CONTRACT_VERSION = "1.13.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

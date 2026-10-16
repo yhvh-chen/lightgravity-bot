@@ -50,6 +50,9 @@ export async function apiRequest<T>(
   let response: Response
   try {
     response = await fetch(`${API_PREFIX}${path}`, {
+      // Send the same-origin HttpOnly session cookie for team mode (LG-050
+      // §7).  In single-user mode the cookie is simply absent; this is inert.
+      credentials: 'include',
       headers: { Accept: 'application/json' },
       ...init,
     })

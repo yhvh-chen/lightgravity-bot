@@ -1,0 +1,295 @@
+{
+  "checks": [
+    {
+      "name": "T01a anon /auth/me reports team+unauthenticated",
+      "ok": true,
+      "detail": "200 {'mode': 'team', 'authenticated': False, 'username': None, 'role': None}"
+    },
+    {
+      "name": "T01b admin login 200",
+      "ok": true,
+      "detail": "200 {'username': 'alice', 'role': 'admin'}"
+    },
+    {
+      "name": "T01c member login 200",
+      "ok": true,
+      "detail": "200 {'username': 'bob', 'role': 'member'}"
+    },
+    {
+      "name": "T01d admin /auth/me identifies alice",
+      "ok": true,
+      "detail": "200 {'mode': 'team', 'authenticated': True, 'username': 'alice', 'role': 'admin'}"
+    },
+    {
+      "name": "T01e wrong password 401",
+      "ok": true,
+      "detail": "401 {'error': {'code': 'unauthorized', 'message': 'invalid username or password', 'details': {}, 'retryable': False, 'request_id': None}}"
+    },
+    {
+      "name": "T02 anon /api/v1/tasks -> 401",
+      "ok": true,
+      "detail": "401 {'error': {'code': 'unauthorized', 'message': 'a valid team session is required', 'details': {'endpoint': '/api/v1/tasks"
+    },
+    {
+      "name": "T02 anon /api/v1/conversations/global/messages -> 401",
+      "ok": true,
+      "detail": "401 {'error': {'code': 'unauthorized', 'message': 'a valid team session is required', 'details': {'endpoint': '/api/v1/conve"
+    },
+    {
+      "name": "T02 anon /api/v1/files/download?path=x -> 401",
+      "ok": true,
+      "detail": "401 {'error': {'code': 'unauthorized', 'message': 'a valid team session is required', 'details': {'endpoint': '/api/v1/files"
+    },
+    {
+      "name": "T02 anon /api/v1/files/content?path=x -> 401",
+      "ok": true,
+      "detail": "401 {'error': {'code': 'unauthorized', 'message': 'a valid team session is required', 'details': {'endpoint': '/api/v1/files"
+    },
+    {
+      "name": "T02 anon /api/v1/sources -> 401",
+      "ok": true,
+      "detail": "401 {'error': {'code': 'unauthorized', 'message': 'a valid team session is required', 'details': {'endpoint': '/api/v1/sourc"
+    },
+    {
+      "name": "T02 anon /api/v1/search?q=x -> 401",
+      "ok": true,
+      "detail": "401 {'error': {'code': 'unauthorized', 'message': 'a valid team session is required', 'details': {'endpoint': '/api/v1/searc"
+    },
+    {
+      "name": "T02 anon /api/v1/events/stream -> 401",
+      "ok": true,
+      "detail": "401 {'error': {'code': 'unauthorized', 'message': 'a valid team session is required', 'details': {'endpoint': '/api/v1/event"
+    },
+    {
+      "name": "T02 anon /api/v1/settings -> 401",
+      "ok": true,
+      "detail": "401 {'error': {'code': 'unauthorized', 'message': 'a valid team session is required', 'details': {'endpoint': '/api/v1/setti"
+    },
+    {
+      "name": "T02 anon /api/v1/resources/skill/none -> 401",
+      "ok": true,
+      "detail": "401 {'error': {'code': 'unauthorized', 'message': 'a valid team session is required', 'details': {'endpoint': '/api/v1/resou"
+    },
+    {
+      "name": "T03a anon + X-LG-Token -> 401",
+      "ok": true,
+      "detail": "401"
+    },
+    {
+      "name": "T03b anon + X-LG-Token (history) -> 401",
+      "ok": true,
+      "detail": "401"
+    },
+    {
+      "name": "T03c member + X-LG-Token cannot reach /settings -> 403",
+      "ok": true,
+      "detail": "403"
+    },
+    {
+      "name": "T04a admin ordinary message recorded, reply null, no task",
+      "ok": true,
+      "detail": "200 {'kind': 'recorded', 'reply': None, 'task_id': None, 'run_id': None, 'conversation_id': 'conv_00000000000000000000000000', 'queue_state': None, 'candidates': [], 'data': {'intent': 'recorded', 'creates_task': False}}"
+    },
+    {
+      "name": "T04b member ordinary message recorded",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "name": "T04c shared history shows real authors",
+      "ok": true,
+      "detail": "alice={'kind': 'user', 'username': 'alice', 'role': 'admin'} bob={'kind': 'user', 'username': 'bob', 'role': 'member'}"
+    },
+    {
+      "name": "T04d member sees the same shared history",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "name": "T05a global message with client author -> 422",
+      "ok": true,
+      "detail": "422 {'error': {'code': 'validation_failed', 'message': 'request failed schema validation', 'details': {'errors': [{'type': 'extra_forbidden', 'loc': ['body', 'author'], 'msg': 'Extra inputs are not permitted', 'input': {'kind': 'user', 'username': 'alice', 'role': 'admin'}}]}, 'retryable': False, 'request_id': None}}"
+    },
+    {
+      "name": "T05b forged message not persisted",
+      "ok": true,
+      "detail": "found=0"
+    },
+    {
+      "name": "T05c task message with client author -> 422",
+      "ok": true,
+      "detail": "422"
+    },
+    {
+      "name": "T06 ordinary chat triggers zero classifier/responder (no model)",
+      "ok": true,
+      "detail": "counters={'classifier': 0, 'responder': 0}"
+    },
+    {
+      "name": "T06b ordinary chat created no Task",
+      "ok": true,
+      "detail": "200 0"
+    },
+    {
+      "name": "T07a @bot triggers exactly one classifier+responder",
+      "ok": true,
+      "detail": "200 counters={'classifier': 1, 'responder': 1} body={'kind': 'direct', 'reply': 'QA-STUB-REPLY', 'task_id': None, 'run_id': None, 'conversation_id': 'conv_00000000000000000"
+    },
+    {
+      "name": "T08a concurrent duplicate @bot -> exactly one responder/classifier",
+      "ok": true,
+      "detail": "counters={'classifier': 1, 'responder': 1} statuses=[200, 200, 200, 200, 200, 200]"
+    },
+    {
+      "name": "T08b duplicate message persisted once",
+      "ok": true,
+      "detail": "rows=1"
+    },
+    {
+      "name": "T09a all concurrent ordinary messages persisted",
+      "ok": true,
+      "detail": "missing=[] dup_seqs=0"
+    },
+    {
+      "name": "T09b sequence numbers strictly increasing (server order)",
+      "ok": true,
+      "detail": "n=33"
+    },
+    {
+      "name": "T10a first page returns cursor",
+      "ok": true,
+      "detail": "cursor=v1:conv_00000000000000000000000000:2"
+    },
+    {
+      "name": "T10b cursor returns only newer messages incl. concurrent set",
+      "ok": true,
+      "detail": "n=31"
+    },
+    {
+      "name": "T11a member GET /settings -> 403",
+      "ok": true,
+      "detail": "403"
+    },
+    {
+      "name": "T11b member PATCH /settings -> 403",
+      "ok": true,
+      "detail": "403 {'error': {'code': 'forbidden', 'message': 'administrator role required', 'details': {'required_role': 'admin', 'endpoint': '/api/v1/settings'}, 'retryable': False, 'request_id': None}}"
+    },
+    {
+      "name": "T11c member PUT credential -> 403",
+      "ok": true,
+      "detail": "403 {'error': {'code': 'forbidden', 'message': 'administrator role required', 'details': {'required_role': 'admin', 'endpoint': '/api/v1/settings/credentials/qa_cred'}, 'retryable': False, 'request_id': None}}"
+    },
+    {
+      "name": "T11d member PATCH /resources -> 403",
+      "ok": true,
+      "detail": "403 {'error': {'code': 'forbidden', 'message': 'administrator role required', 'details': {'required_role': 'admin', 'endpoint': '/api/v1/resources/skill/none'}, 'retryable': False, 'request_id': None}}"
+    },
+    {
+      "name": "T11e member credential write left no secret file",
+      "ok": true,
+      "detail": "files=[]"
+    },
+    {
+      "name": "T12a member can create a task (business write allowed)",
+      "ok": true,
+      "detail": "200 task_01M527CH332JQ6WG5XAS7A4KYY"
+    },
+    {
+      "name": "T12b member resource_proposal -> 403",
+      "ok": true,
+      "detail": "403 {'error': {'code': 'forbidden', 'message': 'administrator role required', 'details': {'required_role': 'admin', 'endpoint': '/api/v1/tasks/task_01M527CH332JQ6WG"
+    },
+    {
+      "name": "T12c rejected proposal not persisted",
+      "ok": true,
+      "detail": "rows=0"
+    },
+    {
+      "name": "T12d rejected proposal created no resource",
+      "ok": true,
+      "detail": "404"
+    },
+    {
+      "name": "T13a accounts file really contains a hash+salt",
+      "ok": true,
+      "detail": "path=/tmp/lg050-qa-079tuacc/data/team/accounts.json"
+    },
+    {
+      "name": "T13b /files/content cannot read accounts.json",
+      "ok": true,
+      "detail": "403 {'error': {'code': 'path_outside_workspace', 'message': 'path resolves inside a protected store', 'details': {'path': 'team/accounts.json'}, 'retryable': False,"
+    },
+    {
+      "name": "T13c /files/download cannot read accounts.json",
+      "ok": true,
+      "detail": "403"
+    },
+    {
+      "name": "T13d /files listing does not list accounts.json",
+      "ok": true,
+      "detail": "403"
+    },
+    {
+      "name": "T14a cross-origin credential write rejected",
+      "ok": true,
+      "detail": "401 {'error': {'code': 'unauthorized', 'message': 'credential endpoints only accept loopback browser origins', 'details': {'origin_host': 'evil.example'}, 'retryabl"
+    },
+    {
+      "name": "T14b cross-origin login -> 403",
+      "ok": true,
+      "detail": "403 {'error': {'code': 'forbidden', 'message': 'cross-origin login is not accepted', 'details': {'origin': 'http://evil.exam"
+    },
+    {
+      "name": "T14c loopback login still works",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "name": "T15a logout 204",
+      "ok": true,
+      "detail": "204"
+    },
+    {
+      "name": "T15b /auth/me after logout unauthenticated",
+      "ok": true,
+      "detail": "200 {'mode': 'team', 'authenticated': False, 'username': None, 'role': None}"
+    },
+    {
+      "name": "T15c old cookie after logout -> 401",
+      "ok": true,
+      "detail": "401"
+    },
+    {
+      "name": "T15d open SSE stream opened",
+      "ok": true,
+      "detail": "status=200"
+    },
+    {
+      "name": "T15e open SSE stream is torn down by session expiry",
+      "ok": true,
+      "detail": "events=1 open=1792149964.1998465 closed=1792149964.8679311 err=None"
+    },
+    {
+      "name": "T15f expired cookie -> 401",
+      "ok": true,
+      "detail": "401"
+    },
+    {
+      "name": "T16a single mode /auth/me = single authenticated",
+      "ok": true,
+      "detail": "200 {'mode': 'single', 'authenticated': True, 'username': None, 'role': 'admin'}"
+    },
+    {
+      "name": "T16b single mode /tasks reachable on loopback",
+      "ok": true,
+      "detail": "200"
+    },
+    {
+      "name": "T16c single mode version reachable",
+      "ok": true,
+      "detail": "200"
+    }
+  ],
+  "failed": 0
+}

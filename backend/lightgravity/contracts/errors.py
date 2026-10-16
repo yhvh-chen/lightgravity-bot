@@ -11,6 +11,7 @@ from .enums import ErrorCode
 ERROR_HTTP_STATUS: dict[ErrorCode, int] = {
     ErrorCode.INVALID_REQUEST: 400,
     ErrorCode.UNAUTHORIZED: 401,
+    ErrorCode.FORBIDDEN: 403,
     ErrorCode.PATH_OUTSIDE_WORKSPACE: 403,
     ErrorCode.NOT_FOUND: 404,
     ErrorCode.REVISION_CONFLICT: 409,
@@ -36,6 +37,7 @@ ERROR_HTTP_STATUS: dict[ErrorCode, int] = {
 ERROR_RETRYABLE: dict[ErrorCode, bool] = {
     ErrorCode.INVALID_REQUEST: False,
     ErrorCode.UNAUTHORIZED: False,
+    ErrorCode.FORBIDDEN: False,
     ErrorCode.PATH_OUTSIDE_WORKSPACE: False,
     ErrorCode.NOT_FOUND: False,
     ErrorCode.REVISION_CONFLICT: False,

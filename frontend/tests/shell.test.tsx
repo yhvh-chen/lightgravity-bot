@@ -4,8 +4,35 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '../src/App'
 import { backendFetch, setViewport } from './setup'
 
-function renderShell() {
-  return render(<App />)
+/**
+ * Since LG-050 the shell mounts only after the `/auth/me` probe resolves (the
+ * gate must not optimistically bypass the login experience).  The probe is
+ * asynchronous, so every test awaits the real shell mount before asserting.
+ */
+async function renderShell() {
+  const result = render(<App />)
+  await screen.findByRole('heading', { name: 'LightGravity Bot' })
+  return result
+}
+
+function notFoundResponse(): Response {
+  return {
+    ok: false,
+    status: 404,
+    headers: {
+      get: (name: string) =>
+        name.toLowerCase() === 'content-type' ? 'application/json' : null,
+    },
+    json: async () => ({
+      error: {
+        code: 'not_found',
+        message: 'not implemented',
+        details: {},
+        retryable: false,
+        request_id: null,
+      },
+    }),
+  } as unknown as Response
 }
 
 beforeEach(() => {
@@ -23,8 +50,8 @@ afterEach(() => {
 })
 
 describe('LG-011 shell: navigation', () => {
-  it('renders the five work entries then Settings, with Chat active by default', () => {
-    renderShell()
+  it('renders the five work entries then Settings, with Chat active by default', async () => {
+    await renderShell()
     const nav = screen.getByRole('navigation', { name: 'Primary navigation' })
     const labels = within(nav)
       .getAllByRole('button')
@@ -45,8 +72,8 @@ describe('LG-011 shell: navigation', () => {
     expect(labels[labels.length - 1]).toBe('Settings')
   })
 
-  it('keeps primary navigation out of the top bar', () => {
-    renderShell()
+  it('keeps primary navigation out of the top bar', async () => {
+    await renderShell()
     const banner = screen.getByRole('banner')
     for (const label of ['Chat', 'Board', 'Files', 'Team', 'Resources']) {
       expect(within(banner).queryByRole('button', { name: label })).toBeNull()
@@ -55,8 +82,8 @@ describe('LG-011 shell: navigation', () => {
     expect(screen.getAllByRole('button', { name: 'Chat' })).toHaveLength(1)
   })
 
-  it('moves aria-current with the active view', () => {
-    renderShell()
+  it('moves aria-current with the active view', async () => {
+    await renderShell()
     fireEvent.click(screen.getByRole('button', { name: 'Team' }))
     expect(screen.getByRole('button', { name: 'Team' })).toHaveAttribute(
       'aria-current',
@@ -69,8 +96,8 @@ describe('LG-011 shell: navigation', () => {
 })
 
 describe('LG-011 shell: scope, selection and drafts survive view switches', () => {
-  it('preserves task/run scope and chat draft, with one conversation session', () => {
-    renderShell()
+  it('preserves task/run scope and chat draft, with one conversation session', async () => {
+    await renderShell()
 
     fireEvent.change(screen.getByLabelText('Scope'), {
       target: { value: 'mock-task-1' },
@@ -92,8 +119,8 @@ describe('LG-011 shell: scope, selection and drafts survive view switches', () =
     expect(screen.getAllByLabelText(/^Message for /)).toHaveLength(1)
   })
 
-  it('renders a single Chat surface and disables the rail toggle on the Chat view', () => {
-    renderShell()
+  it('renders a single Chat surface and disables the rail toggle on the Chat view', async () => {
+    await renderShell()
     expect(screen.getAllByLabelText(/^Message for /)).toHaveLength(1)
     expect(screen.getAllByLabelText('Chat workspace')).toHaveLength(1)
     expect(screen.getByRole('button', { name: 'Toggle chat panel' })).toBeDisabled()
@@ -105,8 +132,8 @@ describe('LG-011 shell: scope, selection and drafts survive view switches', () =
 })
 
 describe('LG-011 shell: panel controls', () => {
-  it('collapses and restores the context and chat panels', () => {
-    renderShell()
+  it('collapses and restores the context and chat panels', async () => {
+    await renderShell()
     const contextToggle = screen.getByRole('button', { name: 'Toggle context panel' })
     expect(contextToggle).toHaveAttribute('aria-pressed', 'true')
     expect(screen.getByRole('complementary', { name: 'Context' })).toBeInTheDocument()
@@ -123,8 +150,8 @@ describe('LG-011 shell: panel controls', () => {
     expect(screen.queryByRole('textbox')).toBeNull()
   })
 
-  it('resizes the context panel from the keyboard', () => {
-    renderShell()
+  it('resizes the context panel from the keyboard', async () => {
+    await renderShell()
     const separator = screen.getByRole('separator', {
       name: 'Resize context panel',
     })
@@ -138,7 +165,7 @@ describe('LG-011 shell: panel controls', () => {
 
 describe('LG-011 shell: empty, error and real-data states', () => {
   it('shows explicit empty states instead of inventing tasks or messages', async () => {
-    renderShell()
+    await renderShell()
     // The rail is backend-driven now; mocked fetch has no /tasks, so the rail
     // must say so rather than render layout-mock tasks.
     fireEvent.click(screen.getByRole('button', { name: 'Board' }))
@@ -150,7 +177,7 @@ describe('LG-011 shell: empty, error and real-data states', () => {
   })
 
   it('never fabricates a sent message and keeps the draft on a real failure', async () => {
-    renderShell()
+    await renderShell()
     const composer = screen.getByLabelText('Message for Global')
     fireEvent.change(composer, { target: { value: 'hello there' } })
     fireEvent.keyDown(composer, { key: 'Enter' })
@@ -163,18 +190,25 @@ describe('LG-011 shell: empty, error and real-data states', () => {
     ).toHaveLength(0)
   })
 
-  it('renders a real not-connected state when the backend is unreachable', async () => {
-    vi.mocked(globalThis.fetch).mockRejectedValue(new Error('Connection refused'))
-    renderShell()
+  it('renders a real not-connected state when a business endpoint is unreachable', async () => {
+    // `/auth/me` still resolves as a legacy single-user backend so the shell
+    // mounts; the business endpoints then fail with a real network error.
+    vi.mocked(globalThis.fetch).mockImplementation((async (input: RequestInfo | URL) => {
+      const url =
+        typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+      if (url.endsWith('/api/v1/auth/me')) return notFoundResponse()
+      throw new Error('Connection refused')
+    }) as unknown as typeof fetch)
+    await renderShell()
     expect(await screen.findByText(/Could not load messages|Scope not found/)).toBeInTheDocument()
     expect(screen.getByText(/network_error/)).toBeInTheDocument()
   })
 })
 
 describe('LG-011 shell: deep links', () => {
-  it('restores view and task scope from the URL', () => {
+  it('restores view and task scope from the URL', async () => {
     window.history.replaceState(null, '', '/?view=board&task=mock-task-1')
-    renderShell()
+    await renderShell()
     expect(screen.getByRole('button', { name: 'Board' })).toHaveAttribute(
       'aria-current',
       'page',
@@ -184,9 +218,9 @@ describe('LG-011 shell: deep links', () => {
 })
 
 describe('LG-011 shell: compact layout', () => {
-  it('turns panels into keyboard-dismissable drawers on narrow screens', () => {
+  it('turns panels into keyboard-dismissable drawers on narrow screens', async () => {
     setViewport(390)
-    renderShell()
+    await renderShell()
 
     expect(screen.queryByRole('navigation', { name: 'Primary navigation' })).toBeNull()
 

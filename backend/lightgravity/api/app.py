@@ -60,6 +60,7 @@ from ..settings import (
 )
 from ..store import FileStore
 from ..store.protocol import Store
+from ..team import TeamAccessPolicy, TeamAccounts, TeamAuthService
 from ..verify import (
     ResourceStopper,
     SessionStopConfirmer,
@@ -69,6 +70,7 @@ from ..verify import (
 )
 
 from .access import AccessPolicy, LocalAccessPolicy, require_access
+from .auth import build_auth_router
 from .context import ApiContext
 from .collaboration import build_collaboration_router
 from .conversations import build_conversations_router
@@ -139,7 +141,21 @@ def create_app(
         broadcasting, secret_store=secret_store
     )
 
-    policy = access_policy or LocalAccessPolicy()
+    policy = access_policy
+    team_service: TeamAuthService | None = None
+    if resolved.team_mode:
+        # Accounts are read lazily; the file is only created by the operator CLI,
+        # never as a side effect of an ordinary request.  No accounts file is
+        # touched in single-user mode.
+        team_service = TeamAuthService(
+            TeamAccounts(resolved.team_accounts_path),
+            session_ttl_seconds=resolved.team_session_ttl_seconds,
+            cookie_secure=resolved.team_cookie_secure,
+        )
+        if policy is None:
+            policy = TeamAccessPolicy(team_service)
+    if policy is None:
+        policy = LocalAccessPolicy()
 
     # The default stop gate may consult the real executor's stop facts (LG-022
     # R2) so a successful session-bearing Run is released only on a genuine
@@ -163,6 +179,8 @@ def create_app(
         dispatcher=dispatcher,
         verification=verification_service,
         responder=responder,
+        team_mode=resolved.team_mode,
+        bot_mention=resolved.team_bot_mention,
     )
     # An injected coordinator must share this app's verification service so the
     # normal POST /tasks delivery path auto-verifies there too, not only in the
@@ -192,6 +210,7 @@ def create_app(
         ),
         worker_identity=worker_identity,
         worker_grant=worker_grant,
+        team=team_service,
     )
 
     @asynccontextmanager
@@ -274,6 +293,7 @@ def create_app(
         return JSONResponse(status_code=exc.status_code, content=_dump(envelope))
 
     app.include_router(health_router, prefix=API_PREFIX)
+    app.include_router(build_auth_router(team_service), prefix=API_PREFIX)
     app.include_router(build_coordinator_router(resolved_coordinator), prefix=API_PREFIX)
     app.include_router(build_task_router(), prefix=API_PREFIX)
     app.include_router(build_resource_router(), prefix=API_PREFIX)

@@ -19,6 +19,7 @@ No command prints the runtime token, a credential value or the contents of
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
 import os
 import sys
@@ -49,6 +50,7 @@ from .runtime.pidfile import (
 from .runtime.token import resolve_runtime_token
 from .settings import ConnectionService, FileSecretStore, PREFERRED_MODEL, DEFAULT_BASE_URL
 from .store import FileStore
+from .team import TeamAccounts, TeamAccountsError
 
 DEFAULT_LOG_NAME = "lightgravity.log"
 
@@ -75,6 +77,13 @@ def _settings_from_args(args: argparse.Namespace) -> Settings:
         secret_store=secret_store,
         host=host,
         port=port,
+        # LG-050: carry the resolved team-mode settings so the CLI never drops
+        # them (the explicit path/port overrides must not reset team mode).
+        team_mode=env.team_mode,
+        team_accounts=env.team_accounts,
+        team_session_ttl_seconds=env.team_session_ttl_seconds,
+        team_cookie_secure=env.team_cookie_secure,
+        team_bot_mention=env.team_bot_mention,
     )
 
 
@@ -136,6 +145,15 @@ def _build_parser() -> argparse.ArgumentParser:
     init.add_argument("--agent-tools", default="view-file,edit-file,run-command")
     init.add_argument("--agent-skills", default="implementation,verification")
     init.add_argument("--set-worker-default", action="store_true")
+
+    user = sub.add_parser("user", help="manage team accounts (LG-050)")
+    user_sub = user.add_subparsers(dest="user_command")
+    user_add = user_sub.add_parser("add", help="add a team account (password via getpass)")
+    _add_paths(user_add)
+    user_add.add_argument("--username", required=True)
+    user_add.add_argument("--role", choices=["admin", "member"], default="member")
+    user_list = user_sub.add_parser("list", help="list team accounts (no secrets)")
+    _add_paths(user_list)
     return parser
 
 
@@ -352,6 +370,70 @@ def cmd_init(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_user_add(args: argparse.Namespace) -> int:
+    """Add a team account; the password is read via getpass, never argv."""
+
+    settings = _settings_from_args(args)
+    settings.ensure_data_dir()
+    accounts = TeamAccounts.from_settings(settings)
+    username = args.username
+    password = getpass.getpass("Password: ")
+    confirm = getpass.getpass("Confirm password: ")
+    if password != confirm:
+        print("passwords do not match", file=sys.stderr)
+        return 1
+    if not password:
+        print("password must not be empty", file=sys.stderr)
+        return 1
+    try:
+        account = accounts.add(username, password, args.role)
+    except TeamAccountsError as exc:
+        print(f"could not add account: {exc}", file=sys.stderr)
+        return 1
+    # Never print the password or hash.
+    print(
+        json.dumps(
+            {
+                "added": account.username,
+                "role": account.role,
+                "created_at": account.created_at,
+                "accounts_file": str(accounts.path),
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
+def cmd_user_list(args: argparse.Namespace) -> int:
+    """List accounts (username/role/created_at only; no hashes or passwords)."""
+
+    settings = _settings_from_args(args)
+    accounts_store = TeamAccounts.from_settings(settings)
+    try:
+        accounts = accounts_store.list_accounts()
+    except TeamAccountsError as exc:
+        print(f"could not read accounts: {exc}", file=sys.stderr)
+        return 1
+    print(
+        json.dumps(
+            {
+                "accounts": [
+                    {
+                        "username": account.username,
+                        "role": account.role,
+                        "created_at": account.created_at,
+                    }
+                    for account in accounts
+                ],
+                "accounts_file": str(accounts_store.path),
+            },
+            indent=2,
+        )
+    )
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
@@ -366,6 +448,13 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_status(args)
     if args.command == "init":
         return cmd_init(args)
+    if args.command == "user":
+        if args.user_command == "add":
+            return cmd_user_add(args)
+        if args.user_command == "list":
+            return cmd_user_list(args)
+        parser.error("user requires a subcommand: add|list")
+        return 2
     parser.error(f"unknown command {args.command!r}")
     return 2
 

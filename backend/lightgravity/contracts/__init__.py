@@ -5,7 +5,7 @@ copy these definitions (docs/08 §11).
 """
 
 from .constants import API_PREFIX, CONTRACT_VERSION, SCHEMA_NAMESPACE
-from .dto import ErrorBody, ErrorEnvelope, HealthResponse, VersionResponse
+from .dto import Author, ErrorBody, ErrorEnvelope, HealthResponse, VersionResponse
 from .enums import (
     AcceptanceStatus,
     ActionName,
@@ -46,6 +46,7 @@ __all__ = [
     "TaskPhase",
     "TaskStatus",
     "AppError",
+    "Author",
     "ERROR_HTTP_STATUS",
     "ERROR_RETRYABLE",
     "error_envelope",
