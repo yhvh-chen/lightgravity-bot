@@ -53,22 +53,25 @@ async def test_global_inline_source_creates_inbox_ref_not_task(api: httpx.AsyncC
     assert payload["deduplicated"] is False
     assert payload["source"]["scope"] == {"task_ref": None, "project_ref": None, "inbox_ref": None}
     assert payload["source"]["content_hash"] == hashlib.sha256(body).hexdigest()
-    assert payload["job"]["status"] == "queued"
-    assert payload["job"]["stage"] == "received"
+    # A native text/plain upload is extracted synchronously by the model-free
+    # UTF-8 path (F-INTAKE-FIX-R1), so the real job reaches a terminal value.
+    assert payload["source"]["status"] == "extracted"
+    assert payload["job"]["status"] == "succeeded"
+    assert payload["job"]["stage"] == "done"
 
     # No Task was created as a side effect.
     tasks = await api.get("/api/v1/tasks")
     assert tasks.status_code == 200
     assert tasks.json()["items"] == []
 
-    # Receipt reads the same file state and never fabricates a searchable body.
+    # Receipt reads the same file state and records the real extraction.
     source_id = payload["source"]["source_id"]
     receipt = await api.get(f"/api/v1/sources/{source_id}/receipt")
     assert receipt.status_code == 200, receipt.text
     latest = receipt.json()["latest"]
-    assert latest["status"] == "received"
-    assert latest["searchable"] is False
-    assert latest["formal_path"] is None
+    assert latest["status"] == "extracted"
+    assert latest["searchable"] is True
+    assert latest["formal_path"] == "derivative/machine.v1.md"
 
 
 async def test_request_id_idempotent_and_payload_conflict(api: httpx.AsyncClient) -> None:

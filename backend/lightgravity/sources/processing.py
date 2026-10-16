@@ -70,6 +70,25 @@ IMAGE_MEDIA_TYPES = (
     "image/bmp",
 )
 
+#: Media types handled by the **native, model-free** UTF-8 text path.
+#: These are read directly as UTF-8 (no OCR, no model, no network) and written
+#: as a machine derivative.  Everything else still goes through OCR/unsupported.
+NATIVE_TEXT_MEDIA_TYPES = (
+    "text/plain",
+    "text/markdown",
+    "text/x-markdown",
+    "text/x-log",
+    "application/x-ndjson",
+)
+
+#: Bound on the native-text body accepted for extraction (bytes).  A larger
+#: original is refused honestly (never truncated silently into a fake body).
+NATIVE_TEXT_MAX_BYTES = 2_000_000
+
+#: Extractor/model provenance recorded for a native text derivative.
+NATIVE_TEXT_EXTRACTOR = "native-utf8-text"
+NATIVE_TEXT_MODEL = "none"
+
 
 @dataclass(frozen=True, slots=True)
 class ProcessingConfig:
@@ -170,7 +189,13 @@ class ProcessingEngine:
     def can_process(self, media_type: str | None, data: bytes) -> bool:
         if is_pdf_bytes(data):
             return True
-        return _normalize_media_type(media_type) in IMAGE_MEDIA_TYPES
+        normalized = _normalize_media_type(media_type)
+        return normalized in IMAGE_MEDIA_TYPES or normalized in NATIVE_TEXT_MEDIA_TYPES
+
+    def is_native_text(self, media_type: str | None) -> bool:
+        """Whether this source is handled by the model-free UTF-8 text path."""
+
+        return _normalize_media_type(media_type) in NATIVE_TEXT_MEDIA_TYPES
 
     # ------------------------------------------------------------------ run
     def process(
@@ -200,6 +225,11 @@ class ProcessingEngine:
         if not self.can_process(media_type, original_bytes):
             return self._finish_unprocessable(
                 source, job_id, media_type, reason="unsupported media type for OCR"
+            )
+
+        if self.is_native_text(media_type):
+            return self._process_native_text(
+                source, job_id, original_name, original_bytes, media_type, content
             )
 
         pages = self._rasterize(original_bytes, media_type)
@@ -249,6 +279,102 @@ class ProcessingEngine:
             model=draft.model,
             derivative_path=written["markdown_path"],
             reason=draft.fail_reason,
+        )
+
+    def _process_native_text(
+        self,
+        source: SourceRecord,
+        job_id: str | None,
+        original_name: str,
+        original_bytes: bytes,
+        media_type: str | None,
+        content: ContentStore,
+    ) -> ProcessingOutcome:
+        """Extract a native UTF-8 text original into a machine derivative.
+
+        This is the **model-free** path: the original bytes are decoded as UTF-8
+        under a bounded size limit and written verbatim as one machine page.
+        No OCR backend, no model call, no network and no new inference path is
+        entered.  A non-UTF-8 or oversized original fails honestly (never a
+        fabricated or silently truncated body).
+        """
+
+        import hashlib
+
+        if len(original_bytes) > NATIVE_TEXT_MAX_BYTES:
+            return self._finish_text_failure(
+                source,
+                job_id,
+                reason=(
+                    "native text original exceeds the extraction size limit "
+                    f"({NATIVE_TEXT_MAX_BYTES} bytes)"
+                ),
+            )
+        try:
+            text = original_bytes.decode("utf-8")
+        except UnicodeDecodeError:
+            return self._finish_text_failure(
+                source, job_id, reason="native text original is not valid UTF-8"
+            )
+
+        # Keep a bounded, deterministic page model so the derivative shape is
+        # identical to the OCR path (frontmatter + one locatable page block).
+        draft = MachineDraft(
+            source_version=source.source_version,
+            filename=original_name,
+            model=NATIVE_TEXT_MODEL,
+            pages=[
+                PageText(
+                    page=1,
+                    text=text,
+                    input_sha256=hashlib.sha256(original_bytes).hexdigest(),
+                    model=NATIVE_TEXT_MODEL,
+                    status="succeeded",
+                )
+            ],
+            extractor=NATIVE_TEXT_EXTRACTOR,
+            status="succeeded",
+            total_pages=1,
+        )
+        written = content.write_machine(draft)
+        self._record_derivatives(source, draft, written)
+        self._record_outcome(source, job_id, draft, "succeeded")
+        return ProcessingOutcome(
+            source_id=source.source_id,
+            source_version=draft.source_version,
+            status="succeeded",
+            total_pages=1,
+            succeeded_pages=1,
+            failed_pages=0,
+            model=draft.model,
+            derivative_path=written["markdown_path"],
+            reason=None,
+        )
+
+    def _finish_text_failure(
+        self, source: SourceRecord, job_id: str | None, *, reason: str
+    ) -> ProcessingOutcome:
+        """Honest failure for an unusable native text original (no fake body)."""
+
+        current = self._store.read_source(source.source_id)
+        self._store.update_source(
+            source.source_id,
+            {"status": "failed", "updated_at": to_iso(self._clock())},
+            expected_revision=current.revision,
+        )
+        if job_id is not None:
+            self._intake.set_stage(job_id, status="failed", fail_reason=reason)
+        self._event(source, "failed", None)
+        return ProcessingOutcome(
+            source_id=source.source_id,
+            source_version=source.source_version,
+            status="failed",
+            total_pages=0,
+            succeeded_pages=0,
+            failed_pages=0,
+            model=NATIVE_TEXT_MODEL,
+            derivative_path=None,
+            reason=reason,
         )
 
     # -------------------------------------------------------------- internals
@@ -656,6 +782,10 @@ def encode_data_url(data: bytes, media_type: str) -> str:
 
 __all__ = [
     "IMAGE_MEDIA_TYPES",
+    "NATIVE_TEXT_EXTRACTOR",
+    "NATIVE_TEXT_MAX_BYTES",
+    "NATIVE_TEXT_MEDIA_TYPES",
+    "NATIVE_TEXT_MODEL",
     "ProcessingConfig",
     "ProcessingEngine",
     "ProcessingOutcome",

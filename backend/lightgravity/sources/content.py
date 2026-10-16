@@ -274,7 +274,7 @@ def render_machine_markdown(draft: MachineDraft) -> str:
     lines.append("---")
     lines.append("schema: lightgravity.bot/v1")
     lines.append("kind: source_derivative")
-    lines.append("record_type: machine_ocr")
+    lines.append(f"record_type: {_record_type_for(draft.extractor)}")
     lines.append(f"source_version: {draft.source_version}")
     lines.append(f"extractor: {draft.extractor}")
     lines.append(f"extractor_model: {draft.model}")
@@ -284,7 +284,7 @@ def render_machine_markdown(draft: MachineDraft) -> str:
         lines.append(f"total_pages: {draft.total_pages}")
     lines.append("---")
     lines.append("")
-    lines.append(f"# Machine OCR — {draft.filename}")
+    lines.append(f"# {_heading_for(draft.extractor)} — {draft.filename}")
     lines.append("")
     lines.append(
         "> Machine transcription. Authoritative human edits live in `formal/FORMAL.md`; "
@@ -312,6 +312,27 @@ def render_machine_markdown(draft: MachineDraft) -> str:
         lines.append("No text could be extracted for this source.")
         lines.append("")
     return "\n".join(lines)
+
+
+def _record_type_for(extractor: str) -> str:
+    """Honest derivative ``record_type`` label for the extractor provenance.
+
+    Native UTF-8 text is not OCR; labelling it as such would be a false
+    provenance claim.  All other extractors keep the frozen ``machine_ocr``
+    label used by the OCR/raster path.
+    """
+
+    if extractor == "native-utf8-text":
+        return "machine_native_text"
+    return "machine_ocr"
+
+
+def _heading_for(extractor: str) -> str:
+    """Honest human-readable heading matching the extractor provenance."""
+
+    if extractor == "native-utf8-text":
+        return "Machine native text"
+    return "Machine OCR"
 
 
 def _yaml_escape(value: str) -> str:

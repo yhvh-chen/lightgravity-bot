@@ -178,8 +178,10 @@ async def test_uploaded_frontmatter_grants_no_execution_permission(
     source_id = response.json()["source"]["source_id"]
 
     # The frontmatter is not promoted into the source entity's execution fields.
+    # A text/markdown upload is now extracted by the model-free UTF-8 path, but
+    # extraction is data-only: no execution semantics are granted.
     source = await api.get(f"/api/v1/sources/{source_id}")
-    assert source.json()["status"] == "received"
+    assert source.json()["status"] == "extracted"
     assert source.json()["index"]["lexical"] == "not_indexed"
 
     # And no Task/Run was started from the uploaded instructions.
