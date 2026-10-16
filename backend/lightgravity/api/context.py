@@ -26,6 +26,7 @@ from .eventbus import EventBroker
 
 if TYPE_CHECKING:  # avoid importing the collaboration engine at API-import time
     from ..collaboration.execution_grant import ExecutionGrant
+    from ..team import TeamAuthService
 
 
 #: Resolves the **program-authenticated** worker identity for a request.
@@ -70,6 +71,9 @@ class ApiContext:
     #: accept an ``owner`` from the request body.  When present it carries the
     #: full scope (run/subtask/fence/authorized nodes), not just a member ref.
     worker_grant: WorkerGrantResolver | None = None
+    #: LG-050 team-mode auth service.  ``None`` in single-user mode; identity is
+    #: only ever resolved through this service (never a body/header field).
+    team: "TeamAuthService | None" = None
 
     @property
     def data_dir(self) -> Path:
