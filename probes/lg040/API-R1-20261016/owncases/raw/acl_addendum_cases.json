@@ -1,0 +1,216 @@
+{
+  "harness": "lg040-api-r1 acl addendum",
+  "port": 48629,
+  "inference_calls": 0,
+  "retries": 0,
+  "cases": [
+    {
+      "case": "ACL-1 query TaskA excludes TaskB",
+      "expected": "only task_a source",
+      "actual": {
+        "status": 200,
+        "hits": [
+          "source_01M51N42YZS681N664VHDXRZ5T"
+        ],
+        "scopes": [
+          "task_01M51N42N2XNZMNFTQPZ3XYPFX"
+        ]
+      },
+      "result": "PASS",
+      "notes": "",
+      "source_a": "source_01M51N42YZS681N664VHDXRZ5T",
+      "source_b": "source_01M51N42ZF37R464W97Q59QEJG"
+    },
+    {
+      "case": "ACL-2 scoped query never reaches TaskB",
+      "expected": "task_a (+global admitted by include_global), never task_b",
+      "actual": {
+        "status": 200,
+        "hits": [
+          "source_01M51N42YZS681N664VHDXRZ5T",
+          "source_01M51N42ZWMFQETP7P1V7V2WJ2"
+        ],
+        "global_admitted": true
+      },
+      "result": "PASS",
+      "notes": "include_global only admits unscoped/global material; it must not leak TaskB"
+    },
+    {
+      "case": "ACL-3 hit resolves scope/version/hash/existence",
+      "expected": "hit matches file SoT",
+      "actual": {
+        "hit": {
+          "source_id": "source_01M51N42YZS681N664VHDXRZ5T",
+          "source_version": 1,
+          "content_hash": "f9c878fd9523ca26849ead95546bf87088fa5185b8b0b81eb03cf11d5154817e",
+          "basis": "formal",
+          "scope": {
+            "task_ref": "task_01M51N42N2XNZMNFTQPZ3XYPFX",
+            "project_ref": null,
+            "inbox_ref": null
+          },
+          "title": "doc.txt",
+          "locators": [
+            {
+              "layer": "formal",
+              "path": "formal/FORMAL.md"
+            }
+          ],
+          "snippet": "<!-- formal version: human-edited. Reprocessing never overwrites this file. --> <!-- edited_by: tester -->  TASK A BODY marker A-77",
+          "verified": true,
+          "stale": false,
+          "reason": null
+        },
+        "detail_status": "received",
+        "detail_version": 1
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "ACL-4 forged/stale candidate fail-closed",
+      "expected": "forged body never returned; source_stale reported",
+      "actual": {
+        "status": 200,
+        "forged_hits": [],
+        "stale": [
+          {
+            "source_id": "source_01M51N42ZF37R464W97Q59QEJG",
+            "cached_version": 999,
+            "current_version": 1,
+            "reason": "source_stale"
+          }
+        ]
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "ACL-5 revoked source: search hit cannot leak",
+      "expected": "before hit, after empty",
+      "actual": {
+        "before": [
+          "source_01M51N42ZF37R464W97Q59QEJG"
+        ],
+        "after": [],
+        "revoke": 200
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "ACL-5b revoke -> content/download refused (资料不可用)",
+      "expected": "pre 200/200; post content+download refused (404/409/410/423)",
+      "actual": {
+        "before_content_status": 200,
+        "before_download_status": 200,
+        "before_content_serves_marker": true,
+        "before_download_serves_marker": true,
+        "after_content_status": 200,
+        "after_download_status": 200,
+        "content_body_sha256": "b491b882b67b24e268d0fce3744162838a68f293012ea784811ede4a51ac71d2",
+        "download_body_sha256": "557bb354ba5a637604797d0ed7eefaf739b58c59bf187bc0a6e0b94961ca86a8",
+        "content_serves_marker": true,
+        "download_serves_marker": true
+      },
+      "result": "FAIL",
+      "notes": "docs/08 §6.6 L594 + §4.3 L233: revoke 使资料不可用; archive 才保留打开"
+    },
+    {
+      "case": "ACL-5b2 revoked bytes actually served over TCP",
+      "expected": "must be false for content and download",
+      "actual": {
+        "content_served": true,
+        "download_served": true
+      },
+      "result": "FAIL",
+      "notes": "expected-contract-refusal vs raw-actual-200 receipt"
+    },
+    {
+      "case": "ACL-5c archive retains search/open (intended)",
+      "expected": "archived source still searchable/openable",
+      "actual": {
+        "archive": 200,
+        "search_hits": [
+          "source_01M51N43CQ2WCAZ1DRWRKZCYJ3"
+        ],
+        "content_status": 200
+      },
+      "result": "PASS",
+      "notes": "reversible archive must NOT behave like revoke (recorded intended)"
+    },
+    {
+      "case": "ACL-6 deleted source no cached snippet",
+      "expected": "before hit, after empty",
+      "actual": {
+        "pre": [
+          "source_01M51N43FNYZ5019YYJWDTJYQQ"
+        ],
+        "post": [],
+        "delete": 200
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "ACL-7 unscoped browsing = only global, never task-scoped",
+      "expected": "global present; task_a excluded; all hits unscoped",
+      "actual": {
+        "status": 200,
+        "hits": [
+          "source_01M51N42ZWMFQETP7P1V7V2WJ2",
+          "source_01M51N43CQ2WCAZ1DRWRKZCYJ3"
+        ],
+        "task_scopes_present": []
+      },
+      "result": "PASS",
+      "notes": "global owner unscoped access is intended; task-scoped must stay out",
+      "source_g": "source_01M51N42ZWMFQETP7P1V7V2WJ2"
+    },
+    {
+      "case": "ACL-8 worker/member grant on source API",
+      "expected": "not applicable (no worker principal on source/search/vector)",
+      "actual": {
+        "worker_principal_present": false,
+        "modules": [
+          "sources.py"
+        ]
+      },
+      "result": "PASS",
+      "notes": "docs/08 §4.3/§6.6 defines no member grant for source/search/vector; worker_grant only wires api/collaboration.py"
+    },
+    {
+      "case": "ACL-9 unknown task_ref filter yields no hits",
+      "expected": "empty (filter narrows, not grants)",
+      "actual": {
+        "status": 200,
+        "hits": []
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "ACL-10 vector disabled -> honest, no leak, no inference",
+      "expected": "enabled=false, index_unavailable, hits empty",
+      "actual": {
+        "status": 200,
+        "enabled": false,
+        "vsearch": "index_unavailable"
+      },
+      "result": "PASS",
+      "notes": ""
+    },
+    {
+      "case": "ACL-cleanup port released",
+      "expected": true,
+      "actual": true,
+      "result": "PASS",
+      "notes": "port 48629"
+    }
+  ],
+  "summary": {
+    "total": 14,
+    "pass": 12,
+    "fail": 2
+  }
+}
