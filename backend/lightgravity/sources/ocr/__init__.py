@@ -37,6 +37,22 @@ from .pdf import (
     PdfiumRasterizer,
     is_pdf_bytes,
 )
+from .layout import (
+    DEFAULT_INK_THRESHOLD,
+    MAX_PAGE_PIXELS,
+    MAX_PAGE_SIDE,
+    MIN_GUTTER_PX,
+    ColumnRegion,
+    LayoutAnalysis,
+    LayoutAnalysisError,
+    PageGeometry,
+    RegionAnalysis,
+    TextLine,
+    analyse_image_bytes,
+    analyse_page,
+    analyse_rendered_page,
+    decode_png_gray,
+)
 
 __all__ = [
     "OcrBackend",
@@ -56,4 +72,18 @@ __all__ = [
     "PdfRasterizer",
     "PdfiumRasterizer",
     "is_pdf_bytes",
+    "DEFAULT_INK_THRESHOLD",
+    "MAX_PAGE_PIXELS",
+    "MAX_PAGE_SIDE",
+    "MIN_GUTTER_PX",
+    "ColumnRegion",
+    "LayoutAnalysis",
+    "LayoutAnalysisError",
+    "PageGeometry",
+    "RegionAnalysis",
+    "TextLine",
+    "analyse_image_bytes",
+    "analyse_page",
+    "analyse_rendered_page",
+    "decode_png_gray",
 ]
