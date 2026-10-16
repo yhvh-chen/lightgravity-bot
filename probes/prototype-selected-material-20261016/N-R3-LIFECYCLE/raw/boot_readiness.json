@@ -1,0 +1,77 @@
+{
+  "pid": 3953245,
+  "ready": {
+    "url": "http://127.0.0.1:49355/",
+    "port": 49355,
+    "data_dir": "/home/yhvh/code/lightgravity-bot-worktrees/proto-material-lifecycle-qa-r3-20261016/probes/prototype-selected-material-20261016/N-R3-LIFECYCLE/campaign/product-data",
+    "execution": {
+      "execution_ready": true,
+      "reasons": [],
+      "default_worker_connection_ref": "conn-worker",
+      "credential_configured": true,
+      "agent_refs": [
+        "lg-default-worker"
+      ],
+      "token_source": "environment",
+      "frontend_served": false,
+      "frontend_dist": "/home/yhvh/code/lightgravity-bot-worktrees/proto-material-lifecycle-qa-r3-20261016/frontend/dist",
+      "reviewer": {
+        "reviewer": "model",
+        "connection_id": "deepseek-v4-flash",
+        "credential_configured": true
+      },
+      "warnings": [
+        "frontend build not found at /home/yhvh/code/lightgravity-bot-worktrees/proto-material-lifecycle-qa-r3-20261016/frontend/dist; serving minimal bootstrap page"
+      ]
+    },
+    "reviewer": {
+      "reviewer": "model",
+      "connection_id": "deepseek-v4-flash",
+      "credential_configured": true
+    },
+    "warnings": [
+      "frontend build not found at /home/yhvh/code/lightgravity-bot-worktrees/proto-material-lifecycle-qa-r3-20261016/frontend/dist; serving minimal bootstrap page"
+    ]
+  },
+  "checks": {
+    "health_status": 200,
+    "contract_version": "1.12.0",
+    "package_version": "0.1.0",
+    "generation": {
+      "count": 0,
+      "limit": 16,
+      "remaining": 16,
+      "corrupt": false,
+      "persistent": true
+    },
+    "execution": {
+      "execution_ready": true,
+      "reasons": [],
+      "default_worker_connection_ref": "conn-worker",
+      "credential_configured": true,
+      "agent_refs": [
+        "lg-default-worker"
+      ],
+      "token_source": "environment",
+      "frontend_served": false,
+      "frontend_dist": "/home/yhvh/code/lightgravity-bot-worktrees/proto-material-lifecycle-qa-r3-20261016/frontend/dist",
+      "reviewer": {
+        "reviewer": "model",
+        "connection_id": "deepseek-v4-flash",
+        "credential_configured": true
+      },
+      "warnings": [
+        "frontend build not found at /home/yhvh/code/lightgravity-bot-worktrees/proto-material-lifecycle-qa-r3-20261016/frontend/dist; serving minimal bootstrap page"
+      ]
+    },
+    "reviewer": {
+      "reviewer": "model",
+      "connection_id": "deepseek-v4-flash",
+      "credential_configured": true
+    },
+    "warnings": [
+      "frontend build not found at /home/yhvh/code/lightgravity-bot-worktrees/proto-material-lifecycle-qa-r3-20261016/frontend/dist; serving minimal bootstrap page"
+    ]
+  },
+  "ok": true
+}

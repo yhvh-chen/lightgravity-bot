@@ -1,0 +1,8 @@
+# LG-049 R3 QA probe — exclude runtime clones / binary session DBs / secrets
+# from commits.  These are preserved on disk (raw evidence) but not versioned:
+# large runtime blobs and native SDK session DBs may carry non-public metadata.
+campaign/product-data/workspaces/.lg-worktrees/
+campaign/product-data/native-sessions/
+campaign/product-data/secrets/
+__pycache__/
+*.pyc

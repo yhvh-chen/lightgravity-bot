@@ -1,0 +1,75 @@
+{
+  "campaign": "N-R3-LIFECYCLE",
+  "product_reserves": 8,
+  "conv_gen_counts": {
+    "1b884a218a9dd1338570f476ce5ed5c0": 5,
+    "e40027c09f30de407a2299be08cb40cc": 2
+  },
+  "attribution": [
+    {
+      "count": 1,
+      "reserve_id": "3953426-1792145839168-1",
+      "product_ts": 1792145839.1685066,
+      "node": "deliver",
+      "role": "e40027c09f30de407a2299be08cb40cc"
+    },
+    {
+      "count": 2,
+      "reserve_id": "3953426-1792145842360-2",
+      "product_ts": 1792145842.3607597,
+      "node": "deliver",
+      "role": "e40027c09f30de407a2299be08cb40cc"
+    },
+    {
+      "count": 3,
+      "reserve_id": "3953426-1792145845481-3",
+      "product_ts": 1792145845.481635,
+      "node": "verify",
+      "role": "1b884a218a9dd1338570f476ce5ed5c0"
+    },
+    {
+      "count": 4,
+      "reserve_id": "3953426-1792145846846-4",
+      "product_ts": 1792145846.8463027,
+      "node": "verify",
+      "role": "1b884a218a9dd1338570f476ce5ed5c0"
+    },
+    {
+      "count": 5,
+      "reserve_id": "3953426-1792145848327-5",
+      "product_ts": 1792145848.3272038,
+      "node": "verify",
+      "role": "1b884a218a9dd1338570f476ce5ed5c0"
+    },
+    {
+      "count": 6,
+      "reserve_id": "3953426-1792145851272-6",
+      "product_ts": 1792145851.2728503,
+      "node": "verify",
+      "role": "1b884a218a9dd1338570f476ce5ed5c0"
+    },
+    {
+      "count": 7,
+      "reserve_id": "3953426-1792145853281-7",
+      "product_ts": 1792145853.2818713,
+      "node": "verify",
+      "role": "1b884a218a9dd1338570f476ce5ed5c0"
+    },
+    {
+      "count": 8,
+      "reserve_id": "3953426-1792145855910-8",
+      "product_ts": 1792145855.910044,
+      "node": "reviewer",
+      "role": "model-reviewer"
+    }
+  ],
+  "note": "history already has 8 forwarded rows; not re-appended",
+  "snapshot": {
+    "count": 8,
+    "cap": 16,
+    "remaining": 8,
+    "corrupt": false,
+    "history_lines": 8,
+    "snapshot": 8
+  }
+}
