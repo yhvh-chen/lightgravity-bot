@@ -126,3 +126,66 @@ def test_search_expression_cannot_inject_fts_operators(tmp_path: Path) -> None:
     parsed = parse_query('") OR (1=1')
     assert "OR" not in parsed.match_expr.replace('"', "")
     assert index.search(parsed.match_expr) == []
+
+
+def test_first_connection_setup_is_serialized_across_cache_instances(tmp_path, monkeypatch) -> None:
+    """A paused SQLite opener must not race a second WAL initializer."""
+    import threading
+
+    first = LexicalIndex(tmp_path / "cache")
+    second = LexicalIndex(tmp_path / "cache")
+    original_connect = sqlite3.connect
+    first_opening = threading.Event()
+    second_attempting = threading.Event()
+    second_opening = threading.Event()
+    release_first = threading.Event()
+    counts_lock = threading.Lock()
+    calls = 0
+    errors: list[BaseException] = []
+
+    def controlled_connect(*args, **kwargs):
+        nonlocal calls
+        with counts_lock:
+            calls += 1
+            position = calls
+        if position == 1:
+            first_opening.set()
+            assert release_first.wait(5), "test did not release first SQLite opener"
+        else:
+            second_opening.set()
+        return original_connect(*args, **kwargs)
+
+    monkeypatch.setattr(sqlite3, "connect", controlled_connect)
+    second_connect = second._connect
+
+    def mark_second_attempt():
+        second_attempting.set()
+        return second_connect()
+
+    monkeypatch.setattr(second, "_connect", mark_second_attempt)
+
+    def write(index, source_id):
+        try:
+            index.upsert(_doc(source_id))
+        except BaseException as exc:
+            errors.append(exc)
+
+    writer1 = threading.Thread(target=write, args=(first, "first"))
+    writer2 = threading.Thread(target=write, args=(second, "second"))
+    writer1.start()
+    try:
+        assert first_opening.wait(5)
+        writer2.start()
+        assert second_attempting.wait(5)
+        # Give the second attempted connection a chance to contend. The first
+        # remains paused, so overlapping SQLite setup is deterministic if allowed.
+        assert not second_opening.wait(0.2), "SQLite WAL setup overlapped"
+    finally:
+        release_first.set()
+        writer1.join(5)
+        if writer2.ident is not None:
+            writer2.join(5)
+    assert not writer1.is_alive() and not writer2.is_alive()
+    assert not errors
+    assert first.readable()
+    assert {entry["source_id"] for entry in first.all_entries()} == {"first", "second"}

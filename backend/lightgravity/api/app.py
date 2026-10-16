@@ -216,6 +216,9 @@ def create_app(
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         resolved.ensure_data_dir()
+        # The configured workspace is a startup resource, not a missing child
+        # directory. Prepare it before accepting Files requests or queued work.
+        context.workspace_root.mkdir(parents=True, exist_ok=True)
         resolved_coordinator.start()
         try:
             yield

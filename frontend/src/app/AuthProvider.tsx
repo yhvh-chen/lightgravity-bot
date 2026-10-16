@@ -6,16 +6,16 @@
  *
  * * `checking` — the probe is in flight; the gate renders Loading, never the
  *   workspace and never a login form it cannot yet justify;
- * * `error` — the probe failed for a reason that is *not* a legacy backend
- *   (network unreachable, 5xx, malformed body); the gate renders a retryable
+ * * `error` — discovery failed (network, 5xx, malformed body or a missing
+ *   authentication endpoint); the gate renders a retryable
  *   error instead of silently dropping into single-user mode;
- * * `ready` — the probe resolved.  `mode: "single"` (or a legacy 404 from a
- *   backend without `/auth/me`) ⇒ the existing single-user workspace;
+ * * `ready` — the probe resolved. `mode: "single"` opens the existing
+ *   single-user workspace;
  *   `mode: "team"`, unauthenticated ⇒ the login gate; authenticated ⇒ the
  *   workspace plus identity/logout.
  *
- * Only an explicit `mode: "single"` or a legacy `404` is treated as
- * single-user.  Identity is always the server-resolved session — a local
+ * Only an explicit `mode: "single"` is treated as single-user. Identity is
+ * always the server-resolved session — a local
  * runtime token is explicitly cleared in team mode so it can never act as a
  * role/backdoor (interface §6).
  */
@@ -32,7 +32,8 @@ import {
 } from 'react'
 
 import { setRuntimeToken } from '../api/auth'
-import { ApiError } from '../api/client'
+import { ApiError, fetchHealth } from '../api/client'
+import { backendIncompatible, assertBackendCompatible, supportsPersonalChat } from '../api/backendCompatibility'
 import {
   fetchAuthMe,
   login as authLogin,
@@ -76,6 +77,7 @@ export interface AuthContextValue {
   error: AuthFailure | null
   isTeam: boolean
   isAdmin: boolean
+  personalChatAvailable: boolean
   login: (username: string, password: string) => Promise<void>
   logout: () => Promise<void>
   /** Re-run the `/auth/me` probe (used by the retryable error state). */
@@ -133,7 +135,9 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
   // 'ready', and by then it has been replaced by the real server state.
   const [identity, setIdentity] = useState<TeamIdentity>(SINGLE_IDENTITY)
   const [error, setError] = useState<AuthFailure | null>(null)
+  const [personalChatAvailable, setPersonalChatAvailable] = useState(false)
   const cancelled = useRef(false)
+  const refreshGeneration = useRef(0)
 
   const applyIdentity = useCallback((next: TeamIdentity) => {
     setIdentity(next)
@@ -144,20 +148,32 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
   }, [])
 
   const refresh = useCallback(async () => {
+    const requestGeneration = ++refreshGeneration.current
     setStatus('checking')
     setError(null)
     try {
       const me = await probe()
-      if (cancelled.current) return
+      // Private chat is optional on supported 1.13 shared backends. Discover it
+      // before mounting the team shell, rather than advertising an endpoint
+      // that does not exist. Single mode uses the legacy global/Task APIs.
+      if (me.mode === 'team') {
+        const health = await fetchHealth()
+        assertBackendCompatible(health)
+        if (cancelled.current || requestGeneration !== refreshGeneration.current) return
+        setPersonalChatAvailable(supportsPersonalChat(health))
+      } else {
+        setPersonalChatAvailable(false)
+      }
+      if (cancelled.current || requestGeneration !== refreshGeneration.current) return
       applyIdentity(normalizeIdentity(me))
       setStatus('ready')
     } catch (cause) {
-      if (cancelled.current) return
-      // A backend that predates `/auth/me` answers 404 (single-user product);
-      // that is the only failure that may fall back to single-user mode.
+      if (cancelled.current || requestGeneration !== refreshGeneration.current) return
+      // Missing authentication discovery cannot establish single-user identity.
+      // In particular, the old metadata-only skeleton must not open the shell.
       if (cause instanceof ApiError && cause.httpStatus === 404) {
-        applyIdentity({ ...SINGLE_IDENTITY })
-        setStatus('ready')
+        setError(failureFrom(backendIncompatible('authentication discovery /auth/me is missing')))
+        setStatus('error')
         return
       }
       // Network errors and server errors must be surfaced, not hidden behind a
@@ -191,6 +207,7 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
   )
 
   const logout = useCallback(async () => {
+    refreshGeneration.current += 1
     try {
       await authLogout()
     } catch {
@@ -201,6 +218,7 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
   }, [applyIdentity])
 
   const requireLogin = useCallback(() => {
+    refreshGeneration.current += 1
     setIdentity((previous) =>
       previous.mode === 'team' ? { ...TEAM_ANONYMOUS } : previous,
     )
@@ -214,12 +232,13 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
       error,
       isTeam: identity.mode === 'team',
       isAdmin: identity.role === 'admin',
+      personalChatAvailable,
       login,
       logout,
       refresh,
       requireLogin,
     }),
-    [status, identity, error, login, logout, refresh, requireLogin],
+    [status, identity, error, personalChatAvailable, login, logout, refresh, requireLogin],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -232,6 +251,7 @@ const DEFAULT_AUTH: AuthContextValue = {
   error: null,
   isTeam: false,
   isAdmin: true,
+  personalChatAvailable: false,
   login: async () => undefined,
   logout: async () => undefined,
   refresh: async () => undefined,

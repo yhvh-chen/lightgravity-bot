@@ -56,6 +56,9 @@ async def health(request: Request) -> HealthResponse:
         "resources": wired,
         "verification": bool(getattr(context, "verification", None)),
         "global_chat": wired,
+        # LG-054 additive: the private Personal conversation surface exists and
+        # enforces server-derived ownership.  Optional for older 1.13 backends.
+        "personal_chat": wired,
         # The real SDK adapter is only advertised once LG-006/LG-010 inject it.
         "sdk_adapter": bool(getattr(context, "real_executor", False)),
     }

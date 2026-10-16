@@ -5,25 +5,28 @@ import {
   type ViewId,
 } from './navigation'
 import { useAuth } from './AuthProvider'
+import { categoryById, categoryByKind, isResourceKind } from '../api/resources'
 import { Icon } from '../components/icons'
 
 export interface NavigationRailProps {
   current: ViewId
-  onNavigate: (view: ViewId) => void
+  selectedItemRef?: string | null
+  onNavigate: (view: ViewId, itemRef?: string) => void
   /** `drawer` renders inside the compact-screen drawer rather than in-flow. */
   variant?: 'inline' | 'drawer'
 }
 
 /**
- * Fixed primary navigation (docs/05 §3, design.md §2). Five work entries in
- * order, Settings pinned to the bottom. Icon-only with hover/focus tooltips,
- * an accessible name per button and `aria-current` on the active entry.
+ * One readable primary navigation including resource categories.
+ * Work entries scroll independently; Settings stays at the bottom.
  */
-export function NavigationRail({ current, onNavigate, variant = 'inline' }: NavigationRailProps) {
+export function NavigationRail({ current, selectedItemRef, onNavigate, variant = 'inline' }: NavigationRailProps) {
   const { isTeam, isAdmin } = useAuth()
   // Administrator-only configuration entry (LG-050).  Members see the entry
   // but cannot open it; the backend still enforces the role (403).
   const settingsRestricted = isTeam && !isAdmin
+  const kind = selectedItemRef?.startsWith('resources:') ? selectedItemRef.split(':')[1] : null
+  const category = (kind && isResourceKind(kind) ? categoryByKind(kind) : categoryById(selectedItemRef ?? null))?.id ?? 'connections'
   const renderItem = (item: NavItem) => {
     const restricted = item.id === 'settings' && settingsRestricted
     return (
@@ -31,14 +34,14 @@ export function NavigationRail({ current, onNavigate, variant = 'inline' }: Navi
         <button
           type="button"
           className="lg-rail__item"
-          aria-current={current === item.id ? 'page' : undefined}
+          aria-current={current === item.view && (item.view !== 'resources' || category === item.id) ? 'page' : undefined}
           aria-label={item.label}
           title={restricted ? 'Administrator only' : item.label}
           disabled={restricted}
-          onClick={() => onNavigate(item.id)}
+          onClick={() => onNavigate(item.view, item.itemRef)}
         >
           <Icon name={item.icon} />
-          <span className="lg-rail__tooltip" aria-hidden="true">
+          <span className="lg-rail__label" aria-hidden="true">
             {item.label}
           </span>
         </button>

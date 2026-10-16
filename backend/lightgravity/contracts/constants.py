@@ -3,6 +3,16 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
+#: docs/08 §13: 1.14.0 (2026-10-17) is the additive MINOR bump for LG-054's
+#: private Personal conversation implementation: the additive
+#: ``/api/v1/conversations/personal/messages`` GET/POST endpoints whose owner
+#: is derived ONLY from the authenticated server session (never a request
+#: field), the additive ``personal_chat`` health capability, and chat-only
+#: private routing that never creates a Task/Run or writes the shared
+#: global/Task logs.  No existing endpoint, enum or migration direction
+#: changes; single-user mode reuses the existing global conversation and
+#: team-mode anonymous access stays default-deny.
+#:
 #: docs/08 §13: 1.13.0 (2026-10-16) is the additive MINOR bump for LG-050's
 #: shared-team-mode implementation (interface frozen in ``1.13.0`` by the PM):
 #: an explicitly-enabled team mode (default off, single-user unchanged), the
@@ -118,7 +128,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.13.0"
+CONTRACT_VERSION = "1.14.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

@@ -1,0 +1,19 @@
+{
+  "name": "lightgravity-e2e",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "LG-055 Playwright browser acceptance harness (isolated from root frontend deps).",
+  "scripts": {
+    "test": "playwright test",
+    "test:list": "playwright test --list",
+    "test:smoke": "playwright test tests/01-meta-and-navigation.spec.ts",
+    "api:smoke": "playwright test tests/00-api-smoke.spec.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "22.10.2",
+    "typescript": "5.5.4"
+  }
+}

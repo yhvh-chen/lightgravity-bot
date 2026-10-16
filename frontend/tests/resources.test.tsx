@@ -204,17 +204,12 @@ describe('LG-015 Resources: catalogue and detail', () => {
     expect(state.listCalls).toContain('connection')
   })
 
-  it('switches category through the internal navigation', async () => {
-    const { api, state } = makeApi({
-      summaries: {
-        connection: [makeSummary({ id: 'deepseek', kind: 'connection', title: 'DeepSeek' })],
-        skill: [makeSummary({ id: 'implementation', kind: 'skill' })],
-      },
-    })
-    renderResources(api)
-    await screen.findByText('1 Connections')
-    fireEvent.click(screen.getByRole('button', { name: 'Skills' }))
+  it('uses the selected category route without a duplicate internal category navigation', async () => {
+    const { api, state } = makeApi({ summaries: { skill: [makeSummary({ id: 'implementation', kind: 'skill' })] } })
+    renderResources(api, { initialRef: 'skills' })
     await waitFor(() => expect(state.listCalls).toContain('skill'))
+    expect(screen.queryByRole('region', { name: 'Resource categories' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Connections' })).toBeNull()
   })
 })
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 
 import { getRuntimeToken } from '../../api/auth'
 import { type ChatApi, type ResolvedSourceBindingsData } from '../../api/chat'
@@ -10,7 +10,7 @@ import {
 import type { Attachment } from '../../api/types'
 import { useShell } from '../../app/ShellProvider'
 import { useAuth } from '../../app/AuthProvider'
-import { draftKey } from '../../app/uiState'
+import { draftKey, type ChatChannel } from '../../app/uiState'
 import { ChatComposer } from '../../components/ChatComposer'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
@@ -19,7 +19,6 @@ import { MarkdownViewer } from '../../components/MarkdownViewer'
 import { StatusBadge } from '../../components/StatusBadge'
 import { ChatMaterialIntake } from './ChatMaterialIntake'
 import { ChatSourcePicker } from './ChatSourcePicker'
-import { ChatSourceSearch } from './ChatSourceSearch'
 import { ChatSources } from './ChatSources'
 import { useChat } from './useChat'
 import { useChatMaterials } from './useChatMaterials'
@@ -53,25 +52,47 @@ interface PendingAttachment {
  */
 export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRuntime }: ChatBodyProps) {
   const { state, dispatch } = useShell()
-  const { isTeam, requireLogin } = useAuth()
+  const { isTeam, requireLogin, personalChatAvailable } = useAuth()
   const taskRef = state.taskRef
+  // LG-054: single-user mode has no team, so the only channel is the legacy
+  // personal/global one.  In team mode the user picks; the default is Team.
+  const channel: ChatChannel = isTeam ? (state.chatChannel === 'personal' && personalChatAvailable ? 'personal' : 'team') : 'personal'
+  const privatePersonal = isTeam && channel === 'personal'
+  // A private Personal conversation never carries Task scope; Team tasks stay
+  // shared Team conversations.
+  const effectiveTaskRef = privatePersonal ? null : taskRef
+  const scope = { taskRef: effectiveTaskRef, personal: privatePersonal }
   const chat = useChat(
-    { taskRef },
+    scope,
     api,
-    // Team mode polls the global conversation only; single-user mode passes no
-    // interval so the existing behavior is byte-for-byte unchanged (LG-050 §7).
+    // Team mode polls the active global/private conversation; single-user mode
+    // passes no interval so the existing behavior is byte-for-byte unchanged.
     isTeam ? { pollIntervalMs: 3000, onUnauthorized: requireLogin } : {},
   )
-  const resolvedSourcesApi =
-    sourcesApi ?? createSourcesApi(sourcesRuntime ?? { getApiToken: getRuntimeToken })
+  const resolvedSourcesApi = useMemo(
+    () => sourcesApi ?? createSourcesApi(sourcesRuntime ?? { getApiToken: getRuntimeToken }),
+    [sourcesApi, sourcesRuntime],
+  )
   const materials = useChatMaterials(resolvedSourcesApi)
-  const selection = useChatSelection(taskRef)
+  const selection = useChatSelection(effectiveTaskRef)
+  const [extrasOpen, setExtrasOpen] = useState(false)
   const [materialNotice, setMaterialNotice] = useState<string | null>(null)
   // Resolved source bindings for the most recent send in this scope, so the
   // freshly returned reply can show its Sources before/without a reload.
   const [lastSendSources, setLastSendSources] = useState<ResolvedSourceBindingsData | null>(null)
-  const key = draftKey(taskRef)
+  const key = draftKey(effectiveTaskRef, isTeam ? channel : null)
   const draft = state.drafts[key] ?? ''
+  const activeConversation = useRef(key)
+  const conversationGeneration = useRef(0)
+  if (activeConversation.current !== key) {
+    activeConversation.current = key
+    conversationGeneration.current += 1
+  }
+  const mounted = useRef(true)
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false }
+  }, [])
   const [notice, setNotice] = useState<string | null>(null)
   const [attachments, setAttachments] = useState<PendingAttachment[]>([])
   const [attachmentError, setAttachmentError] = useState<string | null>(null)
@@ -80,16 +101,21 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
   const atBottomRef = useRef(true)
   const prevCountRef = useRef(0)
 
-  // Scope change (including Task switch) drops any transient reply Sources so it
-  // can never leak across Task boundaries (docs/10 §1, §8).
+  // Scope change (including Task/channel switch) drops any transient reply
+  // Sources so it can never leak across conversation boundaries (docs/10 §1).
   useEffect(() => {
     setLastSendSources(null)
+    selection.clear()
+    setAttachments([])
+    setExtrasOpen(false)
     // A scope switch starts at the latest message, not a stale "new messages"
     // badge held over from the previous conversation.
     atBottomRef.current = true
     prevCountRef.current = 0
     setHasNewMessages(false)
-  }, [taskRef])
+  }, [effectiveTaskRef, privatePersonal])
+
+  useEffect(() => { setNotice(null) }, [privatePersonal])
 
   useEffect(() => {
     const list = listRef.current
@@ -133,7 +159,20 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
     return message.author?.username ?? message.role
   }
 
-  const scopeLabel = taskRef ?? 'Global'
+  const scopeLabel = effectiveTaskRef ?? (privatePersonal ? 'Personal' : 'Global')
+
+  const switchToTeam = () => {
+    setNotice(null)
+    dispatch({ type: 'setChatChannel', channel: 'team' })
+  }
+  const switchToPersonal = () => {
+    if (!isTeam || !personalChatAvailable) return
+    // Privacy: leaving Team for Personal drops any Task scope so a shared task
+    // context is never carried into the private conversation.
+    setNotice(null)
+    dispatch({ type: 'setChatChannel', channel: 'personal' })
+    dispatch({ type: 'selectTask', taskRef: null })
+  }
 
   const openSourceInFiles = (sourceId: string) => {
     // Meaningful backlink: open the real material in Files, keep the Task scope.
@@ -154,15 +193,18 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
 
   const handleSubmit = async () => {
     if (!draft.trim()) return
-    const payload = attachments.map<Attachment>((item) => ({
+    const requestGeneration = conversationGeneration.current
+    const payload = (privatePersonal ? [] : attachments).map<Attachment>((item) => ({
       path: item.path,
       media_type: item.media_type,
     }))
-    const selectedRefs = selection.requestRefs
+    const selectedRefs = privatePersonal ? undefined : selection.requestRefs
     setNotice(null)
     try {
       const outcome = await chat.send(draft, payload, selectedRefs)
+      if (!mounted.current) return
       dispatch({ type: 'setDraft', key, value: '' })
+      if (requestGeneration !== conversationGeneration.current) return
       setAttachments([])
       // Implementation choice (docs/10 §8): clear the selection once the rule
       // backend accepts the send, because the refs are now bound to that
@@ -172,6 +214,10 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
       if (outcome.kind === 'recorded') {
         // Team-mode plain message: persisted for the team only, no bot reply.
         setNotice('Shared with the team.')
+      } else if (outcome.kind === 'switch_to_team') {
+        setNotice('Personal is private and chat-only. Switch to Team to create a task or run delivery — nothing was created.')
+      } else if (outcome.kind === 'unavailable') {
+        setNotice('Personal chat needs a configured model. Configure one in Settings, or use Team.')
       } else if (outcome.createdTaskRef) {
         setNotice(`Created Task ${outcome.createdTaskRef}. Opening its Board scope.`)
         dispatch({ type: 'selectTask', taskRef: outcome.createdTaskRef })
@@ -179,7 +225,8 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
         setNotice(null)
       }
     } catch {
-      // Real error is rendered below; the draft stays so nothing is lost.
+      // A response for a departed channel must not change the active composer.
+      if (!mounted.current || requestGeneration !== conversationGeneration.current) return
       setNotice('Not sent — see the error below. Your draft and attachments are kept.')
     }
   }
@@ -193,14 +240,14 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
         <div>
           <h2 className="lg-chat__title">Chat</h2>
           <span className="lg-chat__subtitle">
-            Scope: {scopeLabel}
-            {taskRef ? (
+            {effectiveTaskRef ? `Task ${effectiveTaskRef}` : privatePersonal ? 'Private' : 'Conversation'}
+            {effectiveTaskRef ? (
               <button
                 type="button"
                 className="lg-link-button"
                 onClick={() => dispatch({ type: 'selectTask', taskRef: null })}
               >
-                Global
+                {isTeam ? 'Team conversation' : 'Conversation'}
               </button>
             ) : null}
           </span>
@@ -217,6 +264,44 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
         ) : null}
       </div>
 
+      <div className="lg-chat__channels">
+        <div className="lg-chat__channels-tabs" role="tablist" aria-label="Conversation channel">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={channel === 'personal'}
+            disabled={isTeam && !personalChatAvailable}
+            title={isTeam && !personalChatAvailable ? 'Personal requires backend contract >= 1.14 and the personal_chat capability' : undefined}
+            className={`lg-button${channel === 'personal' ? ' lg-button--primary' : ''}`}
+            onClick={switchToPersonal}
+          >
+            Personal
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={channel === 'team'}
+            disabled={!isTeam}
+            title={!isTeam ? 'Enable team mode on the backend to use the shared team conversation' : undefined}
+            className={`lg-button${channel === 'team' ? ' lg-button--primary' : ''}`}
+            onClick={switchToTeam}
+          >
+            Team
+          </button>
+        </div>
+        <p className="lg-chat__channel-note">
+          {isTeam && !personalChatAvailable
+            ? 'Personal is unavailable on this backend. Update to contract 1.14 or later with personal_chat enabled; shared Team conversations remain available.'
+            : privatePersonal
+            ? 'Private to you and chat-only — no shared Task, materials, or team messages.'
+            : !isTeam
+              ? 'Team mode is not enabled on this backend; enable team mode to use the shared team conversation.'
+              : effectiveTaskRef
+                ? 'Shared Team Task conversation.'
+                : 'Shared with the team; start with @bot to ask the assistant.'}
+        </p>
+      </div>
+
       <div
         className="lg-chat__messages"
         aria-label="Conversation messages"
@@ -225,7 +310,9 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
       >
         {chat.error ? (
           <ErrorState
-            title={chat.error.httpStatus === 404 ? 'Scope not found' : 'Could not load messages'}
+            title={chat.error.httpStatus === 404
+              ? effectiveTaskRef ? 'Task conversation unavailable' : 'Conversation service unavailable'
+              : 'Could not load messages'}
             message={chat.error.message}
             code={chat.error.code}
             retryable={chat.error.retryable}
@@ -233,14 +320,23 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
             onRetry={chat.refresh}
           />
         ) : null}
+        {chat.error?.httpStatus === 404 ? (
+          <div className="lg-chat__recovery">
+            <p>Your draft is kept. {effectiveTaskRef ? 'The task or conversation endpoint may no longer be available.' : 'Check that the server supports conversations.'}</p>
+            <button type="button" className="lg-button" onClick={() => dispatch({ type: 'setView', view: 'files' })}>Choose task in Files</button>
+            {effectiveTaskRef ? <button type="button" className="lg-button" onClick={() => dispatch({ type: 'selectTask', taskRef: null })}>Return to conversation</button> : null}
+          </div>
+        ) : null}
         {!chat.error && chat.loading ? (
           <EmptyState title="Loading conversation…">Reading {scopeLabel} history.</EmptyState>
         ) : null}
         {!chat.error && !chat.loading && chat.messages.length === 0 ? (
           <EmptyState title="No messages yet">
-            {taskRef
+            {effectiveTaskRef
               ? 'Describe a change to continue this Task, or ask a question.'
-              : 'Describe a goal to create a Task, or ask a question. Plain questions are answered without recruiting a team.'}
+              : privatePersonal
+                ? 'Ask a private question. Personal is chat-only; tasks and shared materials live in Team.'
+                : 'Describe a goal to create a Task, or ask a question. Plain questions are answered without recruiting a team.'}
           </EmptyState>
         ) : null}
         {chat.messages.map((message) => (
@@ -302,45 +398,11 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
             {attachmentError}
           </p>
         ) : null}
-        <ChatMaterialIntake
-          materials={materials.materials}
-          busy={materials.busy}
-          scopeLabel={scopeLabel}
-          canWrite
-          notice={materialNotice}
-          onUploadFiles={(files) => {
-            setMaterialNotice(null)
-            void materials.uploadFiles(files, { taskRef })
-          }}
-          onRecordLink={(url) => {
-            setMaterialNotice(null)
-            materials.recordLink(url, { taskRef }).catch((cause: unknown) => {
-              setMaterialNotice(cause instanceof Error ? cause.message : 'Invalid link')
-            })
-          }}
-          onRefresh={(requestId) => void materials.refresh(requestId)}
-          onDismiss={materials.dismiss}
-        />
-        <ChatSourceSearch
-          api={resolvedSourcesApi}
-          taskRef={taskRef}
-          onOpen={(sourceId) => openSourceInFiles(sourceId)}
-        />
         {/* Reply-time Sources from the just-returned send (not yet reloaded). */}
-        {lastSendSources ? (
+        {!privatePersonal && lastSendSources ? (
           <ChatSources data={lastSendSources} onOpen={openSourceInFiles} />
         ) : null}
-        <ChatSourcePicker
-          api={resolvedSourcesApi}
-          taskRef={taskRef}
-          selection={selection.selection}
-          atLimit={selection.atLimit}
-          onToggle={selection.toggle}
-          onRemove={selection.remove}
-          onClear={selection.clear}
-          disabled={chat.sending}
-        />
-        {attachments.length > 0 ? (
+        {!privatePersonal && attachments.length > 0 ? (
           <ul className="lg-chat__chip-row" aria-label="Pending attachments">
             {attachments.map((attachment, index) => (
               <li key={`${attachment.path}-${index}`} className="lg-chip">
@@ -359,6 +421,47 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
             ))}
           </ul>
         ) : null}
+        {!privatePersonal ? (
+          <div className="lg-chat__tools">
+            <button type="button" className="lg-button" aria-label="Add attachments and materials" aria-expanded={extrasOpen} aria-controls="lg-chat-extras" onClick={() => setExtrasOpen(!extrasOpen)}>+</button>
+            {selection.selection.length > 0 && !extrasOpen ? <span>{selection.selection.length} selected material(s) <button type="button" className="lg-link-button" onClick={() => setExtrasOpen(true)}>Review</button></span> : null}
+            {!extrasOpen && materials.materials.length > 0 ? <span aria-live="polite">{materials.busy ? 'Uploading…' : `${materials.materials.length} upload receipt(s)`} <button type="button" className="lg-link-button" onClick={() => setExtrasOpen(true)}>View uploads</button></span> : null}
+          </div>
+        ) : (
+          <p className="lg-chat__tools-hint">
+            Shared materials and task delivery are available in Team.
+          </p>
+        )}
+        {!privatePersonal ? <div id="lg-chat-extras" hidden={!extrasOpen}>
+        <ChatMaterialIntake
+          materials={materials.materials}
+          busy={materials.busy}
+          scopeLabel={scopeLabel}
+          canWrite
+          notice={materialNotice}
+          onUploadFiles={(files) => {
+            setMaterialNotice(null)
+            void materials.uploadFiles(files, { taskRef: effectiveTaskRef })
+          }}
+          onRecordLink={(url) => {
+            setMaterialNotice(null)
+            materials.recordLink(url, { taskRef: effectiveTaskRef }).catch((cause: unknown) => {
+              setMaterialNotice(cause instanceof Error ? cause.message : 'Invalid link')
+            })
+          }}
+          onRefresh={(requestId) => void materials.refresh(requestId)}
+          onDismiss={materials.dismiss}
+        />
+        <ChatSourcePicker
+          api={resolvedSourcesApi}
+          taskRef={effectiveTaskRef}
+          selection={selection.selection}
+          atLimit={selection.atLimit}
+          onToggle={selection.toggle}
+          onRemove={selection.remove}
+          onClear={selection.clear}
+          disabled={chat.sending}
+        />
         <label className="lg-chat__attach">
           <span className="lg-visually-hidden">Reference a file by path</span>
           <input
@@ -369,6 +472,7 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
             onChange={handleAddAttachment}
           />
         </label>
+        </div> : null}
         <ChatComposer
           value={draft}
           onChange={(value) => {
@@ -378,9 +482,11 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
           onSubmit={handleSubmit}
           scopeLabel={scopeLabel}
           hint={
-            isTeam
-              ? 'Shared with the team · start with @bot to ask the assistant · Enter to send'
-              : undefined
+            privatePersonal
+              ? 'Private to you · chat-only · Enter to send'
+              : isTeam
+                ? 'Shared with the team · start with @bot to ask the assistant · Enter to send'
+                : undefined
           }
           disabled={chat.sending}
           disabledReason="A message is being sent…"

@@ -1,3 +1,4 @@
+import { HEALTH_FIXTURE } from './setup'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -92,7 +93,7 @@ function installFetch(stub: StubState = {}) {
       return stub.taskMessages ? stub.taskMessages() : jsonResponse({ items: [], next_cursor: null })
     }
     if (url.endsWith('/api/v1/health')) {
-      return jsonResponse({ status: 'ok', package_version: '0.1.0', contract_version: '1.0.0', schema_version: 'lightgravity.bot/v1', capabilities: {} })
+      return jsonResponse(HEALTH_FIXTURE)
     }
     return notFound()
   })
@@ -170,10 +171,11 @@ describe('LG-050 auth: login gate', () => {
     expect(screen.queryByRole('button', { name: 'Sign out' })).toBeNull()
   })
 
-  it('falls back to single-user behavior when the backend has no /auth/me', async () => {
+  it('keeps an unsupported backend without /auth/me behind the error gate', async () => {
     installFetch()
     render(<App />)
-    expect(await screen.findByRole('navigation', { name: 'Primary navigation' })).toBeInTheDocument()
+    expect(await screen.findByText(/authentication discovery \/auth\/me is missing/)).toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Primary navigation' })).toBeNull()
     expect(screen.queryByRole('main', { name: 'Sign in' })).toBeNull()
   })
 })

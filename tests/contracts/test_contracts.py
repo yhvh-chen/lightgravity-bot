@@ -31,9 +31,12 @@ def test_frozen_constants() -> None:
     # reply/Run data ``resolved_source_bindings``/``context_truncated``/
     # ``provided_context_note``) -> 1.13.0 (LG-050 shared team mode
     # implementation: additive team-mode switch, ``/auth/me|login|logout``,
-    # server-written message ``author`` and the ``forbidden`` error code).
+    # server-written message ``author`` and the ``forbidden`` error code) ->
+    # 1.14.0 (LG-054 private Personal conversation implementation: additive
+    # ``/conversations/personal/messages`` GET/POST with server-derived owner,
+    # the ``personal_chat`` health capability and chat-only private routing).
     # Additive MINOR only.
-    assert CONTRACT_VERSION == "1.13.0"
+    assert CONTRACT_VERSION == "1.14.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 

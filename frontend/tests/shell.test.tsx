@@ -1,240 +1,171 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-
 import { App } from '../src/App'
 import { backendFetch, setViewport } from './setup'
 
-/**
- * Since LG-050 the shell mounts only after the `/auth/me` probe resolves (the
- * gate must not optimistically bypass the login experience).  The probe is
- * asynchronous, so every test awaits the real shell mount before asserting.
- */
 async function renderShell() {
   const result = render(<App />)
   await screen.findByRole('heading', { name: 'LightGravity Bot' })
   return result
 }
-
-function notFoundResponse(): Response {
-  return {
-    ok: false,
-    status: 404,
-    headers: {
-      get: (name: string) =>
-        name.toLowerCase() === 'content-type' ? 'application/json' : null,
-    },
-    json: async () => ({
-      error: {
-        code: 'not_found',
-        message: 'not implemented',
-        details: {},
-        retryable: false,
-        request_id: null,
-      },
-    }),
-  } as unknown as Response
-}
-
 beforeEach(() => {
   window.sessionStorage.clear()
   window.history.replaceState(null, '', '/')
   setViewport(1440)
 })
-
 afterEach(() => {
   cleanup()
   vi.mocked(globalThis.fetch).mockReset()
-  vi.mocked(globalThis.fetch).mockImplementation(
-    backendFetch as unknown as (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>,
-  )
+  vi.mocked(globalThis.fetch).mockImplementation(backendFetch as typeof fetch)
 })
 
-describe('LG-011 shell: navigation', () => {
-  it('renders the five work entries then Settings, with Chat active by default', async () => {
+describe('Single navigation shell', () => {
+  it('provides resource categories directly and pins Settings after work entries', async () => {
     await renderShell()
     const nav = screen.getByRole('navigation', { name: 'Primary navigation' })
-    const labels = within(nav)
-      .getAllByRole('button')
-      .map((button) => button.getAttribute('aria-label'))
-    expect(labels).toEqual([
-      'Chat',
-      'Board',
-      'Files',
-      'Team',
-      'Resources',
-      'Settings',
+    expect(within(nav).getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual([
+      'Chat', 'Board', 'Files', 'Team', 'Connections', 'Session Profiles', 'Hooks', 'MCP', 'Tools', 'Triggers', 'Skills', 'Settings',
     ])
-    expect(within(nav).getByRole('button', { name: 'Chat' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
-    // Settings is the last entry (bottom), not a work entry.
-    expect(labels[labels.length - 1]).toBe('Settings')
+    expect(within(nav).getByRole('button', { name: 'Chat' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByLabelText('Scope')).toBeNull()
+    expect(screen.queryByLabelText('Run')).toBeNull()
+    expect(screen.queryByRole('complementary', { name: 'Context' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Toggle context panel' })).toBeNull()
+    expect(screen.queryByRole('separator', { name: 'Resize context panel' })).toBeNull()
   })
-
-  it('keeps primary navigation out of the top bar', async () => {
+  it('opens resources from navigation and restores the selected category on refresh', async () => {
+    await renderShell()
+    fireEvent.click(screen.getByRole('button', { name: 'Skills' }))
+    expect(screen.getByRole('button', { name: 'Skills' })).toHaveAttribute('aria-current', 'page')
+    expect(window.location.search).toContain('item=skills')
+    expect(screen.queryByRole('region', { name: 'Resource categories' })).toBeNull()
+    cleanup()
+    await renderShell()
+    expect(screen.getByRole('button', { name: 'Skills' })).toHaveAttribute('aria-current', 'page')
+  })
+  it('places material search in the top bar and leaves navigation in the sidebar', async () => {
     await renderShell()
     const banner = screen.getByRole('banner')
-    for (const label of ['Chat', 'Board', 'Files', 'Team', 'Resources']) {
-      expect(within(banner).queryByRole('button', { name: label })).toBeNull()
-    }
-    // Exactly one Chat control exists and it lives in the rail.
-    expect(screen.getAllByRole('button', { name: 'Chat' })).toHaveLength(1)
+    fireEvent.click(within(banner).getByRole('button', { name: 'Search materials' }))
+    expect(within(banner).getByLabelText('Search materials')).toBeInTheDocument()
+    expect(within(banner).getByText(/Shared materials.*Text search/)).toBeInTheDocument()
+    expect(within(banner).queryByRole('button', { name: 'Files' })).toBeNull()
+    fireEvent.keyDown(screen.getByLabelText('Search materials'), { key: 'Escape' })
+    expect(screen.queryByLabelText('Search materials panel')).toBeNull()
   })
-
-  it('moves aria-current with the active view', async () => {
+  it('dismisses search on navigation so Files task controls are not covered', async () => {
+    await renderShell()
+    fireEvent.click(screen.getByRole('button', { name: 'Search materials' }))
+    expect(screen.getByLabelText('Search materials panel')).toBeInTheDocument()
+    // A click without pointerdown also models keyboard activation.
+    fireEvent.click(screen.getByRole('button', { name: 'Files' }))
+    expect(screen.queryByLabelText('Search materials panel')).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Tasks /' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Search materials' })).toHaveAttribute('aria-expanded', 'false')
+  })
+  it('keeps search open for inside pointers and dismisses outside pointers without stealing focus', async () => {
+    await renderShell()
+    const trigger = screen.getByRole('button', { name: 'Search materials' })
+    fireEvent.click(trigger)
+    fireEvent.pointerDown(screen.getByRole('textbox', { name: 'Search materials' }))
+    expect(screen.getByLabelText('Search materials panel')).toBeInTheDocument()
+    fireEvent.pointerDown(screen.getByRole('heading', { name: 'Chat' }))
+    expect(screen.queryByLabelText('Search materials panel')).toBeNull()
+    fireEvent.click(trigger)
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.queryByLabelText('Search materials panel')).toBeNull()
+    expect(trigger).toHaveFocus()
+  })
+  it('updates the active navigation entry', async () => {
     await renderShell()
     fireEvent.click(screen.getByRole('button', { name: 'Team' }))
-    expect(screen.getByRole('button', { name: 'Team' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
-    expect(screen.getByRole('button', { name: 'Chat' })).not.toHaveAttribute(
-      'aria-current',
-    )
+    expect(screen.getByRole('button', { name: 'Team' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('button', { name: 'Chat' })).not.toHaveAttribute('aria-current')
   })
 })
 
-describe('LG-011 shell: scope, selection and drafts survive view switches', () => {
-  it('preserves task/run scope and chat draft, with one conversation session', async () => {
+describe('Task state and one conversation', () => {
+  it('preserves deep-linked task/run and its draft while changing views', async () => {
+    window.history.replaceState(null, '', '/?view=chat&task=task_real&run=run_real')
     await renderShell()
-
-    fireEvent.change(screen.getByLabelText('Scope'), {
-      target: { value: 'mock-task-1' },
-    })
-    const composer = screen.getByLabelText('Message for mock-task-1')
-    fireEvent.change(composer, { target: { value: 'draft text' } })
-    expect(composer).toHaveValue('draft text')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Board' }))
-    expect(screen.getByLabelText('Scope')).toHaveValue('mock-task-1')
-    // The rail and the Chat panel share one active draft for the same scope.
-    expect(screen.getByLabelText('Message for mock-task-1')).toHaveValue('draft text')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Files' }))
-    expect(screen.getByLabelText('Scope')).toHaveValue('mock-task-1')
-
-    fireEvent.click(screen.getByRole('button', { name: 'Board' }))
-    // Exactly one Chat conversation surface (one composer) across the shell.
-    expect(screen.getAllByLabelText(/^Message for /)).toHaveLength(1)
+    fireEvent.change(screen.getByLabelText('Message for task_real'), { target: { value: 'draft text' } })
+    for (const view of ['Board', 'Files', 'Chat']) {
+      fireEvent.click(screen.getByRole('button', { name: view }))
+      expect(window.location.search).toContain('task=task_real')
+      expect(window.location.search).toContain('run=run_real')
+      expect(screen.getByLabelText('Message for task_real')).toHaveValue('draft text')
+      expect(screen.getAllByLabelText(/^Message for /)).toHaveLength(1)
+    }
   })
-
-  it('renders a single Chat surface and disables the rail toggle on the Chat view', async () => {
+  it('can hide the optional right chat without creating another conversation', async () => {
     await renderShell()
-    expect(screen.getAllByLabelText(/^Message for /)).toHaveLength(1)
-    expect(screen.getAllByLabelText('Chat workspace')).toHaveLength(1)
     expect(screen.getByRole('button', { name: 'Toggle chat panel' })).toBeDisabled()
-
     fireEvent.click(screen.getByRole('button', { name: 'Board' }))
     expect(screen.getAllByLabelText('Chat panel')).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle chat panel' }))
+    expect(screen.queryByLabelText('Chat panel')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle chat panel' }))
     expect(screen.getAllByLabelText(/^Message for /)).toHaveLength(1)
   })
-})
-
-describe('LG-011 shell: panel controls', () => {
-  it('collapses and restores the context and chat panels', async () => {
+  it('keeps advanced attachment inputs collapsed until requested', async () => {
     await renderShell()
-    const contextToggle = screen.getByRole('button', { name: 'Toggle context panel' })
-    expect(contextToggle).toHaveAttribute('aria-pressed', 'true')
-    expect(screen.getByRole('complementary', { name: 'Context' })).toBeInTheDocument()
-
-    fireEvent.click(contextToggle)
-    expect(contextToggle).toHaveAttribute('aria-pressed', 'false')
-    expect(screen.queryByRole('complementary', { name: 'Context' })).toBeNull()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Board' }))
-    const chatToggle = screen.getByRole('button', { name: 'Toggle chat panel' })
-    expect(chatToggle).toHaveAttribute('aria-pressed', 'true')
-    fireEvent.click(chatToggle)
-    expect(screen.queryByLabelText('Chat panel')).toBeNull()
-    expect(screen.queryByRole('textbox')).toBeNull()
-  })
-
-  it('resizes the context panel from the keyboard', async () => {
-    await renderShell()
-    const separator = screen.getByRole('separator', {
-      name: 'Resize context panel',
-    })
-    expect(separator).toHaveAttribute('aria-valuenow', '240')
-    fireEvent.keyDown(separator, { key: 'ArrowRight' })
-    expect(separator).toHaveAttribute('aria-valuenow', '256')
-    fireEvent.keyDown(separator, { key: 'Home' })
-    expect(separator).toHaveAttribute('aria-valuenow', '200')
+    expect(screen.getByLabelText('Attach file path')).not.toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Add attachments and materials' }))
+    expect(screen.getByLabelText('Attach file path')).toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Add attachments and materials' }))
+    expect(screen.getByLabelText('Attach file path')).not.toBeVisible()
   })
 })
 
-describe('LG-011 shell: empty, error and real-data states', () => {
-  it('shows explicit empty states instead of inventing tasks or messages', async () => {
+describe('Recoverable failures', () => {
+  it('reports a missing global endpoint without blaming a task scope', async () => {
     await renderShell()
-    // The rail is backend-driven now; mocked fetch has no /tasks, so the rail
-    // must say so rather than render layout-mock tasks.
+    expect(await screen.findByText('Conversation service unavailable')).toBeInTheDocument()
+    expect(screen.queryByText('Scope not found')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Board' }))
-    // The backend has no /tasks under test, so the board reports the real error
-    // rather than rendering layout-mock tasks.
     expect(await screen.findByText('Could not load tasks')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Chat' }))
-    expect(await screen.findByText('Scope not found')).toBeInTheDocument()
+    expect(screen.queryByText('Mock delivery task')).toBeNull()
   })
-
-  it('never fabricates a sent message and keeps the draft on a real failure', async () => {
+  it('keeps a stale task draft recoverable when returning to the global conversation', async () => {
+    window.history.replaceState(null, '', '/?task=task_deleted')
+    await renderShell()
+    fireEvent.change(screen.getByLabelText('Message for task_deleted'), { target: { value: 'keep task draft' } })
+    fireEvent.click(await screen.findByRole('button', { name: 'Return to conversation' }))
+    expect(screen.getByLabelText('Message for Global')).toHaveValue('')
+    expect(JSON.parse(window.sessionStorage.getItem('lg011.shell-prefs')!).drafts['chat:task_deleted']).toBe('keep task draft')
+  })
+  it('preserves the unsent draft on a real request failure', async () => {
     await renderShell()
     const composer = screen.getByLabelText('Message for Global')
     fireEvent.change(composer, { target: { value: 'hello there' } })
     fireEvent.keyDown(composer, { key: 'Enter' })
-    // The mocked backend returns 404 for the global conversation, so the send
-    // fails honestly and the draft is preserved.
     expect(await screen.findByText(/Send failed:/)).toBeInTheDocument()
     expect(composer).toHaveValue('hello there')
-    expect(
-      screen.queryAllByText('hello there', { selector: '.lg-message__bubble' }),
-    ).toHaveLength(0)
+    expect(screen.queryAllByText('hello there', { selector: '.lg-message__bubble' })).toHaveLength(0)
   })
-
-  it('renders a real not-connected state when a business endpoint is unreachable', async () => {
-    // `/auth/me` still resolves as a legacy single-user backend so the shell
-    // mounts; the business endpoints then fail with a real network error.
+  it('shows network failures after an explicit single-user identity response', async () => {
     vi.mocked(globalThis.fetch).mockImplementation((async (input: RequestInfo | URL) => {
-      const url =
-        typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
-      if (url.endsWith('/api/v1/auth/me')) return notFoundResponse()
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+      if (url.endsWith('/api/v1/auth/me')) return { ok: true, status: 200, headers: { get: () => 'application/json' }, json: async () => ({ mode: 'single', authenticated: true, username: null, role: null }) } as unknown as Response
       throw new Error('Connection refused')
-    }) as unknown as typeof fetch)
+    }) as typeof fetch)
     await renderShell()
-    expect(await screen.findByText(/Could not load messages|Scope not found/)).toBeInTheDocument()
+    expect(await screen.findByText('Could not load messages')).toBeInTheDocument()
     expect(screen.getByText(/network_error/)).toBeInTheDocument()
   })
 })
 
-describe('LG-011 shell: deep links', () => {
-  it('restores view and task scope from the URL', async () => {
-    window.history.replaceState(null, '', '/?view=board&task=mock-task-1')
-    await renderShell()
-    expect(screen.getByRole('button', { name: 'Board' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
-    expect(screen.getByLabelText('Scope')).toHaveValue('mock-task-1')
-  })
-})
-
-describe('LG-011 shell: compact layout', () => {
-  it('turns panels into keyboard-dismissable drawers on narrow screens', async () => {
+describe('Narrow layout', () => {
+  it('uses one keyboard-dismissable navigation drawer and has no context drawer', async () => {
     setViewport(390)
     await renderShell()
-
     expect(screen.queryByRole('navigation', { name: 'Primary navigation' })).toBeNull()
-
-    const contextToggle = screen.getByRole('button', { name: 'Toggle context panel' })
-    fireEvent.click(contextToggle)
-    expect(screen.getByRole('dialog', { name: 'Context panel' })).toBeInTheDocument()
-    expect(contextToggle).toHaveAttribute('aria-pressed', 'true')
-
-    fireEvent.keyDown(window, { key: 'Escape' })
-    expect(screen.queryByRole('dialog', { name: 'Context panel' })).toBeNull()
-
+    expect(screen.queryByRole('button', { name: 'Toggle context panel' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Toggle navigation' }))
     expect(screen.getByRole('dialog', { name: 'Navigation' })).toBeInTheDocument()
-
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.queryByRole('dialog', { name: 'Navigation' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle navigation' }))
     fireEvent.click(screen.getByRole('button', { name: 'Board' }))
     expect(screen.queryByRole('dialog', { name: 'Navigation' })).toBeNull()
     expect(screen.getByRole('heading', { name: 'Board', level: 2 })).toBeInTheDocument()

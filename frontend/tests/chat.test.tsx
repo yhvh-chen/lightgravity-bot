@@ -63,7 +63,7 @@ describe('LG-013 Chat: real history and sending', () => {
     fireEvent.keyDown(composer, { key: 'Enter' })
 
     await waitFor(() => expect(api.sent).toHaveLength(1))
-    expect(api.sent[0].scope).toEqual({ taskRef: null })
+    expect(api.sent[0].scope).toEqual({ taskRef: null, personal: false })
     expect(api.sent[0].body.content).toBe('do the thing')
     // A well-formed idempotency key is generated locally.
     expect(api.sent[0].body.message_id).toMatch(/^msg_[0-9A-Z]{26}$/)
@@ -109,6 +109,7 @@ describe('LG-013 Chat: real history and sending', () => {
     const api = makeChatApi()
     renderChat(api)
 
+    fireEvent.click(screen.getByRole('button', { name: 'Add attachments and materials' }))
     fireEvent.change(await screen.findByLabelText('Attach file path'), {
       target: { value: 'inputs/spec.md' },
     })

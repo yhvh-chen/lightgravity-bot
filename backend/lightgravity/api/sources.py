@@ -32,6 +32,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from ..contracts import AppError, ErrorCode
 from ..store.errors import ConfigInvalid, EntityNotFound
 from .context import ApiContext, get_context
+from .files import _reject_secret
 
 #: Request-id contract shared with Task messages (docs/08 §4.1).
 _MAX_BASE64 = 16_000_000
@@ -153,6 +154,10 @@ def _receive(ctx: ApiContext, service: Any, payload: SourceCreateRequest) -> Any
     scope = payload.scope
     origin = payload.origin
     if has_path:
+        # Intake publishes a shared copy: workspace containment alone does not
+        # authorize reading private/control stores when workspace overlaps data.
+        target = ctx.store.resolve_path(payload.path or "", write=False)
+        _reject_secret(ctx, target, payload.path or "")
         return service.receive_from_path(
             request_id=payload.request_id,
             path=payload.path or "",
