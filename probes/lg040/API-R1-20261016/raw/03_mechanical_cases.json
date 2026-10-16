@@ -1,0 +1,51 @@
+[
+  {
+    "case": "C-M1 machine derivative via real engine + stub",
+    "expected": "succeeded, md has text",
+    "actual": "status=succeeded md=yes",
+    "status": "PASS",
+    "provenance": "ProcessingEngine(real FileStore, ScriptedBackend stub)"
+  },
+  {
+    "case": "C-M2 formal seeded from machine (real store)",
+    "expected": "formal present w/ machine text",
+    "actual": "formal=yes",
+    "status": "PASS",
+    "provenance": "ContentStore.initialize_formal_from_machine (real files)"
+  },
+  {
+    "case": "C-M3 reprocess non-destructive (formal kept)",
+    "expected": "machine=SECOND PASS, formal=HELLO WORLD",
+    "actual": "machine=True formal_kept=True",
+    "status": "PASS",
+    "provenance": "ProcessingEngine.process(force=True) over real files"
+  },
+  {
+    "case": "C-M4 record_version bumps version + marks index stale",
+    "expected": "v2, lexical=stale",
+    "actual": "v2, lexical=stale",
+    "status": "PASS",
+    "provenance": "IntakeService.record_version (real store)"
+  },
+  {
+    "case": "C-M5 torn receipt repaired on restart",
+    "expected": "repaired, no bogus entry",
+    "actual": "repaired=True entries=2",
+    "status": "PASS",
+    "provenance": "SourceStore.recover() over real JSONL"
+  },
+  {
+    "case": "C-M6 state rebuilds from files only",
+    "expected": "source+receipt+original intact",
+    "actual": "listed=True receipts=2 original=True",
+    "status": "PASS",
+    "provenance": "drop dedup/request caches then reopen real store"
+  },
+  {
+    "case": "C-M7 vector backend disabled w/o env",
+    "expected": "UnavailableEmbeddingBackend",
+    "actual": "UnavailableEmbeddingBackend",
+    "status": "PASS",
+    "provenance": "backend_from_env() with target env unset"
+  }
+]

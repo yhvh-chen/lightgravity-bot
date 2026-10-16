@@ -1,0 +1,72 @@
+[
+  {
+    "case": "C8 project_ref refused w/o registry",
+    "expected": "422 reference_invalid",
+    "actual": "422 reference_invalid",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:44443/api/v1/sources project_ref"
+  },
+  {
+    "case": "C10 symlink escape refused",
+    "expected": "403 path_outside_workspace",
+    "actual": "403 path_outside_workspace",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:44443/api/v1/sources symlink"
+  },
+  {
+    "case": "C13 scope-local dedup not merged across tasks",
+    "expected": "distinct across tasks, dedup within task",
+    "actual": "a_dedup=False b_dedup=False a2_dedup=True",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:44443/api/v1/sources x3"
+  },
+  {
+    "case": "C15 inbox message creates NO Task/Run",
+    "expected": "201, tasks 2\u21922",
+    "actual": "201, tasks 2\u21922, task_created=False",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:44443/api/v1/inbox/messages"
+  },
+  {
+    "case": "C24 cancel needs confirm, idempotent",
+    "expected": "409 then cancelled, cancelled",
+    "actual": "409\u2192cancelled\u2192cancelled",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:44443/api/v1/intake/jobs/intake_01M51MPHPCD72EWRRAHW3K1TYB/actions cancel"
+  },
+  {
+    "case": "C28 reprocess w/o OCR \u2192 no fabricated derivative",
+    "expected": "no extracted status, honest outcome",
+    "actual": "http=200 status=failed",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:44443/api/v1/sources/source_01M51MPHQKJJZBJ1YMX8ZWCA94/actions reprocess"
+  },
+  {
+    "case": "C-ext unsupported action refused",
+    "expected": "422/400",
+    "actual": "422",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:44443/api/v1/sources/source_01M51MPHQKJJZBJ1YMX8ZWCA94/actions bogus"
+  },
+  {
+    "case": "C25 running job not auto-replayed \u2192 recovery_required",
+    "expected": "retry rejected, status recovery_required",
+    "actual": "err=AppError status=recovery_required",
+    "status": "PASS",
+    "provenance": "IntakeService.retry(set_stage running) over real store"
+  },
+  {
+    "case": "C27 restart marks running job recovery_required",
+    "expected": "recovery_required",
+    "actual": "status=recovery_required",
+    "status": "PASS",
+    "provenance": "IntakeService.recover() after reopen real store"
+  },
+  {
+    "case": "C26 failed job can retry",
+    "expected": "queued",
+    "actual": "status=queued",
+    "status": "PASS",
+    "provenance": "IntakeService.retry(failed) over real store"
+  }
+]

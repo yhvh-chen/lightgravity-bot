@@ -1,0 +1,156 @@
+[
+  {
+    "case": "C1 loopback health no-token",
+    "expected": "200",
+    "actual": "200",
+    "status": "PASS",
+    "provenance": "GET http://127.0.0.1:37659/api/v1/health"
+  },
+  {
+    "case": "C6 global inline \u2192 inbox ref",
+    "expected": "201 global scope",
+    "actual": "201 {'task_ref': None, 'project_ref': None, 'inbox_ref': None}",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/sources"
+  },
+  {
+    "case": "C14 intake creates NO delivery Task",
+    "expected": "items==[]",
+    "actual": "{\"items\": [], \"next_cursor\": null}",
+    "status": "PASS",
+    "provenance": "GET http://127.0.0.1:37659/api/v1/tasks"
+  },
+  {
+    "case": "C11 request_id idempotent replay",
+    "expected": "200 created=false dedup",
+    "actual": "200 created=False dedup=True",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/sources same request_id"
+  },
+  {
+    "case": "C12 request_id conflict diff payload",
+    "expected": "409 source_conflict",
+    "actual": "409 source_conflict",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/sources diff payload"
+  },
+  {
+    "case": "C7 unknown task_ref refused",
+    "expected": "422 reference_invalid",
+    "actual": "422 reference_invalid",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/sources bad task_ref"
+  },
+  {
+    "case": "C9 path escape refused",
+    "expected": "403 path_outside_workspace",
+    "actual": "403 path_outside_workspace",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/sources path=../"
+  },
+  {
+    "case": "C16 concurrent intake 10 distinct",
+    "expected": "10 unique 201, listing\u226511",
+    "actual": "201s=10 unique=10 listed=11",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/sources x10 parallel + GET /sources"
+  },
+  {
+    "case": "C5 sensitive write denied w/o token",
+    "expected": "401 unauthorized",
+    "actual": "401 unauthorized",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/settings/connections"
+  },
+  {
+    "case": "C17 machine content absent (OCR off) \u2192 truthful 404",
+    "expected": "404 not_found",
+    "actual": "404 not_found",
+    "status": "PASS",
+    "provenance": "GET http://127.0.0.1:37659/api/v1/sources/source_01M51MMEPP0615JDWC4X08Q1TX/content?kind=machine (no derivative)"
+  },
+  {
+    "case": "C17b auto content absent \u2192 truthful 404",
+    "expected": "404",
+    "actual": "404",
+    "status": "PASS",
+    "provenance": "GET http://127.0.0.1:37659/api/v1/sources/source_01M51MMEPP0615JDWC4X08Q1TX/content?kind=auto"
+  },
+  {
+    "case": "C17c invalid kind rejected",
+    "expected": "422",
+    "actual": "422",
+    "status": "PASS",
+    "provenance": "GET http://127.0.0.1:37659/api/v1/sources/source_01M51MMEPP0615JDWC4X08Q1TX/content?kind=bogus"
+  },
+  {
+    "case": "C18 formal edit w/o machine seed \u2192 404 (no fabrication)",
+    "expected": "404 not_found",
+    "actual": "404 not_found",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/sources/source_01M51MMEPP0615JDWC4X08Q1TX/formal (no machine derivative)"
+  },
+  {
+    "case": "C21 revoke \u2192 archived + index not_indexed",
+    "expected": "200 revoked true, status archived",
+    "actual": "200 revoked=True status=archived idx=not_indexed",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/sources/source_01M51MMEYS5YEZWDAHHAZ7SJPP/actions revoke"
+  },
+  {
+    "case": "C23 delete confirmed \u2192 gone (404 after)",
+    "expected": "200 deleted true then 404",
+    "actual": "200 deleted=True after=404",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/sources/source_01M51MMEYS5YEZWDAHHAZ7SJPP/actions delete confirmed=True"
+  },
+  {
+    "case": "C19 archive reversible flag",
+    "expected": "200 archived=true",
+    "actual": "200 {'source_id': 'source_01M51MMEPP0615JDWC4X08Q1TX', 'status': 'received', 'archived': True}",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/sources/source_01M51MMEPP0615JDWC4X08Q1TX/actions archive"
+  },
+  {
+    "case": "C20 unarchive reverses",
+    "expected": "200 archived=false",
+    "actual": "200 {'source_id': 'source_01M51MMEPP0615JDWC4X08Q1TX', 'status': 'received', 'archived': False}",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/sources/source_01M51MMEPP0615JDWC4X08Q1TX/actions unarchive"
+  },
+  {
+    "case": "C22 delete requires confirmation",
+    "expected": "409 cancellation_unconfirmed",
+    "actual": "409 cancellation_unconfirmed",
+    "status": "PASS",
+    "provenance": "POST http://127.0.0.1:37659/api/v1/sources/source_01M51MMEPP0615JDWC4X08Q1TX/actions delete unconfirmed"
+  },
+  {
+    "case": "C32 vector status (no target env)",
+    "expected": "200 truthful unavailable",
+    "actual": "200 {\"enabled\": false, \"backend\": {\"configured\": false, \"model\": null}, \"cache\": {\"exists\": false, \"readable\": false}, \"reas",
+    "status": "PASS",
+    "provenance": "GET http://127.0.0.1:37659/api/v1/vector/status"
+  },
+  {
+    "case": "C2 non-loopback no token",
+    "expected": "401",
+    "actual": "401",
+    "status": "PASS",
+    "provenance": "ASGI(forged 10.0.0.9) GET /api/v1/sources C2 non-loopback no token"
+  },
+  {
+    "case": "C3 non-loopback correct token",
+    "expected": "200",
+    "actual": "200",
+    "status": "PASS",
+    "provenance": "ASGI(forged 10.0.0.9) GET /api/v1/sources C3 non-loopback correct token"
+  },
+  {
+    "case": "C4 non-loopback wrong token",
+    "expected": "401",
+    "actual": "401",
+    "status": "PASS",
+    "provenance": "ASGI(forged 10.0.0.9) GET /api/v1/sources C4 non-loopback wrong token"
+  }
+]
