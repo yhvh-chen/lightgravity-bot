@@ -1,0 +1,68 @@
+{
+  "sample_id": "LG035-R7-T1",
+  "class": "real_published_grid_table_born_digital",
+  "table_caption": "Table 1. SI base units",
+  "source_kind": "born_digital_native_text_human_authored",
+  "is_ocr": false,
+  "is_synthetic": false,
+  "source": {
+    "title": "Guide for the Use of the International System of Units (SI), NIST SP 811 (2008)",
+    "issuer": "National Institute of Standards and Technology (US federal)",
+    "url": "https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication811e2008.pdf",
+    "license": "US Government work -> public domain (17 U.S.C. 105)",
+    "sha256": "788dd8f0bcb0ec06e40c300690266742532a7e760a93be57764b77ed0ef3482f",
+    "pdf_page_1based": 16,
+    "pdf_page_0based": 15
+  },
+  "structure": {
+    "n_cols": 3,
+    "n_rows_data": 7,
+    "n_rows_total_including_header": 8,
+    "header": ["Base quantity", "Name", "Symbol"],
+    "rows": [
+      ["length", "meter", "m"],
+      ["mass", "kilogram", "kg"],
+      ["time", "second", "s"],
+      ["electric current", "ampere", "A"],
+      ["thermodynamic temperature", "kelvin", "K"],
+      ["amount of substance", "mole", "mol"],
+      ["luminous intensity", "candela", "cd"]
+    ]
+  },
+  "cells": [
+    {"row": 0, "col": 0, "text": "Base quantity", "span": true},
+    {"row": 0, "col": 1, "text": "Name", "span": true},
+    {"row": 0, "col": 2, "text": "Symbol", "span": true},
+    {"row": 1, "col": 0, "text": "length"},
+    {"row": 1, "col": 1, "text": "meter"},
+    {"row": 1, "col": 2, "text": "m"},
+    {"row": 2, "col": 0, "text": "mass"},
+    {"row": 2, "col": 1, "text": "kilogram"},
+    {"row": 2, "col": 2, "text": "kg"},
+    {"row": 3, "col": 0, "text": "time"},
+    {"row": 3, "col": 1, "text": "second"},
+    {"row": 3, "col": 2, "text": "s"},
+    {"row": 4, "col": 0, "text": "electric current"},
+    {"row": 4, "col": 1, "text": "ampere"},
+    {"row": 4, "col": 2, "text": "A"},
+    {"row": 5, "col": 0, "text": "thermodynamic temperature"},
+    {"row": 5, "col": 1, "text": "kelvin"},
+    {"row": 5, "col": 2, "text": "K"},
+    {"row": 6, "col": 0, "text": "amount of substance"},
+    {"row": 6, "col": 1, "text": "mole"},
+    {"row": 6, "col": 2, "text": "mol"},
+    {"row": 7, "col": 0, "text": "luminous intensity"},
+    {"row": 7, "col": 1, "text": "candela"},
+    {"row": 7, "col": 2, "text": "cd"}
+  ],
+  "structure_evidence": {
+    "horizontal_rules_rows": [2, 3, 98, 99, 422, 423],
+    "vertical_rules_cols": [],
+    "column_starts_pdf_pts": {"col1": 95.6, "col2": 266.6, "col3": 438.8},
+    "inter_column_gap_pt": ">50",
+    "note": "3 full-width horizontal rules; three consistent left-margin starts separated by >50 pt gutters (booktabs-style grid: ruling + gutters)."
+  },
+  "numeric_id_tokens": ["m", "kg", "s", "A", "K", "mol", "cd"],
+  "numeric_id_tokens_note": "each cell symbol must appear byte-exact after NFKC in the corresponding machine cell",
+  "truth_provenance": "extracted from the PDF original text layer via pypdfium2 get_text_bounded and independently cross-checked with pdftotext -layout, BEFORE any model call"
+}

@@ -1,0 +1,856 @@
+{
+  "url": "http://127.0.0.1:45473/",
+  "ui_term": "correction",
+  "api_term": "marker",
+  "bound_ms": 8000,
+  "tested_at": "2026-10-16T07:07:24.590Z",
+  "counts": {
+    "total": 21,
+    "passed": 21,
+    "failed": 0,
+    "unverified": 0
+  },
+  "results": [
+    {
+      "name": "real same-origin http document",
+      "ok": true,
+      "detail": {
+        "origin": "http://127.0.0.1:45473",
+        "url": "http://127.0.0.1:45473/"
+      }
+    },
+    {
+      "name": "snapshot exposes the real prior-run sources (clear_real.pdf, honest_table_grid_scale4.png, g.txt)",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "n": 3,
+        "titles": [
+          "clear_real.pdf",
+          "g.txt",
+          "honest_table_grid_scale4.png"
+        ]
+      }
+    },
+    {
+      "name": "Chat search input available",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "UI search \"correction\" returns expected source + v + hash back-reference",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "text": "clear_real.pdf\nverified\nv1\n\n…ion: human-edited. Reprocessing never overwrites this file. --> <!-- edited_by: user --> LG040-FORMAL-EN Correction marker 2026-10-16\n\nsource_01M51N3TJT5QQGYGNB92V5C7MH\n#89c6b42242d0\nbasis: formal\nOpen in Files",
+        "source_id": "source_01M51N3TJT5QQGYGNB92V5C7MH",
+        "hasVersion": true,
+        "hasHash": true,
+        "hasOpen": true,
+        "basis": "formal",
+        "snippet": "…ion: human-edited. Reprocessing never overwrites this file. --> <!-- edited_by: user --> LG040-FORMAL-EN Correction marker 2026-10-16"
+      }
+    },
+    {
+      "name": "search rebuild_if_missing \"marker\" returns hit with hash back-check",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "n": 1,
+        "first": {
+          "source_id": "source_01M51N3TJT5QQGYGNB92V5C7MH",
+          "source_version": 1,
+          "content_hash": "89c6b42242d0aa16efdb7ff814604c4bfc5214e0bbdd040ead67dcf453d9ec0f",
+          "basis": "formal",
+          "scope": {
+            "task_ref": null,
+            "project_ref": null,
+            "inbox_ref": null
+          },
+          "title": "clear_real.pdf",
+          "locators": [
+            {
+              "layer": "formal",
+              "path": "formal/FORMAL.md"
+            }
+          ],
+          "snippet": "…edited. Reprocessing never overwrites this file. --> <!-- edited_by: user -->  LG040-FORMAL-EN Correction marker 2026-10-16",
+          "verified": true,
+          "stale": false,
+          "reason": null
+        }
+      }
+    },
+    {
+      "name": "search for absent term is an honest empty result (index ok, 0 hits)",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "hits": 0,
+        "index_status": "ok"
+      }
+    },
+    {
+      "name": "Files Materials lists the real snapshot sources",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Files preview opens real source with English actions (preview/download/reprocess)",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "facts": "Source\nsource_01M51N3TJT5QQGYGNB92V5C7MH\nVersion / hash\nv1 · #89c6b42242d0aa16\nIndex\nlexical: indexed · vector: disabled\nScope\nglobal",
+        "actions": [
+          "Save correction",
+          "Archive",
+          "Reprocess (OCR)",
+          "Download original",
+          "Download formal"
+        ]
+      }
+    },
+    {
+      "name": "non-revoked source download via UI returns real data",
+      "ok": true,
+      "detail": {
+        "ok": true,
+        "status": "Downloaded clear_real.pdf (original)."
+      }
+    },
+    {
+      "name": "revoke action on OWN copy accepted",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "body": {
+          "source_id": "source_01M51N3TRHB3Y5KQ5SAPSBEFRB",
+          "status": "archived",
+          "revoked": true
+        }
+      }
+    },
+    {
+      "name": "revoked source status is archived (honest, reversible flag preserved)",
+      "ok": true,
+      "detail": {
+        "status": "archived",
+        "archived": false,
+        "index": {
+          "lexical": "not_indexed",
+          "lexical_hash": null,
+          "vector": "disabled",
+          "vector_model": null
+        }
+      }
+    },
+    {
+      "name": "revoked source preview (content) fails honestly: 404 not_found + details.revoked",
+      "ok": true,
+      "detail": {
+        "status": 404,
+        "error": {
+          "code": "not_found",
+          "message": "source 'source_01M51N3TRHB3Y5KQ5SAPSBEFRB' is revoked and unavailable",
+          "details": {
+            "source_id": "source_01M51N3TRHB3Y5KQ5SAPSBEFRB",
+            "status": "archived",
+            "revoked": true
+          },
+          "retryable": false,
+          "request_id": null
+        }
+      }
+    },
+    {
+      "name": "revoked source download fails honestly: 404 not_found + details.revoked",
+      "ok": true,
+      "detail": {
+        "status": 404,
+        "error": {
+          "code": "not_found",
+          "message": "source 'source_01M51N3TRHB3Y5KQ5SAPSBEFRB' is revoked and unavailable",
+          "details": {
+            "source_id": "source_01M51N3TRHB3Y5KQ5SAPSBEFRB",
+            "status": "archived",
+            "revoked": true
+          },
+          "retryable": false,
+          "request_id": null
+        }
+      }
+    },
+    {
+      "name": "other non-revoked source preview still functional after revoke",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "name": "UI does not render a fake revoked body (no leaked table content)",
+      "ok": true,
+      "detail": {
+        "status": "Downloaded clear_real.pdf (original).",
+        "errState": null,
+        "hasNoFakeBody": true,
+        "snippet": "MATERIALS\nSame source as Chat. Archive, correct, reprocess and download here.\n\nDownloaded clear_real.pdf (original).\n\nclear_real.pdf\nextracted · v1\nhonest_table_grid_scale4.png\narchived · v1\ng.txt\nreceived · v1\nhonest_table_grid_scale4.png\narchived\nrev 22\nSource\nsource_01M51N3TRHB3Y5KQ5SAPSBEFRB\nVer"
+      }
+    },
+    {
+      "name": "default source scope (no task_ref, global/inbox) preserved after actions",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "n": 3
+      }
+    },
+    {
+      "name": "narrow 390 Chat: no horizontal overflow",
+      "ok": true,
+      "detail": {
+        "w": 390,
+        "overflow": false,
+        "hasSearch": true
+      }
+    },
+    {
+      "name": "narrow 390 Files Materials: responsive settle within bounded 2000ms (rail removed + detail rendered + stable geometry), no overflow at settle",
+      "ok": true,
+      "detail": {
+        "boundMs": 8000,
+        "ready": true,
+        "readyAtMs": 2592,
+        "sawTransientOverflow": true,
+        "transientMaxScrollWidth": 428,
+        "initial": {
+          "vw": 390,
+          "doc": 390,
+          "body": 390,
+          "rail": false,
+          "detailRendered": false,
+          "overflow": false
+        },
+        "samples": [
+          {
+            "t_ms": 3,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 0
+          },
+          {
+            "t_ms": 46,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 1
+          },
+          {
+            "t_ms": 88,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 2
+          },
+          {
+            "t_ms": 131,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 3
+          },
+          {
+            "t_ms": 174,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 4
+          },
+          {
+            "t_ms": 221,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 5
+          },
+          {
+            "t_ms": 267,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 6
+          },
+          {
+            "t_ms": 314,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 7
+          },
+          {
+            "t_ms": 360,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 8
+          },
+          {
+            "t_ms": 406,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 9
+          },
+          {
+            "t_ms": 452,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 10
+          },
+          {
+            "t_ms": 498,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 11
+          },
+          {
+            "t_ms": 544,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 12
+          },
+          {
+            "t_ms": 590,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 13
+          },
+          {
+            "t_ms": 636,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 14
+          },
+          {
+            "t_ms": 682,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 15
+          },
+          {
+            "t_ms": 725,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 16
+          },
+          {
+            "t_ms": 770,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 17
+          },
+          {
+            "t_ms": 812,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 18
+          },
+          {
+            "t_ms": 856,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 19
+          },
+          {
+            "t_ms": 901,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 20
+          },
+          {
+            "t_ms": 947,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 21
+          },
+          {
+            "t_ms": 989,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 22
+          },
+          {
+            "t_ms": 1031,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 23
+          },
+          {
+            "t_ms": 1075,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 24
+          },
+          {
+            "t_ms": 1120,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 25
+          },
+          {
+            "t_ms": 1168,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 26
+          },
+          {
+            "t_ms": 1213,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 27
+          },
+          {
+            "t_ms": 1256,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 28
+          },
+          {
+            "t_ms": 1298,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 29
+          },
+          {
+            "t_ms": 1341,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 30
+          },
+          {
+            "t_ms": 1383,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 31
+          },
+          {
+            "t_ms": 1425,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 32
+          },
+          {
+            "t_ms": 1468,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 33
+          },
+          {
+            "t_ms": 1514,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 34
+          },
+          {
+            "t_ms": 1560,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 35
+          },
+          {
+            "t_ms": 1607,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 36
+          },
+          {
+            "t_ms": 1652,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 37
+          },
+          {
+            "t_ms": 1698,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 38
+          },
+          {
+            "t_ms": 1744,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 39
+          },
+          {
+            "t_ms": 1789,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 40
+          },
+          {
+            "t_ms": 1834,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 41
+          },
+          {
+            "t_ms": 1879,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 42
+          },
+          {
+            "t_ms": 1925,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 43
+          },
+          {
+            "t_ms": 1968,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 44
+          },
+          {
+            "t_ms": 2010,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 45
+          },
+          {
+            "t_ms": 2053,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 46
+          },
+          {
+            "t_ms": 2098,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 47
+          },
+          {
+            "t_ms": 2144,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 48
+          },
+          {
+            "t_ms": 2191,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 49
+          },
+          {
+            "t_ms": 2234,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 50
+          },
+          {
+            "t_ms": 2278,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 51
+          },
+          {
+            "t_ms": 2323,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 52
+          },
+          {
+            "t_ms": 2368,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 53
+          },
+          {
+            "t_ms": 2413,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 54
+          },
+          {
+            "t_ms": 2460,
+            "docScrollWidth": 428,
+            "bodyScrollWidth": 428,
+            "chatRailPresent": true,
+            "detailRendered": false,
+            "overflow": true,
+            "stableCount": 55
+          },
+          {
+            "t_ms": 2503,
+            "docScrollWidth": 390,
+            "bodyScrollWidth": 390,
+            "chatRailPresent": false,
+            "detailRendered": true,
+            "overflow": false,
+            "stableCount": 0
+          },
+          {
+            "t_ms": 2547,
+            "docScrollWidth": 390,
+            "bodyScrollWidth": 390,
+            "chatRailPresent": false,
+            "detailRendered": true,
+            "overflow": false,
+            "stableCount": 1
+          },
+          {
+            "t_ms": 2592,
+            "docScrollWidth": 390,
+            "bodyScrollWidth": 390,
+            "chatRailPresent": false,
+            "detailRendered": true,
+            "overflow": false,
+            "stableCount": 2
+          }
+        ],
+        "nSamples": 59,
+        "finalW": 390,
+        "finalDocScrollWidth": 390,
+        "finalRailPresent": false,
+        "materials": true,
+        "entries": 3,
+        "listPanelWidth": 310,
+        "detailPanelWidth": 310,
+        "overflow": false,
+        "nOffenders": 0,
+        "offenders": []
+      }
+    },
+    {
+      "name": "narrow 390 Files Materials: doc scrollWidth <= 390+2 at settle",
+      "ok": true,
+      "detail": {
+        "docScrollWidth": 390,
+        "overflow": false
+      }
+    },
+    {
+      "name": "narrow 390 Files Materials: list AND detail panels both NONZERO at settle",
+      "ok": true,
+      "detail": {
+        "listW": 310,
+        "detailW": 310
+      }
+    },
+    {
+      "name": "single end-state captured after all actions",
+      "ok": true,
+      "detail": {
+        "sources": [
+          {
+            "id": "source_01M51N3TJT5QQGYGNB92V5C7MH",
+            "title": "clear_real.pdf",
+            "status": "extracted",
+            "archived": false,
+            "index": {
+              "lexical": "indexed",
+              "lexical_hash": "f50ce4dfc4390a6318179148bc88c593b88d194e8f9c0ba3c20555afb51b40e6",
+              "vector": "disabled",
+              "vector_model": null
+            },
+            "scope": {
+              "task_ref": null,
+              "project_ref": null,
+              "inbox_ref": null
+            }
+          },
+          {
+            "id": "source_01M51N3TRHB3Y5KQ5SAPSBEFRB",
+            "title": "honest_table_grid_scale4.png",
+            "status": "archived",
+            "archived": false,
+            "index": {
+              "lexical": "not_indexed",
+              "lexical_hash": null,
+              "vector": "disabled",
+              "vector_model": null
+            },
+            "scope": {
+              "task_ref": null,
+              "project_ref": null,
+              "inbox_ref": null
+            }
+          },
+          {
+            "id": "source_01M51N7RKD2EK3A2JD9HVGQ67A",
+            "title": "g.txt",
+            "status": "received",
+            "archived": false,
+            "index": {
+              "lexical": "not_indexed",
+              "lexical_hash": null,
+              "vector": "disabled",
+              "vector_model": null
+            },
+            "scope": {
+              "task_ref": null,
+              "project_ref": null,
+              "inbox_ref": null
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
