@@ -43,6 +43,17 @@ updated: "2026-10-16"
 
 ## 决策日志
 
+### 2026-10-16：LG-047 R2 FAIL/INCOMPLETE → 暂停盲重试，拆分 LG-048 技术诊断（root 授权）
+
+- **R2 结论**：活动独立 QA worktree `proto-material-qa-r2-20261016`（`qa/proto-material-r2-20261016` @ `a9ba494`，[REPORT-I-R2](probes/prototype-selected-material-20261016/I-R2-QA/REPORT-I-R2-20261016.md)）判 **FAIL — INCOMPLETE**。R2 新增产品请求硬上限 **8/8 已耗尽**（持久账本 `generation.count.json={"count":8}`，remaining 0，不可重跑）。真实 SDK worker 已写出含**全部 6 条真实事实且正确**的 deliverable（`raw/sdk-attempt2/`），但第二个（`verify`）SDK 节点撞 **429** 后整 Task `failed`，独立 **ModelReviewer / stop-gate / QA user accept** **从未到达（UNVERIFIED）**。**LG-047 仍 `in-progress`、无 PASS/done；不再接受任何 R2 请求；不改动 I 活动 worktree/campaign/ledger。**
+- **决策（暂停重试循环 + 拆分 048）**：在实施/新 campaign 之前**暂停盲目返修/重试**，先拆出 **LG-048 技术诊断**（P0，`depends_on: [LG-046]`，**非 047** 以避免循环依赖），owner `agent:pi-delivery-diagnosis`，**零模型、只读**，产出可操作诊断报告供 PM 选择下一任务。**不新增 LG-049 直到 PM 依据诊断选定下一任务。**
+- **诊断关键结论（[M-DELIVERY-DIAGNOSIS REPORT](probes/prototype-selected-material-20261016/M-DELIVERY-DIAGNOSIS/REPORT.md)）**：
+  - **(a)** R2 的 429 是**进程全局持久 8 次硬上限**（`LIGHTGRAVITY_MAX_GENERATION_CALLS=8` + 持久账本 `GenerationCounter`/`PersistentGenerationLedger`，转发前 `reserve()`），**非** per-node/per-session/per-request 配额；raw `generation.jsonl` count 4–8 同 pid 于 ~10s 内推满全局。
+  - **(b)** 默认确定性通用文件交付规则计划是 **`deliver` + `verify` 两个 SDK worker 节点**（非单 worker）：`RulePlanner` 仅在 `declared` 非空时追加 `verify`，而 `default_delivery=True` 路径恒派生 `acceptance` ⇒ 普通 Chat 交付必走双节点；与 docs/10 §7“单 worker 原型默认规则计划”措辞**存在偏差**。`verify`（同 worker 连接、机器门前置）**≠ 独立 ModelReviewer**（`verifying` 阶段独立 role/connection 的一次 reviewer turn）。**不假定移除/降级 verify 已授权**——那会削弱 guard，须 PM/契约决策。
+  - **(c)** 首个 SDK `1006` = **QA harness 提前 `killpg(SIGTERM)`**（driver poll 误判终态 → teardown mid-turn），**非产品复现**。
+  - **(d)** reviewer/stop-gate/accept **未验证**；安全有界后续预算**提案**：全局硬上限 ≥15（deliver≤5 + verify≤5 + reviewer≤2 + 失败余量≤3），若先收敛 verify→程序机器检查则 ≈10；下一 campaign 账本须**分列** deliver/verify/reviewer/retry 前向数。**均为提案、当前未授权任何请求**；先做零模型确认（离线测试即可钉死 (a)(b) 核心断言）。
+- 未宣告 R3 通过、未宣告累积成本已知（成本 unknown，非 0）；`LG-041` 保持 `todo` 不变。
+
 ### 2026-10-16：LG-047 R1 FAIL → F+G 并行返修 → H 串行集成候选（R2 预算重规划）
 
 - **R1 结论**：独立 QA R1 冻结 `57809d4`（[E-QA REPORT](probes/prototype-selected-material-20261016/E-QA/REPORT.md)）判 **FAIL**，四项缺陷：原生文本上传无正文、普通文件交付规则计划校验失败、选材回答/来源未入历史、零调用负例 N2/N5 错误码偏离冻结 docs/11。该报告与 `seed_machine.py` 辅助正文工具**作为 AUX 保留**，**不得**当作真实上传主流程证明。
