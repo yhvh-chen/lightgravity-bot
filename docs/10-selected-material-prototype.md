@@ -112,8 +112,10 @@ updated: "2026-10-16"
 
 ## 6. 持久化、恢复与重放
 
-- 消息/运行持久化：保存 selected refs 的 **version/hash 引用** + **有界上下文快照**，写入既有受控 SoT（Task 消息日志 / Run 实体），**不新建第二事实源**。
-- 恢复/重放：使用**已保存的快照与引用**，**不重新解析到不同内容**；若源已变化，按 §5 语义报告 stale，而非静默换用新内容。
+- 消息/运行持久化：保存 selected refs 的 **version/hash 引用** + **有界上下文快照**，写入既有受控 SoT：消息日志写 `selected_context` 快照；Task/Run 实体新增加性可选字段 `selected_trigger = {message_id, snapshot}` 作为 **Run 触发绑定**（触发消息在入队前冻结、Run 打开时复制）。**不新建第二事实源**。
+- **Run/消息绑定（R1）**：Run 使用**其自身触发消息**的精确选定，而非“最近一条含 `selected_context` 的用户消息”。无选材触发（省略或 `[]`）⇒ `snapshot=null`，该 Run **不继承**更早消息的选材；已入队的 pending Run **不被后续消息重绑**（绑定先于 enqueue，且已 queued 时不再重绑）。
+- **实体字段口径**：`selected_trigger` 落在 Task/Run 实体，经 `GET /tasks/{task_id}` 的实体序列化（`dict(entity)`）**可达**，故为 `1.12.0` **加性、可选、非秘密实体字段**（**不按“无实体字段变化”口径**）；不新增端点/错误码/枚举/迁移方向，**前端 `selected_sources` wire 无变化**。
+- 恢复/重放：使用**已保存的快照与引用**，**不重新解析到不同内容**；重启后新 Coordinator 读同一 store 重建**完全相同**的 Run 绑定；若源已变化，按 §5 语义报告 stale，而非静默换用新内容。
 - 上下文快照遵守 §3 的有界预算。
 
 ## 7. 集成与行为边界

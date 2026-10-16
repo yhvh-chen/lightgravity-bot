@@ -506,9 +506,23 @@ async def test_worker_context_uses_same_bounded_body(tmp_path) -> None:
         },
     )
 
-    # Direct worker context assembly reads the persisted snapshot and rebuilds
+    # Simulate the Run's program-frozen trigger: the queued work's trigger
+    # message owns this selection.  The Run freezes it at open time.
+    trigger_message_id = new_id("msg")
+    coordinator._bind_selected_trigger(
+        task_id,
+        trigger_message_id,
+        coordinator._resolve_selected(
+            task_id,
+            {"selected_sources": [{"source_id": source_id}]},
+        ),
+    )
+    coordinator._queue.enqueue(task_id)
+    run_id = coordinator._open_run(store.read("task", task_id))
+
+    # Direct worker context assembly reads the Run-bound snapshot and rebuilds
     # the exact bounded body.
-    context = coordinator._build_context(store.read("task", task_id), new_id("run"))
+    context = coordinator._build_context(store.read("task", task_id), run_id)
     assert context.selected_body is not None
     assert context.selected_body == captured["reply"].split("\n\n", 1)[1] or (
         context.selected_body in captured["reply"]
@@ -541,10 +555,20 @@ async def test_worker_revalidation_rejects_changed_source(tmp_path) -> None:
             "selected_sources": [{"source_id": source_id}],
         },
     )
+    # Bind the Run to a trigger that selected this source, then open it.
+    coordinator._bind_selected_trigger(
+        task_id,
+        new_id("msg"),
+        coordinator._resolve_selected(
+            task_id, {"selected_sources": [{"source_id": source_id}]}
+        ),
+    )
+    coordinator._queue.enqueue(task_id)
+    run_id = coordinator._open_run(store.read("task", task_id))
     # Formal edit changes served body; worker-context revalidation must refuse.
     _seed_formal(service, source_id, "changed")
     with pytest.raises(AppError) as exc:
-        coordinator._worker_selected_context(task_id)
+        coordinator._worker_selected_context(task_id, run_id)
     assert exc.value.code is ErrorCode.SOURCE_STALE
 
 
@@ -556,6 +580,295 @@ def test_dispatch_context_without_selection_is_legacy() -> None:
     context = DispatchContext(task_id="task_x", run_id="run_x", attempt=1, objective="o")
     assert context.selected_body is None
     assert context.to_execute_request().instructions == context.instructions
+
+
+# ------------------------------------------- run trigger binding (LG-043 fixup)
+#
+# These regressions pin the docs/10 §5/§6 contract that a Run uses the exact
+# selection saved on **its own trigger message**, not a "latest message"
+# heuristic.  They target the three failure modes the PM flagged at the
+# selected-material contract boundary.
+
+
+def _resolve_global_selection(service: Any, source_id: str):
+    """Resolve one global-scope selected source without any model call."""
+
+    from lightgravity.sources.selection import (
+        parse_selected_sources,
+        resolve_selected_sources,
+    )
+
+    parsed = parse_selected_sources([{"source_id": source_id}])
+    assert parsed
+    return resolve_selected_sources(service.selected_source_resolver(None), parsed)
+
+
+async def test_scenario1_no_selection_delivery_does_not_inherit_prior_selection(
+    tmp_path,
+) -> None:
+    """A selected direct answer (source A) must NOT leak into a Run whose own
+    trigger message carried no ``selected_sources`` (legacy no-selection)."""
+
+    store = FileStore(tmp_path / "data", tmp_path / "ws")
+    service = _service(store)
+    task_id = raw_task(store)
+    source_a = _inline_source(service, "SECRET_A_BODY", task_ref=task_id)
+    _seed_machine(service, source_a, "SECRET_A_BODY")
+
+    coordinator = Coordinator(store, source_service=service, responder=lambda c, k: "ok")
+    # 1) A selected direct answer persists snapshot A on the Task log.
+    await coordinator.submit_task_message(
+        task_id,
+        {
+            "message_id": new_id("msg"),
+            "role": "user",
+            "content": "summarize this",
+            "selected_sources": [{"source_id": source_a}],
+        },
+    )
+    # 2) A later explicit delivery/retry with NO selected_sources rebinds the
+    #    trigger to *no selection*; the spawned Run must not inherit A.
+    coordinator._bind_selected_trigger(task_id, new_id("msg"), None)
+    coordinator._queue.enqueue(task_id)
+    run_id = coordinator._open_run(store.read("task", task_id))
+
+    context = coordinator._build_context(store.read("task", task_id), run_id)
+    assert context.selected_body is None
+    assert context.selected_bindings == ()
+    assert "SECRET_A_BODY" not in context.to_execute_request().instructions
+
+
+async def test_scenario2_queued_run_uses_its_own_trigger_not_later_messages(
+    tmp_path,
+) -> None:
+    """Queued selected delivery A: later ordinary dialogue and a selected B must
+    not change A Run's bound selection (exact saved A body, not latest B)."""
+
+    store = FileStore(tmp_path / "data", tmp_path / "ws")
+    service = _service(store)
+    source_a = _inline_source(service, "BODY_A", task_ref=None)
+    _seed_machine(service, source_a, "BODY_A")
+    source_b = _inline_source(service, "BODY_B", task_ref=None)
+    _seed_machine(service, source_b, "BODY_B")
+
+    coordinator = Coordinator(store, source_service=service, responder=lambda c, k: "ok")
+    selected_a = _resolve_global_selection(service, source_a)
+    assert selected_a is not None
+
+    # Delivery A queues a Task; its trigger is bound to A's exact snapshot.
+    created = coordinator._create_task_locked(
+        request_id=new_id("req"),
+        title="delivery A",
+        objective="implement x",
+        scope=None,
+        acceptance_criteria=(),
+        project_ref=None,
+        workspace_ref=None,
+        agent_ref=None,
+        enqueue=True,
+        selected_trigger=coordinator._trigger_binding("msg_A", selected_a),
+    )
+    task_id = str(created["task_id"])
+
+    # Later ordinary user dialogue arrives before dispatch.
+    await coordinator.submit_task_message(
+        task_id,
+        {"message_id": new_id("msg"), "role": "user", "content": "进度如何？"},
+    )
+    # And a later selected delivery/control message B arrives before dispatch.
+    await coordinator.submit_task_message(
+        task_id,
+        {
+            "message_id": new_id("msg"),
+            "role": "user",
+            "content": "继续",
+            "selected_sources": [{"source_id": source_b}],
+        },
+    )
+
+    # Dispatch now: the Run must use A's exact saved selection.
+    run_id = coordinator._open_run(store.read("task", task_id))
+    context = coordinator._build_context(store.read("task", task_id), run_id)
+    assert context.selected_body is not None
+    assert "BODY_A" in context.selected_body
+    assert "BODY_B" not in context.selected_body
+    assert len(context.selected_bindings) == 1
+    assert context.selected_bindings[0]["source_id"] == source_a
+
+    # The binding survives a service restart: a fresh Coordinator reading the
+    # same store rebuilds the identical Run-bound selection (no re-resolution to
+    # a different message).
+    restarted = Coordinator(store, source_service=service, responder=lambda c, k: "ok")
+    rebuilt = restarted._build_context(store.read("task", task_id), run_id)
+    assert rebuilt.selected_body == context.selected_body
+    assert "BODY_A" in (rebuilt.selected_body or "")
+
+
+async def test_scenario3_empty_selection_does_not_reuse_older_selection(
+    tmp_path,
+) -> None:
+    """``selected_sources: []`` behaves like no selection and must not reuse an
+    older persisted selection."""
+
+    store = FileStore(tmp_path / "data", tmp_path / "ws")
+    service = _service(store)
+    task_id = raw_task(store)
+    source_a = _inline_source(service, "OLD_BODY", task_ref=task_id)
+    _seed_machine(service, source_a, "OLD_BODY")
+
+    coordinator = Coordinator(store, source_service=service, responder=lambda c, k: "ok")
+    # An earlier selection exists on the Task log.
+    await coordinator.submit_task_message(
+        task_id,
+        {
+            "message_id": new_id("msg"),
+            "role": "user",
+            "content": "summarize",
+            "selected_sources": [{"source_id": source_a}],
+        },
+    )
+    # An explicit empty selection on the Run's trigger means *no selection*.
+    selected_empty = coordinator._resolve_selected(
+        task_id, {"selected_sources": []}
+    )
+    assert selected_empty is None
+    coordinator._bind_selected_trigger(task_id, new_id("msg"), selected_empty)
+    coordinator._queue.enqueue(task_id)
+    run_id = coordinator._open_run(store.read("task", task_id))
+
+    context = coordinator._build_context(store.read("task", task_id), run_id)
+    assert context.selected_body is None
+    assert "OLD_BODY" not in context.to_execute_request().instructions
+
+
+async def test_scenario2_real_global_delivery_binds_run_trigger(tmp_path) -> None:
+    """Production path: a global selected delivery message creates a queued Task
+    whose Run is bound to that exact message's saved selection."""
+
+    store = FileStore(tmp_path / "data", tmp_path / "ws")
+    service = _service(store)
+    source_a = _inline_source(service, "GLOBAL_BODY_A", task_ref=None)
+    _seed_machine(service, source_a, "GLOBAL_BODY_A")
+
+    coordinator = Coordinator(store, source_service=service, responder=lambda c, k: "ok")
+    result = await coordinator.submit_global_message(
+        new_id("conv"),
+        {
+            "message_id": new_id("msg"),
+            "role": "user",
+            "content": "implement the selected thing",
+            "selected_sources": [{"source_id": source_a}],
+        },
+    )
+    assert result.kind == "task"
+    task_id = str(result.task_id)
+
+    # Later ordinary dialogue arrives before the queued Run dispatches.
+    await coordinator.submit_task_message(
+        task_id,
+        {"message_id": new_id("msg"), "role": "user", "content": "备注：补充说明"},
+    )
+
+    run_id = coordinator._open_run(store.read("task", task_id))
+    context = coordinator._build_context(store.read("task", task_id), run_id)
+    assert context.selected_body is not None
+    assert "GLOBAL_BODY_A" in context.selected_body
+    assert len(context.selected_bindings) == 1
+    assert context.selected_bindings[0]["source_id"] == source_a
+
+
+async def test_scenario2d_fresh_retry_binds_its_own_selection(tmp_path) -> None:
+    """A retry that opens a *fresh* queued Run (Task not already queued) must
+    bind its own trigger selection, not reuse an older message's selection."""
+
+    store = FileStore(tmp_path / "data", tmp_path / "ws")
+    service = _service(store)
+    task_id = raw_task(store)  # phase ``intake``, not queued
+    source_a = _inline_source(service, "OLD_A", task_ref=task_id)
+    _seed_machine(service, source_a, "OLD_A")
+    source_b = _inline_source(service, "NEW_B", task_ref=task_id)
+    _seed_machine(service, source_b, "NEW_B")
+
+    coordinator = Coordinator(store, source_service=service, responder=lambda c, k: "ok")
+    # Older selection exists on the log but no Run has been queued yet.
+    await coordinator.submit_task_message(
+        task_id,
+        {
+            "message_id": new_id("msg"),
+            "role": "user",
+            "content": "summarize",
+            "selected_sources": [{"source_id": source_a}],
+        },
+    )
+    # A retry opens the fresh queued Run and carries selection B.
+    await coordinator.submit_task_message(
+        task_id,
+        {
+            "message_id": new_id("msg"),
+            "role": "user",
+            "content": "继续",
+            "selected_sources": [{"source_id": source_b}],
+        },
+    )
+    run_id = coordinator._open_run(store.read("task", task_id))
+    context = coordinator._build_context(store.read("task", task_id), run_id)
+    assert context.selected_body is not None
+    assert "NEW_B" in context.selected_body
+    assert "OLD_A" not in context.selected_body
+
+
+async def test_scenario2b_stale_revalidation_before_dispatch_stays_error(
+    tmp_path,
+) -> None:
+    """The Run-bound selection is revalidated before actual dispatch: a source
+    mutated after the trigger snapshot raises ``source_stale`` and never
+    dispatches stale content."""
+
+    store = FileStore(tmp_path / "data", tmp_path / "ws")
+    service = _service(store)
+    task_id = raw_task(store)
+    source_a = _inline_source(service, "orig body", task_ref=task_id)
+    _seed_machine(service, source_a, "orig body")
+
+    coordinator = Coordinator(store, source_service=service, responder=lambda c, k: "ok")
+    selected = coordinator._resolve_selected(
+        task_id, {"selected_sources": [{"source_id": source_a}]}
+    )
+    coordinator._bind_selected_trigger(task_id, "msg_A", selected)
+    coordinator._queue.enqueue(task_id)
+    run_id = coordinator._open_run(store.read("task", task_id))
+
+    # The source body changes after the trigger snapshot was saved.
+    _seed_formal(service, source_a, "mutated body")
+    with pytest.raises(AppError) as exc:
+        coordinator._build_context(store.read("task", task_id), run_id)
+    assert exc.value.code is ErrorCode.SOURCE_STALE
+
+
+async def test_scenario2c_revoked_source_before_dispatch_stays_error(
+    tmp_path,
+) -> None:
+    """A source revoked after the trigger snapshot is refused before dispatch
+    (revoke fail-closed ``not_found``), never silently replayed."""
+
+    store = FileStore(tmp_path / "data", tmp_path / "ws")
+    service = _service(store)
+    task_id = raw_task(store)
+    source_a = _inline_source(service, "orig body", task_ref=task_id)
+    _seed_machine(service, source_a, "orig body")
+
+    coordinator = Coordinator(store, source_service=service, responder=lambda c, k: "ok")
+    selected = coordinator._resolve_selected(
+        task_id, {"selected_sources": [{"source_id": source_a}]}
+    )
+    coordinator._bind_selected_trigger(task_id, "msg_A", selected)
+    coordinator._queue.enqueue(task_id)
+    run_id = coordinator._open_run(store.read("task", task_id))
+
+    service.source_actions(source_a, action="revoke")
+    with pytest.raises(AppError) as exc:
+        coordinator._build_context(store.read("task", task_id), run_id)
+    assert exc.value.code is ErrorCode.NOT_FOUND
 
 
 # ---------------------------------------------------------------- HTTP wire

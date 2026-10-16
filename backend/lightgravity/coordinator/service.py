@@ -36,7 +36,6 @@ from lightgravity.sources.selection import (
     parse_selected_sources,
     resolve_context_from_snapshot,
     resolve_selected_sources,
-    selection_snapshot_of,
 )
 from lightgravity.store import (
     EntityNotFound,
@@ -553,6 +552,7 @@ class Coordinator:
         workspace_ref: str | None,
         agent_ref: str | None,
         enqueue: bool,
+        selected_trigger: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         task_id = new_id("task")
         content = _task_content(
@@ -577,6 +577,12 @@ class Coordinator:
             {"title": title, "request_id": request_id},
             task_ref=task_id,
         )
+        # Program-frozen Run trigger association (LG-043 followup): the message
+        # that caused this Task to be queued owns the selected-material context
+        # for the Run it will spawn.  Stored as internal Task metadata (existing
+        # controlled SoT, no public field), transferred to the Run at open time.
+        if selected_trigger is not None:
+            self._writer.write_task(task_id, {"selected_trigger": dict(selected_trigger)})
         queue_state = "not_queued"
         if enqueue:
             queue_state = self._queue.enqueue(task_id)
@@ -668,6 +674,9 @@ class Coordinator:
                     workspace_ref=None,
                     agent_ref=None,
                     enqueue=True,
+                    selected_trigger=self._trigger_binding(
+                        str(message.get("message_id") or request_id), selected
+                    ),
                 )
 
             created = self._idempotency.execute(f"message-task:{request_id}", producer)
@@ -748,6 +757,21 @@ class Coordinator:
             ) else "pause"
             result = await self.request_control(task_id, action, request_id=message_id)
         elif classification.next_action == "retry":
+            # A retry rebinds the Run trigger only when it actually opens a fresh
+            # queued Run.  If the Task is already queued/executing, a later
+            # message must NOT overwrite the pending Run's trigger: that Run
+            # still uses its own trigger's exact saved selection (docs/10 §5/§6).
+            # Bind *before* enqueue so the claim/dispatch loop can never open the
+            # Run between the state transition and the binding write.
+            phase = str(self._store.read("task", task_id).entity.get("phase", ""))
+            already_queued = phase in {
+                TaskPhase.QUEUED.value,
+                TaskPhase.PLANNING.value,
+                TaskPhase.RECRUITING.value,
+                TaskPhase.EXECUTING.value,
+            }
+            if not already_queued:
+                self._bind_selected_trigger(task_id, message_id, selected)
             state = self._queue.enqueue(task_id)
             result = CoordinatorResult(
                 kind="retry",
@@ -1323,6 +1347,12 @@ class Coordinator:
             "ended_at": None,
             "fail_reason": None,
         }
+        # Freeze the Run's selected-material binding to its exact trigger message
+        # (internal metadata; no public field).  ``None`` means the trigger had
+        # no selection, so this Run must not inherit another message's context.
+        trigger = task.entity.get("selected_trigger")
+        if isinstance(trigger, dict):
+            run_content["selected_trigger"] = dict(trigger)
         if findings_list:
             run_content["review_findings"] = findings_list
         cast(_BodyStore, self._store).create(
@@ -1405,28 +1435,70 @@ class Coordinator:
         resolver = self._selected_resolver(task_ref)
         return resolve_selected_sources(resolver, refs)
 
-    def _latest_selected_snapshot(self, task_id: str) -> dict[str, Any] | None:
-        """The most recent persisted selected-context snapshot for a Task."""
+    @staticmethod
+    def _trigger_binding(
+        message_id: str, selected: SelectedContext | None
+    ) -> dict[str, Any]:
+        """Program-frozen Run trigger binding (internal metadata only).
 
-        try:
-            records = self._store.read_messages(task_id, limit=200)
-        except Exception:  # noqa: BLE001 - no conversation means no snapshot
-            return None
-        for record in reversed(records):
-            snapshot = selection_snapshot_of(record.message)
-            if snapshot is not None:
-                return snapshot
-        return None
-
-    def _worker_selected_context(self, task_id: str) -> SelectedContext | None:
-        """Revalidate the persisted selected snapshot before worker dispatch.
-
-        Uses the *saved* bytes/refs and re-reads current source state; a changed
-        source is reported as ``source_stale`` rather than silently replayed
-        with different content (docs/10 §5/§6).
+        Records the exact message that triggered the queued work and the
+        resolved selected-context snapshot at that moment.  ``snapshot`` is
+        ``None`` when the trigger carried no selection (legacy/no-selection), so
+        the Run it spawns never inherits a different message's selection.
         """
 
-        snapshot = self._latest_selected_snapshot(task_id)
+        return {
+            "message_id": message_id,
+            "snapshot": selected.snapshot() if selected is not None else None,
+        }
+
+    def _bind_selected_trigger(
+        self, task_id: str, message_id: str, selected: SelectedContext | None
+    ) -> None:
+        """Bind the Task's queued Run to its exact trigger message.
+
+        Called only when a message actually opens a fresh queued Run, and it
+        replaces any earlier binding (including one whose ``snapshot`` is
+        ``None``), so a Run never silently reuses an older selection
+        (docs/10 §5/§6).
+        """
+
+        try:
+            self._writer.write_task(
+                task_id, {"selected_trigger": self._trigger_binding(message_id, selected)}
+            )
+        except EntityNotFound:  # pragma: no cover - task exists at call sites
+            return
+
+    def _run_selected_snapshot(self, run_id: str) -> dict[str, Any] | None:
+        """The selected snapshot bound to *this Run's* trigger message.
+
+        Reads the internal ``selected_trigger`` metadata written when the Run
+        was opened (from the Task's frozen trigger association).  Never scans
+        the conversation for a "latest" snapshot: a Run must use the selection
+        of its own trigger, not a later message's.
+        """
+
+        try:
+            run = self._store.read("run", run_id).entity
+        except EntityNotFound:
+            return None
+        trigger = run.get("selected_trigger")
+        if not isinstance(trigger, dict):
+            return None
+        snapshot = trigger.get("snapshot")
+        return snapshot if isinstance(snapshot, dict) else None
+
+    def _worker_selected_context(self, task_id: str, run_id: str) -> SelectedContext | None:
+        """Revalidate the Run-bound selected snapshot before worker dispatch.
+
+        Uses the *saved* bytes/refs from the Run's trigger message and re-reads
+        current source state; a changed/revoked source is reported as
+        ``source_stale``/``not_found`` rather than silently replayed with
+        different content (docs/10 §5/§6).
+        """
+
+        snapshot = self._run_selected_snapshot(run_id)
         if snapshot is None:
             return None
         resolver = self._selected_resolver(task_id)
@@ -1451,7 +1523,7 @@ class Coordinator:
         # dispatch and pass the same exact body the chat reply used.  A source
         # that changed/revoked since resolution raises here (source_stale /
         # not_found) instead of dispatching stale authorization.
-        selected = self._worker_selected_context(task.entity_id)
+        selected = self._worker_selected_context(task.entity_id, run_id)
         return DispatchContext(
             task_id=task.entity_id,
             run_id=run_id,
