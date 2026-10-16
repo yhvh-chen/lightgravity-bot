@@ -1,0 +1,102 @@
+{
+ "evidence_boundary": "component/API ONLY; no actual SDK",
+ "source_upload_status": 201,
+ "source_upload_ok": true,
+ "source_id": "source_01M5230KZNM9EBMWK354CB2FSC",
+ "source_status": "extracted",
+ "source_derivatives": [
+  {
+   "kind": "machine_markdown",
+   "path": "derivative/machine.v1.md",
+   "source_version": 1,
+   "content_hash": "27bb7971e70c6e44b792df8ca4ce6b1b73526610a7b226cc6fbc2c199afbbaa3",
+   "model_version": "none"
+  },
+  {
+   "kind": "page_map",
+   "path": "derivative/machine.v1.pages.json",
+   "source_version": 1,
+   "content_hash": "c25b22bb7efc150c27828476580d31f003b24662bb408b8463a362fb7ef97546",
+   "model_version": "none"
+  }
+ ],
+ "source_formal": {
+  "path": null,
+  "revision": null,
+  "edited_by": null
+ },
+ "source_receipts": [
+  {
+   "source_id": "source_01M5230KZNM9EBMWK354CB2FSC",
+   "filename": "orion-brief-alpha.txt",
+   "status": "received",
+   "stage": "received",
+   "detail": "original persisted; extraction not started (LG-035)",
+   "searchable": false,
+   "original_path": "original/orion-brief-alpha.txt",
+   "formal_path": null,
+   "content_hash": "fb0389dbb880ee3657466cc26e22157f390eb8dfee3c10fe8b697b70fba1cf54",
+   "source_version": 1,
+   "at": "2026-10-16T10:09:39.328Z",
+   "error_code": null
+  },
+  {
+   "source_id": "source_01M5230KZNM9EBMWK354CB2FSC",
+   "filename": "original",
+   "status": "extracted",
+   "stage": "done",
+   "detail": "native UTF-8 text extracted (model-free)",
+   "searchable": true,
+   "original_path": "original/orion-brief-alpha.txt",
+   "formal_path": "derivative/machine.v1.md",
+   "content_hash": "fb0389dbb880ee3657466cc26e22157f390eb8dfee3c10fe8b697b70fba1cf54",
+   "source_version": 1,
+   "at": "2026-10-16T10:09:39.383Z",
+   "error_code": null
+  }
+ ],
+ "route_status": 200,
+ "route_kind": "task",
+ "route_intent": "delivery",
+ "route_creates_task": true,
+ "task_id": "task_01M5230M2P5RF7VPHQ8YP05JJG",
+ "task_acceptance_criteria": [
+  "The requested deliverable file 'orion-summary.md' exists in the task workspace and satisfies the objective: Create a Markdown file orion-summary.md using only the selected brief. Include project name, programme owner, primary launch date, total approved budget, project ID, and change ticket. Return the file as the deliverable."
+ ],
+ "task_workspace_ref": "tasks/task_01M5230M2P5RF7VPHQ8YP05JJG",
+ "selected_trigger_message_id": "qa-l-r2-msg-1",
+ "selected_trigger_source_ids": [
+  "source_01M5230KZNM9EBMWK354CB2FSC"
+ ],
+ "task_phase": "verifying",
+ "run_id": "run_01M5230M5MK5AVQY2PWS74BJ2X",
+ "run_plan_source": "rules",
+ "run_plan_hash": "07bf875322b7ae3a678e1832f09dd6ba21f3a40e0dbc74a16f2e61dda3a6db1e",
+ "run_plan_subtask_keys": [
+  "deliver",
+  "verify"
+ ],
+ "executor_request_count": 2,
+ "worker_has_workspace": true,
+ "worker_has_acceptance": true,
+ "worker_instructions_has_brief": true,
+ "worker_instructions_has_selected_wrap": true,
+ "checks": {
+  "source_extracted": true,
+  "source_native_derivative": true,
+  "source_native_receipt": true,
+  "route_kind_task": true,
+  "route_intent_delivery": true,
+  "route_creates_task": true,
+  "task_acceptance_present": true,
+  "task_workspace_present": true,
+  "trigger_message_bound": true,
+  "trigger_source_bound": true,
+  "run_plan_present": true,
+  "worker_ran": true,
+  "worker_has_workspace": true,
+  "worker_has_acceptance": true,
+  "worker_has_brief": true
+ },
+ "passed": true
+}

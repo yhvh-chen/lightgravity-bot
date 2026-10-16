@@ -1,0 +1,203 @@
+{
+ "note": "before = 56a2dd9 (pre-J) classification.py; after = 0188ca2 (J-integrated)",
+ "cases": [
+  {
+   "label": "observed_goal",
+   "text": "Create a Markdown file orion-summary.md using only the selected brief. Include project name, programme owner, primary launch date, total approved budget, project ID, and change ticket. Return the file as the deliverable.",
+   "before": {
+    "intent": "decision",
+    "next_action": "decision",
+    "matched": [
+     "approve"
+    ]
+   },
+   "after": {
+    "intent": "delivery",
+    "next_action": "create_task",
+    "matched": [
+     "create"
+    ]
+   }
+  },
+  {
+   "label": "who_approved_budget",
+   "text": "Who approved the budget?",
+   "before": {
+    "intent": "decision",
+    "next_action": "decision",
+    "matched": [
+     "approve"
+    ]
+   },
+   "after": {
+    "intent": "answer",
+    "next_action": "direct",
+    "matched": []
+   }
+  },
+  {
+   "label": "create_acceptance_md",
+   "text": "Create acceptance.md",
+   "before": {
+    "intent": "decision",
+    "next_action": "decision",
+    "matched": [
+     "accept"
+    ]
+   },
+   "after": {
+    "intent": "delivery",
+    "next_action": "create_task",
+    "matched": [
+     "create"
+    ]
+   }
+  },
+  {
+   "label": "create_approved_budget_md",
+   "text": "Create approved-budget.md",
+   "before": {
+    "intent": "decision",
+    "next_action": "decision",
+    "matched": [
+     "approve"
+    ]
+   },
+   "after": {
+    "intent": "delivery",
+    "next_action": "create_task",
+    "matched": [
+     "create"
+    ]
+   }
+  },
+  {
+   "label": "cancellation_policy_doc",
+   "text": "Create a doc explaining the cancellation policy",
+   "before": {
+    "intent": "control",
+    "next_action": "control",
+    "matched": [
+     "cancel"
+    ]
+   },
+   "after": {
+    "intent": "delivery",
+    "next_action": "create_task",
+    "matched": [
+     "create"
+    ]
+   }
+  },
+  {
+   "label": "quoted_approve",
+   "text": "Create a file with the text \"approve\" inside",
+   "before": {
+    "intent": "decision",
+    "next_action": "decision",
+    "matched": [
+     "approve"
+    ]
+   },
+   "after": {
+    "intent": "delivery",
+    "next_action": "create_task",
+    "matched": [
+     "create"
+    ]
+   }
+  },
+  {
+   "label": "genuine_approve",
+   "text": "Please approve the current candidate.",
+   "before": {
+    "intent": "decision",
+    "next_action": "decision",
+    "matched": [
+     "approve"
+    ]
+   },
+   "after": {
+    "intent": "decision",
+    "next_action": "decision",
+    "matched": [
+     "approve"
+    ]
+   }
+  },
+  {
+   "label": "genuine_cancel",
+   "text": "cancel the running task",
+   "before": {
+    "intent": "control",
+    "next_action": "control",
+    "matched": [
+     "cancel"
+    ]
+   },
+   "after": {
+    "intent": "control",
+    "next_action": "control",
+    "matched": [
+     "cancel"
+    ]
+   }
+  },
+  {
+   "label": "genuine_pause",
+   "text": "pause the running task",
+   "before": {
+    "intent": "control",
+    "next_action": "control",
+    "matched": [
+     "pause"
+    ]
+   },
+   "after": {
+    "intent": "control",
+    "next_action": "control",
+    "matched": [
+     "pause"
+    ]
+   }
+  },
+  {
+   "label": "zh_cancel",
+   "text": "取消那个修改任务",
+   "before": {
+    "intent": "control",
+    "next_action": "control",
+    "matched": [
+     "取消"
+    ]
+   },
+   "after": {
+    "intent": "control",
+    "next_action": "control",
+    "matched": [
+     "取消"
+    ]
+   }
+  },
+  {
+   "label": "zh_read",
+   "text": "读这个文件并解释一下",
+   "before": {
+    "intent": "bounded_read",
+    "next_action": "bounded_read",
+    "matched": [
+     "读这个文件",
+     "解释"
+    ]
+   },
+   "after": {
+    "intent": "bounded_read",
+    "next_action": "bounded_read",
+    "matched": [
+     "读这个文件",
+     "解释"
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,358 @@
+{
+ "probe": "L-R2-ROUTING-QA/classifier_matrix",
+ "total": 25,
+ "failures": 0,
+ "component_only": true,
+ "no_model_no_network_no_sdk": true,
+ "cases": [
+  {
+   "label": "observed_goal_total_approved_budget",
+   "text": "Create a Markdown file orion-summary.md using only the selected brief. Include project name, programme owner, primary launch date, total approved budget, project ID, and change ticket. Return the file as the deliverable.",
+   "expected_intent": "delivery",
+   "expected_next_action": "create_task",
+   "intent": "delivery",
+   "next_action": "create_task",
+   "matched": [
+    "create"
+   ],
+   "requires_target": false,
+   "creates_work": true,
+   "ok": true
+  },
+  {
+   "label": "corrected_goal_no_approved",
+   "text": "Create the deliverable orion-summary.md (Markdown) using only the selected brief. It must contain the project name, programme owner, primary launch date, total budget, project ID, and change ticket. Return the file as the deliverable.",
+   "expected_intent": "delivery",
+   "expected_next_action": "create_task",
+   "intent": "delivery",
+   "next_action": "create_task",
+   "matched": [
+    "create"
+   ],
+   "requires_target": false,
+   "creates_work": true,
+   "ok": true
+  },
+  {
+   "label": "derived_word_question_who_approved",
+   "text": "Who approved the budget?",
+   "expected_intent": "answer",
+   "expected_next_action": "direct",
+   "intent": "answer",
+   "next_action": "direct",
+   "matched": [],
+   "requires_target": false,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "noun_approval_status",
+   "text": "What is the approval status?",
+   "expected_intent": "status_query",
+   "expected_next_action": "query",
+   "intent": "status_query",
+   "next_action": "query",
+   "matched": [
+    "status"
+   ],
+   "requires_target": false,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "noun_cancellation_policy",
+   "text": "Create a doc explaining the cancellation policy",
+   "expected_intent": "delivery",
+   "expected_next_action": "create_task",
+   "intent": "delivery",
+   "next_action": "create_task",
+   "matched": [
+    "create"
+   ],
+   "requires_target": false,
+   "creates_work": true,
+   "ok": true
+  },
+  {
+   "label": "noun_acceptance_record",
+   "text": "Create a record of the acceptance decision",
+   "expected_intent": "delivery",
+   "expected_next_action": "create_task",
+   "intent": "delivery",
+   "next_action": "create_task",
+   "matched": [
+    "create"
+   ],
+   "requires_target": false,
+   "creates_work": true,
+   "ok": true
+  },
+  {
+   "label": "filename_acceptance_md",
+   "text": "Create acceptance.md",
+   "expected_intent": "delivery",
+   "expected_next_action": "create_task",
+   "intent": "delivery",
+   "next_action": "create_task",
+   "matched": [
+    "create"
+   ],
+   "requires_target": false,
+   "creates_work": true,
+   "ok": true
+  },
+  {
+   "label": "filename_approved_budget_md",
+   "text": "Create approved-budget.md",
+   "expected_intent": "delivery",
+   "expected_next_action": "create_task",
+   "intent": "delivery",
+   "next_action": "create_task",
+   "matched": [
+    "create"
+   ],
+   "requires_target": false,
+   "creates_work": true,
+   "ok": true
+  },
+  {
+   "label": "filename_accept_md",
+   "text": "Create a file accept.md with the checklist",
+   "expected_intent": "delivery",
+   "expected_next_action": "create_task",
+   "intent": "delivery",
+   "next_action": "create_task",
+   "matched": [
+    "create"
+   ],
+   "requires_target": false,
+   "creates_work": true,
+   "ok": true
+  },
+  {
+   "label": "quoted_approve_literal",
+   "text": "Create a file with the text \"approve\" inside",
+   "expected_intent": "delivery",
+   "expected_next_action": "create_task",
+   "intent": "delivery",
+   "next_action": "create_task",
+   "matched": [
+    "create"
+   ],
+   "requires_target": false,
+   "creates_work": true,
+   "ok": true
+  },
+  {
+   "label": "ordinary_how_create_file",
+   "text": "How do I create a file?",
+   "expected_intent": "answer",
+   "expected_next_action": "direct",
+   "intent": "answer",
+   "next_action": "direct",
+   "matched": [
+    "how "
+   ],
+   "requires_target": false,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "ordinary_what_can_you_do",
+   "text": "What can you do?",
+   "expected_intent": "answer",
+   "expected_next_action": "direct",
+   "intent": "answer",
+   "next_action": "direct",
+   "matched": [
+    "what can you"
+   ],
+   "requires_target": false,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "genuine_approve",
+   "text": "Please approve the current candidate.",
+   "expected_intent": "decision",
+   "expected_next_action": "decision",
+   "intent": "decision",
+   "next_action": "decision",
+   "matched": [
+    "approve"
+   ],
+   "requires_target": true,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "genuine_accept",
+   "text": "Please accept the current candidate",
+   "expected_intent": "decision",
+   "expected_next_action": "decision",
+   "intent": "decision",
+   "next_action": "decision",
+   "matched": [
+    "accept"
+   ],
+   "requires_target": true,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "genuine_reject",
+   "text": "reject the current candidate",
+   "expected_intent": "decision",
+   "expected_next_action": "decision",
+   "intent": "decision",
+   "next_action": "decision",
+   "matched": [
+    "reject"
+   ],
+   "requires_target": true,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "genuine_cancel",
+   "text": "cancel the running task",
+   "expected_intent": "control",
+   "expected_next_action": "control",
+   "intent": "control",
+   "next_action": "control",
+   "matched": [
+    "cancel"
+   ],
+   "requires_target": true,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "genuine_pause",
+   "text": "pause the running task",
+   "expected_intent": "control",
+   "expected_next_action": "control",
+   "intent": "control",
+   "next_action": "control",
+   "matched": [
+    "pause"
+   ],
+   "requires_target": true,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "genuine_stop",
+   "text": "stop the running task",
+   "expected_intent": "control",
+   "expected_next_action": "control",
+   "intent": "control",
+   "next_action": "control",
+   "matched": [
+    "stop"
+   ],
+   "requires_target": true,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "genuine_resume",
+   "text": "resume the running task",
+   "expected_intent": "retry",
+   "expected_next_action": "retry",
+   "intent": "retry",
+   "next_action": "retry",
+   "matched": [
+    "resume"
+   ],
+   "requires_target": false,
+   "creates_work": true,
+   "ok": true
+  },
+  {
+   "label": "genuine_continue",
+   "text": "please continue the delivery",
+   "expected_intent": "retry",
+   "expected_next_action": "retry",
+   "intent": "retry",
+   "next_action": "retry",
+   "matched": [
+    "continue"
+   ],
+   "requires_target": false,
+   "creates_work": true,
+   "ok": true
+  },
+  {
+   "label": "zh_cancel",
+   "text": "取消那个修改任务",
+   "expected_intent": "control",
+   "expected_next_action": "control",
+   "intent": "control",
+   "next_action": "control",
+   "matched": [
+    "取消"
+   ],
+   "requires_target": true,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "zh_accept",
+   "text": "接受这个交付",
+   "expected_intent": "decision",
+   "expected_next_action": "decision",
+   "intent": "decision",
+   "next_action": "decision",
+   "matched": [
+    "接受"
+   ],
+   "requires_target": true,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "zh_read",
+   "text": "读这个文件并解释一下",
+   "expected_intent": "bounded_read",
+   "expected_next_action": "bounded_read",
+   "intent": "bounded_read",
+   "next_action": "bounded_read",
+   "matched": [
+    "读这个文件",
+    "解释"
+   ],
+   "requires_target": false,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "zh_status",
+   "text": "现在进度如何？",
+   "expected_intent": "status_query",
+   "expected_next_action": "query",
+   "intent": "status_query",
+   "next_action": "query",
+   "matched": [
+    "进度"
+   ],
+   "requires_target": false,
+   "creates_work": false,
+   "ok": true
+  },
+  {
+   "label": "zh_delivery",
+   "text": "创建一个说明文件",
+   "expected_intent": "delivery",
+   "expected_next_action": "create_task",
+   "intent": "delivery",
+   "next_action": "create_task",
+   "matched": [
+    "创建"
+   ],
+   "requires_target": false,
+   "creates_work": true,
+   "ok": true
+  }
+ ]
+}

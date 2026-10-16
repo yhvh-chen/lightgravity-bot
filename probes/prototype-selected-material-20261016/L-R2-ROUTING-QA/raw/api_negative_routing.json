@@ -1,0 +1,95 @@
+{
+ "probe": "L-R2-ROUTING-QA/api_negative_routing",
+ "evidence_boundary": "component/API ONLY; default UnavailableExecutor, no SDK",
+ "cases": [
+  {
+   "label": "ordinary_how_create_file",
+   "text": "How do I create a file?",
+   "expected": "no_task",
+   "status": 200,
+   "kind": "direct",
+   "intent": "answer",
+   "task_id": null,
+   "creates_task": false,
+   "ok": true
+  },
+  {
+   "label": "ordinary_who_approved_budget",
+   "text": "Who approved the budget?",
+   "expected": "no_task",
+   "status": 200,
+   "kind": "direct",
+   "intent": "answer",
+   "task_id": null,
+   "creates_task": false,
+   "ok": true
+  },
+  {
+   "label": "ordinary_what_can_you_do",
+   "text": "What can you do?",
+   "expected": "no_task",
+   "status": 200,
+   "kind": "direct",
+   "intent": "answer",
+   "task_id": null,
+   "creates_task": false,
+   "ok": true
+  },
+  {
+   "label": "quoted_approve_literal",
+   "text": "Create a file with the text \"approve\" inside",
+   "expected": "task",
+   "status": 200,
+   "kind": "task",
+   "intent": "delivery",
+   "task_id": "task_01M5230WED936M7CE0T7VZF8MX",
+   "creates_task": true,
+   "ok": true
+  },
+  {
+   "label": "filename_acceptance_md",
+   "text": "Create acceptance.md",
+   "expected": "task",
+   "status": 200,
+   "kind": "task",
+   "intent": "delivery",
+   "task_id": "task_01M5230WN1S9QCKYR84J7A7SA0",
+   "creates_task": true,
+   "ok": true
+  },
+  {
+   "label": "filename_approved_budget_md",
+   "text": "Create approved-budget.md",
+   "expected": "task",
+   "status": 200,
+   "kind": "task",
+   "intent": "delivery",
+   "task_id": "task_01M5230WPHMMDXMZZN3RG25XJF",
+   "creates_task": true,
+   "ok": true
+  },
+  {
+   "label": "genuine_approve",
+   "text": "Please approve the current candidate.",
+   "expected": "no_task",
+   "status": 200,
+   "kind": "clarify",
+   "intent": "decision",
+   "task_id": null,
+   "creates_task": false,
+   "ok": true
+  },
+  {
+   "label": "genuine_cancel_no_target",
+   "text": "cancel the running task",
+   "expected": "no_task",
+   "status": 200,
+   "kind": "clarify",
+   "intent": "control",
+   "task_id": null,
+   "creates_task": false,
+   "ok": true
+  }
+ ],
+ "passed": true
+}

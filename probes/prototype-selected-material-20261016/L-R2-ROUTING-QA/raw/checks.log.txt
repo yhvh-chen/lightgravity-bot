@@ -1,0 +1,21 @@
+# L-R2-ROUTING-QA raw checks (independent)
+date: 2026-10-16T10:09:53Z
+worktree: /home/yhvh/code/lightgravity-bot-worktrees/proto-material-route-qa-r2-20261016
+branch: qa/proto-material-route-r2-20261016
+HEAD: 0188ca21c8f4aa7db88162d0cf035d35e387884d
+classification.py blob: 8893f6ddb0839c92e21618f46c62a224b901a35f
+main:classification.py blob: 8893f6ddb0839c92e21618f46c62a224b901a35f
+python: Python 3.12.13
+lightgravity.__file__ (PYTHONPATH-bound):
+  /home/yhvh/code/lightgravity-bot-worktrees/proto-material-route-qa-r2-20261016/backend/lightgravity/__init__.py
+
+## pytest targeted (routing-affected sets; NOT full suite)
+........................................................................ [ 72%]
+......................................................                   [100%]
+198 passed in 27.21s
+..........................................                               [100%]
+42 passed in 4.00s
+## classifier matrix (own)
+classifier_matrix exit=0
+api_route_probe exit=0
+api_negative_routing exit=0
