@@ -121,3 +121,23 @@ PYTHONPATH=backend uv run --no-sync pytest tests/contracts tests/coordinator tes
 - 未跑：整仓 full suite、e2e、前端、真实 SDK/DeepSeek（均不在本包授权/预算内）；绑定修正的完成回执待 LG-046/LG-047。
 - 无后台子进程启动；无残留服务；未触碰 8123 端口的任何子进程。
 - **剩余未提交 owned 状态**：`backend/lightgravity/coordinator/service.py`（M）、`tests/sources/test_lg043_selected_material.py`（M）、本 REPORT（M）+ docs/08、docs/10 注记（如尚未提交）。
+
+---
+
+## Addendum — LG-046 集成验证回执（由 `pi-proto-integrate` 执行）
+
+- 结论：本包原报告将绑定修正标为 **PARTIAL（无完成回执）**；集成 owner 现已在**已提交的绑定修正** `6515e5c` 上取得**真实完成回执**。绑定修正已在 `6515e5c` 提交（原报告"未提交"描述已过时）。
+- 验证对象：`dev/proto-material-backend-20261016` @ `6515e5c`（parent `7908e9d`）。
+- 命令与 EXIT（durable，见 `raw/integration-verify/`）：
+
+```
+PYTHONPATH=backend uv run --no-sync pytest tests/sources/test_lg043_selected_material.py -q
+# => 42 passed in 3.70s ; MYPY/PYTEST EXIT=0
+PYTHONPATH=backend uv run --no-sync mypy
+# => Success: no issues found in 139 source files ; EXIT=0
+PYTHONPATH=backend uv run --no-sync pytest tests/contracts tests/coordinator tests/sources tests/api tests/adapter tests/store -q
+# => 550 passed, 1 skipped in 57.19s ; EXIT=0
+```
+
+- 42 用例含 35 首版 + 7 绑定回归；**绑定修正的完成回执现已补齐**。仍为**实现完成**，非版本 QA 通过（真实 SDK/DeepSeek 端到端与浏览器验收归 LG-047）。
+- raw 日志：`probes/prototype-selected-material-20261016/A-BACKEND/raw/integration-verify/{pytest-lg043.log,mypy.log,pytest-subsets.log}`。
