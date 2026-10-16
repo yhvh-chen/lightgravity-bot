@@ -1,0 +1,74 @@
+{
+  "audit": "LG-040 QUALITY-R1-20261016 METHOD-AUDIT",
+  "offline_only": true,
+  "new_model_calls": 0,
+  "normalization": "NFKC -> lower -> collapse whitespace -> strip (same as original harness)",
+  "F1_ocr": {
+    "input_image_sha256": "265f187a8345146435282a6bf898141d748a50b086b8377d4e72fa916150f571",
+    "nist_pdf_sha256": "788dd8f0bcb0ec06e40c300690266742532a7e760a93be57764b77ed0ef3482f",
+    "ocr_hyp_norm_chars": 2272,
+    "full_page16_native_norm_chars": 2272,
+    "erroneous_slice_norm_chars": 600,
+    "slice_span_chars_raw": [
+      87,
+      717
+    ],
+    "cer_hyp_vs_FULL_page": 0.0026,
+    "editdist_hyp_vs_FULL_page": 6,
+    "cer_hyp_vs_600slice_original": 2.79,
+    "editdist_hyp_vs_600slice_original": 1674,
+    "r7_prior_truth_source": "NIST SP811 p16 native text layer",
+    "r7_prior_truth_norm_chars": 1898,
+    "r7_prior_reported_cer": 0.029504741833508957,
+    "r7_prior_pass": true,
+    "r7_hyp_cer_vs_FULL_page_recomputed": 0.0277,
+    "classification": "BENCHMARK_DEFECT"
+  },
+  "F2_formats": {
+    "d3_tif_filecmd": "TIFF image data, little-endian, 640x480 bps=1",
+    "d3_tif_sha256": "d2241a1eb6d6cd2eb6544b8e228c2862c852b7467d16ed636caa32179b780692",
+    "d3_png_sha256": "5aff7e21cd0c8395500d33530023bc1d779f55b14cad269f9e74ba6c971e2e7d",
+    "tiff_embed_http": 500,
+    "tiff_embed_body": {
+      "code": 500,
+      "message": "Failed to load image or audio file",
+      "type": "server_error"
+    },
+    "png_embed_ok": true,
+    "classification": "KNOWN_LIMIT (honest unavailable; not false success)"
+  },
+  "F3_ranking": {
+    "Q3_query": "scanned page of twelve point text with the quick brown fox sentence",
+    "cosine_order": [
+      {
+        "doc": "D2",
+        "score": 0.807764
+      },
+      {
+        "doc": "D3",
+        "score": 0.762977
+      },
+      {
+        "doc": "MIX",
+        "score": 0.722642
+      },
+      {
+        "doc": "D1",
+        "score": 0.672681
+      },
+      {
+        "doc": "D4",
+        "score": 0.642477
+      }
+    ],
+    "rank1": "D2",
+    "rank2": "D3",
+    "rank_margin_1_2": 0.044787,
+    "D2_gold_is_image_text_duplicate": true,
+    "D3_is_image_of_same_content": true,
+    "d2_sha256": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed",
+    "d3_tif_sha256": "d2241a1eb6d6cd2eb6544b8e228c2862c852b7467d16ed636caa32179b780692",
+    "d3_png_sha256": "5aff7e21cd0c8395500d33530023bc1d779f55b14cad269f9e74ba6c971e2e7d",
+    "classification": "KNOWN_LIMIT (same-content cross-modal; not wrong-document)"
+  }
+}
