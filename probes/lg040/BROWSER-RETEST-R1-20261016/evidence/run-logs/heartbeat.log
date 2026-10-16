@@ -1,0 +1,8 @@
+2026-10-16T17:27:50 pid=3505865 start root=/home/yhvh/code/lightgravity-bot-worktrees/lg040-browser-retest-r1-20261016 venv=/home/yhvh/code/lightgravity-bot-worktrees/lg040-browser-retest-r1-20261016/.venv/bin/python venv_exists=True run=/tmp/lg040-browser-retest-run3-3505862
+2026-10-16T17:27:50 pid=3505865 launch deny proxy
+2026-10-16T17:27:50 pid=3505865 deny proxy :35271 pid=3505867
+2026-10-16T17:27:50 pid=3505865 launch app
+2026-10-16T17:27:51 pid=3505865 app http://127.0.0.1:40135/ pid=3505868
+2026-10-16T17:27:51 pid=3505865 RUN: node /home/yhvh/code/lightgravity-bot-worktrees/lg040-browser-retest-r1-20261016/probes/lg040/BROWSER-RETEST-R1-20261016/scripts/lg040-retest-driver.mjs --url http://127.0.0.1:40135/ --out /home/yhvh/code/lightgravity-bot-worktrees/lg040-browser-retest-r1-20261016/probes/lg040/BROWSER-RETEST-R1-20261016/evidence/run --firefox /snap/bin/firefox --deadline-ms 90000 --profile-dir /home/yhvh/snap/firefox/current/lg040ret-3505865
+2026-10-16T17:28:10 pid=3505865 driver exit: 1
+2026-10-16T17:28:11 pid=3505865 stopped own children
