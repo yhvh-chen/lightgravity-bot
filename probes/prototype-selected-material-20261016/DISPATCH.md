@@ -5,6 +5,7 @@
 ## 冻结基线
 
 - **Baseline commit**：`acd7005`（`main`，clean；LG-040 收口后）。所有 worktree 从此 commit 派发。
+  - **回执澄清（2026-10-16，`pi-proto-integrate` 登记；不重写历史）**：本行“所有 worktree 从此 commit 派发”为**历史规划口径**。**实际**三个 worktree（A/B/C）的创建与分支基点均为 **`21e6344`**（LG-042 prep 冻结契约提交），`acd7005` 为其父提交。`main` 其后经 LG-042 收口推进到 **`642fb3d`**（PM 任务登记）。三线实现均由 `21e6344` 冻结契约派生，本澄清不影响接口事实。
 - **契约**：`docs/10-selected-material-prototype.md`（新）+ `docs/08-interface-contract.md` §6.6.1 与 §13 变更控制（加性 MINOR `1.12.0` 预留）。**唯一 owner**：`pi-proto-prepare`（本任务）。实现不得先于契约扩展语义。
 
 ## 三份 worktree / 分支 / owner 边界
