@@ -50,6 +50,38 @@ def _expected(record: SourceRecord, expected_revision: int | None) -> int:
 
     return record.revision if expected_revision is None else expected_revision
 
+#: ``source.status`` value written by ``revoke`` (docs/08 §6.6).  This is the
+#: revoke marker: a *revoked* source is **unavailable** and must refuse to
+#: serve its bytes/derivatives.  It is deliberately distinct from the additive
+#: reversible ``archived`` boolean flag, which keeps the source openable and
+#: searchable (``archive``/``unarchive`` never touch ``status``).
+REVOKED_STATUS = "archived"
+
+
+def _ensure_available(record: SourceRecord) -> None:
+    """Fail closed when a source has been revoked (docs/08 §6.6).
+
+    ``revoke`` preserves the original bytes on disk (unlike ``delete``) but the
+    material must be **unavailable**: no preview/download of any content kind,
+    and no reprocess/formal write that could resurrect its availability.  The
+    record is not disclosed as existing, so the refusal is the same
+    ``not_found`` a client already handles after ``delete`` (docs/08 §4.2);
+    ``details.revoked`` lets diagnostics distinguish the two without leaking
+    content.  Reads never stream a single byte of a revoked source.
+    """
+
+    if record.status == REVOKED_STATUS:
+        raise AppError(
+            ErrorCode.NOT_FOUND,
+            f"source {record.source_id!r} is revoked and unavailable",
+            details={
+                "source_id": record.source_id,
+                "status": record.status,
+                "revoked": True,
+            },
+        )
+
+
 #: Max bytes for an inline base64 body accepted via ``POST /sources``.
 MAX_INLINE_BYTES = 10_000_000
 #: Max bytes for one inbox attachment (mirrors the LG-014 upload bound).
@@ -421,6 +453,7 @@ class SourceService:
         """
 
         record = self._store.read_source(source_id)
+        _ensure_available(record)
         content = self._content_store(source_id)
         formal = content.read_formal()
         machine = content.read_machine_markdown(record.source_version)
@@ -460,6 +493,7 @@ class SourceService:
         """Return the original bytes plus a **stat**-type revision (not a hash)."""
 
         record = self._store.read_source(source_id)
+        _ensure_available(record)
         if kind == "original":
             original = record.entity.get("original")
             original = original if isinstance(original, dict) else {}
@@ -516,6 +550,7 @@ class SourceService:
         """
 
         record = self._store.read_source(source_id)
+        _ensure_available(record)
         content_store = self._content_store(source_id)
         formal = record.entity.get("formal")
         formal = formal if isinstance(formal, dict) else {}
@@ -585,6 +620,10 @@ class SourceService:
 
         record = self._store.read_source(source_id)
         if action == "reprocess":
+            # A revoked source must not be resurrected by reprocessing: the
+            # processing path rewrites ``status`` (and can re-index), which
+            # would undo the revocation.  Fail closed instead.
+            _ensure_available(record)
             return self.process_source(source_id, job_id=job_id, force=True)
         if action == "cancel":
             if job_id is None:

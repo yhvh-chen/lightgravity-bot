@@ -182,15 +182,22 @@ async def test_revoked_source_hit_is_refused_and_original_preserved(
     revoke = await api.post(f"{_HT}/sources/{source_id}/actions", json={"action": "revoke"})
     assert revoke.status_code == 200, revoke.text
 
-    # Old hit is refused (not a dangling result), and the original is preserved.
+    # Old hit is refused (not a dangling result), and the revoked material is
+    # unavailable to open/download (docs/08 §6.6: only ``revoke``/``delete``
+    # make the source unavailable).
     after = await api.get(
         f"{_HT}/search", params={"q": '"REVOKE-9"', "include_global": "true"}
     )
     assert after.json()["hits"] == []
-    preserved = await api.get(
-        f"{_HT}/sources/{source_id}/download", params={"kind": "original"}
-    )
-    assert preserved.status_code == 200, preserved.text
+    for path in ("content", "download"):
+        refused = await api.get(f"{_HT}/sources/{source_id}/{path}")
+        assert refused.status_code == 404, refused.text
+        assert refused.json()["error"]["details"]["revoked"] is True
+
+    # The original bytes are still preserved on disk (revoke != delete).
+    store = app.state.source_service.store
+    original_dir = store.original_dir(source_id)
+    assert any(p.is_file() for p in original_dir.iterdir())
 
 
 async def test_partial_or_failed_extraction_never_becomes_text(

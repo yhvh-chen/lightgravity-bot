@@ -1,0 +1,174 @@
+{
+  "results": [
+    {
+      "case": "BEFORE content/download all kinds 200 + marker",
+      "ok": true,
+      "detail": {
+        "content_auto": {
+          "status": 200,
+          "serves_marker": true
+        },
+        "content_formal": {
+          "status": 200,
+          "serves_marker": true
+        },
+        "content_machine": {
+          "status": 200,
+          "serves_marker": true
+        },
+        "download_original": {
+          "status": 200,
+          "serves_marker": true
+        },
+        "download_formal": {
+          "status": 200,
+          "serves_marker": true
+        },
+        "download_machine": {
+          "status": 200,
+          "serves_marker": true
+        }
+      }
+    },
+    {
+      "case": "revoke 200 + status archived + revoked true",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "body": {
+          "source_id": "source_01M51NJ1ZVBC0ABK5EYNKAWB3E",
+          "status": "archived",
+          "revoked": true
+        }
+      }
+    },
+    {
+      "case": "detail status archived (diagnosis view kept)",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "status_field": "archived"
+      }
+    },
+    {
+      "case": "search hits [] after revoke",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "hits": []
+      }
+    },
+    {
+      "case": "AFTER content/download all kinds refused (404 not_found revoked) + no bytes",
+      "ok": true,
+      "detail": {
+        "content_auto": {
+          "status": 404,
+          "code": "not_found",
+          "revoked": true,
+          "serves_marker": false
+        },
+        "content_formal": {
+          "status": 404,
+          "code": "not_found",
+          "revoked": true,
+          "serves_marker": false
+        },
+        "content_machine": {
+          "status": 404,
+          "code": "not_found",
+          "revoked": true,
+          "serves_marker": false
+        },
+        "download_original": {
+          "status": 404,
+          "code": "not_found",
+          "revoked": true,
+          "serves_marker": false
+        },
+        "download_formal": {
+          "status": 404,
+          "code": "not_found",
+          "revoked": true,
+          "serves_marker": false
+        },
+        "download_machine": {
+          "status": 404,
+          "code": "not_found",
+          "revoked": true,
+          "serves_marker": false
+        }
+      }
+    },
+    {
+      "case": "original preserved on disk after revoke",
+      "ok": true,
+      "detail": [
+        "doc.txt"
+      ]
+    },
+    {
+      "case": "repeat revoke 200 idempotent",
+      "ok": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "case": "reprocess refused on revoked (no resurrection)",
+      "ok": true,
+      "detail": {
+        "status": 404,
+        "code": "not_found"
+      }
+    },
+    {
+      "case": "formal edit refused on revoked (no resurrection)",
+      "ok": true,
+      "detail": {
+        "status": 404,
+        "code": "not_found"
+      }
+    },
+    {
+      "case": "still refused after resurrection attempts",
+      "ok": true,
+      "detail": {
+        "status": 404
+      }
+    },
+    {
+      "case": "archive keeps openable + searchable",
+      "ok": true,
+      "detail": {
+        "content": 200,
+        "download": 200,
+        "search_hits": [
+          "source_01M51NJ26ZV4DWFFD5273V332A"
+        ]
+      }
+    },
+    {
+      "case": "unarchive restores status != archived",
+      "ok": true,
+      "detail": {
+        "status": "received"
+      }
+    },
+    {
+      "case": "missing source content 404 not_found",
+      "ok": true,
+      "detail": {
+        "status": 404
+      }
+    },
+    {
+      "case": "cleanup: server stopped / port released",
+      "ok": true,
+      "detail": {
+        "port": 43097
+      }
+    }
+  ],
+  "failures": 0
+}
