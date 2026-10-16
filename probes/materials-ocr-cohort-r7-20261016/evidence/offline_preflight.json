@@ -1,0 +1,94 @@
+{
+  "phase": "offline_preflight",
+  "checks": [
+    {
+      "name": "t1_input_sha",
+      "ok": true,
+      "detail": {
+        "sha256": "39138a971d605f65d10b5df3a13e35c7cec5d3710bc38d55e6eb656fc1219652",
+        "bytes": 33716
+      }
+    },
+    {
+      "name": "mix_pdf_sha",
+      "ok": true,
+      "detail": {
+        "sha256": "0f7286016cc22717d4dab67319180604be097374b4d07a53fe68332c9f68ada5",
+        "bytes": 103371
+      }
+    },
+    {
+      "name": "truth_sha",
+      "ok": true,
+      "detail": {
+        "sha256": "02a4ada1be2c38d356034bf79a1b856394f3cbac5a2bfd8ca0d11bc780d4f39d",
+        "bytes": 3053
+      }
+    },
+    {
+      "name": "source_pdf_sha",
+      "ok": true,
+      "detail": {
+        "sha256": "788dd8f0bcb0ec06e40c300690266742532a7e760a93be57764b77ed0ef3482f",
+        "bytes": 2027518
+      }
+    },
+    {
+      "name": "mix_p1_render_sha",
+      "ok": true,
+      "detail": {
+        "sha256": "265f187a8345146435282a6bf898141d748a50b086b8377d4e72fa916150f571",
+        "bytes": 239092,
+        "wh": [
+          612,
+          792
+        ]
+      }
+    },
+    {
+      "name": "mix_p2_render_sha",
+      "ok": true,
+      "detail": {
+        "sha256": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276",
+        "bytes": 34554,
+        "wh": [
+          230,
+          172
+        ]
+      }
+    },
+    {
+      "name": "clear_real_sha",
+      "ok": true,
+      "detail": {
+        "sha256": "89c6b42242d0aa16efdb7ff814604c4bfc5214e0bbdd040ead67dcf453d9ec0f"
+      }
+    },
+    {
+      "name": "mix_p2_eq_clear_real_p1",
+      "ok": true,
+      "detail": {
+        "clear_real_p1_sha": "1aebdc639db93532eeb19b4c3a0e0d67d796a621d20cbba6112d5dd975a28276"
+      }
+    },
+    {
+      "name": "gold_sha",
+      "ok": true,
+      "detail": {
+        "sha256": "76ef157baeb6ab275b7d90f310477a8060d5822aea2b2e05d480f459b016a6ed",
+        "bytes": 286
+      }
+    },
+    {
+      "name": "input_sizes",
+      "ok": true,
+      "detail": {
+        "t1": 33716,
+        "p1": 239092,
+        "p2": 34554,
+        "total": 307362
+      }
+    }
+  ],
+  "all_ok": true
+}
