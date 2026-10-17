@@ -9,7 +9,9 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``litert_backend``, additive ``capabilities`` facts on the connection view,
 #: the protected ``POST /api/v1/settings/connections/test-draft`` envelope with
 #: transient write-only ``credential_value`` and optional saved-id/revision
-#: reuse, and additive ``draft``/nullable identity fields on TestResult.
+#: reuse, additive ``draft``/nullable identity fields on TestResult, the
+#: read-only saved-test ``last_test`` summary and the protected connection
+#: ``DELETE`` endpoint with revision/reference gates (docs/08 §18.4).
 #: Gemini/Vertex API-key configurations become saveable/testable through the
 #: installed SDK; LiteRT is static-only.  Native task execution/defaults stay
 #: limited to the existing openai-compat path, no endpoint/enum/error-code

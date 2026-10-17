@@ -37,6 +37,14 @@ API_KEY_BACKENDS = frozenset({"gemini", "vertex"})
 #: Backends where the credential is injected by the product loopback proxy.
 PROXY_KEY_BACKENDS = frozenset({"openai-compat"})
 
+#: The only OpenAI-compatible upstream host the current product may execute or
+#: select as a default.  The backend enum alone is not enough: an arbitrary
+#: custom host is configurable/testable but not executable in this build.
+EXECUTABLE_OPENAI_COMPAT_HOSTS = frozenset({"api.deepseek.com"})
+#: Loopback is the existing constructor-level test seam, never a saved product
+#: host policy.  Public Settings capabilities keep it non-executable.
+_LOOPBACK_TEST_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
+
 
 def effective_auth_mode(
     backend: str,
@@ -368,6 +376,59 @@ def capabilities_for_registration(registration: Any) -> dict[str, bool | None]:
     }
 
 
+def endpoint_host(base_url: str | None) -> str | None:
+    """Return a normalized hostname for an endpoint, or ``None``."""
+
+    raw = (base_url or "").strip()
+    if not raw:
+        return None
+    hostname = urlparse(raw).hostname
+    return hostname.lower() if hostname else None
+
+
+def execution_eligible(
+    *, backend: str, base_url: str | None, allow_loopback: bool = False
+) -> bool:
+    """Whether a connection may currently execute tasks / be a default.
+
+    Only the existing DeepSeek/OpenAI-compatible path is executable.  Any other
+    non-loopback ``openai-compat`` host is preserved and testable but not
+    executable; this is the actual host allowlist, not a provider-enum shortcut.
+    ``allow_loopback`` is reserved for the existing constructor-level test seam
+    and is never used for public Settings capabilities/default eligibility.
+    """
+
+    if backend != "openai-compat":
+        return False
+    host = endpoint_host(base_url)
+    if host in EXECUTABLE_OPENAI_COMPAT_HOSTS:
+        return True
+    return bool(allow_loopback and host in _LOOPBACK_TEST_HOSTS)
+
+
+def capabilities_for_connection(
+    registration: Any,
+    *,
+    backend: str,
+    base_url: str | None,
+    allow_loopback: bool = False,
+) -> dict[str, bool | None]:
+    """Capability facts for a concrete connection, including host policy.
+
+    A registry may mark the ``openai-compat`` backend executable for the
+    verified DeepSeek path; that fact does not apply to an arbitrary custom
+    endpoint.  No save/test success promotes a host to executable/vendor-verified.
+    """
+
+    facts = capabilities_for_registration(registration)
+    if backend == "openai-compat" and not execution_eligible(
+        backend=backend, base_url=base_url, allow_loopback=allow_loopback
+    ):
+        facts["executable"] = False
+        facts["vendor_verified"] = False
+    return facts
+
+
 __all__ = [
     "AUTH_MODES",
     "LITERT_BACKENDS",
@@ -380,4 +441,8 @@ __all__ = [
     "validate_provider_fields",
     "credential_recipient_identity",
     "capabilities_for_registration",
+    "capabilities_for_connection",
+    "endpoint_host",
+    "execution_eligible",
+    "EXECUTABLE_OPENAI_COMPAT_HOSTS",
 ]

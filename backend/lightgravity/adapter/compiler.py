@@ -23,7 +23,7 @@ from .capabilities import AdapterCapabilities, SDK_PINNED_VERSION, adapter_capab
 from .errors import AdapterConfigInvalid, ReferenceInvalid
 from .provider_matrix import (
     auth_requires_credential,
-    capabilities_for_registration,
+    capabilities_for_connection,
     effective_auth_mode,
 )
 from .redaction import redact, sensitive_paths
@@ -575,7 +575,15 @@ class ResourceCompiler:
             location=connection.location,
             credential_ref=connection.credential_ref,
         )
-        facts = capabilities_for_registration(backend)
+        facts = capabilities_for_connection(
+            backend,
+            backend=connection.backend,
+            base_url=connection.base_url,
+            # Preserve the existing loopback constructor test seam.  Public
+            # Settings/default capability checks stay strict and never mark a
+            # saved loopback/custom host executable.
+            allow_loopback=True,
+        )
         compiled = CompiledConnection(
             ref=connection.id,
             backend=connection.backend,
@@ -584,7 +592,10 @@ class ResourceCompiler:
             credential_ref=connection.credential_ref,
             sdk_config_kind=backend.sdk_config_kind,
             supports_api_key_field=backend.supports_api_key_field,
-            verified=backend.verified,
+            # The legacy ``verified`` summary describes the concrete endpoint,
+            # not just its provider enum: a custom OpenAI-compatible host is not
+            # silently badged as the verified DeepSeek path.
+            verified=bool(backend.verified and facts["executable"] is True),
             auth_mode=connection.auth_mode,
             project=connection.project,
             location=connection.location,
@@ -602,17 +613,28 @@ class ResourceCompiler:
                 UnavailableResource(connection.id, "connection", "connection_disabled", "enabled=false")
             )
             executable_reasons.append("connection_disabled")
-        if not backend.executable:
+        if facts["executable"] is not True:
+            if backend.executable and connection.backend == "openai-compat":
+                reason = "endpoint_not_authorized"
+                detail = (
+                    "this custom OpenAI-compatible endpoint is configurable/testable "
+                    "but only the existing DeepSeek host is executable in this build"
+                )
+            else:
+                reason = "backend_unverified"
+                detail = (
+                    f"{connection.backend} is configurable/testable but not an "
+                    "executable product backend in this build"
+                )
             unavailable.append(
                 UnavailableResource(
                     connection.id,
                     "connection",
-                    "backend_unverified",
-                    f"{connection.backend} is configurable/testable but not an "
-                    "executable product backend in this build",
+                    reason,
+                    detail,
                 )
             )
-            executable_reasons.append("backend_unverified")
+            executable_reasons.append(reason)
         if auth_requires_credential(connection.backend, effective_auth) and not connection.credential_ref:
             unavailable.append(
                 UnavailableResource(

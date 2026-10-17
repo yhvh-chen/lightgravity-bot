@@ -94,7 +94,15 @@ async def _new_task(client: httpx.AsyncClient, request_id: str) -> str:
     return response.json()["task_id"]
 
 
-async def test_default_change_does_not_hot_swap_active_member(tmp_path: Path) -> None:
+async def test_default_change_does_not_hot_swap_active_member(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    # The test uses unreachable loopback upstreams as the local constructor seam;
+    # public Settings/default eligibility remains strict outside this test.
+    monkeypatch.setattr(
+        "lightgravity.adapter.provider_matrix.EXECUTABLE_OPENAI_COMPAT_HOSTS",
+        frozenset({"api.deepseek.com", "127.0.0.1"}),
+    )
     settings = _settings(tmp_path)
     (settings.workspace_root / "ws").mkdir(parents=True, exist_ok=True)
     state = build_runtime(

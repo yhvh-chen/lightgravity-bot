@@ -23,6 +23,7 @@ owning Task/Run.
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -262,6 +263,62 @@ class FileStore:
                 current,
                 content,
                 body,
+            )
+
+    def delete(
+        self,
+        kind: str,
+        entity_id: str,
+        *,
+        expected_revision: int,
+        actor: str,
+        guard: Callable[[], None] | None = None,
+    ) -> Versioned:
+        """Delete an entity under the same per-entity lock as writes.
+
+        The revision is re-checked while the lock is held; an optional ``guard``
+        runs at that point so cross-file reference checks and the unlink share a
+        single controlled boundary.  The caller owns any compensation policy.
+        """
+
+        self._validate_kind_id(kind, entity_id)
+        if isinstance(expected_revision, bool) or not isinstance(expected_revision, int):
+            raise ConfigInvalid(
+                "expected_revision is required for delete",
+                diagnostics=[
+                    {"code": "expected_revision_missing", "location": "expected_revision"}
+                ],
+            )
+        with self._locks.acquire(self._lock_key(kind, entity_id)):
+            path = self.entity_path(kind, entity_id)
+            if not path.is_file():
+                raise EntityNotFound(kind, entity_id, path=str(path))
+            text = path.read_text("utf-8")
+            raw, body = parse_document(text, source=str(path))
+            data = plain(raw)
+            current = data.get("revision")
+            if isinstance(current, bool) or not isinstance(current, int):
+                raise ConfigInvalid(
+                    f"{kind} {entity_id!r} has invalid revision",
+                    diagnostics=[{"code": "revision_invalid", "location": str(path)}],
+                )
+            if current != expected_revision:
+                raise RevisionConflict(
+                    kind, entity_id, expected=expected_revision, actual=current
+                )
+            if guard is not None:
+                guard()
+            path.unlink()
+            if self._entries is not None:
+                self._entries.pop((kind, entity_id), None)
+            return Versioned(
+                kind=kind,
+                entity_id=entity_id,
+                entity=data,
+                revision=current,
+                content_hash=sha256_text(text),
+                body=body,
+                path=str(path),
             )
 
     def _commit_locked(

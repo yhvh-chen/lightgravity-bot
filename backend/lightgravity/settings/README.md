@@ -1,9 +1,11 @@
-# Settings backend (LG-025 / LG-104 / LG-109)
+# Settings backend (LG-025 / LG-104 / LG-109 / LG-111)
 
 Store-authoritative model settings: provider Connections, `SETTINGS.md`
 defaults, controlled credentials and layered saved/draft connection tests.
 LG-104/LG-109 add optional non-secret provider fields, separate capability
 facts and the transient `POST /settings/connections/test-draft` endpoint.
+LG-111 adds the read-only persisted `last_test` summary and the protected
+`DELETE /settings/connections/{id}` endpoint frozen in docs/08 §18.4.
 See [docs/07](../../../docs/07-settings-and-models.md),
 [docs/08 §4.3/§6.5/§8.1](../../../docs/08-interface-contract.md).
 
@@ -19,7 +21,7 @@ for LG-012 to mount.
 | `secret_store.py` | `FileSecretStore` (owner-only `0700/0600`, atomic, versioned) and `SecretStoreCredentialResolver` (store → environment), implementing the LG-006 `CredentialResolver`. |
 | `service.py` | `ConnectionService`: defaults legality, reference blocking, cross-file compensation, credential lifecycle, revision pinning. |
 | `testing.py` | `ConnectionTester` + `ConnectionTestLog`: layered saved tests and transient draft tests. OpenAI-compatible uses the LG-006 proxy; Gemini/Vertex use the installed SDK's real config with one minimal request; LiteRT is static-only. |
-| `router.py` | `build_settings_router(service, *, tester=None)`: the settings HTTP routes, including the protected draft-test envelope. |
+| `router.py` | `build_settings_router(service, *, tester=None)`: the settings HTTP routes, including the protected draft-test and connection-delete envelopes. |
 
 ## Guarantees
 
@@ -34,12 +36,20 @@ for LG-012 to mount.
   raises the frozen `revision_conflict` (409). Test requests can also pin the
   revision they were made against.
 - **No dangling defaults**: a default must resolve to an existing, enabled,
-  **executable** (`openai-compat`) connection. Configurable/testable providers
-  are deliberately not default-eligible. Disabling a default connection requires
-  clearing the default in the same call (`clear_defaults=true`); the settings
-  write is rolled back if the later connection write fails.
+  **executable** connection. Only the existing DeepSeek host on the
+  `openai-compat` path is executable/default-eligible; an arbitrary custom host
+  (even with the same backend enum) is configurable/testable but not executable.
+  Disabling a default connection requires clearing the default in the same call
+  (`clear_defaults=true`); the settings write is rolled back if the later
+  connection write fails.
 - **Reference blocking**: a credential still referenced by a connection cannot
-  be deleted (`reference_invalid`).
+  be deleted (`reference_invalid`). A Connection still referenced by a default
+  role or an Agent cannot be deleted; the server check and unlink share the
+  store's entity lock, and no other reference is rewritten.
+- **Safe list summary**: `ConnectionView.last_test` is a read-only projection of
+  the latest saved-test diagnostic (`test_id`/`overall`/`finished_at`/revision/
+  credential version). It is never a second Connection state and never contains
+  a draft result, layer details, request body or secret.
 - **Pinning**: `pin_connection` / `resolve_default` return a `PinnedConnection`
   (revision + content hash + credential version). Later default/connection edits
   do not mutate it; `pinned_is_current` detects drift so active members are not
@@ -74,9 +84,10 @@ for LG-012 to mount.
 - The store is local and permission-protected; it is **not** encrypted at rest.
 - `tool_probe` / `structured_output` are not executed in LG-025; they require an
   isolated SDK session with its own temp workspace and budget.
-- Connection deletion is out of scope: the frozen v1 API has no delete-connection
-  endpoint and the `Store` protocol has no delete, so LG-025 supports disable +
-  credential removal instead.
+- `DELETE /settings/connections/{id}` requires `{expected_revision}` and
+  returns `{deleted:true,id}`. Missing rows are 404 and stale revisions are 409.
+  It deliberately does not delete the secret-store value (it may be shared) and
+  does not modify defaults, Agent references or other entities.
 
 ## Integration work for other tasks
 

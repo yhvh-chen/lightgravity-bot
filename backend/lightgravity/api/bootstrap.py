@@ -365,7 +365,14 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
 
     store = FileStore(settings.data_dir, settings.workspace_root)
     secret_store = FileSecretStore(settings.secret_store)
-    connections = ConnectionService(store, secret_store=secret_store)
+    # The existing saved-test diagnostics are a read-only source for the list
+    # summary; the tester writes them and the service never adds a second state.
+    test_diagnostics = ConnectionTestLog(settings.data_dir / "diagnostics")
+    connections = ConnectionService(
+        store,
+        secret_store=secret_store,
+        test_diagnostics=test_diagnostics,
+    )
     connection_pins = _ServiceConnectionPins(connections)
 
     if options.seed_minimal_agent:
@@ -387,7 +394,7 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
     if options.tester:
         tester = ConnectionTester(
             connections,
-            diagnostics=ConnectionTestLog(settings.data_dir / "diagnostics"),
+            diagnostics=test_diagnostics,
             allow_network=False,
             max_network_calls=1,
         )

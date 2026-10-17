@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from lightgravity.adapter.provider_matrix import (
+    capabilities_for_connection,
     capabilities_for_registration,
     validate_provider_fields,
 )
@@ -147,6 +148,20 @@ class ConnectionRepository:
         if registration is None:
             return None
         return capabilities_for_registration(registration)
+
+    def connection_capabilities(
+        self, connection: Connection
+    ) -> dict[str, bool | None] | None:
+        """Capability facts for this record, including its endpoint host policy."""
+
+        registration = self._registry.backend(connection.backend)
+        if registration is None:
+            return None
+        return capabilities_for_connection(
+            registration,
+            backend=connection.backend,
+            base_url=connection.base_url,
+        )
 
     def validate_backend(
         self,
@@ -305,6 +320,35 @@ class ConnectionRepository:
             actor=actor,
         )
         return _connection_from_versioned(versioned)
+
+    def delete_connection(
+        self,
+        connection_id: str,
+        *,
+        expected_revision: int,
+        actor: str,
+        guard: Any = None,
+    ) -> None:
+        """Delete one Connection under the store's entity lock.
+
+        ``guard`` runs after the revision check while the lock is still held, so
+        reference/default checks and the unlink share one controlled boundary.
+        No secret-store value is read or removed here.
+        """
+
+        delete = getattr(self._store, "delete", None)
+        if not callable(delete):
+            raise SettingsConfigInvalid(
+                "the configured store does not support controlled deletion",
+                diagnostics=[{"code": "delete_unsupported", "location": CONNECTION_KIND}],
+            )
+        delete(
+            CONNECTION_KIND,
+            connection_id,
+            expected_revision=expected_revision,
+            actor=actor,
+            guard=guard,
+        )
 
     # ---------------------------------------------------------------- settings
     def read_settings(self) -> GlobalSettings:

@@ -211,7 +211,14 @@ def test_credential_rotation_marks_previous_test_stale(tmp_path: Path, upstream:
     assert stale is True
 
 
-def test_disabled_default_requires_clearing_reference(tmp_path: Path, upstream: Any) -> None:
+def test_disabled_default_requires_clearing_reference(
+    tmp_path: Path, upstream: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Local loopback upstream is the constructor test seam, not product host policy.
+    monkeypatch.setattr(
+        "lightgravity.adapter.provider_matrix.EXECUTABLE_OPENAI_COMPAT_HOSTS",
+        frozenset({"api.deepseek.com", "127.0.0.1"}),
+    )
     base_url, _ = upstream
     service = _service(tmp_path)
     _create(service, base_url)

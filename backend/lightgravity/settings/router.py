@@ -144,6 +144,12 @@ class ConnectionTestRequest(BaseModel):
     probe_structured: bool = False
 
 
+class ConnectionDeleteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    expected_revision: int
+
+
 def _require_loopback_origin(request: Request) -> None:
     """Reject cross-site browser origins on sensitive credential writes."""
 
@@ -280,6 +286,23 @@ def build_settings_router(
         _no_store(response)
         return result.to_dict()
 
+    @router.delete("/settings/connections/{connection_id}")
+    def delete_connection(
+        connection_id: str,
+        payload: ConnectionDeleteRequest,
+        request: Request,
+        response: Response,
+        x_lg_actor: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        _require_safe_origin(request)
+        result = service.delete_connection(
+            connection_id,
+            expected_revision=payload.expected_revision,
+            actor=_actor(x_lg_actor),
+        )
+        _no_store(response)
+        return result
+
     @router.get("/settings/connections/{connection_id}")
     def get_connection(connection_id: str, response: Response) -> dict[str, Any]:
         result = service.get_connection(connection_id)
@@ -364,4 +387,5 @@ __all__ = [
     "CredentialUpsertRequest",
     "SettingsUpdateRequest",
     "ConnectionTestRequest",
+    "ConnectionDeleteRequest",
 ]

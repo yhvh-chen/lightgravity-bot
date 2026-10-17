@@ -82,6 +82,7 @@ class ConnectionService:
         registry: ImplementationRegistry | None = None,
         env_resolver: CredentialResolver | None = None,
         allowed_model_roots: Sequence[Path | str] | None = None,
+        test_diagnostics: Any | None = None,
     ) -> None:
         self._repo = ConnectionRepository(store, registry=registry)
         self._secrets = secret_store
@@ -97,6 +98,10 @@ class ConnectionService:
                 else ([root] if root is not None else [])
             )
         )
+        # Read-only access to the existing saved-test diagnostics.  This never
+        # writes a second Connection state; draft results are never recorded by
+        # the tester and are filtered again defensively here.
+        self._test_diagnostics = test_diagnostics
 
     # --------------------------------------------------------------- exposure
     @property
@@ -389,6 +394,39 @@ class ConnectionService:
             raise
         return self._public_connection(connection)
 
+    def delete_connection(
+        self,
+        connection_id: str,
+        *,
+        expected_revision: int,
+        actor: str,
+    ) -> dict[str, Any]:
+        """Delete a Connection without touching its (possibly shared) secret.
+
+        The reference/default guard executes under the store's entity lock, so a
+        client cannot bypass it with a stale pre-check.  Other references are
+        never rewritten; a referenced/default connection is refused instead.
+        """
+
+        self._repo.delete_connection(
+            connection_id,
+            expected_revision=expected_revision,
+            actor=actor,
+            guard=lambda: self._guard_connection_delete(connection_id),
+        )
+        return {"deleted": True, "id": connection_id}
+
+    def _guard_connection_delete(self, connection_id: str) -> None:
+        refs = self.references_to(connection_id)
+        if refs.referenced:
+            raise ConnectionReferenceInvalid(
+                f"connection {connection_id!r} is still referenced and cannot be deleted",
+                kind="connection",
+                ref=connection_id,
+                detail="connection_still_referenced",
+                references=refs.to_dict(),
+            )
+
     def references_to(self, connection_id: str) -> ConnectionReferences:
         settings = self._repo.read_settings()
         roles: list[str] = []
@@ -607,11 +645,12 @@ class ConnectionService:
                 ref=ref,
                 detail=f"{role}_default_disabled",
             )
-        registration = self._repo.registry.backend(connection.backend)
-        if registration is None or not registration.executable:
+        capabilities = self._repo.connection_capabilities(connection)
+        if not capabilities or capabilities.get("executable") is not True:
             raise ConnectionReferenceInvalid(
-                f"default {role} connection {ref!r} uses a backend that is not "
-                f"executable in this build ({connection.backend!r})",
+                f"default {role} connection {ref!r} is configurable/testable but "
+                f"not executable in this build ({connection.backend!r} at "
+                f"{connection.base_url or 'fixed vendor endpoint'!r})",
                 kind="connection",
                 ref=ref,
                 detail=f"{role}_default_unverified",
@@ -626,7 +665,8 @@ class ConnectionService:
         summary = connection.to_dict()
         summary["resolved"] = True
         summary["credential"] = self.credential_status(connection.credential_ref).to_dict()
-        summary["capabilities"] = self._repo.capabilities(connection.backend)
+        summary["capabilities"] = self._repo.connection_capabilities(connection)
+        summary["last_test"] = self._last_test_summary(connection.id)
         return summary
 
     # ------------------------------------------------------------ credentials
@@ -735,8 +775,45 @@ class ConnectionService:
         payload["credential"] = self.credential_status(connection.credential_ref).to_dict()
         refs = self.references_to(connection.id)
         payload["references"] = refs.to_dict()
-        payload["capabilities"] = self._repo.capabilities(connection.backend)
+        payload["capabilities"] = self._repo.connection_capabilities(connection)
+        payload["last_test"] = self._last_test_summary(connection.id)
         return payload
+
+    def _last_test_summary(self, connection_id: str) -> dict[str, Any] | None:
+        """Read the latest saved-test safe summary; never a draft result.
+
+        The diagnostic log is the only authority.  No second Connection state is
+        persisted or derived beyond this read-only projection.
+        """
+
+        if self._test_diagnostics is None:
+            return None
+        try:
+            latest = self._test_diagnostics.latest(connection_id)
+        except Exception:  # noqa: BLE001 - a broken diagnostic must not hide the connection
+            return None
+        if not isinstance(latest, dict) or latest.get("draft") is True:
+            return None
+        overall = latest.get("overall")
+        finished_at = latest.get("finished_at")
+        if not isinstance(overall, str) or not isinstance(finished_at, str):
+            return None
+        summary: dict[str, Any] = {
+            "overall": overall,
+            "finished_at": finished_at,
+        }
+        test_id = latest.get("test_id")
+        if isinstance(test_id, str) and test_id:
+            summary["test_id"] = test_id
+        revision = latest.get("connection_revision")
+        summary["connection_revision"] = (
+            revision if isinstance(revision, int) and not isinstance(revision, bool) else None
+        )
+        credential_version = latest.get("credential_version")
+        summary["credential_version"] = (
+            credential_version if isinstance(credential_version, str) else None
+        )
+        return summary
 
     # --------------------------------------------------------- provider policy
     def validate_connection_spec(

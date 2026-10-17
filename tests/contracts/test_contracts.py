@@ -43,8 +43,9 @@ def test_frozen_constants() -> None:
     # read-only ``data`` snapshot on the existing global-messages endpoint;
     # explicit legal Task ID only, no guess, no Task/Run/worker/model side
     # effect) -> 1.17.0 (LG-104/LG-109 provider modal backend: additive
-    # Connection auth/provider fields, capability facts, draft test endpoint and
-    # additive TestResult draft/nullable identity; no native task execution).
+    # Connection auth/provider fields, capability facts, draft test endpoint,
+    # additive TestResult draft/nullable identity, saved last_test summary and
+    # the revision/reference-gated DELETE endpoint; no native task execution).
     # Additive MINOR only.
     assert CONTRACT_VERSION == "1.17.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"

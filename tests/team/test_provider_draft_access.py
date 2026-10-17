@@ -134,3 +134,47 @@ async def test_draft_cross_origin_is_rejected_after_admin_auth(
             )
             assert response.status_code == 401
             assert "sk-canary-secret" not in response.text
+
+
+async def test_delete_is_anonymous_401_member_403_admin_200(
+    team_settings: Settings, seeded_accounts: object
+) -> None:
+    app, service = _team_app(team_settings)
+    service.create_connection("deletable", actor="test", request_id="req-deletable")
+    async with app.router.lifespan_context(app):
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            body = {"expected_revision": 0}
+            anonymous = await client.request(
+                "DELETE", "/api/v1/settings/connections/deletable", json=body
+            )
+            assert anonymous.status_code == 401
+
+            assert (await login_member(client)).status_code == 200
+            member = await client.request(
+                "DELETE", "/api/v1/settings/connections/deletable", json=body
+            )
+            assert member.status_code == 403
+            assert error_code(member) == "forbidden"
+
+            assert (await login_admin(client)).status_code == 200
+            cross_origin = await client.request(
+                "DELETE",
+                "/api/v1/settings/connections/deletable",
+                json=body,
+                headers={"Origin": "https://evil.example"},
+            )
+            assert cross_origin.status_code == 401
+            assert service.get_connection("deletable")["id"] == "deletable"
+
+            admin = await client.request(
+                "DELETE",
+                "/api/v1/settings/connections/deletable",
+                json=body,
+                headers={"Origin": "http://127.0.0.1:5173"},
+            )
+            assert admin.status_code == 200, admin.text
+            assert admin.json() == {"deleted": True, "id": "deletable"}
+    assert service.list_connections() == []
