@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 import type { ViewId } from '../app/navigation'
 import { useShell } from '../app/ShellProvider'
-import { parseSettingsConnectionRef } from '../app/uiState'
+import { connectionIdFromRef } from '../app/uiState'
 import { BoardView } from './BoardView'
 import { ChatView } from './ChatView'
 import { FilesView } from './files/FilesView'
@@ -11,7 +11,7 @@ import { TeamView } from './TeamView'
 
 function SettingsRoute() {
   const { state } = useShell()
-  return <SettingsView connectionId={parseSettingsConnectionRef(state.selectedItemRef)} taskRef={state.taskRef} />
+  return <SettingsView connectionId={connectionIdFromRef(state.selectedItemRef)} taskRef={state.taskRef} />
 }
 
 /** Each view owns its content; the shell has one navigation and no context rail. */

@@ -392,7 +392,7 @@ class WorktreeManager:
     # --------------------------------------------------------------- static
     @staticmethod
     def is_git_repo(path: Path | str, *, scratch: Path | str | None = None) -> bool:
-        """True when ``path`` is (inside) a real git working tree.
+        """True when ``path`` is the root of a real git working tree.
 
         A private scratch directory is required so no host/global git config or
         hook can influence the probe.
@@ -405,8 +405,11 @@ class WorktreeManager:
             return False
         scratch_dir = Path(scratch) if scratch is not None else probe / WORKTREE_DIRNAME / ".git-scratch"
         runner = GitRunner(scratch_dir)
-        result = runner.run(["rev-parse", "--is-inside-work-tree"], cwd=probe)
-        return bool(result.ok and result.stdout.strip() == "true")
+        result = runner.run(["rev-parse", "--show-toplevel"], cwd=probe)
+        return bool(
+            result.ok
+            and Path(os.path.realpath(result.stdout.strip())) == probe.resolve()
+        )
 
     def head_commit(self, repo: Path | str) -> str:
         result = self.runner.run(["rev-parse", "HEAD"], cwd=Path(repo))
@@ -485,10 +488,33 @@ class WorktreeManager:
                 f"source repository {str(repo)!r} is outside the authorized root",
                 code=ErrorCode.PATH_OUTSIDE_WORKSPACE,
             )
-        inside = self.runner.run(["rev-parse", "--is-inside-work-tree"], cwd=authorized_repo)
-        if not inside.ok or inside.stdout.strip() != "true":
+        # Git searches parents, so "inside a work tree" does not establish
+        # that the requested Task directory owns that repository. In particular
+        # an empty auto-provisioned Task under a product checkout must never
+        # inherit the product's HEAD or development instructions.
+        discovered = self.runner.run(["rev-parse", "--show-toplevel"], cwd=authorized_repo)
+        owns_repo = bool(
+            discovered.ok
+            and Path(os.path.realpath(discovered.stdout.strip())) == authorized_repo
+        )
+        automatic_task = root_real / "tasks" / task_id
+        if (
+            not owns_repo
+            and authorized_repo == automatic_task
+            and not any(authorized_repo.iterdir())
+            and base_commit is None
+        ):
+            # Only the exact empty automatic Task directory is provisioned.
+            # Never stage existing files, copy a parent tree, or reuse its HEAD.
+            self.runner.ok(["init", "--template=", "-b", "main"], cwd=authorized_repo)
+            self.runner.ok(
+                ["commit", "--allow-empty", "-m", "Initialize task workspace"],
+                cwd=authorized_repo,
+            )
+            owns_repo = True
+        if not owns_repo:
             raise WorkspaceError(
-                f"workspace {str(authorized_repo)!r} is not a git repository; "
+                f"workspace {str(authorized_repo)!r} is not a git repository root; "
                 "refusing to fake parallel isolation without real worktrees",
                 details={"repo": str(authorized_repo)},
             )

@@ -6,7 +6,7 @@ import {
   categoryByKind,
   createResourcesApi,
   isResourceKind,
-  RESOURCE_CATEGORIES,
+  NAV_RESOURCE_CATEGORIES,
   type ResourceDetail,
   type ResourceKind,
   type ResourceChangeResult,
@@ -88,7 +88,7 @@ export function ResourcesView(props: ResourcesViewProps = {}) {
   const category =
     (parsedRef ? categoryByKind(parsedRef.kind) : null) ??
     categoryById(selectedItemRef) ??
-    RESOURCE_CATEGORIES[0]
+    NAV_RESOURCE_CATEGORIES[0]
   const selectedId = parsedRef && parsedRef.kind === category.kind ? parsedRef.id : null
 
   const [items, setItems] = useState<ResourceSummary[] | null>(null)
@@ -272,7 +272,16 @@ export function ResourcesView(props: ResourcesViewProps = {}) {
                 setDetailKey((key) => key + 1)
                 setListKey((key) => key + 1)
               }}
-              onNavigateCategory={(kind, ref) => selectItem(`resources:${kind}:${ref}`)}
+              onNavigateReference={(kind, ref) => {
+                if (kind === 'connection') {
+                  // LG-103: every Connection reference opens the one Settings
+                  // management surface at the matching stable id.
+                  selectItem(settingsConnectionRef(ref))
+                  navigate('settings')
+                  return
+                }
+                selectItem(`resources:${kind}:${ref}`)
+              }}
               onOpenSettings={(connectionId) => {
                 // Carry the concrete Connection id so Settings selects the same
                 // record; the Task scope is preserved by the shell.
@@ -299,7 +308,7 @@ function ResourceDetailPanel({
   api,
   taskRef,
   onEdited,
-  onNavigateCategory,
+  onNavigateReference,
   onOpenSettings,
   onOpenChat,
 }: {
@@ -307,7 +316,7 @@ function ResourceDetailPanel({
   api: ResourcesApi
   taskRef: string | null
   onEdited: () => void
-  onNavigateCategory: (kind: string, ref: string) => void
+  onNavigateReference: (kind: string, ref: string) => void
   onOpenSettings: (connectionId: string) => void
   onOpenChat: () => void
 }) {
@@ -395,7 +404,7 @@ function ResourceDetailPanel({
               <ReferenceRow
                 key={`${reference.field ?? ''}:${reference.kind}:${reference.ref}`}
                 reference={reference}
-                onNavigate={onNavigateCategory}
+                onNavigate={onNavigateReference}
               />
             ))}
           </ul>

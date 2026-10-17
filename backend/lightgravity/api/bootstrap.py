@@ -76,6 +76,7 @@ from .collaboration import resolve_request_grant
 from ..runtime.frontend import mount_frontend
 from ..runtime.hostguard import HostGuardMiddleware
 from ..runtime.minimal import DEFAULT_AGENT_ID, seed_default_agent
+from ..runtime.roles import EXECUTABLE_CAPABILITIES, seed_role_library
 from ..runtime.token import RuntimeToken, resolve_runtime_token
 
 #: Optional JSON ``{capability: [agent_ref, ...]}`` role catalog override.
@@ -114,6 +115,8 @@ class StartupOptions:
     wire_real_executor: bool = True
     role_catalog: Mapping[str, Sequence[str]] | None = None
     seed_minimal_agent: bool = True
+    #: LG-120: idempotently add the complete pinned agency-agents role library.
+    seed_roles: bool = True
     #: LG-061: seed the requested default team admin only when the account
     #: store is empty.  ``lightgravity status --deep`` passes ``False`` to stay
     #: strictly read-only.
@@ -143,6 +146,8 @@ class RuntimeState:
     #: LG-017 R1: the assembled reviewer status (``model``/``program``/
     #: ``unavailable``) so readiness is honest about independent review.
     reviewer: dict[str, Any] = field(default_factory=dict)
+    #: LG-120 seed outcome summary (counts only; no prompt/secret echo).
+    role_seed: dict[str, Any] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
 
     def execution_report(self) -> dict[str, object]:
@@ -178,6 +183,7 @@ class RuntimeState:
             "frontend_dist": str(self.frontend_dist),
             "reviewer": dict(self.reviewer),
             "warnings": list(self.warnings),
+            "role_seed": dict(self.role_seed),
         }
 
 
@@ -350,10 +356,52 @@ def load_role_catalog(
     agents = _enabled_agents(store, data_dir)
     if not agents:
         return None
-    # Prefer operator templates over the built-in seeded worker so the seed is a
-    # fallback, never a shadow over a user's own agent.
-    ordered = sorted(agents, key=lambda agent_id: (agent_id == DEFAULT_AGENT_ID, agent_id))
-    return RoleCatalog({capability: list(ordered) for capability in DEFAULT_CAPABILITIES})
+    # LG-120: agency roles declare controlled capabilities.  A role with
+    # capabilities participates only in those executable capabilities; a
+    # research-only role is browsable but never enters the scheduler catalog.
+    # Existing/user templates without capability metadata keep the previous
+    # implementation+verification fallback, so an upgrade does not silently
+    # remove already-recruitable operator agents.
+    rows: list[tuple[str, tuple[str, ...], bool]] = []
+    for agent_id in agents:
+        try:
+            versioned = store.read("agent", agent_id)
+        except (EntityNotFound, ConfigInvalid):
+            continue
+        entity = versioned.entity
+        is_agency = isinstance(entity.get("agency_source"), dict)
+        raw_capabilities = entity.get("capabilities")
+        declared = tuple(
+            str(item)
+            for item in raw_capabilities
+            if isinstance(item, str) and item in EXECUTABLE_CAPABILITIES
+        ) if isinstance(raw_capabilities, (list, tuple)) else ()
+        if entity.get("recruitable") is False:
+            continue
+        selected = declared if declared else tuple(DEFAULT_CAPABILITIES)
+        if not selected:
+            continue
+        rows.append((agent_id, selected, is_agency))
+    if not rows:
+        return None
+    # Operator/custom and built-in templates come first (the built-in seed last
+    # within that group); the agency library is a large fallback pool after them.
+    non_agency = sorted(
+        (row for row in rows if not row[2]),
+        key=lambda row: (row[0] == DEFAULT_AGENT_ID, row[0]),
+    )
+    agency_rows = sorted((row for row in rows if row[2]), key=lambda row: row[0])
+    ordered = non_agency + agency_rows
+    capability_map: dict[str, list[str]] = {
+        capability: [] for capability in EXECUTABLE_CAPABILITIES
+    }
+    for agent_id, capabilities, _is_agency in ordered:
+        for capability in capabilities:
+            if agent_id not in capability_map[capability]:
+                capability_map[capability].append(agent_id)
+    return RoleCatalog(
+        {capability: refs for capability, refs in capability_map.items() if refs}
+    )
 
 
 def build_runtime(options: StartupOptions) -> RuntimeState:
@@ -365,8 +413,16 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
 
     store = FileStore(settings.data_dir, settings.workspace_root)
     secret_store = FileSecretStore(settings.secret_store)
-    connections = ConnectionService(store, secret_store=secret_store)
+    # The existing saved-test diagnostics are a read-only source for the list
+    # summary; the tester writes them and the service never adds a second state.
+    test_diagnostics = ConnectionTestLog(settings.data_dir / "diagnostics")
+    connections = ConnectionService(
+        store,
+        secret_store=secret_store,
+        test_diagnostics=test_diagnostics,
+    )
     connection_pins = _ServiceConnectionPins(connections)
+    warnings: list[str] = []
 
     if options.seed_minimal_agent:
         try:
@@ -383,16 +439,41 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         seeded = None
         warnings_seed = ""
 
+    role_seed: dict[str, Any] = {}
+    # Read-only diagnostics set seed_minimal_agent=False; they must not seed roles either.
+    if options.seed_roles and options.seed_minimal_agent:
+        try:
+            role_report = seed_role_library(store)
+        except Exception as exc:  # noqa: BLE001 - a bad package must not block startup
+            role_seed = {"error": f"{type(exc).__name__}: {exc}"}
+            warnings.append(f"agency role seed skipped: {type(exc).__name__}: {exc}")
+            log(warnings[-1])
+        else:
+            role_seed = role_report.summary()
+            log(
+                "agency role seed: "
+                f"templates={role_seed['total_templates']} created={role_seed['created']} "
+                f"updated={role_seed['updated']} unchanged={role_seed['unchanged']} "
+                f"custom_preserved={role_seed['skipped_custom']} "
+                f"update_available={role_seed['update_available']} "
+                f"errors={role_seed['errors']}"
+            )
+            if role_report.errors:
+                warnings.append(
+                    f"agency role seed completed with {len(role_report.errors)} error(s)"
+                )
+    else:
+        role_seed = {"skipped": "seeding disabled"}
+
     tester = None
     if options.tester:
         tester = ConnectionTester(
             connections,
-            diagnostics=ConnectionTestLog(settings.data_dir / "diagnostics"),
+            diagnostics=test_diagnostics,
             allow_network=False,
             max_network_calls=1,
         )
 
-    warnings: list[str] = []
     if warnings_seed:
         warnings.append(warnings_seed)
     executor = None
@@ -541,9 +622,13 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         executor=executor,
         warnings=warnings,
         reviewer=reviewer_status,
+        role_seed=role_seed,
     )
     if agents:
-        log(f"executable agent candidates: {', '.join(agents)}")
+        if len(agents) <= 10:
+            log(f"enabled agent templates: {', '.join(agents)}")
+        else:
+            log(f"enabled agent templates: {len(agents)} (full agency role library included)")
     else:
         log("no enabled agent resource; execution has no team candidate yet")
     log(f"runtime token resolved from {token.source} (value never logged)")

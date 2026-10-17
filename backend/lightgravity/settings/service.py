@@ -18,12 +18,19 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any, Callable
+from pathlib import Path
+from typing import Any, Callable, Mapping, Sequence
 
 from lightgravity.adapter.credentials import CredentialResolver, EnvCredentialResolver, Secret
+from lightgravity.adapter.provider_matrix import (
+    credential_recipient_identity,
+    effective_auth_mode,
+)
 from lightgravity.adapter.registry import ImplementationRegistry
 from lightgravity.store import Store
+from lightgravity.store.locking import connection_reference_lock
 
+from .embedding import EmbeddingSettingsService
 from .errors import ConnectionReferenceInvalid, SecretStoreError, SettingsConfigInvalid
 from .models import (
     DEFAULT_BASE_URL,
@@ -76,11 +83,30 @@ class ConnectionService:
         secret_store: FileSecretStore,
         registry: ImplementationRegistry | None = None,
         env_resolver: CredentialResolver | None = None,
+        allowed_model_roots: Sequence[Path | str] | None = None,
+        test_diagnostics: Any | None = None,
+        env: Mapping[str, str] | None = None,
     ) -> None:
         self._repo = ConnectionRepository(store, registry=registry)
         self._secrets = secret_store
         self._resolver = SecretStoreCredentialResolver(
             secret_store, env_resolver=env_resolver or EnvCredentialResolver()
+        )
+        root = getattr(store, "workspace_root", None)
+        self._allowed_model_roots = tuple(
+            Path(item)
+            for item in (
+                allowed_model_roots
+                if allowed_model_roots is not None
+                else ([root] if root is not None else [])
+            )
+        )
+        # Read-only access to the existing saved-test diagnostics.  This never
+        # writes a second Connection state; draft results are never recorded by
+        # the tester and are filtered again defensively here.
+        self._test_diagnostics = test_diagnostics
+        self._embedding = EmbeddingSettingsService(
+            self._repo, secret_store=self._secrets, env=env
         )
 
     # --------------------------------------------------------------- exposure
@@ -97,6 +123,12 @@ class ConnectionService:
         """The resolver LG-006 should use for ``credential_ref`` lookups."""
 
         return self._resolver
+
+    @property
+    def embedding(self) -> EmbeddingSettingsService:
+        """Independent Embedding purpose; never a chat/worker default."""
+
+        return self._embedding
 
     # ------------------------------------------------------------- connections
     def list_connections(self) -> list[dict[str, Any]]:
@@ -116,12 +148,40 @@ class ConnectionService:
         credential_ref: str | None = None,
         credential_value: str | None = None,
         enabled: bool = True,
+        auth_mode: Any = _UNSET,
+        project: Any = _UNSET,
+        location: Any = _UNSET,
+        model_path: Any = _UNSET,
+        litert_backend: Any = _UNSET,
         actor: str,
         request_id: str,
     ) -> dict[str, Any]:
         if backend == DEFAULT_EXECUTABLE_BACKEND:
             model = model or PREFERRED_MODEL
             base_url = base_url or DEFAULT_BASE_URL
+        optional = {
+            "auth_mode": auth_mode,
+            "project": project,
+            "location": location,
+            "model_path": model_path,
+            "litert_backend": litert_backend,
+        }
+        # Omitted optional fields stay absent on a new record (legacy-compatible
+        # shape); explicitly supplied values, including null, are persisted.
+        persisted_fields = {
+            key: value for key, value in optional.items() if value is not _UNSET
+        }
+        validation_fields = {
+            key: (None if value is _UNSET else value)
+            for key, value in optional.items()
+        }
+        self._validate_connection_fields(
+            backend=backend,
+            model=model,
+            base_url=base_url,
+            credential_ref=credential_ref,
+            **validation_fields,
+        )
         compensation = _Compensation()
         try:
             if credential_ref and credential_value:
@@ -143,6 +203,7 @@ class ConnectionService:
                 base_url=base_url,
                 credential_ref=credential_ref,
                 enabled=enabled,
+                **persisted_fields,
                 actor=actor,
                 request_id=request_id,
             )
@@ -164,12 +225,18 @@ class ConnectionService:
         actor: str,
         title: str | None = None,
         enabled: bool | None = None,
+        backend: Any = _UNSET,
         model: Any = _UNSET,
         base_url: Any = _UNSET,
         credential_ref: Any = _UNSET,
         credential_action: str = "keep",
         credential_value: str | None = None,
         clear_defaults: bool = False,
+        auth_mode: Any = _UNSET,
+        project: Any = _UNSET,
+        location: Any = _UNSET,
+        model_path: Any = _UNSET,
+        litert_backend: Any = _UNSET,
     ) -> dict[str, Any]:
         if credential_action not in VALID_CREDENTIAL_ACTIONS:
             raise SettingsConfigInvalid(
@@ -184,12 +251,25 @@ class ConnectionService:
             updates["title"] = title
         if enabled is not None:
             updates["enabled"] = enabled
-        if model is not _UNSET:
-            updates["model"] = model
-        if base_url is not _UNSET:
-            updates["base_url"] = base_url
-        if credential_ref is not _UNSET:
-            updates["credential_ref"] = credential_ref
+        if backend is not _UNSET:
+            if not isinstance(backend, str) or not backend:
+                raise SettingsConfigInvalid(
+                    "backend must be a non-empty string when supplied",
+                    diagnostics=[{"code": "backend_invalid", "location": "backend"}],
+                )
+            updates["backend"] = backend
+        for key, value in (
+            ("model", model),
+            ("base_url", base_url),
+            ("credential_ref", credential_ref),
+            ("auth_mode", auth_mode),
+            ("project", project),
+            ("location", location),
+            ("model_path", model_path),
+            ("litert_backend", litert_backend),
+        ):
+            if value is not _UNSET:
+                updates[key] = value
 
         if credential_action == "remove":
             updates["credential_ref"] = None
@@ -215,11 +295,47 @@ class ConnectionService:
                 )
             updates["credential_ref"] = target_ref
 
-        final_model = updates.get("model", current.model)
-        final_base_url = updates.get("base_url", current.base_url)
-        self._repo.validate_backend(
-            current.backend, model=final_model, base_url=final_base_url
+        final = {
+            "backend": updates.get("backend", current.backend),
+            "model": updates.get("model", current.model),
+            "base_url": updates.get("base_url", current.base_url),
+            "credential_ref": updates.get("credential_ref", current.credential_ref),
+            "auth_mode": updates.get("auth_mode", current.auth_mode),
+            "project": updates.get("project", current.project),
+            "location": updates.get("location", current.location),
+            "model_path": updates.get("model_path", current.model_path),
+            "litert_backend": updates.get("litert_backend", current.litert_backend),
+        }
+        self._validate_connection_fields(**final)
+
+        # Do not silently carry a stored key to a different provider/auth mode or
+        # endpoint recipient.  The old secret file is never deleted here; it is
+        # merely detached so no later test/execution can send it to a new target.
+        old_identity = credential_recipient_identity(
+            backend=current.backend,
+            auth_mode=current.auth_mode,
+            base_url=current.base_url,
+            project=current.project,
+            location=current.location,
+            credential_ref=current.credential_ref,
         )
+        new_identity = credential_recipient_identity(
+            backend=final["backend"],
+            auth_mode=final["auth_mode"],
+            base_url=final["base_url"],
+            project=final["project"],
+            location=final["location"],
+            credential_ref=final["credential_ref"],
+        )
+        if (
+            old_identity != new_identity
+            and credential_action == "keep"
+            and not credential_value
+            and final["credential_ref"]
+        ):
+            updates["credential_ref"] = None
+            final["credential_ref"] = None
+        self._validate_connection_fields(**final)
 
         refs = self.references_to(connection_id)
         disabling = enabled is False and current.enabled
@@ -290,6 +406,39 @@ class ConnectionService:
             raise
         return self._public_connection(connection)
 
+    def delete_connection(
+        self,
+        connection_id: str,
+        *,
+        expected_revision: int,
+        actor: str,
+    ) -> dict[str, Any]:
+        """Delete a Connection without touching its (possibly shared) secret.
+
+        The shared reference lock serializes this guard/unlink with controlled
+        Settings and Agent binding writers, before taking the entity lock.
+        References are never rewritten; a referenced connection is refused.
+        """
+        with connection_reference_lock(self._repo.store):
+            self._repo.delete_connection(
+                connection_id,
+                expected_revision=expected_revision,
+                actor=actor,
+                guard=lambda: self._guard_connection_delete(connection_id),
+            )
+            return {"deleted": True, "id": connection_id}
+
+    def _guard_connection_delete(self, connection_id: str) -> None:
+        refs = self.references_to(connection_id)
+        if refs.referenced:
+            raise ConnectionReferenceInvalid(
+                f"connection {connection_id!r} is still referenced and cannot be deleted",
+                kind="connection",
+                ref=connection_id,
+                detail="connection_still_referenced",
+                references=refs.to_dict(),
+            )
+
     def references_to(self, connection_id: str) -> ConnectionReferences:
         settings = self._repo.read_settings()
         roles: list[str] = []
@@ -324,6 +473,8 @@ class ConnectionService:
                     settings.default_reviewer_connection_ref
                 ),
             },
+            # LG-117 additive read-only view; secrets are never included.
+            "embedding": self._embedding.view(settings),
         }
 
     def update_settings(
@@ -338,90 +489,91 @@ class ConnectionService:
         collab_requests_enabled: Any = _UNSET,
         claim_lease_seconds: Any = _UNSET,
     ) -> dict[str, Any]:
-        current = self._repo.read_settings()
-        coordinator = (
-            current.default_coordinator_connection_ref
-            if default_coordinator_connection_ref is _UNSET
-            else default_coordinator_connection_ref
-        )
-        worker = (
-            current.default_worker_connection_ref
-            if default_worker_connection_ref is _UNSET
-            else default_worker_connection_ref
-        )
-        reviewer = (
-            current.default_reviewer_connection_ref
-            if default_reviewer_connection_ref is _UNSET
-            else default_reviewer_connection_ref
-        )
-        claim_enabled = (
-            current.decentralized_claim_enabled
-            if decentralized_claim_enabled is _UNSET
-            else decentralized_claim_enabled
-        )
-        collab_enabled = (
-            current.collab_requests_enabled
-            if collab_requests_enabled is _UNSET
-            else collab_requests_enabled
-        )
-        lease_seconds = (
-            current.claim_lease_seconds
-            if claim_lease_seconds is _UNSET
-            else claim_lease_seconds
-        )
-        self._validate_default_ref(coordinator, role=ROLE_COORDINATOR)
-        self._validate_default_ref(worker, role=ROLE_WORKER)
-        self._validate_default_ref(reviewer, role=ROLE_REVIEWER)
-        self._validate_claim_switches(
-            decentralized_claim_enabled=claim_enabled,
-            collab_requests_enabled=collab_enabled,
-            claim_lease_seconds=lease_seconds,
-        )
-        content = {
-            "default_coordinator_connection_ref": coordinator,
-            "default_worker_connection_ref": worker,
-            "default_reviewer_connection_ref": reviewer,
-            "decentralized_claim_enabled": claim_enabled,
-            "collab_requests_enabled": collab_enabled,
-            "claim_lease_seconds": lease_seconds,
-        }
-        if current.exists:
-            if expected_revision is None:
-                raise SettingsConfigInvalid(
-                    "expected_revision is required to update existing settings",
-                    diagnostics=[
-                        {"code": "expected_revision_missing", "location": "expected_revision"}
-                    ],
-                )
-            written = self._repo.write_settings(
-                content, expected_revision=expected_revision, actor=actor
+        with connection_reference_lock(self._repo.store):
+            current = self._repo.read_settings()
+            coordinator = (
+                current.default_coordinator_connection_ref
+                if default_coordinator_connection_ref is _UNSET
+                else default_coordinator_connection_ref
             )
-        else:
-            if expected_revision not in (None, 0):
-                raise SettingsConfigInvalid(
-                    "settings do not exist yet; expected_revision must be 0",
-                    diagnostics=[
-                        {"code": "expected_revision_invalid", "location": "expected_revision"}
-                    ],
-                )
-            written = self._repo.create_settings(
-                default_coordinator_connection_ref=coordinator,
-                default_worker_connection_ref=worker,
-                default_reviewer_connection_ref=reviewer,
+            worker = (
+                current.default_worker_connection_ref
+                if default_worker_connection_ref is _UNSET
+                else default_worker_connection_ref
+            )
+            reviewer = (
+                current.default_reviewer_connection_ref
+                if default_reviewer_connection_ref is _UNSET
+                else default_reviewer_connection_ref
+            )
+            claim_enabled = (
+                current.decentralized_claim_enabled
+                if decentralized_claim_enabled is _UNSET
+                else decentralized_claim_enabled
+            )
+            collab_enabled = (
+                current.collab_requests_enabled
+                if collab_requests_enabled is _UNSET
+                else collab_requests_enabled
+            )
+            lease_seconds = (
+                current.claim_lease_seconds
+                if claim_lease_seconds is _UNSET
+                else claim_lease_seconds
+            )
+            self._validate_default_ref(coordinator, role=ROLE_COORDINATOR)
+            self._validate_default_ref(worker, role=ROLE_WORKER)
+            self._validate_default_ref(reviewer, role=ROLE_REVIEWER)
+            self._validate_claim_switches(
                 decentralized_claim_enabled=claim_enabled,
                 collab_requests_enabled=collab_enabled,
                 claim_lease_seconds=lease_seconds,
-                actor=actor,
-                request_id="settings-init",
             )
-        return {
-            **written.to_dict(),
-            "defaults": {
-                ROLE_COORDINATOR: self._describe_default(coordinator),
-                ROLE_WORKER: self._describe_default(worker),
-                ROLE_REVIEWER: self._describe_default(reviewer),
-            },
-        }
+            content = {
+                "default_coordinator_connection_ref": coordinator,
+                "default_worker_connection_ref": worker,
+                "default_reviewer_connection_ref": reviewer,
+                "decentralized_claim_enabled": claim_enabled,
+                "collab_requests_enabled": collab_enabled,
+                "claim_lease_seconds": lease_seconds,
+            }
+            if current.exists:
+                if expected_revision is None:
+                    raise SettingsConfigInvalid(
+                        "expected_revision is required to update existing settings",
+                        diagnostics=[
+                            {"code": "expected_revision_missing", "location": "expected_revision"}
+                        ],
+                    )
+                written = self._repo.write_settings(
+                    content, expected_revision=expected_revision, actor=actor
+                )
+            else:
+                if expected_revision not in (None, 0):
+                    raise SettingsConfigInvalid(
+                        "settings do not exist yet; expected_revision must be 0",
+                        diagnostics=[
+                            {"code": "expected_revision_invalid", "location": "expected_revision"}
+                        ],
+                    )
+                written = self._repo.create_settings(
+                    default_coordinator_connection_ref=coordinator,
+                    default_worker_connection_ref=worker,
+                    default_reviewer_connection_ref=reviewer,
+                    decentralized_claim_enabled=claim_enabled,
+                    collab_requests_enabled=collab_enabled,
+                    claim_lease_seconds=lease_seconds,
+                    actor=actor,
+                    request_id="settings-init",
+                )
+            return {
+                **written.to_dict(),
+                "defaults": {
+                    ROLE_COORDINATOR: self._describe_default(coordinator),
+                    ROLE_WORKER: self._describe_default(worker),
+                    ROLE_REVIEWER: self._describe_default(reviewer),
+                },
+            }
 
     def _validate_claim_switches(
         self,
@@ -508,11 +660,12 @@ class ConnectionService:
                 ref=ref,
                 detail=f"{role}_default_disabled",
             )
-        registration = self._repo.registry.backend(connection.backend)
-        if registration is None or not registration.verified:
+        capabilities = self._repo.connection_capabilities(connection)
+        if not capabilities or capabilities.get("executable") is not True:
             raise ConnectionReferenceInvalid(
-                f"default {role} connection {ref!r} uses unverified backend "
-                f"{connection.backend!r}",
+                f"default {role} connection {ref!r} is configurable/testable but "
+                f"not executable in this build ({connection.backend!r} at "
+                f"{connection.base_url or 'fixed vendor endpoint'!r})",
                 kind="connection",
                 ref=ref,
                 detail=f"{role}_default_unverified",
@@ -527,6 +680,8 @@ class ConnectionService:
         summary = connection.to_dict()
         summary["resolved"] = True
         summary["credential"] = self.credential_status(connection.credential_ref).to_dict()
+        summary["capabilities"] = self._repo.connection_capabilities(connection)
+        summary["last_test"] = self._last_test_summary(connection.id)
         return summary
 
     # ------------------------------------------------------------ credentials
@@ -606,6 +761,11 @@ class ConnectionService:
                 "model": connection.model,
                 "base_url": connection.base_url,
                 "credential_ref": connection.credential_ref,
+                "auth_mode": connection.auth_mode,
+                "project": connection.project,
+                "location": connection.location,
+                "model_path": connection.model_path,
+                "litert_backend": connection.litert_backend,
                 "credential_version": credential.version,
             },
             sort_keys=True,
@@ -630,7 +790,153 @@ class ConnectionService:
         payload["credential"] = self.credential_status(connection.credential_ref).to_dict()
         refs = self.references_to(connection.id)
         payload["references"] = refs.to_dict()
+        payload["capabilities"] = self._repo.connection_capabilities(connection)
+        payload["last_test"] = self._last_test_summary(connection.id)
         return payload
+
+    def _last_test_summary(self, connection_id: str) -> dict[str, Any] | None:
+        """Read the latest saved-test safe summary; never a draft result.
+
+        The diagnostic log is the only authority.  No second Connection state is
+        persisted or derived beyond this read-only projection.
+        """
+
+        if self._test_diagnostics is None:
+            return None
+        try:
+            latest = self._test_diagnostics.latest(connection_id)
+        except Exception:  # noqa: BLE001 - a broken diagnostic must not hide the connection
+            return None
+        if not isinstance(latest, dict) or latest.get("draft") is True:
+            return None
+        overall = latest.get("overall")
+        finished_at = latest.get("finished_at")
+        if not isinstance(overall, str) or not isinstance(finished_at, str):
+            return None
+        summary: dict[str, Any] = {
+            "overall": overall,
+            "finished_at": finished_at,
+        }
+        test_id = latest.get("test_id")
+        if isinstance(test_id, str) and test_id:
+            summary["test_id"] = test_id
+        revision = latest.get("connection_revision")
+        summary["connection_revision"] = (
+            revision if isinstance(revision, int) and not isinstance(revision, bool) else None
+        )
+        credential_version = latest.get("credential_version")
+        summary["credential_version"] = (
+            credential_version if isinstance(credential_version, str) else None
+        )
+        return summary
+
+    # --------------------------------------------------------- provider policy
+    def validate_connection_spec(
+        self,
+        *,
+        backend: str,
+        model: str | None,
+        base_url: str | None = None,
+        auth_mode: str | None = None,
+        project: str | None = None,
+        location: str | None = None,
+        model_path: str | None = None,
+        litert_backend: str | None = None,
+        credential_ref: str | None = None,
+    ) -> str:
+        """Validate a complete provider spec (saved or draft); return auth mode.
+
+        The draft endpoint uses this exact path, so an unsaved provider is held
+        to the same matrix as a saved one.  No secret value is accepted here.
+        """
+
+        self._validate_connection_fields(
+            backend=backend,
+            model=model,
+            base_url=base_url,
+            credential_ref=credential_ref,
+            auth_mode=auth_mode,
+            project=project,
+            location=location,
+            model_path=model_path,
+            litert_backend=litert_backend,
+        )
+        return effective_auth_mode(
+            backend,
+            auth_mode,
+            project=project,
+            location=location,
+            credential_ref=credential_ref,
+        )
+
+    def _validate_connection_fields(
+        self,
+        *,
+        backend: str,
+        model: str | None,
+        base_url: str | None,
+        credential_ref: str | None,
+        auth_mode: str | None = None,
+        project: str | None = None,
+        location: str | None = None,
+        model_path: str | None = None,
+        litert_backend: str | None = None,
+    ) -> None:
+        self._repo.validate_backend(
+            backend,
+            model=model,
+            base_url=base_url,
+            auth_mode=auth_mode,
+            project=project,
+            location=location,
+            model_path=model_path,
+            litert_backend=litert_backend,
+            credential_ref=credential_ref,
+        )
+        if backend == "litert":
+            self._validate_model_path(model_path)
+
+    def _validate_model_path(self, model_path: str | None) -> None:
+        """Keep LiteRT model paths inside configured roots without reading them.
+
+        The existing Store path policy is the lexical/symlink containment choke
+        point.  This validation only resolves/stats the path; it never reads file
+        contents and never installs/downloads anything.
+        """
+
+        if not model_path:
+            return
+        if not self._allowed_model_roots:
+            raise SettingsConfigInvalid(
+                "no configured LiteRT model root is available",
+                diagnostics=[
+                    {"code": "model_root_unavailable", "location": "connection.model_path"}
+                ],
+            )
+        candidate = Path(model_path)
+        allowed = False
+        for root in self._allowed_model_roots:
+            root_abs = Path(str(root)).expanduser().absolute()
+            try:
+                resolved = (
+                    Path(model_path).expanduser().absolute()
+                    if candidate.is_absolute()
+                    else (root_abs / candidate).absolute()
+                )
+                resolved = resolved.resolve(strict=False)
+                real_root = root_abs.resolve(strict=False)
+                resolved.relative_to(real_root)
+            except (OSError, ValueError):
+                continue
+            allowed = True
+            break
+        if not allowed:
+            raise SettingsConfigInvalid(
+                "LiteRT model_path must resolve inside an allowed model root",
+                diagnostics=[
+                    {"code": "model_path_outside_roots", "location": "connection.model_path"}
+                ],
+            )
 
 
 __all__ = ["ConnectionService"]

@@ -7,6 +7,7 @@
  * visibility are session preferences. No business state is stored here — the
  * authoritative Task/Run state comes from the backend (docs/08 §7).
  */
+import { CONNECTION_CATEGORY_ID, NAV_RESOURCE_CATEGORIES } from '../api/resources'
 import { isViewId, type ViewId } from './navigation'
 
 export type DrawerId = 'nav' | 'chat'
@@ -62,6 +63,22 @@ export function parseSettingsConnectionRef(ref: string | null | undefined): stri
   if (!ref || !ref.startsWith('settings:connection:')) return null
   const id = ref.slice('settings:connection:'.length)
   return id || null
+}
+
+const LEGACY_CONNECTION_ITEM_PREFIX = 'resources:connection:'
+
+/**
+ * Resolve a Connection id from either the current Settings reference or the
+ * legacy Resources Connection detail reference (LG-103).  The id is the stable
+ * server entity id; it is never a secret.
+ */
+export function connectionIdFromRef(ref: string | null | undefined): string | null {
+  const settingsId = parseSettingsConnectionRef(ref)
+  if (settingsId) return settingsId
+  if (!ref) return null
+  if (ref === LEGACY_CONNECTION_ITEM_PREFIX.slice(0, -1)) return null
+  if (!ref.startsWith(LEGACY_CONNECTION_ITEM_PREFIX)) return null
+  return ref.slice(LEGACY_CONNECTION_ITEM_PREFIX.length) || null
 }
 
 export type ShellAction =
@@ -151,17 +168,59 @@ function parseChannel(value: string | null): ChatChannel | null {
   return value === 'personal' || value === 'team' ? value : null
 }
 
+/**
+ * Normalize routes that predate LG-103.
+ *
+ * The old app exposed Connections as a Resources category/detail.  Those
+ * bookmarks now open Settings → Models & Providers at the same stable
+ * Connection id (or its default selection for the category link), while the
+ * Task/Run/channel return context is preserved.  A bare legacy Resources route
+ * defaults to the first remaining category rather than the old Connections
+ * page, so a stale link cannot reach a second connection management surface.
+ */
+function normalizeRoute(route: ShellRoute): ShellRoute {
+  let next = route
+  if (route.view === 'resources') {
+    if (!route.selectedItemRef) {
+      next = {
+        ...route,
+        selectedItemRef: NAV_RESOURCE_CATEGORIES[0]?.id ?? null,
+      }
+    } else if (route.selectedItemRef === CONNECTION_CATEGORY_ID) {
+      next = { ...route, view: 'settings', selectedItemRef: null }
+    } else {
+      const id = connectionIdFromRef(route.selectedItemRef)
+      if (id || route.selectedItemRef === LEGACY_CONNECTION_ITEM_PREFIX.slice(0, -1)) {
+        next = {
+          ...route,
+          view: 'settings',
+          selectedItemRef: id ? settingsConnectionRef(id) : null,
+        }
+      }
+    }
+  }
+  if (next.view === 'settings') {
+    const id = connectionIdFromRef(next.selectedItemRef)
+    if (id) {
+      next = { ...next, selectedItemRef: settingsConnectionRef(id) }
+    } else if (next.selectedItemRef === CONNECTION_CATEGORY_ID) {
+      next = { ...next, selectedItemRef: null }
+    }
+  }
+  return next
+}
+
 export function routeFromUrl(search?: string): ShellRoute {
   const raw = search ?? (typeof window === 'undefined' ? '' : window.location.search)
   const params = new URLSearchParams(raw)
   const viewParam = params.get('view')
-  return {
+  return normalizeRoute({
     view: isViewId(viewParam) ? viewParam : 'chat',
     taskRef: params.get('task'),
     runRef: params.get('run'),
     selectedItemRef: params.get('item'),
     chatChannel: parseChannel(params.get('channel')),
-  }
+  })
 }
 
 export function routeQuery(route: ShellRoute): string {

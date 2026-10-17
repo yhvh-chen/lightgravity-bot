@@ -301,6 +301,8 @@
 #lg-chat-extras[hidden] { display: none; }
 
 /* -------------------------------------------------- Personal / Team (LG-054) */
+/* LG-118: the channel tabs are the top row of the conversation; the removed
+   header copy is not replaced by another explanatory block. */
 .lg-chat__channels {
   display: flex;
   flex-direction: column;
@@ -308,6 +310,13 @@
   padding: var(--lg-space-2) var(--lg-space-3);
   border-bottom: 1px solid var(--lg-color-border);
   background: var(--lg-color-surface-2);
+}
+
+.lg-chat__channels-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lg-space-2);
 }
 
 .lg-chat__channels-tabs {
@@ -329,6 +338,10 @@
   color: var(--lg-color-text);
 }
 
+.lg-chat__header--task {
+  padding: var(--lg-space-2) var(--lg-space-3);
+}
+
 .lg-chat__channel-note,
 .lg-chat__tools-hint {
   margin: 0;
@@ -338,4 +351,89 @@
 
 .lg-chat__tools-hint {
   margin-bottom: var(--lg-space-1);
+}
+
+/* ---------------------------------------------- LG-119 composer + attachments */
+/* The footer is a fixed bottom surface with no permanent top divider or hint. */
+.lg-chat .lg-chat__footer {
+  border-top: 0;
+}
+
+.lg-composer {
+  gap: var(--lg-space-2);
+}
+
+.lg-composer__attachments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+}
+
+.lg-composer__attachments .lg-chat__chip-row {
+  margin: 0;
+}
+
+.lg-composer__box {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* Grows upward with content, then scrolls internally at min(240px, 35dvh). */
+.lg-composer__input {
+  width: 100%;
+  min-height: 48px;
+  max-height: min(240px, 35dvh);
+  resize: none;
+  overflow-y: auto;
+  padding: 12px 48px 12px 48px;
+  border-radius: var(--lg-radius-panel);
+  line-height: 1.45;
+}
+
+.lg-composer__attach,
+.lg-composer__send {
+  position: absolute;
+  bottom: 6px;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  border-radius: 50%;
+}
+
+.lg-composer__attach {
+  left: 6px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--lg-color-text-muted);
+}
+
+.lg-composer__attach:hover:not(:disabled) {
+  color: var(--lg-color-text);
+  background: var(--lg-color-surface-2);
+}
+
+.lg-composer__send {
+  right: 6px;
+  border-color: var(--lg-color-accent);
+  background: var(--lg-color-accent);
+  color: #fff;
+}
+
+.lg-composer__send:disabled {
+  opacity: 0.5;
+}
+
+.lg-chat__attachment-status {
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-muted);
+  white-space: nowrap;
+}
+
+.lg-chat__attachment-status--uploading {
+  color: var(--lg-color-warning, var(--lg-color-text-muted));
+}
+
+.lg-chat__attachment-status--failed {
+  color: var(--lg-color-error);
 }

@@ -33,9 +33,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from lightgravity.contracts import AppError, ErrorCode
 
+from .embedding_testing import DraftEmbeddingSpec, EmbeddingDraftTester
 from .models import DEFAULT_BASE_URL, DEFAULT_EXECUTABLE_BACKEND, PREFERRED_MODEL
 from .service import ConnectionService
-from .testing import ConnectionTester
+from .testing import ConnectionTester, DraftConnectionSpec
 
 _LOOPBACK_ORIGIN_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
 
@@ -51,6 +52,12 @@ class ConnectionCreateRequest(BaseModel):
     credential_ref: str | None = None
     credential_value: str | None = None
     enabled: bool = True
+    # LG-104 additive, non-secret provider fields.
+    auth_mode: Literal["api_key", "adc", "proxy_api_key", "none"] | None = None
+    project: str | None = None
+    location: str | None = None
+    model_path: str | None = None
+    litert_backend: Literal["CPU", "GPU", "NPU"] | None = None
 
 
 class ConnectionUpdateRequest(BaseModel):
@@ -59,12 +66,50 @@ class ConnectionUpdateRequest(BaseModel):
     expected_revision: int
     title: str | None = None
     enabled: bool | None = None
+    #: Additive so a connection can switch provider preset without a new record.
+    backend: str | None = None
     model: str | None = None
     base_url: str | None = None
     credential_ref: str | None = None
     credential_action: Literal["keep", "set", "remove"] = "keep"
     credential_value: str | None = None
     clear_defaults: bool = False
+    auth_mode: Literal["api_key", "adc", "proxy_api_key", "none"] | None = None
+    project: str | None = None
+    location: str | None = None
+    model_path: str | None = None
+    litert_backend: Literal["CPU", "GPU", "NPU"] | None = None
+
+
+class DraftConnectionPayload(BaseModel):
+    """The non-secret Connection fields accepted by a draft test.
+
+    No ``credential_ref`` or arbitrary secret selector is accepted here.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    backend: Literal["gemini", "vertex", "litert", "openai-compat"]
+    model: str | None = None
+    base_url: str | None = None
+    auth_mode: Literal["api_key", "adc", "proxy_api_key", "none"] | None = None
+    project: str | None = None
+    location: str | None = None
+    model_path: str | None = None
+    litert_backend: Literal["CPU", "GPU", "NPU"] | None = None
+
+
+class ConnectionTestDraftRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    connection: DraftConnectionPayload
+    #: Write-only transient value; never persisted or echoed.
+    credential_value: str | None = None
+    existing_connection_id: str | None = None
+    expected_revision: int | None = None
+    allow_network: bool = False
+    probe_tools: bool = False
+    probe_structured: bool = False
 
 
 class CredentialUpsertRequest(BaseModel):
@@ -100,6 +145,41 @@ class ConnectionTestRequest(BaseModel):
     probe_structured: bool = False
 
 
+class ConnectionDeleteRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    expected_revision: int
+
+
+class EmbeddingUpdateRequest(BaseModel):
+    """LG-117 PUT /settings/embedding (write-only credential)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    expected_revision: int | None = None
+    enabled: bool
+    base_url: str | None = None
+    model: str | None = None
+    credential_action: Literal["keep", "set", "remove"] = "keep"
+    credential_value: str | None = None
+    timeout_seconds: float | None = Field(default=None, gt=0)
+    cold_timeout_seconds: float | None = Field(default=None, gt=0)
+
+
+class EmbeddingDraftTestRequest(BaseModel):
+    """LG-117 POST /settings/embedding/test-draft (never persists)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    base_url: str | None = None
+    model: str | None = None
+    credential_value: str | None = None
+    use_existing_credential: bool = False
+    allow_network: bool = False
+    timeout_seconds: float | None = Field(default=None, gt=0)
+    cold_timeout_seconds: float | None = Field(default=None, gt=0)
+
+
 def _require_loopback_origin(request: Request) -> None:
     """Reject cross-site browser origins on sensitive credential writes."""
 
@@ -113,6 +193,31 @@ def _require_loopback_origin(request: Request) -> None:
             "credential endpoints only accept loopback browser origins",
             details={"origin_host": host},
         )
+
+
+def _require_safe_origin(request: Request) -> None:
+    """Reject a cross-site Origin on a request that carries a secret.
+
+    Same-origin requests (the LAN UI behind the same host) and explicit
+    loopback development origins are accepted; the local Host/Origin guard and
+    the global admin/runtime access policy remain authoritative.
+    """
+
+    origin = request.headers.get("origin")
+    if not origin:
+        return
+    parsed = urlparse(origin)
+    origin_host = parsed.hostname
+    if origin_host in _LOOPBACK_ORIGIN_HOSTS:
+        return
+    request_host = (request.headers.get("host") or "").split(":", 1)[0].lower()
+    if origin_host and origin_host.lower() == request_host:
+        return
+    raise AppError(
+        ErrorCode.UNAUTHORIZED,
+        "credential-bearing endpoints accept only same-origin or loopback origins",
+        details={"origin_host": origin_host},
+    )
 
 
 def _actor(header_actor: str | None) -> str:
@@ -131,10 +236,14 @@ def build_settings_router(
     service: ConnectionService,
     *,
     tester: ConnectionTester | None = None,
+    embedding_tester: EmbeddingDraftTester | None = None,
 ) -> APIRouter:
     """Build the settings router; LG-012 mounts it under ``/api/v1``."""
 
     router = APIRouter(tags=["settings"])
+    resolved_embedding_tester = embedding_tester or EmbeddingDraftTester(
+        service.embedding
+    )
 
     @router.get("/settings")
     def get_settings(response: Response) -> dict[str, Any]:
@@ -166,6 +275,41 @@ def build_settings_router(
         _etag(response, int(result["revision"]))
         return result
 
+    @router.put("/settings/embedding")
+    def update_embedding(
+        payload: EmbeddingUpdateRequest,
+        request: Request,
+        response: Response,
+        x_lg_actor: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        _require_safe_origin(request)
+        data = payload.model_dump()
+        expected = data.pop("expected_revision")
+        result = service.embedding.update(
+            expected_revision=expected,
+            actor=_actor(x_lg_actor),
+            **data,
+        )
+        # A saved base_url/model/enabled change must not keep serving a vector
+        # service built from the previous configuration.
+        request.app.state.vector_search_service = None
+        _no_store(response)
+        _etag(response, int(result["revision"]))
+        return result
+
+    @router.post("/settings/embedding/test-draft")
+    def test_embedding_draft(
+        payload: EmbeddingDraftTestRequest,
+        request: Request,
+        response: Response,
+    ) -> dict[str, Any]:
+        _require_safe_origin(request)
+        result = resolved_embedding_tester.test_draft(
+            DraftEmbeddingSpec(**payload.model_dump())
+        )
+        _no_store(response)
+        return result
+
     @router.get("/settings/connections")
     def list_connections(response: Response) -> dict[str, Any]:
         _no_store(response)
@@ -177,20 +321,55 @@ def build_settings_router(
         response: Response,
         x_lg_actor: str | None = Header(default=None),
     ) -> dict[str, Any]:
+        data = payload.model_dump(exclude_unset=True)
+        connection_id = data.pop("id")
         result = service.create_connection(
-            payload.id,
-            title=payload.title,
-            backend=payload.backend,
-            model=payload.model,
-            base_url=payload.base_url,
-            credential_ref=payload.credential_ref,
-            credential_value=payload.credential_value,
-            enabled=payload.enabled,
+            connection_id,
+            **data,
             actor=_actor(x_lg_actor),
-            request_id=f"conn-{payload.id}",
+            request_id=f"conn-{connection_id}",
         )
         _no_store(response)
         _etag(response, int(result["revision"]))
+        return result
+
+    @router.post("/settings/connections/test-draft")
+    def test_connection_draft(
+        payload: ConnectionTestDraftRequest,
+        request: Request,
+        response: Response,
+    ) -> dict[str, Any]:
+        if tester is None:
+            raise HTTPException(status_code=503, detail="connection tester is not configured")
+        _require_safe_origin(request)
+        spec = DraftConnectionSpec(**payload.connection.model_dump())
+        result = tester.test_draft(
+            spec,
+            credential_value=payload.credential_value,
+            existing_connection_id=payload.existing_connection_id,
+            expected_revision=payload.expected_revision,
+            allow_network=payload.allow_network,
+            probe_tools=payload.probe_tools,
+            probe_structured=payload.probe_structured,
+        )
+        _no_store(response)
+        return result.to_dict()
+
+    @router.delete("/settings/connections/{connection_id}")
+    def delete_connection(
+        connection_id: str,
+        payload: ConnectionDeleteRequest,
+        request: Request,
+        response: Response,
+        x_lg_actor: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        _require_safe_origin(request)
+        result = service.delete_connection(
+            connection_id,
+            expected_revision=payload.expected_revision,
+            actor=_actor(x_lg_actor),
+        )
+        _no_store(response)
         return result
 
     @router.get("/settings/connections/{connection_id}")
@@ -272,7 +451,12 @@ __all__ = [
     "build_settings_router",
     "ConnectionCreateRequest",
     "ConnectionUpdateRequest",
+    "ConnectionTestDraftRequest",
+    "DraftConnectionPayload",
     "CredentialUpsertRequest",
     "SettingsUpdateRequest",
     "ConnectionTestRequest",
+    "ConnectionDeleteRequest",
+    "EmbeddingUpdateRequest",
+    "EmbeddingDraftTestRequest",
 ]

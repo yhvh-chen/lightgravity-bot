@@ -30,71 +30,81 @@ function overallKind(overall: string): StatusKind {
 
 export interface ConnectionTestPanelProps {
   result: ConnectionTestResult | null
-  /** Result revision/credential version no longer matches the connection. */
+  /** The draft changed after this result was recorded. */
   stale: boolean
   running: boolean
-  onRun: () => void
-  /** Non-null explains why testing is disabled (e.g. unverified backend). */
-  disabledReason: string | null
+  /** Test results here always belong to the unsaved modal draft. */
+  draft?: boolean
 }
 
 /**
- * Layered Test Connection results (docs/07 §5, design.md §5).
+ * Layered draft-test result (LG-104/LG-110).
  *
- * Config, credential, SDK capability *declaration*, real network/model and the
- * optional tool/structured probes are shown separately: a network success is
- * never presented as "SDK capability verified". Stale results stay visible but
- * are clearly marked.
+ * The Test button lives in the modal footer; this panel only reports the
+ * result. A draft result is never persisted into the Connection or its saved
+ * test history, so it is explicitly labelled and can never be mistaken for a
+ * saved revision's verified status. Raw layer diagnostics stay collapsed.
  */
 export function ConnectionTestPanel({
   result,
   stale,
   running,
-  onRun,
-  disabledReason,
+  draft = true,
 }: ConnectionTestPanelProps) {
-  return (
-    <div className="lg-test">
-      <p className="lg-field__hint">
-        A network test makes one minimal model request and may consume a small
-        amount of model credit. The layers are reported separately; saving is not
-        the same as passing.
-      </p>
-      <button
-        type="button"
-        className="lg-button lg-button--primary"
-        onClick={onRun}
-        disabled={running || disabledReason !== null}
-        aria-busy={running}
-      >
-        {running ? 'Testing…' : 'Test connection'}
-      </button>
-      {disabledReason ? <p className="lg-field__hint">{disabledReason}</p> : null}
+  if (running) {
+    return (
+      <div className="lg-test" aria-live="polite">
+        <p className="lg-field__hint" role="status">
+          Testing current values…
+        </p>
+      </div>
+    )
+  }
 
-      {result ? (
-        <div className="lg-test__result" aria-live="polite">
-          <div className="lg-test__overall">
-            <StatusBadge kind={overallKind(result.overall)}>
-              {result.overall}
-            </StatusBadge>
-            {stale ? <StatusBadge kind="warning">stale</StatusBadge> : null}
-          </div>
+  if (!result) {
+    return (
+      <div className="lg-test">
+        <p className="lg-field__hint">
+          Not tested
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="lg-test" aria-live="polite">
+      <div className="lg-test__overall">
+        <StatusBadge kind={overallKind(result.overall)}>
+          {result.overall}
+        </StatusBadge>
+        {draft ? <StatusBadge kind="neutral">draft · not saved</StatusBadge> : null}
+        {stale ? <StatusBadge kind="warning">stale</StatusBadge> : null}
+      </div>
+      <dl className="lg-test__meta">
+        <div>
+          <dt>model</dt>
+          <dd>{result.model ?? '—'}</dd>
+        </div>
+        <div>
+          <dt>upstream</dt>
+          <dd>{result.base_url_host ?? '—'}</dd>
+        </div>
+        <div>
+          <dt>finished</dt>
+          <dd>{result.finished_at}</dd>
+        </div>
+      </dl>
+      <details className="lg-disclosure">
+        <summary className="lg-disclosure__summary">Layer details</summary>
+        <div className="lg-disclosure__body">
           <dl className="lg-test__meta">
             <div>
-              <dt>model</dt>
-              <dd>{result.model ?? '—'}</dd>
+              <dt>draft connection</dt>
+              <dd>{result.connection_id || 'not saved'}</dd>
             </div>
             <div>
-              <dt>upstream</dt>
-              <dd>{result.base_url_host ?? '—'}</dd>
-            </div>
-            <div>
-              <dt>finished</dt>
-              <dd>{result.finished_at}</dd>
-            </div>
-            <div>
-              <dt>connection revision</dt>
-              <dd>{result.connection_revision}</dd>
+              <dt>saved revision</dt>
+              <dd>{result.connection_revision ?? '—'}</dd>
             </div>
             <div>
               <dt>credential version</dt>
@@ -112,17 +122,18 @@ export function ConnectionTestPanel({
               </li>
             ))}
           </ul>
-          {stale ? (
-            <p className="lg-notice">
-              This result was recorded for connection revision{' '}
-              {result.connection_revision} and is no longer current. Run the test
-              again after your changes.
-            </p>
-          ) : null}
         </div>
-      ) : (
-        <p className="lg-field__hint">No test has been run in this session.</p>
-      )}
+      </details>
+      {stale ? (
+        <p className="lg-notice" role="status">
+          This result belongs to an earlier version of the draft. It was not
+          applied to the saved connection; run Test again after your changes.
+        </p>
+      ) : null}
+      <p className="lg-field__hint">
+        A draft result is not promoted to the saved connection's test status.
+        Only the backend's persisted status is shown in the list after Save.
+      </p>
     </div>
   )
 }

@@ -50,15 +50,37 @@ class HookRegistration:
 
 @dataclass(frozen=True, slots=True)
 class ConnectionBackend:
-    """A registered Antigravity connection backend."""
+    """A registered Antigravity connection backend.
+
+    ``verified`` is retained for older callers and means the historical
+    first-version executable/probe-verified path.  New code must use the
+    separate ``configurable`` / ``testable`` / ``executable`` /
+    ``vendor_verified`` facts: saving and testing a provider never implies task
+    execution or real-vendor verification.
+    """
 
     backend_id: str
-    sdk_config_kind: str  # "local" | "openai"
+    sdk_config_kind: str  # "local" | "openai" | "litert"
     requires_credential: bool
     supports_api_key_field: bool
     verified: bool
     endpoint_field: str | None = None
     description: str = ""
+    #: May be saved/updated through Settings (LG-104).
+    configurable: bool = True
+    #: Test Connection can run its real layers (static at minimum).
+    testable: bool = True
+    #: May be used by the product executor and selected as a default.
+    executable: bool = False
+    #: Evidence of a real vendor/model call exists.  Never inferred from SDK
+    #: support, save success or a test pass.
+    vendor_verified: bool = False
+    #: Auth modes the provider accepts (informational matrix).
+    auth_modes: tuple[str, ...] = ()
+    #: Whether a non-LiteRT provider needs an explicit model id.
+    requires_model: bool = True
+    #: UI/test default model (not guessed by the storage layer).
+    default_model: str | None = None
 
 
 class ImplementationRegistry:
@@ -214,7 +236,16 @@ _CONNECTION_BACKENDS: tuple[ConnectionBackend, ...] = (
         requires_credential=True,
         supports_api_key_field=True,
         verified=False,
-        description="Gemini Developer API; unverified here, not a default executable backend.",
+        configurable=True,
+        testable=True,
+        executable=False,
+        vendor_verified=False,
+        auth_modes=("api_key",),
+        default_model="gemini-3.8-flash",
+        description=(
+            "Gemini Developer API (LocalAgentConfig); configurable/testable, "
+            "not a default executable backend in this build."
+        ),
     ),
     ConnectionBackend(
         backend_id="vertex",
@@ -222,7 +253,16 @@ _CONNECTION_BACKENDS: tuple[ConnectionBackend, ...] = (
         requires_credential=True,
         supports_api_key_field=True,
         verified=False,
-        description="Vertex AI; unverified here, not a default executable backend.",
+        configurable=True,
+        testable=True,
+        executable=False,
+        vendor_verified=False,
+        auth_modes=("api_key", "adc"),
+        default_model="gemini-3.8-flash",
+        description=(
+            "Vertex AI Express (API key) or Project + ADC (VertexEndpoint); "
+            "configurable/testable, not executable here."
+        ),
     ),
     ConnectionBackend(
         backend_id="openai-compat",
@@ -231,7 +271,33 @@ _CONNECTION_BACKENDS: tuple[ConnectionBackend, ...] = (
         supports_api_key_field=False,
         verified=True,
         endpoint_field="base_url",
-        description="OpenAI-compatible endpoint; first-version real backend, probe-verified (DeepSeek).",
+        configurable=True,
+        testable=True,
+        executable=True,
+        vendor_verified=True,
+        auth_modes=("proxy_api_key",),
+        default_model="deepseek-v4-flash",
+        description=(
+            "OpenAI-compatible endpoint; first-version real backend, "
+            "probe-verified (DeepSeek) through the product loopback proxy."
+        ),
+    ),
+    ConnectionBackend(
+        backend_id="litert",
+        sdk_config_kind="litert",
+        requires_credential=False,
+        supports_api_key_field=False,
+        verified=False,
+        configurable=True,
+        testable=True,
+        executable=False,
+        vendor_verified=False,
+        auth_modes=("none",),
+        requires_model=False,
+        description=(
+            "LiteRT local model (LiteRTAgentConfig); static package/file/config "
+            "validation only in this build (no install/download/inference)."
+        ),
     ),
 )
 

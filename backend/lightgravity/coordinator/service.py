@@ -22,7 +22,9 @@ Design guarantees relevant to the acceptance conditions:
 from __future__ import annotations
 
 import asyncio
+import inspect
 import os
+import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -44,6 +46,7 @@ from lightgravity.store import (
     Versioned,
     new_id,
 )
+from lightgravity.store.ids import id_matches_kind
 from lightgravity.store.locking import LockManager
 
 # LG-017: the rework orchestrator's spawner returns this structural outcome.
@@ -206,6 +209,41 @@ class CoordinatorResult:
 #: mention (ASCII + common CJK punctuation).
 _MENTION_FOLLOW_PUNCT = ",.!?;:)]}、。，！？；：）】》。"
 
+#: An exact legal runtime Task id token: ``task_`` followed by the 26-char
+#: Crockford Base32 ULID alphabet used by ``store/ids.py``.  The lookarounds
+#: require a standalone token so a longer/differently-prefixed id is not
+#: truncated into a valid-looking one.  Crockford excludes I, L, O and U.
+_TASK_ID_TOKEN_RE = re.compile(
+    r"(?<![0-9A-Za-z_])task_[0-9A-HJKMNP-TV-Z]{26}(?![0-9A-Za-z_])"
+)
+#: A looser "looks like a task reference" detector so a malformed token (wrong
+#: length/alphabet/prefix) is reported as invalid rather than silently ignored.
+_TASK_REF_LIKE_RE = re.compile(
+    r"(?<![0-9A-Za-z_])task_[0-9A-Za-z]{1,}(?![0-9A-Za-z_])"
+)
+
+
+def _parse_task_id_tokens(content: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Split pasted Task ID tokens into ``(legal, invalid)`` stable tuples.
+
+    ``legal`` holds exact ``task_<ULID>`` tokens in first-seen order; anything
+    task-like that is not an exact legal id is returned in ``invalid``.  This
+    lets the global query distinguish "no id" / "malformed id" / "multiple"
+    without ever guessing an arbitrary target.
+    """
+
+    text = content or ""
+    legal: list[str] = []
+    for match in _TASK_ID_TOKEN_RE.findall(text):
+        if match not in legal:
+            legal.append(match)
+    legal_set = set(legal)
+    invalid: list[str] = []
+    for match in _TASK_REF_LIKE_RE.findall(text):
+        if match not in legal_set and match not in invalid:
+            invalid.append(match)
+    return tuple(legal), tuple(invalid)
+
 
 def _is_bot_mention(content: str, mention: str) -> bool:
     """Whether ``content`` starts with the configured bot mention.
@@ -223,6 +261,48 @@ def _is_bot_mention(content: str, mention: str) -> bool:
     if not rest:
         return True
     return rest[0].isspace() or rest[0] in _MENTION_FOLLOW_PUNCT
+
+
+def _responder_accepts_attachment_context(responder: Callable[..., Any]) -> bool:
+    """Whether a responder can receive the separate attachment-context argument."""
+
+    try:
+        parameters = inspect.signature(responder).parameters.values()
+    except (TypeError, ValueError):  # builtins/partials: keep the safe 2-arg call
+        return False
+    positional = 0
+    for parameter in parameters:
+        if parameter.kind in (
+            inspect.Parameter.VAR_POSITIONAL,
+            inspect.Parameter.VAR_KEYWORD,
+        ):
+            return True
+        if parameter.kind in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        ):
+            positional += 1
+    return positional >= 3
+
+
+def _reject_private_attachment_refs(
+    attachments: Any, *, surface: str
+) -> None:
+    """Private ``attachment_id`` refs are Personal-only (docs/08 §19.3).
+
+    Task/Team messages keep the existing ``{path, media_type?}`` shape.  A
+    private id must never be rewritten into a shared path or task attachment.
+    """
+
+    if not isinstance(attachments, list):
+        return
+    if any(isinstance(item, dict) and "attachment_id" in item for item in attachments):
+        raise AppError(
+            ErrorCode.VALIDATION_FAILED,
+            "attachment_id is only accepted by the Personal conversation; "
+            "Task/Team messages use path references",
+            details={"field": "attachments", "surface": surface},
+        )
 
 
 def _default_responder(content: str, classification: Classification) -> str:
@@ -354,6 +434,12 @@ class Coordinator:
         self._budget: dict[str, int] = dict(budget or {})
         self._classifier = classifier or classify_message
         self._responder = responder or _default_responder
+        #: LG-119: whether the injected Personal responder can receive the
+        #: separate bounded attachment-context argument.  Existing 2-arg test
+        #: lambdas keep working; the real bootstrap dialogue responder accepts it.
+        self._responder_accepts_attachment_context = (
+            _responder_accepts_attachment_context(self._responder)
+        )
         #: LG-054: whether a real direct-answer responder was injected.  When
         #: ``False`` the private Personal channel honestly reports
         #: ``unavailable`` instead of dressing the deterministic fallback up as
@@ -444,6 +530,44 @@ class Coordinator:
         """Whether a real (model-backed) direct-answer responder is wired."""
 
         return self._responder_configured
+
+    def _invoke_responder(
+        self,
+        content: str,
+        classification: Classification,
+        *,
+        attachment_context: str | None = None,
+        attachment_note: str | None = None,
+    ) -> str:
+        """Call the responder with bounded attachment context kept separate.
+
+        The context is never merged into persisted user content.  If the
+        injected responder cannot accept it, the reply explicitly says the
+        attachment text was not delivered instead of silently claiming it was
+        read.
+        """
+
+        if (
+            attachment_context is not None
+            and self._responder_accepts_attachment_context
+        ):
+            reply = cast(Callable[..., str], self._responder)(
+                content, classification, attachment_context
+            )
+        else:
+            reply = self._responder(content, classification)
+            if attachment_context is not None:
+                attachment_note = (
+                    "The configured responder could not receive the attachment "
+                    "text; it was not read by the model."
+                    if not attachment_note
+                    else attachment_note
+                    + " The configured responder could not receive the "
+                    "attachment text."
+                )
+        if attachment_note:
+            reply = f"{attachment_note}\n\n{reply}" if reply else attachment_note
+        return reply
 
     @property
     def review_lifecycle(self) -> Any:
@@ -690,12 +814,19 @@ class Coordinator:
         message: dict[str, Any],
         *,
         request_id: str | None = None,
+        attachment_context: str | None = None,
+        attachment_note: str | None = None,
+        personal_private: bool = False,
     ) -> CoordinatorResult:
         message_id = self._require_message_id(message)
         key = f"message:{message_id}"
         existing = self._idempotency.lookup(key)
         if existing is not None:
             return self._result_from(existing)
+        if not personal_private:
+            _reject_private_attachment_refs(
+                message.get("attachments"), surface="global/team"
+            )
         # LG-043: resolve optional selected sources before any side effect/model
         # call.  A malformed/stale/revoked/cross-Task ref is rejected here.
         selected = self._resolve_selected(None, message)
@@ -729,6 +860,9 @@ class Coordinator:
             task_ref=self._message_task_ref(message),
             request_id=request_id or message_id,
             selected=selected,
+            attachment_context=attachment_context,
+            attachment_note=attachment_note,
+            personal_private=personal_private,
         )
         self._idempotency.record(key, result.to_dict())
         return result
@@ -743,10 +877,18 @@ class Coordinator:
         task_ref: str | None,
         request_id: str,
         selected: SelectedContext | None = None,
+        attachment_context: str | None = None,
+        attachment_note: str | None = None,
+        personal_private: bool = False,
     ) -> CoordinatorResult:
         content = str(message.get("content", ""))
         if classification.next_action in {"direct", "bounded_read"}:
-            reply = self._responder(compose_prompt(content, selected), classification)
+            reply = self._invoke_responder(
+                compose_prompt(content, selected),
+                classification,
+                attachment_context=attachment_context,
+                attachment_note=attachment_note,
+            )
             data: dict[str, Any] = {
                 "intent": classification.intent.value,
                 "bounded_tools": list(classification.bounded_tools),
@@ -772,6 +914,37 @@ class Coordinator:
                 reply=reply,
                 conversation_id=conversation_id,
                 data=data,
+            )
+        if personal_private:
+            reply = (
+                "Messages with private attachments stay in Personal chat and do "
+                "not create a shared Task. Remove the attachment or use the "
+                "shared Team/material flow to create delivery work. Nothing was "
+                "created here."
+            )
+            if attachment_note:
+                reply = f"{attachment_note}\n\n{reply}"
+            self._persist_assistant_reply(
+                conversation_id=conversation_id,
+                task_id=None,
+                in_reply_to=str(message.get("message_id") or request_id),
+                reply=reply,
+                selected=None,
+                extra={
+                    "intent": classification.intent.value,
+                    "private": True,
+                    "creates_task": False,
+                },
+            )
+            return CoordinatorResult(
+                kind="recorded",
+                reply=reply,
+                conversation_id=conversation_id,
+                data={
+                    "intent": classification.intent.value,
+                    "creates_task": False,
+                    "private": True,
+                },
             )
         if classification.next_action == "create_task":
             title = content.strip().splitlines()[0][:120] or "New task"
@@ -803,6 +976,18 @@ class Coordinator:
             created["conversation_id"] = conversation_id
             created["data"] = {"intent": classification.intent.value, "creates_task": True}
             return self._result_from(created)
+        if classification.next_action == "query":
+            # LG-066: a global/Team status query is resolved *only* from an
+            # explicit legal Task ID pasted in the message (no contract field,
+            # no "nearest active Task" guess).  It reads persisted state and
+            # never creates a Task, Run or worker.
+            return self._route_global_status_query(
+                conversation_id=conversation_id,
+                message=message,
+                request_id=request_id,
+                task_ref=task_ref,
+                intent=classification.intent.value,
+            )
         target, candidates = self._resolve_target(task_ref)
         if target is None:
             return CoordinatorResult(
@@ -843,6 +1028,8 @@ class Coordinator:
         *,
         owner: str,
         request_id: str | None = None,
+        attachment_context: str | None = None,
+        attachment_note: str | None = None,
     ) -> CoordinatorResult:
         """Persist and answer one message in a person's private conversation.
 
@@ -858,13 +1045,31 @@ class Coordinator:
         """
 
         if not self._team_mode:
+            # Single-user Personal is the legacy global conversation.  Only a
+            # message carrying private attachment context is forced to stay a
+            # private chat turn; ordinary legacy messages keep the exact
+            # task-creation behaviour.  The private context is still carried on
+            # a separate responder argument, never merged into user content.
+            private_turn = (
+                attachment_context is not None or attachment_note is not None
+            )
             return await self._submit_global_unlocked(
-                conversation_id, message, request_id=request_id
+                conversation_id,
+                message,
+                request_id=request_id,
+                attachment_context=attachment_context,
+                attachment_note=attachment_note,
+                personal_private=private_turn,
             )
         lock = self._conversation_lock(conversation_id)
         async with lock:
             return await self._submit_personal_unlocked(
-                conversation_id, message, owner=owner, request_id=request_id
+                conversation_id,
+                message,
+                owner=owner,
+                request_id=request_id,
+                attachment_context=attachment_context,
+                attachment_note=attachment_note,
             )
 
     async def _submit_personal_unlocked(
@@ -874,6 +1079,8 @@ class Coordinator:
         *,
         owner: str,
         request_id: str | None = None,
+        attachment_context: str | None = None,
+        attachment_note: str | None = None,
     ) -> CoordinatorResult:
         message_id = self._require_message_id(message)
         # Namespace the idempotency key by owner + channel so two users can
@@ -891,6 +1098,8 @@ class Coordinator:
             classification=classification,
             record_seq=record.seq,
             request_id=request_id or message_id,
+            attachment_context=attachment_context,
+            attachment_note=attachment_note,
         )
         self._idempotency.record(key, result.to_dict())
         return result
@@ -904,6 +1113,8 @@ class Coordinator:
         classification: Classification,
         record_seq: int,
         request_id: str,
+        attachment_context: str | None = None,
+        attachment_note: str | None = None,
     ) -> CoordinatorResult:
         """Answer a private message without any shared side effect (LG-054)."""
 
@@ -935,14 +1146,27 @@ class Coordinator:
                         "unavailable": True,
                     },
                 )
-            reply = self._responder(content, classification)
+            reply = self._invoke_responder(
+                content,
+                classification,
+                attachment_context=attachment_context,
+                attachment_note=attachment_note,
+            )
+            extra: dict[str, Any] = {
+                "intent": classification.intent.value,
+                "private": True,
+            }
+            if attachment_context is not None:
+                extra["attachment_context_included"] = True
+            if attachment_note:
+                extra["attachment_context_note"] = True
             self._persist_assistant_reply(
                 conversation_id=conversation_id,
                 task_id=None,
                 in_reply_to=in_reply_to,
                 reply=reply,
                 selected=None,
-                extra={"intent": classification.intent.value, "private": True},
+                extra=extra,
             )
             return CoordinatorResult(
                 kind=classification.next_action,
@@ -953,6 +1177,7 @@ class Coordinator:
                     "bounded_tools": list(classification.bounded_tools),
                     "creates_task": False,
                     "private": True,
+                    "attachment_context_included": attachment_context is not None,
                 },
             )
         # Chat-only: never create a shared Task/Run, never invoke the team task
@@ -962,6 +1187,8 @@ class Coordinator:
             "delivery, upload materials, or use shared sources, switch to Team. "
             "Nothing was created here."
         )
+        if attachment_note:
+            reply = f"{attachment_note}\n\n{reply}"
         self._persist_assistant_reply(
             conversation_id=conversation_id,
             task_id=None,
@@ -999,6 +1226,9 @@ class Coordinator:
         existing = self._idempotency.lookup(key)
         if existing is not None:
             return self._result_from(existing)
+        _reject_private_attachment_refs(
+            message.get("attachments"), surface="task"
+        )
         # LG-043: resolve optional selected sources before persisting/dispatching.
         # Classification below still uses only the original user content.
         selected = self._resolve_selected(task_id, message)
@@ -1356,6 +1586,172 @@ class Coordinator:
             return f"Task {task_id} 的 {action} 尚未确认停止，保持取消/暂停中间态。"
         return f"Task {task_id} 的 {action} 未生效：{reason or '当前阶段不允许'}。"
 
+    # ------------------------------------------------- global status query
+    def _route_global_status_query(
+        self,
+        *,
+        conversation_id: str,
+        message: dict[str, Any],
+        request_id: str,
+        task_ref: str | None,
+        intent: str,
+    ) -> CoordinatorResult:
+        """Resolve one global/Team status query from an explicit Task ID.
+
+        LG-066: the global route has no ``task_ref`` request field, so the Task
+        is identified only by an exact legal ``task_<ULID>`` token pasted in
+        the message content (or an internally supplied valid ``task_ref``).
+        Missing/malformed/unresolvable/ambiguous targets return an honest
+        ``clarify`` instead of guessing the single active Task.  A successful
+        query returns the persisted snapshot and never creates a Task/Run, so
+        it stays immediate while a worker is busy.  The reply is written to
+        the shared global conversation so every logged-in member can see it.
+        """
+
+        content = str(message.get("content", ""))
+        in_reply_to = str(message.get("message_id") or request_id)
+
+        explicit = task_ref if task_ref and id_matches_kind("task", task_ref) else None
+        if explicit is not None:
+            legal: tuple[str, ...] = (explicit,)
+            invalid: tuple[str, ...] = ()
+        else:
+            legal, invalid = _parse_task_id_tokens(content)
+
+        if invalid:
+            return self._persist_global_query_clarify(
+                conversation_id=conversation_id,
+                in_reply_to=in_reply_to,
+                reply=(
+                    "查询中的 "
+                    + "、".join(invalid)
+                    + " 不是合法的 Task ID（应为 task_ 加 26 位 Crockford Base32）。"
+                    "请核对后重试；未创建或启动任何任务。"
+                ),
+                data={"intent": intent, "invalid_task_ids": list(invalid)},
+            )
+        if len(legal) > 1:
+            return self._persist_global_query_clarify(
+                conversation_id=conversation_id,
+                in_reply_to=in_reply_to,
+                reply=(
+                    "查询中出现多个不同的 Task ID（"
+                    + "、".join(legal)
+                    + "），无法确定唯一目标。请只发送要查询的那一个 Task ID；"
+                    "未创建或启动任何任务。"
+                ),
+                data={"intent": intent, "ambiguous": True, "task_ids": list(legal)},
+            )
+        if not legal:
+            return self._persist_global_query_clarify(
+                conversation_id=conversation_id,
+                in_reply_to=in_reply_to,
+                reply=(
+                    "全局查询需要明确的 Task ID（task_…）。请粘贴要查询的那个 Task ID；"
+                    "未创建或启动任何任务。"
+                ),
+                data={"intent": intent, "missing_task_id": True},
+            )
+
+        task_id = legal[0]
+        try:
+            snapshot = self._global_status_snapshot(task_id)
+        except EntityNotFound:
+            return self._persist_global_query_clarify(
+                conversation_id=conversation_id,
+                in_reply_to=in_reply_to,
+                reply=(
+                    f"未找到共享 Task {task_id}。请确认该 ID 属于当前共享工作区；"
+                    "未创建或启动任何任务。"
+                ),
+                data={"intent": intent, "unknown_task_id": task_id},
+            )
+
+        reply = self._global_status_reply(snapshot)
+        self._persist_assistant_reply(
+            conversation_id=conversation_id,
+            task_id=None,
+            in_reply_to=in_reply_to,
+            reply=reply,
+            selected=None,
+            extra={"intent": intent, "task_id": task_id, "query": True},
+        )
+        return CoordinatorResult(
+            kind="query",
+            reply=reply,
+            task_id=task_id,
+            conversation_id=conversation_id,
+            data=snapshot,
+        )
+
+    def _persist_global_query_clarify(
+        self,
+        *,
+        conversation_id: str,
+        in_reply_to: str,
+        reply: str,
+        data: dict[str, Any],
+    ) -> CoordinatorResult:
+        """Persist an honest query clarification and never create work."""
+
+        self._persist_assistant_reply(
+            conversation_id=conversation_id,
+            task_id=None,
+            in_reply_to=in_reply_to,
+            reply=reply,
+            selected=None,
+            extra={
+                "intent": str(data.get("intent", "status_query")),
+                "query_clarify": True,
+            },
+        )
+        return CoordinatorResult(
+            kind="clarify",
+            reply=reply,
+            conversation_id=conversation_id,
+            data=data,
+        )
+
+    def _global_status_snapshot(self, task_id: str) -> dict[str, Any]:
+        """Persisted status plus artifact facts for a global query reply.
+
+        ``status()`` supplies phase/queue/active Run; the Task's persisted
+        acceptance record supplies the current candidate and canonical evidence
+        refs.  This reads the store only -- no worker, Run or model call.
+        """
+
+        snapshot = self.status(task_id)
+        task = self._store.read("task", task_id)
+        acceptance = task.entity.get("acceptance")
+        acceptance = acceptance if isinstance(acceptance, dict) else {}
+        refs = acceptance.get("evidence_refs")
+        snapshot["acceptance_status"] = acceptance.get("status")
+        snapshot["candidate_ref"] = acceptance.get("candidate_ref")
+        snapshot["artifact_refs"] = [
+            ref for ref in (refs or []) if isinstance(ref, str)
+        ]
+        snapshot["creates_task"] = False
+        snapshot["creates_run"] = False
+        return snapshot
+
+    @staticmethod
+    def _global_status_reply(snapshot: Mapping[str, Any]) -> str:
+        queue = snapshot.get("queue")
+        queue = queue if isinstance(queue, Mapping) else {}
+        parts = [
+            f"Task {snapshot['task_id']}: status={snapshot['status']} "
+            f"phase={snapshot['phase']} queue={queue.get('state')} "
+            f"run={snapshot['run_state']}."
+        ]
+        candidate = snapshot.get("candidate_ref")
+        if isinstance(candidate, str) and candidate:
+            parts.append(f"candidate={candidate}")
+        refs = snapshot.get("artifact_refs")
+        if isinstance(refs, list) and refs:
+            parts.append(f"artifacts={len(refs)}")
+        parts.append("只读查询，未创建或启动 Task/Run。")
+        return " ".join(parts)
+
     # ---------------------------------------------------------------- status
     def status(self, task_id: str) -> dict[str, Any]:
         """Immediate snapshot from persisted state (never waits for a Run)."""
@@ -1586,6 +1982,41 @@ class Coordinator:
             return str(queue.get("state", "not_queued"))
         return "not_queued"
 
+    def _historical_run(self, task_id: str) -> tuple[str, dict[str, Any]] | None:
+        """Recover a legacy missing last_run from attributed creation events.
+
+        Task events locate candidates; the Run entity remains authoritative for
+        ownership, state and attempt. Never infer history from directory names,
+        another Task's events, or an event's claimed attempt counter.
+        """
+        after_seq = 0
+        latest: tuple[str, dict[str, Any]] | None = None
+        while True:
+            events = self._store.read_events(task_id, after_seq=after_seq, limit=500)
+            if not events:
+                return latest
+            for record in events:
+                event = record.event
+                payload = event.get("payload")
+                if record.type != EventType.RUN_CREATED or event.get("task_ref") != task_id:
+                    continue
+                run_id = event.get("run_ref")
+                if (
+                    not isinstance(run_id, str) or not run_id
+                    or not isinstance(payload, dict) or payload.get("run_id") != run_id
+                ):
+                    continue
+                try:
+                    run = self._store.read("run", run_id).entity
+                except EntityNotFound:
+                    continue
+                if run.get("task_ref") == task_id:
+                    latest = (run_id, run)
+            next_seq = events[-1].seq
+            if next_seq <= after_seq:
+                return latest
+            after_seq = next_seq
+
     def _open_run(self, task: Versioned, *, rework: bool = False) -> str:
         # A Task that a restart scan (or an operator) put into recovery_required
         # must not have a Run opened as a silent replay: its side effects are
@@ -1622,6 +2053,19 @@ class Coordinator:
                     source_run = None
                 else:
                     active = last
+
+        if source_run is None:
+            historical = self._historical_run(task.entity_id)
+            if historical is not None:
+                active, source_run = historical
+        if source_run is not None:
+            if source_run.get("task_ref") != task.entity_id:
+                raise AppError(ErrorCode.ILLEGAL_TRANSITION, "previous Run belongs to another Task")
+            if str(source_run.get("state")) not in TERMINAL_RUN_STATES | {"paused"}:
+                raise AppError(
+                    ErrorCode.ILLEGAL_TRANSITION,
+                    "Task history contains a non-terminal Run; not opening a second writer",
+                )
 
         # Decide the native SDK session continuation from the Task's previous
         # Run *before* opening the new one (docs/02, docs/04 §5, docs/08 §8):
@@ -2107,7 +2551,9 @@ class Coordinator:
             # not a silent replay Run); ``_open_run`` still refuses to reopen it.
             if run_state == "recovery_required":
                 self._writer.write_run(run_id, {"cleanup": {"status": "done"}})
-            self._writer.set_active_run(task_id, None)
+            # Keep genuine attempt/session lineage after clearing the live
+            # pointer; Retry must advance this Task's delivery history.
+            self._writer.write_task(task_id, {"last_run": run_id, "active_run": None})
         if outcome.failure_message:
             self._writer.emit(
                 task_id,

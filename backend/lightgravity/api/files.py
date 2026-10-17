@@ -159,6 +159,10 @@ def _is_protected(ctx: ApiContext, target: Path) -> bool:
         ctx.data_dir / "conversations",
         # Personal replies also appear in the coordinator idempotency ledger.
         ctx.data_dir / "coordinator",
+        # LG-119: private Personal attachments are owner-authorized only and
+        # must never become a shared Files/Sources/search surface, even when
+        # the workspace root overlaps the data root or an admin asks.
+        ctx.data_dir / "private-attachments",
     ]
     if ctx.settings.team_mode:
         protected.append(ctx.settings.team_root)

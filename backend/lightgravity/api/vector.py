@@ -56,15 +56,20 @@ def _service(request: Request, ctx: ApiContext) -> Any:
     from ..sources.vectors import build_vector_service
 
     # A test/integration seam may inject an explicit backend (kept opaque to the
-    # app factory); production builds the backend from environment config only.
+    # app factory).  Production resolves the independent LG-117 Embedding
+    # settings (saved block first, environment fallback) instead of reading only
+    # ``LIGHTGRAVITY_VECTOR_*`` directly.
     injected = getattr(request.app.state, "vector_test_backend", None)
+    backend = injected
+    if backend is None:
+        backend = ctx.connections.embedding.backend()
     source_service = getattr(request.app.state, "source_service", None)
     store = getattr(source_service, "store", None)
     service = build_vector_service(
         data_dir=ctx.data_dir,
         task_store=ctx.store,
         events=ctx.store,
-        backend=injected,
+        backend=backend,
     )
     if store is not None:
         # Reuse the exact store the sources/search services read.
@@ -87,18 +92,33 @@ def build_vector_router() -> APIRouter:
         stats: dict[str, Any] = {}
         if service.index.exists() and service.index.readable():
             stats = service.index.stats()
+        embedding_view = ctx.connections.get_settings().get("embedding") or {}
+        cache_view = embedding_view.get("cache") or {}
+        resolution = ctx.connections.embedding.resolve()
         return {
             "enabled": service.enabled,
             "backend": {
                 "configured": service.enabled,
                 "model": service.backend.model_id if service.enabled else None,
+                "source": embedding_view.get("source"),
             },
             "cache": {
                 "exists": service.index.exists(),
                 "readable": service.index.readable() if service.index.exists() else False,
                 **stats,
+                "compatible": cache_view.get("compatible"),
+                "reason": cache_view.get("reason"),
+                "vector_model": cache_view.get("vector_model"),
             },
-            "reason": None if service.enabled else "vector_backend_not_configured",
+            # LG-117: an incompatible model/cache is a rebuild prompt, never a
+            # silent mix of old and new vectors.  Lexical fallback remains.
+            "model_mismatch_rebuild_required": cache_view.get("reason")
+            == "model_mismatch_rebuild_required",
+            "reason": (
+                None
+                if service.enabled
+                else resolution.unavailable_reason or "vector_backend_not_configured"
+            ),
         }
 
     @router.get("/vector/search")

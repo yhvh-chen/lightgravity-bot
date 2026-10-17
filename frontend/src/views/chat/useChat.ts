@@ -32,6 +32,8 @@ import {
 import type { Attachment } from '../../api/types'
 
 export interface ChatSendOutcome {
+  /** Task referenced by the response; may already exist (query/control/etc.). */
+  taskRef: string | null
   /** Newly created Task id, when the message started one. */
   createdTaskRef: string | null
   reply: string | null
@@ -210,7 +212,7 @@ export function useChat(
     ): Promise<ChatSendOutcome> => {
       const trimmed = content.trim()
       if (!trimmed) {
-        return { createdTaskRef: null, reply: null, resolvedSources: null, kind: null }
+        return { taskRef: null, createdTaskRef: null, reply: null, resolvedSources: null, kind: null }
       }
       const requestGeneration = generation.current
       const messageId = pendingIds.current.get(scopeKey) ?? newRuntimeId('msg')
@@ -230,7 +232,7 @@ export function useChat(
           },
         )
         pendingIds.current.delete(scopeKey)
-        const createdTaskRef =
+        const returnedTaskRef =
           typeof result.task_id === 'string' && result.task_id
             ? result.task_id
             : typeof result.data?.task_id === 'string'
@@ -238,7 +240,9 @@ export function useChat(
               : null
         if (requestGeneration === generation.current) setReloadKey((key) => key + 1)
         return {
-          createdTaskRef,
+          taskRef: returnedTaskRef,
+          // A Task reference identifies the response target, not a creation.
+          createdTaskRef: result.kind === 'create_task' ? returnedTaskRef : null,
           reply: result.reply ?? null,
           resolvedSources: resolvedSourcesFromResult(result),
           kind: result.kind ?? null,

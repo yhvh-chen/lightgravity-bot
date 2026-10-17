@@ -80,7 +80,13 @@ from .registry import (
     ToolRegistration,
     default_registry,
 )
-from .sdk_config import SdkConfigResult, build_sdk_config, sdk_available
+from .sdk_config import (
+    ConnectionSdkSpec,
+    SdkConfigResult,
+    build_connection_sdk_config,
+    build_sdk_config,
+    sdk_available,
+)
 
 __all__ = [
     # capabilities
@@ -153,7 +159,9 @@ __all__ = [
     "ToolRegistration",
     "default_registry",
     # sdk config
+    "ConnectionSdkSpec",
     "SdkConfigResult",
+    "build_connection_sdk_config",
     "build_sdk_config",
     "sdk_available",
 ]
