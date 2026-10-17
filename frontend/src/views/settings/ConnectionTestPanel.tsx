@@ -43,8 +43,10 @@ export interface ConnectionTestPanelProps {
  *
  * Config, credential, SDK capability *declaration*, real network/model and the
  * optional tool/structured probes are shown separately: a network success is
- * never presented as "SDK capability verified". Stale results stay visible but
- * are clearly marked.
+ * never presented as "SDK capability verified", and saving is never presented
+ * as a passing test. The button is an explicit user action; this component
+ * never triggers a request on mount, selection or save. Raw layer diagnostics
+ * live in a collapsed details block so the primary form stays small.
  */
 export function ConnectionTestPanel({
   result,
@@ -56,9 +58,10 @@ export function ConnectionTestPanel({
   return (
     <div className="lg-test">
       <p className="lg-field__hint">
-        A network test makes one minimal model request and may consume a small
-        amount of model credit. The layers are reported separately; saving is not
-        the same as passing.
+        No request runs on page load, provider selection or save. A test is one
+        explicit request and may consume a small amount of model credit; a
+        budget or capability policy can still decline it honestly. The layers
+        are reported separately; saving is not the same as passing.
       </p>
       <button
         type="button"
@@ -92,26 +95,33 @@ export function ConnectionTestPanel({
               <dt>finished</dt>
               <dd>{result.finished_at}</dd>
             </div>
-            <div>
-              <dt>connection revision</dt>
-              <dd>{result.connection_revision}</dd>
-            </div>
-            <div>
-              <dt>credential version</dt>
-              <dd>{result.credential_version ?? '—'}</dd>
-            </div>
           </dl>
-          <ul className="lg-test__layers">
-            {result.layers.map((layer: TestLayer) => (
-              <li key={layer.name} className="lg-test__layer">
-                <StatusBadge kind={layerKind(layer.status)}>
-                  {layer.status}
-                </StatusBadge>
-                <span className="lg-test__layer-name">{layer.name}</span>
-                <span className="lg-card__path">{layer.detail}</span>
-              </li>
-            ))}
-          </ul>
+          <details className="lg-disclosure">
+            <summary className="lg-disclosure__summary">Layer details</summary>
+            <div className="lg-disclosure__body">
+              <dl className="lg-test__meta">
+                <div>
+                  <dt>connection revision</dt>
+                  <dd>{result.connection_revision}</dd>
+                </div>
+                <div>
+                  <dt>credential version</dt>
+                  <dd>{result.credential_version ?? '—'}</dd>
+                </div>
+              </dl>
+              <ul className="lg-test__layers">
+                {result.layers.map((layer: TestLayer) => (
+                  <li key={layer.name} className="lg-test__layer">
+                    <StatusBadge kind={layerKind(layer.status)}>
+                      {layer.status}
+                    </StatusBadge>
+                    <span className="lg-test__layer-name">{layer.name}</span>
+                    <span className="lg-card__path">{layer.detail}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
           {stale ? (
             <p className="lg-notice">
               This result was recorded for connection revision{' '}

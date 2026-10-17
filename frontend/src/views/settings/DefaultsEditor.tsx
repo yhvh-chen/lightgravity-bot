@@ -9,7 +9,7 @@ import type {
 import { ErrorState } from '../../components/ErrorState'
 import { StatusBadge } from '../../components/StatusBadge'
 import { toApiError } from './apiError'
-import { isExecutableBackend } from './backends'
+import { isDefaultEligible } from './backends'
 
 export interface DefaultsEditorProps {
   api: SettingsApi
@@ -64,9 +64,7 @@ export function DefaultsEditor({
   const [conflict, setConflict] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
 
-  const options = connections.filter(
-    (connection) => connection.enabled && isExecutableBackend(connection.backend),
-  )
+  const options = connections.filter(isDefaultEligible)
   const knownRef = (ref: string) => options.some((option) => option.id === ref)
 
   async function handleSubmit(event: FormEvent): Promise<void> {

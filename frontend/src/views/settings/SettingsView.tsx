@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { getRuntimeToken } from '../../api/auth'
 import { useAuth } from '../../app/AuthProvider'
 import {
   createSettingsApi,
@@ -14,7 +13,7 @@ import { ErrorState } from '../../components/ErrorState'
 import { StatusBadge } from '../../components/StatusBadge'
 import './settings.css'
 import { toApiError } from './apiError'
-import { backendLabel, isExecutableBackend } from './backends'
+import { presetForConnection } from './backends'
 import { AccountsPanel } from './AccountsPanel'
 import { ConnectionEditor } from './ConnectionEditor'
 import { DefaultsEditor } from './DefaultsEditor'
@@ -46,7 +45,7 @@ export interface SettingsViewProps {
  * reaches this panel, so the Connections/settings requests are never issued.
  */
 function ModelsPanel(props: SettingsViewProps = {}) {
-  const { token, api: injectedApi, connectionId, taskRef } = props
+  const { token, api: injectedApi, connectionId } = props
   const defaultApi = useMemo(() => {
     if (token === undefined) return createSettingsApi()
     const fixed = token
@@ -224,37 +223,21 @@ function ModelsPanel(props: SettingsViewProps = {}) {
 
   const selected =
     connections?.find((connection) => connection.id === selectedId) ?? null
-  const tokenMissing =
-    injectedApi === undefined &&
-    (token === undefined ? getRuntimeToken() === null : !token)
 
   return (
     <div className="lg-settings-view">
       <DetailHeader
         title="Settings"
         badges={<StatusBadge kind="accent">Models &amp; Providers</StatusBadge>}
-        meta={[
-          { label: 'section', value: 'Models & Providers' },
-          { label: 'task', value: taskRef ?? 'global' },
-          { label: 'source', value: 'GET /api/v1/settings' },
-        ]}
       />
-
-      {tokenMissing ? (
-        <p className="lg-notice" role="note">
-          Local writes are protected. The first-startup token handshake (LG-020)
-          is not implemented yet, so saving, testing or removing may return
-          <span className="lg-card__path"> unauthorized</span> until a runtime
-          token is injected. Reading the connection list still works.
-        </p>
-      ) : null}
 
       <section className="lg-settings-view__intro" aria-label="Connections overview">
         <h3 className="lg-section-card__title">Connections</h3>
         <p className="lg-field__hint">
-          The single Connection authority linked from Team and resource references.
-          Only the verified OpenAI-compatible (DeepSeek) backend can be saved as
-          executable; other backends are status-only.
+          Choose a provider, enter the authentication that provider actually
+          needs, save, then test. A saved or tested connection is not the same as
+          Task execution or vendor verification; those capabilities are shown
+          only when the backend declares them.
         </p>
       </section>
 
@@ -312,6 +295,7 @@ function ModelsPanel(props: SettingsViewProps = {}) {
             <ul className="lg-settings__items">
               {(connections ?? []).map((connection) => {
                 const isSelected = !creating && connection.id === selectedId
+                const preset = presetForConnection(connection)
                 return (
                   <li key={connection.id}>
                     <button
@@ -324,17 +308,7 @@ function ModelsPanel(props: SettingsViewProps = {}) {
                         {connection.title}
                       </span>
                       <span className="lg-settings__item-badges">
-                        <StatusBadge
-                          kind={
-                            isExecutableBackend(connection.backend)
-                              ? 'success'
-                              : 'warning'
-                          }
-                        >
-                          {isExecutableBackend(connection.backend)
-                            ? backendLabel(connection.backend)
-                            : `${connection.backend} · planned`}
-                        </StatusBadge>
+                        <StatusBadge kind="neutral">{preset.label}</StatusBadge>
                         {!connection.enabled ? (
                           <StatusBadge kind="neutral">disabled</StatusBadge>
                         ) : null}
@@ -345,9 +319,9 @@ function ModelsPanel(props: SettingsViewProps = {}) {
                         ) : null}
                         {connection.credential.configured ? (
                           <StatusBadge kind="success">credential configured</StatusBadge>
-                        ) : (
+                        ) : preset.requiresApiKey ? (
                           <StatusBadge kind="warning">no credential</StatusBadge>
-                        )}
+                        ) : null}
                       </span>
                       <span className="lg-card__path">{connection.id}</span>
                     </button>
@@ -378,13 +352,20 @@ function ModelsPanel(props: SettingsViewProps = {}) {
       )}
 
       {settings ? (
-        <DefaultsEditor
-          api={api}
-          settings={settings}
-          connections={connections ?? []}
-          onSaved={(updated) => setSettings(updated)}
-          onReload={reloadSettings}
-        />
+        <details className="lg-disclosure" aria-label="Advanced defaults">
+          <summary className="lg-disclosure__summary">
+            Advanced / Defaults
+          </summary>
+          <div className="lg-disclosure__body">
+            <DefaultsEditor
+              api={api}
+              settings={settings}
+              connections={connections ?? []}
+              onSaved={(updated) => setSettings(updated)}
+              onReload={reloadSettings}
+            />
+          </div>
+        </details>
       ) : null}
     </div>
   )

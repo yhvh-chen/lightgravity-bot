@@ -406,3 +406,38 @@
     padding: var(--lg-space-1) var(--lg-space-2);
   }
 }
+
+/* ----------------------------------------------------- LG-104 advanced details */
+
+.lg-disclosure {
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+  background: var(--lg-color-panel);
+  min-width: 0;
+}
+
+.lg-disclosure__summary {
+  cursor: pointer;
+  padding: var(--lg-space-3) var(--lg-space-4);
+  font-size: var(--lg-font-size-sm);
+  font-weight: 600;
+  color: var(--lg-color-text-muted);
+  list-style-position: inside;
+}
+
+.lg-disclosure__summary:hover {
+  color: var(--lg-color-text);
+}
+
+.lg-disclosure[open] > .lg-disclosure__summary {
+  border-bottom: 1px solid var(--lg-color-border);
+  color: var(--lg-color-text);
+}
+
+.lg-disclosure__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-3);
+  padding: var(--lg-space-4);
+  min-width: 0;
+}

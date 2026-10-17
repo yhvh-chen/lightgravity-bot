@@ -1,0 +1,13 @@
+
+> lightgravity-frontend@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 109 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.40 kB │ gzip:  0.27 kB
+dist/assets/index-CqpfnNLN.css   45.26 kB │ gzip:  6.82 kB
+dist/assets/index-CjZC7vXc.js   326.26 kB │ gzip: 95.71 kB
+✓ built in 1.71s

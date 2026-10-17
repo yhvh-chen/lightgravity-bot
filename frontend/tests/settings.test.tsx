@@ -228,14 +228,28 @@ afterEach(() => {
   cleanup()
 })
 
+function openDetails(summaryText: string): void {
+  const summary = screen.getByText(summaryText, { selector: 'summary' })
+  const details = summary.closest('details')
+  if (details) details.setAttribute('open', '')
+}
+
+function openAdvanced(): void {
+  openDetails('Advanced')
+}
+
+function openAdvancedDefaults(): void {
+  openDetails('Advanced / Defaults')
+}
+
 describe('LG-026 Settings: load and list', () => {
   it('loads one Connection authority from the settings endpoints', async () => {
     const { api, state } = makeFakeApi()
     render(<SettingsView api={api} />)
     expect(await screen.findByRole('button', { name: /DeepSeek \(primary\)/ })).toBeInTheDocument()
     expect(state.connections).toHaveLength(1)
-    // Same list drives the defaults selector (no second provider list).
-    expect(screen.getByLabelText('Default coordinator connection')).toBeInTheDocument()
+    // Defaults live in the separate collapsed Advanced section.
+    expect(screen.getByText('Advanced / Defaults', { selector: 'summary' })).toBeInTheDocument()
   })
 
   it('selects the Connection record located by id from Resources', async () => {
@@ -252,8 +266,9 @@ describe('LG-026 Settings: load and list', () => {
       'aria-pressed',
       'false',
     )
-    // The Task scope is preserved while Settings is open.
-    expect(screen.getByText('task_01TASK')).toBeInTheDocument()
+    // The debug header (Task scope / source GET) is gone from the primary UI.
+    expect(screen.queryByText('task_01TASK')).toBeNull()
+    expect(screen.queryByText('GET /api/v1/settings')).toBeNull()
   })
 
   it('shows an explicit missing target instead of silently selecting another connection', async () => {
@@ -286,14 +301,18 @@ describe('LG-026 Settings: load and list', () => {
       ],
     })
     const view = render(<SettingsView api={api} connectionId="deepseek-primary" />)
-    expect(await screen.findByLabelText('Title')).toHaveValue('DeepSeek (primary)')
+    await screen.findByRole('heading', { name: 'DeepSeek (primary)' })
+    openAdvanced()
+    expect(screen.getByLabelText(/Title/)).toHaveValue('DeepSeek (primary)')
 
-    fireEvent.change(screen.getByLabelText('Title'), {
+    fireEvent.change(screen.getByLabelText(/Title/), {
       target: { value: 'unsaved primary edit' },
     })
     view.rerender(<SettingsView api={api} connectionId="deepseek-backup" />)
 
-    await waitFor(() => expect(screen.getByLabelText('Title')).toHaveValue('DeepSeek (backup)'))
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'DeepSeek (backup)' })).toBeInTheDocument(),
+    )
     expect(screen.getByRole('button', { name: /DeepSeek \(backup\)/ })).toHaveAttribute(
       'aria-pressed',
       'true',
@@ -327,15 +346,16 @@ describe('LG-026 Settings: load and list', () => {
     )
 
     render(<SettingsView api={api} connectionId="deepseek-primary" />)
-    expect(await screen.findByLabelText('Title')).toHaveValue('DeepSeek (primary)')
-    fireEvent.change(screen.getByLabelText('Title'), {
+    await screen.findByRole('heading', { name: 'DeepSeek (primary)' })
+    openAdvanced()
+    fireEvent.change(screen.getByLabelText(/Title/), {
       target: { value: 'primary edit' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
     await waitFor(() => expect(release).not.toBeNull())
 
     fireEvent.click(screen.getByRole('button', { name: /DeepSeek \(backup\)/ }))
-    expect(screen.getByLabelText('Title')).toHaveValue('DeepSeek (backup)')
+    expect(screen.getByRole('heading', { name: 'DeepSeek (backup)' })).toBeInTheDocument()
 
     await act(async () => {
       release?.()
@@ -347,17 +367,19 @@ describe('LG-026 Settings: load and list', () => {
         'true',
       ),
     )
-    expect(screen.getByLabelText('Title')).toHaveValue('DeepSeek (backup)')
-    expect(screen.queryByDisplayValue('primary saved later')).toBeNull()
+    expect(screen.getByRole('heading', { name: 'DeepSeek (backup)' })).toBeInTheDocument()
+    expect(screen.queryByText('primary saved later')).toBeNull()
   })
 
-  it('marks a planned backend as unavailable and disables executable actions', async () => {
+  it('infers a real provider preset for an old record and drops stale warnings', async () => {
     const { api } = makeFakeApi({
       connections: [
         makeConnection({
           id: 'gemini-one',
-          title: 'Gemini (planned)',
+          title: 'Gemini API',
           backend: 'gemini',
+          model: 'gemini-3.8-flash',
+          base_url: null,
           credential_ref: null,
           credential: { ref: '', configured: false, source: null, version: null },
           references: { connection_id: 'gemini-one', default_roles: [], agent_refs: [] },
@@ -366,10 +388,12 @@ describe('LG-026 Settings: load and list', () => {
       settings: makeSettings({ default_coordinator_connection_ref: null, default_worker_connection_ref: null }),
     })
     render(<SettingsView api={api} />)
-    expect(await screen.findByText(/gemini · planned/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Save changes' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Test connection' })).toBeDisabled()
-    expect(screen.getByText(/not a verified executable backend/)).toBeInTheDocument()
+    expect(await screen.findByRole('combobox', { name: 'Provider' })).toHaveValue('gemini-api')
+    expect(screen.getByRole('button', { name: 'Save changes' })).toBeEnabled()
+    // Gemini is configurable through this form, but execution is not claimed.
+    expect(screen.queryByText(/planned \/ unavailable/)).toBeNull()
+    expect(screen.queryByText(/LG-020/)).toBeNull()
+    expect(screen.queryByText(/first-startup token handshake/)).toBeNull()
   })
 })
 
@@ -378,11 +402,12 @@ describe('LG-026 Settings: save and credentials', () => {
     const { api, state } = makeFakeApi()
     render(<SettingsView api={api} />)
     await screen.findByRole('button', { name: /DeepSeek \(primary\)/ })
+    openAdvanced()
 
-    fireEvent.change(screen.getByLabelText('Title'), {
+    fireEvent.change(screen.getByLabelText(/Title/), {
       target: { value: 'DeepSeek edited' },
     })
-    const secret = screen.getByLabelText(/New API key/)
+    const secret = screen.getByLabelText(/API key/)
     fireEvent.change(secret, { target: { value: 'sk-test-secret-value' } })
     expect(secret).toHaveValue('sk-test-secret-value')
 
@@ -428,7 +453,8 @@ describe('LG-026 Settings: save and credentials', () => {
 
     render(<SettingsView api={api} />)
     await screen.findByRole('button', { name: /DeepSeek \(primary\)/ })
-    fireEvent.change(screen.getByLabelText('Title'), {
+    openAdvanced()
+    fireEvent.change(screen.getByLabelText(/Title/), {
       target: { value: 'Edited during conflict' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
@@ -484,6 +510,8 @@ describe('LG-026 Settings: defaults', () => {
   it('saves coordinator/worker defaults with the settings revision', async () => {
     const { api, state } = makeFakeApi()
     render(<SettingsView api={api} />)
+    await screen.findByText('Advanced / Defaults', { selector: 'summary' })
+    openAdvancedDefaults()
     await screen.findByText('Default models')
 
     fireEvent.change(screen.getByLabelText('Default worker connection'), {
@@ -505,6 +533,8 @@ describe('LG-026 Settings: defaults', () => {
       ],
     })
     render(<SettingsView api={api} />)
+    await screen.findByText('Advanced / Defaults', { selector: 'summary' })
+    openAdvancedDefaults()
     await screen.findByText('Default models')
 
     fireEvent.change(screen.getByLabelText('Default reviewer connection'), {
@@ -523,6 +553,8 @@ describe('LG-026 Settings: defaults', () => {
       settings: makeSettings({ default_reviewer_connection_ref: 'deepseek-primary' }),
     })
     render(<SettingsView api={api} />)
+    await screen.findByText('Advanced / Defaults', { selector: 'summary' })
+    openAdvancedDefaults()
     await screen.findByText('Default models')
 
     fireEvent.change(screen.getByLabelText('Default reviewer connection'), {
@@ -539,30 +571,29 @@ describe('LG-026 Settings: defaults', () => {
 })
 
 describe('LG-026 Settings: create', () => {
-  it('creates a connection from the typed form when the list is empty', async () => {
+  it('creates a connection with an auto-generated id and hidden credential ref', async () => {
     const { api, state } = makeFakeApi({ connections: [] })
     render(<SettingsView api={api} />)
 
     fireEvent.click(await screen.findByRole('button', { name: 'New connection' }))
-    fireEvent.change(screen.getByLabelText(/Connection id/), {
-      target: { value: 'deepseek-secondary' },
-    })
-    fireEvent.change(screen.getByLabelText('Title'), {
-      target: { value: 'DeepSeek secondary' },
-    })
-    fireEvent.change(screen.getByLabelText(/Credential reference/), {
-      target: { value: 'deepseek-secondary-key' },
-    })
-    fireEvent.change(screen.getByLabelText(/New API key/), {
+    expect(screen.getByRole('combobox', { name: 'Provider' })).toHaveValue('deepseek')
+    expect(screen.getByRole('button', { name: 'Test connection' })).toBeDisabled()
+    openAdvanced()
+    const generatedId = (screen.getByLabelText(/Connection ID/) as HTMLInputElement).value
+    expect(generatedId).toMatch(/^deepseek-[a-z0-9]+$/)
+
+    fireEvent.change(screen.getByLabelText(/API key/), {
       target: { value: 'sk-new-key' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Create connection' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Save connection' }))
 
     await waitFor(() => expect(state.createConnectionCalls).toHaveLength(1))
     expect(state.createConnectionCalls[0]).toMatchObject({
-      id: 'deepseek-secondary',
+      id: generatedId,
       backend: 'openai-compat',
-      credential_ref: 'deepseek-secondary-key',
+      model: 'deepseek-v4-flash',
+      base_url: 'https://api.deepseek.com/v1',
+      credential_ref: `${generatedId}-key`,
       credential_value: 'sk-new-key',
     })
   })

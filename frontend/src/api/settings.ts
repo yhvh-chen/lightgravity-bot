@@ -23,6 +23,39 @@ export const PREFERRED_MODEL = 'deepseek-v4-flash'
 export const DEFAULT_BASE_URL = 'https://api.deepseek.com/v1'
 export const DEFAULT_EXECUTABLE_BACKEND = 'openai-compat'
 
+/** SDK 0.1.22 `models.DEFAULT_MODEL` (LG-105 audit). */
+export const GEMINI_DEFAULT_MODEL = 'gemini-3.8-flash'
+
+/**
+ * Optional provider auth selector (LG-104/LG-106). These values are stored as
+ * non-secret Connection fields and map to the installed SDK's real auth paths:
+ * API key, Application Default Credentials (ADC), the product's loopback
+ * proxy key path, or no credential at all (local LiteRT).
+ */
+export type ConnectionAuthMode = 'api_key' | 'adc' | 'proxy_api_key' | 'none'
+
+/** LiteRT on-device runtime backend (SDK field `backend`). */
+export type LiteRtBackend = 'CPU' | 'GPU' | 'NPU'
+
+/**
+ * Capability declaration for a Connection (LG-104). These are deliberately
+ * separate facts and must never be inferred from one another:
+ *
+ * * `configurable` — the backend accepts/saves the provider configuration;
+ * * `testable` — Test Connection can run its real layers;
+ * * `executable` — the product executor may use it (and it may be a default);
+ * * `vendor_verified` — evidence of a real vendor call exists.
+ *
+ * `null`/absent means the backend has not declared that fact. The frontend
+ * only falls back to preset metadata for the already-existing DeepSeek path.
+ */
+export interface ConnectionCapabilities {
+  configurable?: boolean | null
+  testable?: boolean | null
+  executable?: boolean | null
+  vendor_verified?: boolean | null
+}
+
 /* ------------------------------------------------------------------ wire types */
 
 export interface CredentialStatus {
@@ -52,6 +85,14 @@ export interface ConnectionView {
   credential_ref: string | null
   credential: CredentialStatus
   references: ConnectionReferences
+  /* LG-104 optional non-secret provider fields; absent on old connections. */
+  auth_mode?: ConnectionAuthMode | null
+  project?: string | null
+  location?: string | null
+  model_path?: string | null
+  litert_backend?: LiteRtBackend | null
+  /** Backend-declared capability facts; absent/null means not declared. */
+  capabilities?: ConnectionCapabilities | null
 }
 
 /** `service._describe_default` output: a resolved connection or `{ref, resolved:false}`. */
@@ -128,6 +169,12 @@ export interface ConnectionCreateInput {
   /** Write-only; never echoed back. */
   credential_value?: string | null
   enabled?: boolean
+  /* LG-104 optional non-secret provider fields (additive; backend owner binds). */
+  auth_mode?: ConnectionAuthMode
+  project?: string | null
+  location?: string | null
+  model_path?: string | null
+  litert_backend?: LiteRtBackend | null
 }
 
 export type CredentialAction = 'keep' | 'set' | 'remove'
@@ -142,6 +189,13 @@ export interface ConnectionUpdateInput {
   credential_action?: CredentialAction
   credential_value?: string | null
   clear_defaults?: boolean
+  /* LG-104 optional non-secret provider fields (additive; backend owner binds). */
+  backend?: string
+  auth_mode?: ConnectionAuthMode
+  project?: string | null
+  location?: string | null
+  model_path?: string | null
+  litert_backend?: LiteRtBackend | null
 }
 
 export interface SettingsUpdateInput {
