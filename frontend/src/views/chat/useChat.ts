@@ -118,11 +118,20 @@ export function useChat(
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<ApiError | null>(null)
-  const [sending, setSending] = useState(false)
-  const [sendError, setSendError] = useState<ApiError | null>(null)
+  const [sendingScopes, setSendingScopes] = useState<Set<string>>(() => new Set())
+  const [sendFailure, setSendFailure] = useState<{ scope: string; error: ApiError } | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const taskRef = scope.taskRef
-  const pendingId = useRef<string | null>(null)
+  const personal = Boolean(scope.personal) && taskRef === null
+  const scopeKey = `${personal ? 'personal' : 'shared'}:${taskRef ?? 'global'}`
+  const activeScope = useRef(scopeKey)
+  const generation = useRef(0)
+  if (activeScope.current !== scopeKey) {
+    activeScope.current = scopeKey
+    generation.current += 1
+  }
+  const [messageScope, setMessageScope] = useState(scopeKey)
+  const pendingIds = useRef(new Map<string, string>())
   const cursorRef = useRef<string | null>(null)
   const unauthorizedRef = useRef(onUnauthorized)
   unauthorizedRef.current = onUnauthorized
@@ -130,19 +139,22 @@ export function useChat(
   useEffect(() => {
     const controller = new AbortController()
     let cancelled = false
+    const requestGeneration = generation.current
     setLoading(true)
+    setMessages([])
+    setMessageScope(scopeKey)
     setError(null)
     cursorRef.current = null
     api
-      .readMessages({ taskRef }, null, controller.signal)
+      .readMessages({ taskRef, personal }, null, controller.signal)
       .then((page) => {
-        if (cancelled) return
+        if (cancelled || requestGeneration !== generation.current) return
         setMessages(page.items)
         cursorRef.current = page.next_cursor ?? null
         setLoading(false)
       })
       .catch((cause) => {
-        if (cancelled || controller.signal.aborted) return
+        if (cancelled || controller.signal.aborted || requestGeneration !== generation.current) return
         const apiError = asApiError(cause)
         if (apiError.httpStatus === 401) unauthorizedRef.current?.()
         setMessages([])
@@ -153,7 +165,7 @@ export function useChat(
       cancelled = true
       controller.abort()
     }
-  }, [api, taskRef, reloadKey])
+  }, [api, taskRef, personal, reloadKey])
 
   // Team-mode incremental polling of the global conversation (LG-050 §7).
   useEffect(() => {
@@ -166,7 +178,7 @@ export function useChat(
       if (typeof document !== 'undefined' && document.hidden) return
       inFlight = true
       try {
-        const page = await api.readMessages({ taskRef: null }, cursorRef.current)
+        const page = await api.readMessages({ taskRef: null, personal }, cursorRef.current)
         if (stopped) return
         cursorRef.current = page.next_cursor ?? cursorRef.current
         setMessages((current) => mergeMessages(current, page.items))
@@ -188,7 +200,7 @@ export function useChat(
       stopped = true
       clearInterval(timer)
     }
-  }, [api, pollIntervalMs, taskRef])
+  }, [api, pollIntervalMs, taskRef, personal])
 
   const send = useCallback(
     async (
@@ -200,13 +212,14 @@ export function useChat(
       if (!trimmed) {
         return { createdTaskRef: null, reply: null, resolvedSources: null, kind: null }
       }
-      const messageId = pendingId.current ?? newRuntimeId('msg')
-      pendingId.current = messageId
-      setSending(true)
-      setSendError(null)
+      const requestGeneration = generation.current
+      const messageId = pendingIds.current.get(scopeKey) ?? newRuntimeId('msg')
+      pendingIds.current.set(scopeKey, messageId)
+      setSendingScopes((current) => new Set(current).add(scopeKey))
+      setSendFailure(null)
       try {
         const result = await api.sendMessage(
-          { taskRef },
+          { taskRef, personal },
           {
             message_id: messageId,
             content: trimmed,
@@ -216,14 +229,14 @@ export function useChat(
               : {}),
           },
         )
-        pendingId.current = null
+        pendingIds.current.delete(scopeKey)
         const createdTaskRef =
           typeof result.task_id === 'string' && result.task_id
             ? result.task_id
             : typeof result.data?.task_id === 'string'
               ? (result.data.task_id as string)
               : null
-        setReloadKey((key) => key + 1)
+        if (requestGeneration === generation.current) setReloadKey((key) => key + 1)
         return {
           createdTaskRef,
           reply: result.reply ?? null,
@@ -234,26 +247,26 @@ export function useChat(
         const apiError = asApiError(cause)
         if (apiError.httpStatus === 401) unauthorizedRef.current?.()
         // Keep the same id so an explicit retry is idempotent server-side.
-        setSendError(apiError)
+        if (requestGeneration === generation.current) setSendFailure({ scope: scopeKey, error: apiError })
         throw cause
       } finally {
-        setSending(false)
+        setSendingScopes((current) => { const next = new Set(current); next.delete(scopeKey); return next })
       }
     },
-    [api, taskRef],
+    [api, taskRef, personal, scopeKey],
   )
 
   return useMemo(
     () => ({
-      messages,
-      loading,
-      error,
-      sending,
-      sendError,
+      messages: messageScope === scopeKey ? messages : [],
+      loading: messageScope !== scopeKey || loading,
+      error: messageScope === scopeKey ? error : null,
+      sending: sendingScopes.has(scopeKey),
+      sendError: sendFailure?.scope === scopeKey ? sendFailure.error : null,
       refresh: () => setReloadKey((key) => key + 1),
       send,
-      clearSendError: () => setSendError(null),
+      clearSendError: () => setSendFailure(null),
     }),
-    [messages, loading, error, sending, sendError, send],
+    [messages, messageScope, scopeKey, loading, error, sendingScopes, sendFailure, send],
   )
 }

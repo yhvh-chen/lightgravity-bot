@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
 import { ApiError, fetchHealth } from './client'
+import { assertBackendCompatible } from './backendCompatibility'
 import type { HealthResponse } from './types'
 
 export type BackendState = 'loading' | 'connected' | 'unavailable'
@@ -30,6 +31,7 @@ export function useBackendStatus(): BackendStatus {
     fetchHealth(controller.signal)
       .then((result) => {
         if (!active) return
+        assertBackendCompatible(result)
         setHealth(result)
         setError(null)
         setState('connected')

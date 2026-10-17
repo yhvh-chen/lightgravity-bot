@@ -25,6 +25,10 @@ class Session:
     username: str
     role: str
     expires_at: float
+    #: LG-062: the account ``session_version`` this session was minted under.
+    #: The service compares it against the store on every resolve so a
+    #: password/role/enabled change invalidates older sessions immediately.
+    session_version: int = 0
 
 
 class SessionRegistry:
@@ -47,13 +51,14 @@ class SessionRegistry:
     def ttl_seconds(self) -> int:
         return self._ttl
 
-    def create(self, username: str, role: str) -> Session:
+    def create(self, username: str, role: str, session_version: int = 0) -> Session:
         session_id = secrets.token_urlsafe(_SESSION_BYTES)
         session = Session(
             session_id=session_id,
             username=username,
             role=role,
             expires_at=self._clock() + self._ttl,
+            session_version=session_version,
         )
         with self._lock:
             self._sessions[session_id] = session

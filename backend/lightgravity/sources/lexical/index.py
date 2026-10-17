@@ -29,6 +29,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable
 
+from ...store.locking import LockManager
+
 #: Cache schema version: bump to invalidate an incompatible on-disk cache.
 CACHE_SCHEMA_VERSION = 1
 
@@ -160,6 +162,7 @@ class LexicalIndex:
     def __init__(self, cache_dir: Path | str) -> None:
         self._cache_dir = Path(cache_dir)
         self._db_path = self._cache_dir / "lexical.sqlite3"
+        self._connection_locks = LockManager(self._cache_dir)
 
     @property
     def db_path(self) -> Path:
@@ -182,16 +185,23 @@ class LexicalIndex:
 
     # --------------------------------------------------------------- connection
     def _connect(self) -> sqlite3.Connection:
-        self._cache_dir.mkdir(parents=True, exist_ok=True)
-        if self._db_path.is_file():
-            with self._db_path.open("rb") as handle:
-                header = handle.read(16)
-            if header and header != b"SQLite format 3\x00":
-                raise IndexCorruptError(f"not a sqlite database: {self._db_path}")
-        conn = sqlite3.connect(str(self._db_path), timeout=5.0)
-        conn.execute("PRAGMA journal_mode=WAL")
-        conn.execute("PRAGMA synchronous=NORMAL")
-        return conn
+        # SQLite serializes transactions, but competing first connections can
+        # fail immediately while switching an empty database to WAL. Serialize
+        # setup across cache instances/processes, leaving transactions to SQLite.
+        with self._connection_locks.acquire("lexical-initialize"):
+            if self._db_path.is_file():
+                with self._db_path.open("rb") as handle:
+                    header = handle.read(16)
+                if header and header != b"SQLite format 3\x00":
+                    raise IndexCorruptError(f"not a sqlite database: {self._db_path}")
+            conn = sqlite3.connect(str(self._db_path), timeout=5.0)
+            try:
+                conn.execute("PRAGMA journal_mode=WAL")
+                conn.execute("PRAGMA synchronous=NORMAL")
+            except BaseException:
+                conn.close()
+                raise
+            return conn
 
     def ensure_schema(self) -> None:
         with self._connect() as conn:

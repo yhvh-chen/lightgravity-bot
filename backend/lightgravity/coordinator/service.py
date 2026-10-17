@@ -354,6 +354,12 @@ class Coordinator:
         self._budget: dict[str, int] = dict(budget or {})
         self._classifier = classifier or classify_message
         self._responder = responder or _default_responder
+        #: LG-054: whether a real direct-answer responder was injected.  When
+        #: ``False`` the private Personal channel honestly reports
+        #: ``unavailable`` instead of dressing the deterministic fallback up as
+        #: a model answer.  The legacy global/Task flows keep the existing
+        #: fallback behaviour unchanged.
+        self._responder_configured = responder is not None
         self._verification = verification
         self._rework = rework
         self._resource_service = resource_service
@@ -432,6 +438,12 @@ class Coordinator:
     @property
     def active_run_id(self) -> str | None:
         return self._active_run_id
+
+    @property
+    def responder_configured(self) -> bool:
+        """Whether a real (model-backed) direct-answer responder is wired."""
+
+        return self._responder_configured
 
     @property
     def review_lifecycle(self) -> Any:
@@ -821,6 +833,159 @@ class Coordinator:
             reply="已记录到全局对话；对交付任务的操作请在该 Task 对话中进行。",
             conversation_id=conversation_id,
             data={"intent": classification.intent.value, "record_seq": record_seq},
+        )
+
+    # -------------------------------------------------------- personal entry
+    async def submit_personal_message(
+        self,
+        conversation_id: str,
+        message: dict[str, Any],
+        *,
+        owner: str,
+        request_id: str | None = None,
+    ) -> CoordinatorResult:
+        """Persist and answer one message in a person's private conversation.
+
+        LG-054: the private Personal channel is derived from the authenticated
+        server identity by the API layer (never a request field) and is
+        **chat-only**.  In team mode it never creates a Task/Run, never
+        attaches shared sources, never routes through the shared global/Task
+        logs or events, and never asks the responder to start delivery work;
+        delivery requests return explicit switch-to-Team guidance instead.  In
+        single-user mode there is no privacy boundary to protect, so the legacy
+        global behaviour (including delivery Task creation) is preserved
+        exactly and the shared global conversation id is reused.
+        """
+
+        if not self._team_mode:
+            return await self._submit_global_unlocked(
+                conversation_id, message, request_id=request_id
+            )
+        lock = self._conversation_lock(conversation_id)
+        async with lock:
+            return await self._submit_personal_unlocked(
+                conversation_id, message, owner=owner, request_id=request_id
+            )
+
+    async def _submit_personal_unlocked(
+        self,
+        conversation_id: str,
+        message: dict[str, Any],
+        *,
+        owner: str,
+        request_id: str | None = None,
+    ) -> CoordinatorResult:
+        message_id = self._require_message_id(message)
+        # Namespace the idempotency key by owner + channel so two users can
+        # never collide on a client-supplied message id (LG-054).
+        key = f"personal:{owner}:message:{message_id}"
+        existing = self._idempotency.lookup(key)
+        if existing is not None:
+            return self._result_from(existing)
+        record = self._global.append(conversation_id, message)
+        classification = self._classifier(str(message.get("content", "")))
+        result = await self._route_personal(
+            conversation_id=conversation_id,
+            message=message,
+            owner=owner,
+            classification=classification,
+            record_seq=record.seq,
+            request_id=request_id or message_id,
+        )
+        self._idempotency.record(key, result.to_dict())
+        return result
+
+    async def _route_personal(
+        self,
+        *,
+        conversation_id: str,
+        message: dict[str, Any],
+        owner: str,
+        classification: Classification,
+        record_seq: int,
+        request_id: str,
+    ) -> CoordinatorResult:
+        """Answer a private message without any shared side effect (LG-054)."""
+
+        content = str(message.get("content", ""))
+        in_reply_to = str(message.get("message_id") or request_id)
+        if classification.next_action in {"direct", "bounded_read"}:
+            if not self._responder_configured:
+                reply = (
+                    "Personal chat is unavailable because no model is configured. "
+                    "Configure a model in Settings, or use Team for shared task "
+                    "delivery. Nothing was created."
+                )
+                self._persist_assistant_reply(
+                    conversation_id=conversation_id,
+                    task_id=None,
+                    in_reply_to=in_reply_to,
+                    reply=reply,
+                    selected=None,
+                    extra={"intent": "unavailable", "private": True},
+                )
+                return CoordinatorResult(
+                    kind="unavailable",
+                    reply=reply,
+                    conversation_id=conversation_id,
+                    data={
+                        "intent": classification.intent.value,
+                        "creates_task": False,
+                        "private": True,
+                        "unavailable": True,
+                    },
+                )
+            reply = self._responder(content, classification)
+            self._persist_assistant_reply(
+                conversation_id=conversation_id,
+                task_id=None,
+                in_reply_to=in_reply_to,
+                reply=reply,
+                selected=None,
+                extra={"intent": classification.intent.value, "private": True},
+            )
+            return CoordinatorResult(
+                kind=classification.next_action,
+                reply=reply,
+                conversation_id=conversation_id,
+                data={
+                    "intent": classification.intent.value,
+                    "bounded_tools": list(classification.bounded_tools),
+                    "creates_task": False,
+                    "private": True,
+                },
+            )
+        # Chat-only: never create a shared Task/Run, never invoke the team task
+        # coordinator, never write to shared logs/events.
+        reply = (
+            "Personal chat is chat-only and private to you. To create a task, run "
+            "delivery, upload materials, or use shared sources, switch to Team. "
+            "Nothing was created here."
+        )
+        self._persist_assistant_reply(
+            conversation_id=conversation_id,
+            task_id=None,
+            in_reply_to=in_reply_to,
+            reply=reply,
+            selected=None,
+            extra={
+                "intent": classification.intent.value,
+                "private": True,
+                "requires_team": True,
+            },
+        )
+        return CoordinatorResult(
+            kind="switch_to_team",
+            reply=reply,
+            conversation_id=conversation_id,
+            data={
+                "intent": classification.intent.value,
+                "creates_task": False,
+                "private": True,
+                "requires_team": True,
+                "switch_to_team": True,
+                "record_seq": record_seq,
+            },
         )
 
     # ------------------------------------------------------------ task entry

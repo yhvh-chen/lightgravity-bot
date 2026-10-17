@@ -12,7 +12,7 @@
  * * reports `index_unavailable` honestly instead of an empty success.
  */
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { ApiError } from '../../api/client'
 import type { SearchHit, SearchResult, SourcesApi } from '../../api/sources'
@@ -33,9 +33,25 @@ export function ChatSourceSearch({ api, taskRef, onOpen }: ChatSourceSearchProps
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<ApiError | null>(null)
 
+  const active = useRef<AbortController | null>(null)
+  const generation = useRef(0)
+  useEffect(() => {
+    generation.current += 1
+    active.current?.abort()
+    setResult(null)
+    setError(null)
+    setLoading(false)
+    return () => { generation.current += 1; active.current?.abort() }
+  }, [api, taskRef])
+
   const run = async () => {
     const q = draft.trim()
     if (!q) return
+    active.current?.abort()
+    const controller = new AbortController()
+    active.current = controller
+    const requestGeneration = ++generation.current
+    setResult(null)
     setLoading(true)
     setError(null)
     try {
@@ -45,13 +61,15 @@ export function ChatSourceSearch({ api, taskRef, onOpen }: ChatSourceSearchProps
         include_global: true,
         limit: 20,
         rebuild_if_missing: true,
-      })
+      }, controller.signal)
+      if (requestGeneration !== generation.current || controller.signal.aborted) return
       setResult(found)
     } catch (cause) {
+      if (requestGeneration !== generation.current || controller.signal.aborted) return
       setResult(null)
       setError(asApiError(cause))
     } finally {
-      setLoading(false)
+      if (requestGeneration === generation.current && !controller.signal.aborted) setLoading(false)
     }
   }
 

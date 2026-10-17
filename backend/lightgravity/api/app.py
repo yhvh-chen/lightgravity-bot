@@ -24,7 +24,7 @@ Run with::
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Callable, Sequence
 from contextlib import asynccontextmanager
 from typing import Any, cast
 
@@ -60,7 +60,7 @@ from ..settings import (
 )
 from ..store import FileStore
 from ..store.protocol import Store
-from ..team import TeamAccessPolicy, TeamAccounts, TeamAuthService
+from ..team import TeamAccessPolicy, TeamAccounts, TeamAccountsError, TeamAuthService
 from ..verify import (
     ResourceStopper,
     SessionStopConfirmer,
@@ -70,6 +70,7 @@ from ..verify import (
 )
 
 from .access import AccessPolicy, LocalAccessPolicy, require_access
+from .accounts import build_accounts_router
 from .auth import build_auth_router
 from .context import ApiContext
 from .collaboration import build_collaboration_router
@@ -127,6 +128,11 @@ def create_app(
     #: discovery/claim/lease endpoints default-deny; when wired it supplies the
     #: program-frozen scope (run/subtask/fence) the body can never grant.
     worker_grant: Any | None = None,
+    #: LG-061: seed the requested default admin (``admin``/``admin123``) only
+    #: when the team account store is empty.  Read-only callers (e.g.
+    #: ``lightgravity status --deep``) pass ``False`` so diagnostics never
+    #: touch the fact source.
+    initialize_team_accounts: bool = True,
 ) -> FastAPI:
     """Build the application; every heavy dependency is injectable for tests."""
 
@@ -144,11 +150,20 @@ def create_app(
     policy = access_policy
     team_service: TeamAuthService | None = None
     if resolved.team_mode:
-        # Accounts are read lazily; the file is only created by the operator CLI,
-        # never as a side effect of an ordinary request.  No accounts file is
-        # touched in single-user mode.
+        # LG-061 first initialisation: seed the requested default admin only
+        # when the store has no account yet.  An existing store (including a
+        # user-changed password) is never rewritten, so a restart cannot reset
+        # a password.  Single-user mode never reads or creates this file.
+        team_accounts = TeamAccounts(resolved.team_accounts_path)
+        if initialize_team_accounts:
+            try:
+                team_accounts.ensure_default_admin()
+            except TeamAccountsError:
+                # A present-but-invalid store is surfaced lazily on auth; the
+                # factory must not overwrite or crash on it.
+                pass
         team_service = TeamAuthService(
-            TeamAccounts(resolved.team_accounts_path),
+            team_accounts,
             session_ttl_seconds=resolved.team_session_ttl_seconds,
             cookie_secure=resolved.team_cookie_secure,
         )
@@ -216,6 +231,9 @@ def create_app(
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
         resolved.ensure_data_dir()
+        # The configured workspace is a startup resource, not a missing child
+        # directory. Prepare it before accepting Files requests or queued work.
+        context.workspace_root.mkdir(parents=True, exist_ok=True)
         resolved_coordinator.start()
         try:
             yield
@@ -273,6 +291,19 @@ def create_app(
             response.headers["ETag"] = etag
         return response
 
+    def _redact_validation_errors(
+        errors: Sequence[Any],
+    ) -> list[dict[str, Any]]:
+        # LG-062: never echo the submitted value in a 422 envelope.  A rejected
+        # password/credential field (secret canary) must not be reflected back
+        # in ``details.errors[].input``.
+        redacted: list[dict[str, Any]] = []
+        for error in errors:
+            clean = dict(error)
+            clean.pop("input", None)
+            redacted.append(clean)
+        return redacted
+
     @app.exception_handler(RequestValidationError)
     async def _validation_error_handler(
         request: Request, exc: RequestValidationError
@@ -280,7 +311,7 @@ def create_app(
         envelope = error_envelope(
             ErrorCode.VALIDATION_FAILED,
             "request failed schema validation",
-            details={"errors": exc.errors()},
+            details={"errors": _redact_validation_errors(exc.errors())},
         )
         return JSONResponse(status_code=422, content=_dump(envelope))
 
@@ -294,6 +325,10 @@ def create_app(
 
     app.include_router(health_router, prefix=API_PREFIX)
     app.include_router(build_auth_router(team_service), prefix=API_PREFIX)
+    if team_service is not None:
+        # LG-062: team-only account management + self password.  Single-user
+        # mode deliberately mounts no such route (the frontend hides it).
+        app.include_router(build_accounts_router(), prefix=API_PREFIX)
     app.include_router(build_coordinator_router(resolved_coordinator), prefix=API_PREFIX)
     app.include_router(build_task_router(), prefix=API_PREFIX)
     app.include_router(build_resource_router(), prefix=API_PREFIX)

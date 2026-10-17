@@ -192,6 +192,14 @@ export interface ChatSubmitResult {
 export interface ChatScope {
   /** `null` reads the singleton global conversation. */
   taskRef: string | null
+  /**
+   * LG-054: when true (team mode only), read/write the private per-user
+   * `/conversations/personal/messages` endpoint instead of the shared global
+   * one.  Ignored whenever ``taskRef`` is set (Task conversations are shared
+   * Team).  Single-user mode leaves this false and keeps the legacy global
+   * endpoint (single-mode Personal IS the legacy global conversation).
+   */
+  personal?: boolean
 }
 
 export interface ChatApi {
@@ -254,12 +262,19 @@ function withQuery(path: string, params: Record<string, string | null | undefine
   return query ? `${path}?${query}` : path
 }
 
+function conversationPath(scope: ChatScope): string {
+  if (scope.taskRef) {
+    return `/tasks/${encodeURIComponent(scope.taskRef)}/messages`
+  }
+  return scope.personal
+    ? '/conversations/personal/messages'
+    : '/conversations/global/messages'
+}
+
 export function createChatApi(): ChatApi {
   return {
     readMessages(scope, cursor, signal) {
-      const path = scope.taskRef
-        ? withQuery(`/tasks/${encodeURIComponent(scope.taskRef)}/messages`, { after: cursor })
-        : withQuery('/conversations/global/messages', { after: cursor })
+      const path = withQuery(conversationPath(scope), { after: cursor })
       return apiRequest<{ items: ChatMessageWire[]; next_cursor: string | null }>(path, {
         signal,
       }).then((page) => ({
@@ -269,9 +284,7 @@ export function createChatApi(): ChatApi {
     },
 
     sendMessage(scope, body, signal) {
-      const path = scope.taskRef
-        ? `/tasks/${encodeURIComponent(scope.taskRef)}/messages`
-        : '/conversations/global/messages'
+      const path = conversationPath(scope)
       const payload: Record<string, unknown> = {
         message_id: body.message_id,
         content: body.content,

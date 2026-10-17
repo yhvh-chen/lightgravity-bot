@@ -1,7 +1,7 @@
 [project]
 name = "lightgravity-bot"
 version = "0.1.0"
-description = "LightGravity Bot — local AI task assistant. Engineering skeleton only (LG-002)."
+description = "LightGravity Bot — an AI workspace for individuals and small teams."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
@@ -9,20 +9,11 @@ dependencies = [
     "uvicorn>=0.30,<1",
     "pydantic>=2.7,<3",
     "ruamel.yaml>=0.18,<0.19",
-    # Pinned by LG-003 and locked for LG-005 (adapter config compilation).
-    # The adapter is the only module allowed to import it (docs/08 §8).
     "google-antigravity==0.1.22",
-    # LG-035: PDF page rasterisation for OCR.  pypdfium2 ships a self-contained
-    # permissively licensed wheel (BSD-3-Clause + Apache-2.0 + bundled
-    # permissive deps; no GPL/AGPL, no system poppler).  It is imported lazily
-    # by the source OCR adapter only, so non-PDF paths do not need it at import
-    # time.  License provenance is recorded in probes/lg035/QUALITY-PLAN.md.
     "pypdfium2>=5,<6",
 ]
 
 [project.optional-dependencies]
-# Intentionally empty: the Antigravity SDK is a first-class dependency above
-# because LG-005 compiles against its concrete config types.
 
 [project.scripts]
 lightgravity = "lightgravity.cli:main"
@@ -43,9 +34,6 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["backend/lightgravity"]
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-asyncio_mode = "auto"
 
 [tool.mypy]
 python_version = "3.12"
@@ -57,15 +45,10 @@ no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 
-# The pinned SDK ships no py.typed marker; keep its symbols opaque instead of
-# failing the whole package on missing stubs. Only the adapter imports it, and
-# it does so lazily/behind a guarded boundary.
 [[tool.mypy.overrides]]
 module = ["google.*"]
 ignore_missing_imports = true
 
-# pypdfium2 ships no py.typed marker; it is imported lazily inside the OCR PDF
-# rasteriser only (LG-035).  Keep its symbols opaque rather than failing.
 [[tool.mypy.overrides]]
 module = ["pypdfium2", "pypdfium2.*"]
 ignore_missing_imports = true

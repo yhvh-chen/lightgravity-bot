@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { getRuntimeToken } from '../../api/auth'
+import { useAuth } from '../../app/AuthProvider'
 import {
   createSettingsApi,
   type ConnectionView,
@@ -14,8 +15,10 @@ import { StatusBadge } from '../../components/StatusBadge'
 import './settings.css'
 import { toApiError } from './apiError'
 import { backendLabel, isExecutableBackend } from './backends'
+import { AccountsPanel } from './AccountsPanel'
 import { ConnectionEditor } from './ConnectionEditor'
 import { DefaultsEditor } from './DefaultsEditor'
+import { MyAccountPanel } from './MyAccountPanel'
 
 export interface SettingsViewProps {
   /** Optional runtime access token injected by the App/startup bootstrap. */
@@ -32,17 +35,17 @@ export interface SettingsViewProps {
 }
 
 /**
- * Settings (owner LG-026; docs/07, design.md §5 Settings).
+ * Models & Providers (owner LG-026; docs/07, design.md §5 Settings).
  *
- * First (and only) section: Models & Providers. It reads and writes the same
- * Connection entity that Resources → Connections uses — there is no second
- * provider/model list. Typed forms cover connection fields, write-only
- * credentials, layered tests and the global coordinator/worker defaults.
+ * It reads and writes the same Connection entity that Resources → Connections
+ * uses — there is no second provider/model list. Typed forms cover connection
+ * fields, write-only credentials, layered tests and the global
+ * coordinator/worker defaults.
  *
- * The shell keeps the current Task scope across the Settings detour; this view
- * only ever changes global configuration, never the selected Task.
+ * Mounted only for an administrator (or single-user mode).  A member never
+ * reaches this panel, so the Connections/settings requests are never issued.
  */
-export function SettingsView(props: SettingsViewProps = {}) {
+function ModelsPanel(props: SettingsViewProps = {}) {
   const { token, api: injectedApi, connectionId, taskRef } = props
   const defaultApi = useMemo(() => {
     if (token === undefined) return createSettingsApi()
@@ -315,3 +318,90 @@ export function SettingsView(props: SettingsViewProps = {}) {
     </div>
   )
 }
+
+/** Settings subareas (LG-062): admin config plus a personal account section. */
+export type SettingsSectionId = 'models' | 'accounts' | 'account'
+
+const SECTION_LABELS: Record<SettingsSectionId, string> = {
+  models: 'Models & Providers',
+  accounts: 'Accounts',
+  account: 'My Account',
+}
+
+/**
+ * Settings shell (LG-026 + LG-062 additive sections).
+ *
+ * * single-user mode: only Models & Providers (unchanged 1.14 behaviour);
+ * * team admin: Models & Providers, Accounts and My Account;
+ * * team member: My Account only, which never fetches Models/Connections or
+ *   the admin account list.  Admin areas stay hidden here *and* authorized on
+ *   the server (403), never merely disabled in the UI.
+ */
+export function SettingsView(props: SettingsViewProps = {}) {
+  const { isTeam, isAdmin, accountsAvailable } = useAuth()
+  const sections = useMemo<SettingsSectionId[]>(() => {
+    if (!isTeam) return ['models']
+    const result: SettingsSectionId[] = []
+    if (isAdmin) result.push('models')
+    if (isAdmin && accountsAvailable) result.push('accounts')
+    if (accountsAvailable) result.push('account')
+    return result
+  }, [isTeam, isAdmin, accountsAvailable])
+
+  const [section, setSection] = useState<SettingsSectionId | null>(() =>
+    sections.includes('models') && props.connectionId ? 'models' : (sections[0] ?? null),
+  )
+  const sectionKey = sections.join(',')
+  const current = section && sections.includes(section) ? section : (sections[0] ?? null)
+
+  useEffect(() => {
+    if (section === null || !sections.includes(section)) {
+      setSection(sections[0] ?? null)
+    }
+  }, [section, sectionKey, sections])
+
+  if (current === null) {
+    // Team member on a pre-1.15 backend: there is no account surface to call.
+    // Explain honestly instead of showing the admin Models panel or an empty
+    // page; the server would 404/403 anyway.
+    return (
+      <div className="lg-settings-view">
+        <DetailHeader
+          title="Settings"
+          badges={<StatusBadge kind="warning">Unavailable</StatusBadge>}
+        />
+        <p className="lg-notice" role="note">
+          Account management is not available on this backend version. Ask an
+          administrator to update the backend to enable the My Account section.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="lg-settings-view">
+      {sections.length > 1 ? (
+        <div role="tablist" aria-label="Settings sections" className="lg-settings-tabs">
+          {sections.map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={current === id}
+              className={`lg-settings-tabs__tab${current === id ? ' is-selected' : ''}`}
+              onClick={() => setSection(id)}
+            >
+              {SECTION_LABELS[id]}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {current === 'models' ? <ModelsPanel {...props} /> : null}
+      {current === 'accounts' && isAdmin && accountsAvailable ? <AccountsPanel /> : null}
+      {current === 'account' && accountsAvailable ? <MyAccountPanel /> : null}
+    </div>
+  )
+}
+
+export default SettingsView

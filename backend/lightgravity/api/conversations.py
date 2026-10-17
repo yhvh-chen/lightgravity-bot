@@ -20,6 +20,7 @@ execution identity or directory.
 
 from __future__ import annotations
 
+import hashlib
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -36,6 +37,26 @@ from .context import ApiContext, get_context
 #: across restarts, so global history has one durable location.
 GLOBAL_CONVERSATION_ID = "conv_00000000000000000000000000"
 
+_CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+
+
+def personal_conversation_id(username: str) -> str:
+    """Derive the stable, per-user private conversation id (LG-054).
+
+    The id is a well-formed ``conv_<26 Crockford chars>`` produced from a
+    one-way hash of the authenticated server identity, so:
+
+    * it is stable across restarts (history persists in one file);
+    * it can only be derived from the owner's session cookie, never a request
+      body/query field, so no other member (including an admin) can address it;
+    * it never exposes the raw username in a file path.
+    """
+
+    digest = hashlib.sha256(
+        f"lightgravity:personal-conversation:v1:{username}".encode("utf-8")
+    ).digest()
+    return "conv_" + "".join(_CROCKFORD[byte % 32] for byte in digest[:26])
+
 
 class GlobalMessageRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -50,6 +71,28 @@ class GlobalMessageRequest(BaseModel):
     agent_ref: str | None = None
     #: Additive optional selected-material refs (docs/08 §6.6.1 / docs/10).
     selected_sources: list[dict[str, Any]] | None = None
+
+
+class PersonalMessageRequest(BaseModel):
+    """Private Personal-chat message (LG-054, additive ``/conversations/personal``).
+
+    ``extra="forbid"`` means a client-supplied ``owner``/``author``/``task_ref``
+    is a 422: ownership is always the server-resolved session identity.  The
+    source/attachment fields are accepted only so the handler can return a
+    clear Team guidance instead of silently dropping them.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    message_id: str
+    content: str
+    role: str = "user"
+    attachments: list[dict[str, Any]] = Field(default_factory=list)
+    correlation_id: str | None = None
+    request_id: str | None = None
+    selected_sources: list[dict[str, Any]] | None = None
+    workspace_ref: str | None = None
+    agent_ref: str | None = None
 
 
 def _session_cookie(request: Request) -> str | None:
@@ -85,6 +128,56 @@ def _authorize_source(
                 f"agent_ref {agent_ref!r} does not resolve to a known agent",
                 details={"field": "agent_ref", "agent_ref": agent_ref},
             ) from exc
+
+
+def _personal_owner(ctx: ApiContext, request: Request) -> tuple[str, str]:
+    """Resolve the (owner, private-conversation-id) pair from server identity.
+
+    Team mode: identity comes only from the HttpOnly session cookie.  Single
+    mode: there is no privacy boundary and the legacy global conversation id is
+    reused so old history/behaviour is preserved.
+    """
+
+    if ctx.team is None:
+        return "single", GLOBAL_CONVERSATION_ID
+    identity = ctx.team.resolve(_session_cookie(request))
+    if identity is None:
+        raise AppError(
+            ErrorCode.UNAUTHORIZED,
+            "a valid team session is required for the personal conversation",
+            details={"endpoint": "/conversations/personal/messages"},
+        )
+    return identity.username, personal_conversation_id(identity.username)
+
+
+def _reject_shared_inputs(payload: PersonalMessageRequest) -> None:
+    """Personal is chat-only: shared materials/sources are a Team concern."""
+
+    hint = {
+        "hint": "switch_to_team",
+        "message": "Shared materials and task delivery are available in Team.",
+    }
+    if payload.attachments:
+        raise AppError(
+            ErrorCode.CAPABILITY_UNAVAILABLE,
+            "Personal chat does not accept attachments; "
+            "shared materials and task delivery are available in Team.",
+            details={"field": "attachments", **hint},
+        )
+    if payload.selected_sources:
+        raise AppError(
+            ErrorCode.CAPABILITY_UNAVAILABLE,
+            "Personal chat does not accept selected sources; "
+            "shared materials and task delivery are available in Team.",
+            details={"field": "selected_sources", **hint},
+        )
+    if payload.workspace_ref or payload.agent_ref:
+        raise AppError(
+            ErrorCode.CAPABILITY_UNAVAILABLE,
+            "Personal chat does not accept workspace/agent references; "
+            "shared materials and task delivery are available in Team.",
+            details={"field": "workspace_ref", **hint},
+        )
 
 
 def build_conversations_router() -> APIRouter:
@@ -142,7 +235,66 @@ def build_conversations_router() -> APIRouter:
             response["reply"] = None
         return response
 
+    # ------------------------------------------------ private Personal chat
+    @router.get("/conversations/personal/messages")
+    def read_personal_messages(
+        request: Request,
+        ctx: Annotated[ApiContext, Depends(get_context)],
+        after: Annotated[str | None, Query()] = None,
+        limit: Annotated[int, Query(ge=0, le=1000)] = 200,
+    ) -> dict[str, Any]:
+        _owner, conversation_id = _personal_owner(ctx, request)
+        items = ctx.coordinator.read_global_messages(
+            conversation_id, after=after, limit=limit
+        )
+        next_cursor = (
+            f"v1:{conversation_id}:{items[-1]['seq']}" if items else None
+        )
+        return {"items": items, "next_cursor": next_cursor}
+
+    @router.post("/conversations/personal/messages")
+    async def append_personal_message(
+        payload: PersonalMessageRequest,
+        request: Request,
+        ctx: Annotated[ApiContext, Depends(get_context)],
+    ) -> dict[str, Any]:
+        owner, conversation_id = _personal_owner(ctx, request)
+        _reject_shared_inputs(payload)
+        message: dict[str, Any] = {
+            "message_id": payload.message_id,
+            "role": payload.role,
+            "content": payload.content,
+            "attachments": [],
+            "private": True,
+        }
+        if payload.correlation_id:
+            message["correlation_id"] = payload.correlation_id
+        if ctx.team is not None:
+            identity = ctx.team.resolve(_session_cookie(request))
+            if identity is not None:
+                message["author"] = {
+                    "kind": "user",
+                    "username": identity.username,
+                    "role": identity.role,
+                }
+        result = await ctx.coordinator.submit_personal_message(
+            conversation_id,
+            message,
+            owner=owner,
+            request_id=payload.request_id,
+        )
+        response = result.to_dict()
+        if response.get("kind") == "recorded":
+            response["reply"] = None
+        return response
+
     return router
 
 
-__all__ = ["GLOBAL_CONVERSATION_ID", "GlobalMessageRequest", "build_conversations_router"]
+__all__ = [
+    "GLOBAL_CONVERSATION_ID",
+    "GlobalMessageRequest",
+    "PersonalMessageRequest",
+    "build_conversations_router",
+    "personal_conversation_id",
+]

@@ -387,3 +387,9 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.lg-files-workspace { display: flex; flex-direction: column; gap: 12px; min-height: 100%; }
+.lg-files-workspace > .lg-files { min-height: 480px; height: auto; flex: 1 0 auto; }
+.lg-task-directory { border-bottom: 1px solid var(--lg-color-border); padding: 8px; }
+.lg-task-directory__list { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; max-height: 200px; overflow-y: auto; }
+.lg-task-directory__list button { max-width: 100%; overflow-wrap: anywhere; }

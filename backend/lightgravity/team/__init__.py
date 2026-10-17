@@ -10,10 +10,14 @@ back to the existing :class:`~lightgravity.api.access.LocalAccessPolicy`.
 from __future__ import annotations
 
 from .accounts import (
+    DEFAULT_ADMIN_PASSWORD,
+    DEFAULT_ADMIN_USERNAME,
     PBKDF2_ITERATIONS,
     Account,
     TeamAccounts,
+    TeamAccountsConflictError,
     TeamAccountsError,
+    TeamAccountsLastAdminError,
     hash_password,
     verify_password,
 )
@@ -30,13 +34,17 @@ __all__ = [
     "ADMIN_ONLY_PREFIXES",
     "ANONYMOUS_PATHS",
     "COOKIE_NAME",
+    "DEFAULT_ADMIN_PASSWORD",
+    "DEFAULT_ADMIN_USERNAME",
     "PBKDF2_ITERATIONS",
     "PUBLIC_PATHS",
     "Account",
     "SessionRegistry",
     "TeamAccessPolicy",
     "TeamAccounts",
+    "TeamAccountsConflictError",
     "TeamAccountsError",
+    "TeamAccountsLastAdminError",
     "TeamAuthService",
     "TeamIdentity",
     "hash_password",

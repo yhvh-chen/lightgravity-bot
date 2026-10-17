@@ -151,22 +151,43 @@ def _describe(child: str, root_real: str) -> dict[str, Any] | None:
     }
 
 
-def _reject_secret(ctx: ApiContext, target: Path, original: str) -> None:
-    """Refuse any read/write whose resolved path is inside the secret store
-    or the controlled team-state directory (accounts are never exposed via
-    Files, even if the workspace root is misconfigured to contain them)."""
+def _is_protected(ctx: ApiContext, target: Path) -> bool:
+    """Keep control-store files out of Files, independent of user role."""
 
-    protected = [os.path.realpath(str(ctx.secret_store.directory))]
+    protected = [
+        ctx.secret_store.directory,
+        ctx.data_dir / "conversations",
+        # Personal replies also appear in the coordinator idempotency ledger.
+        ctx.data_dir / "coordinator",
+    ]
     if ctx.settings.team_mode:
-        protected.append(os.path.realpath(str(ctx.settings.team_root)))
-    resolved = os.path.realpath(str(target))
-    for root in protected:
-        if _within(resolved, root):
-            raise AppError(
-                ErrorCode.PATH_OUTSIDE_WORKSPACE,
-                "path resolves inside a protected store",
-                details={"path": original},
-            )
+        protected.append(ctx.settings.team_root)
+    candidates = (os.path.abspath(str(target)), os.path.realpath(str(target)))
+    return any(
+        _within(candidate, root)
+        for candidate in candidates
+        for path in protected
+        for root in (os.path.abspath(str(path)), os.path.realpath(str(path)))
+    )
+
+
+def _reject_secret(ctx: ApiContext, target: Path, original: str) -> None:
+    """Deny protected stores even when data/workspace roots overlap.
+
+    Conversation history is available only through owner-authorized chat APIs,
+    never raw Files access, including for administrators. Check both the supplied
+    path and its resolved target so directory/file aliases cannot bypass this.
+    """
+
+    supplied = Path(original)
+    if not supplied.is_absolute():
+        supplied = ctx.workspace_root / supplied
+    if _is_protected(ctx, supplied) or _is_protected(ctx, target):
+        raise AppError(
+            ErrorCode.PATH_OUTSIDE_WORKSPACE,
+            "path resolves inside a protected store",
+            details={"path": original},
+        )
 
 
 def _content_disposition(filename: str) -> str:
@@ -225,7 +246,7 @@ def _classify(relative: str) -> str:
     return _ARTIFACT_CATEGORIES.get(head, "other")
 
 
-def _scan_artifacts(root: Path, root_real: str) -> dict[str, list[dict[str, Any]]]:
+def _scan_artifacts(ctx: ApiContext, root: Path, root_real: str) -> dict[str, list[dict[str, Any]]]:
     categories: dict[str, list[dict[str, Any]]] = {
         "inputs": [],
         "candidates": [],
@@ -235,12 +256,14 @@ def _scan_artifacts(root: Path, root_real: str) -> dict[str, list[dict[str, Any]
     }
     scanned = 0
     for current, dirs, files in os.walk(root, followlinks=False):
-        dirs.sort()
+        dirs[:] = sorted(name for name in dirs if not _is_protected(ctx, Path(current) / name))
         files.sort()
         for name in files:
             if scanned >= _ARTIFACT_SCAN_LIMIT:
                 return categories
             child = os.path.join(current, name)
+            if _is_protected(ctx, Path(child)):
+                continue
             described = _describe(child, root_real)
             if described is None or described["type"] != "file":
                 continue
@@ -250,7 +273,7 @@ def _scan_artifacts(root: Path, root_real: str) -> dict[str, list[dict[str, Any]
 
 
 def _scan_evidence_root(
-    data_dir: Path, task_id: str, run_id: str | None = None
+    ctx: ApiContext, data_dir: Path, task_id: str, run_id: str | None = None
 ) -> list[dict[str, Any]]:
     """List canonical evidence artifacts under the Task's evidence root.
 
@@ -261,7 +284,7 @@ def _scan_evidence_root(
     """
 
     root = evidence_root(data_dir, task_id)
-    if not root.is_dir():
+    if _is_protected(ctx, root) or not root.is_dir():
         return []
     root_real = os.path.realpath(str(root))
     items: list[dict[str, Any]] = []
@@ -271,6 +294,8 @@ def _scan_evidence_root(
         if not run_dir.is_dir() or not _SAFE_RUN_NAME.match(run_dir.name):
             continue
         for child in sorted(run_dir.iterdir()):
+            if _is_protected(ctx, child):
+                continue
             if len(items) >= _ARTIFACT_SCAN_LIMIT:
                 return items
             described = _describe(str(child), root_real)
@@ -333,6 +358,7 @@ def _resolve_task_evidence(
             "evidence reference is not readable for this task/run",
             details={"evidence_ref": ref, "detail": str(exc)},
         ) from None
+    _reject_secret(ctx, target, str(target))
     return target, parsed.run_id, parsed.name
 
 
@@ -355,7 +381,10 @@ def build_files_router() -> APIRouter:
                 details={"path": path},
             )
         root_real = os.path.realpath(str(ctx.workspace_root))
-        children = sorted(os.fspath(child) for child in target.iterdir())
+        children = sorted(
+            os.fspath(child) for child in target.iterdir()
+            if not _is_protected(ctx, child)
+        )
         if cursor:
             children = [child for child in children if os.path.basename(child) > cursor]
         page = children[:limit]
@@ -621,7 +650,7 @@ def build_files_router() -> APIRouter:
         # root, which is *not* under the workspace root, so they are listed
         # independently of ``workspace_ref`` and carry their own authorized ref.
         evidence_entries: list[dict[str, Any]] = []
-        for entry in _scan_evidence_root(ctx.data_dir, task_id):
+        for entry in _scan_evidence_root(ctx, ctx.data_dir, task_id):
             evidence_entries.append(entry)
         result["evidence"] = evidence_entries
         result["categories"]["evidence"] = list(evidence_entries)
@@ -635,6 +664,7 @@ def build_files_router() -> APIRouter:
             return result
         try:
             root = ctx.store.resolve_path(workspace_ref, write=False)
+            _reject_secret(ctx, root, workspace_ref)
         except AppError as exc:
             result["note"] = f"Task workspace_ref is not accessible ({exc.code.value})."
             return result
@@ -642,7 +672,7 @@ def build_files_router() -> APIRouter:
             result["note"] = "Task workspace_ref directory does not exist."
             return result
         root_real = os.path.realpath(str(root))
-        result["categories"] = _scan_artifacts(root, root_real)
+        result["categories"] = _scan_artifacts(ctx, root, root_real)
         # Keep both: workspace-classified evidence files plus canonical evidence-root refs.
         result["categories"]["evidence"] = [
             *result["categories"]["evidence"],

@@ -1,21 +1,140 @@
----
-title: "LightGravity Bot"
-doc_type: overview
-category: project
-updated: "2026-10-16"
----
-
 # LightGravity Bot
 
 **Give your team bot the context and the goal. Get work you can inspect, review, and accept.**
 
-LightGravity Bot is an AI workspace for individuals and small teams. It brings source material, conversations, tasks, and deliverables together. Describe the outcome, let the system assemble AI workers as needed, and review the result after execution and independent checks.
+LightGravity Bot is a collaborative AI workspace with multi-agent orchestration and human-in-the-loop delivery, for individuals and small teams. It brings source material, conversations, tasks, and deliverables together. Describe the outcome, let the system assemble AI workers as needed, and review the result after execution and independent checks.
 
 Built on **Antigravity SDK**, with **EmbeddingGemma 2** as an optional semantic retrieval backend. Tasks and resources are defined in Markdown; working records and deliverables live in files you control.
 
-[Quick start](#quick-start) · [Team mode](#team-mode) · [Architecture](#architecture) · [Validation and limitations](#validation-and-limitations) · [Documentation](#documentation)
+[Installation preview](#installation-preview) · [Install and start](#install-and-start) · [Team mode](#team-mode) · [Architecture](#architecture) · [Validation and limitations](#validation-and-limitations)
 
-> **Development preview · October 16, 2026.** Real SDK delivery and shared team chat have separate validation records. Users have reported loading failures such as `Scope not found` and `Not Found` across several pages; investigation and fixes are pending. Navigation and chat simplification are also pending. The capabilities below distinguish implemented mechanisms, tested scenarios, and research directions.
+> **Local installation preview · October 17, 2026.** A prebuilt archive is available on the [installation preview release page](http://192.168.8.50:3000/admin/lightgravity-bot/releases/tag/install-preview-20261017). It was built from this public source tree and smoke-tested on **Linux x86_64**: install without Node.js or npm, isolated startup, health and HTML checks, then stop. This is not a cloud deployment, and **independent version QA is still pending**. The account-management and interface test results below come from the byte-identical product tree described in [Validation and limitations](#validation-and-limitations); they were not rerun for this publication.
+
+## Installation preview
+
+The release is a local installation preview. It installs a stable runtime and launcher, keeps data outside the application directory, and does not start the service.
+
+**Tested target:** Linux x86_64 only. Other operating systems and architectures are not claimed.
+
+**Requirements:**
+
+- Linux with Bash.
+- `uv` 0.12 or newer on `PATH`.
+- Network access so `uv` can download a managed CPython 3.12 runtime when needed and the packages pinned by `uv.lock`.
+- **No Node.js or npm for the prebuilt archive.** A source checkout without a built frontend needs Node.js 22 LTS and npm 10.
+
+Only the frontend is prebuilt. This is not an offline installer, and it does not deploy to a cloud environment.
+
+Release assets include:
+
+- `lightgravity-bot-<commit>-<timestamp>.tar.gz` — the prebuilt installation archive.
+- `lightgravity-bot-<commit>-<timestamp>.tar.gz.sha256` — the archive checksum.
+- `lightgravity-bot-<commit>-<timestamp>.MANIFEST.sha256` — per-file checksums inside the archive.
+
+Download them from the [installation preview release page](http://192.168.8.50:3000/admin/lightgravity-bot/releases/tag/install-preview-20261017).
+
+## Install and start
+
+### From the prebuilt release archive
+
+```bash
+# Download the archive and both companion checksum files from the release page.
+sha256sum -c lightgravity-bot-*.tar.gz.sha256
+
+tar -xzf lightgravity-bot-*.tar.gz
+cd lightgravity-bot-*/
+
+# Optional before installing: verify every archived file.
+sha256sum -c MANIFEST.sha256
+
+bash install.sh
+
+"$HOME/.local/opt/lightgravity-bot/bin/lightgravity" start
+```
+
+Open <http://127.0.0.1:8000/>. The installer does not start the service, does not enable LAN access, and does not ask for credentials. Stop it with:
+
+```bash
+"$HOME/.local/opt/lightgravity-bot/bin/lightgravity" stop
+```
+
+### From a source checkout
+
+```bash
+git clone http://192.168.8.50:3000/admin/lightgravity-bot.git
+cd lightgravity-bot
+bash install.sh
+"$HOME/.local/opt/lightgravity-bot/bin/lightgravity" start
+```
+
+A source checkout has no built frontend, so this path requires Node.js 22 and npm 10. The installer builds the frontend in a temporary staging directory without modifying the checkout.
+
+### Defaults and lifecycle
+
+| Purpose | Default |
+|---|---|
+| Application/runtime | `~/.local/opt/lightgravity-bot` |
+| Data root | `~/.local/share/lightgravity-bot` |
+| Task workspaces | `<data-root>/workspaces` |
+| Secret store | `~/.config/lightgravity-bot/secrets` |
+| Launcher configuration | `~/.config/lightgravity-bot/install.conf` |
+| Stable launcher | `<application>/bin/lightgravity` |
+
+The launcher works from any current directory. It supports `start`, `status`, and `stop`; add `--daemon` to `start` for a background process. Reinstalling updates application files while preserving external data, workspaces, secrets, accounts, and settings. Stop the installed service before reinstalling.
+
+For custom paths, ports, team mode, archive creation, troubleshooting, and preservation behavior, see the [installation guide](docs/install.md).
+
+### Connect a model
+
+1. Open **Settings → Models & Providers / Connections**, create a connection, and save its credentials through the protected form.
+2. Test the connection and set the coordinator and default worker connections.
+3. Configure an independent reviewer connection for delivery acceptance. Acceptance is blocked without an available reviewer.
+
+Protected interfaces store credential references. The currently validated generation path uses **DeepSeek** through the Antigravity SDK's OpenAI-compatible loopback proxy. Gemini and Vertex paths have not passed acceptance. The installer and this publication make no model calls.
+
+### Try a delivery
+
+Begin with a small, explicit task, such as generating a file in an authorized workspace. Inspect the task status, file contents, and review record before accepting the result or requesting changes.
+
+The service provides `lightgravity start / status / stop` lifecycle commands. Closing or disconnecting the browser does not cancel background tasks.
+
+## One team bot, two kinds of collaboration
+
+**People share the workspace.** In team mode, each person signs in with an individual account and shares chat, tasks, and sources. Ordinary group messages are saved without triggering the assistant; an explicit `@bot` invokes it. Messages inside a Task follow the task conversation rules.
+
+**AI workers form teams around tasks.** The system selects roles and skills, coordinates execution, and routes results through checks and independent review. AI members are created and released with a run, while task records and deliverables persist. Human accounts and AI members are distinct entities.
+
+**People review and accept the result.** Machine checks and independent model review precede user acceptance. Shared feedback is recorded; an automatic feedback-to-revision loop is a proposed extension, not current behavior.
+
+The team MVP has one shared workspace with administrator and member roles. Administrators manage accounts, models, and credentials. Personal chat is private to the signed-in user; Team conversations, tasks, and source material remain shared. Private tasks, private sources, and multi-tenant isolation are outside the current scope.
+
+## Team mode
+
+Team mode is off by default. Enable it explicitly during install:
+
+```bash
+bash install.sh --team
+```
+
+or at startup:
+
+```bash
+LIGHTGRAVITY_TEAM_MODE=1 "$HOME/.local/opt/lightgravity-bot/bin/lightgravity" start
+```
+
+When team mode starts with an empty account store, it creates the documented default login **`admin` / `admin123`** exactly once. Change that password immediately under **Settings → My Account**. Existing accounts and passwords are preserved across restarts and reinstalls. Administrators create other accounts under **Settings → Accounts**.
+
+Single-user mode remains the default when team mode is unset. Use the Personal/Team tabs above chat. In team mode, Personal supports private chat; switch to Team for shared tasks and material intake. In single-user mode, Personal retains task delivery, uploads, and source selection, while Team is disabled with an explanation.
+
+Administrators can list, create, enable or disable, change the role of, and reset passwords for accounts. Every signed-in user can change their own password. Changing or resetting a password, disabling an account, or changing its role invalidates that account's old sessions on the next request; open event streams recheck within approximately two seconds. The last active administrator cannot be disabled or demoted. Usernames are immutable, and there is no account deletion, invitation, or email self-registration.
+
+For a remote instance, each participant can use an SSH tunnel:
+
+```bash
+ssh -L 8000:127.0.0.1:8000 <server>
+```
+
+For a normal LAN browser, use account-based team mode, bind with `--host 0.0.0.0`, and add the exact server address with `--allow-host SERVER_IP`. Binding alone does not provide browser authentication in single-user mode: its initial document requires a same-origin runtime token; use an SSH tunnel to retain that mode. Host allowlisting and account authentication remain separate checks. The default listener is loopback.
 
 ## From context to delivery
 
@@ -38,15 +157,22 @@ Team assembly → Execution → Artifacts
 - **Inspect the work and its evidence.** Retain artifacts, code diffs, check results, and source bindings for review and revision.
 - **Keep control of your working files.** Markdown and YAML hold tasks and configuration, JSONL records messages and events, and retrieval indexes remain rebuildable caches.
 
-Start with a bounded development task in an authorized workspace, or reproduce the selected-source file delivery example. Research, documentation, and broader knowledge work are expansion directions; the evidence below defines the current tested scope.
+Start with a bounded development task in an authorized workspace, or reproduce the selected-source file delivery example. Research, documentation, and broader knowledge work are expansion directions; the tested scope remains bounded by the validation below.
 
-## One team bot, two kinds of collaboration
+## Agent capabilities and terminology
 
-**People share the workspace.** In team mode, each person signs in with an individual account and shares chat, tasks, and sources. Ordinary group messages are saved without triggering the assistant; an explicit `@bot` invokes it. Messages inside a Task follow the task conversation rules.
+These terms describe the current design and its boundaries. Validation remains specific to the scenarios in [Validation and limitations](#validation-and-limitations).
 
-**AI workers form teams around tasks.** The system selects roles and skills, coordinates execution, and routes results through checks and independent review. AI members are created and released with a run, while task records and deliverables persist. Human accounts and AI members are distinct entities.
+| Capability | What it means in LightGravity today |
+|---|---|
+| **Multi-Agent Orchestration** | Application code validates plans, selects roles, and schedules dependent subtasks. Workers execute assigned work; autonomous swarm coordination remains exploratory. |
+| **Human-in-the-Loop (HITL)** | People provide requirements and feedback, inspect evidence, and decide whether to accept or request changes. Successful execution alone does not complete acceptance. |
+| **Agentic Workflows** | Tasks connect planning, execution, checks, independent review, and acceptance through explicit state transitions. Reusable user-defined workflow templates and cross-task dependency management are proposed extensions. |
+| **Evaluation and bounded repair** | Machine checks and independent review gate delivery; repair is subject to configured limits and budgets. An evaluator–optimizer loop describes iterative generation and evaluation, not self-learning. Broader team-feedback-driven loops remain a proposed extension. |
+| **Context Engineering / Retrieval-Augmented Generation (RAG)** | Source intake, retrieval, and manually selected versioned text bindings provide task context. Retrieval indexes are rebuildable; optional semantic retrieval has documented quality limits. |
+| **Execution traceability** | Task/run records, events, artifacts, check results, and available usage records support inspection. This is a bounded foundation for agent observability, without a claim of complete tracing or cost coverage. |
 
-The current team MVP has one shared workspace with administrator and member roles. Administrators manage accounts, models, and credentials. All team material is shared; private messages, private sources, and multi-tenant isolation are outside the current scope.
+Proposed product extensions include feedback-to-change-list conversion, version comparison and inline artifact annotations, task following and acceptance handoff, reusable workflow templates, and scheduled or event-driven tasks. **Long-term shared memory** would require curated decisions and preferences that can be retrieved across tasks, with provenance and correction controls; stored chat history alone does not establish that capability. These directions are not delivery commitments or claims of current support.
 
 ## Task Ontology: a shared model of work
 
@@ -60,7 +186,7 @@ We use **Task Ontology** to describe LightGravity's explicit work model: the obj
 | Source / Artifact | Input material and deliverables, with versions and provenance |
 | Resources and acceptance records | Execution dependencies, check results, and user decisions |
 
-The current foundation is explicit schemas, stable references, and program-validated state transitions. Task Ontology describes this structure; general ontology reasoning, knowledge graph inference, and automatic business modeling are outside the current scope. See the [task and resource model](docs/02-task-and-sdk-resources.md) and [interface contract](docs/08-interface-contract.md).
+The current foundation is explicit schemas, stable references, and program-validated state transitions. Task Ontology describes this structure; general ontology reasoning, knowledge graph inference, and automatic business modeling are outside the current scope.
 
 ## Toward a governed, self-organizing swarm
 
@@ -91,124 +217,56 @@ Three constraints guide that work:
 
 You control the files and deployment environment. Model requests still go to the configured services; fully offline inference and plug-and-play support for arbitrary models are outside the current scope.
 
-## Quick start
-
-### Requirements
-
-- Python `>=3.12,<3.13`
-- uv `0.12.x`
-- Node.js `22 LTS`, npm `10.x`
-- GNU make for the shared development commands
-
-Run these commands from the repository root. They follow the existing startup workflow; see [current limitations](#validation-and-limitations) before trying the preview.
-
-### Install and start
-
-```bash
-uv sync
-npm --prefix frontend ci
-npm --prefix frontend run build
-
-uv run lightgravity start \
-  --data-dir ./bot-data \
-  --workspace-root ./bot-data/workspaces \
-  --secret-store ./secrets \
-  --host 127.0.0.1 --port 8000
-```
-
-Open `http://127.0.0.1:8000/`. Choose another port if it is already in use. Keep runtime data, workspaces, and secrets in separate directories. Credentials belong in protected configuration, outside the repository and conversations.
-
-### Connect a model
-
-1. Open **Settings → Models & Providers / Connections**, create a connection, and save its credentials.
-2. Test the connection and set the coordinator and default worker connections.
-3. Configure an independent reviewer connection for delivery acceptance. Acceptance is blocked without an available reviewer.
-
-Protected interfaces store credential references. See [model settings](docs/07-settings-and-models.md) for connection and default configuration. The existing validated path uses DeepSeek.
-
-### Try a delivery
-
-Begin with a small, explicit task, such as generating a file in an authorized workspace. Inspect the task status, file contents, and review record before accepting the result or requesting changes.
-
-The [selected-material guide](docs/11-selected-material-demo.md) and [sample sources](examples/selected-material-prototype/README.md) provide a reproducible source-binding and file-delivery example. The fixtures are human-written samples, with an independently verified real SDK lifecycle run. That result covers the documented scenario.
-
-The service provides `lightgravity start / status / stop` lifecycle commands. Closing or disconnecting the browser does not cancel background tasks.
-
-## Team mode
-
-Create accounts first. Passwords are entered interactively:
-
-```bash
-uv run lightgravity user add --username alice --role admin --data-dir ./bot-data
-uv run lightgravity user add --username bob --role member --data-dir ./bot-data
-```
-
-Explicitly enable team mode at startup:
-
-```bash
-LIGHTGRAVITY_TEAM_MODE=1 uv run lightgravity start \
-  --data-dir ./bot-data \
-  --workspace-root ./bot-data/workspaces \
-  --secret-store ./secrets \
-  --host 127.0.0.1 --port 8000
-```
-
-Open `http://127.0.0.1:8000/` and sign in. Single-user mode remains the default when `LIGHTGRAVITY_TEAM_MODE` is unset.
-
-For a remote instance, each participant can use an SSH tunnel:
-
-```bash
-ssh -L 8000:127.0.0.1:8000 <server>
-```
-
-Team messages synchronize through polling approximately every three seconds. Background tabs catch up when visible again; login sessions expire on service restart. The default listener is loopback. See the [interface contract](docs/08-interface-contract.md) for LAN deployment and access restrictions.
-
 ## Validation and limitations
 
-These are separate validation records as of October 16, 2026. Each report's scope and limitations apply.
+This is an installation and source preview, not a production-ready release or a completed independent version QA.
 
-| Area | Evidence | Scope |
-|---|---|---|
-| Selected-source delivery | Native text upload → SDK execution and verification nodes → independent model review → stop confirmation → acceptance API. Independent QA: PASS_WITH_LIMITATIONS. | One complete lifecycle on a frozen candidate. [Report](probes/prototype-selected-material-20261016/N-R3-LIFECYCLE/REPORT-N-R3-LIFECYCLE-20261016.md) |
-| Team collaboration | 58 real HTTP checks; two Firefox user contexts covering login, shared messages, and logout. Independent QA: PASS_WITH_LIMITATIONS. | This campaign used a deterministic responder and did not revalidate real-model delivery. [Report](probes/team-chat-20261016/qa/QA-REPORT.md) |
-| Source intake and retrieval | Integrated version QA for source processing, retrieval, and interface integration. | Quality samples are limited; historical Chinese image-retrieval failures remain recorded. Broad cross-modal quality is unproven. [Report](probes/lg040/TRANSITION-QA-20261016/REPORT.md) |
+**Installation publication checks (this build):** the public source tree was built into a prebuilt archive, extracted, and installed under a `PATH` without Node.js or npm on Linux x86_64. An isolated service start, health check, HTML/asset response, team login, and stop were verified. No product model calls were made. These checks establish the local installation path only.
+
+**Prior product validation carried forward with provenance:** the backend and frontend files in this distribution are byte-identical to the previously tested account-management product tree (contract 1.15.0). On that tree, independent QA passed with 30 delivered Chromium end-to-end tests, 18 independent browser checks, 3 navigation stability samples, 1,061 backend tests (2 skipped), 181 frontend tests, and 27 live ordinary-browser checks. Those suites and detailed reports are not included in this distribution and were not rerun for this publication.
 
 Current limitations:
 
-- **Page loading needs repair.** Users have reported failures in Files, Team, and Models & Providers. The cause is unverified. Navigation, search, chat, and personal/team switching changes are pending.
+- **Tested on Linux x86_64 only.** Other operating systems and architectures are not claimed.
+- **Independent version QA is pending.** Installation evidence is implementer-run smoke testing, not final version acceptance.
+- **No cloud deployment.** The installer prepares a local service; hosting, public access, and managed cloud operation are out of scope.
+- **One local source distribution is the baseline for this preview.** The isolated game-demo branch and its newer interface features are not merged into this baseline or claimed here.
+- **Browser coverage uses Chromium.** Firefox was not rerun. Single-user settings writes require the supported same-origin runtime token handshake; team mode uses authenticated account cookies.
 - **Source bindings record provided context.** Model citations have not been verified against individual source spans.
 - **Media support is bounded.** PDF and image processing use explicit OCR. ASR is unavailable; Chinese transcription awaits its quality gate. Office formats have not been comprehensively tested.
 - **Recovery is bounded.** Operations with unknown side effects are not automatically replayed. Complete checkpoint-skipping scheduling is not implemented.
-- **Integration, deployment, and acceptance are separate.** Local integration and historical QA do not establish that a running service is updated, a release is published, or final user acceptance has occurred.
+- **Integration, deployment, and acceptance are separate.** Local installation and historical QA do not establish that a running service is updated, a release is published in every environment, or final user acceptance has occurred.
+- **A project-wide license has not been selected.** Do not assume that dependency licenses grant rights to all repository content.
 
-## Development and contributions
+## Source layout and development
 
-Useful contributions include reproducible bug reports, real task samples, and improvements with explicit acceptance criteria. Include the version, reproduction steps, expected behavior, and actual result. Remove credentials and personal information from logs.
+- `backend/lightgravity/`: Python API, task coordination, storage, execution adapters, source processing, and runtime.
+- `frontend/src/`: React workspace interface.
+- `install.sh` and `scripts/build-release.sh`: local installer and prebuilt-archive packager.
+- `pyproject.toml` and `uv.lock`: Python package metadata and locked dependencies.
+- `frontend/package.json` and `frontend/package-lock.json`: frontend build dependencies.
+- `docs/install.md`: installation, lifecycle, and packaging details.
+- `THIRD-PARTY-NOTICES.md`: dependency provenance and license status.
+- `.env.example`: optional environment variable names with empty credential fields. Export variables explicitly; the service does not automatically load `.env`.
 
 ```bash
-make run               # Backend, default 127.0.0.1:8000
-make frontend-dev      # Frontend dev server, default 127.0.0.1:5173
-make check             # Backend type checks and tests
-make frontend-check    # Frontend type checks and tests
-make check-all         # Backend and frontend checks
+make run               # Backend on 127.0.0.1:8000
+make frontend-dev      # Frontend on 127.0.0.1:5173
+make frontend-type     # Frontend type check
 make frontend-build    # Frontend production build
+
+# Build a local prebuilt archive without modifying the checkout.
+bash scripts/build-release.sh [OUTPUT_DIR]
 ```
 
-Read [AGENTS.md](AGENTS.md) and [agent.md](agent.md) before development, plus [design.md](design.md) for frontend work. Configuration examples are in [.env.example](.env.example). Check the license of each dependency and reused component; upstream licenses do not establish a single license for all repository content.
+The packager requires Git, Node.js 22, npm 10, and uv. It includes the committed runtime source, locked dependencies, a frontend built from the same commit, the installer, the installation guide, and frontend license notices. It excludes tests, development records, runtime data, secrets, and build caches.
+
+Useful contributions include reproducible bug reports and improvements with explicit acceptance criteria. Include the version, reproduction steps, expected behavior, and actual result. Remove credentials and personal information from logs.
 
 ## Documentation
 
-Most detailed project documents are currently in Chinese; the selected-material example guide is in English.
+The detailed development documents are maintained outside this source distribution. The shipped installation guide is [docs/install.md](docs/install.md).
 
-| Entry | Contents |
-|---|---|
-| [Project handbook](PROJECT.md) · [Progress](PROGRESS.md) | Positioning, decisions, development history, and known issues |
-| [Backlog](BACKLOG.md) · [Roadmap](docs/06-roadmap.md) | Tasks, dependencies, and milestone acceptance |
-| [Architecture](docs/01-design.md) · [Tasks and resources](docs/02-task-and-sdk-resources.md) | Work model, module boundaries, and resource configuration |
-| [SDK audit](docs/03-sdk-capability-audit.md) · [Bot behavior](docs/04-bot-behavior.md) | Execution foundation, message routing, and runtime rules |
-| [Navigation](docs/05-navigation-and-team.md) · [Model settings](docs/07-settings-and-models.md) | Existing interface design, connections, and credentials; latest interface feedback takes precedence |
-| [Interface and state contract](docs/08-interface-contract.md) | Contract 1.13.0: APIs, state, permissions, and change history |
-| [Source intake and retrieval](docs/09-source-intake-and-retrieval.md) | Originals, derived content, indexes, and quality boundaries |
-| [Selected-material prototype](docs/10-selected-material-prototype.md) · [Example guide](docs/11-selected-material-demo.md) | Source binding and reproducible workflows |
+## License
 
-Execution builds on Antigravity SDK; optional vector retrieval uses EmbeddingGemma 2. See [agent.md](agent.md) for role-content and design references. Runtime does not depend on developer-machine copies of Olav OS or Olav Tasks.
+A project-wide license has not yet been selected for this source preview. Do not assume that dependency licenses grant rights to all repository content. Dependency licenses and any applicable notices continue to apply; see `THIRD-PARTY-NOTICES.md`.

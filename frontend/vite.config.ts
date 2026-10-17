@@ -1,9 +1,6 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// LG-002 owns this build/test wiring. The real application shell
-// (frontend/src/app, components, api, views) is implemented by LG-011+.
-//
 // Optional runtime overrides for local serving; defaults keep the original
 // loopback-only dev setup. Read via globalThis so this file stays type-safe
 // without a Node type dependency:
@@ -29,11 +26,5 @@ export default defineConfig({
       // backend sees a same-origin request; API auth headers are still required.
       '/api': { target: apiProxyTarget, changeOrigin: true },
     },
-  },
-  test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: ['./tests/setup.ts'],
-    include: ['tests/**/*.test.{ts,tsx}', 'src/**/*.test.{ts,tsx}'],
   },
 })
