@@ -378,6 +378,22 @@ class RunController:
 
         return self._writer.store.read("run", self._run_id).entity
 
+    def set_run_waiting_reason(self, reason: str | None) -> Versioned:
+        """Additive scheduling hint on the Run (never a state/phase value)."""
+
+        current = self._writer.store.read("run", self._run_id).entity
+        if current.get("waiting_reason") == reason:
+            return self._writer.store.read("run", self._run_id)
+        return self._writer.write_run(self._run_id, {"waiting_reason": reason})
+
+    def set_subtask_waiting_reason(self, subtask_id: str, reason: str | None) -> Versioned:
+        """Additive scheduling hint on a pending Subtask; no state transition."""
+
+        current = self._writer.read_subtask(subtask_id)
+        if current.entity.get("waiting_reason") == reason:
+            return current
+        return self._writer.write_subtask(subtask_id, {"waiting_reason": reason})
+
     def update_member(self, member_id: str, updates: dict[str, Any]) -> Versioned:
         """Write non-state Member fields (e.g. the resolved ``session_ref``).
 

@@ -25,17 +25,47 @@ ENV_TEAM_ACCOUNTS = "LIGHTGRAVITY_TEAM_ACCOUNTS"
 ENV_TEAM_SESSION_TTL_SECONDS = "LIGHTGRAVITY_TEAM_SESSION_TTL_SECONDS"
 ENV_TEAM_COOKIE_SECURE = "LIGHTGRAVITY_TEAM_COOKIE_SECURE"
 ENV_TEAM_BOT_MENTION = "LIGHTGRAVITY_TEAM_BOT_MENTION"
+# LG-126: global multi-Task capacity (non-secret, validated at startup).
+ENV_MAX_ACTIVE_TASKS = "LIGHTGRAVITY_MAX_ACTIVE_TASKS"
+ENV_MAX_GLOBAL_SESSIONS = "LIGHTGRAVITY_MAX_GLOBAL_SESSIONS"
+ENV_MAX_REVIEWER_SESSIONS = "LIGHTGRAVITY_MAX_REVIEWER_SESSIONS"
+ENV_MAX_PARALLEL_NODES_PER_TASK = "LIGHTGRAVITY_MAX_PARALLEL_NODES_PER_TASK"
 
 DEFAULT_DATA_DIR = "bot-data"
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8000
 DEFAULT_TEAM_SESSION_TTL_SECONDS = 28800
 DEFAULT_TEAM_BOT_MENTION = "@bot"
+DEFAULT_MAX_ACTIVE_TASKS = 2
+DEFAULT_MAX_GLOBAL_SESSIONS = 3
+DEFAULT_MAX_REVIEWER_SESSIONS = 1
+DEFAULT_MAX_PARALLEL_NODES_PER_TASK = 2
 _TEAM_TRUE = frozenset({"1", "true", "yes", "on"})
 
 
 def _truthy(value: str | None) -> bool:
     return value is not None and value.strip().lower() in _TEAM_TRUE
+
+
+def _positive_int(
+    source: Mapping[str, str],
+    name: str,
+    default: int,
+    *,
+    problems: list[str],
+) -> int:
+    raw = source.get(name)
+    if raw is None or not str(raw).strip():
+        return default
+    try:
+        value = int(str(raw).strip())
+    except ValueError:
+        problems.append(f"{name} must be an integer (actual={raw!r})")
+        return default
+    if value < 1:
+        problems.append(f"{name} must be >= 1 (actual={value})")
+        return default
+    return value
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,6 +93,13 @@ class Settings:
     team_session_ttl_seconds: int = DEFAULT_TEAM_SESSION_TTL_SECONDS
     team_cookie_secure: bool = False
     team_bot_mention: str = DEFAULT_TEAM_BOT_MENTION
+    # --- LG-126 global capacity.  These are bounded admission values, not a
+    # promise of unlimited concurrency.  ``from_env`` validates the joint rule
+    # ``max_active_tasks <= max_global_sessions - max_reviewer_sessions``.
+    max_active_tasks: int = DEFAULT_MAX_ACTIVE_TASKS
+    max_global_sessions: int = DEFAULT_MAX_GLOBAL_SESSIONS
+    max_reviewer_sessions: int = DEFAULT_MAX_REVIEWER_SESSIONS
+    max_parallel_nodes_per_task: int = DEFAULT_MAX_PARALLEL_NODES_PER_TASK
 
     @property
     def team_accounts_path(self) -> Path:
@@ -101,6 +138,42 @@ class Settings:
             session_ttl = DEFAULT_TEAM_SESSION_TTL_SECONDS
         if session_ttl <= 0:
             session_ttl = DEFAULT_TEAM_SESSION_TTL_SECONDS
+        capacity_problems: list[str] = []
+        max_active_tasks = _positive_int(
+            source, ENV_MAX_ACTIVE_TASKS, DEFAULT_MAX_ACTIVE_TASKS,
+            problems=capacity_problems,
+        )
+        max_global_sessions = _positive_int(
+            source, ENV_MAX_GLOBAL_SESSIONS, DEFAULT_MAX_GLOBAL_SESSIONS,
+            problems=capacity_problems,
+        )
+        max_reviewer_sessions = _positive_int(
+            source, ENV_MAX_REVIEWER_SESSIONS, DEFAULT_MAX_REVIEWER_SESSIONS,
+            problems=capacity_problems,
+        )
+        max_parallel_nodes_per_task = _positive_int(
+            source, ENV_MAX_PARALLEL_NODES_PER_TASK,
+            DEFAULT_MAX_PARALLEL_NODES_PER_TASK, problems=capacity_problems,
+        )
+        if max_reviewer_sessions > max_global_sessions:
+            capacity_problems.append(
+                f"{ENV_MAX_REVIEWER_SESSIONS} must be <= {ENV_MAX_GLOBAL_SESSIONS}"
+            )
+        if max_active_tasks > max_global_sessions - max_reviewer_sessions:
+            capacity_problems.append(
+                f"{ENV_MAX_ACTIVE_TASKS} must be <= "
+                f"{ENV_MAX_GLOBAL_SESSIONS} - {ENV_MAX_REVIEWER_SESSIONS}"
+            )
+        if capacity_problems:
+            from .store.errors import ConfigInvalid
+
+            raise ConfigInvalid(
+                "invalid multi-task capacity configuration",
+                diagnostics=[
+                    {"code": "capacity_invalid", "location": problem}
+                    for problem in capacity_problems
+                ],
+            )
         return cls(
             data_dir=data_dir,
             workspace_root=workspace_root,
@@ -113,6 +186,10 @@ class Settings:
             team_cookie_secure=_truthy(source.get(ENV_TEAM_COOKIE_SECURE)),
             team_bot_mention=source.get(ENV_TEAM_BOT_MENTION, DEFAULT_TEAM_BOT_MENTION)
             or DEFAULT_TEAM_BOT_MENTION,
+            max_active_tasks=max_active_tasks,
+            max_global_sessions=max_global_sessions,
+            max_reviewer_sessions=max_reviewer_sessions,
+            max_parallel_nodes_per_task=max_parallel_nodes_per_task,
         )
 
     def ensure_data_dir(self) -> Path:

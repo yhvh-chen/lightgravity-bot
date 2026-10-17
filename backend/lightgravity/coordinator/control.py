@@ -353,7 +353,7 @@ class ControlService:
                 phase=phase,
                 reason="no active Run to pause",
             )
-        if phase in {TaskPhase.CANCELLED.value, TaskPhase.COMPLETED.value}:
+        if phase == TaskPhase.COMPLETED.value:
             return ControlOutcome(
                 action=action,
                 state="not_applicable",
@@ -362,14 +362,48 @@ class ControlService:
                 phase=phase,
                 reason=f"Task already {phase}",
             )
-        self._writer.transition_task(task_id, TaskPhase.CANCELLED)
+        entity = self._store.read("task", task_id).entity
+        queue = entity.get("queue")
+        queue = queue if isinstance(queue, dict) else {}
+        if queue.get("state") == "claimed" and queue.get("owner") not in (None, self._owner):
+            return ControlOutcome(
+                action=action, state="unconfirmed", confirmed=False,
+                task_id=task_id, phase=phase,
+                reason="Task lease is held by another owner; cancellation not confirmed",
+            )
+        if phase == TaskPhase.CANCELLED.value and (
+            queue.get("state") == "not_queued"
+            and queue.get("owner") is None
+            and queue.get("lease_expires_at") is None
+            and queue.get("waiting_reason") is None
+        ):
+            return ControlOutcome(
+                action=action, state="not_applicable", confirmed=False,
+                task_id=task_id, phase=phase, reason=f"Task already {phase}",
+            )
+        # Cancellation before a Run opens has no SDK resource to stop, but its
+        # queue reservation/wait reason must end with the Task phase. Persist
+        # both facts in one controlled write, retaining order/time/extensions.
+        # A fresh cancel also repairs old already-cancelled queue bookkeeping;
+        # it never fabricates a Run or a session cleanup confirmation.
+        self._writer.transition_task(
+            task_id, TaskPhase.CANCELLED,
+            extra={"queue": {
+                "state": "not_queued", "owner": None,
+                "lease_expires_at": None, "waiting_reason": None,
+            }},
+        )
         return ControlOutcome(
             action=action,
             state="confirmed",
             confirmed=True,
             task_id=task_id,
             phase=TaskPhase.CANCELLED.value,
-            reason="cancelled before execution started",
+            reason=(
+                "already cancelled; stale queue bookkeeping cleared"
+                if phase == TaskPhase.CANCELLED.value
+                else "cancelled before execution started"
+            ),
         )
 
     # ---------------------------------------------------------------- resume

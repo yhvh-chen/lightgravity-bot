@@ -8,9 +8,9 @@ Built on **Antigravity SDK**, with **EmbeddingGemma 2** as an optional semantic 
 
 [Installation preview](#installation-preview) · [Install and start](#install-and-start) · [Automatic task teams](#automatic-task-teams) · [Swarm direction](#toward-a-governed-self-organizing-swarm) · [Team mode](#team-mode) · [Architecture](#architecture) · [Validation and limitations](#validation-and-limitations)
 
-> **Development source branch · October 18, 2026.** This branch, `development/task-teams-20261018`, is ahead of the published installation preview. It contains the reviewed development snapshot that combines the embedding settings, private Personal attachments, complete agency role library, and grouped task-team interface. It is a **source-only development branch**, not a new release, and it has **not** passed independent version QA. The published [installation preview](http://192.168.8.50:3000/admin/lightgravity-bot/releases/tag/install-preview-20261017) and its prebuilt archive remain the earlier preview; they were not rebuilt from this branch.
+> **Development source branch · October 18, 2026.** The branch `development/task-teams-20261018` is ahead of the published installation preview. It contains the accepted contract **1.18.0** source candidate for Chat and task teams: grouped task-scoped teams, real overlapping SDK tasks, confirmed stop and release, queue cancellation, private Personal attachment context, optional Embedding settings, and desktop/mobile UI. Independent final QA **passed within the documented bounded cases** on this accepted source (`94571a0`); that verdict is not user final acceptance, a release, or a deployment. This is a **source-only development branch**; the existing services were not updated. The published [installation preview](http://192.168.8.50:3000/admin/lightgravity-bot/releases/tag/install-preview-20261017) and its prebuilt archive remain the earlier preview and were not rebuilt from this branch.
 
-> **Publication scope.** This source distribution was exported from the development snapshot without its tests, probes, runtime data, credentials, project-management documents, or internal Git history. The branch and both private repositories remain private; authorized access is required. No service restart, installer run, model request, or live-data change was performed for this publication.
+> **Publication scope.** This source distribution was exported from the accepted development snapshot without its tests, probes, runtime data, credentials, project-management documents, or internal Git history. The branch and both private repositories remain private; authorized access is required. No service restart, installer run on live data, product model request, or live-data change was performed for this publication.
 
 ## Installation preview
 
@@ -91,12 +91,13 @@ For custom paths, ports, team mode, archive creation, troubleshooting, and prese
 1. Open **Settings → Models & Providers / Connections**, create a connection, and save its credentials through the protected form.
 2. Test the connection and set the coordinator and default worker connections.
 3. Configure an independent reviewer connection for delivery acceptance. Acceptance is blocked without an available reviewer.
+4. Optionally configure separate Embedding URL/model/key settings. Embedding is disabled by default; the final checks covered protocol and fallback behavior only, not vendor retrieval quality.
 
 Protected interfaces store credential references. The currently validated generation path uses **DeepSeek** through the Antigravity SDK's OpenAI-compatible loopback proxy. Gemini and Vertex paths have not passed acceptance. The installer and this publication make no model calls.
 
 ### Try a delivery
 
-Begin with a small, explicit task, such as generating a file in an authorized workspace. Inspect the task status, file contents, and review record before accepting the result or requesting changes.
+Begin with a small, explicit task, such as generating a file in an authorized workspace. Inspect the task status, file contents, and review record before accepting the result or requesting changes. In Personal chat, the composer can attach supported text files as owner-only context; unsupported binary content is not read and its status is shown to the model and the user.
 
 The service provides `lightgravity start / status / stop` lifecycle commands. Closing or disconnecting the browser does not cancel background tasks.
 
@@ -143,22 +144,24 @@ The current foundation is explicit schemas, stable references, and program-valid
 
 Delivery work uses task-scoped AI teams: choose roles for the goal, assign dependent work, check the result, and release execution resources after confirmed stop. Ordinary questions follow the direct-answer path. Each task keeps its conversation, members, artifacts, and history.
 
-The current development milestone extends the existing rule-based recruitment and stop-confirmation foundation. Its status below describes isolated development candidates and locally integrated source, **not the published release, the running service, or a version that has passed independent QA**.
+The current development milestone extends the existing rule-based recruitment and stop-confirmation foundation. Its status below describes the accepted isolated candidate and the bounded independent QA result, **not the running service or a released version**.
 
 | Feature | Current milestone status |
 |---|---|
-| **Default agency-agents library** | All 282 role files at the pinned upstream revision are packaged, with provenance, manifest hashes, and MIT license records. Available search, filters, and pagination are locally implemented and integrated; independent browser/version QA is pending. |
-| **Goal-based automatic recruitment** | General role matching across the library is in development. Existing basic recruitment does not establish that this extension has passed real-task validation. |
-| **A separate team for each task** | The grouped Recruited UI, Active/History views, local task filters, and explicit task navigation have passed local frontend checks. Backend capacity and group integration remain in development, and independent QA is pending. |
-| **Concurrent tasks and automatic release** | Global worker/reviewer capacity and per-task release are in development. Acceptance requires actual overlapping SDK tasks and confirmed stop; member failure alone does not prove release. Released teams retain history and artifacts. |
+| **Default agency-agents library** | 282 pinned upstream roles and their originals, provenance and MIT license are packaged; 275 are recruitable with the current tool set. Search, filters and pagination passed independent browser QA. |
+| **Goal-based automatic recruitment** | Deterministic goal-fit metadata ranking is implemented. Real SDK tasks selected different frontend and technical-writing roles; this does not establish autonomous or semantic recruitment. |
+| **A separate team for each task** | Recruited groups, Active/History views, task filters and task navigation passed independent real-backend/browser QA. Task conversations, members, sessions and artifacts remain separate. |
+| **Concurrent tasks and automatic release** | Real SDK tasks overlapped; one reached acceptance while the other continued. Confirmed stop preceded release; history and artifacts persisted. The tested single-process limits were 2 active tasks, 3 global sessions, 1 reviewer and 2 nodes per task. A third task queued and cancelled without starting a Run. |
 
-The source snapshot includes the grouped task-team interface and the packaged role library. It does **not** claim complete automatic recruitment, tested concurrent capacity, automatic production release, or an accepted self-organizing swarm. SDK auto-delegation and autonomous claiming remain disabled by default.
+The final independent QA report distinguishes fresh checks from audited evidence on unchanged code, preserves earlier failures, and states the remaining limits. The HTML delivery sample was a supplied-template regression; no production-scale or arbitrary-task guarantee is implied. QA remains bounded to the recorded samples and does not establish user final acceptance.
+
+Personal supports owner-only text attachment context, with a total 12,000-character context budget, at most 3 files, and 64 KiB of supported text per file. Unsupported binary content is not read; its status is provided to the model. The final real sample read the text code and correctly identified the unread binary. Settings → Models & Providers also includes separate optional embedding URL/model/key/test configuration. Embedding protocol and fallback checks used a labelled local HTTP fixture; vendor retrieval quality was not tested.
 
 ## Toward a governed, self-organizing swarm
 
 Our research direction is **agents that divide work around a shared goal and deliver reviewable results within explicit permissions and budgets.**
 
-Today, application code validates plans, assembles teams, schedules dependencies, and writes control state. Workers execute assigned work. Basic rule-based team assembly is implemented; the broader role-library and concurrent-team extension is described in [Automatic task teams](#automatic-task-teams). Autonomous claiming and collaboration requests are disabled by default; delegation inside the SDK is disabled. **Self-organizing swarm behavior remains an exploration direction**, not a current production capability or a claim of default concurrency.
+Today, application code validates plans, assembles teams, schedules dependencies, and writes control state. Workers execute assigned work. Basic rule-based team assembly is implemented; the broader role-library and concurrent-team extension is described in [Automatic task teams](#automatic-task-teams). Autonomous claiming and collaboration requests are disabled by default; delegation inside the SDK is disabled. **Self-organizing swarm behavior remains an exploration direction**, not a current production capability or a claim of default concurrency. The tested recruitment method is deterministic metadata ranking, not semantic retrieval or autonomous group formation.
 
 Three constraints guide that work:
 
@@ -237,27 +240,42 @@ You control the files and deployment environment. Model requests still go to the
 
 ## Validation and limitations
 
-This repository branch is a **development source snapshot**, not a production-ready release or a completed independent version QA. Its prebuilt release archive was not rebuilt from this branch.
+This repository branch is a **source-only development snapshot**, not a release, deployment, or user final acceptance. Its prebuilt release archive was not rebuilt from this branch. The existing services remain on their earlier version and were not updated by this publication.
 
-**Source and publication checks (this branch):** the exported source tree was parsed and built locally; the frontend production build and locked Python dependency check completed against the same source. The role library's 282 adapted templates and 282 original upstream Markdown files were checked against the manifest's SHA-256 and git blob hashes, and the wheel package was inspected to confirm that the role data, manifest, license, and notice are included. Secret, runtime-data, internal-path, and forbidden-path scans were run over the exported tree. No product model calls, installer run, service restart, or live-data change was performed for this publication.
+**Independent final QA on the accepted candidate:** the final independent PI verdict was **PASSED within the documented bounded scope**. The campaign used isolated data roots and ports, the candidate backend and frontend, and no mock response for the fresh private-context sample. It included:
 
-**Local integration status carried forward with provenance:** the implementation team's local checks for the combined development candidate passed, including frontend unit/type/build checks and backend API and settings checks. Those checks were run against isolated development data, not this exported branch, and their test files are not included in this distribution. They are implementation evidence, not independent version acceptance.
+- real SDK/model execution for two overlapping tasks (A and B), distinct roles, plans, sessions, workspaces, artifacts, reviewer results, confirmed stop, and operator Board acceptance;
+- a third task queued behind the active-task limit and cancelled without a Run, plus an ordinary-question path that created no task;
+- real desktop and 390 px browser checks of Chat, grouped team views, private attachment context labels, and the composer;
+- one bounded real Personal text-plus-unsupported-binary sample, with an independent no-network input capture showing the binary's actual status reached the model input;
+- local focused tests, full backend typing, frontend production build, and live API security checks.
+
+**What the result supports:** task-scoped grouped teams, deterministic metadata goal-fit recruitment, two overlapping real SDK tasks in one process (tested limits 2 active tasks / 3 global sessions / 1 reviewer / 2 nodes per task), confirmed reviewer/worker stop before release, queue cancellation, persisted history/artifacts, owner-only Personal text context, and the tested desktop/mobile UI paths.
+
+**What it does not support:** production-scale or multi-process capacity, autonomous or semantic recruitment, a complete self-organizing swarm, unlimited concurrency, or a guarantee that every future free-form model answer is correct. Task A's HTML artifact was byte-identical to the supplied regression template; it proves the real SDK tool and reviewer path, not a newly authored design. The private probe is one sample; the model invented a `file://` path in that reply, which is recorded as a model-quality limitation. Embedding checks were protocol/fallback checks against a labelled local fixture, not vendor retrieval quality; no OCR, ASR, or vendor embedding call was made in final QA.
+
+**Fresh versus reused evidence:** the private-attachment service, its focused tests, the final real Personal probe, browser smoke, typing, and build were fresh on the accepted bytes. The two-task SDK/Team run, stop/queue/Board behavior, and unchanged composer/Team/embedding UI evidence were independently re-audited and reused from the preceding R2 campaign because those product paths are byte-identical. They are not presented as a fresh rerun on the changed private-attachment service. Earlier full test suites were not rerun for this loop.
+
+**Source and publication checks (this branch):** the exported source tree was parsed and built locally; the frontend production build and locked Python dependency check completed against the same source. The role library's 282 adapted templates and 282 original upstream Markdown files were checked against the manifest's SHA-256 and git blob hashes, and the wheel package was inspected to confirm that the role data, manifest, license, and notice are included. Secret, runtime-data, internal-path, and forbidden-path scans were run over the exported tree. No product model call, installer run on live data, service restart, or live-data change was performed for this publication.
 
 **Prior product validation:** earlier account-management and interface milestones passed independent browser, backend, and frontend campaigns on their frozen candidates. Those suites and detailed reports are not included in this distribution and were not rerun for this branch.
 
 Current limitations:
 
-- **Independent version QA is pending.** Local integration checks and installation evidence are not final version acceptance.
+- **User final acceptance is separate.** Independent QA and operator Board acceptance are not the user's final acceptance, a release, or a deployment.
 - **This branch is ahead of the release.** The published prebuilt archive corresponds to an earlier source tree. Rebuilding and revalidating an archive from this branch is a separate action.
 - **Tested on Linux x86_64 only for the published preview.** Other operating systems and architectures are not claimed for this branch.
 - **No cloud deployment.** The installer prepares a local service; hosting, public access, and managed cloud operation are out of scope.
-- **Automatic teams and concurrency are incomplete.** General role matching, backend team/capacity integration, real overlapping SDK execution, and automatic release still require implementation and independent QA. No complete Swarm, self-organizing, or default production concurrency is claimed.
+- **Capacity and team behavior are bounded.** The tested single-process limit was 2 active tasks, 3 global sessions, 1 reviewer and 2 nodes per task. Multi-process admission and production concurrency are not implemented.
+- **Recruitment is deterministic metadata matching.** No semantic, autonomous, or self-organizing team formation is claimed.
 - **SDK auto-delegation and autonomous claiming are disabled by default.** Enabling them would require a separate scheduling, budget, and permission review.
-- **Browser coverage uses Chromium.** Firefox was not rerun. Single-user settings writes require the supported same-origin runtime token handshake; team mode uses authenticated account cookies.
+- **Browser coverage uses Chromium.** Firefox was not rerun for the final campaign. Single-user settings writes require the supported same-origin runtime token handshake; team mode uses authenticated account cookies.
 - **Source bindings record provided context.** Model citations have not been verified against individual source spans.
 - **Media support is bounded.** PDF and image processing use explicit OCR. ASR is unavailable; Chinese transcription awaits its quality gate. Office formats have not been comprehensively tested.
 - **Recovery is bounded.** Operations with unknown side effects are not automatically replayed. Complete checkpoint-skipping scheduling is not implemented.
-- **Integration, deployment, and acceptance are separate.** Local installation and historical QA do not establish that a running service is updated, a release is published in every environment, or final user acceptance has occurred.
+- **Embedding quality is unproven.** Optional Embedding settings are disabled by default; final checks covered a labelled local protocol fixture and fallback, not vendor retrieval quality.
+- **Private attachments are bounded.** Personal text context is owner-only, capped at 12,000 characters, 3 files, and 64 KiB per supported text file. Unsupported binary content is not read. One real sample does not guarantee future free-form model accuracy.
+- **Integration, deployment, and acceptance are separate.** Local QA does not establish that a running service is updated, a release is published in every environment, or final user acceptance has occurred.
 - **A project-wide license has not been selected.** Do not assume that dependency licenses grant rights to all repository content. The bundled agency-agents role library is MIT-licensed; see `THIRD-PARTY-NOTICES.md`.
 
 ## Source layout and development

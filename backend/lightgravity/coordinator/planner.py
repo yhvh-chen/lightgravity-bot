@@ -40,6 +40,105 @@ from .scheduler import DependencyGraph, GraphError, GraphNode
 
 _KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 
+#: LG-126 goal-fit capability rules.  These are deterministic programme rules,
+#: not a model proposal and not a fixed demo team.  They only choose *which*
+#: validated capability a node needs; the recruiter still selects a real
+#: executable role from metadata and the existing tool/auth gates stay intact.
+_WEB_SIGNAL_RE = re.compile(
+    r"\b(html|css|javascript|typescript|frontend|front-end|webpage|web[ -]?page|"
+    r"responsive|react|vue|svelte|ui|ux)\b|网页|页面|静态页|前端|界面|样式|响应式",
+    re.I,
+)
+_DESIGN_SIGNAL_RE = re.compile(
+    r"\b(design|visual|brand|layout|wireframe|mockup|poster|illustration)\b|"
+    r"设计|视觉|品牌|布局|线框|海报|插画",
+    re.I,
+)
+_WRITING_SIGNAL_RE = re.compile(
+    r"(?:\.md\b|\bmarkdown\b|\bdocument(?:ation)?\b|\breport\b|"
+    r"\bannouncement\b|\bcopywriting\b|\bcontent\b|\barticle\b|"
+    r"公告|文案|文档|报告|文章|说明文档|发布文案)",
+    re.I,
+)
+_REVIEW_SIGNAL_RE = re.compile(
+    r"\b(review|audit|inspection)\b|审查|评审|审计", re.I
+)
+_VERIFY_SIGNAL_RE = re.compile(
+    r"\b(verify|verification|validate|validation|qa|acceptance|test)\b|"
+    r"验证|核验|校验|验收|测试",
+    re.I,
+)
+_RESEARCH_SIGNAL_RE = re.compile(
+    r"\b(research|investigate|survey|compare|analysis)\b|调研|研究|分析|比较",
+    re.I,
+)
+
+_SIGNAL_BY_CAPABILITY: dict[str, re.Pattern[str]] = {
+    "design": _DESIGN_SIGNAL_RE,
+    "implementation": _WEB_SIGNAL_RE,
+    "writing": _WRITING_SIGNAL_RE,
+    "review": _REVIEW_SIGNAL_RE,
+    "verification": _VERIFY_SIGNAL_RE,
+    "research": _RESEARCH_SIGNAL_RE,
+}
+
+
+def goal_role_signals(text: str) -> tuple[str, ...]:
+    """Canonical role-applicability signals extracted deterministically.
+
+    Exposed so the recruiter can rank real role metadata (title/description/
+    category) against the same vocabulary instead of taking the first catalog
+    entry or a hardcoded game role.  It never grants a capability.
+    """
+
+    value = text or ""
+    signals: list[str] = []
+    if _WEB_SIGNAL_RE.search(value):
+        signals.extend(("frontend", "web", "ui"))
+    if _DESIGN_SIGNAL_RE.search(value):
+        signals.extend(("design", "ui", "visual", "layout"))
+    if _WRITING_SIGNAL_RE.search(value):
+        signals.extend(("writing", "document", "content", "copy"))
+    if _REVIEW_SIGNAL_RE.search(value):
+        signals.extend(("review", "audit", "quality"))
+    if _VERIFY_SIGNAL_RE.search(value):
+        signals.extend(("verification", "testing", "validation", "evidence"))
+    if _RESEARCH_SIGNAL_RE.search(value):
+        signals.extend(("research", "analysis", "investigation"))
+    seen: list[str] = []
+    for signal in signals:
+        if signal not in seen:
+            seen.append(signal)
+    return tuple(seen)
+
+
+def infer_goal_capability(
+    objective: str, acceptance: tuple[str, ...] | list[str] = ()
+) -> tuple[str, tuple[str, ...]]:
+    """Choose the deliver capability for a goal plus the signals that justified it.
+
+    Ordering is intentional: an explicit design/visual goal wins; a concrete web
+    implementation goal (HTML/CSS/frontend/静态页) is implementation so the
+    catalog can choose a real frontend role; document/announcement goals are
+    writing; review/verification goals keep their independent capability.  An
+    ordinary implementation goal stays ``implementation``.
+    """
+
+    text = "\n".join((objective or "", *[str(item) for item in acceptance]))
+    if _DESIGN_SIGNAL_RE.search(text) and not _WEB_SIGNAL_RE.search(text):
+        capability = "design"
+    elif _WEB_SIGNAL_RE.search(text):
+        capability = "implementation"
+    elif _WRITING_SIGNAL_RE.search(text):
+        capability = "writing"
+    elif _REVIEW_SIGNAL_RE.search(text):
+        capability = "review"
+    elif _VERIFY_SIGNAL_RE.search(text):
+        capability = "verification"
+    else:
+        capability = "implementation"
+    return capability, goal_role_signals(text)
+
 
 def stable_hash(payload: Any) -> str:
     """Deterministic SHA-256 over a JSON-serializable payload."""
@@ -292,9 +391,19 @@ class RuleBasedPlanner:
         *,
         implementation_capability: str = "implementation",
         verification_capability: str = "verification",
+        available_capabilities: Sequence[str] | None = None,
     ) -> None:
         self._implementation = implementation_capability
         self._verification = verification_capability
+        #: Optional scheduler catalog vocabulary.  When supplied, goal-fit only
+        #: selects a capability that the catalog can actually recruit; a legacy
+        #: implementation-only catalog keeps working instead of failing a
+        #: writing/design goal whose roles are not installed.
+        self._available_capabilities = (
+            frozenset(available_capabilities)
+            if available_capabilities is not None
+            else None
+        )
 
     async def plan(self, context: DispatchContext) -> PlanProposal:
         declared = tuple(context.acceptance_criteria)
@@ -305,11 +414,27 @@ class RuleBasedPlanner:
         # emitting a node that the validator must reject.  This supplies a
         # requirement to verify; it never asserts success.
         acceptance = declared or default_acceptance_criteria(context.objective)
+        goal_capability, signals = infer_goal_capability(
+            context.objective, acceptance
+        )
+        # A configured single implementation/verification planner may be used by
+        # tests/older assemblies.  Goal-fit only substitutes capabilities that
+        # this planner's contract can express; verification remains independent.
+        deliver_capability = (
+            goal_capability
+            if self._implementation == "implementation"
+            else self._implementation
+        )
+        if (
+            self._available_capabilities is not None
+            and deliver_capability not in self._available_capabilities
+        ):
+            deliver_capability = self._implementation
         subtasks: list[RawSubtask] = [
             RawSubtask(
                 key="deliver",
                 objective=context.objective,
-                capability=self._implementation,
+                capability=deliver_capability,
                 acceptance=acceptance,
                 write=True,
             )
@@ -329,10 +454,17 @@ class RuleBasedPlanner:
                     write=False,
                 )
             )
+        rationale = (
+            "goal-fit capability: "
+            f"{deliver_capability} (signals={','.join(signals) or 'generic'})"
+        )
         return PlanProposal(
             subtasks=tuple(subtasks),
             source="rules",
-            notes=("minimal rule plan: deliver + optional verify",),
+            notes=(
+                "minimal rule plan: deliver + optional verify",
+                rationale,
+            ),
         )
 
 
@@ -462,6 +594,8 @@ def _str_tuple(value: Any, field: str) -> tuple[str, ...]:
 
 __all__ = [
     "ModelPlanner",
+    "goal_role_signals",
+    "infer_goal_capability",
     "ModelProposalError",
     "Plan",
     "PlanInvalid",
