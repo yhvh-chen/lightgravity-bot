@@ -1,0 +1,15 @@
+{
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "width": 540,
+  "empty_draft_height": 617.5,
+  "filled_draft_height": 591.5,
+  "body": {
+    "clientHeight": 434,
+    "scrollHeight": 434,
+    "overflowY": "auto"
+  },
+  "note": "UI-VISUAL-FINDING target is approximately <=600px at 540px width; exact measured values are recorded, with no clipping or forced scrolling."
+}

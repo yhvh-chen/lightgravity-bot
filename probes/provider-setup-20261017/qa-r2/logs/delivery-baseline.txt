@@ -1,0 +1,60 @@
+# Delivery baseline (pre-change) 2026-10-17T12:08:47Z
+root_main_head: 85d009dbc0eecfc398d7f43a086cf20e1d90b63f
+root_dirty_count: 12
+--- root dirty file hashes ---
+6c3edc93e482ad8d95b496d6f6371c29f27b42e9afdf75570db4679563ffa3ae  .gitignore
+a6ae983d8206edd3d66b59214bb8f458aaf047482ad271aa7cc1fe54a3cae92d  BACKLOG.md
+4374a4d2d5f03567b8c75f65c3d3a84061b2f768abf491e0183a2af16b7003fb  PROGRESS.md
+9906967b3867b0017c3ade5890038106321eb2cd2fb0a2bdf0ccce10560343e6  PROJECT.md
+e82ecfb350633b2f485cd697b47c129c9139abafdbfbfb9b1914e64fc2260d27  README.md
+294ac4db5285054746379b33930574585ed2a58fa14614c516c36ca25970d9f2  agent.md
+217bcc695f4bd06bc0d233a6d83fef50a7f95b9aabf04036c393108c25a2d720  design.md
+04d028634b2442739a9e25464979866b7eec6d37aca7880e6b643b4da3be64c8  docs/01-design.md
+1db68ed7afa294fb8aaeaf3641ef16f42427c622bdcb31912dcde62f8e8044b0  docs/05-navigation-and-team.md
+d41d799be54e8378a06f658ddc532c0fd6ae94b66f55d8e239aa59b6745a1f18  docs/06-roadmap.md
+677add36032737d474bdab431887fdae927c8e87f790c848a755c965d432cf05  docs/07-settings-and-models.md
+ee0e4e75eb9cda0b69e06e5b609ab7ea037c21736729ef7c598c692f3cc915ba  docs/08-interface-contract.md
+--- 8123 pid record ---
+{
+  "data_dir": "/tmp/lg002-data",
+  "frontend_served": true,
+  "host": "0.0.0.0",
+  "pid": 2516844,
+  "port": 8123,
+  "started_at": "2026-10-17T10:46:34Z",
+  "token_source": "generated",
+  "version": "0.1.0"
+}
+--- 8123 health ---
+{"status":"ok","package_version":"0.1.0","contract_version":"1.16.0","schema_version":"lightgravity.bot/v1","capabilities":{"health":true,"version":true,"store":true,"coordinator":true,"events_sse":true,"settings":true,"files":true,"resources":true,"verification":true,"global_chat":true,"personal_chat":true,"accounts":true,"sdk_adapter":false}}
+--- 8123 process cmdline ---
+/home/yhvh/code/lightgravity-bot/.venv/bin/python3 /home/yhvh/code/lightgravity-bot/.venv/bin/lightgravity start --daemon --data-dir /tmp/lg002-data --workspace-root /tmp/lg002-data/workspaces --secret-store /home/yhvh/code/lightgravity-bot/secrets --frontend-dist /home/yhvh/code/lightgravity-bot/frontend/dist --host 0.0.0.0 --port 8123 --allow-host 192.168.8.50 --allow-host 192.168.8.105 --allow-host 0.0.0.0 --no-executor 
+--- protected services ---
+1597462 Sat Oct 17 14:52:13 2026 /home/yhvh/code/lightgravity-bot/.venv/bin/python3 /home/yhvh/code/lightgravity-bot/.venv/bin/lightgravity start --daemon --data-dir /home/yhvh/code/lightgravity-bot/probes/demo-team-game-20261017/data --workspace-root /home/yhvh/code/lightgravity-bot/probes/demo-team-game-20261017/data/workspaces --secret-store /home/yhvh/code/lightgravity-bot/probes/demo-team-game-20261017/secrets --frontend-dist /home/yhvh/code/lightgravity-bot/probes/demo-team-game-20261017/delivery/frontend-dist --host 0.0.0.0 --port 18123 --allow-host 127.0.0.1 --allow-host localhost --allow-host 192.168.8.50 --no-executor
+2332542 Sat Oct 17 20:10:25 2026 node /home/yhvh/code/lightgravity-bot/frontend/node_modules/.bin/vite --host 0.0.0.0 --port 5173
+2516844 Sat Oct 17 21:46:34 2026 /home/yhvh/code/lightgravity-bot/.venv/bin/python3 /home/yhvh/code/lightgravity-bot/.venv/bin/lightgravity start --daemon --data-dir /tmp/lg002-data --workspace-root /tmp/lg002-data/workspaces --secret-store /home/yhvh/code/lightgravity-bot/secrets --frontend-dist /home/yhvh/code/lightgravity-bot/frontend/dist --host 0.0.0.0 --port 8123 --allow-host 192.168.8.50 --allow-host 192.168.8.105 --allow-host 0.0.0.0 --no-executor
+--- live dist asset hashes ---
+2cf6a925158f98d414f7c6f41d811ec94140168a7fb85b6cb9199a3b584a640c  frontend/dist/index.html
+b46f2157939b7c2854552351e51c4ee53404a4a064c713e4368f4eb056374cf7  frontend/dist/assets/index-DgA-HVl-.css
+bdcfc93a40c4a2dc20f9e292093ec2deda5e2374acc2c5ffd76c97f0a10f0ac3  frontend/dist/assets/index-fFXL6xKA.js
+--- data inventory (paths+sizes only; no content) ---
+/tmp/lg002-data/locks/entity_agent_lg-default-worker.lock 0
+/tmp/lg002-data/locks/entity_tool_create-file.lock 0
+/tmp/lg002-data/locks/entity_tool_edit-file.lock 0
+/tmp/lg002-data/locks/entity_tool_view-file.lock 0
+/tmp/lg002-data/logs/lightgravity.log 336533
+/tmp/lg002-data/resources/agents/lg-default-worker.md 719
+/tmp/lg002-data/resources/tools/create-file.md 136
+/tmp/lg002-data/resources/tools/edit-file.md 130
+/tmp/lg002-data/resources/tools/view-file.md 130
+/tmp/lg002-data/runtime/lightgravity.json 211
+/tmp/lg002-data/team/accounts.json 377
+/tmp/lg002-data/team/accounts.json.lock 0
+--- generation dir ---
+total 0
+drwxrwxr-x  2 yhvh yhvh  40 Oct 16 23:52 .
+drwxrwxr-x 10 yhvh yhvh 200 Oct 17 08:56 ..
+--- team account file names only ---
+accounts.json
+accounts.json.lock
+team

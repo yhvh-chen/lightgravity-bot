@@ -1,0 +1,13 @@
+
+ RUN  v2.1.9 /home/yhvh/code/lightgravity-bot-worktrees/provider-qa-r2-20261017/frontend
+
+ ✓ tests/settings-auth.test.ts (4 tests) 79ms
+ ✓ tests/lg053-navigation-regression.test.tsx (6 tests) 249ms
+ ✓ tests/settings.test.tsx (8 tests) 775ms
+ ✓ tests/provider-setup.test.tsx (21 tests) 1486ms
+
+ Test Files  4 passed (4)
+      Tests  39 passed (39)
+   Start at  23:06:40
+   Duration  3.16s (transform 687ms, setup 500ms, collect 1.59s, tests 2.59s, environment 2.27s, prepare 454ms)
+

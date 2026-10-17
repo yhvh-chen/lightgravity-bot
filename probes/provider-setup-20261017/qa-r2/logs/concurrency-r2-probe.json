@@ -1,0 +1,243 @@
+{
+  "http_api": {
+    "http_agent_delete_first": {
+      "agent_connection_ref": null,
+      "connection_exists": false,
+      "dangling": false,
+      "delete": [
+        {
+          "body": "{\"deleted\":true,\"id\":\"api-agent-delete-first\"}",
+          "status": 200
+        }
+      ],
+      "patch": [
+        {
+          "body": "{\"error\":{\"code\":\"reference_invalid\",\"message\":\"agent 'qa-agent' references resources that do not resolve\",\"details\":{\"missing\":[\"connection:api-agent-delete-first\"]},\"retryable\":false,\"request_id\":null}}",
+          "status": 422
+        }
+      ],
+      "patch_blocked_while_delete_paused": true
+    },
+    "http_default_delete_first": {
+      "connection_exists": false,
+      "dangling": false,
+      "default_worker": null,
+      "delete": [
+        {
+          "body": "{\"deleted\":true,\"id\":\"api-default-delete-first\"}",
+          "status": 200
+        }
+      ],
+      "patch": [
+        {
+          "body": "{\"error\":{\"code\":\"reference_invalid\",\"message\":\"default worker connection 'api-default-delete-first' does not exist\",\"details\":{\"kind\":\"connection\",\"ref\":\"api-default-delete-first\",\"detail\":\"worker_default_missing\"},\"retryable\":false,\"request_id\":null}}",
+          "status": 422
+        }
+      ],
+      "patch_blocked_while_delete_paused": true
+    },
+    "http_default_writer_first": {
+      "connection_exists": true,
+      "dangling": false,
+      "default_worker": "api-default-writer-first",
+      "delete": [
+        {
+          "body": "{\"error\":{\"code\":\"reference_invalid\",\"message\":\"connection 'api-default-writer-first' is still referenced and cannot be deleted\",\"details\":{\"kind\":\"connection\",\"ref\":\"api-default-writer-first\",\"detail\":\"connection_still_referenced\",\"references\":{\"connection_id\":\"api-default-writer-first\",\"default_roles\":[\"worker\"],\"agent_refs\":[]}},\"retryable\":false,\"request_id\":null}}",
+          "status": 422
+        }
+      ],
+      "delete_blocked_while_writer_paused": true,
+      "patch": [
+        {
+          "body": "{\"revision\":3,\"exists\":true,\"content_hash\":\"f3f8a7c58ea6e3ec3ff796f2c3f281c490c7d676940b1dbe8ea19ff85e945be8\",\"default_coordinator_connection_ref\":\"qa-deepseek\",\"default_worker_connection_ref\":\"api-default-writer-first\",\"default_reviewer_connection_ref\":null,\"decentralized_claim_enabled\":false,\"collab_requests_enabled\":false,\"claim_lease_seconds\":300,\"defaults\":{\"coordinator\":{\"id\":\"qa-deepseek\",\"",
+          "status": 200
+        }
+      ]
+    }
+  },
+  "lock_contention": {
+    "hangs": 0,
+    "lock_conflict_errors": [],
+    "note": "A LockConflict must never be reported as a successful delete.",
+    "rounds": 12,
+    "success_with_missing_entity_or_dangling": 0
+  },
+  "natural_agent": {
+    "dangling_observed": 0,
+    "delete_reported_success_but_connection_still_present": 0,
+    "first_dangling": null,
+    "iterations": 120,
+    "outcomes": {
+      "agent_bound": 63,
+      "agent_error:AppError": 57,
+      "delete_error:ConnectionReferenceInvalid": 63,
+      "deleted": 57
+    }
+  },
+  "natural_default": {
+    "dangling_observed": 0,
+    "delete_reported_success_but_connection_still_present": 0,
+    "first_dangling": null,
+    "iterations": 200,
+    "outcomes": {
+      "default_error:ConnectionReferenceInvalid": 87,
+      "default_set": 113,
+      "delete_error:ConnectionReferenceInvalid": 113,
+      "deleted": 87
+    }
+  },
+  "production_host_controls": {
+    "deepseek_positive_default_worker": "deepseek-positive",
+    "note": "Production host allowlist/proxy policy is unchanged by the modal work.",
+    "rejected": {
+      "http://127.0.0.1:9/v1": {
+        "default_error": "ConnectionReferenceInvalid:reference_invalid",
+        "default_worker_after": null,
+        "executable_capability": false,
+        "proxy_error": "CapabilityUnavailable:capability_unavailable"
+      },
+      "https://api.deepseek.com.evil.example/v1": {
+        "default_error": "ConnectionReferenceInvalid:reference_invalid",
+        "default_worker_after": null,
+        "executable_capability": false,
+        "proxy_error": "CapabilityUnavailable:capability_unavailable"
+      },
+      "https://api.deepseek.com@evil.example/v1": {
+        "default_error": "ConnectionReferenceInvalid:reference_invalid",
+        "default_worker_after": null,
+        "executable_capability": false,
+        "proxy_error": "CapabilityUnavailable:capability_unavailable"
+      },
+      "https://custom.example/v1": {
+        "default_error": "ConnectionReferenceInvalid:reference_invalid",
+        "default_worker_after": null,
+        "executable_capability": false,
+        "proxy_error": "CapabilityUnavailable:capability_unavailable"
+      }
+    }
+  },
+  "raw_store_bypass": {
+    "connection_exists": false,
+    "dangling_raw_agent": true,
+    "delete_errors": [],
+    "label": "OUTSIDE supported guarantee: raw FileStore write bypasses the controlled services",
+    "note": "A dangling reference here is expected and is not a product regression: the fix serializes supported controlled writers only.",
+    "raw_store_result": "raw_agent_created",
+    "references": {
+      "agent_refs": [
+        "raw-agent"
+      ],
+      "connection_id": "race-raw",
+      "default_roles": []
+    }
+  },
+  "service_agent_delete_first": {
+    "binding": "agent",
+    "case": "delete_wins",
+    "connection_exists": false,
+    "dangling_agent": false,
+    "dangling_default": false,
+    "delete_result": [
+      {
+        "deleted": true,
+        "id": "race-agent"
+      }
+    ],
+    "references": {
+      "agent_refs": [],
+      "connection_id": "race-agent",
+      "default_roles": []
+    },
+    "settings_default_worker": null,
+    "writer_result": [
+      {
+        "error": "AppError",
+        "message": "agent 'race-agent' references resources that do not resolve",
+        "status": "rejected"
+      }
+    ],
+    "writer_was_blocked_while_delete_held_shared_lock": true
+  },
+  "service_agent_writer_first": {
+    "binding": "agent",
+    "case": "writer_wins",
+    "connection_exists": true,
+    "dangling_agent": false,
+    "dangling_default": false,
+    "delete_result": [
+      {
+        "error": "ConnectionReferenceInvalid",
+        "message": "connection 'race-agent' is still referenced and cannot be deleted"
+      }
+    ],
+    "delete_was_blocked_while_writer_held_shared_lock": true,
+    "references": {
+      "agent_refs": [
+        "race-agent"
+      ],
+      "connection_id": "race-agent",
+      "default_roles": []
+    },
+    "settings_default_worker": null,
+    "writer_result": [
+      {
+        "status": "committed"
+      }
+    ]
+  },
+  "service_default_delete_first": {
+    "binding": "default",
+    "case": "delete_wins",
+    "connection_exists": false,
+    "dangling_agent": false,
+    "dangling_default": false,
+    "delete_result": [
+      {
+        "deleted": true,
+        "id": "race-default"
+      }
+    ],
+    "references": {
+      "agent_refs": [],
+      "connection_id": "race-default",
+      "default_roles": []
+    },
+    "settings_default_worker": null,
+    "writer_result": [
+      {
+        "error": "ConnectionReferenceInvalid",
+        "message": "default worker connection 'race-default' does not exist",
+        "status": "rejected"
+      }
+    ],
+    "writer_was_blocked_while_delete_held_shared_lock": true
+  },
+  "service_default_writer_first": {
+    "binding": "default",
+    "case": "writer_wins",
+    "connection_exists": true,
+    "dangling_agent": false,
+    "dangling_default": false,
+    "delete_result": [
+      {
+        "error": "ConnectionReferenceInvalid",
+        "message": "connection 'race-default' is still referenced and cannot be deleted"
+      }
+    ],
+    "delete_was_blocked_while_writer_held_shared_lock": true,
+    "references": {
+      "agent_refs": [],
+      "connection_id": "race-default",
+      "default_roles": [
+        "worker"
+      ]
+    },
+    "settings_default_worker": "race-default",
+    "writer_result": [
+      {
+        "status": "committed"
+      }
+    ]
+  },
+  "source_head": "c477bb1fc1e337f56b781ed357d6b211ab380889"
+}

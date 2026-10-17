@@ -1,0 +1,512 @@
+{
+  "anonymous_statuses": {
+    "delete": 401,
+    "draft": 401,
+    "get_connections": 401,
+    "get_settings": 401
+  },
+  "base_url": "http://127.0.0.1:34931",
+  "budgets": {
+    "cap0": {
+      "native_calls": 0,
+      "network": {
+        "detail": "global generation budget exhausted (count=0 limit=0)",
+        "duration_ms": null,
+        "name": "runtime_network",
+        "status": "skipped"
+      }
+    },
+    "corrupt": {
+      "native_calls": 0,
+      "network": {
+        "detail": "global generation ledger is corrupt; refusing the network request (fail closed)",
+        "duration_ms": null,
+        "name": "runtime_network",
+        "status": "skipped"
+      }
+    }
+  },
+  "cross_origin": {
+    "body": "{\"error\":{\"code\":\"unauthorized\",\"message\":\"credential-bearing endpoints accept only same-origin or loopback origins\",\"details\":{\"origin_host\":\"evil.example\"},\"retryable\":false,\"request_id\":null}}",
+    "status": 401
+  },
+  "custom_host_blocked": {
+    "canary_in_error": false,
+    "message": "upstream host '127.0.0.1' is not authorized",
+    "raised": true,
+    "type": "CapabilityUnavailable",
+    "upstream_delta": 0
+  },
+  "data_dir": "/tmp/lg112-http-probe-nev4e2j1/data",
+  "default_gates": {
+    "custom": {
+      "code": "reference_invalid",
+      "detail": "worker_default_unverified",
+      "status": 422
+    },
+    "gemini": {
+      "code": "reference_invalid",
+      "detail": "worker_default_unverified",
+      "status": 422
+    }
+  },
+  "delete": {
+    "deleted": {
+      "body": {
+        "deleted": true,
+        "id": "qa-deletable"
+      },
+      "status": 200
+    },
+    "missing": {
+      "code": "not_found",
+      "status": 404
+    },
+    "secret_file_preserved": true,
+    "wrong_revision": {
+      "code": "revision_conflict",
+      "status": 409
+    }
+  },
+  "draft_concurrent": {
+    "authorizations": [
+      "Bearer sk-concurrent-b",
+      "Bearer sk-concurrent-a"
+    ],
+    "generation_delta": 2,
+    "overalls": [
+      "verified",
+      "verified"
+    ],
+    "statuses": [
+      200,
+      200
+    ],
+    "upstream_delta": 2
+  },
+  "draft_failure": {
+    "canary_in_response": false,
+    "network": [
+      {
+        "detail": "upstream status 500 (proxy stop confirmed=True)",
+        "duration_ms": 51.144000000000005,
+        "name": "runtime_network",
+        "status": "failed"
+      }
+    ],
+    "overall": "failed",
+    "status": 200
+  },
+  "draft_network": {
+    "canary_in_data": [],
+    "canary_in_response": false,
+    "generation_delta": 1,
+    "layers": [
+      {
+        "detail": "backend=openai-compat auth_mode=proxy_api_key model=qa-echo sdk_config=constructed(unauthenticated)",
+        "duration_ms": null,
+        "name": "config_parse",
+        "status": "passed"
+      },
+      {
+        "detail": "source=transient_request_memory",
+        "duration_ms": null,
+        "name": "credential",
+        "status": "passed"
+      },
+      {
+        "detail": "sdk=0.1.22 installed=True probe_verified=openai_compat unverified=gemini,vertex",
+        "duration_ms": null,
+        "name": "capability",
+        "status": "declared"
+      },
+      {
+        "detail": "model=qa-echo upstream_model=qa-echo proxy_calls=1 stop_confirmed=True",
+        "duration_ms": 51.196,
+        "name": "runtime_network",
+        "status": "passed"
+      },
+      {
+        "detail": "not requested",
+        "duration_ms": null,
+        "name": "tool_probe",
+        "status": "skipped"
+      },
+      {
+        "detail": "not requested",
+        "duration_ms": null,
+        "name": "structured_output",
+        "status": "skipped"
+      }
+    ],
+    "overall": "verified",
+    "snapshot_diff": {
+      "added": [],
+      "changed": [],
+      "removed": []
+    },
+    "status": 200,
+    "upstream_authorization": "Bearer sk-network-canary-do-not-persist-112",
+    "upstream_body": "{\"model\": \"qa-echo\", \"messages\": [{\"role\": \"user\", \"content\": \"ping\"}], \"max_tokens\": 1, \"stream\": false}",
+    "upstream_delta": 1,
+    "upstream_model": "qa-echo",
+    "upstream_path": "/v1/chat/completions"
+  },
+  "draft_repeat": {
+    "overalls": [
+      "verified",
+      "verified"
+    ],
+    "statuses": [
+      200,
+      200
+    ],
+    "upstream_delta": 2
+  },
+  "draft_static": {
+    "canary_in_data": [],
+    "canary_in_response": false,
+    "connection_id": null,
+    "connection_revision": null,
+    "draft": true,
+    "layers": [
+      {
+        "detail": "backend=gemini auth_mode=api_key model=gemini-3.8-flash sdk_config=constructed(unauthenticated) (not the first-version executable task backend)",
+        "duration_ms": null,
+        "name": "config_parse",
+        "status": "passed"
+      },
+      {
+        "detail": "source=transient_request_memory",
+        "duration_ms": null,
+        "name": "credential",
+        "status": "passed"
+      },
+      {
+        "detail": "sdk=0.1.22 installed=True probe_verified=openai_compat unverified=gemini,vertex",
+        "duration_ms": null,
+        "name": "capability",
+        "status": "declared"
+      },
+      {
+        "detail": "network test not requested (allow_network=false)",
+        "duration_ms": null,
+        "name": "runtime_network",
+        "status": "skipped"
+      },
+      {
+        "detail": "not requested",
+        "duration_ms": null,
+        "name": "tool_probe",
+        "status": "skipped"
+      },
+      {
+        "detail": "not requested",
+        "duration_ms": null,
+        "name": "structured_output",
+        "status": "skipped"
+      }
+    ],
+    "overall": "not_run",
+    "snapshot_diff": {
+      "added": [],
+      "changed": [],
+      "removed": []
+    },
+    "status": 200,
+    "upstream_delta": 0
+  },
+  "health": 200,
+  "litert": {
+    "config": [
+      {
+        "detail": "backend=litert auth_mode=none model=None sdk_config=constructed(unauthenticated) litert_package=False model_file=True static_only=true (not the first-version executable task backend)",
+        "duration_ms": null,
+        "name": "config_parse",
+        "status": "passed"
+      }
+    ],
+    "network": [
+      {
+        "detail": "LiteRT is static-only in this build; no install, download or inference was attempted",
+        "duration_ms": null,
+        "name": "runtime_network",
+        "status": "skipped"
+      }
+    ],
+    "overall": "not_run",
+    "status": 200
+  },
+  "member_accounts_admin": 403,
+  "member_my_account": 404,
+  "member_statuses": {
+    "delete": 403,
+    "draft": 403,
+    "get_connections": 403,
+    "get_settings": 403
+  },
+  "native_sdk_protocol": {
+    "gemini_http": {
+      "network": [
+        {
+          "detail": "model=gemini-3.8-flash budget_reserved=true endpoint=loopback_test_fake model_response=received stop_confirmed=True max_model_calls=1 tools=none retries=0",
+          "duration_ms": 152.754,
+          "name": "runtime_network",
+          "status": "passed"
+        }
+      ],
+      "overall": "verified",
+      "status": 200
+    },
+    "note": "installed SDK against controlled loopback fake Gemini; not a real vendor",
+    "upstream": [
+      {
+        "authorization": "sk-qa-gemini-native-dummy",
+        "model": "gemini-3.8-flash",
+        "path": "/v1beta/models/gemini-3.8-flash:streamGenerateContent"
+      }
+    ],
+    "vertex_adc_http_missing_prereq": {
+      "credential": [
+        {
+          "detail": "ADC is environment-owned; static prerequisite=False (ADC credential file not detected); no gcloud/metadata request made",
+          "duration_ms": null,
+          "name": "credential",
+          "status": "declared"
+        }
+      ],
+      "network": [
+        {
+          "detail": "ADC prerequisite not detected; no gcloud or metadata request was made (ADC credential file not detected)",
+          "duration_ms": null,
+          "name": "runtime_network",
+          "status": "skipped"
+        }
+      ],
+      "overall": "not_run",
+      "status": 200
+    },
+    "vertex_adc_injected_seam": {
+      "credential_is_none": true,
+      "endpoint": "http://127.0.0.1:39977",
+      "native_calls": 1,
+      "network": {
+        "detail": "model=gemini-3.8-flash budget_reserved=true endpoint=loopback_test_fake fake ADC probe stop_confirmed=True",
+        "duration_ms": 0.17300000000000001,
+        "name": "runtime_network",
+        "status": "passed"
+      },
+      "note": "adc_available=True is a QA static-prerequisite injection only",
+      "overall": "verified"
+    }
+  },
+  "referenced_delete": {
+    "agent_unchanged": true,
+    "error": {
+      "code": "reference_invalid",
+      "details": {
+        "detail": "connection_still_referenced",
+        "kind": "connection",
+        "ref": "qa-deepseek",
+        "references": {
+          "agent_refs": [
+            "qa-agent"
+          ],
+          "connection_id": "qa-deepseek",
+          "default_roles": [
+            "coordinator",
+            "worker"
+          ]
+        }
+      },
+      "message": "connection 'qa-deepseek' is still referenced and cannot be deleted",
+      "request_id": null,
+      "retryable": false
+    },
+    "settings_unchanged": true,
+    "status": 422,
+    "still_exists": 200
+  },
+  "request_log_tail": [
+    {
+      "has_cookie": true,
+      "method": "GET",
+      "origin": null,
+      "path": "/api/v1/settings/connections/qa-tested",
+      "query": "",
+      "status": 200
+    },
+    {
+      "has_cookie": true,
+      "method": "GET",
+      "origin": null,
+      "path": "/api/v1/settings",
+      "query": "",
+      "status": 200
+    },
+    {
+      "has_cookie": true,
+      "method": "PATCH",
+      "origin": null,
+      "path": "/api/v1/settings",
+      "query": "",
+      "status": 422
+    },
+    {
+      "has_cookie": true,
+      "method": "PATCH",
+      "origin": null,
+      "path": "/api/v1/settings",
+      "query": "",
+      "status": 422
+    },
+    {
+      "has_cookie": true,
+      "method": "POST",
+      "origin": null,
+      "path": "/api/v1/settings/connections",
+      "query": "",
+      "status": 201
+    },
+    {
+      "has_cookie": true,
+      "method": "DELETE",
+      "origin": null,
+      "path": "/api/v1/settings/connections/qa-deletable",
+      "query": "",
+      "status": 409
+    },
+    {
+      "has_cookie": true,
+      "method": "DELETE",
+      "origin": null,
+      "path": "/api/v1/settings/connections/qa-deletable",
+      "query": "",
+      "status": 200
+    },
+    {
+      "has_cookie": true,
+      "method": "DELETE",
+      "origin": null,
+      "path": "/api/v1/settings/connections/qa-deletable",
+      "query": "",
+      "status": 404
+    },
+    {
+      "has_cookie": true,
+      "method": "GET",
+      "origin": null,
+      "path": "/api/v1/settings",
+      "query": "",
+      "status": 200
+    },
+    {
+      "has_cookie": true,
+      "method": "GET",
+      "origin": null,
+      "path": "/api/v1/resources/agent/qa-agent",
+      "query": "",
+      "status": 200
+    },
+    {
+      "has_cookie": true,
+      "method": "GET",
+      "origin": null,
+      "path": "/api/v1/settings/connections/qa-deepseek",
+      "query": "",
+      "status": 200
+    },
+    {
+      "has_cookie": true,
+      "method": "DELETE",
+      "origin": null,
+      "path": "/api/v1/settings/connections/qa-deepseek",
+      "query": "",
+      "status": 422
+    },
+    {
+      "has_cookie": true,
+      "method": "GET",
+      "origin": null,
+      "path": "/api/v1/settings",
+      "query": "",
+      "status": 200
+    },
+    {
+      "has_cookie": true,
+      "method": "GET",
+      "origin": null,
+      "path": "/api/v1/resources/agent/qa-agent",
+      "query": "",
+      "status": 200
+    },
+    {
+      "has_cookie": true,
+      "method": "GET",
+      "origin": null,
+      "path": "/api/v1/settings/connections/qa-deepseek",
+      "query": "",
+      "status": 200
+    },
+    {
+      "has_cookie": true,
+      "method": "POST",
+      "origin": null,
+      "path": "/api/v1/settings/connections/test-draft",
+      "query": "",
+      "status": 422
+    },
+    {
+      "has_cookie": true,
+      "method": "POST",
+      "origin": "https://evil.example",
+      "path": "/api/v1/settings/connections/test-draft",
+      "query": "",
+      "status": 401
+    },
+    {
+      "has_cookie": true,
+      "method": "POST",
+      "origin": null,
+      "path": "/api/v1/settings/connections/test-draft",
+      "query": "",
+      "status": 200
+    },
+    {
+      "has_cookie": true,
+      "method": "POST",
+      "origin": null,
+      "path": "/api/v1/settings/connections/test-draft",
+      "query": "",
+      "status": 200
+    },
+    {
+      "has_cookie": true,
+      "method": "POST",
+      "origin": null,
+      "path": "/api/v1/settings/connections/test-draft",
+      "query": "",
+      "status": 200
+    }
+  ],
+  "saved_test": {
+    "connection_id": "qa-tested",
+    "draft": false,
+    "last_test": {
+      "connection_revision": 0,
+      "credential_version": "cred_92d2434c9b29",
+      "finished_at": "2026-10-17T12:05:34Z",
+      "overall": "not_run",
+      "test_id": "ctest_4929d5b3afbd45e8"
+    },
+    "revision": 0,
+    "status": 200
+  },
+  "upstream_base_url": "http://127.0.0.1:39977",
+  "upstream_log_lines": 8,
+  "validation_redaction": {
+    "body": "{\"error\":{\"code\":\"validation_failed\",\"message\":\"request failed schema validation\",\"details\":{\"errors\":[{\"type\":\"extra_forbidden\",\"loc\":[\"body\",\"unexpected_field\"],\"msg\":\"Extra inputs are not permitted\"}]},\"retryable\":false,\"request_id\":null}}",
+    "canary_in_response": false,
+    "status": 422
+  }
+}

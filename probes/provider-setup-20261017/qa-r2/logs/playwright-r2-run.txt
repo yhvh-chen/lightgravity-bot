@@ -1,0 +1,15 @@
+
+Running 8 tests using 1 worker
+
+(node:2700946) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/provider-modal.spec.ts:125:1 › R2 compact DeepSeek modal: four primary fields, collapsed Advanced endpoint, height and mobile layout (2.2s)
+  ✓  2 tests/provider-modal.spec.ts:280:1 › landing, compact modal, deep links, responsive widths, no always-open editor (2.2s)
+  ✓  3 tests/provider-modal.spec.ts:356:1 › draft Test before Save: no writes, one minimal request, inline failure, stale, separate Save (1.8s)
+  ✓  4 tests/provider-modal.spec.ts:459:1 › Gemini/Vertex provider forms, installed SDK fake protocol, ADC honesty and blocked custom host (1.9s)
+  ✓  5 tests/provider-modal.spec.ts:533:1 › Edit key handling, dirty discard/keep, save keep, revision conflict, explicit remove (2.1s)
+  ✓  6 tests/provider-modal.spec.ts:645:1 › focus trap, background inert, Escape focus return, late Test after close/reopen, narrow controls (6.4s)
+  ✓  7 tests/provider-modal.spec.ts:715:1 › saved last_test staleness, default eligibility, referenced delete block, UI delete success (1.6s)
+  ✓  8 tests/provider-modal.spec.ts:773:1 › member My Account/admin notice without config fetch, endpoint 403/401, admin Accounts regression (1.4s)
+
+  8 passed (22.4s)

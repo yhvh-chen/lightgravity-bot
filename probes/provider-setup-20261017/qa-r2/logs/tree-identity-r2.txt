@@ -1,0 +1,16 @@
+QA branch: qa/provider-modal-r2-20261017
+QA source HEAD: c477bb1fc1e337f56b781ed357d6b211ab380889
+QA evidence commit: 94ab246076e46434e217e037b13d19f247ca9813
+Product commit 7fe66d8: 7fe66d8ee3e72a5fa53462dd0de1af480ab05e8d
+Product tree 7fe66d8: 1ad85e93c3798d51be8350329103ef5d5dc41239
+QA HEAD backend tree: caad0343476887b2c49b269ad2691df7dee2b7e0
+QA HEAD frontend tree: de9c16f2ec4ffa3b8cd9d10c192376b4aa6f56ae
+QA HEAD tests tree: 653d813b7a8109b36dc6d9d44e2c2d1570ac916d
+LG-115 native tree 44cfd8b: 1ad85e93c3798d51be8350329103ef5d5dc41239
+Native 47686ae backend: caad0343476887b2c49b269ad2691df7dee2b7e0
+diff 44cfd8b..7fe66d8 backend/frontend:
+diff 44cfd8b..7fe66d8 empty? -> yes
+Frontend product diff vs eef3b3e:
+ frontend/src/views/settings/ConnectionEditor.tsx   | 135 +++++++++------------
+ .../src/views/settings/ConnectionTestPanel.tsx     |   6 +-
+ 2 files changed, 56 insertions(+), 85 deletions(-)
