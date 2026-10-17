@@ -215,8 +215,7 @@ interface DetailPanelProps {
 
 function TaskDetailPanel(props: DetailPanelProps) {
   const { detail, error, loading, artifacts, acceptance, controlPending } = props
-  const acceptanceStatus = String(acceptance?.acceptance?.status ?? 'pending')
-  const canDecide = acceptanceStatus === 'awaiting' || acceptanceStatus === 'pending'
+  const canDecide = !loading && !error && canDecideCandidate(props.taskRef, detail, acceptance)
   const evidence = artifacts?.evidence ?? []
   const busy = controlPending !== null
 
@@ -336,6 +335,38 @@ function TaskDetailPanel(props: DetailPanelProps) {
         </>
       ) : null}
     </div>
+  )
+}
+
+/** This is an affordance, not authorization: the action endpoint rechecks state.
+ * awaiting_acceptance is the backend's handoff after verification and the stop
+ * gate. Never infer that handoff from a pending record or artifact presence.
+ */
+function canDecideCandidate(
+  taskRef: string,
+  detail: TaskDetail | null,
+  snapshot: import('../../api/tasks').AcceptanceSnapshot | null,
+): boolean {
+  if (!detail || !snapshot || !detail.run || !snapshot.candidate) return false
+  const candidate = snapshot.candidate
+  const acceptance = snapshot.acceptance
+  return (
+    detail.task_id === taskRef && snapshot.task_id === taskRef &&
+    detail.phase === 'awaiting_acceptance' && snapshot.phase === 'awaiting_acceptance' &&
+    detail.run.state === 'awaiting_acceptance' && candidate.run_state === 'awaiting_acceptance' &&
+    detail.revision === snapshot.revision &&
+    acceptance.status === 'awaiting' &&
+    Number.isSafeInteger(snapshot.deliverable_revision) && snapshot.deliverable_revision > 0 &&
+    detail.requirements_revision === snapshot.requirements_revision &&
+    acceptance.requirements_revision === snapshot.requirements_revision &&
+    candidate.requirements_revision === snapshot.requirements_revision &&
+    acceptance.deliverable_revision === snapshot.deliverable_revision &&
+    candidate.deliverable_revision === snapshot.deliverable_revision &&
+    candidate.task_id === taskRef && candidate.run_id === detail.run.id &&
+    candidate.candidate_ref === detail.run.id && acceptance.candidate_ref === detail.run.id &&
+    typeof candidate.plan_hash === 'string' && candidate.plan_hash.length > 0 &&
+    acceptance.candidate_plan_hash === candidate.plan_hash &&
+    snapshot.checks?.satisfied === true
   )
 }
 

@@ -51,9 +51,16 @@ function makeAcceptance(overrides: Partial<AcceptanceSnapshot> = {}): Acceptance
     revision: 9,
     requirements_revision: 2,
     deliverable_revision: 3,
-    acceptance: { status: 'awaiting', candidate_ref: 'evidence:run_01X/diff@sha256:abc' },
-    candidate: null,
-    checks: null,
+    acceptance: {
+      status: 'awaiting', candidate_ref: 'run_01X', candidate_plan_hash: 'plan-current',
+      requirements_revision: 2, deliverable_revision: 3,
+    },
+    candidate: {
+      task_id: 'task_01A', run_id: 'run_01X', candidate_ref: 'run_01X',
+      run_state: 'awaiting_acceptance', plan_hash: 'plan-current',
+      requirements_revision: 2, deliverable_revision: 3,
+    },
+    checks: { satisfied: true, results: [], authorized: [], registered: [] },
     ...overrides,
   }
 }
@@ -94,6 +101,16 @@ function makeTaskApi(overrides: Partial<TaskApi> = {}): TaskApi & { actions: Arr
   }
 }
 
+function readyApi(overrides: Partial<TaskApi> = {}) {
+  return makeTaskApi({
+    getTask: vi.fn(async () => makeDetail({
+      phase: 'awaiting_acceptance', revision: 9,
+      run: { id: 'run_01X', state: 'awaiting_acceptance' },
+    })),
+    ...overrides,
+  })
+}
+
 function renderBoard(api: TaskApi) {
   return render(
     <ShellProvider>
@@ -126,7 +143,7 @@ describe('LG-013 Board: real phase and control state', () => {
   })
 
   it('rounds accept through the actions endpoint bound to the current candidate', async () => {
-    const api = makeTaskApi({
+    const api = readyApi({
       act: vi.fn(async (_taskId, body) => {
         return {
           action: body.action,
@@ -146,12 +163,13 @@ describe('LG-013 Board: real phase and control state', () => {
     await waitFor(() => expect(api.act).toHaveBeenCalled())
     const call = vi.mocked(api.act).mock.calls[0][1]
     expect(call.action).toBe('accept')
+    expect(call.target_run_id).toBe('run_01X')
     expect(call.expected_requirements_revision).toBe(2)
     expect(call.expected_deliverable_revision).toBe(3)
   })
 
   it('surfaces an acceptance_stale decision without pretending success', async () => {
-    const api = makeTaskApi({
+    const api = readyApi({
       act: vi.fn(async () => {
         throw new ApiError({
           message: 'candidate changed',
@@ -215,5 +233,73 @@ describe('LG-013 Board: real phase and control state', () => {
     expect(screen.getByText('Running')).toBeInTheDocument()
     // The failed task sits under "failed", not under the active phase badge.
     expect(screen.getByText('failed')).toBeInTheDocument()
+  })
+})
+
+
+describe('LG-082 current candidate decisions', () => {
+  it('keeps failed pending delivery without an active Run or candidate unavailable', async () => {
+    const api = makeTaskApi({
+      getTask: vi.fn(async () => makeDetail({ phase: 'failed', run: null })),
+      getAcceptance: vi.fn(async () => makeAcceptance({
+        phase: 'failed', deliverable_revision: 0,
+        acceptance: { status: 'pending' }, candidate: null, checks: null,
+      })),
+    })
+    renderBoard(api)
+    fireEvent.click(await screen.findByText('Add login'))
+    expect(await screen.findByText(/no active Run/)).toBeInTheDocument()
+    for (const name of ['Accept', 'Reject']) {
+      const button = screen.getByRole('button', { name })
+      expect(button).toBeDisabled()
+      fireEvent.click(button)
+    }
+    expect(api.act).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled()
+  })
+
+  it.each([
+    ['pending acceptance', { acceptance: { ...makeAcceptance().acceptance, status: 'pending' } }],
+    ['candidate absent', { candidate: null }],
+    ['verification/stop handoff absent', { phase: 'verifying' }],
+    ['snapshot from another Task', { task_id: 'task_other' }],
+    ['snapshot from another revision', { revision: 10 }],
+    ['requirements changed', { requirements_revision: 3 }],
+    ['deliverable changed', { deliverable_revision: 4 }],
+    ['candidate from another Run', { candidate: { ...makeAcceptance().candidate, run_id: 'run_other' } }],
+    ['candidate from another Task', { candidate: { ...makeAcceptance().candidate, task_id: 'task_other' } }],
+    ['candidate still executing', { candidate: { ...makeAcceptance().candidate, run_state: 'executing' } }],
+    ['candidate requirements changed', { candidate: { ...makeAcceptance().candidate, requirements_revision: 3 } }],
+    ['candidate deliverable changed', { candidate: { ...makeAcceptance().candidate, deliverable_revision: 4 } }],
+    ['candidate plan changed', { candidate: { ...makeAcceptance().candidate, plan_hash: 'new-plan' } }],
+    ['decision bound to another Run', { acceptance: { ...makeAcceptance().acceptance, candidate_ref: 'run_other' } }],
+    ['machine checks failed', { checks: { satisfied: false } }],
+    ['machine checks unavailable', { checks: null }],
+  ] satisfies Array<[string, Partial<AcceptanceSnapshot>]>)('disables decisions when %s', async (_reason, snapshot) => {
+    const api = readyApi({ getAcceptance: vi.fn(async () => makeAcceptance(snapshot)) })
+    renderBoard(api)
+    fireEvent.click(await screen.findByText('Add login'))
+    expect(await screen.findByRole('button', { name: 'Accept' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Reject' })).toBeDisabled()
+    expect(api.act).not.toHaveBeenCalled()
+  })
+
+  it('does not enable stale decisions while a refreshed snapshot is loading', async () => {
+    let resolveRefresh!: (value: TaskDetail) => void
+    const api = readyApi()
+    vi.mocked(api.getTask).mockResolvedValueOnce(makeDetail({
+      phase: 'awaiting_acceptance', revision: 9,
+      run: { id: 'run_01X', state: 'awaiting_acceptance' },
+    })).mockImplementationOnce(() => new Promise((resolve) => { resolveRefresh = resolve }))
+    vi.mocked(api.act).mockResolvedValueOnce({ action: 'pause', state: 'confirmed', confirmed: true, task_id: 'task_01A' })
+    renderBoard(api)
+    fireEvent.click(await screen.findByText('Add login'))
+    expect(await screen.findByRole('button', { name: 'Accept' })).toBeEnabled()
+    fireEvent.click(screen.getByRole('button', { name: 'Pause' }))
+    expect(await screen.findByText('Loading Task…')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Accept' })).toBeDisabled()
+    resolveRefresh(makeDetail({ phase: 'paused', revision: 10 }))
+    await waitFor(() => expect(screen.queryByText('Loading Task…')).not.toBeInTheDocument())
+    expect(screen.getByRole('button', { name: 'Accept' })).toBeDisabled()
   })
 })
