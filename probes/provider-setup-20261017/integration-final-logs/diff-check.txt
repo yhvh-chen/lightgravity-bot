@@ -1,0 +1,4 @@
+probes/provider-setup-20261017/qa/logs/frontend-full-first-run-failed.txt:371: new blank line at EOF.
+probes/provider-setup-20261017/qa/logs/frontend-full-rerun1.txt:337: new blank line at EOF.
+probes/provider-setup-20261017/qa/logs/frontend-full-rerun2.txt:339: new blank line at EOF.
+diff_check_exit=2

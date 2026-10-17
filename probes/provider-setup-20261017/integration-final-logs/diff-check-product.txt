@@ -1,0 +1,1 @@
+product_diff_check_exit=0
