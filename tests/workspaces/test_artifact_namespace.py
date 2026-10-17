@@ -36,7 +36,7 @@ class DeliveryPlan:
 
 
 async def run_case(task_repo: GitRepo, tmp_path: Path, *, malicious: str = ""):
-    task_repo.write("index.html", "<html>retained game</html>")
+    task_repo.write("index.html", "<html>retained output</html>")
     task_repo.write("design.md", "retained design")
     task_repo.commit_all("retained inputs")
     store = FileStore(tmp_path / "data", task_repo.path.parent)
@@ -63,7 +63,7 @@ async def run_case(task_repo: GitRepo, tmp_path: Path, *, malicious: str = ""):
         assert workspace != task_repo.path
         assert "digest-verified" in request.instructions
         files = {p.name: p.read_text() for p in workspace.iterdir()}
-        assert next(v for k, v in files.items() if k.endswith("-index.html")) == "<html>retained game</html>"
+        assert next(v for k, v in files.items() if k.endswith("-index.html")) == "<html>retained output</html>"
         assert next(v for k, v in files.items() if k.endswith("-new-note.md")) == "exact new verification bytes"
         return ExecutorResult(state="succeeded", summary="verified")
 
@@ -93,7 +93,7 @@ async def test_new_isolated_file_and_unchanged_inputs_are_bound_and_downloadable
     assert checks.satisfied
     index_ref = next(ref for ref in candidate.artifact_refs if "-index.html@" in ref)
     parsed = parse_evidence_ref(index_ref)
-    assert parsed.digest == hashlib.sha256(b"<html>retained game</html>").hexdigest()
+    assert parsed.digest == hashlib.sha256(b"<html>retained output</html>").hexdigest()
     for wrong_task, wrong_run in [("task_other", run_id), (task_id, "run_other")]:
         with pytest.raises(EvidenceRefError):
             resolve_evidence_ref(index_ref, data_dir=store.data_dir, task_id=wrong_task, run_id=wrong_run)
@@ -106,7 +106,7 @@ async def test_new_isolated_file_and_unchanged_inputs_are_bound_and_downloadable
         assert any(e["evidence_ref"] == index_ref for e in listing["evidence"])
         download = await api.get(f"/api/v1/tasks/{task_id}/artifacts/download", params={"evidence_ref": index_ref})
         assert download.status_code == 200
-        assert download.content == b"<html>retained game</html>"
+        assert download.content == b"<html>retained output</html>"
         bad_ref = index_ref[:-1] + ("0" if index_ref[-1] != "0" else "1")
         assert (await api.get(f"/api/v1/tasks/{task_id}/artifacts/download",
                               params={"evidence_ref": bad_ref})).status_code == 404

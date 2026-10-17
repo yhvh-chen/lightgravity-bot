@@ -107,7 +107,7 @@ async def _start_running_task(env: dict[str, Any]) -> str:
 
     created = await env["alice"].post(
         GLOBAL,
-        json={"message_id": "msg-create-running", "content": "@bot 开发一个网页小游戏"},
+        json={"message_id": "msg-create-running", "content": "@bot 开发一个网页小工具"},
     )
     assert created.status_code == 200, created.text
     body = created.json()

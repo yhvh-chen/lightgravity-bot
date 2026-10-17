@@ -11,7 +11,7 @@ from coordinator_helpers import FakeExecutor, make_coordinator
 async def failed_delivery(store: FileStore):
     executor = FakeExecutor(state="failed")
     coordinator = make_coordinator(store, executor)
-    task_id = coordinator.create_task("initial", "Game", "reuse game").task_id
+    task_id = coordinator.create_task("initial", "Delivery", "reuse output").task_id
     assert task_id is not None
     assert await coordinator._process_one()
     run_id = executor.requests[0].run_id
@@ -46,7 +46,7 @@ async def test_legacy_missing_pointer_uses_attributed_history_and_current_scope(
     legacy["workspace_ref"] = f"tasks/{task_id}"
     workspace = store.resolve_path(legacy["workspace_ref"], write=True)
     workspace.mkdir(parents=True)
-    names = ("design.md", "index.html", "VERIFICATION.md", "README-PENGUIN-POP.md", "DELIVERY.md")
+    names = ("design.md", "index.html", "VERIFICATION.md", "README-LEGACY.md", "DELIVERY.md")
     for name in names:
         (workspace / name).write_text(f"preserved {name}")
     from lightgravity.workspaces.git import GitRunner
@@ -58,7 +58,7 @@ async def test_legacy_missing_pointer_uses_attributed_history_and_current_scope(
     runner.ok(["commit", "-m", "preserved inputs"], cwd=workspace)
     store.write(
         "task", task_id, legacy, expected_revision=task.revision, actor="legacy-fixture",
-        body="Reuse preserved game inputs; avoid optional polish.",
+        body="Reuse preserved delivery inputs; avoid optional polish.",
     )
     old = store.read("run", first)
     old_entity = dict(old.entity, continuation={

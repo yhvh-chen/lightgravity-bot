@@ -119,33 +119,33 @@ def test_chinese_commands_and_readonly_routing_unchanged() -> None:
     assert classify_message("修改示例页面并验证登录功能").intent == MessageIntent.DELIVERY
 
 
-# LG-069: exact v0.2 runsheet input, deliberately independent of local docs.
-_RUNSHEET_A = """@bot 请在本次获准的任务工作区开发一个名为 PENGUIN POP 的网页小游戏，并创建交付任务。
+# Delivery description with stop/restart/approval wording; generic fixture data.
+_DELIVERY_DESCRIPTION = """@bot 请在本次获准的任务工作区开发一个名为 FOCUS TIMER 的网页小工具，并创建交付任务。
 
-玩法：企鹅随机出现，玩家点击企鹅得分，每次命中加 1 分；每局 30 秒，时间到后停止计分并显示最终分数，支持重新开始，重开时分数和计时归零。
+玩法：点击开始后倒计时，操作结果实时更新；每局 30 秒，时间到后停止计时并显示最终结果，支持重新开始，重开时结果和计时归零。
 
 交付：design.md、单文件 index.html（CSS 和 JavaScript 全部内联，无外部资源或网络依赖）、验证结果。请先明确设计，再按设计实现并验证。
 
-验收：有开始按钮、实时分数和剩余时间；企鹅能出现且点击有效；结束后不能继续得分；重新开始正常；常见桌面和手机宽度均可操作。
+验收：有开始按钮、实时结果和剩余时间；计时能启动且操作有效；结束后不能继续计时；重新开始正常；常见桌面和手机宽度均可操作。
 
-请按需使用默认角色库中适合的角色，保留实际执行、验证和独立复核记录。不要部署或发布，完成后等待人工验收，并返回 Task ID。
+请按需使用当前已配置的能力，保留实际执行与验证记录。不要部署或发布，完成后等待人工验收，并返回 Task ID。
 """
 
 
-def test_exact_runsheet_delivery_creates_work() -> None:
-    result = classify_message(_RUNSHEET_A)
+def test_delivery_description_with_control_words_creates_work() -> None:
+    result = classify_message(_DELIVERY_DESCRIPTION)
     assert result.intent == MessageIntent.DELIVERY
     assert result.next_action == "create_task"
     assert not result.requires_target
 
 
 @pytest.mark.parametrize("content", [
-    "开发小游戏，时间到后停止计分，完成后等待人工验收。",
-    "创建游戏。验收：有开始按钮，重开时分数归零。",
-    "实现游戏，结束后不能继续得分。验收条件：重新开始正常。",
-    "Create a game; stop scoring when time expires and restart the timer on replay.",
+    "开发小工具，时间到后停止计时，完成后等待人工验收。",
+    "创建计时器。验收：有开始按钮，重开时结果归零。",
+    "实现计时器，结束后不能继续计时。验收条件：重新开始正常。",
+    "Create a timer; stop timing when time expires and restart the timer on replay.",
     '创建文件，内容是“取消当前任务”和“验收当前候选”。',
-    "Create a game and wait for a human to approve the current candidate.",
+    "Create a timer and wait for a human to approve the current candidate.",
 ])
 def test_delivery_action_descriptions_are_not_commands(content: str) -> None:
     assert classify_message(content).intent == MessageIntent.DELIVERY
@@ -171,7 +171,7 @@ def test_real_actions_keep_priority(content: str, intent: MessageIntent) -> None
 
 
 @pytest.mark.parametrize("content", [
-    "@bot 请查询共享任务 task_01ARZ3NDEKTSV4RRFFQ69G5FAV（PENGUIN POP）的当前状态：正在做什么、已经完成什么、是否有阻塞，以及已有的结果入口。只读取真实任务记录，不创建任务，不启动开发或返修。",
+    "@bot 请查询共享任务 task_01ARZ3NDEKTSV4RRFFQ69G5FAV（每日计划）的当前状态：正在做什么、已经完成什么、是否有阻塞，以及已有的结果入口。只读取真实任务记录，不创建任务，不启动开发或返修。",
     "查询当前任务状态，不要取消或暂停，也不要继续开发或返修。",
     "Show current task status; do not cancel, pause, approve or repair it.",
     "验收状态如何？不要接受当前候选。",

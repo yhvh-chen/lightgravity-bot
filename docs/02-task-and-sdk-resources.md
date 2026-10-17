@@ -2,7 +2,7 @@
 title: "Task 与 SDK 资源契约"
 doc_type: specification
 category: architecture
-updated: "2026-10-15"
+updated: "2026-10-17"
 ---
 
 # Task 与 SDK 资源契约
@@ -110,7 +110,7 @@ Project 和 Task 都可引用经过授权的共享技能目录；原设计 `.lig
 
 用户对话属于 Task，成员 SDK 会话属于 Run/Member。SDK 原生会话恢复与用户对话呈现是两种用途，不能把渲染出的聊天文字视为可完整恢复 SDK 的原生状态。记录会话标识、后端、配置版本与存储引用，恢复能力必须实测。
 
-Task 目录承载资料与证据；代码工作区采用关联仓库与隔离 worktree，不复制整个 Project。最终交付记录仓库基准与候选提交/diff。进入目录对话不自动授权读取整个父目录。
+Task 目录承载资料与证据；代码工作区采用关联仓库与隔离 worktree，不复制整个 Project。Task 工作区必须自身是 Git 仓库根；自动创建的空白 Task 目录初始化自己的空基线，不继承父级宿主仓库的 HEAD、文件或规则。最终交付记录仓库基准与候选提交/diff。进入目录对话不自动授权读取整个父目录。executor 产物与明确保留的交付文件会冻结到当前 Run 的 canonical evidence，只读节点使用按记录摘要校验的副本；不把 Task 旧基线或跨 Run 文件当作当前候选。
 
 ## 5. SDK 模块的资源映射
 

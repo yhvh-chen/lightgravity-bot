@@ -2,7 +2,7 @@
 title: "左侧导航、Team 与 Resources 视图设计"
 doc_type: design
 category: frontend
-updated: "2026-10-15"
+updated: "2026-10-17"
 ---
 
 # 左侧导航、Team 与 Resources 视图设计
@@ -70,7 +70,7 @@ Chat 入口聚焦当前会话并展开对话工作区；其他入口可以同时
 顶栏显示“全局”或明确 Task ID/标题。选择 Task 后，Board、Files、Team 和 Chat 共享 task_ref；切换左侧入口保留该范围，并保留必要的 Run 选择。Task 详情不以浏览器当前文件路径临时推断身份。
 
 - 全局 Chat 可以普通问答或创建交付需求；历史含 Task 导航。
-- 全局 Board 显示 Task 列表，打开卡片进入该 Task。
+- 全局 Board 显示 Task 列表，打开卡片进入该 Task。Board 的验收/拒绝只在当前 Task 的当前 Run 已完成验证、处于待验收、机器检查满足且候选/需求/交付版本与计划哈希一致时启用；按钮只是交互门，服务端仍复核。证据项通过 Task 范围 `/artifacts/download` 下载 canonical evidence，不暴露绝对路径或跨 Task 引用。
 - 全局 Files 显示获准任务目录入口，进入 Task 后显示其文件；不暴露任意系统文件树。
 - 全局 Team 默认进入待招募角色目录；已招募展示各 Task 当前成员并标明归属，提供 Task 筛选。
 - Task Team 默认进入当前 Run 的已招募列表；可以切到待招募查看候选角色。
