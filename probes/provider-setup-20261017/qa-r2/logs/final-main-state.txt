@@ -1,0 +1,11 @@
+captured_at_utc: 2026-10-17T12:11:56Z
+main_head_at_capture: d067894c662449ca36a47a099174ab062fc0fdd3
+product_qa_merge_commit: e9ec008a7fd0a63c4b935423ce0d4b5f9483792c
+backend_tree: caad0343476887b2c49b269ad2691df7dee2b7e0
+frontend_tree: de9c16f2ec4ffa3b8cd9d10c192376b4aa6f56ae
+tests_tree: 653d813b7a8109b36dc6d9d44e2c2d1570ac916d
+qa_branch_head: e9ec008a7fd0a63c4b935423ce0d4b5f9483792c
+qa_branch_backend_tree: caad0343476887b2c49b269ad2691df7dee2b7e0
+qa_branch_frontend_tree: de9c16f2ec4ffa3b8cd9d10c192376b4aa6f56ae
+qa_branch_tests_tree: 653d813b7a8109b36dc6d9d44e2c2d1570ac916d
+note: this file is committed by the following evidence-only commit; main_head_at_capture is the HEAD before that commit.
