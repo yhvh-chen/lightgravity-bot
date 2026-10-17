@@ -187,3 +187,50 @@ def test_negative_cancel_does_not_mask_positive_pause() -> None:
     result = classify_message("暂停当前任务，不要取消")
     assert result.intent == MessageIntent.CONTROL
     assert result.matched == ("暂停",)
+
+
+@pytest.mark.parametrize("content", [
+    "开发一个显示系统状态的小工具。",
+    "实现页面，实时状态每 30 秒刷新。",
+    "开发页面。验收：实时状态正确。",
+    "@bot 请创建一个显示队列、进度和用量的页面。",
+    "修改页面，显示成本与费用。",
+    "Please create a system status page.",
+    "Implement a progress indicator.",
+    "Build a queue usage dashboard.",
+    "Fix the cost display.",
+])
+def test_delivery_imperatives_with_status_words_create_work(content: str) -> None:
+    result = classify_message(content)
+    assert result.intent == MessageIntent.DELIVERY
+    assert result.next_action == "create_task"
+    assert result.creates_work
+
+
+@pytest.mark.parametrize("content, intent", [
+    ("查询创建任务的状态，不要创建新任务。", MessageIntent.STATUS_QUERY),
+    ("Show the status of the build task; do not create a new task.", MessageIntent.STATUS_QUERY),
+    ("What is the implementation progress?", MessageIntent.STATUS_QUERY),
+    ("状态", MessageIntent.STATUS_QUERY),
+    ("status", MessageIntent.STATUS_QUERY),
+    ("如何创建状态页面？", MessageIntent.STATUS_QUERY),
+    ("How do I create a status page?", MessageIntent.STATUS_QUERY),
+    ("Create a status page 是什么意思？", MessageIntent.STATUS_QUERY),
+    ("读这个文件，查看状态页面的实现。", MessageIntent.STATUS_QUERY),
+    ("Read this file to explain the status display.", MessageIntent.STATUS_QUERY),
+    ("创建一个页面，解释现有实现。", MessageIntent.BOUNDED_READ),
+    ("Create a page; explain the current implementation.", MessageIntent.BOUNDED_READ),
+    ("Create a file: how should it work?", MessageIntent.ANSWER),
+    ("开发状态页面，但取消当前任务。", MessageIntent.CONTROL),
+    ("Create a status page; please approve the current candidate.", MessageIntent.DECISION),
+    ("实现状态页面；请继续修复当前任务。", MessageIntent.RETRY),
+    ("Create a status page; retry the current task.", MessageIntent.RETRY),
+])
+def test_delivery_status_precedence_preserves_existing_boundaries(
+    content: str, intent: MessageIntent,
+) -> None:
+    result = classify_message(content)
+    assert result.intent == intent
+    assert result.next_action != "create_task"
+    if intent != MessageIntent.RETRY:
+        assert not result.creates_work

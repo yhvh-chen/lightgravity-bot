@@ -196,8 +196,8 @@ def _hit(text: str, keywords: tuple[str, ...], *, actions: bool = False) -> tupl
     return tuple(hits)
 
 
-# Ordered rules: control/decision/status/retry precede content classification so
-# that a high-impact verb is never mistaken for a delivery request.
+# Explicit actions precede content classification. Status words also occur in
+# deliverable descriptions, so they must not mask an explicit delivery request.
 _CONTROL = ("暂停", "取消", "停止", "中止", "pause", "cancel", "stop", "abort")
 _DECISION = ("验收", "接受", "拒绝", "重开", "通过验收", "accept", "reject", "reopen", "approve")
 _STATUS = (
@@ -254,6 +254,22 @@ _DELIVERY = (
 )
 
 
+def _starts_delivery_request(text: str) -> bool:
+    """Recognize an initial delivery imperative, not a mentioned/negated verb.
+
+    Reuse the supported command prefix and keyword boundaries. In particular,
+    a status query mentioning "do not create" must remain a query. Questions
+    and bounded reads are checked separately before deferring status routing.
+    """
+
+    for keyword in _DELIVERY:
+        matcher = _matcher(keyword) or re.compile(re.escape(keyword))
+        for match in matcher.finditer(text):
+            if _COMMAND_PREFIX.fullmatch(text[:match.start()].strip()):
+                return True
+    return False
+
+
 def classify_message(content: str) -> Classification:
     """Classify one message with the deterministic v1 rules."""
 
@@ -261,12 +277,19 @@ def classify_message(content: str) -> Classification:
     if not text:
         return Classification(intent=MessageIntent.UNKNOWN, next_action="clarify", note="empty message")
 
+    delivery_request = (
+        _starts_delivery_request(text)
+        and not _hit(text, _BOUNDED_READ)
+        and not _hit(text, _QUESTION)
+    )
     for intent, keywords in (
         (MessageIntent.CONTROL, _CONTROL),
         (MessageIntent.DECISION, _DECISION),
         (MessageIntent.STATUS_QUERY, _STATUS),
         (MessageIntent.RETRY, _RETRY),
     ):
+        if intent == MessageIntent.STATUS_QUERY and delivery_request:
+            continue
         matched = _hit(
             text,
             keywords,
