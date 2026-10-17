@@ -26,7 +26,7 @@ test.describe('LG-055 top material search', () => {
     })
     await waitForSearchHit(page.context().request, token)
 
-    const input = page.getByRole('searchbox', { name: 'Search materials', exact: true })
+    const input = page.getByRole('searchbox', { name: 'Search', exact: true })
     await input.fill(token)
     await input.press('Enter')
 

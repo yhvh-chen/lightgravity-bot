@@ -55,8 +55,8 @@ export function MaterialSearch() {
         ref={inputRef}
         type="search"
         className="lg-input lg-top-search__input"
-        placeholder="Search materials"
-        aria-label="Search materials"
+        placeholder="Search"
+        aria-label="Search"
         aria-expanded={open}
         aria-controls={open ? 'lg-material-search' : undefined}
         autoComplete="off"

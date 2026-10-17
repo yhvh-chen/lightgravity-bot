@@ -46,7 +46,7 @@ describe('Single navigation shell', () => {
   it('renders an editable material search input in the top bar and leaves navigation in the sidebar', async () => {
     await renderShell()
     const banner = screen.getByRole('banner')
-    const input = within(banner).getByRole('searchbox', { name: 'Search materials' })
+    const input = within(banner).getByRole('searchbox', { name: 'Search' })
     expect(input.tagName).toBe('INPUT')
     expect(input).toHaveAttribute('type', 'search')
     expect(within(banner).queryByText(/Shared materials.*Text search/)).toBeNull()
@@ -62,7 +62,7 @@ describe('Single navigation shell', () => {
   })
   it('dismisses search on navigation so Files task controls are not covered', async () => {
     await renderShell()
-    const input = screen.getByRole('searchbox', { name: 'Search materials' })
+    const input = screen.getByRole('searchbox', { name: 'Search' })
     fireEvent.change(input, { target: { value: 'findme' } })
     fireEvent.keyDown(input, { key: 'Enter' })
     expect(screen.getByLabelText('Search materials panel')).toBeInTheDocument()
@@ -75,7 +75,7 @@ describe('Single navigation shell', () => {
   })
   it('keeps search open for inside pointers and dismisses outside pointers', async () => {
     await renderShell()
-    const input = screen.getByRole('searchbox', { name: 'Search materials' })
+    const input = screen.getByRole('searchbox', { name: 'Search' })
     fireEvent.change(input, { target: { value: 'findme' } })
     fireEvent.keyDown(input, { key: 'Enter' })
     fireEvent.pointerDown(input)
