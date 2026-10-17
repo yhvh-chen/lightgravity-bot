@@ -1801,6 +1801,41 @@ class Coordinator:
             return str(queue.get("state", "not_queued"))
         return "not_queued"
 
+    def _historical_run(self, task_id: str) -> tuple[str, dict[str, Any]] | None:
+        """Recover a legacy missing last_run from attributed creation events.
+
+        Task events locate candidates; the Run entity remains authoritative for
+        ownership, state and attempt. Never infer history from directory names,
+        another Task's events, or an event's claimed attempt counter.
+        """
+        after_seq = 0
+        latest: tuple[str, dict[str, Any]] | None = None
+        while True:
+            events = self._store.read_events(task_id, after_seq=after_seq, limit=500)
+            if not events:
+                return latest
+            for record in events:
+                event = record.event
+                payload = event.get("payload")
+                if record.type != EventType.RUN_CREATED or event.get("task_ref") != task_id:
+                    continue
+                run_id = event.get("run_ref")
+                if (
+                    not isinstance(run_id, str) or not run_id
+                    or not isinstance(payload, dict) or payload.get("run_id") != run_id
+                ):
+                    continue
+                try:
+                    run = self._store.read("run", run_id).entity
+                except EntityNotFound:
+                    continue
+                if run.get("task_ref") == task_id:
+                    latest = (run_id, run)
+            next_seq = events[-1].seq
+            if next_seq <= after_seq:
+                return latest
+            after_seq = next_seq
+
     def _open_run(self, task: Versioned, *, rework: bool = False) -> str:
         # A Task that a restart scan (or an operator) put into recovery_required
         # must not have a Run opened as a silent replay: its side effects are
@@ -1837,6 +1872,19 @@ class Coordinator:
                     source_run = None
                 else:
                     active = last
+
+        if source_run is None:
+            historical = self._historical_run(task.entity_id)
+            if historical is not None:
+                active, source_run = historical
+        if source_run is not None:
+            if source_run.get("task_ref") != task.entity_id:
+                raise AppError(ErrorCode.ILLEGAL_TRANSITION, "previous Run belongs to another Task")
+            if str(source_run.get("state")) not in TERMINAL_RUN_STATES | {"paused"}:
+                raise AppError(
+                    ErrorCode.ILLEGAL_TRANSITION,
+                    "Task history contains a non-terminal Run; not opening a second writer",
+                )
 
         # Decide the native SDK session continuation from the Task's previous
         # Run *before* opening the new one (docs/02, docs/04 §5, docs/08 §8):
@@ -2322,7 +2370,9 @@ class Coordinator:
             # not a silent replay Run); ``_open_run`` still refuses to reopen it.
             if run_state == "recovery_required":
                 self._writer.write_run(run_id, {"cleanup": {"status": "done"}})
-            self._writer.set_active_run(task_id, None)
+            # Keep genuine attempt/session lineage after clearing the live
+            # pointer; Retry must advance this Task's delivery history.
+            self._writer.write_task(task_id, {"last_run": run_id, "active_run": None})
         if outcome.failure_message:
             self._writer.emit(
                 task_id,
