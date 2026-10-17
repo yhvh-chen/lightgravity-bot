@@ -28,6 +28,7 @@ from lightgravity.adapter.provider_matrix import (
 )
 from lightgravity.adapter.registry import ImplementationRegistry
 from lightgravity.store import Store
+from lightgravity.store.locking import connection_reference_lock
 
 from .errors import ConnectionReferenceInvalid, SecretStoreError, SettingsConfigInvalid
 from .models import (
@@ -403,18 +404,18 @@ class ConnectionService:
     ) -> dict[str, Any]:
         """Delete a Connection without touching its (possibly shared) secret.
 
-        The reference/default guard executes under the store's entity lock, so a
-        client cannot bypass it with a stale pre-check.  Other references are
-        never rewritten; a referenced/default connection is refused instead.
+        The shared reference lock serializes this guard/unlink with controlled
+        Settings and Agent binding writers, before taking the entity lock.
+        References are never rewritten; a referenced connection is refused.
         """
-
-        self._repo.delete_connection(
-            connection_id,
-            expected_revision=expected_revision,
-            actor=actor,
-            guard=lambda: self._guard_connection_delete(connection_id),
-        )
-        return {"deleted": True, "id": connection_id}
+        with connection_reference_lock(self._repo.store):
+            self._repo.delete_connection(
+                connection_id,
+                expected_revision=expected_revision,
+                actor=actor,
+                guard=lambda: self._guard_connection_delete(connection_id),
+            )
+            return {"deleted": True, "id": connection_id}
 
     def _guard_connection_delete(self, connection_id: str) -> None:
         refs = self.references_to(connection_id)
@@ -475,90 +476,91 @@ class ConnectionService:
         collab_requests_enabled: Any = _UNSET,
         claim_lease_seconds: Any = _UNSET,
     ) -> dict[str, Any]:
-        current = self._repo.read_settings()
-        coordinator = (
-            current.default_coordinator_connection_ref
-            if default_coordinator_connection_ref is _UNSET
-            else default_coordinator_connection_ref
-        )
-        worker = (
-            current.default_worker_connection_ref
-            if default_worker_connection_ref is _UNSET
-            else default_worker_connection_ref
-        )
-        reviewer = (
-            current.default_reviewer_connection_ref
-            if default_reviewer_connection_ref is _UNSET
-            else default_reviewer_connection_ref
-        )
-        claim_enabled = (
-            current.decentralized_claim_enabled
-            if decentralized_claim_enabled is _UNSET
-            else decentralized_claim_enabled
-        )
-        collab_enabled = (
-            current.collab_requests_enabled
-            if collab_requests_enabled is _UNSET
-            else collab_requests_enabled
-        )
-        lease_seconds = (
-            current.claim_lease_seconds
-            if claim_lease_seconds is _UNSET
-            else claim_lease_seconds
-        )
-        self._validate_default_ref(coordinator, role=ROLE_COORDINATOR)
-        self._validate_default_ref(worker, role=ROLE_WORKER)
-        self._validate_default_ref(reviewer, role=ROLE_REVIEWER)
-        self._validate_claim_switches(
-            decentralized_claim_enabled=claim_enabled,
-            collab_requests_enabled=collab_enabled,
-            claim_lease_seconds=lease_seconds,
-        )
-        content = {
-            "default_coordinator_connection_ref": coordinator,
-            "default_worker_connection_ref": worker,
-            "default_reviewer_connection_ref": reviewer,
-            "decentralized_claim_enabled": claim_enabled,
-            "collab_requests_enabled": collab_enabled,
-            "claim_lease_seconds": lease_seconds,
-        }
-        if current.exists:
-            if expected_revision is None:
-                raise SettingsConfigInvalid(
-                    "expected_revision is required to update existing settings",
-                    diagnostics=[
-                        {"code": "expected_revision_missing", "location": "expected_revision"}
-                    ],
-                )
-            written = self._repo.write_settings(
-                content, expected_revision=expected_revision, actor=actor
+        with connection_reference_lock(self._repo.store):
+            current = self._repo.read_settings()
+            coordinator = (
+                current.default_coordinator_connection_ref
+                if default_coordinator_connection_ref is _UNSET
+                else default_coordinator_connection_ref
             )
-        else:
-            if expected_revision not in (None, 0):
-                raise SettingsConfigInvalid(
-                    "settings do not exist yet; expected_revision must be 0",
-                    diagnostics=[
-                        {"code": "expected_revision_invalid", "location": "expected_revision"}
-                    ],
-                )
-            written = self._repo.create_settings(
-                default_coordinator_connection_ref=coordinator,
-                default_worker_connection_ref=worker,
-                default_reviewer_connection_ref=reviewer,
+            worker = (
+                current.default_worker_connection_ref
+                if default_worker_connection_ref is _UNSET
+                else default_worker_connection_ref
+            )
+            reviewer = (
+                current.default_reviewer_connection_ref
+                if default_reviewer_connection_ref is _UNSET
+                else default_reviewer_connection_ref
+            )
+            claim_enabled = (
+                current.decentralized_claim_enabled
+                if decentralized_claim_enabled is _UNSET
+                else decentralized_claim_enabled
+            )
+            collab_enabled = (
+                current.collab_requests_enabled
+                if collab_requests_enabled is _UNSET
+                else collab_requests_enabled
+            )
+            lease_seconds = (
+                current.claim_lease_seconds
+                if claim_lease_seconds is _UNSET
+                else claim_lease_seconds
+            )
+            self._validate_default_ref(coordinator, role=ROLE_COORDINATOR)
+            self._validate_default_ref(worker, role=ROLE_WORKER)
+            self._validate_default_ref(reviewer, role=ROLE_REVIEWER)
+            self._validate_claim_switches(
                 decentralized_claim_enabled=claim_enabled,
                 collab_requests_enabled=collab_enabled,
                 claim_lease_seconds=lease_seconds,
-                actor=actor,
-                request_id="settings-init",
             )
-        return {
-            **written.to_dict(),
-            "defaults": {
-                ROLE_COORDINATOR: self._describe_default(coordinator),
-                ROLE_WORKER: self._describe_default(worker),
-                ROLE_REVIEWER: self._describe_default(reviewer),
-            },
-        }
+            content = {
+                "default_coordinator_connection_ref": coordinator,
+                "default_worker_connection_ref": worker,
+                "default_reviewer_connection_ref": reviewer,
+                "decentralized_claim_enabled": claim_enabled,
+                "collab_requests_enabled": collab_enabled,
+                "claim_lease_seconds": lease_seconds,
+            }
+            if current.exists:
+                if expected_revision is None:
+                    raise SettingsConfigInvalid(
+                        "expected_revision is required to update existing settings",
+                        diagnostics=[
+                            {"code": "expected_revision_missing", "location": "expected_revision"}
+                        ],
+                    )
+                written = self._repo.write_settings(
+                    content, expected_revision=expected_revision, actor=actor
+                )
+            else:
+                if expected_revision not in (None, 0):
+                    raise SettingsConfigInvalid(
+                        "settings do not exist yet; expected_revision must be 0",
+                        diagnostics=[
+                            {"code": "expected_revision_invalid", "location": "expected_revision"}
+                        ],
+                    )
+                written = self._repo.create_settings(
+                    default_coordinator_connection_ref=coordinator,
+                    default_worker_connection_ref=worker,
+                    default_reviewer_connection_ref=reviewer,
+                    decentralized_claim_enabled=claim_enabled,
+                    collab_requests_enabled=collab_enabled,
+                    claim_lease_seconds=lease_seconds,
+                    actor=actor,
+                    request_id="settings-init",
+                )
+            return {
+                **written.to_dict(),
+                "defaults": {
+                    ROLE_COORDINATOR: self._describe_default(coordinator),
+                    ROLE_WORKER: self._describe_default(worker),
+                    ROLE_REVIEWER: self._describe_default(reviewer),
+                },
+            }
 
     def _validate_claim_switches(
         self,

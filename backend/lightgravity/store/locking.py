@@ -16,8 +16,9 @@ import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any
 
-from .errors import LockConflict
+from .errors import ConfigInvalid, LockConflict
 
 
 def _sanitize(key: str) -> str:
@@ -62,4 +63,20 @@ class LockManager:
                 os.close(fd)
 
 
-__all__ = ["LockManager"]
+@contextmanager
+def connection_reference_lock(store: Any) -> Iterator[None]:
+    """Serialize controlled reference validation/commit with connection deletion.
+
+    Acquire this root-wide advisory lock before any entity write lock. All
+    instances/processes targeting the same data root use the same lock file.
+    This is mutual exclusion for supported writers, not a multi-file transaction.
+    """
+
+    root = getattr(store, "data_dir", None)
+    if root is None:
+        raise ConfigInvalid("connection reference writes require a controlled data root")
+    with LockManager(Path(root) / "locks").acquire("connection-references"):
+        yield
+
+
+__all__ = ["LockManager", "connection_reference_lock"]

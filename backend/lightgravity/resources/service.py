@@ -21,6 +21,8 @@ provider/model list and never resolves a secret value (``credential_ref`` only).
 
 from __future__ import annotations
 
+from contextlib import nullcontext
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
@@ -51,6 +53,7 @@ from lightgravity.adapter.schema import (
 )
 from lightgravity.contracts import AppError, ErrorCode
 from lightgravity.store import ConfigInvalid, EntityNotFound, Store, Versioned
+from lightgravity.store.locking import connection_reference_lock
 from lightgravity.store.entities import RESOURCE_DIRS
 
 #: Every kind the catalog can read.  ``connection`` is included for reads and
@@ -634,50 +637,51 @@ class ResourceService:
         actor: str,
         body: str | None = None,
     ) -> dict[str, Any]:
-        self._require_kind(kind)
-        if kind == "connection":
-            raise AppError(
-                ErrorCode.INVALID_REQUEST,
-                "connections are edited through the Settings endpoints; there is one "
-                "Connection authority and no second model list",
-                details={
-                    "kind": kind,
-                    "id": resource_id,
-                    "use": f"/api/v1/settings/connections/{resource_id}",
-                },
+        with connection_reference_lock(self._store) if kind == "agent" else nullcontext():
+            self._require_kind(kind)
+            if kind == "connection":
+                raise AppError(
+                    ErrorCode.INVALID_REQUEST,
+                    "connections are edited through the Settings endpoints; there is one "
+                    "Connection authority and no second model list",
+                    details={
+                        "kind": kind,
+                        "id": resource_id,
+                        "use": f"/api/v1/settings/connections/{resource_id}",
+                    },
+                )
+            allowed = set(UPDATABLE_FIELDS.get(kind, ()))
+            unknown = sorted(set(patch) - allowed)
+            if unknown:
+                raise AppError(
+                    ErrorCode.INVALID_REQUEST,
+                    f"fields not editable through this controlled path: {', '.join(unknown)}",
+                    details={"kind": kind, "allowed": sorted(allowed), "rejected": unknown},
+                )
+            if not patch and body is None:
+                raise AppError(
+                    ErrorCode.INVALID_REQUEST,
+                    "nothing to update: provide at least one allowed field or a body",
+                    details={"kind": kind, "allowed": sorted(allowed)},
+                )
+            current = self._store.read(kind, resource_id)
+            merged = dict(current.entity)
+            merged.update(patch)
+            candidate = Versioned(
+                kind=kind,
+                entity_id=resource_id,
+                entity=merged,
+                revision=current.revision,
+                content_hash=current.content_hash,
+                body=current.body if body is None else body,
+                path=current.path,
             )
-        allowed = set(UPDATABLE_FIELDS.get(kind, ()))
-        unknown = sorted(set(patch) - allowed)
-        if unknown:
-            raise AppError(
-                ErrorCode.INVALID_REQUEST,
-                f"fields not editable through this controlled path: {', '.join(unknown)}",
-                details={"kind": kind, "allowed": sorted(allowed), "rejected": unknown},
-            )
-        if not patch and body is None:
-            raise AppError(
-                ErrorCode.INVALID_REQUEST,
-                "nothing to update: provide at least one allowed field or a body",
-                details={"kind": kind, "allowed": sorted(allowed)},
-            )
-        current = self._store.read(kind, resource_id)
-        merged = dict(current.entity)
-        merged.update(patch)
-        candidate = Versioned(
-            kind=kind,
-            entity_id=resource_id,
-            entity=merged,
-            revision=current.revision,
-            content_hash=current.content_hash,
-            body=current.body if body is None else body,
-            path=current.path,
-        )
-        # Program validation before the Store write: adapter schema/field
-        # combinations, then every reference must resolve.  A model proposal is
-        # therefore checked, never trusted.
-        self._validate_candidate(kind, candidate)
-        written = self._write(kind, resource_id, patch, body, expected_revision, actor)
-        return self._detail_from(kind, written)
+            # Program validation before the Store write: adapter schema/field
+            # combinations, then every reference must resolve.  A model proposal is
+            # therefore checked, never trusted.
+            self._validate_candidate(kind, candidate)
+            written = self._write(kind, resource_id, patch, body, expected_revision, actor)
+            return self._detail_from(kind, written)
 
     def _write(
         self,
