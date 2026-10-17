@@ -1,0 +1,13 @@
+$ npx vitest run tests/settings.test.tsx tests/provider-setup.test.tsx
+
+ RUN  v2.1.9 /home/yhvh/code/lightgravity-bot-worktrees/provider-modal-20261017/frontend
+
+ ✓ tests/settings.test.tsx (8 tests) 1120ms
+ ✓ tests/provider-setup.test.tsx (20 tests) 2148ms
+
+ Test Files  2 passed (2)
+      Tests  28 passed (28)
+   Start at  22:08:25
+   Duration  4.31s (transform 598ms, setup 211ms, collect 1.32s, tests 3.27s, environment 1.34s, prepare 313ms)
+
+exit=0
