@@ -41,6 +41,7 @@ import { ErrorState } from '../../components/ErrorState'
 import { MarkdownViewer } from '../../components/MarkdownViewer'
 import { StatusBadge } from '../../components/StatusBadge'
 import { useShell } from '../../app/ShellProvider'
+import { TaskDirectory } from './TaskDirectory'
 import { FilesMaterialsPanel } from './FilesMaterialsPanel'
 import './files.css'
 
@@ -105,7 +106,7 @@ export function parseSourceRef(ref: string | null | undefined): string | null {
 }
 
 export function FilesView(props: FilesViewProps = {}) {
-  const { state } = useShell()
+  const { state, dispatch } = useShell()
   const taskRef = props.taskRef === undefined ? state.taskRef : props.taskRef
   const runRef = props.runRef === undefined ? state.runRef : props.runRef
   const api = useMemo(
@@ -119,14 +120,20 @@ export function FilesView(props: FilesViewProps = {}) {
     [props.sourcesApi, props.sourcesRuntime],
   )
   return (
+    <div className="lg-files-workspace">
+    <TaskDirectory onOpen={(ref) => {
+      props.onSelectTaskRef?.(ref)
+      dispatch({ type: 'openTaskConversation', taskRef: ref })
+    }} />
     <FilesPanel
       taskRef={taskRef}
       runRef={runRef}
       api={api}
       sourcesApi={sourcesApi}
       selectedItemRef={state.selectedItemRef}
-      onSelectTaskRef={props.onSelectTaskRef}
+      onSelectTaskRef={props.onSelectTaskRef ?? ((ref) => dispatch({ type: 'selectTask', taskRef: ref }))}
     />
+    </div>
   )
 }
 

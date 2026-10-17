@@ -154,10 +154,7 @@ export function ResourcesView(props: ResourcesViewProps = {}) {
     (id: string) => selectItem(`resources:${category.kind}:${id}`),
     [category.kind, selectItem],
   )
-  const selectCategory = useCallback(
-    (id: string) => selectItem(id),
-    [selectItem],
-  )
+
 
   const teamReturn = readTeamReturn()
 
@@ -292,23 +289,7 @@ export function ResourcesView(props: ResourcesViewProps = {}) {
         </section>
       </div>
 
-      <section className="lg-resources__categories" aria-label="Resource categories">
-        <h3 className="lg-section__title">Categories</h3>
-        <ul className="lg-resources__category-list">
-          {RESOURCE_CATEGORIES.map((entry) => (
-            <li key={entry.id}>
-              <button
-                type="button"
-                className={`lg-resources__category${entry.id === category.id ? ' is-selected' : ''}`}
-                aria-pressed={entry.id === category.id}
-                onClick={() => selectCategory(entry.id)}
-              >
-                {entry.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
+
     </div>
   )
 }

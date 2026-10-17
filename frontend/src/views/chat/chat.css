@@ -287,3 +287,55 @@
   font-size: var(--lg-font-size-xs);
   color: var(--lg-color-text-muted);
 }
+
+/* Keep the everyday conversation quiet; tools are available on demand. */
+.lg-chat--main .lg-chat__messages { padding: 24px max(16px, calc((100% - 800px) / 2)); }
+.lg-chat--main .lg-chat__footer { padding: 12px max(16px, calc((100% - 800px) / 2)); }
+.lg-chat__footer { max-height: 55%; overflow-y: auto; }
+.lg-chat__tools { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+.lg-chat__tools > button { width: 36px; justify-content: center; font-size: 22px; padding: 0; border-radius: 50%; }
+.lg-message--assistant .lg-message__bubble { background: transparent; border-color: transparent; padding-left: 0; }
+.lg-message--user { align-self: flex-end; max-width: 90%; }
+.lg-chat__recovery { font-size: 13px; }
+.lg-composer__input { min-height: 56px; border-radius: 16px; }
+#lg-chat-extras[hidden] { display: none; }
+
+/* -------------------------------------------------- Personal / Team (LG-054) */
+.lg-chat__channels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  padding: var(--lg-space-2) var(--lg-space-3);
+  border-bottom: 1px solid var(--lg-color-border);
+  background: var(--lg-color-surface-2);
+}
+
+.lg-chat__channels-tabs {
+  display: inline-flex;
+  gap: var(--lg-space-1);
+}
+
+.lg-chat__channels-tabs [role='tab'] {
+  min-height: 36px;
+}
+
+.lg-chat__channels-tabs [role='tab'][aria-selected='false'] {
+  background: transparent;
+  border-color: transparent;
+  color: var(--lg-color-text-muted);
+}
+
+.lg-chat__channels-tabs [role='tab'][aria-selected='false']:hover:not(:disabled) {
+  color: var(--lg-color-text);
+}
+
+.lg-chat__channel-note,
+.lg-chat__tools-hint {
+  margin: 0;
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-muted);
+}
+
+.lg-chat__tools-hint {
+  margin-bottom: var(--lg-space-1);
+}

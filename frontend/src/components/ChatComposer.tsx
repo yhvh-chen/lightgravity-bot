@@ -49,7 +49,7 @@ export function ChatComposer({
         id="lg-chat-input"
         className="lg-composer__input"
         value={value}
-        placeholder={`Message ${scopeLabel}…`}
+        placeholder="Message…"
         disabled={disabled}
         onChange={handleChange}
         onKeyDown={handleKeyDown}

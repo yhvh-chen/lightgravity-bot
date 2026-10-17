@@ -132,6 +132,11 @@ def is_admin_only_request(request: Request) -> bool:
     path = request.url.path
     if path == SENSITIVE_PREFIX or path.startswith(SENSITIVE_PREFIX + "/"):
         return True
+    # LG-062: the admin account-management surface is admin-only for *every*
+    # method, including the list read.  The self password route lives under
+    # ``/api/v1/account/`` and stays available to any authenticated user.
+    if path == "/api/v1/accounts" or path.startswith("/api/v1/accounts/"):
+        return True
     return request.method.upper() in {"PATCH", "PUT", "DELETE"} and (
         path == "/api/v1/resources" or path.startswith("/api/v1/resources/")
     )

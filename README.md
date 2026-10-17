@@ -8,7 +8,7 @@ Built on **Antigravity SDK**, with **EmbeddingGemma 2** as an optional semantic 
 
 [Quick start](#quick-start) · [Team mode](#team-mode) · [Architecture](#architecture) · [Validation and limitations](#validation-and-limitations)
 
-> **Development preview.** Page-loading failures and interface improvements are being investigated. Capabilities described here distinguish implementation from research directions.
+> **Development preview · October 17, 2026.** Account management passed independent QA on a frozen candidate: 30 Chromium end-to-end tests, 18 independent browser checks, and 3 navigation stability samples. On the byte-identical product tree, 1,061 backend tests passed with 2 skipped and 181 frontend tests passed. A live ordinary-browser verification passed 27/27 checks. The tests, reports, and internal development records are not part of this source distribution. Capabilities described here distinguish implementation from research directions.
 
 ## From context to delivery
 
@@ -39,7 +39,7 @@ Start with a bounded development task in an authorized workspace, or reproduce t
 
 **AI workers form teams around tasks.** The system selects roles and skills, coordinates execution, and routes results through checks and independent review. AI members are created and released with a run, while task records and deliverables persist. Human accounts and AI members are distinct entities.
 
-The current team MVP has one shared workspace with administrator and member roles. Administrators manage accounts, models, and credentials. All team material is shared; private messages, private sources, and multi-tenant isolation are outside the current scope.
+The current team MVP has one shared workspace with administrator and member roles. Administrators manage accounts, models, and credentials. Personal chat is private to the signed-in user; Team conversations, tasks, and source material remain shared. Private tasks, private sources, and multi-tenant isolation are outside the current scope.
 
 ## Task Ontology: a shared model of work
 
@@ -127,7 +127,9 @@ The service provides `lightgravity start / status / stop` lifecycle commands. Cl
 
 ## Team mode
 
-Create accounts first. Passwords are entered interactively:
+When team mode starts with an empty account store, it creates **`admin` / `admin123`**. That default is applied **only** on the first initialization of an empty store; existing accounts and passwords are preserved across restarts. Sign in and use **Settings → My Account** to change your password; administrators create other accounts under **Settings → Accounts**.
+
+You can also prepare accounts using the CLI. Passwords are entered interactively:
 
 ```bash
 uv run --no-dev lightgravity user add --username alice --role admin --data-dir ./bot-data
@@ -146,21 +148,24 @@ LIGHTGRAVITY_TEAM_MODE=1 uv run --no-dev lightgravity start \
 
 Open `http://127.0.0.1:8000/` and sign in. Single-user mode remains the default when `LIGHTGRAVITY_TEAM_MODE` is unset.
 
+Use the Personal/Team tabs above chat. In team mode, Personal supports private chat; switch to Team for shared tasks and material intake. In single-user mode, Personal retains task delivery, uploads, and source selection, while Team is disabled with an explanation. Open tasks from **Files → Task directories**; material search is in the top bar. Connections, Session Profiles, Hooks, MCP, Tools, Triggers, and Skills open directly from the single left navigation.
+
+Administrators manage team accounts from **Settings → Accounts**: list, create, enable/disable, change the `admin`/`member` role, and reset passwords. Every signed-in user has **Settings → My Account** to change their own password; it never loads model connections or the admin account list. Changing or resetting a password, disabling an account, or changing its role invalidates that account's old sessions on the next request; open event streams recheck within approximately two seconds. The last active administrator cannot be disabled or demoted. Account management is additive in contract 1.15; an older team backend or single-user mode shows only an honest explanation. Usernames are immutable and there is no account deletion, invitation, or email self-registration.
+
 For a remote instance, each participant can use an SSH tunnel:
 
 ```bash
 ssh -L 8000:127.0.0.1:8000 <server>
 ```
 
-Team messages synchronize through polling approximately every three seconds. Background tabs catch up when visible again; login sessions expire on service restart. The default listener is loopback. Keep the service bound to loopback when using this setup.
+For a normal LAN browser, use the account-based team mode above, bind with `--host 0.0.0.0`, and add the exact server address with `--allow-host SERVER_IP`. Binding alone does not provide browser authentication in single-user mode: its initial document requires a same-origin runtime token; use an SSH tunnel to retain that mode. Host allowlisting and account authentication remain separate checks. Team state synchronizes through the backend event stream, and login sessions expire on service restart. The default listener is loopback.
 
 ## Validation and limitations
 
-This is an early source preview, not a production-ready release.
+This is an early source preview, not a production-ready release. The figures below come from the current product tree as of October 17, 2026; the test suites and detailed reports are not included in this source distribution.
 
-Current limitations:
-
-- **Page loading needs repair.** Users have reported failures in Files, Team, and Models & Providers. The cause is unverified. Navigation, search, chat, and personal/team switching changes are pending.
+- **Account management (contract 1.15.0).** Independent final QA passed on a frozen candidate: 30 delivered Chromium end-to-end tests, 18 independent browser checks, and 3 navigation stability samples. On the byte-identical product tree, 1,061 backend tests passed with 2 skipped and 181 frontend tests passed. A live ordinary-browser verification passed 27/27 checks. Concurrent CLI/API writes, last-administrator protection, and session invalidation were verified. No real model calls were made.
+- **Browser coverage uses Chromium.** Firefox was not rerun. Single-user settings writes require the supported same-origin runtime token handshake; team mode uses authenticated account cookies.
 - **Source bindings record provided context.** Model citations have not been verified against individual source spans.
 - **Media support is bounded.** PDF and image processing use explicit OCR. ASR is unavailable; Chinese transcription awaits its quality gate. Office formats have not been comprehensively tested.
 - **Recovery is bounded.** Operations with unknown side effects are not automatically replayed. Complete checkpoint-skipping scheduling is not implemented.

@@ -11,6 +11,7 @@ import {
 } from '../../api/team'
 import type { ViewId } from '../../app/navigation'
 import { useShell } from '../../app/ShellProvider'
+import { useAuth } from '../../app/AuthProvider'
 import { draftKey } from '../../app/uiState'
 import { DetailHeader } from '../../components/DetailHeader'
 import { EmptyState } from '../../components/EmptyState'
@@ -91,6 +92,7 @@ function memberBadge(member: TeamMember): { kind: 'neutral' | 'accent' | 'succes
  */
 export function TeamView(props: TeamViewProps = {}) {
   const shell = useShell()
+  const { isTeam } = useAuth()
   const api = useMemo(() => props.api ?? createTeamApi(), [props.api])
   const taskRef = props.taskRef !== undefined ? props.taskRef : shell.state.taskRef
   const runRef = props.runRef !== undefined ? props.runRef : shell.state.runRef
@@ -105,7 +107,10 @@ export function TeamView(props: TeamViewProps = {}) {
   const openChatDraft =
     props.openChatDraft ??
     ((message: string) => {
-      const key = draftKey(taskRef ?? null)
+      // LG-054: a Team-triggered intent belongs to the shared Team channel, so
+      // switch there and write the draft under the matching channel key.
+      if (isTeam) shell.dispatch({ type: 'setChatChannel', channel: 'team' })
+      const key = draftKey(taskRef ?? null, isTeam ? 'team' : null)
       const existing = shell.state.drafts[key] ?? ''
       const value = existing ? `${existing}\n${message}` : message
       shell.dispatch({ type: 'setDraft', key, value })

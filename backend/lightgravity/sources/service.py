@@ -342,7 +342,7 @@ class SourceService:
         media_type = original.get("media_type")
         if self._processing is None or not self._processing.is_native_text(media_type):
             return result
-        if record.status == "extracted":
+        if record.status in ("extracted", REVOKED_STATUS):
             return result
         outcome: Any = None
         try:
@@ -350,6 +350,8 @@ class SourceService:
         except AppError:
             # A recorded failure is the honest outcome; the original stays.
             pass
+        if getattr(outcome, "status", None) in ("succeeded", "partial"):
+            self._reindex(record.source_id)
         self._append_extraction_receipt(result, media_type, outcome)
         return self._reload_receive_result(result)
 
@@ -546,6 +548,8 @@ class SourceService:
         outcome = self._processing.process(
             source_id, job_id=job_id, force=force, cancel_check=cancel_check
         )
+        if outcome.status in ("succeeded", "partial"):
+            self._reindex(source_id)
         return outcome.to_dict()
 
     def _content_store(self, source_id: str) -> Any:
@@ -847,10 +851,10 @@ class SourceService:
 
     # ---------------------------------------------------- lexical index hooks
     def _reindex(self, source_id: str) -> None:
-        """Best-effort re-index hook after a human formal edit (LG-036).
+        """Best-effort re-index hook after trusted extraction or a formal edit.
 
         The file SoT is authoritative; a missing/corrupt cache never blocks the
-        formal write, it only means search reports ``index_unavailable``.
+        source write, it only means search reports ``index_unavailable``.
         """
 
         if self._lexical is None:

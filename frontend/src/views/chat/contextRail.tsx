@@ -4,10 +4,11 @@ import { createTaskApi, type TaskApi } from '../../api/tasks'
 import type { TaskSummary } from '../../api/types'
 import { useShell } from '../../app/ShellProvider'
 import { ContextList, type ContextItem, type ContextSection } from '../../components/ContextList'
-import type { ViewContextProps } from '../registry'
 import { phaseBadge } from '../board/phase'
 
-export interface TaskRailProps extends ViewContextProps {
+export interface TaskRailProps {
+  selectedId: string | null
+  onSelect: (item: ContextItem) => void
   /** Injectable for tests; defaults to the real `/tasks` endpoint. */
   api?: TaskApi
 }

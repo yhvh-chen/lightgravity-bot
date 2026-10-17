@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -8,6 +9,8 @@ import {
   type Dispatch,
   type ReactNode,
 } from 'react'
+
+import { useAuth } from './AuthProvider'
 
 import {
   createInitialState,
@@ -31,7 +34,28 @@ const ShellContext = createContext<ShellContextValue | null>(null)
  * preference persistence. UI-only state — no business data.
  */
 export function ShellProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(shellReducer, undefined, createInitialState)
+  const { identity, isTeam, status } = useAuth()
+  if (status !== 'ready' || (isTeam && !identity.authenticated)) return null
+  const owner = isTeam ? identity.username ?? 'anonymous' : undefined
+  // Identity changes discard mounted conversation state; legacy unowned prefs
+  // are never imported as somebody's private drafts.
+  return <ShellSessionProvider key={owner ? `team:${owner}` : 'single'} owner={owner} isTeam={isTeam}>{children}</ShellSessionProvider>
+}
+
+function ShellSessionProvider({ children, owner, isTeam }: { children: ReactNode; owner?: string; isTeam: boolean }) {
+  const [state, reduce] = useReducer(shellReducer, owner, createInitialState)
+  const dispatch = useCallback((action: ShellAction) => {
+    if (action.type === 'openTaskConversation' || action.type === 'selectTask') {
+      reduce({ ...action, channel: isTeam ? 'team' : 'personal' })
+    } else if (action.type === 'setChatChannel' && !isTeam) {
+      reduce({ ...action, channel: 'personal' })
+    } else {
+      reduce(action)
+    }
+  }, [isTeam])
+  useEffect(() => {
+    if (!isTeam && state.chatChannel === 'team') reduce({ type: 'setChatChannel', channel: 'personal' })
+  }, [isTeam, state.chatChannel])
   const prevQuery = useRef<string | null>(null)
 
   // Mirror the route-bearing state into the URL for deep-link refresh.
@@ -42,6 +66,7 @@ export function ShellProvider({ children }: { children: ReactNode }) {
       taskRef: state.taskRef,
       runRef: state.runRef,
       selectedItemRef: state.selectedItemRef,
+      chatChannel: state.chatChannel,
     })
     if (window.location.search === query) {
       prevQuery.current = query
@@ -54,7 +79,7 @@ export function ShellProvider({ children }: { children: ReactNode }) {
       window.history.replaceState(null, '', query)
     }
     prevQuery.current = query
-  }, [state.view, state.taskRef, state.runRef, state.selectedItemRef])
+  }, [state.view, state.taskRef, state.runRef, state.selectedItemRef, state.chatChannel])
 
   // Back/forward restores the route without recreating any panel state.
   useEffect(() => {
@@ -64,17 +89,16 @@ export function ShellProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('popstate', handler)
   }, [])
 
-  // Persist UI preferences (drafts, panel sizes/visibility, mock toggle).
+  // Persist UI preferences (drafts, panel sizes/visibility).
   useEffect(() => {
-    savePrefs(state)
+    savePrefs(state, owner)
   }, [
     state.drafts,
-    state.contextOpen,
     state.chatOpen,
-    state.contextWidth,
     state.chatWidth,
-    state.showLayoutMock,
     state.notificationsRead,
+    state.chatChannel,
+    owner,
   ])
 
   const value = useMemo<ShellContextValue>(() => ({ state, dispatch }), [state])

@@ -71,14 +71,31 @@ class TeamAuthService:
 
     # --------------------------------------------------------------- sessions
     def create_session(self, identity: TeamIdentity) -> str:
-        session = self._sessions.create(identity.username, identity.role)
+        # Bind the session to the account's current credential revision.  If a
+        # password reset/change, disable or role change bumps it, this session
+        # fails the fresh-state check on its very next request.
+        account = self._accounts.get(identity.username)
+        session_version = account.session_version if account is not None else 0
+        session = self._sessions.create(
+            identity.username, identity.role, session_version
+        )
         return session.session_id
 
     def resolve(self, session_id: str | None) -> TeamIdentity | None:
         session = self._sessions.resolve(session_id)
         if session is None:
             return None
-        return TeamIdentity(username=session.username, role=session.role)
+        # Always resolve the *current* account state: never trust the role or
+        # enabled flag cached in the session.  A missing, disabled, or
+        # revision-changed account drops the session immediately.
+        account = self._accounts.get(session.username)
+        if account is None or not account.enabled:
+            self._sessions.revoke(session_id)
+            return None
+        if account.session_version != session.session_version:
+            self._sessions.revoke(session_id)
+            return None
+        return TeamIdentity(username=account.username, role=account.role)
 
     def revoke(self, session_id: str | None) -> bool:
         return self._sessions.revoke(session_id)

@@ -114,6 +114,10 @@ class StartupOptions:
     wire_real_executor: bool = True
     role_catalog: Mapping[str, Sequence[str]] | None = None
     seed_minimal_agent: bool = True
+    #: LG-061: seed the requested default team admin only when the account
+    #: store is empty.  ``lightgravity status --deep`` passes ``False`` to stay
+    #: strictly read-only.
+    seed_default_admin: bool = True
     tester: bool = True
     #: Hard caps forwarded to the real executor (used by the gated real-model
     #: verification; ``None`` keeps the adapter default).
@@ -496,6 +500,9 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         # LG-029 F2: the discovery/claim/lease endpoints enforce the full minted
         # grant (member + run/subtask scope + fence), not just a member ref.
         worker_grant=resolve_request_grant,
+        # LG-061: first-initialisation default admin, gated so read-only
+        # diagnostics never write the account fact source.
+        initialize_team_accounts=options.seed_default_admin,
     )
     allowed_hosts = options.allowed_hosts
     env_hosts = os.environ.get(ALLOWED_HOSTS_ENV, "")
