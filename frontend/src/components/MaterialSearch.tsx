@@ -28,6 +28,7 @@ export function MaterialSearch() {
     }
     const escape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
+      event.preventDefault()
       setOpen(false)
       inputRef.current?.focus()
     }
@@ -66,6 +67,11 @@ export function MaterialSearch() {
           if (event.key === 'Enter') {
             event.preventDefault()
             submit()
+          }
+          if (event.key === 'Escape') {
+            // Keep the query; type=search would otherwise clear it natively.
+            event.preventDefault()
+            setOpen(false)
           }
         }}
       />

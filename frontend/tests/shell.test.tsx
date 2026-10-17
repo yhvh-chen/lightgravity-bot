@@ -58,6 +58,7 @@ describe('Single navigation shell', () => {
     fireEvent.keyDown(input, { key: 'Escape' })
     expect(screen.queryByLabelText('Search materials panel')).toBeNull()
     expect(input).toHaveFocus()
+    expect(input).toHaveValue('findme')
   })
   it('dismisses search on navigation so Files task controls are not covered', async () => {
     await renderShell()
@@ -87,6 +88,7 @@ describe('Single navigation shell', () => {
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(screen.queryByLabelText('Search materials panel')).toBeNull()
     expect(input).toHaveFocus()
+    expect(input).toHaveValue('findme')
   })
   it('updates the active navigation entry', async () => {
     await renderShell()
