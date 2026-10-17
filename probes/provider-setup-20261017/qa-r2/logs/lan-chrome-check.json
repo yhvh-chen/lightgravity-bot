@@ -1,0 +1,21 @@
+{
+  "status": 200,
+  "url": "http://192.168.8.50:8123/",
+  "title": "LightGravity Bot",
+  "errors": [],
+  "responses": [
+    {
+      "url": "http://192.168.8.50:8123/assets/index-Tunx1fTy.css",
+      "status": 200
+    },
+    {
+      "url": "http://192.168.8.50:8123/assets/index-DfJ7UzJa.js",
+      "status": 200
+    }
+  ],
+  "signInVisible": true,
+  "usernameVisible": true,
+  "passwordVisible": true,
+  "signInButtonVisible": true,
+  "loggedIn": false
+}

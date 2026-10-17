@@ -1,0 +1,55 @@
+# Delivery post-change 2026-10-17T12:11:04Z
+main_head_after_product_merge: e9ec008a7fd0a63c4b935423ce0d4b5f9483792c
+old_8123_pid: 2516844 (stopped; required SIGKILL after 30s SIGTERM)
+new_8123_pid: 2707896
+new_8123_cmdline: /home/yhvh/code/lightgravity-bot/.venv/bin/python3 /home/yhvh/code/lightgravity-bot/.venv/bin/lightgravity start --daemon --data-dir /tmp/lg002-data --workspace-root /tmp/lg002-data/workspaces --secret-store /home/yhvh/code/lightgravity-bot/secrets --frontend-dist /home/yhvh/code/lightgravity-bot/frontend/dist --host 0.0.0.0 --port 8123 --allow-host 192.168.8.50 --allow-host 192.168.8.105 --allow-host 0.0.0.0 --no-executor 
+--- loopback health ---
+{"status":"ok","package_version":"0.1.0","contract_version":"1.17.0","schema_version":"lightgravity.bot/v1","capabilities":{"health":true,"version":true,"store":true,"coordinator":true,"events_sse":true,"settings":true,"files":true,"resources":true,"verification":true,"global_chat":true,"personal_chat":true,"accounts":true,"sdk_adapter":false}}
+--- LAN health ---
+{"status":"ok","package_version":"0.1.0","contract_version":"1.17.0","schema_version":"lightgravity.bot/v1","capabilities":{"health":true,"version":true,"store":true,"coordinator":true,"events_sse":true,"settings":true,"files":true,"resources":true,"verification":true,"global_chat":true,"personal_chat":true,"accounts":true,"sdk_adapter":false}}
+--- auth status settings/connections ---
+401
+--- installed live dist hashes ---
+1ebdf3ada3d8abc2302b918e6e9bec0813bdb6a8478e30e82baf22fef7e4f0a3  frontend/dist/index.html
+87ce0446c497b64938d452371514eea96f0539cc9a81a26fab08a48f4d378fd7  frontend/dist/assets/index-DfJ7UzJa.js
+4cc5d1da2a85f3147687f2780d30141a4626ed344ee6c1e07ec828c72918fbf4  frontend/dist/assets/index-Tunx1fTy.css
+--- protected PIDs alive ---
+1597462 Sl   /home/yhvh/code/lightgravity-bot/.venv/bin/python3 /home/yhvh/code/lightgravity-bot/.venv/bin/lightgravity 
+2332542 Ssl  node /home/yhvh/code/lightgravity-bot/frontend/node_modules/.bin/vite --host 0.0.0.0 --port 5173
+--- root dirty docs hashes after merge ---
+6c3edc93e482ad8d95b496d6f6371c29f27b42e9afdf75570db4679563ffa3ae  .gitignore
+a6ae983d8206edd3d66b59214bb8f458aaf047482ad271aa7cc1fe54a3cae92d  BACKLOG.md
+4374a4d2d5f03567b8c75f65c3d3a84061b2f768abf491e0183a2af16b7003fb  PROGRESS.md
+9906967b3867b0017c3ade5890038106321eb2cd2fb0a2bdf0ccce10560343e6  PROJECT.md
+e82ecfb350633b2f485cd697b47c129c9139abafdbfbfb9b1914e64fc2260d27  README.md
+294ac4db5285054746379b33930574585ed2a58fa14614c516c36ca25970d9f2  agent.md
+217bcc695f4bd06bc0d233a6d83fef50a7f95b9aabf04036c393108c25a2d720  design.md
+04d028634b2442739a9e25464979866b7eec6d37aca7880e6b643b4da3be64c8  docs/01-design.md
+1db68ed7afa294fb8aaeaf3641ef16f42427c622bdcb31912dcde62f8e8044b0  docs/05-navigation-and-team.md
+d41d799be54e8378a06f658ddc532c0fd6ae94b66f55d8e239aa59b6745a1f18  docs/06-roadmap.md
+677add36032737d474bdab431887fdae927c8e87f790c848a755c965d432cf05  docs/07-settings-and-models.md
+ee0e4e75eb9cda0b69e06e5b609ab7ea037c21736729ef7c598c692f3cc915ba  docs/08-interface-contract.md
+sha256sum: frontend/dist.prev-20261017T120940Z/: Is a directory
+--- generation dir ---
+total 0
+drwxrwxr-x  2 yhvh yhvh  40 Oct 16 23:52 .
+drwxrwxr-x 10 yhvh yhvh 200 Oct 17 08:56 ..
+--- data inventory (paths+sizes) ---
+/tmp/lg002-data/locks/entity_agent_lg-default-worker.lock 0
+/tmp/lg002-data/locks/entity_tool_create-file.lock 0
+/tmp/lg002-data/locks/entity_tool_edit-file.lock 0
+/tmp/lg002-data/locks/entity_tool_view-file.lock 0
+/tmp/lg002-data/logs/lightgravity.log 342197
+/tmp/lg002-data/resources/agents/lg-default-worker.md 719
+/tmp/lg002-data/resources/tools/create-file.md 136
+/tmp/lg002-data/resources/tools/edit-file.md 130
+/tmp/lg002-data/resources/tools/view-file.md 130
+/tmp/lg002-data/runtime/lightgravity.json 211
+/tmp/lg002-data/team/accounts.json 377
+/tmp/lg002-data/team/accounts.json.lock 0
+--- team accounts size/mtime ---
+/tmp/lg002-data/team/accounts.json 377 1792189164
+--- new 8123 env LIGHTGRAVITY names ---
+LIGHTGRAVITY_TEAM_MODE=<set>
+--- MAX_GENERATION_CALLS set count ---
+0
