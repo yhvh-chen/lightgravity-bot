@@ -90,8 +90,8 @@ _QUOTE_PAIRS: tuple[tuple[str, str], ...] = (("\"", "\""), ("'", "'"), ("`", "`"
 def _ascii_matcher(keyword: str) -> re.Pattern[str] | None:
     """Whole-word regex for an ASCII keyword, or ``None`` for CJK keywords.
 
-    CJK keywords have no word delimiters, so they keep the original substring
-    semantics (existing Chinese commands must not regress).  ASCII keywords are
+    CJK keywords have no word delimiters; action occurrences are checked against
+    command syntax separately.  ASCII keywords are
     matched on word boundaries so derived forms such as ``approved``,
     ``approval``, ``acceptance`` or ``cancellation`` no longer match the control
     stems ``approve``/``accept``/``cancel``.
@@ -144,35 +144,55 @@ def _is_filename_token(text: str, end: int) -> bool:
     return bool(re.match(r"\.[a-z0-9]{1,6}(?!\w)", text[end:]))
 
 
-def _is_incidental_control(text: str, matcher: re.Pattern[str]) -> bool:
-    """True when a control/decision keyword is only quoted content or a filename.
+# Action verbs must address task execution or a delivery candidate.  Describing
+# a game's stop/restart behaviour or naming acceptance criteria is not consent
+# to change the coordinator's state.  Keep action priority, but inspect each
+# occurrence instead of promoting every substring to a command.
+_CLAUSE_BOUNDARY = re.compile(r"[，,。.!！?？;；\n]|\b(?:and|but|then)\b|并且|然后|但是|但|并")
+_COMMAND_PREFIX = re.compile(
+    r"(?:@bot\s*)?(?:(?:请|麻烦|立即|立刻|现在|帮我)\s*|"
+    r"(?:please|now)\b\s*)*$"
+)
+_ACTION_TARGET = re.compile(
+    r"(?:(?:这个|那个|当前|本次|该|此|正在运行的|运行中的|修改|修复|开发|交付)\s*)*"
+    r"(?:任务|执行|运行|候选|产物|结果|它|task_|run_)|"
+    r"(?:(?:the|this|that|current|running|active|delivery)\s+)*"
+    r"(?:task|run|candidate|delivery|execution|work|it)\b"
+)
 
-    A delivery imperative that merely *mentions* a control word (inside quotes
-    or as a filename such as ``accept.md``) must not execute that word as a
-    control command.  Only the concrete occurrence is suppressed; the keyword
-    itself keeps matching elsewhere in the message.
-    """
 
-    quoted = _quoted_spans(text)
-    for match in matcher.finditer(text):
-        start, end = match.span()
-        if _inside(quoted, start) or _is_filename_token(text, end):
-            continue
+def _is_command(text: str, start: int, end: int) -> bool:
+    """Recognize a bare action or an imperative aimed at a task/candidate."""
+
+    boundaries = list(_CLAUSE_BOUNDARY.finditer(text, 0, start))
+    clause_start = boundaries[-1].end() if boundaries else 0
+    prefix = text[clause_start:start].strip()
+    if _COMMAND_PREFIX.fullmatch(prefix) is None:
         return False
-    return True
+    # A comma-separated negative list keeps its negation: "do not cancel,
+    # pause, approve ...". An explicit new imperative starts a new request.
+    sentence_prefix = re.split(r"[。.!！?？;；\n]", text[:start])[-1]
+    if not prefix and re.search(r"\b(?:do not|don't|never)\b[^;]*$", sentence_prefix):
+        return False
+    suffix = _CLAUSE_BOUNDARY.split(text[end:], maxsplit=1)[0].strip()
+    return not suffix or _ACTION_TARGET.match(suffix) is not None
 
 
-def _hit(text: str, keywords: tuple[str, ...], *, suppress_incidental: bool = False) -> tuple[str, ...]:
+def _hit(text: str, keywords: tuple[str, ...], *, actions: bool = False) -> tuple[str, ...]:
     hits: list[str] = []
+    quoted = _quoted_spans(text) if actions else ()
     for keyword in keywords:
-        matcher = _matcher(keyword)
-        if matcher is None:
-            if keyword in text:
-                hits.append(keyword)
-        elif matcher.search(text):
-            if suppress_incidental and _is_incidental_control(text, matcher):
+        matcher = _matcher(keyword) or re.compile(re.escape(keyword))
+        for match in matcher.finditer(text):
+            start, end = match.span()
+            if actions and (
+                _inside(quoted, start)
+                or _is_filename_token(text, end)
+                or not _is_command(text, start, end)
+            ):
                 continue
             hits.append(keyword)
+            break
     return tuple(hits)
 
 
@@ -250,7 +270,7 @@ def classify_message(content: str) -> Classification:
         matched = _hit(
             text,
             keywords,
-            suppress_incidental=intent in {MessageIntent.CONTROL, MessageIntent.DECISION},
+            actions=intent in {MessageIntent.CONTROL, MessageIntent.DECISION, MessageIntent.RETRY},
         )
         if matched:
             return Classification(
