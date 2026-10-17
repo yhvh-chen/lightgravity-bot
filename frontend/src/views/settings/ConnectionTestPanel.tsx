@@ -55,8 +55,7 @@ export function ConnectionTestPanel({
     return (
       <div className="lg-test" aria-live="polite">
         <p className="lg-field__hint" role="status">
-          Running a draft test. Nothing is saved and no model request is made by
-          opening this form.
+          Testing current values…
         </p>
       </div>
     )
@@ -66,8 +65,7 @@ export function ConnectionTestPanel({
     return (
       <div className="lg-test">
         <p className="lg-field__hint">
-          No draft test has been run. Test uses the current unsaved values without
-          saving them; saving is never the same as a passing test.
+          Not tested
         </p>
       </div>
     )

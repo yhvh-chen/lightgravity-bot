@@ -401,6 +401,38 @@ describe('LG-110 modal lifecycle and accessibility', () => {
 })
 
 describe('LG-110 create/edit and custom endpoint', () => {
+
+  it('keeps the preset endpoint in Advanced and requires a fresh key before testing its edits', async () => {
+    const { api, state } = makeFakeApi()
+    render(<SettingsView api={api} />)
+    const dialog = await openEditConnection('DeepSeek (primary)')
+    const fields = dialog.querySelector('[aria-label="Connection fields"]')!
+    const advanced = screen.getByLabelText('Advanced connection settings')
+    const endpoint = screen.getByLabelText('Base URL')
+    expect(advanced).not.toHaveAttribute('open')
+    expect(advanced).toContainElement(endpoint)
+    expect(fields).not.toContainElement(endpoint)
+
+    fireEvent.click(screen.getByText('Advanced', { selector: 'summary' }))
+    fireEvent.change(endpoint, { target: { value: 'https://custom.example/v1' } })
+    const testButton = screen.getByRole('button', { name: 'Test connection' })
+    expect(testButton).toBeDisabled()
+    expect(state.draftTestCalls).toHaveLength(0)
+
+    fireEvent.change(screen.getByLabelText(/^API key/), {
+      target: { value: 'dummy-new-endpoint-key' },
+    })
+    expect(testButton).toBeEnabled()
+    fireEvent.click(testButton)
+    await waitFor(() => expect(state.draftTestCalls).toHaveLength(1))
+    expect(state.draftTestCalls[0]).toMatchObject({
+      connection: { base_url: 'https://custom.example/v1' },
+      credential_value: 'dummy-new-endpoint-key',
+    })
+    expect(state.createCalls).toHaveLength(0)
+    expect(state.updateCalls).toHaveLength(0)
+  })
+
   it('creates a genuinely selectable custom OpenAI-compatible connection with Base URL required and no Test/Save coupling', async () => {
     const { api, state } = makeFakeApi({ connections: [] })
     render(<SettingsView api={api} />)

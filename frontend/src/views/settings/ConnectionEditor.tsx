@@ -682,26 +682,44 @@ export function ConnectionEditor({
     }
   }
 
-  const credentialHint = (() => {
-    if (!preset.requiresApiKey) {
-      if (preset.authMode === 'adc') {
-        return 'No API key is entered. Authentication comes from Application Default Credentials on the backend host; this form never runs gcloud.'
-      }
-      return 'No credential is used for this local model.'
-    }
-    if (creating) {
-      return 'Required. Sent only with Save or an explicit Test, then cleared; never stored in the browser.'
-    }
-    if (identityChanged) {
-      return configured
-        ? 'Provider, authentication or endpoint changed. Enter a new key; the saved key is never reused for a different provider or host.'
-        : 'Provider, authentication or endpoint changed. Enter a key for the new recipient; no saved key will be reused.'
-    }
-    if (configured) {
-      return 'Configured. Leave empty to use the saved key for this same provider and endpoint.'
-    }
-    return 'No saved key. Enter one here or Test will report the missing credential honestly.'
-  })()
+  const credentialHint = creating
+    ? null
+    : identityChanged
+      ? 'Enter a new key for the changed provider or endpoint.'
+      : configured
+        ? 'Leave empty to keep the saved key.'
+        : 'No saved key. Enter an API key.'
+
+  const providerHint = preset.id === 'deepseek'
+    ? null
+    : preset.id === 'vertex-adc'
+      ? 'Requires Application Default Credentials on this host. Testing only; task execution is unavailable.'
+      : preset.id === 'litert'
+        ? 'Requires a local .litertlm file and LiteRT runtime. Test checks setup only; no inference.'
+        : preset.id === 'gemini-api' || preset.id === 'vertex-express'
+          ? 'Testing only; task execution and defaults are unavailable.'
+          : preset.requiresBaseUrl
+            ? 'Custom hosts can be saved. Live testing and tasks are limited to the DeepSeek host.'
+            : 'This provider is unrecognized; execution is unavailable.'
+
+  const baseUrlField = (
+    <label className="lg-field">
+      <span className="lg-field__label">Base URL</span>
+      <input
+        className="lg-field__input"
+        value={baseUrl}
+        onChange={(event) => {
+          setBaseUrl(event.target.value)
+          noteDraftChange()
+        }}
+        placeholder="https://your-server.example/v1"
+        autoComplete="off"
+        spellCheck={false}
+        disabled={saving}
+        required
+      />
+    </label>
+  )
 
   const blockedReason = testBlockReason()
 
@@ -728,11 +746,6 @@ export function ConnectionEditor({
               <h2 id="lg-connection-modal-title" className="lg-modal__title">
                 {creating ? 'New connection' : `Edit ${connection?.title ?? 'connection'}`}
               </h2>
-              <p className="lg-field__hint">
-                {creating
-                  ? 'Configure and optionally test an unsaved draft.'
-                  : `${preset.label} · draft revision ${revision}`}
-              </p>
             </div>
             <button
               type="button"
@@ -791,9 +804,7 @@ export function ConnectionEditor({
                   ) : null}
                 </select>
               </label>
-              <p className="lg-field__hint">
-                {preset.note} {preset.runtimeNote}
-              </p>
+              {providerHint ? <p className="lg-field__hint">{providerHint}</p> : null}
               {identityChanged ? (
                 <p className="lg-notice" role="status">
                   The provider, authentication or endpoint changed. The old saved
@@ -815,14 +826,11 @@ export function ConnectionEditor({
                   autoComplete="off"
                   disabled={saving}
                 />
-                <span className="lg-field__hint">
-                  Optional human label. The internal id is generated automatically.
-                </span>
               </label>
 
               {preset.requiresApiKey ? (
                 <label className="lg-field">
-                  <span className="lg-field__label">API key (write-only)</span>
+                  <span className="lg-field__label">API key</span>
                   <input
                     className="lg-field__input"
                     type="password"
@@ -840,15 +848,14 @@ export function ConnectionEditor({
                     spellCheck={false}
                     disabled={saving}
                   />
-                  <span className="lg-field__hint">
-                    {credentialHint}
-                    {configured && !identityChanged ? (
-                      <>
-                        {' '}
-                        Status: <StatusBadge kind="success">Configured</StatusBadge>
-                      </>
-                    ) : null}
-                  </span>
+                  {credentialHint ? (
+                    <span className="lg-field__hint">
+                      {configured && !identityChanged ? (
+                        <><StatusBadge kind="success">Configured</StatusBadge>{' '}</>
+                      ) : null}
+                      {credentialHint}
+                    </span>
+                  ) : null}
                 </label>
               ) : null}
 
@@ -867,10 +874,6 @@ export function ConnectionEditor({
                     spellCheck={false}
                     disabled={saving}
                   />
-                  <span className="lg-field__hint">
-                    Vertex ADC uses Application Default Credentials on the backend
-                    host; no key is stored here.
-                  </span>
                 </label>
               ) : null}
 
@@ -892,29 +895,7 @@ export function ConnectionEditor({
                 </label>
               ) : null}
 
-              {preset.requiresBaseUrl ? (
-                <label className="lg-field">
-                  <span className="lg-field__label">Base URL</span>
-                  <input
-                    className="lg-field__input"
-                    value={baseUrl}
-                    onChange={(event) => {
-                      setBaseUrl(event.target.value)
-                      noteDraftChange()
-                    }}
-                    placeholder="https://your-server.example/v1"
-                    autoComplete="off"
-                    spellCheck={false}
-                    disabled={saving}
-                    required
-                  />
-                  <span className="lg-field__hint">
-                    Required OpenAI-compatible endpoint. This build only permits the
-                    existing DeepSeek upstream for live testing/execution; other
-                    hosts are blocked honestly before a network request.
-                  </span>
-                </label>
-              ) : null}
+              {preset.requiresBaseUrl && preset.id !== 'deepseek' ? baseUrlField : null}
 
               {preset.requiresModelPath ? (
                 <>
@@ -932,10 +913,6 @@ export function ConnectionEditor({
                       spellCheck={false}
                       disabled={saving}
                     />
-                    <span className="lg-field__hint">
-                      A readable local .litertlm file. The litert-lm runtime package
-                      must be installed on the backend host.
-                    </span>
                   </label>
                   <label className="lg-field">
                     <span className="lg-field__label">LiteRT backend</span>
@@ -954,10 +931,6 @@ export function ConnectionEditor({
                         </option>
                       ))}
                     </select>
-                    <span className="lg-field__hint">
-                      CPU/GPU/NPU availability is a hardware prerequisite, not a test
-                      result. Test only checks configuration and paths.
-                    </span>
                   </label>
                 </>
               ) : (
@@ -980,11 +953,6 @@ export function ConnectionEditor({
                     spellCheck={false}
                     disabled={saving}
                   />
-                  <span className="lg-field__hint">
-                    {preset.id === 'deepseek'
-                      ? 'DeepSeek OpenAI-compatible default from the existing executable path.'
-                      : 'Sent to the provider as-is. Saving never claims execution or vendor verification.'}
-                  </span>
                 </label>
               )}
             </section>
@@ -1017,6 +985,8 @@ export function ConnectionEditor({
             <details className="lg-disclosure" aria-label="Advanced connection settings">
               <summary className="lg-disclosure__summary">Advanced</summary>
               <div className="lg-disclosure__body">
+                {preset.id === 'deepseek' ? baseUrlField : null}
+                <p className="lg-field__hint">{preset.note} {preset.runtimeNote}</p>
                 <label className="lg-field">
                   <span className="lg-field__label">Connection ID</span>
                   <input
@@ -1186,6 +1156,9 @@ export function ConnectionEditor({
               >
                 {pending === 'test' ? 'Testing…' : 'Test connection'}
               </button>
+              {preset.requiresModelPath ? null : (
+                <p className="lg-field__hint">Test may use API credits.</p>
+              )}
               {blockedReason ? (
                 <p className="lg-field__hint" role="status">
                   {blockedReason}
