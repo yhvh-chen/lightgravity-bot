@@ -153,6 +153,15 @@ _COMMAND_PREFIX = re.compile(
     r"(?:@bot\s*)?(?:(?:请|麻烦|立即|立刻|现在|帮我)\s*|"
     r"(?:please|now)\b\s*)*$"
 )
+# A delivery imperative may locate its work before naming the action. Keep
+# these modifiers structural and bounded: arbitrary prose (including a status
+# query or a negation) is not a command prefix.
+_DELIVERY_SCOPE_PREFIX = re.compile(
+    r"(?:在(?:(?:本次|当前|这个|该|已获准|获准|已授权|授权|指定|允许|批准|的|本|任务|项目|共享|团队)\s*)*"
+    r"(?:工作区|工作目录|仓库|目录|范围)(?:内|中)?\s*|"
+    r"(?:in|within)\s+(?:(?:the|this|current|authorized|approved|designated|task|project|shared|team)\s+)*"
+    r"(?:workspace|working\s+directory|repository|directory|scope)\s*)$"
+)
 _ACTION_TARGET = re.compile(
     r"(?:(?:这个|那个|当前|本次|该|此|正在运行的|运行中的|修改|修复|开发|交付)\s*)*"
     r"(?:任务|执行|运行|候选|产物|结果|它|task_|run_)|"
@@ -257,15 +266,20 @@ _DELIVERY = (
 def _starts_delivery_request(text: str) -> bool:
     """Recognize an initial delivery imperative, not a mentioned/negated verb.
 
-    Reuse the supported command prefix and keyword boundaries. In particular,
-    a status query mentioning "do not create" must remain a query. Questions
-    and bounded reads are checked separately before deferring status routing.
+    Reuse command prefixes and keyword boundaries, allowing a bounded work
+    scope modifier before the verb. A status query mentioning "do not create"
+    must remain a query. Questions and bounded reads are checked separately
+    before deferring status routing.
     """
 
     for keyword in _DELIVERY:
         matcher = _matcher(keyword) or re.compile(re.escape(keyword))
         for match in matcher.finditer(text):
-            if _COMMAND_PREFIX.fullmatch(text[:match.start()].strip()):
+            prefix = text[:match.start()].strip()
+            scope = _DELIVERY_SCOPE_PREFIX.search(prefix)
+            if scope:
+                prefix = prefix[:scope.start()].strip()
+            if _COMMAND_PREFIX.fullmatch(prefix):
                 return True
     return False
 

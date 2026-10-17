@@ -122,18 +122,23 @@ def test_chinese_commands_and_readonly_routing_unchanged() -> None:
 # Delivery description with stop/restart/approval wording; generic fixture data.
 _DELIVERY_DESCRIPTION = """@bot 请在本次获准的任务工作区开发一个名为 FOCUS TIMER 的网页小工具，并创建交付任务。
 
-玩法：点击开始后倒计时，操作结果实时更新；每局 30 秒，时间到后停止计时并显示最终结果，支持重新开始，重开时结果和计时归零。
+玩法：点击开始后倒计时，操作状态实时更新；每局 30 秒，时间到后停止计时并显示最终结果，支持重新开始，重开时结果和计时归零。
 
 交付：design.md、单文件 index.html（CSS 和 JavaScript 全部内联，无外部资源或网络依赖）、验证结果。请先明确设计，再按设计实现并验证。
 
-验收：有开始按钮、实时结果和剩余时间；计时能启动且操作有效；结束后不能继续计时；重新开始正常；常见桌面和手机宽度均可操作。
+验收：有开始按钮、实时状态和剩余时间；计时能启动且操作有效；结束后不能继续计时；重新开始正常；常见桌面和手机宽度均可操作。
 
 请按需使用当前已配置的能力，保留实际执行与验证记录。不要部署或发布，完成后等待人工验收，并返回 Task ID。
 """
 
 
-def test_delivery_description_with_control_words_creates_work() -> None:
-    result = classify_message(_DELIVERY_DESCRIPTION)
+@pytest.mark.parametrize("content", [
+    _DELIVERY_DESCRIPTION,
+    _DELIVERY_DESCRIPTION.replace("操作状态实时更新", "操作结果实时更新"),
+    _DELIVERY_DESCRIPTION.replace("实时状态和剩余时间", "实时结果和剩余时间"),
+])
+def test_delivery_description_with_control_words_creates_work(content: str) -> None:
+    result = classify_message(content)
     assert result.intent == MessageIntent.DELIVERY
     assert result.next_action == "create_task"
     assert not result.requires_target
@@ -234,3 +239,40 @@ def test_delivery_status_precedence_preserves_existing_boundaries(
     assert result.next_action != "create_task"
     if intent != MessageIntent.RETRY:
         assert not result.creates_work
+
+
+@pytest.mark.parametrize("content", [
+    "@bot 请在本次获准的任务工作区开发一个显示系统状态的小工具。",
+    "请在当前已授权的项目工作目录内实现状态页面。",
+    "在指定仓库中修改状态页面。",
+    "Please in the authorized task workspace create a status page.",
+    "@bot within the current project repository implement a progress indicator.",
+])
+def test_scoped_delivery_imperatives_with_status_words(content: str) -> None:
+    result = classify_message(content)
+    assert result.intent == MessageIntent.DELIVERY
+    assert result.next_action == "create_task"
+
+
+@pytest.mark.parametrize("content, intent", [
+    ("@bot 请在本次获准的任务工作区查询开发任务的状态。", MessageIntent.STATUS_QUERY),
+    ("@bot 请在本次获准的任务工作区不要开发状态页面。", MessageIntent.STATUS_QUERY),
+    ("请查询在当前工作区开发的任务状态，不要创建新任务。", MessageIntent.STATUS_QUERY),
+    ("Show status in the authorized task workspace; do not create anything.", MessageIntent.STATUS_QUERY),
+    ("Please in the authorized task workspace do not create a status page.", MessageIntent.STATUS_QUERY),
+    ("如何在当前工作区创建状态页面？", MessageIntent.STATUS_QUERY),
+    ("How do I create a status page in the authorized workspace?", MessageIntent.STATUS_QUERY),
+    ("读这个文件，解释在当前工作区开发的状态页面。", MessageIntent.STATUS_QUERY),
+    ("Read this file to explain how to create a status page in the workspace.", MessageIntent.STATUS_QUERY),
+    ("请在当前工作区创建页面并解释设计。", MessageIntent.BOUNDED_READ),
+    ("Please in the current workspace create a page; explain the design.", MessageIntent.BOUNDED_READ),
+    ("请在当前工作区开发状态页面，但取消当前任务。", MessageIntent.CONTROL),
+    ("Please in the current workspace create a status page; approve the current candidate.", MessageIntent.DECISION),
+    ("@bot 请在本次获准的任务工作区开发状态页面；请重试当前任务。", MessageIntent.RETRY),
+])
+def test_scoped_delivery_detection_does_not_authorize_mentioned_or_negated_work(
+    content: str, intent: MessageIntent,
+) -> None:
+    result = classify_message(content)
+    assert result.intent == intent
+    assert result.next_action != "create_task"
