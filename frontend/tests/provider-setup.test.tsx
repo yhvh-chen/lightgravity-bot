@@ -1,23 +1,20 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { ApiError } from '../src/api/client'
 import type {
   ConnectionCreateInput,
-  ConnectionTestInput,
   ConnectionTestResult,
   ConnectionUpdateInput,
   ConnectionView,
+  DraftConnectionTestInput,
+  DraftConnectionTestResult,
   GlobalSettingsView,
   SettingsApi,
 } from '../src/api/settings'
 import type { AuthMeResponse } from '../src/api/teamAuth'
 import { AuthProvider, useAuth } from '../src/app/AuthProvider'
 import { SettingsView } from '../src/views/settings/SettingsView'
-import {
-  connectionCapabilities,
-  inferPresetId,
-  presetForConnection,
-} from '../src/views/settings/backends'
 
 const DEEPSEEK_BASE_URL = 'https://api.deepseek.com/v1'
 
@@ -47,7 +44,7 @@ function makeConnection(overrides: Partial<ConnectionView> = {}): ConnectionView
   }
 }
 
-function makeSettings(_connections: ConnectionView[]): GlobalSettingsView {
+function makeSettings(): GlobalSettingsView {
   return {
     revision: 2,
     exists: true,
@@ -59,7 +56,9 @@ function makeSettings(_connections: ConnectionView[]): GlobalSettingsView {
   }
 }
 
-function makeTestResult(overrides: Partial<ConnectionTestResult> = {}): ConnectionTestResult {
+function makeTestResult(
+  overrides: Partial<ConnectionTestResult> = {},
+): ConnectionTestResult {
   return {
     test_id: 'ctest_1',
     connection_id: 'deepseek-primary',
@@ -74,10 +73,27 @@ function makeTestResult(overrides: Partial<ConnectionTestResult> = {}): Connecti
     layers: [
       { name: 'config_parse', status: 'passed', detail: 'ok', duration_ms: null },
       { name: 'credential', status: 'passed', detail: 'configured', duration_ms: null },
-      { name: 'runtime_network', status: 'skipped', detail: 'budget policy pending', duration_ms: null },
+      {
+        name: 'runtime_network',
+        status: 'passed',
+        detail: 'model=deepseek-v4-flash',
+        duration_ms: 120,
+      },
     ],
-    overall: 'partial',
+    overall: 'verified',
     note: 'layers are separate',
+    ...overrides,
+  }
+}
+
+function makeDraftResult(
+  overrides: Partial<DraftConnectionTestResult> = {},
+): DraftConnectionTestResult {
+  return {
+    ...makeTestResult(),
+    draft: true,
+    connection_ref: null,
+    revision: null,
     ...overrides,
   }
 }
@@ -86,9 +102,13 @@ interface FakeState {
   connections: ConnectionView[]
   createCalls: ConnectionCreateInput[]
   updateCalls: Array<{ id: string; input: ConnectionUpdateInput }>
-  testCalls: Array<{ id: string; input: ConnectionTestInput }>
+  draftTestCalls: DraftConnectionTestInput[]
+  deleteCalls: Array<{ id: string; revision?: number }>
   removeCredentialCalls: string[]
-  testResult: ConnectionTestResult
+  nextUpdateError: ApiError | null
+  nextDeleteError: ApiError | null
+  nextDraftError: ApiError | null
+  draftResult: DraftConnectionTestResult
 }
 
 function makeFakeApi(initial?: Partial<FakeState>): {
@@ -99,15 +119,23 @@ function makeFakeApi(initial?: Partial<FakeState>): {
     connections: [makeConnection()],
     createCalls: [],
     updateCalls: [],
-    testCalls: [],
+    draftTestCalls: [],
+    deleteCalls: [],
     removeCredentialCalls: [],
-    testResult: makeTestResult(),
+    nextUpdateError: null,
+    nextDeleteError: null,
+    nextDraftError: null,
+    draftResult: makeDraftResult(),
     ...initial,
   }
 
   const api: SettingsApi = {
     async listConnections() {
-      return state.connections.map((connection) => ({ ...connection }))
+      return state.connections.map((connection) => ({
+        ...connection,
+        credential: { ...connection.credential },
+        references: { ...connection.references },
+      }))
     },
     async getConnection(id) {
       const found = state.connections.find((connection) => connection.id === id)
@@ -115,14 +143,13 @@ function makeFakeApi(initial?: Partial<FakeState>): {
       return { ...found }
     },
     async getSettings() {
-      return makeSettings(state.connections)
+      return makeSettings()
     },
     async createConnection(input) {
       state.createCalls.push(input)
-      const id = input.id
       const created = makeConnection({
-        id,
-        title: input.title ?? id,
+        id: input.id,
+        title: input.title ?? input.id,
         enabled: input.enabled ?? true,
         revision: 1,
         content_hash: 'hash-new',
@@ -141,13 +168,19 @@ function makeFakeApi(initial?: Partial<FakeState>): {
         location: input.location ?? null,
         model_path: input.model_path ?? null,
         litert_backend: input.litert_backend ?? null,
-        references: { connection_id: id, default_roles: [], agent_refs: [] },
+        last_test: null,
+        references: { connection_id: input.id, default_roles: [], agent_refs: [] },
       })
       state.connections = [...state.connections, created]
       return created
     },
     async updateConnection(id, input) {
       state.updateCalls.push({ id, input })
+      if (state.nextUpdateError) {
+        const error = state.nextUpdateError
+        state.nextUpdateError = null
+        throw error
+      }
       const index = state.connections.findIndex((connection) => connection.id === id)
       const current = state.connections[index]
       const removing = input.credential_action === 'remove'
@@ -187,7 +220,7 @@ function makeFakeApi(initial?: Partial<FakeState>): {
       return updated
     },
     async updateSettings() {
-      return makeSettings(state.connections)
+      return makeSettings()
     },
     async setCredential(ref) {
       return { ref, configured: true, source: 'secret_store', version: 'cred_2' }
@@ -199,9 +232,28 @@ function makeFakeApi(initial?: Partial<FakeState>): {
       state.removeCredentialCalls.push(ref)
       return { ref, configured: false, source: null, version: null }
     },
-    async testConnection(id, input) {
-      state.testCalls.push({ id, input })
-      return state.testResult
+    async testConnection() {
+      return makeTestResult()
+    },
+    async testDraftConnection(input) {
+      state.draftTestCalls.push(input)
+      if (state.nextDraftError) {
+        const error = state.nextDraftError
+        state.nextDraftError = null
+        throw error
+      }
+      return state.draftResult
+    },
+    async deleteConnection(id, expectedRevision) {
+      state.deleteCalls.push({ id, revision: expectedRevision })
+      if (state.nextDeleteError) {
+        const error = state.nextDeleteError
+        state.nextDeleteError = null
+        throw error
+      }
+      state.connections = state.connections.filter(
+        (connection) => connection.id !== id,
+      )
     },
   }
 
@@ -217,391 +269,427 @@ afterEach(() => {
   cleanup()
 })
 
-describe('LG-106 provider preset mapping', () => {
-  interface MatrixCase {
-    name: string
-    preset: string
-    idPattern: RegExp
-    fill?: () => void
-    expected: Partial<ConnectionCreateInput>
-    noApiKey?: boolean
-    noModel?: boolean
-  }
+async function openNewConnection(): Promise<HTMLElement> {
+  fireEvent.click(await screen.findByRole('button', { name: 'New connection' }))
+  return screen.findByRole('dialog')
+}
 
-  const cases: MatrixCase[] = [
-    {
-      name: 'Gemini API',
-      preset: 'gemini-api',
-      idPattern: /^gemini-api-[a-z0-9]+$/,
-      fill: () => {
-        fireEvent.change(screen.getByLabelText(/API key/), {
-          target: { value: 'sk-gemini-test' },
-        })
-      },
-      expected: {
-        backend: 'gemini',
-        auth_mode: 'api_key',
-        model: 'gemini-3.8-flash',
-        project: null,
-        location: null,
-        model_path: null,
-        litert_backend: null,
-      },
-    },
-    {
-      name: 'Vertex Express',
-      preset: 'vertex-express',
-      idPattern: /^vertex-express-[a-z0-9]+$/,
-      fill: () => {
-        fireEvent.change(screen.getByLabelText(/API key/), {
-          target: { value: 'sk-vertex-test' },
-        })
-      },
-      expected: {
-        backend: 'vertex',
-        auth_mode: 'api_key',
-        model: 'gemini-3.8-flash',
-        project: null,
-        location: null,
-      },
-    },
-    {
-      name: 'Vertex ADC',
-      preset: 'vertex-adc',
-      idPattern: /^vertex-adc-[a-z0-9]+$/,
-      fill: () => {
-        fireEvent.change(screen.getByLabelText(/Project ID/), {
-          target: { value: 'project-1' },
-        })
-        fireEvent.change(screen.getByLabelText(/Location/), {
-          target: { value: 'us-central1' },
-        })
-      },
-      expected: {
-        backend: 'vertex',
-        auth_mode: 'adc',
-        model: 'gemini-3.8-flash',
-        project: 'project-1',
-        location: 'us-central1',
-      },
-      noApiKey: true,
-    },
-    {
-      name: 'DeepSeek OpenAI-compatible',
-      preset: 'deepseek',
-      idPattern: /^deepseek-[a-z0-9]+$/,
-      fill: () => {
-        fireEvent.change(screen.getByLabelText(/API key/), {
-          target: { value: 'sk-deepseek-test' },
-        })
-      },
-      expected: {
-        backend: 'openai-compat',
-        model: 'deepseek-v4-flash',
-        base_url: DEEPSEEK_BASE_URL,
-      },
-    },
-    {
-      name: 'LiteRT local model',
-      preset: 'litert',
-      idPattern: /^litert-[a-z0-9]+$/,
-      fill: () => {
-        fireEvent.change(screen.getByLabelText(/Model file path/), {
-          target: { value: '/models/gemma.litertlm' },
-        })
-        fireEvent.change(screen.getByLabelText(/LiteRT backend/), {
-          target: { value: 'CPU' },
-        })
-      },
-      expected: {
-        backend: 'litert',
-        auth_mode: 'none',
-        model: null,
-        model_path: '/models/gemma.litertlm',
-        litert_backend: 'CPU',
-        credential_ref: null,
-      },
-      noApiKey: true,
-      noModel: true,
-    },
-  ]
+async function openEditConnection(title: string): Promise<HTMLElement> {
+  fireEvent.click(await screen.findByRole('button', { name: `Edit ${title}` }))
+  return screen.findByRole('dialog')
+}
 
-  it.each(cases)('maps the $name preset to the real backend fields', async (testCase) => {
-    const { api, state } = makeFakeApi({ connections: [] })
-    render(<SettingsView api={api} />)
-
-    fireEvent.click(await screen.findByRole('button', { name: 'New connection' }))
-    fireEvent.change(screen.getByRole('combobox', { name: 'Provider' }), {
-      target: { value: testCase.preset },
-    })
-    if (testCase.noApiKey) {
-      expect(screen.queryByLabelText(/API key/)).toBeNull()
-    } else {
-      expect(screen.getByLabelText(/API key/)).toBeInTheDocument()
-    }
-    if (testCase.noModel) {
-      expect(screen.queryByPlaceholderText('gemini-3.8-flash')).toBeNull()
-      expect(screen.queryByPlaceholderText('deepseek-v4-flash')).toBeNull()
-    } else {
-      const model = testCase.preset === 'deepseek' ? 'deepseek-v4-flash' : 'gemini-3.8-flash'
-      expect(screen.getByPlaceholderText(model)).toHaveValue(model)
-    }
-    testCase.fill?.()
-    fireEvent.click(screen.getByRole('button', { name: 'Save connection' }))
-
-    await waitFor(() => expect(state.createCalls).toHaveLength(1))
-    const call = state.createCalls[0]
-    expect(call.id).toMatch(testCase.idPattern)
-    expect(call).toMatchObject(testCase.expected)
-    if (testCase.preset === 'deepseek') {
-      // Legacy-compatible omission: auth_mode defaults to the proxy path.
-      expect(call.auth_mode).toBeUndefined()
-      expect(call.credential_ref).toBe(`${call.id}-key`)
-    }
-  })
-
-  it('keeps an existing custom OpenAI-compatible endpoint as a legacy preset', async () => {
-    const { api, state } = makeFakeApi({
+describe('LG-110 landing list', () => {
+  it('shows Name/Provider/Model and only backend-persisted test status, with no editor mounted', async () => {
+    const { api } = makeFakeApi({
       connections: [
         makeConnection({
-          id: 'local-ollama',
-          title: 'Local Ollama',
-          model: 'llama3',
-          base_url: 'http://127.0.0.1:11434/v1',
-          credential_ref: 'ollama-key',
-          credential: {
-            ref: 'ollama-key',
-            configured: true,
-            source: 'secret_store',
-            version: 'cred_1',
+          id: 'tested',
+          title: 'Tested connection',
+          last_test: {
+            overall: 'verified',
+            finished_at: '2026-10-17T10:00:00Z',
+            connection_revision: 3,
+            credential_version: 'cred_1',
           },
+        }),
+        makeConnection({
+          id: 'untested',
+          title: 'Untested connection',
+          revision: 5,
+          last_test: null,
         }),
       ],
     })
     render(<SettingsView api={api} />)
 
-    await screen.findByRole('heading', { name: 'Local Ollama' })
-    expect(screen.getByRole('combobox', { name: 'Provider' })).toHaveValue(
-      'legacy-openai',
-    )
-
-    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
-    await waitFor(() => expect(state.updateCalls).toHaveLength(1))
-    const payload = state.updateCalls[0].input
-    // No migration and no optional fields injected into an old record.
-    expect(payload.backend).toBeUndefined()
-    expect(payload.auth_mode).toBeUndefined()
-    expect(payload.base_url).toBe('http://127.0.0.1:11434/v1')
-    expect(payload.credential_action).toBe('keep')
-    expect(payload.credential_value).toBeUndefined()
+    expect(await screen.findByText('Tested connection')).toBeInTheDocument()
+    expect(screen.getAllByText('DeepSeek (OpenAI-compatible)').length).toBeGreaterThan(0)
+    expect(screen.getByText(/verified · 2026-10-17T10:00:00Z/)).toBeInTheDocument()
+    expect(screen.getByText('Not tested')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.queryByRole('combobox', { name: 'Provider' })).toBeNull()
+    expect(screen.queryByLabelText(/API key/)).toBeNull()
   })
 
-  it('infers presets from auth_mode/project fields without mutating old records', () => {
-    expect(inferPresetId(makeConnection({ backend: 'gemini' }))).toBe('gemini-api')
-    expect(
-      inferPresetId(makeConnection({ backend: 'vertex', auth_mode: 'api_key' })),
-    ).toBe('vertex-express')
-    expect(
-      inferPresetId(
+  it('marks a persisted test stale instead of promoting it to current verification', async () => {
+    const { api } = makeFakeApi({
+      connections: [
         makeConnection({
-          backend: 'vertex',
-          auth_mode: 'adc',
-          project: 'p',
-          location: 'us-central1',
+          revision: 7,
+          last_test: {
+            overall: 'verified',
+            finished_at: '2026-10-17T10:00:00Z',
+            connection_revision: 6,
+            credential_version: 'cred_1',
+          },
         }),
-      ),
-    ).toBe('vertex-adc')
-    expect(inferPresetId(makeConnection({ backend: 'litert', auth_mode: 'none' }))).toBe(
-      'litert',
-    )
-    expect(
-      presetForConnection(makeConnection({ base_url: 'https://example.test/v1' })).id,
-    ).toBe('legacy-openai')
-    expect(presetForConnection(makeConnection()).id).toBe('deepseek')
-  })
-
-  it('keeps capability facts separate and only defaults executable connections', () => {
-    const gemini = makeConnection({
-      backend: 'gemini',
-      capabilities: { configurable: true, testable: true, executable: false },
+      ],
     })
-    expect(connectionCapabilities(gemini)).toMatchObject({
-      configurable: true,
-      testable: true,
-      executable: false,
-      vendor_verified: false,
-    })
-    const deepseek = makeConnection()
-    expect(connectionCapabilities(deepseek)).toMatchObject({
-      executable: true,
-      vendor_verified: true,
-    })
+    render(<SettingsView api={api} />)
+    expect(await screen.findByText(/verified · stale/)).toBeInTheDocument()
   })
 })
 
-describe('LG-106 secret preservation and dirty test rules', () => {
-  it('sends no key and no removal when the write-only field is empty', async () => {
+describe('LG-110 modal lifecycle and accessibility', () => {
+  it('opens one accessible modal, traps Tab, makes the background inert and returns focus on close', async () => {
     const { api, state } = makeFakeApi()
     render(<SettingsView api={api} />)
-    await screen.findByRole('heading', { name: 'DeepSeek (primary)' })
+    const trigger = await screen.findByRole('button', {
+      name: 'Edit DeepSeek (primary)',
+    })
+    trigger.focus()
+    const dialog = await openEditConnection('DeepSeek (primary)')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+    expect(dialog).toHaveAccessibleName(/Edit DeepSeek/)
+    expect(document.querySelector('[inert]')).not.toBeNull()
+    expect(state.draftTestCalls).toHaveLength(0)
+    expect(state.updateCalls).toHaveLength(0)
 
-    await waitFor(() => expect(state.updateCalls).toHaveLength(1))
-    const payload = state.updateCalls[0].input
-    expect(payload.credential_action).toBe('keep')
-    expect(payload.credential_value).toBeUndefined()
-    expect(payload.credential_ref).toBeUndefined()
-    expect(state.removeCredentialCalls).toHaveLength(0)
-    expect(JSON.stringify(window.localStorage)).not.toContain('sk-')
-    expect(JSON.stringify(window.sessionStorage)).not.toContain('sk-')
+    const save = screen.getByRole('button', { name: 'Save changes' })
+    save.focus()
+    fireEvent.keyDown(dialog, { key: 'Tab' })
+    expect(screen.getByRole('button', { name: 'Close connection dialog' })).toHaveFocus()
+
+    fireEvent.keyDown(dialog, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(trigger).toHaveFocus())
   })
 
-  it('switching provider keeps the stored key and never deletes it', async () => {
+  it('keeps the draft when the dirty-close confirmation is cancelled, then discards on request', async () => {
     const { api, state } = makeFakeApi()
     render(<SettingsView api={api} />)
-    await screen.findByRole('heading', { name: 'DeepSeek (primary)' })
+    const trigger = await screen.findByRole('button', {
+      name: 'Edit DeepSeek (primary)',
+    })
+    await openEditConnection('DeepSeek (primary)')
+
+    fireEvent.change(screen.getByLabelText(/^Name/), {
+      target: { value: 'Unsaved draft name' },
+    })
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+    expect(screen.getByText(/Discard this unsaved draft/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Keep editing' }))
+    expect(screen.getByLabelText(/^Name/)).toHaveValue('Unsaved draft name')
+    expect(state.updateCalls).toHaveLength(0)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.getByText(/Discard this unsaved draft/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Discard and close' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    await waitFor(() => expect(trigger).toHaveFocus())
+    expect(state.updateCalls).toHaveLength(0)
+  })
+
+  it('clears typed secrets on provider switch and never writes them to storage or the URL', async () => {
+    const { api } = makeFakeApi({ connections: [] })
+    render(<SettingsView api={api} />)
+    await openNewConnection()
+    const key = screen.getByLabelText(/API key/)
+    fireEvent.change(key, { target: { value: 'sk-never-persist-me' } })
+    expect(key).toHaveValue('sk-never-persist-me')
 
     fireEvent.change(screen.getByRole('combobox', { name: 'Provider' }), {
       target: { value: 'gemini-api' },
     })
     expect(screen.getByLabelText(/API key/)).toHaveValue('')
-    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
-
-    await waitFor(() => expect(state.updateCalls).toHaveLength(1))
-    const payload = state.updateCalls[0].input
-    expect(payload.backend).toBe('gemini')
-    expect(payload.auth_mode).toBe('api_key')
-    expect(payload.credential_action).toBe('keep')
-    expect(payload.credential_value).toBeUndefined()
-    expect(payload.credential_ref).toBeUndefined()
-    expect(state.removeCredentialCalls).toHaveLength(0)
-    // The old reference is still present on the resulting record.
-    expect(state.connections[0].credential_ref).toBe('deepseek-primary-key')
+    expect(JSON.stringify(window.localStorage)).not.toContain('sk-never-persist-me')
+    expect(JSON.stringify(window.sessionStorage)).not.toContain('sk-never-persist-me')
+    expect(window.location.href).not.toContain('sk-never-persist-me')
   })
+})
 
-  it('requires Save before Test and never tests automatically', async () => {
-    const { api, state } = makeFakeApi()
+describe('LG-110 create/edit and custom endpoint', () => {
+  it('creates a genuinely selectable custom OpenAI-compatible connection with Base URL required and no Test/Save coupling', async () => {
+    const { api, state } = makeFakeApi({ connections: [] })
     render(<SettingsView api={api} />)
-    await screen.findByRole('heading', { name: 'DeepSeek (primary)' })
+    await openNewConnection()
 
-    // No request on load or selection.
-    expect(state.testCalls).toHaveLength(0)
-    const testButton = screen.getByRole('button', { name: 'Test connection' })
-    expect(testButton).toBeEnabled()
-
-    fireEvent.click(testButton)
-    await waitFor(() => expect(state.testCalls).toHaveLength(1))
-    expect(state.testCalls[0].input).toMatchObject({
-      expected_revision: 3,
-      allow_network: true,
+    fireEvent.change(screen.getByRole('combobox', { name: 'Provider' }), {
+      target: { value: 'custom-openai' },
     })
-    expect(await screen.findByText('runtime_network')).toBeInTheDocument()
-
-    // A dirty edit disables Test until the revision is saved.
+    expect(screen.getByLabelText(/Base URL/)).toBeInTheDocument()
+    expect(screen.getByText(/may be blocked before any network request/)).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText(/^Name/), {
+      target: { value: 'My custom server' },
+    })
+    fireEvent.change(screen.getByLabelText(/API key/), {
+      target: { value: 'sk-custom-secret' },
+    })
+    fireEvent.change(screen.getByLabelText(/Base URL/), {
+      target: { value: 'https://custom.example/v1' },
+    })
     fireEvent.change(screen.getByLabelText(/^Model/), {
-      target: { value: 'deepseek-v4-flash-next' },
+      target: { value: 'my-model' },
     })
-    expect(screen.getByRole('button', { name: 'Test connection' })).toBeDisabled()
-    expect(screen.getByText(/Save your changes first/)).toBeInTheDocument()
-    expect(state.testCalls).toHaveLength(1)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
-    await waitFor(() => expect(state.updateCalls).toHaveLength(1))
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Test connection' })).toBeEnabled(),
-    )
-    // Saving itself never triggers a test.
-    expect(state.testCalls).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Save connection' }))
+    await waitFor(() => expect(state.createCalls).toHaveLength(1))
+    expect(state.createCalls[0]).toMatchObject({
+      title: 'My custom server',
+      backend: 'openai-compat',
+      auth_mode: 'proxy_api_key',
+      base_url: 'https://custom.example/v1',
+      model: 'my-model',
+      credential_value: 'sk-custom-secret',
+    })
+    expect(state.draftTestCalls).toHaveLength(0)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    const rowHeading = await screen.findByText('My custom server')
+    await waitFor(() => expect(rowHeading.closest('li')).toHaveFocus())
+    // The fake backend reports no persisted test; saving must not invent one.
+    expect(screen.getByText('Not tested')).toBeInTheDocument()
   })
 
-  it('honours a backend-declared testable=false without pretending', async () => {
+  it('edits with expected_revision and optional provider fields without auto-testing', async () => {
     const { api, state } = makeFakeApi({
       connections: [
         makeConnection({
+          id: 'gemini-one',
+          title: 'Gemini API',
           backend: 'gemini',
+          auth_mode: 'api_key',
           model: 'gemini-3.8-flash',
           base_url: null,
-          capabilities: {
-            configurable: true,
-            testable: false,
-            executable: false,
-            vendor_verified: false,
-          },
+          credential_ref: 'gemini-one-key',
         }),
       ],
     })
     render(<SettingsView api={api} />)
-    await screen.findByRole('heading', { name: 'DeepSeek (primary)' })
+    await openEditConnection('Gemini API')
+    fireEvent.change(screen.getByLabelText(/^Model/), {
+      target: { value: 'gemini-3.8-pro' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+    await waitFor(() => expect(state.updateCalls).toHaveLength(1))
+    expect(state.updateCalls[0]).toMatchObject({
+      id: 'gemini-one',
+      input: {
+        expected_revision: 3,
+        model: 'gemini-3.8-pro',
+        auth_mode: 'api_key',
+        credential_action: 'keep',
+      },
+    })
+    expect(state.updateCalls[0].input.backend).toBeUndefined()
+    expect(state.draftTestCalls).toHaveLength(0)
+  })
+})
+
+describe('LG-110 draft Test → Save', () => {
+  it('tests the unsaved draft envelope without saving, marks edits stale, then saves separately', async () => {
+    const { api, state } = makeFakeApi()
+    render(<SettingsView api={api} />)
+    await openEditConnection('DeepSeek (primary)')
+
+    fireEvent.change(screen.getByLabelText(/^Model/), {
+      target: { value: 'deepseek-draft-model' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Test connection' }))
+
+    await waitFor(() => expect(state.draftTestCalls).toHaveLength(1))
+    expect(state.draftTestCalls[0]).toMatchObject({
+      existing_connection_id: 'deepseek-primary',
+      expected_revision: 3,
+      allow_network: true,
+      connection: {
+        backend: 'openai-compat',
+        model: 'deepseek-draft-model',
+        base_url: DEEPSEEK_BASE_URL,
+        auth_mode: 'proxy_api_key',
+      },
+    })
+    expect(state.draftTestCalls[0].credential_value).toBeUndefined()
+    expect(state.updateCalls).toHaveLength(0)
+    expect(await screen.findByText('draft · not saved')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText(/^Model/), {
+      target: { value: 'deepseek-draft-model-2' },
+    })
+    expect(screen.getByText('stale')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await waitFor(() => expect(state.updateCalls).toHaveLength(1))
+    expect(state.updateCalls[0].input.model).toBe('deepseek-draft-model-2')
+    expect(state.draftTestCalls).toHaveLength(1)
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('keeps the draft and key after a failed test, and a valid Save still works', async () => {
+    const { api, state } = makeFakeApi()
+    state.nextDraftError = new ApiError({
+      message: 'upstream rejected the draft key',
+      code: 'validation_failed',
+      httpStatus: 422,
+      retryable: false,
+    })
+    render(<SettingsView api={api} />)
+    await openEditConnection('DeepSeek (primary)')
+
+    fireEvent.change(screen.getByLabelText(/API key/), {
+      target: { value: 'sk-retry-me' },
+    })
+    fireEvent.change(screen.getByLabelText(/^Model/), {
+      target: { value: 'deepseek-retry-model' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Test connection' }))
+    expect(await screen.findByText('Draft test failed')).toBeInTheDocument()
+    expect(screen.getByLabelText(/API key/)).toHaveValue('sk-retry-me')
+    expect(screen.getByLabelText(/^Model/)).toHaveValue('deepseek-retry-model')
+    expect(state.updateCalls).toHaveLength(0)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await waitFor(() => expect(state.updateCalls).toHaveLength(1))
+    expect(state.updateCalls[0].input.credential_value).toBe('sk-retry-me')
+    expect(state.updateCalls[0].input.model).toBe('deepseek-retry-model')
+  })
+
+  it('requires a fresh key when the credential recipient changes and never reuses the old key', async () => {
+    const { api, state } = makeFakeApi()
+    render(<SettingsView api={api} />)
+    await openEditConnection('DeepSeek (primary)')
+    fireEvent.change(screen.getByRole('combobox', { name: 'Provider' }), {
+      target: { value: 'gemini-api' },
+    })
+
     const testButton = screen.getByRole('button', { name: 'Test connection' })
     expect(testButton).toBeDisabled()
     expect(
-      screen.getByText(/has not enabled Test for this provider/),
+      screen.getByText(/saved key is not sent to a different provider or host/),
     ).toBeInTheDocument()
-    expect(state.testCalls).toHaveLength(0)
+
+    fireEvent.change(screen.getByLabelText(/API key/), {
+      target: { value: 'sk-brand-new-gemini-key' },
+    })
+    expect(testButton).toBeEnabled()
+    fireEvent.click(testButton)
+    await waitFor(() => expect(state.draftTestCalls).toHaveLength(1))
+    expect(state.draftTestCalls[0]).toMatchObject({
+      credential_value: 'sk-brand-new-gemini-key',
+      existing_connection_id: 'deepseek-primary',
+      connection: { backend: 'gemini', auth_mode: 'api_key' },
+    })
+    expect(state.draftTestCalls[0].connection.base_url).toBeNull()
   })
 
-  it('surfaces a real save validation error instead of a fake success', async () => {
+  it('discards a late draft result after the same modal draft changes', async () => {
+    const { api, state } = makeFakeApi()
+    let release: (() => void) | null = null
+    api.testDraftConnection = vi.fn(
+      (input) =>
+        new Promise<DraftConnectionTestResult>((resolve) => {
+          state.draftTestCalls.push(input)
+          release = () => resolve(makeDraftResult({ model: 'late-old-model' }))
+        }),
+    )
+    render(<SettingsView api={api} />)
+    await openEditConnection('DeepSeek (primary)')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Test connection' }))
+    await waitFor(() => expect(release).not.toBeNull())
+    fireEvent.change(screen.getByLabelText(/^Model/), {
+      target: { value: 'new-model-after-test-started' },
+    })
+    await act(async () => {
+      release?.()
+    })
+    expect(
+      await screen.findByText(/late result was discarded/),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('draft · not saved')).toBeNull()
+  })
+
+  it('never applies a late result from a closed modal to a reopened one', async () => {
+    const { api, state } = makeFakeApi()
+    let release: (() => void) | null = null
+    api.testDraftConnection = vi.fn(
+      (input) =>
+        new Promise<DraftConnectionTestResult>((resolve) => {
+          state.draftTestCalls.push(input)
+          release = () => resolve(makeDraftResult({ model: 'closed-modal-result' }))
+        }),
+    )
+    render(<SettingsView api={api} />)
+    await openEditConnection('DeepSeek (primary)')
+    fireEvent.click(screen.getByRole('button', { name: 'Test connection' }))
+    await waitFor(() => expect(release).not.toBeNull())
+    fireEvent.click(screen.getByRole('button', { name: 'Close connection dialog' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+
+    await openEditConnection('DeepSeek (primary)')
+    await act(async () => {
+      release?.()
+    })
+    expect(screen.queryByText('draft · not saved')).toBeNull()
+    expect(screen.queryByText('closed-modal-result')).toBeNull()
+  })
+  it('retains the real Vertex Project + ADC fields and tests them as an unsaved draft', async () => {
     const { api, state } = makeFakeApi({ connections: [] })
     render(<SettingsView api={api} />)
-    fireEvent.click(await screen.findByRole('button', { name: 'New connection' }))
+    await openNewConnection()
     fireEvent.change(screen.getByRole('combobox', { name: 'Provider' }), {
       target: { value: 'vertex-adc' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Save connection' }))
+    expect(screen.queryByLabelText(/API key/)).toBeNull()
+    expect(screen.getByLabelText(/Project ID/)).toBeInTheDocument()
+    expect(screen.getByLabelText(/Location/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Test connection' })).toBeDisabled()
+    expect(state.draftTestCalls).toHaveLength(0)
 
-    expect(await screen.findByText(/Google Cloud project ID/)).toBeInTheDocument()
-    expect(state.createCalls).toHaveLength(0)
+    fireEvent.change(screen.getByLabelText(/Project ID/), {
+      target: { value: 'project-1' },
+    })
+    fireEvent.change(screen.getByLabelText(/Location/), {
+      target: { value: 'us-central1' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Test connection' }))
+    await waitFor(() => expect(state.draftTestCalls).toHaveLength(1))
+    expect(state.draftTestCalls[0]).toMatchObject({
+      expected_revision: 0,
+      allow_network: true,
+      connection: {
+        backend: 'vertex',
+        auth_mode: 'adc',
+        project: 'project-1',
+        location: 'us-central1',
+      },
+    })
+    expect(state.draftTestCalls[0].credential_value).toBeUndefined()
   })
-})
 
-const MEMBER_PROBE = async (): Promise<AuthMeResponse> => ({
-  mode: 'team',
-  authenticated: true,
-  username: 'alice',
-  role: 'member',
-})
-
-function MemberBoundaryHarness({ api }: { api: SettingsApi }) {
-  const { status, isAdmin } = useAuth()
-  if (status !== 'ready') return <p>checking auth</p>
-  return (
-    <div>
-      <p>{isAdmin ? 'role:admin' : 'role:member'}</p>
-      <SettingsView api={api} connectionId="deepseek-primary" />
-    </div>
-  )
-}
-
-describe('LG-106 member boundary', () => {
-  it('never fetches Models/Connections for a team member', async () => {
-    const listConnections = vi.fn(async () => [makeConnection()])
-    const getSettings = vi.fn(async () => makeSettings([makeConnection()]))
-    const api = {
-      ...makeFakeApi().api,
-      listConnections,
-      getSettings,
-    } as SettingsApi
-
-    render(
-      <AuthProvider probe={MEMBER_PROBE}>
-        <MemberBoundaryHarness api={api} />
-      </AuthProvider>,
-    )
-
-    expect(await screen.findByText('role:member')).toBeInTheDocument()
-    expect(listConnections).not.toHaveBeenCalled()
-    expect(getSettings).not.toHaveBeenCalled()
-    expect(screen.queryByText('Models & Providers')).toBeNull()
-    expect(
-      screen.getByText(/configuration is managed by administrators/),
-    ).toBeInTheDocument()
+  it('retains the real LiteRT model-path/backend fields and never sends a model or key', async () => {
+    const { api, state } = makeFakeApi({ connections: [] })
+    render(<SettingsView api={api} />)
+    await openNewConnection()
+    fireEvent.change(screen.getByRole('combobox', { name: 'Provider' }), {
+      target: { value: 'litert' },
+    })
+    expect(screen.queryByLabelText(/API key/)).toBeNull()
+    expect(screen.queryByLabelText(/^Model$/)).toBeNull()
+    fireEvent.change(screen.getByLabelText(/Model file path/), {
+      target: { value: '/models/gemma.litertlm' },
+    })
+    fireEvent.change(screen.getByLabelText(/LiteRT backend/), {
+      target: { value: 'CPU' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Test connection' }))
+    await waitFor(() => expect(state.draftTestCalls).toHaveLength(1))
+    expect(state.draftTestCalls[0]).toMatchObject({
+      connection: {
+        backend: 'litert',
+        auth_mode: 'none',
+        model: null,
+        model_path: '/models/gemma.litertlm',
+        litert_backend: 'CPU',
+      },
+    })
+    expect(state.draftTestCalls[0].credential_value).toBeUndefined()
   })
-})
 
-describe('LG-106 late response guard', () => {
-  it('does not let a late save change the selected connection', async () => {
-    const { api, state } = makeFakeApi({
+  it('does not apply a late Save response after an external target opens another modal', async () => {
+    const { api } = makeFakeApi({
       connections: [
         makeConnection({ id: 'deepseek-primary', title: 'DeepSeek (primary)' }),
         makeConnection({ id: 'deepseek-backup', title: 'DeepSeek (backup)' }),
@@ -621,39 +709,149 @@ describe('LG-106 late response guard', () => {
             )
         }),
     )
-
-    render(<SettingsView api={api} connectionId="deepseek-primary" />)
-    await screen.findByRole('heading', { name: 'DeepSeek (primary)' })
+    const view = render(
+      <SettingsView api={api} connectionId="deepseek-primary" />,
+    )
+    await screen.findByRole('heading', { name: 'Edit DeepSeek (primary)' })
+    fireEvent.change(screen.getByLabelText(/^Name/), {
+      target: { value: 'primary edit' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
     await waitFor(() => expect(release).not.toBeNull())
 
-    fireEvent.click(screen.getByRole('button', { name: /DeepSeek \(backup\)/ }))
-    expect(screen.getByRole('heading', { name: 'DeepSeek (backup)' })).toBeInTheDocument()
-
-    ;(release as unknown as () => void)()
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: /DeepSeek \(backup\)/ })).toHaveAttribute(
-        'aria-pressed',
-        'true',
-      ),
-    )
-    expect(screen.getByRole('heading', { name: 'DeepSeek (backup)' })).toBeInTheDocument()
+    view.rerender(<SettingsView api={api} connectionId="deepseek-backup" />)
+    expect(
+      await screen.findByRole('heading', { name: 'Edit DeepSeek (backup)' }),
+    ).toBeInTheDocument()
+    await act(async () => {
+      release?.()
+    })
+    expect(
+      screen.getByRole('heading', { name: 'Edit DeepSeek (backup)' }),
+    ).toBeInTheDocument()
     expect(screen.queryByText('primary saved later')).toBeNull()
-    expect(state.updateCalls).toHaveLength(0)
   })
 })
 
-describe('LG-106 unknown target', () => {
-  it('shows a miss without selecting another connection', async () => {
+describe('LG-110 deletion and references', () => {
+  it('requires inline confirmation and lets the server block deletion honestly', async () => {
+    const { api, state } = makeFakeApi({
+      connections: [
+        makeConnection({
+          id: 'referenced',
+          title: 'Referenced connection',
+          references: {
+            connection_id: 'referenced',
+            default_roles: ['worker'],
+            agent_refs: [],
+          },
+        }),
+      ],
+    })
+    render(<SettingsView api={api} />)
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Delete Referenced connection' }),
+    )
+    expect(screen.getByText(/Delete "Referenced connection"/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Delete connection' }))
+    expect(screen.getByText(/still referenced by default worker/)).toBeInTheDocument()
+    expect(state.deleteCalls).toHaveLength(0)
+    expect(screen.getByText('Referenced connection')).toBeInTheDocument()
+  })
+
+  it('deletes an unreferenced connection only after inline confirmation', async () => {
+    const { api, state } = makeFakeApi()
+    render(<SettingsView api={api} />)
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Delete DeepSeek (primary)' }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Delete connection' }))
+    await waitFor(() => expect(state.deleteCalls).toHaveLength(1))
+    expect(await screen.findByText(/Deleted "DeepSeek \(primary\)"/)).toBeInTheDocument()
+    expect(screen.queryByText('DeepSeek (primary)')).toBeNull()
+  })
+
+  it('surfaces a real server delete rejection without silently removing the row', async () => {
+    const { api, state } = makeFakeApi()
+    state.nextDeleteError = new ApiError({
+      message: 'connection is referenced by a member',
+      code: 'referenced',
+      httpStatus: 409,
+      retryable: false,
+    })
+    render(<SettingsView api={api} />)
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Delete DeepSeek (primary)' }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Delete connection' }))
+    await waitFor(() => expect(state.deleteCalls).toHaveLength(1))
+    expect(await screen.findByText(/referenced by a member/)).toBeInTheDocument()
+    expect(screen.getByText('DeepSeek (primary)')).toBeInTheDocument()
+  })
+})
+
+describe('LG-110 preserved boundaries', () => {
+  const MEMBER_PROBE = async (): Promise<AuthMeResponse> => ({
+    mode: 'team',
+    authenticated: true,
+    username: 'alice',
+    role: 'member',
+  })
+
+  function MemberBoundaryHarness({ api }: { api: SettingsApi }) {
+    const { status, isAdmin } = useAuth()
+    if (status !== 'ready') return <p>checking auth</p>
+    return (
+      <div>
+        <p>{isAdmin ? 'role:admin' : 'role:member'}</p>
+        <SettingsView api={api} connectionId="deepseek-primary" />
+      </div>
+    )
+  }
+
+  it('never fetches Models/Connections for a team member', async () => {
+    const listConnections = vi.fn(async () => [makeConnection()])
+    const getSettings = vi.fn(async () => makeSettings())
+    const api = { ...makeFakeApi().api, listConnections, getSettings } as SettingsApi
+
+    render(
+      <AuthProvider probe={MEMBER_PROBE}>
+        <MemberBoundaryHarness api={api} />
+      </AuthProvider>,
+    )
+
+    expect(await screen.findByText('role:member')).toBeInTheDocument()
+    expect(listConnections).not.toHaveBeenCalled()
+    expect(getSettings).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(
+      screen.getByText(/configuration is managed by administrators/),
+    ).toBeInTheDocument()
+  })
+
+  it('opens the deeplink target exactly once and shows an unknown target without selecting another', async () => {
     const { api } = makeFakeApi({
       connections: [
         makeConnection({ id: 'deepseek-primary', title: 'DeepSeek (primary)' }),
         makeConnection({ id: 'deepseek-backup', title: 'DeepSeek (backup)' }),
       ],
     })
-    render(<SettingsView api={api} connectionId="missing-connection" />)
+    const view = render(
+      <SettingsView api={api} connectionId="deepseek-backup" />,
+    )
+    expect(
+      await screen.findByRole('heading', { name: 'Edit DeepSeek (backup)' }),
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close connection dialog' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.queryByRole('heading', { name: 'Edit DeepSeek (backup)' })).toBeNull()
+
+    view.rerender(
+      <SettingsView api={api} connectionId="missing-connection" />,
+    )
     expect(await screen.findByText('Connection not found')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Save changes' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Test connection' })).toBeNull()
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.queryByText('DeepSeek (primary)')).toBeInTheDocument()
+    expect(screen.queryByText('DeepSeek (backup)')).toBeInTheDocument()
   })
 })

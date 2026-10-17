@@ -25,24 +25,67 @@ export interface SettingsViewProps {
   /** Full API override for embedding/tests; defaults to the real endpoints. */
   api?: SettingsApi
   /**
-   * Connection record to select on load (e.g. from Resources → Connections
-   * "Edit in Settings").  Purely a UI locator; it does not change the entity.
+   * Connection record to open for editing on load (e.g. from Resources/Team
+   * "Edit in Settings"). Purely a UI locator; it does not change the entity.
    */
   connectionId?: string | null
   /** Current Task scope, kept only for display while Settings is open. */
   taskRef?: string | null
 }
 
+interface ModalState {
+  key: number
+  mode: 'create' | 'edit'
+  connectionId: string | null
+}
+
+interface RowError {
+  message: string
+  code?: string
+}
+
+interface DeleteState {
+  id: string
+  busy: boolean
+  error: RowError | null
+}
+
+function persistedTestStatus(connection: ConnectionView): {
+  kind: 'neutral' | 'accent' | 'success' | 'warning' | 'error'
+  label: string
+} {
+  const latest = connection.last_test
+  if (!latest) return { kind: 'neutral', label: 'Not tested' }
+  const revisionStale =
+    latest.connection_revision !== null &&
+    latest.connection_revision !== undefined &&
+    latest.connection_revision !== connection.revision
+  const credentialStale =
+    Boolean(latest.credential_version) &&
+    Boolean(connection.credential.version) &&
+    latest.credential_version !== connection.credential.version
+  const stale = revisionStale || credentialStale
+  const kind =
+    latest.overall === 'verified'
+      ? 'success'
+      : latest.overall === 'partial'
+        ? 'warning'
+        : latest.overall === 'failed'
+          ? 'error'
+          : 'neutral'
+  return {
+    kind: stale ? 'warning' : kind,
+    label: `${latest.overall}${stale ? ' · stale' : ''} · ${latest.finished_at}`,
+  }
+}
+
 /**
- * Models & Providers (owner LG-026; docs/07, design.md §5 Settings).
+ * Models & Providers (LG-026 → LG-104/LG-110; docs/07, design.md §5).
  *
- * It reads and writes the same Connection entity that Resources → Connections
- * uses — there is no second provider/model list. Typed forms cover connection
- * fields, write-only credentials, layered tests and the global
- * coordinator/worker defaults.
- *
- * Mounted only for an administrator (or single-user mode).  A member never
- * reaches this panel, so the Connections/settings requests are never issued.
+ * The landing page is the saved Connection list only. New/Edit open one
+ * accessible modal; Test tests that unsaved draft and Save is a separate
+ * create/update. The list's test status comes only from the backend's persisted
+ * `last_test` summary — a draft result is never promoted to saved verification.
  */
 function ModelsPanel(props: SettingsViewProps = {}) {
   const { token, api: injectedApi, connectionId } = props
@@ -59,51 +102,48 @@ function ModelsPanel(props: SettingsViewProps = {}) {
   const [loadError, setLoadError] = useState<ReturnType<typeof toApiError> | null>(
     null,
   )
-  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [missingTarget, setMissingTarget] = useState<string | null>(null)
-  const [creating, setCreating] = useState(false)
+  const [modal, setModal] = useState<ModalState | null>(null)
+  const [deleteState, setDeleteState] = useState<DeleteState | null>(null)
+  const [listNotice, setListNotice] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  // LG-103 selection guards.  `selectedIdRef` lets a late save/reload observe
-  // the *current* selection instead of the one captured when the request
-  // started; `targetRef` is the external navigation target (Connection id from
-  // a Team/Resources reference) and is cleared once the user picks manually.
-  const selectedIdRef = useRef<string | null>(null)
+  // LG-103/LG-110 target + late-response guards. A deeplink target opens Edit
+  // exactly once; closing the modal never changes the target and reopens it.
   const targetRef = useRef<string | null>(connectionId ?? null)
   const lastConnectionIdRef = useRef<string | null>(connectionId ?? null)
-  const creatingRef = useRef(false)
+  const modalCounterRef = useRef(0)
+  const modalTriggerRef = useRef<HTMLElement | null>(null)
+  const focusAfterCloseRef = useRef<{
+    element?: HTMLElement | null
+    connectionId?: string | null
+  } | null>(null)
+  const rowRefs = useRef(new Map<string, HTMLLIElement>())
+  const newButtonRef = useRef<HTMLButtonElement>(null)
 
-  const selectConnection = useCallback((id: string | null) => {
-    selectedIdRef.current = id
-    setSelectedId(id)
-  }, [])
-
-  const selectExisting = useCallback(
-    (id: string) => {
-      targetRef.current = null
-      setMissingTarget(null)
-      setCreating(false)
-      creatingRef.current = false
-      selectConnection(id)
+  const openModal = useCallback(
+    (
+      mode: 'create' | 'edit',
+      id: string | null,
+      trigger?: HTMLElement | null,
+      fromTarget = false,
+    ) => {
+      if (!fromTarget) {
+        targetRef.current = null
+        setMissingTarget(null)
+      }
+      modalTriggerRef.current = trigger ?? null
+      setDeleteState(null)
+      setListNotice(null)
+      modalCounterRef.current += 1
+      setModal({
+        key: modalCounterRef.current,
+        mode,
+        connectionId: id,
+      })
     },
-    [selectConnection],
+    [],
   )
-
-  const startCreating = useCallback(() => {
-    targetRef.current = null
-    setMissingTarget(null)
-    setCreating(true)
-    creatingRef.current = true
-    selectConnection(null)
-  }, [selectConnection])
-
-  const cancelCreating = useCallback(() => {
-    setCreating(false)
-    creatingRef.current = false
-    targetRef.current = null
-    setMissingTarget(null)
-    selectConnection(connections?.[0]?.id ?? null)
-  }, [connections, selectConnection])
 
   useEffect(() => {
     let cancelled = false
@@ -120,22 +160,15 @@ function ModelsPanel(props: SettingsViewProps = {}) {
         const target = targetRef.current
         if (target) {
           if (list.some((connection) => connection.id === target)) {
-            selectConnection(target)
             setMissingTarget(null)
+            targetRef.current = null
+            openModal('edit', target, null, true)
           } else {
-            // Never silently select a different Connection when the requested
-            // stable id is absent. Keep the explicit miss visible instead.
-            selectConnection(null)
+            // Never silently select another Connection for an unknown stable id.
             setMissingTarget(target)
           }
           return
         }
-        const previous = selectedIdRef.current
-        selectConnection(
-          previous && list.some((connection) => connection.id === previous)
-            ? previous
-            : (list[0]?.id ?? null),
-        )
         setMissingTarget(null)
       })
       .catch((cause: unknown) => {
@@ -149,26 +182,46 @@ function ModelsPanel(props: SettingsViewProps = {}) {
       cancelled = true
       controller.abort()
     }
-  }, [api, refreshKey, selectConnection])
+  }, [api, refreshKey, openModal])
 
-  // A new external Connection target (e.g. navigating from Team while Settings
-  // is already mounted) applies immediately, or waits for the first list load.
+  // A new external target while Settings is already mounted opens the correct
+  // Edit modal once. A missing target stays visible and selects nothing.
   useEffect(() => {
     const next = connectionId ?? null
     if (next === lastConnectionIdRef.current) return
     lastConnectionIdRef.current = next
     targetRef.current = next
-    setMissingTarget(null)
-    if (next === null || connections === null) return
-    if (connections.some((connection) => connection.id === next)) {
-      selectConnection(next)
-    } else {
-      selectConnection(null)
-      setMissingTarget(next)
+    setListNotice(null)
+    if (next === null) {
+      setMissingTarget(null)
+      return
     }
-  }, [connectionId, connections, selectConnection])
+    if (connections === null) return
+    if (connections.some((connection) => connection.id === next)) {
+      setMissingTarget(null)
+      targetRef.current = null
+      openModal('edit', next, null, true)
+    } else {
+      setMissingTarget(next)
+      setModal(null)
+    }
+  }, [connectionId, connections, openModal])
 
-  const reload = useCallback(() => setRefreshKey((key) => key + 1), [])
+  // Focus the new/edited row after save, or return focus to the trigger after
+  // Cancel/Escape. Runs after the modal is unmounted and the list is current.
+  useEffect(() => {
+    if (modal !== null) return
+    const pending = focusAfterCloseRef.current
+    if (!pending) return
+    focusAfterCloseRef.current = null
+    const timer = window.setTimeout(() => {
+      const target = pending.connectionId
+        ? rowRefs.current.get(pending.connectionId)
+        : pending.element
+      target?.focus()
+    }, 0)
+    return () => window.clearTimeout(timer)
+  }, [modal])
 
   const reloadConnection = useCallback(
     async (id: string): Promise<ConnectionView | null> => {
@@ -197,32 +250,97 @@ function ModelsPanel(props: SettingsViewProps = {}) {
     }
   }, [api])
 
-  const handleSaved = useCallback(
-    (updated: ConnectionView) => {
-      const wasCreating = creatingRef.current
-      creatingRef.current = false
-      setCreating(false)
+  const handleSaved = useCallback((saved: ConnectionView) => {
+    setConnections((previous) => {
+      if (!previous) return [saved]
+      const exists = previous.some((connection) => connection.id === saved.id)
+      return exists
+        ? previous.map((connection) =>
+            connection.id === saved.id ? saved : connection,
+          )
+        : [...previous, saved]
+    })
+    setMissingTarget(null)
+    targetRef.current = null
+    modalTriggerRef.current = null
+    focusAfterCloseRef.current = { connectionId: saved.id }
+    setModal(null)
+    setDeleteState(null)
+    setListNotice(`Saved "${saved.title}" at revision ${saved.revision}.`)
+    // Refresh list-level persisted test status/references from the real backend.
+    setRefreshKey((key) => key + 1)
+  }, [])
+
+  const handleConnectionUpdated = useCallback((updated: ConnectionView) => {
+    setConnections((previous) =>
+      previous
+        ? previous.map((connection) =>
+            connection.id === updated.id ? updated : connection,
+          )
+        : [updated],
+    )
+  }, [])
+
+  const closeModal = useCallback(() => {
+    const trigger = modalTriggerRef.current
+    const editedId = modal?.connectionId ?? null
+    modalTriggerRef.current = null
+    focusAfterCloseRef.current = trigger
+      ? { element: trigger }
+      : editedId
+        ? { connectionId: editedId }
+        : { element: newButtonRef.current }
+    setModal(null)
+    setListNotice(null)
+  }, [modal])
+
+  const askDelete = useCallback((connection: ConnectionView) => {
+    setListNotice(null)
+    setDeleteState({ id: connection.id, busy: false, error: null })
+  }, [])
+
+  async function confirmDelete(connection: ConnectionView): Promise<void> {
+    const references = [
+      ...connection.references.default_roles.map((role) => `default ${role}`),
+      ...connection.references.agent_refs.map((agent) => `agent ${agent}`),
+    ]
+    if (references.length > 0) {
+      setDeleteState({
+        id: connection.id,
+        busy: false,
+        error: {
+          message: `This connection is still referenced by ${references.join(
+            ', ',
+          )}. Remove those references before deleting it; deletion was not attempted.`,
+          code: 'referenced',
+        },
+      })
+      return
+    }
+    setDeleteState({ id: connection.id, busy: true, error: null })
+    try {
+      await api.deleteConnection(connection.id, connection.revision)
       setConnections((previous) =>
         previous
-          ? previous.map((connection) =>
-              connection.id === updated.id ? updated : connection,
-            )
-          : [updated],
+          ? previous.filter((item) => item.id !== connection.id)
+          : previous,
       )
-      // A response for an older Connection must not pull the editor back after
-      // the user selected another id (cross-ID late-response guard).
-      if (selectedIdRef.current === updated.id || (wasCreating && creatingRef.current === false && selectedIdRef.current === null)) {
-        targetRef.current = null
-        setMissingTarget(null)
-        selectConnection(updated.id)
-      }
-      reload()
-    },
-    [reload, selectConnection],
-  )
+      setDeleteState(null)
+      setListNotice(`Deleted "${connection.title}".`)
+      window.setTimeout(() => newButtonRef.current?.focus(), 0)
+    } catch (cause) {
+      const error = toApiError(cause)
+      setDeleteState({
+        id: connection.id,
+        busy: false,
+        error: { message: error.message, code: error.code },
+      })
+    }
+  }
 
   const selected =
-    connections?.find((connection) => connection.id === selectedId) ?? null
+    connections?.find((connection) => connection.id === modal?.connectionId) ??
+    null
 
   return (
     <div className="lg-settings-view">
@@ -234,10 +352,10 @@ function ModelsPanel(props: SettingsViewProps = {}) {
       <section className="lg-settings-view__intro" aria-label="Connections overview">
         <h3 className="lg-section-card__title">Connections</h3>
         <p className="lg-field__hint">
-          Choose a provider, enter the authentication that provider actually
-          needs, save, then test. A saved or tested connection is not the same as
-          Task execution or vendor verification; those capabilities are shown
-          only when the backend declares them.
+          Manage saved connections here. New/Edit opens a compact dialog; Test
+          sends the unsaved draft only when you click it, and Save is a separate
+          backend write. Saving or testing never claims Task execution or vendor
+          verification.
         </p>
       </section>
 
@@ -256,106 +374,180 @@ function ModelsPanel(props: SettingsViewProps = {}) {
           code={loadError.code}
           retryable={loadError.retryable}
           requestId={loadError.requestId}
-          onRetry={reload}
+          onRetry={() => setRefreshKey((key) => key + 1)}
         />
-      ) : initialising && connections === null ? (
+      ) : null}
+
+      {listNotice ? (
+        <p className="lg-notice" role="status">
+          {listNotice}
+        </p>
+      ) : null}
+
+      {initialising && connections === null ? (
         <p className="lg-field__hint" role="status">
           Loading connections…
         </p>
-      ) : connections && connections.length === 0 && !creating ? (
+      ) : connections && connections.length === 0 ? (
         <EmptyState title="No connections yet">
           <p>
             Create a DeepSeek (OpenAI-compatible) connection to let the bot
-            execute tasks. Team and resource references open this same record.
+            execute tasks, or configure another SDK provider for later testing.
+            Team and resource references open this same record.
           </p>
           <button
+            ref={newButtonRef}
             type="button"
             className="lg-button lg-button--primary"
-            onClick={startCreating}
+            onClick={() => openModal('create', null)}
           >
             New connection
           </button>
         </EmptyState>
-      ) : (
-        <div className="lg-settings">
-          <section className="lg-settings__list" aria-label="Connection list">
-            <div className="lg-settings__list-head">
-              <span className="lg-field__label">
-                {connections?.length ?? 0} connection
-                {(connections?.length ?? 0) === 1 ? '' : 's'}
-              </span>
-              <button
-                type="button"
-                className="lg-button"
-                onClick={startCreating}
-              >
-                New connection
-              </button>
-            </div>
-            <ul className="lg-settings__items">
-              {(connections ?? []).map((connection) => {
-                const isSelected = !creating && connection.id === selectedId
-                const preset = presetForConnection(connection)
-                return (
-                  <li key={connection.id}>
+      ) : connections ? (
+        <section className="lg-connection-list" aria-label="Connection list">
+          <div className="lg-connection-list__head">
+            <span className="lg-field__label">
+              {connections.length} connection
+              {connections.length === 1 ? '' : 's'}
+            </span>
+            <button
+              ref={newButtonRef}
+              type="button"
+              className="lg-button lg-button--primary"
+              onClick={() => openModal('create', null)}
+            >
+              New connection
+            </button>
+          </div>
+          <ul className="lg-connection-list__items">
+            {connections.map((connection) => {
+              const preset = presetForConnection(connection)
+              const status = persistedTestStatus(connection)
+              const deleting = deleteState?.id === connection.id
+              return (
+                <li
+                  key={connection.id}
+                  ref={(element) => {
+                    if (element) rowRefs.current.set(connection.id, element)
+                    else rowRefs.current.delete(connection.id)
+                  }}
+                  className="lg-connection-row"
+                  tabIndex={-1}
+                  aria-labelledby={`connection-name-${connection.id}`}
+                >
+                  <div className="lg-connection-row__main">
+                    <h4
+                      id={`connection-name-${connection.id}`}
+                      className="lg-connection-row__name"
+                    >
+                      {connection.title}
+                    </h4>
+                    <dl className="lg-connection-row__facts">
+                      <div>
+                        <dt>Provider</dt>
+                        <dd>{preset.label}</dd>
+                      </div>
+                      <div>
+                        <dt>Model</dt>
+                        <dd>{connection.model ?? '—'}</dd>
+                      </div>
+                      <div>
+                        <dt>Test</dt>
+                        <dd>
+                          <StatusBadge kind={status.kind}>{status.label}</StatusBadge>
+                        </dd>
+                      </div>
+                    </dl>
+                    <div className="lg-connection-row__badges">
+                      {!connection.enabled ? (
+                        <StatusBadge kind="neutral">disabled</StatusBadge>
+                      ) : null}
+                      {connection.references.default_roles.length > 0 ? (
+                        <StatusBadge kind="accent">
+                          default: {connection.references.default_roles.join(', ')}
+                        </StatusBadge>
+                      ) : null}
+                      {connection.credential.configured ? (
+                        <StatusBadge kind="success">credential configured</StatusBadge>
+                      ) : preset.requiresApiKey ? (
+                        <StatusBadge kind="warning">no credential</StatusBadge>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="lg-connection-row__actions">
                     <button
                       type="button"
-                      className={`lg-settings__item${isSelected ? ' is-selected' : ''}`}
-                      aria-pressed={isSelected}
-                      onClick={() => selectExisting(connection.id)}
+                      className="lg-button"
+                      aria-label={`Edit ${connection.title}`}
+                      onClick={(event) =>
+                        openModal('edit', connection.id, event.currentTarget)
+                      }
                     >
-                      <span className="lg-settings__item-title">
-                        {connection.title}
-                      </span>
-                      <span className="lg-settings__item-badges">
-                        <StatusBadge kind="neutral">{preset.label}</StatusBadge>
-                        {!connection.enabled ? (
-                          <StatusBadge kind="neutral">disabled</StatusBadge>
-                        ) : null}
-                        {connection.references.default_roles.length > 0 ? (
-                          <StatusBadge kind="accent">
-                            default: {connection.references.default_roles.join(', ')}
-                          </StatusBadge>
-                        ) : null}
-                        {connection.credential.configured ? (
-                          <StatusBadge kind="success">credential configured</StatusBadge>
-                        ) : preset.requiresApiKey ? (
-                          <StatusBadge kind="warning">no credential</StatusBadge>
-                        ) : null}
-                      </span>
-                      <span className="lg-card__path">{connection.id}</span>
+                      Edit
                     </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </section>
-
-          <section className="lg-settings__editor" aria-label="Connection details">
-            {creating || selected ? (
-              <ConnectionEditor
-                key={creating ? 'create' : (selected?.id ?? 'create')}
-                api={api}
-                mode={creating ? 'create' : 'edit'}
-                connection={creating ? null : selected}
-                onSaved={handleSaved}
-                onReload={reloadConnection}
-                onCancel={creating ? cancelCreating : undefined}
-              />
-            ) : (
-              <EmptyState title="No connection selected">
-                <p>Select a connection on the left, or create a new one.</p>
-              </EmptyState>
-            )}
-          </section>
-        </div>
-      )}
+                    <button
+                      type="button"
+                      className="lg-button lg-button--danger"
+                      aria-label={`Delete ${connection.title}`}
+                      onClick={() => askDelete(connection)}
+                      disabled={deleting && deleteState.busy}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  {deleting ? (
+                    <div className="lg-inline-confirm" role="alert">
+                      {deleteState.error ? (
+                        <p>
+                          Could not delete: {deleteState.error.message}
+                          {deleteState.error.code ? (
+                            <>
+                              {' '}
+                              <span className="lg-card__path">
+                                ({deleteState.error.code})
+                              </span>
+                            </>
+                          ) : null}
+                        </p>
+                      ) : (
+                        <p>
+                          Delete &quot;{connection.title}&quot;? This removes the
+                          saved connection and cannot be undone.
+                        </p>
+                      )}
+                      <div className="lg-modal__footer-right">
+                        <button
+                          type="button"
+                          className="lg-button"
+                          onClick={() => setDeleteState(null)}
+                          disabled={deleteState.busy}
+                        >
+                          Cancel
+                        </button>
+                        {deleteState.error ? null : (
+                          <button
+                            type="button"
+                            className="lg-button lg-button--danger"
+                            onClick={() => confirmDelete(connection)}
+                            disabled={deleteState.busy}
+                          >
+                            {deleteState.busy ? 'Deleting…' : 'Delete connection'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       {settings ? (
-        <details className="lg-disclosure" aria-label="Advanced defaults">
-          <summary className="lg-disclosure__summary">
-            Advanced / Defaults
-          </summary>
+        <details className="lg-disclosure" aria-label="Default models">
+          <summary className="lg-disclosure__summary">Default models</summary>
           <div className="lg-disclosure__body">
             <DefaultsEditor
               api={api}
@@ -366,6 +558,19 @@ function ModelsPanel(props: SettingsViewProps = {}) {
             />
           </div>
         </details>
+      ) : null}
+
+      {modal ? (
+        <ConnectionEditor
+          key={modal.key}
+          api={api}
+          mode={modal.mode}
+          connection={modal.mode === 'edit' ? selected : null}
+          onSaved={handleSaved}
+          onReload={reloadConnection}
+          onClose={closeModal}
+          onConnectionUpdated={handleConnectionUpdated}
+        />
       ) : null}
     </div>
   )
@@ -386,7 +591,7 @@ const SECTION_LABELS: Record<SettingsSectionId, string> = {
  * * single-user mode: only Models & Providers (unchanged 1.14 behaviour);
  * * team admin: Models & Providers, Accounts and My Account;
  * * team member: My Account only, which never fetches Models/Connections or
- *   the admin account list.  Admin areas stay hidden here *and* authorized on
+ *   the admin account list. Admin areas stay hidden here *and* authorized on
  *   the server (403), never merely disabled in the UI.
  */
 export function SettingsView(props: SettingsViewProps = {}) {

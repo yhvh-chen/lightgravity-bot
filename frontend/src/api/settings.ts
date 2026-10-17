@@ -93,6 +93,22 @@ export interface ConnectionView {
   litert_backend?: LiteRtBackend | null
   /** Backend-declared capability facts; absent/null means not declared. */
   capabilities?: ConnectionCapabilities | null
+  /**
+   * LG-110: latest *persisted* safe test summary, when the backend exposes it.
+   * Draft tests are never written here. A missing value means the backend has
+   * not declared a persisted test result; the UI must not invent one.
+   */
+  last_test?: PersistedConnectionTestStatus | null
+}
+
+/** Safe, non-secret summary of a persisted connection test. */
+export interface PersistedConnectionTestStatus {
+  test_id?: string
+  /** `verified` | `partial` | `failed` | `not_run` (or backend value). */
+  overall: string
+  finished_at: string
+  connection_revision?: number | null
+  credential_version?: string | null
 }
 
 /** `service._describe_default` output: a resolved connection or `{ref, resolved:false}`. */
@@ -213,6 +229,42 @@ export interface ConnectionTestInput {
   probe_structured?: boolean
 }
 
+/** Draft connection fields accepted by the LG-104/LG-109 draft-test envelope. */
+export interface ConnectionDraftTestConnection {
+  backend: string
+  model: string | null
+  base_url: string | null
+  auth_mode: ConnectionAuthMode | null
+  project: string | null
+  location: string | null
+  model_path: string | null
+  litert_backend: LiteRtBackend | null
+}
+
+/**
+ * `POST /settings/connections/test-draft` (contract 1.17, additive MINOR).
+ *
+ * The connection is an unsaved draft. `credential_value` is write-only and only
+ * present when the user typed a new/replacement key; the client never chooses a
+ * saved `credential_ref`. For an edit, the backend may resolve the existing
+ * credential only through `existing_connection_id` + `expected_revision`, after
+ * validating the same backend/auth/endpoint identity.
+ */
+export interface DraftConnectionTestInput {
+  connection: ConnectionDraftTestConnection
+  credential_value?: string
+  existing_connection_id?: string
+  expected_revision: number
+  allow_network: boolean
+}
+
+/** Existing safe TestResult plus draft markers; no saved revision is implied. */
+export interface DraftConnectionTestResult extends ConnectionTestResult {
+  draft: true
+  connection_ref?: string | null
+  revision?: number | null
+}
+
 /* ------------------------------------------------------------------ operations */
 
 export interface SettingsApi {
@@ -244,6 +296,16 @@ export interface SettingsApi {
     input: ConnectionTestInput,
     signal?: AbortSignal,
   ): Promise<ConnectionTestResult>
+  testDraftConnection(
+    input: DraftConnectionTestInput,
+    signal?: AbortSignal,
+  ): Promise<DraftConnectionTestResult>
+  /** Delete a saved Connection; the server must reject referenced/default rows. */
+  deleteConnection(
+    id: string,
+    expectedRevision?: number,
+    signal?: AbortSignal,
+  ): Promise<void>
 }
 
 function headers(
@@ -365,6 +427,34 @@ export function createSettingsApi(
           method: 'POST',
           headers: headers(token(), true),
           body: JSON.stringify(input),
+          signal,
+        },
+      )
+    },
+
+    testDraftConnection(input, signal) {
+      return apiRequest<DraftConnectionTestResult>(
+        '/settings/connections/test-draft',
+        {
+          method: 'POST',
+          headers: headers(token(), true),
+          body: JSON.stringify(input),
+          signal,
+        },
+      )
+    },
+
+    async deleteConnection(id, expectedRevision, signal) {
+      const body =
+        expectedRevision === undefined
+          ? undefined
+          : JSON.stringify({ expected_revision: expectedRevision })
+      await apiRequest<unknown>(
+        `/settings/connections/${encodeURIComponent(id)}`,
+        {
+          method: 'DELETE',
+          headers: headers(token(), body !== undefined),
+          body,
           signal,
         },
       )

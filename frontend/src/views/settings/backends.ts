@@ -37,6 +37,7 @@ export type ProviderPresetId =
   | 'vertex-express'
   | 'vertex-adc'
   | 'deepseek'
+  | 'custom-openai'
   | 'litert'
   | 'legacy-openai'
   | 'legacy-unknown'
@@ -177,6 +178,31 @@ export const PROVIDER_PRESETS: readonly ProviderPreset[] = [
     legacyOnly: false,
   },
   {
+    id: 'custom-openai',
+    label: 'Custom OpenAI-compatible',
+    backend: 'openai-compat',
+    authMode: 'proxy_api_key',
+    sdkSupported: true,
+    requiresApiKey: true,
+    requiresProject: false,
+    requiresLocation: false,
+    requiresModelPath: false,
+    requiresBaseUrl: true,
+    defaultModel: null,
+    defaultBaseUrl: null,
+    defaultLitertBackend: null,
+    note: 'Any server that implements the OpenAI-compatible chat API. The Base URL is required.',
+    runtimeNote:
+      'Saving this draft is supported. This build only allows the existing DeepSeek endpoint for live testing/execution, so a custom host may be blocked before any network request; a saved record is not proof of compatibility.',
+    fallbackCapabilities: {
+      configurable: true,
+      testable: true,
+      executable: false,
+      vendor_verified: false,
+    },
+    legacyOnly: false,
+  },
+  {
     id: 'litert',
     label: 'LiteRT (local model)',
     backend: 'litert',
@@ -206,7 +232,7 @@ export const PROVIDER_PRESETS: readonly ProviderPreset[] = [
 /** Preset for an existing custom OpenAI-compatible connection. */
 export const LEGACY_OPENAI_PRESET: ProviderPreset = {
   id: 'legacy-openai',
-  label: 'Custom OpenAI-compatible (legacy)',
+  label: 'Custom OpenAI-compatible (existing)',
   backend: 'openai-compat',
   authMode: 'proxy_api_key',
   sdkSupported: true,
@@ -220,11 +246,12 @@ export const LEGACY_OPENAI_PRESET: ProviderPreset = {
   defaultLitertBackend: null,
   note: 'Existing custom endpoint/model, preserved without migration.',
   runtimeNote:
-    'The existing loopback-proxy execution path remains available. This custom endpoint has no vendor-verification claim.',
+    'The record and its endpoint are preserved. Live testing/execution is only enabled for the existing DeepSeek path in this build; a custom host may be blocked honestly.',
   fallbackCapabilities: {
     configurable: true,
     testable: true,
-    executable: true,
+    // No executable claim for an arbitrary host unless the backend declares it.
+    executable: false,
     vendor_verified: false,
   },
   legacyOnly: true,
@@ -300,7 +327,12 @@ export function inferPresetId(connection: ConnectionView): ProviderPresetId {
       return 'litert'
     case 'openai-compat':
       if (authMode && authMode !== 'proxy_api_key') return 'legacy-openai'
-      return matchesDeepSeek(connection.base_url) ? 'deepseek' : 'legacy-openai'
+      if (connection.auth_mode == null) {
+        // Old records keep their legacy/custom presentation unless they already
+        // match the DeepSeek preset; loading them never rewrites the record.
+        return matchesDeepSeek(connection.base_url) ? 'deepseek' : 'legacy-openai'
+      }
+      return matchesDeepSeek(connection.base_url) ? 'deepseek' : 'custom-openai'
     default:
       return 'legacy-unknown'
   }

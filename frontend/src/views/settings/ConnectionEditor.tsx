@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { createPortal } from 'react-dom'
 
 import { ApiError } from '../../api/client'
 import type {
@@ -7,6 +8,7 @@ import type {
   ConnectionTestResult,
   ConnectionUpdateInput,
   ConnectionView,
+  DraftConnectionTestInput,
   LiteRtBackend,
   SettingsApi,
 } from '../../api/settings'
@@ -34,7 +36,10 @@ export interface ConnectionEditorProps {
   onSaved: (connection: ConnectionView) => void
   /** Refetch a connection after a revision conflict; returns the latest view. */
   onReload: (id: string) => Promise<ConnectionView | null>
-  onCancel?: () => void
+  /** Close without saving (the modal handles dirty confirmation first). */
+  onClose: () => void
+  /** A separate explicit credential operation updated the saved record. */
+  onConnectionUpdated?: (connection: ConnectionView) => void
 }
 
 function credentialSourceLabel(source: string | null): string {
@@ -51,9 +56,14 @@ function randomSuffix(): string {
   return Math.random().toString(36).slice(2, 8)
 }
 
-/** Auto-generated stable id; editable only under Advanced. */
+/** Auto-generated stable id; never a primary form field. */
 function generateConnectionId(presetId: ProviderPresetId): string {
-  const base = presetId === 'legacy-openai' ? 'openai-compatible' : presetId
+  const base =
+    presetId === 'legacy-openai'
+      ? 'openai-compatible'
+      : presetId === 'legacy-unknown'
+        ? 'connection'
+        : presetId
   return `${base}-${randomSuffix()}`
 }
 
@@ -82,18 +92,75 @@ function validationError(message: string): ApiError {
 }
 
 /**
- * Minimal provider form (LG-104/LG-106; docs/07 §3, §6; design.md §5 Settings).
+ * Normalize the endpoint identity used for credential reuse. The full origin +
+ * path is compared (not the model), so a saved key is never silently sent to a
+ * different provider/host/path. Invalid values still compare as opaque text so
+ * a change is always detected.
+ */
+function normalizeEndpoint(value: string | null | undefined): string {
+  const raw = (value ?? '').trim()
+  if (!raw) return ''
+  try {
+    const url = new URL(raw)
+    const path = url.pathname.replace(/\/+$/, '')
+    return `${url.protocol}//${url.host}${path}${url.search}`.toLowerCase()
+  } catch {
+    return raw.replace(/\/+$/, '').toLowerCase()
+  }
+}
+
+function credentialIdentity(
+  backend: string | null,
+  authMode: ConnectionAuthMode,
+  baseUrl: string | null | undefined,
+  project?: string | null,
+): string {
+  return [
+    backend ?? '',
+    authMode,
+    normalizeEndpoint(baseUrl),
+    authMode === 'adc' ? (project ?? '').trim() : '',
+  ].join('|')
+}
+
+interface DraftSnapshotInput {
+  presetId: ProviderPresetId
+  title: string
+  enabled: boolean
+  model: string
+  baseUrl: string
+  project: string
+  location: string
+  modelPath: string
+  litertBackend: LiteRtBackend
+  secretPresent: boolean
+}
+
+function draftSnapshot(input: DraftSnapshotInput): string {
+  return JSON.stringify({
+    ...input,
+    // Never put the secret value itself into a snapshot/string.
+    secretPresent: input.secretPresent,
+  })
+}
+
+function focusableElements(root: HTMLElement | null): HTMLElement[] {
+  if (!root) return []
+  const selector =
+    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  return Array.from(root.querySelectorAll<HTMLElement>(selector)).filter(
+    (element) =>
+      element.getAttribute('aria-hidden') !== 'true' && !element.closest('[hidden]'),
+  )
+}
+
+/**
+ * Accessible New/Edit connection modal (LG-104/LG-110; MODAL-CONTRACT).
  *
- * Primary flow: Provider → required auth input → defaulted model → Save → Test.
- * Stable ids, backend/auth enums, credential references, endpoint overrides,
- * references and layer diagnostics live under Advanced/Details. The credential
- * value is write-only: it lives in component state, is sent once, then cleared.
- *
- * The provider dropdown is a preset over the existing Connection entity, not a
- * second provider database. Existing records are inferred from their fields and
- * are never migrated or rewritten on load. An empty key field keeps the stored
- * secret; switching provider never deletes it. Test only runs after an explicit
- * click on a saved, non-dirty revision.
+ * Primary flow: Provider → Name → required auth/endpoint → Model. Test is a
+ * draft request that never saves; Save is a separate create/update call with
+ * `expected_revision`. Secrets are write-only component state, cleared on
+ * close/save/provider switch, and never written to storage, URLs or logs.
  */
 export function ConnectionEditor({
   api,
@@ -101,28 +168,28 @@ export function ConnectionEditor({
   connection,
   onSaved,
   onReload,
-  onCancel,
+  onClose,
+  onConnectionUpdated,
 }: ConnectionEditorProps) {
   const creating = mode === 'create'
   const initialPresetId: ProviderPresetId = connection
     ? inferPresetId(connection)
     : 'deepseek'
   const initialPreset = presetById(initialPresetId)
+  const initialId = connection?.id ?? generateConnectionId(initialPresetId)
+  const initialModel = connection
+    ? (connection.model ?? '')
+    : (initialPreset.defaultModel ?? '')
+  const initialBaseUrl = connection
+    ? (connection.base_url ?? '')
+    : (initialPreset.defaultBaseUrl ?? '')
 
   const [presetId, setPresetId] = useState<ProviderPresetId>(initialPresetId)
-  const [id, setId] = useState(() =>
-    connection?.id ?? generateConnectionId(initialPresetId),
-  )
+  const [id, setId] = useState(initialId)
   const [title, setTitle] = useState(connection?.title ?? '')
   const [enabled, setEnabled] = useState(connection?.enabled ?? true)
-  const [model, setModel] = useState(
-    connection ? (connection.model ?? '') : (initialPreset.defaultModel ?? ''),
-  )
-  const [baseUrl, setBaseUrl] = useState(
-    connection
-      ? (connection.base_url ?? '')
-      : (initialPreset.defaultBaseUrl ?? ''),
-  )
+  const [model, setModel] = useState(initialModel)
+  const [baseUrl, setBaseUrl] = useState(initialBaseUrl)
   const [project, setProject] = useState(connection?.project ?? '')
   const [location, setLocation] = useState(connection?.location ?? '')
   const [modelPath, setModelPath] = useState(connection?.model_path ?? '')
@@ -132,55 +199,163 @@ export function ConnectionEditor({
   const [credentialRef, setCredentialRef] = useState(
     connection?.credential_ref ?? '',
   )
+  const [credentialStatus, setCredentialStatus] = useState(
+    connection?.credential ?? null,
+  )
   const [secret, setSecret] = useState('')
   const [revision, setRevision] = useState(connection?.revision ?? 0)
-  const [pending, setPending] = useState<'save' | 'test' | 'credential' | null>(
-    null,
-  )
-  const [error, setError] = useState<ApiError | null>(null)
+  const [pending, setPending] = useState<
+    'save' | 'test' | 'credential' | null
+  >(null)
+  const [saveError, setSaveError] = useState<ApiError | null>(null)
+  const [testError, setTestError] = useState<ApiError | null>(null)
   const [conflict, setConflict] = useState<ApiError | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [testResult, setTestResult] = useState<ConnectionTestResult | null>(null)
+  const [testResultVersion, setTestResultVersion] = useState<number | null>(null)
+  const [testDiscarded, setTestDiscarded] = useState(false)
+  const [discardOpen, setDiscardOpen] = useState(false)
+  const [removeCredentialConfirm, setRemoveCredentialConfirm] = useState(false)
+
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const overlayRef = useRef<HTMLDivElement>(null)
+  const mountedRef = useRef(true)
+  const draftVersionRef = useRef(0)
 
   const preset = presetById(presetId)
+  const saving = pending === 'save'
   const busy = pending !== null
   const declaredCapabilities = connection
     ? connectionCapabilities(connection, preset)
     : preset.fallbackCapabilities
-
-  /**
-   * Test only checks the persisted revision. Any unsaved edit (including a
-   * typed key) must be saved first, so a test can never imply it validated the
-   * draft form.
-   */
-  const dirty =
-    !creating &&
-    connection !== null &&
-    (presetId !== inferPresetId(connection) ||
-      backendForSave(preset) !== connection.backend ||
-      title !== (connection.title ?? '') ||
-      enabled !== connection.enabled ||
-      model !== (connection.model ?? '') ||
-      baseUrl !== (connection.base_url ?? '') ||
-      project !== (connection.project ?? '') ||
-      location !== (connection.location ?? '') ||
-      modelPath !== (connection.model_path ?? '') ||
-      (preset.id === 'litert' &&
-        litertBackend !== (connection.litert_backend ?? 'GPU')) ||
-      credentialRef !== (connection.credential_ref ?? '') ||
-      secret.length > 0)
-
-  const credentialStatus = connection?.credential ?? null
   const configured = credentialStatus?.configured ?? false
+
+  const initialSnapshotRef = useRef(
+    draftSnapshot({
+      presetId: initialPresetId,
+      title: connection?.title ?? '',
+      enabled: connection?.enabled ?? true,
+      model: initialModel,
+      baseUrl: initialBaseUrl,
+      project: connection?.project ?? '',
+      location: connection?.location ?? '',
+      modelPath: connection?.model_path ?? '',
+      litertBackend: connection?.litert_backend ?? initialPreset.defaultLitertBackend ?? 'GPU',
+      secretPresent: false,
+    }),
+  )
+
+  const currentSnapshot = draftSnapshot({
+    presetId,
+    title,
+    enabled,
+    model,
+    baseUrl,
+    project,
+    location,
+    modelPath,
+    litertBackend,
+    secretPresent: secret.length > 0,
+  })
+  const dirty = currentSnapshot !== initialSnapshotRef.current
   const stale =
     testResult !== null &&
-    connection !== null &&
-    (testResult.connection_revision !== revision ||
-      (testResult.credential_version ?? null) !==
-        (credentialStatus?.version ?? null))
+    testResultVersion !== null &&
+    testResultVersion !== draftVersionRef.current
+
+  function noteDraftChange(): void {
+    draftVersionRef.current += 1
+    setDiscardOpen(false)
+    setSaveError(null)
+    setTestError(null)
+    setTestDiscarded(false)
+    setNotice(null)
+  }
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
+
+  // Background inert + initial focus. Focus is returned by SettingsView after
+  // close/save so it can target the new record instead of an unmounted trigger.
+  useEffect(() => {
+    const overlay = overlayRef.current
+    if (!overlay) return
+    const siblings = Array.from(document.body.children).filter(
+      (element) => element !== overlay && !element.contains(overlay),
+    )
+    const previous = siblings.map((element) => ({
+      element,
+      inert: element.hasAttribute('inert'),
+      ariaHidden: element.getAttribute('aria-hidden'),
+    }))
+    for (const entry of previous) {
+      entry.element.setAttribute('inert', '')
+      entry.element.setAttribute('aria-hidden', 'true')
+    }
+    const timer = window.setTimeout(() => {
+      const first = focusableElements(dialogRef.current)[0]
+      ;(first ?? dialogRef.current)?.focus()
+    }, 0)
+    return () => {
+      window.clearTimeout(timer)
+      for (const entry of previous) {
+        if (!entry.inert) entry.element.removeAttribute('inert')
+        if (entry.ariaHidden === null) {
+          entry.element.removeAttribute('aria-hidden')
+        } else {
+          entry.element.setAttribute('aria-hidden', entry.ariaHidden)
+        }
+      }
+    }
+  }, [])
 
   function backendForSave(current: ProviderPreset): string {
     return current.backend ?? connection?.backend ?? ''
+  }
+
+  const draftIdentity = credentialIdentity(
+    backendForSave(preset),
+    preset.authMode,
+    preset.requiresBaseUrl ? baseUrl : null,
+    project,
+  )
+  const savedIdentity = connection
+    ? credentialIdentity(
+        connection.backend,
+        connection.auth_mode ?? initialPreset.authMode,
+        connection.base_url,
+        connection.project,
+      )
+    : null
+  const identityChanged = connection !== null && draftIdentity !== savedIdentity
+  const requiresFreshKey =
+    !creating && preset.requiresApiKey && identityChanged && configured
+
+  function resolvedCredentialRef(): string {
+    const typed = credentialRef.trim()
+    if (typed) return typed
+    if (creating && preset.requiresApiKey) return autoCredentialRef(id.trim())
+    if (secret && preset.requiresApiKey) return autoCredentialRef(id.trim())
+    return ''
+  }
+
+  function providerFields(): Partial<ConnectionCreateInput> {
+    const include =
+      preset.backend !== 'openai-compat' ||
+      preset.id === 'custom-openai' ||
+      (connection !== null && hasOptionalProviderFields(connection))
+    if (!include) return {}
+    return {
+      auth_mode: preset.authMode,
+      project: preset.requiresProject ? project.trim() : null,
+      location: preset.requiresLocation ? location.trim() : null,
+      model_path: preset.requiresModelPath ? modelPath.trim() : null,
+      litert_backend: preset.id === 'litert' ? litertBackend : null,
+    }
   }
 
   function applyPreset(nextId: ProviderPresetId): void {
@@ -189,105 +364,113 @@ export function ConnectionEditor({
     if (creating) setId(generateConnectionId(nextId))
     setModel(
       next.defaultModel ??
-        (next.id === 'legacy-openai' ? (connection?.model ?? '') : ''),
+        (next.id === 'legacy-openai' || next.id === 'custom-openai'
+          ? (connection?.model ?? '')
+          : ''),
     )
     setBaseUrl(
       next.defaultBaseUrl ??
-        (next.id === 'legacy-openai' ? (connection?.base_url ?? '') : ''),
+        (next.requiresBaseUrl ? (connection?.base_url ?? '') : ''),
     )
     setProject(next.requiresProject ? (connection?.project ?? '') : '')
     setLocation(next.requiresLocation ? (connection?.location ?? '') : '')
     setModelPath(next.requiresModelPath ? (connection?.model_path ?? '') : '')
     if (next.defaultLitertBackend) setLitertBackend(next.defaultLitertBackend)
-    setError(null)
+    // A key typed for one provider/host is never carried to another recipient.
+    setSecret('')
+    setTestResult(null)
+    setTestResultVersion(null)
+    setTestError(null)
+    setSaveError(null)
+    setConflict(null)
     setNotice(null)
+    setRemoveCredentialConfirm(false)
+    noteDraftChange()
   }
 
-  function resolvedCredentialRef(): string {
-    const typed = credentialRef.trim()
-    if (typed) return typed
-    if (connection?.credential_ref) return connection.credential_ref
-    if (creating && preset.requiresApiKey) return autoCredentialRef(id.trim())
-    return ''
-  }
-
-  /** Optional LG-104 fields; omitted for untouched old OpenAI-compatible records. */
-  function providerFields(): Partial<ConnectionCreateInput> {
-    const include =
-      preset.backend !== 'openai-compat' ||
-      (connection !== null && hasOptionalProviderFields(connection))
-    if (!include) return {}
-    const fields: Partial<ConnectionCreateInput> = {
-      auth_mode: preset.authMode as ConnectionAuthMode,
-    }
-    if (preset.requiresProject) {
-      fields.project = project.trim()
-    } else {
-      fields.project = null
-    }
-    if (preset.requiresLocation) {
-      fields.location = location.trim()
-    } else {
-      fields.location = null
-    }
-    if (preset.requiresModelPath) {
-      fields.model_path = modelPath.trim()
-    } else {
-      fields.model_path = null
-    }
-    fields.litert_backend = preset.id === 'litert' ? litertBackend : null
-    return fields
-  }
-
-  function validateForm(): ApiError | null {
+  function validateSave(): ApiError | null {
     if (!SLUG.test(id.trim())) {
       return validationError(
         'Connection id must be a slug: lowercase letters, digits and dashes, starting with a letter or digit.',
       )
+    }
+    if (preset.requiresBaseUrl && !baseUrl.trim()) {
+      return validationError('Enter the OpenAI-compatible Base URL.')
+    }
+    if (preset.requiresProject && !project.trim()) {
+      return validationError('Enter the Google Cloud project ID for Vertex ADC.')
+    }
+    if (preset.requiresLocation && !location.trim()) {
+      return validationError(
+        'Enter the Google Cloud location (for example us-central1).',
+      )
+    }
+    if (preset.requiresModelPath && !modelPath.trim()) {
+      return validationError('Enter the local .litertlm model file path.')
     }
     if (creating && preset.requiresApiKey && !secret.trim()) {
       return validationError(
         `Enter an ${preset.label} API key. It is sent once and never shown again.`,
       )
     }
-    if (preset.requiresProject && !project.trim()) {
-      return validationError('Enter the Google Cloud project ID for Vertex ADC.')
-    }
-    if (preset.requiresLocation && !location.trim()) {
-      return validationError('Enter the Google Cloud location (for example us-central1).')
-    }
-    if (preset.requiresModelPath && !modelPath.trim()) {
-      return validationError('Enter the local .litertlm model file path.')
-    }
-    if (preset.requiresBaseUrl && !baseUrl.trim()) {
-      return validationError('Enter the OpenAI-compatible base URL.')
+    if (requiresFreshKey && !secret.trim()) {
+      return validationError(
+        'Provider, authentication or endpoint changed. Enter a new API key before saving; the saved key is never reused for a different provider or host.',
+      )
     }
     if (secret && !resolvedCredentialRef()) {
       return validationError(
-        'A credential reference is required to store an API key. Open Advanced to set one.',
+        'An internal credential reference could not be assigned. Reopen the form and try again.',
       )
     }
     return null
   }
 
-  function applySaved(saved: ConnectionView): void {
-    setRevision(saved.revision)
-    setTitle(saved.title)
-    setEnabled(saved.enabled)
-    setModel(saved.model ?? '')
-    setBaseUrl(saved.base_url ?? '')
-    setProject(saved.project ?? '')
-    setLocation(saved.location ?? '')
-    setModelPath(saved.model_path ?? '')
-    if (saved.litert_backend) setLitertBackend(saved.litert_backend)
-    setCredentialRef(saved.credential_ref ?? '')
-    setPresetId((current) =>
-      saved.auth_mode == null &&
-      presetById(current).backend === saved.backend &&
-      saved.backend === 'openai-compat'
-        ? current
-        : inferPresetId(saved),
-    )
+  function testBlockReason(): string | null {
+    if (!backendForSave(preset)) {
+      return 'This provider record has no recognized backend, so it cannot be tested.'
+    }
+    if (preset.requiresBaseUrl && !baseUrl.trim()) {
+      return 'Enter the Base URL before testing.'
+    }
+    if (preset.requiresProject && !project.trim()) {
+      return 'Enter the Google Cloud project ID before testing.'
+    }
+    if (preset.requiresLocation && !location.trim()) {
+      return 'Enter the Google Cloud location before testing.'
+    }
+    if (preset.requiresModelPath && !modelPath.trim()) {
+      return 'Enter the local model file path before testing.'
+    }
+    if (creating && preset.requiresApiKey && !secret.trim()) {
+      return 'Enter an API key before testing this provider.'
+    }
+    if (requiresFreshKey && !secret.trim()) {
+      return 'Provider, authentication or endpoint changed. Enter a new API key before testing; the saved key is not sent to a different provider or host.'
+    }
+    if (declaredCapabilities.testable === false) {
+      return 'The backend has not enabled Test for this provider in this build.'
+    }
+    return null
+  }
+
+  function draftTestInput(): DraftConnectionTestInput {
+    return {
+      connection: {
+        backend: backendForSave(preset),
+        model: preset.requiresModelPath ? null : model.trim() || null,
+        base_url: preset.requiresBaseUrl ? baseUrl.trim() || null : null,
+        auth_mode: preset.authMode,
+        project: preset.requiresProject ? project.trim() || null : null,
+        location: preset.requiresLocation ? location.trim() || null : null,
+        model_path: preset.requiresModelPath ? modelPath.trim() || null : null,
+        litert_backend: preset.id === 'litert' ? litertBackend : null,
+      },
+      ...(secret ? { credential_value: secret } : {}),
+      ...(connection ? { existing_connection_id: connection.id } : {}),
+      expected_revision: connection?.revision ?? 0,
+      allow_network: true,
+    }
   }
 
   async function reloadAfterConflict(): Promise<void> {
@@ -296,29 +479,70 @@ export function ConnectionEditor({
       const latest = await onReload(connection.id)
       if (latest) setRevision(latest.revision)
     } catch {
-      /* The parent surfaces reload failures separately; keep the conflict visible. */
+      /* Keep the conflict visible; the parent surfaces reload failures. */
     }
   }
 
-  async function handleFailure(cause: unknown): Promise<void> {
+  async function handleFailure(cause: unknown, area: 'save' | 'test'): Promise<void> {
     const err = toApiError(cause)
     if (err.code === 'revision_conflict' && mode === 'edit') {
       await reloadAfterConflict()
-      setConflict(err)
+      if (!mountedRef.current) return
+      if (area === 'test') setTestError(err)
+      else setConflict(err)
       return
     }
-    setError(err)
+    if (!mountedRef.current) return
+    if (area === 'test') setTestError(err)
+    else setSaveError(err)
+  }
+
+  async function handleTest(): Promise<void> {
+    const blocked = testBlockReason()
+    if (pending !== null || blocked) return
+    const requestVersion = draftVersionRef.current
+    setSaveError(null)
+    setTestError(null)
+    setTestDiscarded(false)
+    setConflict(null)
+    setNotice(null)
+    setTestResult(null)
+    setTestResultVersion(null)
+    setPending('test')
+    try {
+      const result = await api.testDraftConnection(draftTestInput())
+      if (!mountedRef.current) return
+      if (draftVersionRef.current !== requestVersion) {
+        // The draft changed while the request was in flight. Never apply the
+        // old result to the new draft.
+        setTestDiscarded(true)
+        return
+      }
+      setTestResult(result)
+      setTestResultVersion(requestVersion)
+    } catch (cause) {
+      if (!mountedRef.current) return
+      if (draftVersionRef.current !== requestVersion) {
+        setTestDiscarded(true)
+        return
+      }
+      await handleFailure(cause, 'test')
+    } finally {
+      if (mountedRef.current) setPending(null)
+    }
   }
 
   async function handleSave(event: FormEvent): Promise<void> {
     event.preventDefault()
-    setError(null)
+    if (pending !== null) return
+    setSaveError(null)
+    setTestError(null)
     setConflict(null)
     setNotice(null)
 
-    const validation = validateForm()
+    const validation = validateSave()
     if (validation) {
-      setError(validation)
+      setSaveError(validation)
       return
     }
 
@@ -337,10 +561,9 @@ export function ConnectionEditor({
           ...providerFields(),
         }
         const created = await api.createConnection(payload)
+        if (!mountedRef.current) return
         setSecret('')
-        applySaved(created)
         onSaved(created)
-        setNotice(`Created "${created.id}" at revision ${created.revision}.`)
       } else if (connection) {
         const payload: ConnectionUpdateInput = {
           expected_revision: revision,
@@ -348,35 +571,38 @@ export function ConnectionEditor({
           enabled,
           model: preset.requiresModelPath ? null : model.trim() || null,
           base_url: preset.requiresBaseUrl ? baseUrl.trim() || null : null,
-          credential_action: secret ? 'set' : 'keep',
+          // Never "keep" a saved credential across a changed provider/auth/
+          // endpoint identity. A typed key sets the new value; otherwise the
+          // old reference is cleared without sending the old secret anywhere.
+          credential_action: secret ? 'set' : identityChanged ? 'remove' : 'keep',
           ...providerFields(),
         }
         if (backendForSave(preset) !== connection.backend) {
           payload.backend = backendForSave(preset)
         }
-        if (credentialRef.trim() !== (connection.credential_ref ?? '')) {
-          payload.credential_ref = credentialRef.trim() || null
+        const nextRef = resolvedCredentialRef()
+        if (nextRef !== (connection.credential_ref ?? '')) {
+          payload.credential_ref = nextRef || null
         }
         if (secret) payload.credential_value = secret
         if (!enabled && connection.references.default_roles.length > 0) {
           payload.clear_defaults = true
         }
         const updated = await api.updateConnection(connection.id, payload)
+        if (!mountedRef.current) return
         setSecret('')
-        applySaved(updated)
         onSaved(updated)
-        setNotice(`Saved revision ${updated.revision}.`)
       }
     } catch (cause) {
-      await handleFailure(cause)
+      await handleFailure(cause, 'save')
     } finally {
-      setPending(null)
+      if (mountedRef.current) setPending(null)
     }
   }
 
   async function handleRemoveCredential(): Promise<void> {
-    if (!connection) return
-    setError(null)
+    if (!connection || pending !== null) return
+    setSaveError(null)
     setConflict(null)
     setNotice(null)
     setPending('credential')
@@ -387,9 +613,12 @@ export function ConnectionEditor({
         expected_revision: revision,
         credential_action: 'remove',
       })
+      if (!mountedRef.current) return
       setSecret('')
       setCredentialRef('')
+      setCredentialStatus(updated.credential)
       setRevision(updated.revision)
+      setRemoveCredentialConfirm(false)
       let message = 'Credential reference removed from the connection.'
       if (previousRef && previousSource === 'secret_store') {
         try {
@@ -404,415 +633,590 @@ export function ConnectionEditor({
         message =
           'Connection no longer references a credential. Environment credentials are read-only and were not touched.'
       }
-      onSaved(updated)
+      if (!mountedRef.current) return
       setNotice(message)
+      onConnectionUpdated?.(updated)
     } catch (cause) {
-      await handleFailure(cause)
+      await handleFailure(cause, 'save')
     } finally {
-      setPending(null)
+      if (mountedRef.current) setPending(null)
     }
   }
 
-  async function handleTest(): Promise<void> {
-    if (!connection || creating || dirty) return
-    setError(null)
-    setPending('test')
-    try {
-      // Explicit manual Test only. `allow_network` remains a request-level flag
-      // for the pending backend capability/budget policy; this UI never runs a
-      // test on mount, selection, default change or save.
-      const result = await api.testConnection(connection.id, {
-        expected_revision: revision,
-        allow_network: true,
-      })
-      setTestResult(result)
-    } catch (cause) {
-      await handleFailure(cause)
-    } finally {
-      setPending(null)
+  function requestClose(): void {
+    if (saving) return
+    if (dirty) {
+      setDiscardOpen(true)
+      return
     }
+    onClose()
   }
 
-  const testDisabledReason = creating
-    ? 'Save the connection before testing it.'
-    : dirty
-      ? 'Save your changes first. Test only checks the saved connection revision.'
-      : declaredCapabilities.testable === false
-        ? 'The backend has not enabled Test for this provider in this build.'
-        : null
+  function handleDialogKeyDown(event: ReactKeyboardEvent<HTMLDivElement>): void {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      if (saving) return
+      if (discardOpen) {
+        setDiscardOpen(false)
+        return
+      }
+      requestClose()
+      return
+    }
+    if (event.key !== 'Tab') return
+    const nodes = focusableElements(dialogRef.current)
+    if (nodes.length === 0) {
+      event.preventDefault()
+      dialogRef.current?.focus()
+      return
+    }
+    const first = nodes[0]
+    const last = nodes[nodes.length - 1]
+    const active = document.activeElement
+    if (event.shiftKey && (active === first || !dialogRef.current?.contains(active))) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && active === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
 
   const credentialHint = (() => {
-    if (preset.requiresApiKey) {
-      if (configured) {
-        return 'Configured. Leave empty to keep the stored key; switching provider does not delete it.'
+    if (!preset.requiresApiKey) {
+      if (preset.authMode === 'adc') {
+        return 'No API key is entered. Authentication comes from Application Default Credentials on the backend host; this form never runs gcloud.'
       }
-      return creating
-        ? 'Required. Sent once, cleared after save, never shown again.'
-        : 'Not configured. Test will honestly report a missing credential.'
+      return 'No credential is used for this local model.'
     }
-    if (preset.authMode === 'adc') {
-      return 'No API key is entered. Authentication comes from Application Default Credentials on the backend host.'
+    if (creating) {
+      return 'Required. Sent only with Save or an explicit Test, then cleared; never stored in the browser.'
     }
-    return 'No credential is used for this local model.'
+    if (identityChanged) {
+      return configured
+        ? 'Provider, authentication or endpoint changed. Enter a new key; the saved key is never reused for a different provider or host.'
+        : 'Provider, authentication or endpoint changed. Enter a key for the new recipient; no saved key will be reused.'
+    }
+    if (configured) {
+      return 'Configured. Leave empty to use the saved key for this same provider and endpoint.'
+    }
+    return 'No saved key. Enter one here or Test will report the missing credential honestly.'
   })()
 
-  return (
-    <form className="lg-connection-form" onSubmit={handleSave}>
-      <div className="lg-connection-form__head">
-        <h3 className="lg-section-card__title">
-          {creating ? 'New connection' : connection?.title ?? 'Connection'}
-        </h3>
-        {!creating && connection ? (
-          <span className="lg-card__meta">
-            <StatusBadge kind="neutral">{preset.label}</StatusBadge>
-            <span>rev {revision}</span>
-          </span>
-        ) : null}
-      </div>
+  const blockedReason = testBlockReason()
 
-      {error ? (
-        <ErrorState
-          title="Request failed"
-          message={error.message}
-          code={error.code}
-          retryable={error.retryable}
-          requestId={error.requestId}
-        />
-      ) : null}
-      {conflict ? (
-        <div className="lg-state lg-state--error" role="alert">
-          <p className="lg-state__title">Revision conflict</p>
-          <p className="lg-state__body">
-            This connection changed elsewhere. The latest revision ({revision}) is
-            loaded; review your edits and save again. ({conflict.code})
-          </p>
-        </div>
-      ) : null}
-      {notice ? (
-        <p className="lg-notice" role="status">
-          {notice}
-        </p>
-      ) : null}
-
-      <section className="lg-section-card" aria-label="Provider">
-        <h4 className="lg-section-card__title">Provider</h4>
-        <label className="lg-field">
-          <span className="lg-field__label">Provider</span>
-          <select
-            className="lg-field__input"
-            value={presetId}
-            onChange={(event) => applyPreset(event.target.value as ProviderPresetId)}
-          >
-            {PROVIDER_PRESETS.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
-            {preset.legacyOnly ? (
-              <option value={preset.id}>{preset.label}</option>
-            ) : null}
-          </select>
-        </label>
-        <p className="lg-field__hint">
-          {preset.note} {preset.runtimeNote}
-        </p>
-
-        {preset.requiresApiKey ? (
-          <label className="lg-field">
-            <span className="lg-field__label">API key (write-only)</span>
-            <input
-              className="lg-field__input"
-              type="password"
-              value={secret}
-              onChange={(event) => setSecret(event.target.value)}
-              placeholder={
-                configured ? 'Leave empty to keep the existing key' : 'Paste API key'
-              }
-              autoComplete="new-password"
-              spellCheck={false}
-            />
-            <span className="lg-field__hint">
-              {credentialHint}
-              {!creating && configured ? (
-                <>
-                  {' '}
-                  Status: <StatusBadge kind="success">Configured</StatusBadge>
-                </>
-              ) : null}
-            </span>
-          </label>
-        ) : null}
-
-        {preset.requiresProject ? (
-          <label className="lg-field">
-            <span className="lg-field__label">Project ID</span>
-            <input
-              className="lg-field__input"
-              value={project}
-              onChange={(event) => setProject(event.target.value)}
-              placeholder="my-gcp-project"
-              autoComplete="off"
-              spellCheck={false}
-            />
-            <span className="lg-field__hint">
-              Vertex Standard reads credentials from ADC; no key is stored here.
-            </span>
-          </label>
-        ) : null}
-
-        {preset.requiresLocation ? (
-          <label className="lg-field">
-            <span className="lg-field__label">Location</span>
-            <input
-              className="lg-field__input"
-              value={location}
-              onChange={(event) => setLocation(event.target.value)}
-              placeholder="us-central1"
-              autoComplete="off"
-              spellCheck={false}
-            />
-          </label>
-        ) : null}
-
-        {preset.requiresModelPath ? (
-          <>
-            <label className="lg-field">
-              <span className="lg-field__label">Model file path</span>
-              <input
-                className="lg-field__input"
-                value={modelPath}
-                onChange={(event) => setModelPath(event.target.value)}
-                placeholder="/models/gemma.litertlm"
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <span className="lg-field__hint">
-                A readable local .litertlm file. The litert-lm runtime package must
-                also be installed on the backend host.
-              </span>
-            </label>
-            <label className="lg-field">
-              <span className="lg-field__label">LiteRT backend</span>
-              <select
-                className="lg-field__input"
-                value={litertBackend}
-                onChange={(event) =>
-                  setLitertBackend(event.target.value as LiteRtBackend)
-                }
-              >
-                {LITERT_BACKENDS.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-              <span className="lg-field__hint">
-                CPU/GPU/NPU availability is a hardware prerequisite, not a test
-                result.
-              </span>
-            </label>
-          </>
-        ) : (
-          <label className="lg-field">
-            <span className="lg-field__label">Model</span>
-            <input
-              className="lg-field__input"
-              value={model}
-              onChange={(event) => setModel(event.target.value)}
-              placeholder={preset.defaultModel ?? ''}
-              autoComplete="off"
-            />
-            <span className="lg-field__hint">
-              {preset.id === 'deepseek'
-                ? 'DeepSeek OpenAI-compatible default.'
-                : 'SDK 0.1.22 default; edit only if this provider requires another model id.'}
-            </span>
-          </label>
-        )}
-
-        <div className="lg-connection-form__actions">
-          <button
-            type="submit"
-            className="lg-button lg-button--primary"
-            disabled={busy}
-          >
-            {pending === 'save'
-              ? 'Saving…'
-              : creating
-                ? 'Save connection'
-                : 'Save changes'}
-          </button>
-          {onCancel ? (
+  return createPortal(
+    <div
+      ref={overlayRef}
+      className="lg-modal-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) requestClose()
+      }}
+    >
+      <div
+        ref={dialogRef}
+        className="lg-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="lg-connection-modal-title"
+        tabIndex={-1}
+        onKeyDown={handleDialogKeyDown}
+      >
+        <form className="lg-modal__form" onSubmit={handleSave} aria-busy={busy}>
+          <header className="lg-modal__header">
+            <div>
+              <h2 id="lg-connection-modal-title" className="lg-modal__title">
+                {creating ? 'New connection' : `Edit ${connection?.title ?? 'connection'}`}
+              </h2>
+              <p className="lg-field__hint">
+                {creating
+                  ? 'Configure and optionally test an unsaved draft.'
+                  : `${preset.label} · draft revision ${revision}`}
+              </p>
+            </div>
             <button
               type="button"
-              className="lg-button"
-              onClick={onCancel}
-              disabled={busy}
+              className="lg-button lg-modal__close"
+              aria-label="Close connection dialog"
+              onClick={requestClose}
+              disabled={saving}
             >
-              Cancel
+              ×
             </button>
-          ) : null}
-        </div>
-      </section>
+          </header>
 
-      <section className="lg-section-card" aria-label="Test connection">
-        <h4 className="lg-section-card__title">Test connection</h4>
-        <ConnectionTestPanel
-          result={testResult}
-          stale={stale}
-          running={pending === 'test'}
-          onRun={handleTest}
-          disabledReason={testDisabledReason}
-        />
-        {dirty ? (
-          <p className="lg-field__hint" role="status">
-            Unsaved changes are not tested.
-          </p>
-        ) : null}
-      </section>
-
-      <details className="lg-disclosure" aria-label="Advanced connection settings">
-        <summary className="lg-disclosure__summary">Advanced</summary>
-        <div className="lg-disclosure__body">
-          <label className="lg-field">
-            <span className="lg-field__label">Connection ID</span>
-            <input
-              className="lg-field__input"
-              value={id}
-              onChange={(event) => setId(event.target.value)}
-              readOnly={!creating}
-              placeholder="gemini-api-a1b2c3"
-              autoComplete="off"
-              required
-            />
-            <span className="lg-field__hint">
-              Stable id used by Team/resource references. Auto-generated; normally
-              no change is needed.
-            </span>
-          </label>
-          <label className="lg-field">
-            <span className="lg-field__label">Title</span>
-            <input
-              className="lg-field__input"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder={preset.label}
-              autoComplete="off"
-            />
-            <span className="lg-field__hint">
-              Optional human label. Defaults to the provider name.
-            </span>
-          </label>
-          <label className="lg-field lg-field--inline">
-            <input
-              type="checkbox"
-              checked={enabled}
-              onChange={(event) => setEnabled(event.target.checked)}
-            />
-            <span className="lg-field__label">Enabled</span>
-          </label>
-          {!enabled && connection?.references.default_roles.length ? (
-            <p className="lg-notice">
-              This connection is a default. Disabling it also clears that default
-              reference.
-            </p>
-          ) : null}
-
-          <p className="lg-field__static">
-            Backend: <span className="lg-card__path">{backendForSave(preset)}</span>
-          </p>
-          <p className="lg-field__static">
-            Auth mode: <span className="lg-card__path">{preset.authMode}</span>
-          </p>
-          <p className="lg-field__static">
-            Capabilities:{' '}
-            {declaredCapabilities.executable === true ? (
-              <StatusBadge kind="success">task execution</StatusBadge>
-            ) : (
-              <StatusBadge kind="neutral">execution not declared</StatusBadge>
-            )}{' '}
-            {declaredCapabilities.vendor_verified === true ? (
-              <StatusBadge kind="accent">vendor verification recorded</StatusBadge>
-            ) : (
-              <StatusBadge kind="neutral">vendor verification not declared</StatusBadge>
-            )}
-          </p>
-
-          {preset.requiresApiKey || credentialRef || configured ? (
-            <label className="lg-field">
-              <span className="lg-field__label">Credential reference</span>
-              <input
-                className="lg-field__input"
-                value={credentialRef}
-                onChange={(event) => setCredentialRef(event.target.value)}
-                placeholder="gemini-api-key"
-                autoComplete="off"
+          <div className="lg-modal__body">
+            {saveError ? (
+              <ErrorState
+                title="Request failed"
+                message={saveError.message}
+                code={saveError.code}
+                retryable={saveError.retryable}
+                requestId={saveError.requestId}
               />
-              <span className="lg-field__hint">
-                Only the reference is saved on the connection; the value lives in
-                the local secret store. Empty means keep the current secret.
-              </span>
-            </label>
-          ) : null}
-
-          {configured ? (
-            <p className="lg-field__static" role="status">
-              Credential: <StatusBadge kind="success">Configured</StatusBadge>{' '}
-              <span className="lg-field__hint">
-                source: {credentialSourceLabel(credentialStatus?.source ?? null)}
-                {credentialStatus?.version
-                  ? ` · version ${credentialStatus.version}`
-                  : ''}
-              </span>
-            </p>
-          ) : (
-            <p className="lg-field__static" role="status">
-              Credential: <StatusBadge kind="neutral">Not configured</StatusBadge>
-            </p>
-          )}
-
-          {preset.requiresBaseUrl ? (
-            <label className="lg-field">
-              <span className="lg-field__label">Base URL</span>
-              <input
-                className="lg-field__input"
-                value={baseUrl}
-                onChange={(event) => setBaseUrl(event.target.value)}
-                placeholder="https://api.deepseek.com/v1"
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <span className="lg-field__hint">
-                Endpoint override for an OpenAI-compatible server.
-              </span>
-            </label>
-          ) : null}
-
-          {!creating && connection ? (
-            <div className="lg-field">
-              <p className="lg-field__static">
-                References: defaults{' '}
-                {connection.references.default_roles.join(', ') || 'none'}; agents{' '}
-                {connection.references.agent_refs.join(', ') || 'none'}.
+            ) : null}
+            {conflict ? (
+              <div className="lg-state lg-state--error" role="alert">
+                <p className="lg-state__title">Revision conflict</p>
+                <p className="lg-state__body">
+                  This connection changed elsewhere. The latest revision ({revision})
+                  is loaded; review your edits and save again. ({conflict.code})
+                </p>
+              </div>
+            ) : null}
+            {notice ? (
+              <p className="lg-notice" role="status">
+                {notice}
               </p>
+            ) : null}
+
+            <section className="lg-modal__section" aria-label="Connection fields">
+              <label className="lg-field">
+                <span className="lg-field__label">Provider</span>
+                <select
+                  className="lg-field__input"
+                  value={presetId}
+                  onChange={(event) =>
+                    applyPreset(event.target.value as ProviderPresetId)
+                  }
+                  disabled={saving}
+                >
+                  {PROVIDER_PRESETS.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.label}
+                    </option>
+                  ))}
+                  {preset.legacyOnly ? (
+                    <option value={preset.id}>{preset.label}</option>
+                  ) : null}
+                </select>
+              </label>
+              <p className="lg-field__hint">
+                {preset.note} {preset.runtimeNote}
+              </p>
+              {identityChanged ? (
+                <p className="lg-notice" role="status">
+                  The provider, authentication or endpoint changed. The old saved
+                  credential is never reused for the new recipient; enter a new key
+                  for API-key providers, otherwise saving clears the old reference.
+                </p>
+              ) : null}
+
+              <label className="lg-field">
+                <span className="lg-field__label">Name</span>
+                <input
+                  className="lg-field__input"
+                  value={title}
+                  onChange={(event) => {
+                    setTitle(event.target.value)
+                    noteDraftChange()
+                  }}
+                  placeholder={preset.label}
+                  autoComplete="off"
+                  disabled={saving}
+                />
+                <span className="lg-field__hint">
+                  Optional human label. The internal id is generated automatically.
+                </span>
+              </label>
+
+              {preset.requiresApiKey ? (
+                <label className="lg-field">
+                  <span className="lg-field__label">API key (write-only)</span>
+                  <input
+                    className="lg-field__input"
+                    type="password"
+                    value={secret}
+                    onChange={(event) => {
+                      setSecret(event.target.value)
+                      noteDraftChange()
+                    }}
+                    placeholder={
+                      configured && !identityChanged
+                        ? 'Leave empty to use the saved key'
+                        : 'Paste API key'
+                    }
+                    autoComplete="new-password"
+                    spellCheck={false}
+                    disabled={saving}
+                  />
+                  <span className="lg-field__hint">
+                    {credentialHint}
+                    {configured && !identityChanged ? (
+                      <>
+                        {' '}
+                        Status: <StatusBadge kind="success">Configured</StatusBadge>
+                      </>
+                    ) : null}
+                  </span>
+                </label>
+              ) : null}
+
+              {preset.requiresProject ? (
+                <label className="lg-field">
+                  <span className="lg-field__label">Project ID</span>
+                  <input
+                    className="lg-field__input"
+                    value={project}
+                    onChange={(event) => {
+                      setProject(event.target.value)
+                      noteDraftChange()
+                    }}
+                    placeholder="my-gcp-project"
+                    autoComplete="off"
+                    spellCheck={false}
+                    disabled={saving}
+                  />
+                  <span className="lg-field__hint">
+                    Vertex ADC uses Application Default Credentials on the backend
+                    host; no key is stored here.
+                  </span>
+                </label>
+              ) : null}
+
+              {preset.requiresLocation ? (
+                <label className="lg-field">
+                  <span className="lg-field__label">Location</span>
+                  <input
+                    className="lg-field__input"
+                    value={location}
+                    onChange={(event) => {
+                      setLocation(event.target.value)
+                      noteDraftChange()
+                    }}
+                    placeholder="us-central1"
+                    autoComplete="off"
+                    spellCheck={false}
+                    disabled={saving}
+                  />
+                </label>
+              ) : null}
+
+              {preset.requiresBaseUrl ? (
+                <label className="lg-field">
+                  <span className="lg-field__label">Base URL</span>
+                  <input
+                    className="lg-field__input"
+                    value={baseUrl}
+                    onChange={(event) => {
+                      setBaseUrl(event.target.value)
+                      noteDraftChange()
+                    }}
+                    placeholder="https://your-server.example/v1"
+                    autoComplete="off"
+                    spellCheck={false}
+                    disabled={saving}
+                    required
+                  />
+                  <span className="lg-field__hint">
+                    Required OpenAI-compatible endpoint. This build only permits the
+                    existing DeepSeek upstream for live testing/execution; other
+                    hosts are blocked honestly before a network request.
+                  </span>
+                </label>
+              ) : null}
+
+              {preset.requiresModelPath ? (
+                <>
+                  <label className="lg-field">
+                    <span className="lg-field__label">Model file path</span>
+                    <input
+                      className="lg-field__input"
+                      value={modelPath}
+                      onChange={(event) => {
+                        setModelPath(event.target.value)
+                        noteDraftChange()
+                      }}
+                      placeholder="/models/gemma.litertlm"
+                      autoComplete="off"
+                      spellCheck={false}
+                      disabled={saving}
+                    />
+                    <span className="lg-field__hint">
+                      A readable local .litertlm file. The litert-lm runtime package
+                      must be installed on the backend host.
+                    </span>
+                  </label>
+                  <label className="lg-field">
+                    <span className="lg-field__label">LiteRT backend</span>
+                    <select
+                      className="lg-field__input"
+                      value={litertBackend}
+                      onChange={(event) => {
+                        setLitertBackend(event.target.value as LiteRtBackend)
+                        noteDraftChange()
+                      }}
+                      disabled={saving}
+                    >
+                      {LITERT_BACKENDS.map((item) => (
+                        <option key={item} value={item}>
+                          {item}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="lg-field__hint">
+                      CPU/GPU/NPU availability is a hardware prerequisite, not a test
+                      result. Test only checks configuration and paths.
+                    </span>
+                  </label>
+                </>
+              ) : (
+                <label className="lg-field">
+                  <span className="lg-field__label">Model</span>
+                  <input
+                    className="lg-field__input"
+                    value={model}
+                    onChange={(event) => {
+                      setModel(event.target.value)
+                      noteDraftChange()
+                    }}
+                    placeholder={
+                      preset.defaultModel ??
+                      (preset.id === 'custom-openai'
+                        ? 'Model id required by your server'
+                        : '')
+                    }
+                    autoComplete="off"
+                    spellCheck={false}
+                    disabled={saving}
+                  />
+                  <span className="lg-field__hint">
+                    {preset.id === 'deepseek'
+                      ? 'DeepSeek OpenAI-compatible default from the existing executable path.'
+                      : 'Sent to the provider as-is. Saving never claims execution or vendor verification.'}
+                  </span>
+                </label>
+              )}
+            </section>
+
+            {testError ? (
+              <ErrorState
+                title="Draft test failed"
+                message={testError.message}
+                code={testError.code}
+                retryable={testError.retryable}
+                requestId={testError.requestId}
+              />
+            ) : null}
+            {testDiscarded ? (
+              <p className="lg-notice" role="status">
+                The draft changed while Test was running, so that late result was
+                discarded. The current values are unchanged; run Test again if
+                needed.
+              </p>
+            ) : null}
+            <section className="lg-modal__section" aria-label="Draft test result">
+              <ConnectionTestPanel
+                result={testResult}
+                stale={stale}
+                running={pending === 'test'}
+                draft
+              />
+            </section>
+
+            <details className="lg-disclosure" aria-label="Advanced connection settings">
+              <summary className="lg-disclosure__summary">Advanced</summary>
+              <div className="lg-disclosure__body">
+                <label className="lg-field">
+                  <span className="lg-field__label">Connection ID</span>
+                  <input
+                    className="lg-field__input"
+                    value={id}
+                    readOnly
+                    aria-readonly="true"
+                    autoComplete="off"
+                  />
+                  <span className="lg-field__hint">
+                    Stable id used by Team/resource references. Generated
+                    automatically and not editable here.
+                  </span>
+                </label>
+                <label className="lg-field lg-field--inline">
+                  <input
+                    type="checkbox"
+                    checked={enabled}
+                    onChange={(event) => {
+                      setEnabled(event.target.checked)
+                      noteDraftChange()
+                    }}
+                    disabled={saving}
+                  />
+                  <span className="lg-field__label">Enabled</span>
+                </label>
+                {!enabled && connection?.references.default_roles.length ? (
+                  <p className="lg-notice">
+                    This connection is a default. Disabling it also clears that
+                    default reference.
+                  </p>
+                ) : null}
+
+                <p className="lg-field__static">
+                  Backend:{' '}
+                  <span className="lg-card__path">{backendForSave(preset)}</span>
+                </p>
+                <p className="lg-field__static">
+                  Auth mode: <span className="lg-card__path">{preset.authMode}</span>
+                </p>
+                <p className="lg-field__static">
+                  Capabilities:{' '}
+                  {declaredCapabilities.executable === true ? (
+                    <StatusBadge kind="success">task execution available</StatusBadge>
+                  ) : (
+                    <StatusBadge kind="neutral">execution not enabled</StatusBadge>
+                  )}{' '}
+                  {declaredCapabilities.vendor_verified === true ? (
+                    <StatusBadge kind="accent">vendor verification recorded</StatusBadge>
+                  ) : (
+                    <StatusBadge kind="neutral">
+                      vendor verification not declared
+                    </StatusBadge>
+                  )}
+                </p>
+
+                {preset.requiresApiKey || credentialRef || configured ? (
+                  <p className="lg-field__static">
+                    Credential reference:{' '}
+                    <span className="lg-card__path">
+                      {credentialRef || resolvedCredentialRef() || 'assigned on save'}
+                    </span>
+                  </p>
+                ) : null}
+                <p className="lg-field__static" role="status">
+                  Credential:{' '}
+                  {configured ? (
+                    <StatusBadge kind="success">Configured</StatusBadge>
+                  ) : (
+                    <StatusBadge kind="neutral">Not configured</StatusBadge>
+                  )}{' '}
+                  {configured ? (
+                    <span className="lg-field__hint">
+                      source: {credentialSourceLabel(credentialStatus?.source ?? null)}
+                      {credentialStatus?.version
+                        ? ` · version ${credentialStatus.version}`
+                        : ''}
+                    </span>
+                  ) : null}
+                </p>
+
+                {!creating && connection ? (
+                  <div className="lg-field">
+                    <p className="lg-field__static">
+                      References: defaults{' '}
+                      {connection.references.default_roles.join(', ') || 'none'};
+                      agents {connection.references.agent_refs.join(', ') || 'none'}.
+                    </p>
+                    {removeCredentialConfirm ? (
+                      <div className="lg-inline-confirm" role="alert">
+                        <p>
+                          Remove the saved credential from this connection? This is
+                          separate from Save and cannot be undone.
+                        </p>
+                        <div className="lg-modal__footer-right">
+                          <button
+                            type="button"
+                            className="lg-button"
+                            onClick={() => setRemoveCredentialConfirm(false)}
+                            disabled={busy}
+                          >
+                            Keep credential
+                          </button>
+                          <button
+                            type="button"
+                            className="lg-button lg-button--danger"
+                            onClick={handleRemoveCredential}
+                            disabled={busy}
+                          >
+                            {pending === 'credential' ? 'Removing…' : 'Remove credential'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="lg-button"
+                        onClick={() => setRemoveCredentialConfirm(true)}
+                        disabled={busy || (!connection.credential_ref && !configured)}
+                      >
+                        Remove saved credential…
+                      </button>
+                    )}
+                    <span className="lg-field__hint">
+                      Changing provider or leaving the key field empty never removes
+                      the saved credential by itself.
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            </details>
+          </div>
+
+          {discardOpen ? (
+            <div className="lg-modal__confirm" role="alert">
+              <p>Discard this unsaved draft and close? Your typed key will be lost.</p>
+              <div className="lg-modal__footer-right">
+                <button
+                  type="button"
+                  className="lg-button"
+                  onClick={() => setDiscardOpen(false)}
+                >
+                  Keep editing
+                </button>
+                <button
+                  type="button"
+                  className="lg-button lg-button--danger"
+                  onClick={() => {
+                    setSecret('')
+                    onClose()
+                  }}
+                >
+                  Discard and close
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <footer className="lg-modal__footer">
+            <div className="lg-modal__footer-left">
               <button
                 type="button"
                 className="lg-button"
-                onClick={handleRemoveCredential}
-                disabled={busy || (!connection.credential_ref && !configured)}
+                onClick={handleTest}
+                disabled={busy || blockedReason !== null}
+                aria-busy={pending === 'test'}
               >
-                {pending === 'credential'
-                  ? 'Removing…'
-                  : 'Remove credential'}
+                {pending === 'test' ? 'Testing…' : 'Test connection'}
               </button>
-              <span className="lg-field__hint">
-                Removing a credential is a separate explicit action. It is never
-                done by changing provider or leaving the key field empty.
-              </span>
+              {blockedReason ? (
+                <p className="lg-field__hint" role="status">
+                  {blockedReason}
+                </p>
+              ) : null}
             </div>
-          ) : null}
-        </div>
-      </details>
-    </form>
+            <div className="lg-modal__footer-right">
+              <button
+                type="button"
+                className="lg-button"
+                onClick={requestClose}
+                disabled={saving}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="lg-button lg-button--primary"
+                disabled={busy}
+              >
+                {saving
+                  ? 'Saving…'
+                  : creating
+                    ? 'Save connection'
+                    : 'Save changes'}
+              </button>
+            </div>
+          </footer>
+        </form>
+      </div>
+    </div>,
+    document.body,
   )
 }
