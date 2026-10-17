@@ -1,0 +1,42 @@
+{
+  "natural": {
+    "dangling_observed": 1,
+    "iterations": 150,
+    "outcomes": {
+      "default_set": 1,
+      "deleted": 1
+    }
+  },
+  "orchestrated_agent": {
+    "agent_creation": {
+      "status": "agent_created"
+    },
+    "connection_exists": false,
+    "dangling_agent_ref": true,
+    "delete_thread_errors": [],
+    "references_after": {
+      "agent_refs": [
+        "race-agent-ref"
+      ],
+      "connection_id": "race-agent",
+      "default_roles": []
+    }
+  },
+  "orchestrated_default": {
+    "connection_exists": false,
+    "dangling_default": true,
+    "default_update": {
+      "status": "default_set"
+    },
+    "delete_thread_errors": [],
+    "references_after": {
+      "agent_refs": [],
+      "connection_id": "race-default",
+      "default_roles": [
+        "worker"
+      ]
+    },
+    "resolve_default_error": "EntityNotFound: connection 'race-default' not found",
+    "settings_default_worker": "race-default"
+  }
+}

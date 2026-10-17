@@ -1,0 +1,485 @@
+{
+  "config": {
+    "argv": [
+      "/home/yhvh/.nvm/versions/node/v22.23.2/bin/node",
+      "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "probes/provider-setup-20261017/qa/playwright.config.ts"
+    ],
+    "configFile": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/playwright.config.ts",
+    "rootDir": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/global-setup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "filteredProjects": [
+      {
+        "grep": {},
+        "grepInvert": null,
+        "outputDir": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "name": "",
+        "testDir": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests",
+        "snapshotDir": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests",
+        "testIgnore": [],
+        "testMatch": "**/*.@(spec|test).?(c|m)[jt]s?(x)",
+        "timeout": 90000,
+        "use": {
+          "trace": "retain-on-failure",
+          "screenshot": "only-on-failure",
+          "video": "retain-on-failure",
+          "actionTimeout": 15000,
+          "navigationTimeout": 30000,
+          "launchOptions": {
+            "executablePath": "/usr/bin/google-chrome",
+            "args": [
+              "--no-sandbox"
+            ]
+          }
+        },
+        "dependencies": [],
+        "ignoreSnapshots": false,
+        "__projectId": ""
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "./logs/playwright-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "default",
+    "updateSourceMethod": "patch",
+    "version": "1.64.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "provider-modal.spec.ts",
+      "file": "provider-modal.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "landing, compact modal, deep links, responsive widths, no always-open editor",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2630,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:51:29.650Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dfa558451a8c02cc5c30-ef3561add0b709c49af0",
+          "file": "provider-modal.spec.ts",
+          "line": 125,
+          "column": 1
+        },
+        {
+          "title": "draft Test before Save: no writes, one minimal request, inline failure, stale, separate Save",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1595,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:51:32.492Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dfa558451a8c02cc5c30-21bd3da0a645196f2211",
+          "file": "provider-modal.spec.ts",
+          "line": 201,
+          "column": 1
+        },
+        {
+          "title": "Gemini/Vertex provider forms, installed SDK fake protocol, ADC honesty and blocked custom host",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1736,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:51:34.101Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dfa558451a8c02cc5c30-de8282f19d621215857d",
+          "file": "provider-modal.spec.ts",
+          "line": 304,
+          "column": 1
+        },
+        {
+          "title": "Edit key handling, dirty discard/keep, save keep, revision conflict, explicit remove",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2173,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:51:35.849Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dfa558451a8c02cc5c30-6f36a44b0f869b3c38ef",
+          "file": "provider-modal.spec.ts",
+          "line": 378,
+          "column": 1
+        },
+        {
+          "title": "focus trap, background inert, Escape focus return, late Test after close/reopen, narrow controls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 6416,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:51:38.036Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dfa558451a8c02cc5c30-e69dcec29d4a5827e01a",
+          "file": "provider-modal.spec.ts",
+          "line": 490,
+          "column": 1
+        },
+        {
+          "title": "saved last_test staleness, default eligibility, referenced delete block, UI delete success",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1381,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:51:44.469Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dfa558451a8c02cc5c30-7081b2f61273b7727ac3",
+          "file": "provider-modal.spec.ts",
+          "line": 560,
+          "column": 1
+        },
+        {
+          "title": "member My Account/admin notice without config fetch, endpoint 403/401, admin Accounts regression",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [
+                {
+                  "type": "serial",
+                  "location": {
+                    "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                    "line": 0,
+                    "column": 0
+                  }
+                }
+              ],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1750,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-17T11:51:45.866Z",
+                  "annotations": [
+                    {
+                      "type": "serial",
+                      "location": {
+                        "file": "/home/yhvh/code/lightgravity-bot-worktrees/provider-qa-20261017/probes/provider-setup-20261017/qa/tests/provider-modal.spec.ts",
+                        "line": 0,
+                        "column": 0
+                      }
+                    }
+                  ],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dfa558451a8c02cc5c30-267cc0c2bf615292922c",
+          "file": "provider-modal.spec.ts",
+          "line": 618,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-17T11:51:27.500Z",
+    "duration": 20393.1,
+    "expected": 7,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

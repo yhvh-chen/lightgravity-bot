@@ -1,0 +1,22 @@
+{
+  "connections": [
+    "qa-deepseek",
+    "qa-custom",
+    "qa-tested",
+    "qa-gemini",
+    "qa-vertex-adc"
+  ],
+  "default_worker": "qa-deepseek",
+  "agent_ref": "qa-agent",
+  "generation_after_seed": {
+    "count": 1,
+    "limit": null,
+    "remaining": null,
+    "corrupt": false,
+    "persistent": true
+  },
+  "upstream_requests_after_seed": 1,
+  "data_dir": "/tmp/lg112-playwright-qa-VVo9A5/data",
+  "secret_dir": "/tmp/lg112-playwright-qa-VVo9A5/data/secrets",
+  "log_dir": "/tmp/lg112-playwright-qa-VVo9A5/logs"
+}
