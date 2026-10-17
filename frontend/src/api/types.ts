@@ -57,10 +57,44 @@ export interface VersionResponse {
 
 /* ------------------------------------------------------- Task wire shapes (docs/08 §6) */
 
-/** Message attachment reference (docs/08 §5.2): a path + media type, no bytes. */
-export interface Attachment {
+/** Shared Task/Team message attachment reference (docs/08 §5.2): no bytes. */
+export interface PathAttachment {
   path: string
   media_type?: string | null
+}
+
+/**
+ * LG-119 Personal-only private attachment.  The request shape is exactly
+ * `{attachment_id}`; the server expands the canonical persisted snapshot
+ * (filename/size/hash/status/context fields) after owner validation.  A client
+ * can never supply filename/size/hash as authority.
+ */
+export interface PrivateAttachmentRef {
+  attachment_id: string
+  filename?: string
+  media_type?: string | null
+  size?: number
+  sha256?: string
+  status?: 'stored' | 'attached'
+  created_at?: string
+  message_id?: string | null
+  context_status?:
+    | 'included'
+    | 'truncated'
+    | 'unsupported_type'
+    | 'binary_unsupported'
+    | 'too_large'
+    | 'unavailable'
+  context_chars?: number
+}
+
+/** Discriminated by `attachment_id`: Personal private vs Task/Team path. */
+export type Attachment = PathAttachment | PrivateAttachmentRef
+
+export function isPrivateAttachment(
+  attachment: Attachment,
+): attachment is PrivateAttachmentRef {
+  return 'attachment_id' in attachment
 }
 
 /** Queue projection embedded in a Task summary/detail (docs/08 §6.1). */
@@ -70,6 +104,8 @@ export interface QueueProjection {
   lease_expires_at?: string | null
   order?: number | null
   queued_at?: string | null
+  /** Additive R2 scheduling fact (docs/08 §19.5); absent means no wait. */
+  waiting_reason?: string | null
 }
 
 /** `GET /tasks` list item (docs/08 §4.3). */

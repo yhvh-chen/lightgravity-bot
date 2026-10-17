@@ -26,7 +26,10 @@ phase with the candidate artifacts.
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import tempfile
 import os
+import re
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -45,7 +48,7 @@ from lightgravity.adapter import (
     ResourceCompiler,
 )
 from lightgravity.contracts import AppError, EventType, TaskPhase
-from lightgravity.evidence import EvidenceRefError, import_evidence
+from lightgravity.evidence import EvidenceRefError, import_evidence, parse_evidence_ref, resolve_evidence_ref
 from lightgravity.store import Store, new_id
 from lightgravity.workspaces import WorkspaceProvider
 
@@ -1064,7 +1067,9 @@ class GraphDispatcher:
         # exactly as the deterministic path does -- but only after the execution
         # has actually stopped.
         if result.state == "succeeded":
-            outcome = self._apply_result(node, controller, result)
+            outcome = self._apply_result(
+                node, controller, result, workspace_path=execution_request.workspace_path
+            )
         else:
             code = result.failure.code if result.failure else result.state
             message = result.failure.message if result.failure else result.summary
@@ -1831,7 +1836,7 @@ class GraphDispatcher:
         self._release_node(node, claimer)
         if result.execution_ref is not None:
             self._active_refs.setdefault(run_id, []).append(result.execution_ref)
-        return self._apply_result(node, controller, result)
+        return self._apply_result(node, controller, result, workspace_path=request.workspace_path)
 
     # ---------------------------------------------------- decentralized claim
     def _decentralized_enabled(self) -> bool:
@@ -2080,7 +2085,8 @@ class GraphDispatcher:
         return (tool,)
 
     def _apply_result(
-        self, node: _Node, controller: RunController, result: ExecutorResult
+        self, node: _Node, controller: RunController, result: ExecutorResult,
+        *, workspace_path: str = "",
     ) -> NodeResult:
         subtask_id = node.subtask_id
         # Collect the node's complete non-secret native session from the
@@ -2103,7 +2109,13 @@ class GraphDispatcher:
             message = result.failure.message if result.failure else result.summary
             return self._fail_node(node, controller, code=code, message=message, result=result)
 
-        evidence = tuple(result.artifact_refs)
+        try:
+            evidence = self._publish_node_artifacts(node, controller, result, workspace_path)
+        except (EvidenceRefError, OSError) as exc:
+            return self._fail_node(
+                node, controller, code="evidence_unreadable",
+                message=f"executor file evidence could not be imported: {exc}", result=result,
+            )
         if result.diff_ref:
             try:
                 canonical_diff = self._record_evidence(controller, node, result.diff_ref)
@@ -2244,6 +2256,59 @@ class GraphDispatcher:
             role_ref=node.member.role_ref,
         )
 
+    def _publish_node_artifacts(
+        self, node: _Node, controller: RunController, result: ExecutorResult,
+        workspace_path: str,
+    ) -> tuple[str, ...]:
+        """Freeze local outputs in the existing Task/Run evidence namespace.
+
+        Relative output paths refer to the actual executor workspace, never the
+        Task's stale base. Explicitly named retained deliverables are snapshots
+        too: unchanged bytes can be a new Run's candidate without a fake diff.
+        Opaque adapter refs retain their existing meaning.
+        """
+        refs = list(result.artifact_refs)
+        workspace = Path(workspace_path).resolve() if workspace_path else None
+        if node.spec.write and workspace is not None:
+            text = "\n".join((node.spec.objective, *node.spec.acceptance))
+            # Same filename-like contract used for ordinary Chat acceptance;
+            # paths remain bounded by the actual assigned workspace below.
+            for match in re.finditer(r"(?<![\w./\\])[A-Za-z0-9][A-Za-z0-9._/-]*\.[A-Za-z0-9]{1,8}", text):
+                relative = match.group(0)
+                source = workspace / relative
+                if source.is_file() and relative not in refs:
+                    refs.append(relative)
+        published: list[str] = []
+        for ref in refs:
+            if ref.startswith("evidence:"):
+                resolve_evidence_ref(
+                    ref, data_dir=getattr(self._store, "data_dir", None),
+                    task_id=controller.task_id, run_id=controller.run_id,
+                )
+                canonical = ref
+            elif ":" in ref and not os.path.isabs(ref):
+                canonical = ref  # legacy opaque URLs/ids are not filesystem authority
+            elif workspace is not None and ("." in ref or "/" in ref or os.path.isabs(ref)):
+                source = workspace / ref
+                real = source.resolve()
+                if not real.is_relative_to(workspace) or source.is_symlink() or not real.is_file():
+                    raise EvidenceRefError(f"artifact {ref!r} is not a regular file in the assigned workspace")
+                relative = real.relative_to(workspace).as_posix()
+                # Distinguish nested same-basename outputs within one subtask.
+                tag = stable_hash(relative)[:12]
+                data_dir = getattr(self._store, "data_dir", None)
+                if data_dir is None:
+                    raise EvidenceRefError("file evidence requires a store data directory")
+                canonical = import_evidence(
+                    data_dir, controller.task_id, controller.run_id, real,
+                    name=f"{node.subtask_id}-{tag}-{re.sub(r'[^A-Za-z0-9._-]', '_', real.name)}",
+                )
+            else:
+                canonical = ref
+            if canonical not in published:
+                published.append(canonical)
+        return tuple(published)
+
     def _record_evidence(self, controller: RunController, node: _Node, ref: str) -> str:
         """Import a trusted executor artifact into the Task/Run evidence root.
 
@@ -2363,8 +2428,18 @@ class GraphDispatcher:
         # worktree when one was provisioned; the frozen base commit is recorded
         # in the run workspace metadata.  Read-only nodes keep the shared
         # workspace path.
-        node_workspace = self.workspace_for_node(context.run_id, node.key)
-        effective_workspace = node_workspace or context.workspace_path
+        effective_workspace = self._execution_workspace(node, context)
+        snapshot_workspace = self._snapshot_upstream(node, context, upstream)
+        if snapshot_workspace is not None:
+            effective_workspace = snapshot_workspace
+        instructions = context.worker_instructions()
+        if snapshot_workspace is not None:
+            instructions += (
+                "\n\nThe assigned workspace contains digest-verified copies of the current "
+                "Run's upstream evidence. Read these immutable candidate snapshots using "
+                "the artifact filenames in the evidence references below; do not inspect "
+                "the Task's original base directory or rewrite provenance records."
+            )
         return ExecuteRequest(
             task_id=context.task_id,
             run_id=context.run_id,
@@ -2375,7 +2450,7 @@ class GraphDispatcher:
             # LG-047 QA-R1: the graph path must carry the same selected-material
             # body the chat reply used (revalidated before dispatch), exactly as
             # the single-slot dispatcher does.  Never a raw instruction.
-            instructions=context.worker_instructions(),
+            instructions=instructions,
             upstream_artifact_refs=tuple(upstream),
             workspace_path=effective_workspace,
             allowed_tools=candidate.tool_refs,
@@ -2394,14 +2469,60 @@ class GraphDispatcher:
             ),
         )
 
+    def _execution_workspace(self, node: _Node, context: DispatchContext) -> str:
+        own = self.workspace_for_node(context.run_id, node.key)
+        if own:
+            return own
+        return context.workspace_path
+
+    def _snapshot_upstream(
+        self, node: _Node, context: DispatchContext, upstream: Sequence[str],
+    ) -> str | None:
+        """Give a read-only node bounded copies of resolved canonical evidence.
+
+        The SDK cannot read the Store evidence root directly. Its assigned
+        directory remains under the existing authorized workspace root; copied
+        bytes must match the recorded current-Run digest. No Task base writes.
+        """
+        if node.spec.write:
+            return None
+        snapshots: dict[str, bytes] = {}
+        for encoded in upstream:
+            ref = encoded
+            if not ref.startswith("evidence:") and "@" in ref:
+                ref = ref.partition(":")[2]
+            if not ref.startswith("evidence:"):
+                continue
+            parsed = parse_evidence_ref(ref)
+            if parsed is None or parsed.digest is None:
+                raise EvidenceRefError("upstream evidence must carry a content digest")
+            source = resolve_evidence_ref(
+                ref, data_dir=getattr(self._store, "data_dir", None),
+                task_id=context.task_id, run_id=context.run_id,
+            )
+            data = source.read_bytes()
+            if hashlib.sha256(data).hexdigest() != parsed.digest:
+                raise EvidenceRefError("upstream evidence changed while snapshotting")
+            if parsed.name in snapshots and snapshots[parsed.name] != data:
+                raise EvidenceRefError("conflicting upstream evidence filenames")
+            snapshots[parsed.name] = data
+        if not snapshots:
+            return None
+        parent = self._store.resolve_path(f".lg-worktrees/{context.run_id}/handoffs", write=True)
+        parent.mkdir(parents=True, exist_ok=True)
+        root = Path(tempfile.mkdtemp(prefix="read-", dir=parent))
+        for name, data in snapshots.items():
+            target = root / name
+            target.write_bytes(data)
+            target.chmod(0o400)
+        return str(root)
+
     def _config_drift(self, node: _Node, context: DispatchContext) -> str | None:
         pin = self._run_pins.get(context.run_id)
         constraints = CompileConstraints(
             allowed_tools=frozenset(node.member.candidate.tool_refs),
             workspace_path=(
-                self.workspace_for_node(context.run_id, node.key)
-                or context.workspace_path
-                or None
+                self._execution_workspace(node, context) or None
             ),
             conversation_id=context.conversation_id,
             connection_pin=pin,

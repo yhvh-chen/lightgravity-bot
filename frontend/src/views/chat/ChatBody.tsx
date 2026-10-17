@@ -1,13 +1,20 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 
+import {
+  createAttachmentsApi,
+  newPrivateAttachmentId,
+  supportsPrivateAttachments,
+  type AttachmentsApi,
+} from '../../api/attachments'
 import { getRuntimeToken } from '../../api/auth'
 import { type ChatApi, type ResolvedSourceBindingsData } from '../../api/chat'
+import { fetchHealth } from '../../api/client'
 import {
   createSourcesApi,
   type SourcesApi,
   type SourcesRuntimeConfig,
 } from '../../api/sources'
-import type { Attachment } from '../../api/types'
+import { isPrivateAttachment, type Attachment } from '../../api/types'
 import { useShell } from '../../app/ShellProvider'
 import { useAuth } from '../../app/AuthProvider'
 import { draftKey, type ChatChannel } from '../../app/uiState'
@@ -34,11 +41,23 @@ export interface ChatBodyProps {
   sourcesApi?: SourcesApi
   /** Runtime token source for protected material writes. */
   sourcesRuntime?: SourcesRuntimeConfig
+  /** Injectable private-attachment client for tests; defaults to the real routes. */
+  attachmentsApi?: AttachmentsApi
 }
 
 interface PendingAttachment {
   path: string
   media_type: string | null
+}
+
+interface PrivatePendingAttachment {
+  attachmentId: string
+  filename: string
+  mediaType: string
+  size: number
+  file: File
+  status: 'uploading' | 'ready' | 'failed'
+  error: string | null
 }
 
 /**
@@ -50,7 +69,14 @@ interface PendingAttachment {
  * endpoints (keeping the draft on failure), and links a delivery reply to its
  * newly created Task so the caller can open the real Board state.
  */
-export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRuntime }: ChatBodyProps) {
+export function ChatBody({
+  variant,
+  onRequestClose,
+  api,
+  sourcesApi,
+  sourcesRuntime,
+  attachmentsApi,
+}: ChatBodyProps) {
   const { state, dispatch } = useShell()
   const { isTeam, requireLogin, personalChatAvailable } = useAuth()
   const taskRef = state.taskRef
@@ -74,6 +100,12 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
     [sourcesApi, sourcesRuntime],
   )
   const materials = useChatMaterials(resolvedSourcesApi)
+  const resolvedAttachmentsApi = useMemo(
+    () =>
+      attachmentsApi ??
+      createAttachmentsApi({ getApiToken: getRuntimeToken }),
+    [attachmentsApi],
+  )
   const selection = useChatSelection(effectiveTaskRef)
   const [extrasOpen, setExtrasOpen] = useState(false)
   const [materialNotice, setMaterialNotice] = useState<string | null>(null)
@@ -91,10 +123,17 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
   const mounted = useRef(true)
   useEffect(() => {
     mounted.current = true
-    return () => { mounted.current = false }
+    return () => {
+      mounted.current = false
+      privateUploads.current.forEach((controller) => controller.abort())
+      privateUploads.current.clear()
+    }
   }, [])
   const [notice, setNotice] = useState<string | null>(null)
   const [attachments, setAttachments] = useState<PendingAttachment[]>([])
+  const [privateAttachments, setPrivateAttachments] = useState<PrivatePendingAttachment[]>([])
+  const [privateAttachmentsAvailable, setPrivateAttachmentsAvailable] = useState<boolean | null>(null)
+  const privateUploads = useRef<Map<string, AbortController>>(new Map())
   const [attachmentError, setAttachmentError] = useState<string | null>(null)
   const [hasNewMessages, setHasNewMessages] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
@@ -107,6 +146,13 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
     setLastSendSources(null)
     selection.clear()
     setAttachments([])
+    // In-flight private uploads are aborted and their ids dropped so a late
+    // response can never bind to the newly selected channel/account.
+    privateUploads.current.forEach((controller) => controller.abort())
+    privateUploads.current.clear()
+    setPrivateAttachments([])
+    setAttachmentError(null)
+    materials.reset()
     setExtrasOpen(false)
     // A scope switch starts at the latest message, not a stale "new messages"
     // badge held over from the previous conversation.
@@ -116,6 +162,24 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
   }, [effectiveTaskRef, privatePersonal])
 
   useEffect(() => { setNotice(null) }, [privatePersonal])
+
+  // Capability check (not a 404 probe): private uploads are disabled with an
+  // honest explanation when the backend does not advertise the feature.
+  useEffect(() => {
+    if (!privatePersonal) {
+      setPrivateAttachmentsAvailable(null)
+      return
+    }
+    let active = true
+    fetchHealth()
+      .then((health) => {
+        if (active) setPrivateAttachmentsAvailable(supportsPrivateAttachments(health))
+      })
+      .catch(() => {
+        if (active) setPrivateAttachmentsAvailable(false)
+      })
+    return () => { active = false }
+  }, [privatePersonal])
 
   useEffect(() => {
     const list = listRef.current
@@ -191,13 +255,131 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
     event.target.value = ''
   }
 
+  const uploadPrivateFile = (
+    file: File,
+    existing?: PrivatePendingAttachment,
+  ) => {
+    const attachmentId = existing?.attachmentId ?? newPrivateAttachmentId()
+    privateUploads.current.get(attachmentId)?.abort()
+    const controller = new AbortController()
+    privateUploads.current.set(attachmentId, controller)
+    const requestGeneration = conversationGeneration.current
+    setPrivateAttachments((current) => {
+      if (existing) {
+        return current.map((item) =>
+          item.attachmentId === attachmentId
+            ? { ...item, file, filename: file.name, mediaType: file.type, size: file.size, status: 'uploading', error: null }
+            : item,
+        )
+      }
+      return [
+        ...current,
+        {
+          attachmentId,
+          filename: file.name,
+          mediaType: file.type || 'application/octet-stream',
+          size: file.size,
+          file,
+          status: 'uploading',
+          error: null,
+        },
+      ]
+    })
+    void resolvedAttachmentsApi
+      .upload(file, { attachmentId, signal: controller.signal })
+      .then((uploaded) => {
+        if (!mounted.current || requestGeneration !== conversationGeneration.current) return
+        setPrivateAttachments((current) =>
+          current.map((item) =>
+            item.attachmentId === attachmentId
+              ? {
+                  ...item,
+                  filename: uploaded.filename,
+                  mediaType: uploaded.media_type ?? item.mediaType,
+                  size: uploaded.size,
+                  status: 'ready',
+                  error: null,
+                }
+              : item,
+          ),
+        )
+      })
+      .catch((cause: unknown) => {
+        if (controller.signal.aborted) return
+        if (!mounted.current || requestGeneration !== conversationGeneration.current) return
+        const message = cause instanceof Error ? cause.message : 'Upload failed'
+        setPrivateAttachments((current) =>
+          current.map((item) =>
+            item.attachmentId === attachmentId
+              ? { ...item, status: 'failed', error: message }
+              : item,
+          ),
+        )
+      })
+      .finally(() => {
+        if (privateUploads.current.get(attachmentId) === controller) {
+          privateUploads.current.delete(attachmentId)
+        }
+      })
+  }
+
+  const handleFilesPicked = (files: File[]) => {
+    if (files.length === 0) return
+    setAttachmentError(null)
+    if (!privatePersonal) {
+      // Team reuses the existing shared source/material intake; no private id
+      // ever enters a Team message.
+      void materials.uploadFiles(files, { taskRef: effectiveTaskRef })
+      return
+    }
+    if (privateAttachmentsAvailable !== true) {
+      setAttachmentError(
+        'Private attachments are unavailable on this backend (private_attachments capability missing).',
+      )
+      return
+    }
+    const remaining = 3 - privateAttachments.length
+    if (remaining <= 0) {
+      setAttachmentError('At most 3 private attachments are allowed per message.')
+      return
+    }
+    if (files.length > remaining) {
+      setAttachmentError(`Only ${remaining} more private attachment(s) can be added.`)
+    }
+    files.slice(0, remaining).forEach((file) => uploadPrivateFile(file))
+  }
+
+  const removePrivateAttachment = (attachment: PrivatePendingAttachment) => {
+    privateUploads.current.get(attachment.attachmentId)?.abort()
+    privateUploads.current.delete(attachment.attachmentId)
+    setPrivateAttachments((current) =>
+      current.filter((item) => item.attachmentId !== attachment.attachmentId),
+    )
+    if (attachment.status === 'ready') {
+      // Best-effort cleanup of an unsent upload; never block the composer.
+      void resolvedAttachmentsApi.remove(attachment.attachmentId).catch(() => undefined)
+    }
+  }
+
+  const retryPrivateAttachment = (attachment: PrivatePendingAttachment) => {
+    uploadPrivateFile(attachment.file, attachment)
+  }
+
   const handleSubmit = async () => {
     if (!draft.trim()) return
+    if (privatePersonal && privateAttachments.some((item) => item.status === 'uploading')) {
+      setNotice('Wait for the attachment upload to finish before sending.')
+      return
+    }
     const requestGeneration = conversationGeneration.current
-    const payload = (privatePersonal ? [] : attachments).map<Attachment>((item) => ({
-      path: item.path,
-      media_type: item.media_type,
-    }))
+    const payload: Attachment[] = privatePersonal
+      ? privateAttachments
+          .filter((item) => item.status === 'ready')
+          .map((item) => ({ attachment_id: item.attachmentId }))
+      : attachments.map((item) => ({
+          path: item.path,
+          media_type: item.media_type,
+        }))
     const selectedRefs = privatePersonal ? undefined : selection.requestRefs
     setNotice(null)
     try {
@@ -206,6 +388,7 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
       dispatch({ type: 'setDraft', key, value: '' })
       if (requestGeneration !== conversationGeneration.current) return
       setAttachments([])
+      setPrivateAttachments([])
       // Implementation choice (docs/10 §8): clear the selection once the rule
       // backend accepts the send, because the refs are now bound to that
       // message; a failed send keeps them so an explicit retry reuses them.
@@ -218,7 +401,7 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
         setNotice('Personal is private and chat-only. Switch to Team to create a task or run delivery — nothing was created.')
       } else if (outcome.kind === 'unavailable') {
         setNotice('Personal chat needs a configured model. Configure one in Settings, or use Team.')
-      } else if (outcome.createdTaskRef) {
+      } else if (outcome.kind === 'create_task' && outcome.createdTaskRef) {
         setNotice(`Created Task ${outcome.createdTaskRef}. Opening its Board scope.`)
         dispatch({ type: 'selectTask', taskRef: outcome.createdTaskRef })
       } else if (outcome.reply) {
@@ -236,71 +419,70 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
       className={`lg-chat lg-chat--${variant}`}
       aria-label={variant === 'main' ? 'Chat workspace' : 'Chat panel'}
     >
-      <div className="lg-chat__header">
-        <div>
-          <h2 className="lg-chat__title">Chat</h2>
-          <span className="lg-chat__subtitle">
-            {effectiveTaskRef ? `Task ${effectiveTaskRef}` : privatePersonal ? 'Private' : 'Conversation'}
-            {effectiveTaskRef ? (
-              <button
-                type="button"
-                className="lg-link-button"
-                onClick={() => dispatch({ type: 'selectTask', taskRef: null })}
-              >
-                {isTeam ? 'Team conversation' : 'Conversation'}
-              </button>
-            ) : null}
-          </span>
+      <div className="lg-chat__channels">
+        <div className="lg-chat__channels-row">
+          <div className="lg-chat__channels-tabs" role="tablist" aria-label="Conversation channel">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={channel === 'personal'}
+              disabled={isTeam && !personalChatAvailable}
+              title={isTeam && !personalChatAvailable ? 'Personal requires backend contract >= 1.14 and the personal_chat capability' : undefined}
+              className={`lg-button${channel === 'personal' ? ' lg-button--primary' : ''}`}
+              onClick={switchToPersonal}
+            >
+              Personal
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={channel === 'team'}
+              disabled={!isTeam}
+              title={!isTeam ? 'Enable team mode on the backend to use the shared team conversation' : undefined}
+              className={`lg-button${channel === 'team' ? ' lg-button--primary' : ''}`}
+              onClick={switchToTeam}
+            >
+              Team
+            </button>
+          </div>
+          {onRequestClose ? (
+            <button
+              type="button"
+              className="lg-icon-button"
+              onClick={onRequestClose}
+              aria-label="Close chat panel"
+            >
+              <Icon name="close" />
+            </button>
+          ) : null}
         </div>
-        {onRequestClose ? (
-          <button
-            type="button"
-            className="lg-icon-button"
-            onClick={onRequestClose}
-            aria-label="Close chat panel"
-          >
-            <Icon name="close" />
-          </button>
+        {isTeam && !personalChatAvailable ? (
+          <p className="lg-chat__channel-note">
+            Personal is unavailable on this backend. Update to contract 1.14 or later with
+            personal_chat enabled; shared Team conversations remain available.
+          </p>
+        ) : !isTeam ? (
+          <p className="lg-chat__channel-note">
+            Team mode is not enabled on this backend; enable team mode to use the shared team
+            conversation.
+          </p>
         ) : null}
       </div>
 
-      <div className="lg-chat__channels">
-        <div className="lg-chat__channels-tabs" role="tablist" aria-label="Conversation channel">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={channel === 'personal'}
-            disabled={isTeam && !personalChatAvailable}
-            title={isTeam && !personalChatAvailable ? 'Personal requires backend contract >= 1.14 and the personal_chat capability' : undefined}
-            className={`lg-button${channel === 'personal' ? ' lg-button--primary' : ''}`}
-            onClick={switchToPersonal}
-          >
-            Personal
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={channel === 'team'}
-            disabled={!isTeam}
-            title={!isTeam ? 'Enable team mode on the backend to use the shared team conversation' : undefined}
-            className={`lg-button${channel === 'team' ? ' lg-button--primary' : ''}`}
-            onClick={switchToTeam}
-          >
-            Team
-          </button>
+      {effectiveTaskRef ? (
+        <div className="lg-chat__header lg-chat__header--task">
+          <span className="lg-chat__subtitle">
+            Task {effectiveTaskRef}
+            <button
+              type="button"
+              className="lg-link-button"
+              onClick={() => dispatch({ type: 'selectTask', taskRef: null })}
+            >
+              {isTeam ? 'Team conversation' : 'Conversation'}
+            </button>
+          </span>
         </div>
-        <p className="lg-chat__channel-note">
-          {isTeam && !personalChatAvailable
-            ? 'Personal is unavailable on this backend. Update to contract 1.14 or later with personal_chat enabled; shared Team conversations remain available.'
-            : privatePersonal
-            ? 'Private to you and chat-only — no shared Task, materials, or team messages.'
-            : !isTeam
-              ? 'Team mode is not enabled on this backend; enable team mode to use the shared team conversation.'
-              : effectiveTaskRef
-                ? 'Shared Team Task conversation.'
-                : 'Shared with the team; start with @bot to ask the assistant.'}
-        </p>
-      </div>
+      ) : null}
 
       <div
         className="lg-chat__messages"
@@ -330,15 +512,6 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
         {!chat.error && chat.loading ? (
           <EmptyState title="Loading conversation…">Reading {scopeLabel} history.</EmptyState>
         ) : null}
-        {!chat.error && !chat.loading && chat.messages.length === 0 ? (
-          <EmptyState title="No messages yet">
-            {effectiveTaskRef
-              ? 'Describe a change to continue this Task, or ask a question.'
-              : privatePersonal
-                ? 'Ask a private question. Personal is chat-only; tasks and shared materials live in Team.'
-                : 'Describe a goal to create a Task, or ask a question. Plain questions are answered without recruiting a team.'}
-          </EmptyState>
-        ) : null}
         {chat.messages.map((message) => (
           <article
             key={message.message_id}
@@ -358,10 +531,25 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
             </div>
             {message.attachments.length > 0 ? (
               <ul className="lg-chat__attachments" aria-label="Attachments">
-                {message.attachments.map((attachment) => (
-                  <li key={attachment.path}>
+                {message.attachments.map((attachment, index) => (
+                  <li
+                    key={
+                      isPrivateAttachment(attachment)
+                        ? attachment.attachment_id
+                        : `${attachment.path}-${index}`
+                    }
+                  >
                     <Icon name="files" size={14} />
-                    <span className="lg-card__path">{attachment.path}</span>
+                    <span className="lg-card__path">
+                      {isPrivateAttachment(attachment)
+                        ? attachment.filename ?? attachment.attachment_id
+                        : attachment.path}
+                    </span>
+                    {isPrivateAttachment(attachment) && attachment.context_status ? (
+                      <span className="lg-chat__attachment-status">
+                        {privateContextLabel(attachment.context_status)}
+                      </span>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -402,24 +590,11 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
         {!privatePersonal && lastSendSources ? (
           <ChatSources data={lastSendSources} onOpen={openSourceInFiles} />
         ) : null}
-        {!privatePersonal && attachments.length > 0 ? (
-          <ul className="lg-chat__chip-row" aria-label="Pending attachments">
-            {attachments.map((attachment, index) => (
-              <li key={`${attachment.path}-${index}`} className="lg-chip">
-                <span className="lg-card__path">{attachment.path}</span>
-                <button
-                  type="button"
-                  className="lg-icon-button"
-                  aria-label={`Remove attachment ${attachment.path}`}
-                  onClick={() =>
-                    setAttachments((current) => current.filter((_, i) => i !== index))
-                  }
-                >
-                  <Icon name="close" size={12} />
-                </button>
-              </li>
-            ))}
-          </ul>
+        {privatePersonal && privateAttachmentsAvailable === false ? (
+          <p className="lg-notice" role="status">
+            Private attachments are unavailable on this backend (private_attachments
+            capability missing). Shared Team files remain available in Team.
+          </p>
         ) : null}
         {!privatePersonal ? (
           <div className="lg-chat__tools">
@@ -427,11 +602,7 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
             {selection.selection.length > 0 && !extrasOpen ? <span>{selection.selection.length} selected material(s) <button type="button" className="lg-link-button" onClick={() => setExtrasOpen(true)}>Review</button></span> : null}
             {!extrasOpen && materials.materials.length > 0 ? <span aria-live="polite">{materials.busy ? 'Uploading…' : `${materials.materials.length} upload receipt(s)`} <button type="button" className="lg-link-button" onClick={() => setExtrasOpen(true)}>View uploads</button></span> : null}
           </div>
-        ) : (
-          <p className="lg-chat__tools-hint">
-            Shared materials and task delivery are available in Team.
-          </p>
-        )}
+        ) : null}
         {!privatePersonal ? <div id="lg-chat-extras" hidden={!extrasOpen}>
         <ChatMaterialIntake
           materials={materials.materials}
@@ -481,19 +652,102 @@ export function ChatBody({ variant, onRequestClose, api, sourcesApi, sourcesRunt
           }}
           onSubmit={handleSubmit}
           scopeLabel={scopeLabel}
-          hint={
+          onFilesPicked={handleFilesPicked}
+          attachDisabled={
             privatePersonal
-              ? 'Private to you · chat-only · Enter to send'
-              : isTeam
-                ? 'Shared with the team · start with @bot to ask the assistant · Enter to send'
-                : undefined
+              ? privateAttachmentsAvailable !== true
+              : false
           }
-          disabled={chat.sending}
-          disabledReason="A message is being sent…"
+          attachDisabledReason={
+            privateAttachmentsAvailable === null
+              ? 'Checking private attachment support…'
+              : 'Private attachments are unavailable on this backend (private_attachments capability missing).'
+          }
+          disabled={
+            chat.sending ||
+            (privatePersonal &&
+              privateAttachments.some((item) => item.status === 'uploading'))
+          }
+          disabledReason="Wait for the attachment upload to finish before sending."
+          attachments={
+            privatePersonal ? (
+              privateAttachments.length > 0 ? (
+                <ul className="lg-chat__chip-row" aria-label="Pending attachments">
+                  {privateAttachments.map((attachment) => (
+                    <li key={attachment.attachmentId} className="lg-chip">
+                      <span className="lg-card__path">{attachment.filename}</span>
+                      <span
+                        className={`lg-chat__attachment-status lg-chat__attachment-status--${attachment.status}`}
+                        title={attachment.error ?? undefined}
+                      >
+                        {attachment.status === 'uploading'
+                          ? 'uploading…'
+                          : attachment.status === 'failed'
+                            ? `not uploaded${attachment.error ? `: ${attachment.error}` : ''}`
+                            : 'uploaded'}
+                      </span>
+                      {attachment.status === 'failed' ? (
+                        <button
+                          type="button"
+                          className="lg-link-button"
+                          onClick={() => retryPrivateAttachment(attachment)}
+                        >
+                          Retry
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        className="lg-icon-button"
+                        aria-label={`Remove attachment ${attachment.filename}`}
+                        onClick={() => removePrivateAttachment(attachment)}
+                      >
+                        <Icon name="close" size={12} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null
+            ) : attachments.length > 0 ? (
+              <ul className="lg-chat__chip-row" aria-label="Pending attachments">
+                {attachments.map((attachment, index) => (
+                  <li key={`${attachment.path}-${index}`} className="lg-chip">
+                    <span className="lg-card__path">{attachment.path}</span>
+                    <button
+                      type="button"
+                      className="lg-icon-button"
+                      aria-label={`Remove attachment ${attachment.path}`}
+                      onClick={() =>
+                        setAttachments((current) => current.filter((_, i) => i !== index))
+                      }
+                    >
+                      <Icon name="close" size={12} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null
+          }
         />
       </footer>
     </section>
   )
+}
+
+function privateContextLabel(status: string): string {
+  switch (status) {
+    case 'included':
+      return 'in model context'
+    case 'truncated':
+      return 'context truncated'
+    case 'unsupported_type':
+      return 'not read — unsupported type'
+    case 'binary_unsupported':
+      return 'not read — binary/non-UTF-8'
+    case 'too_large':
+      return 'not read — over text size limit'
+    default:
+      return 'not read — unavailable'
+  }
 }
 
 function guessMediaType(path: string): string | null {

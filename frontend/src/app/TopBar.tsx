@@ -82,29 +82,29 @@ export function TopBar({
 
   return (
     <header className="lg-topbar">
-      {mobile ? (
-        <button
-          id="lg-toggle-nav"
-          type="button"
-          className="lg-icon-button"
-          aria-label="Toggle navigation"
-          aria-expanded={railActive}
-          onClick={onToggleRail}
-        >
-          <Icon name="menu" />
-        </button>
-      ) : null}
+      <div className="lg-topbar__left">
+        {mobile ? (
+          <button
+            id="lg-toggle-nav"
+            type="button"
+            className="lg-icon-button"
+            aria-label="Toggle navigation"
+            aria-expanded={railActive}
+            onClick={onToggleRail}
+          >
+            <Icon name="menu" />
+          </button>
+        ) : null}
 
-      <div className="lg-topbar__brand">
-        <span className="lg-topbar__mark" aria-hidden="true">
-          LG
-        </span>
-        <h1 className="lg-topbar__title">LightGravity Bot</h1>
+        <div className="lg-topbar__brand">
+          <span className="lg-topbar__mark" aria-hidden="true">
+            LG
+          </span>
+          <h1 className="lg-topbar__title">LightGravity Bot</h1>
+        </div>
       </div>
 
       <MaterialSearch />
-
-      <div className="lg-topbar__spacer" />
 
       <div className="lg-topbar__actions">
         {isTeam ? (

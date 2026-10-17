@@ -200,6 +200,20 @@ export function isResourceKind(value: string): value is ResourceKind {
   return (RESOURCE_KINDS as readonly string[]).includes(value)
 }
 
+/** Stable category id for the Connection resource, managed from Settings. */
+export const CONNECTION_CATEGORY_ID = 'connections'
+
+/**
+ * Resource categories that keep a direct sidebar entry (LG-103).
+ *
+ * Connections are still canonical `connection` resources, but they no longer
+ * have a standalone navigation page: their references open Settings →
+ * Models & Providers at the matching stable Connection id.  The other six
+ * categories stay direct entries.
+ */
+export const NAV_RESOURCE_CATEGORIES: readonly ResourceCategory[] =
+  RESOURCE_CATEGORIES.filter((category) => category.kind !== 'connection')
+
 export function categoryById(id: string | null): ResourceCategory | null {
   if (!id) return null
   return RESOURCE_CATEGORIES.find((category) => category.id === id) ?? null

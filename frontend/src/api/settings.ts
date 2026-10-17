@@ -23,10 +23,43 @@ export const PREFERRED_MODEL = 'deepseek-v4-flash'
 export const DEFAULT_BASE_URL = 'https://api.deepseek.com/v1'
 export const DEFAULT_EXECUTABLE_BACKEND = 'openai-compat'
 
+/** SDK 0.1.22 `models.DEFAULT_MODEL` (LG-105 audit). */
+export const GEMINI_DEFAULT_MODEL = 'gemini-3.8-flash'
+
+/**
+ * Optional provider auth selector (LG-104/LG-106). These values are stored as
+ * non-secret Connection fields and map to the installed SDK's real auth paths:
+ * API key, Application Default Credentials (ADC), the product's loopback
+ * proxy key path, or no credential at all (local LiteRT).
+ */
+export type ConnectionAuthMode = 'api_key' | 'adc' | 'proxy_api_key' | 'none'
+
+/** LiteRT on-device runtime backend (SDK field `backend`). */
+export type LiteRtBackend = 'CPU' | 'GPU' | 'NPU'
+
+/**
+ * Capability declaration for a Connection (LG-104). These are deliberately
+ * separate facts and must never be inferred from one another:
+ *
+ * * `configurable` — the backend accepts/saves the provider configuration;
+ * * `testable` — Test Connection can run its real layers;
+ * * `executable` — the product executor may use it (and it may be a default);
+ * * `vendor_verified` — evidence of a real vendor call exists.
+ *
+ * `null`/absent means the backend has not declared that fact. The frontend
+ * only falls back to preset metadata for the already-existing DeepSeek path.
+ */
+export interface ConnectionCapabilities {
+  configurable?: boolean | null
+  testable?: boolean | null
+  executable?: boolean | null
+  vendor_verified?: boolean | null
+}
+
 /* ------------------------------------------------------------------ wire types */
 
 export interface CredentialStatus {
-  ref: string
+  ref: string | null
   configured: boolean
   /** `secret_store` | `environment` | null */
   source: string | null
@@ -52,6 +85,30 @@ export interface ConnectionView {
   credential_ref: string | null
   credential: CredentialStatus
   references: ConnectionReferences
+  /* LG-104 optional non-secret provider fields; absent on old connections. */
+  auth_mode?: ConnectionAuthMode | null
+  project?: string | null
+  location?: string | null
+  model_path?: string | null
+  litert_backend?: LiteRtBackend | null
+  /** Backend-declared capability facts; absent/null means not declared. */
+  capabilities?: ConnectionCapabilities | null
+  /**
+   * LG-110: latest *persisted* safe test summary, when the backend exposes it.
+   * Draft tests are never written here. A missing value means the backend has
+   * not declared a persisted test result; the UI must not invent one.
+   */
+  last_test?: PersistedConnectionTestStatus | null
+}
+
+/** Safe, non-secret summary of a persisted connection test. */
+export interface PersistedConnectionTestStatus {
+  test_id?: string
+  /** `verified` | `partial` | `failed` | `not_run` (or backend value). */
+  overall: string
+  finished_at: string
+  connection_revision?: number | null
+  credential_version?: string | null
 }
 
 /** `service._describe_default` output: a resolved connection or `{ref, resolved:false}`. */
@@ -69,6 +126,78 @@ export interface DefaultDescription {
   credential_ref?: string | null
   credential?: CredentialStatus
   references?: ConnectionReferences
+}
+
+/* ------------------------------------------------ LG-117 Embedding purpose */
+
+export interface EmbeddingCacheView {
+  compatible: boolean | null
+  reason: string | null
+  vector_model: string | null
+}
+
+/**
+ * Independent Embedding usage view (docs/08 §19.4). It is never a chat,
+ * coordinator, worker or reviewer default. Credential values are never present.
+ */
+export interface EmbeddingSettingsView {
+  enabled: boolean
+  base_url: string | null
+  model: string | null
+  timeout_seconds: number
+  cold_timeout_seconds: number
+  source: 'settings' | 'environment' | 'none' | string
+  credential: CredentialStatus
+  cache: EmbeddingCacheView
+}
+
+export interface EmbeddingUpdateInput {
+  expected_revision: number
+  enabled: boolean
+  base_url: string | null
+  model: string | null
+  credential_action: CredentialAction
+  /** Write-only; only sent for `credential_action: 'set'`. */
+  credential_value?: string | null
+  timeout_seconds?: number
+  cold_timeout_seconds?: number
+}
+
+export interface EmbeddingUpdateResult extends EmbeddingSettingsView {
+  revision: number
+  content_hash: string
+}
+
+export interface EmbeddingDraftTestInput {
+  base_url: string | null
+  model: string | null
+  credential_value?: string
+  use_existing_credential: boolean
+  /** The frontend Test button is the explicit network opt-in. */
+  allow_network: boolean
+  timeout_seconds?: number
+  cold_timeout_seconds?: number
+}
+
+export interface EmbeddingDraftCheck {
+  name: string
+  status: 'passed' | 'failed' | 'skipped' | string
+  detail: string
+}
+
+/** POST /settings/embedding/test-draft; never saved and never a retrieval claim. */
+export interface EmbeddingDraftTestResult {
+  draft: true
+  overall: 'verified' | 'partial' | 'failed' | 'not_run' | string
+  requested_model: string | null
+  reported_model: string | null
+  dim: number | null
+  latency_seconds: number | null
+  finished_at: string
+  credential_source: 'secret_store' | 'environment' | 'none' | string
+  checks: EmbeddingDraftCheck[]
+  error: { code?: string; message: string } | null
+  cache_impact: 'none' | 'rebuild_required' | string
 }
 
 export interface GlobalSettingsView {
@@ -89,6 +218,11 @@ export interface GlobalSettingsView {
     worker: DefaultDescription | null
     reviewer: DefaultDescription | null
   }
+  /**
+   * LG-117 additive view. Optional so an older backend (or an older test fake)
+   * is shown as unavailable rather than guessed from a 404.
+   */
+  embedding?: EmbeddingSettingsView | null
 }
 
 export interface TestLayer {
@@ -128,6 +262,12 @@ export interface ConnectionCreateInput {
   /** Write-only; never echoed back. */
   credential_value?: string | null
   enabled?: boolean
+  /* LG-104 optional non-secret provider fields (additive; backend owner binds). */
+  auth_mode?: ConnectionAuthMode
+  project?: string | null
+  location?: string | null
+  model_path?: string | null
+  litert_backend?: LiteRtBackend | null
 }
 
 export type CredentialAction = 'keep' | 'set' | 'remove'
@@ -142,6 +282,13 @@ export interface ConnectionUpdateInput {
   credential_action?: CredentialAction
   credential_value?: string | null
   clear_defaults?: boolean
+  /* LG-104 optional non-secret provider fields (additive; backend owner binds). */
+  backend?: string
+  auth_mode?: ConnectionAuthMode
+  project?: string | null
+  location?: string | null
+  model_path?: string | null
+  litert_backend?: LiteRtBackend | null
 }
 
 export interface SettingsUpdateInput {
@@ -157,6 +304,42 @@ export interface ConnectionTestInput {
   allow_network?: boolean
   probe_tools?: boolean
   probe_structured?: boolean
+}
+
+/** Draft connection fields accepted by the LG-104/LG-109 draft-test envelope. */
+export interface ConnectionDraftTestConnection {
+  backend: string
+  model: string | null
+  base_url: string | null
+  auth_mode: ConnectionAuthMode | null
+  project: string | null
+  location: string | null
+  model_path: string | null
+  litert_backend: LiteRtBackend | null
+}
+
+/**
+ * `POST /settings/connections/test-draft` (contract 1.17, additive MINOR).
+ *
+ * The connection is an unsaved draft. `credential_value` is write-only and only
+ * present when the user typed a new/replacement key; the client never chooses a
+ * saved `credential_ref`. For an edit, the backend may resolve the existing
+ * credential only through `existing_connection_id` + `expected_revision`, after
+ * validating the same backend/auth/endpoint identity.
+ */
+export interface DraftConnectionTestInput {
+  connection: ConnectionDraftTestConnection
+  credential_value?: string
+  existing_connection_id?: string
+  expected_revision: number
+  allow_network: boolean
+}
+
+/** Existing safe TestResult plus draft markers; no saved revision is implied. */
+export interface DraftConnectionTestResult extends ConnectionTestResult {
+  draft: true
+  connection_ref?: string | null
+  revision?: number | null
 }
 
 /* ------------------------------------------------------------------ operations */
@@ -190,6 +373,26 @@ export interface SettingsApi {
     input: ConnectionTestInput,
     signal?: AbortSignal,
   ): Promise<ConnectionTestResult>
+  testDraftConnection(
+    input: DraftConnectionTestInput,
+    signal?: AbortSignal,
+  ): Promise<DraftConnectionTestResult>
+  /** LG-117: save the independent Embedding settings (separate from defaults). */
+  updateEmbedding(
+    input: EmbeddingUpdateInput,
+    signal?: AbortSignal,
+  ): Promise<EmbeddingUpdateResult>
+  /** LG-117: draft Embedding test; never persists and only networks on request. */
+  testDraftEmbedding(
+    input: EmbeddingDraftTestInput,
+    signal?: AbortSignal,
+  ): Promise<EmbeddingDraftTestResult>
+  /** Delete a saved Connection; the server must reject referenced/default rows. */
+  deleteConnection(
+    id: string,
+    expectedRevision?: number,
+    signal?: AbortSignal,
+  ): Promise<void>
 }
 
 function headers(
@@ -311,6 +514,52 @@ export function createSettingsApi(
           method: 'POST',
           headers: headers(token(), true),
           body: JSON.stringify(input),
+          signal,
+        },
+      )
+    },
+
+    testDraftConnection(input, signal) {
+      return apiRequest<DraftConnectionTestResult>(
+        '/settings/connections/test-draft',
+        {
+          method: 'POST',
+          headers: headers(token(), true),
+          body: JSON.stringify(input),
+          signal,
+        },
+      )
+    },
+
+    updateEmbedding(input, signal) {
+      return apiRequest<EmbeddingUpdateResult>('/settings/embedding', {
+        method: 'PUT',
+        headers: headers(token(), true),
+        body: JSON.stringify(input),
+        signal,
+      })
+    },
+
+    testDraftEmbedding(input, signal) {
+      return apiRequest<EmbeddingDraftTestResult>('/settings/embedding/test-draft', {
+        method: 'POST',
+        headers: headers(token(), true),
+        body: JSON.stringify(input),
+        signal,
+      })
+    },
+
+    async deleteConnection(id, expectedRevision, signal) {
+      const body =
+        expectedRevision === undefined
+          ? undefined
+          : JSON.stringify({ expected_revision: expectedRevision })
+      await apiRequest<unknown>(
+        `/settings/connections/${encodeURIComponent(id)}`,
+        {
+          method: 'DELETE',
+          headers: headers(token(), body !== undefined),
+          body,
           signal,
         },
       )

@@ -215,8 +215,7 @@ interface DetailPanelProps {
 
 function TaskDetailPanel(props: DetailPanelProps) {
   const { detail, error, loading, artifacts, acceptance, controlPending } = props
-  const acceptanceStatus = String(acceptance?.acceptance?.status ?? 'pending')
-  const canDecide = acceptanceStatus === 'awaiting' || acceptanceStatus === 'pending'
+  const canDecide = !loading && !error && canDecideCandidate(props.taskRef, detail, acceptance)
   const evidence = artifacts?.evidence ?? []
   const busy = controlPending !== null
 
@@ -309,14 +308,23 @@ function TaskDetailPanel(props: DetailPanelProps) {
                     <li key={ref ?? entry.name} className="lg-board__evidence-item">
                       <span className="lg-card__path">{entry.name}</span>
                       {ref ? (
-                        <a
-                          className="lg-link-button"
-                          href={artifactPreviewHref(props.taskRef, ref)}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Preview
-                        </a>
+                        <>
+                          <a
+                            className="lg-link-button"
+                            href={artifactPreviewHref(props.taskRef, ref)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Preview
+                          </a>
+                          <a
+                            className="lg-link-button"
+                            href={artifactDownloadHref(props.taskRef, ref)}
+                            download
+                          >
+                            Download
+                          </a>
+                        </>
                       ) : null}
                     </li>
                   )
@@ -327,6 +335,38 @@ function TaskDetailPanel(props: DetailPanelProps) {
         </>
       ) : null}
     </div>
+  )
+}
+
+/** This is an affordance, not authorization: the action endpoint rechecks state.
+ * awaiting_acceptance is the backend's handoff after verification and the stop
+ * gate. Never infer that handoff from a pending record or artifact presence.
+ */
+function canDecideCandidate(
+  taskRef: string,
+  detail: TaskDetail | null,
+  snapshot: import('../../api/tasks').AcceptanceSnapshot | null,
+): boolean {
+  if (!detail || !snapshot || !detail.run || !snapshot.candidate) return false
+  const candidate = snapshot.candidate
+  const acceptance = snapshot.acceptance
+  return (
+    detail.task_id === taskRef && snapshot.task_id === taskRef &&
+    detail.phase === 'awaiting_acceptance' && snapshot.phase === 'awaiting_acceptance' &&
+    detail.run.state === 'awaiting_acceptance' && candidate.run_state === 'awaiting_acceptance' &&
+    detail.revision === snapshot.revision &&
+    acceptance.status === 'awaiting' &&
+    Number.isSafeInteger(snapshot.deliverable_revision) && snapshot.deliverable_revision > 0 &&
+    detail.requirements_revision === snapshot.requirements_revision &&
+    acceptance.requirements_revision === snapshot.requirements_revision &&
+    candidate.requirements_revision === snapshot.requirements_revision &&
+    acceptance.deliverable_revision === snapshot.deliverable_revision &&
+    candidate.deliverable_revision === snapshot.deliverable_revision &&
+    candidate.task_id === taskRef && candidate.run_id === detail.run.id &&
+    candidate.candidate_ref === detail.run.id && acceptance.candidate_ref === detail.run.id &&
+    typeof candidate.plan_hash === 'string' && candidate.plan_hash.length > 0 &&
+    acceptance.candidate_plan_hash === candidate.plan_hash &&
+    snapshot.checks?.satisfied === true
   )
 }
 
@@ -386,4 +426,17 @@ function AcceptanceSection({
 function artifactPreviewHref(taskRef: string, evidenceRef: string): string {
   const params = new URLSearchParams({ evidence_ref: evidenceRef })
   return `/api/v1/tasks/${encodeURIComponent(taskRef)}/artifacts/content?${params.toString()}`
+}
+
+/**
+ * Canonical evidence download (LG-066 optional affordance).
+ *
+ * Uses the existing Task-scoped `/artifacts/download` endpoint, which resolves
+ * the `evidence:<run>/<name>@sha256:<hex>` reference against the owning Task
+ * under the authenticated session. The UI only ever passes the canonical
+ * evidence ref back — no absolute path or cross-Task reference is exposed.
+ */
+function artifactDownloadHref(taskRef: string, evidenceRef: string): string {
+  const params = new URLSearchParams({ evidence_ref: evidenceRef })
+  return `/api/v1/tasks/${encodeURIComponent(taskRef)}/artifacts/download?${params.toString()}`
 }

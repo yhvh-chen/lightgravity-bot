@@ -14,7 +14,9 @@ from typing import Any
 
 from .capabilities import SDK_PINNED_VERSION, installed_sdk_version
 from .compiler import CompiledAgentConfig, CompiledHook
+from .credentials import Secret
 from .errors import CapabilityUnavailable
+from .provider_matrix import LITERT_DEFAULT_BACKEND, effective_auth_mode
 
 
 @dataclass(frozen=True, slots=True)
@@ -84,6 +86,142 @@ def _hook_objects(compiled: CompiledAgentConfig) -> list[Any]:
     return objects
 
 
+
+
+@dataclass(frozen=True, slots=True)
+class ConnectionSdkSpec:
+    """The non-secret provider fields needed to construct one SDK config.
+
+    Used by static compilation and the manual/draft tester.  It deliberately
+    carries no credential value; a transient ``Secret`` is passed separately so
+    it can never be serialized with the plan.
+    """
+
+    backend: str
+    model: str | None
+    auth_mode: str | None = None
+    base_url: str | None = None
+    project: str | None = None
+    location: str | None = None
+    model_path: str | None = None
+    litert_backend: str | None = None
+
+
+def _credential_value(credential: Secret | str | None) -> str | None:
+    if credential is None:
+        return None
+    if isinstance(credential, Secret):
+        return credential.reveal()
+    if isinstance(credential, str):
+        return credential or None
+    raise TypeError("credential must be a Secret, string or None")
+
+
+def build_connection_sdk_config(
+    spec: ConnectionSdkSpec,
+    *,
+    credential: Secret | str | None = None,
+    endpoint_base_url: str | None = None,
+    common_kwargs: dict[str, Any] | None = None,
+) -> Any:
+    """Construct the installed SDK config for one provider without executing.
+
+    ``endpoint_base_url`` is an internal test seam for a controlled loopback
+    fake protocol.  It is never accepted from the Settings HTTP API and the
+    production tester only passes it when explicitly configured for tests.
+    """
+
+    ag = _import_sdk()
+    from google.antigravity import types as types_mod
+
+    kwargs = dict(common_kwargs or {})
+    auth_mode = effective_auth_mode(
+        spec.backend,
+        spec.auth_mode,
+        project=spec.project,
+        location=spec.location,
+    )
+    secret = _credential_value(credential)
+
+    if spec.backend in ("gemini", "vertex"):
+        if spec.backend == "gemini":
+            if endpoint_base_url:
+                endpoint = types_mod.GeminiAPIEndpoint(
+                    base_url=endpoint_base_url, api_key=secret
+                )
+                kwargs["models"] = [
+                    types_mod.ModelTarget(
+                        name=spec.model,
+                        types=[types_mod.ModelType.TEXT, types_mod.ModelType.IMAGE],
+                        endpoint=endpoint,
+                    )
+                ]
+                return ag.LocalAgentConfig(**kwargs)
+            return ag.LocalAgentConfig(
+                model=spec.model,
+                api_key=secret,
+                **kwargs,
+            )
+        if auth_mode == "adc":
+            if endpoint_base_url:
+                endpoint = types_mod.VertexEndpoint(
+                    base_url=endpoint_base_url,
+                    project=spec.project,
+                    location=spec.location,
+                )
+                kwargs["models"] = [
+                    types_mod.ModelTarget(
+                        name=spec.model,
+                        types=[types_mod.ModelType.TEXT, types_mod.ModelType.IMAGE],
+                        endpoint=endpoint,
+                    )
+                ]
+                return ag.LocalAgentConfig(**kwargs)
+            return ag.LocalAgentConfig(
+                model=spec.model,
+                vertex=True,
+                project=spec.project,
+                location=spec.location,
+                **kwargs,
+            )
+        if endpoint_base_url:
+            endpoint = types_mod.VertexEndpoint(
+                base_url=endpoint_base_url, api_key=secret
+            )
+            kwargs["models"] = [
+                types_mod.ModelTarget(
+                    name=spec.model,
+                    types=[types_mod.ModelType.TEXT, types_mod.ModelType.IMAGE],
+                    endpoint=endpoint,
+                )
+            ]
+            return ag.LocalAgentConfig(**kwargs)
+        return ag.LocalAgentConfig(
+            model=spec.model,
+            vertex=True,
+            api_key=secret,
+            **kwargs,
+        )
+
+    if spec.backend == "openai-compat":
+        return ag.LocalOpenAIAgentConfig(
+            base_url=endpoint_base_url or spec.base_url,
+            model=spec.model,
+            **kwargs,
+        )
+
+    if spec.backend == "litert":
+        return ag.LiteRTAgentConfig(
+            model_path=spec.model_path or "",
+            backend=spec.litert_backend or LITERT_DEFAULT_BACKEND,
+            **kwargs,
+        )
+
+    raise CapabilityUnavailable(
+        f"unsupported connection backend {spec.backend!r}", capability="connection"
+    )
+
+
 def build_sdk_config(
     compiled: CompiledAgentConfig,
     *,
@@ -93,6 +231,7 @@ def build_sdk_config(
     response_schema: Any | None = None,
     continuation_mode: str | None = None,
     custom_tools: list[Any] | None = None,
+    credential: Secret | str | None = None,
 ) -> SdkConfigResult:
     """Construct an SDK ``AgentConfig`` for ``compiled`` without executing it.
 
@@ -113,7 +252,7 @@ def build_sdk_config(
     *readiness* concern, not a build error.
     """
 
-    ag = _import_sdk()
+    _import_sdk()
     from google.antigravity import types as types_mod
 
     if compiled.connection is None:
@@ -168,18 +307,23 @@ def build_sdk_config(
         )
 
     kind = compiled.connection.sdk_config_kind
-    if kind == "local":
-        config = ag.LocalAgentConfig(model=compiled.connection.model, **kwargs)
-    elif kind == "openai":
-        config = ag.LocalOpenAIAgentConfig(
-            base_url=base_url or compiled.connection.base_url,
-            model=compiled.connection.model,
-            **kwargs,
-        )
-    else:  # pragma: no cover - registry only produces the two kinds above
-        raise CapabilityUnavailable(
-            f"unsupported sdk_config_kind {kind!r}", capability="connection"
-        )
+    connection = compiled.connection
+    spec = ConnectionSdkSpec(
+        backend=connection.backend,
+        model=connection.model,
+        auth_mode=connection.auth_mode,
+        base_url=connection.base_url,
+        project=connection.project,
+        location=connection.location,
+        model_path=connection.model_path,
+        litert_backend=connection.litert_backend,
+    )
+    config = build_connection_sdk_config(
+        spec,
+        credential=credential,
+        endpoint_base_url=base_url,
+        common_kwargs=kwargs,
+    )
 
     installed = installed_sdk_version()
     return SdkConfigResult(
@@ -190,4 +334,10 @@ def build_sdk_config(
     )
 
 
-__all__ = ["SdkConfigResult", "build_sdk_config", "sdk_available"]
+__all__ = [
+    "ConnectionSdkSpec",
+    "SdkConfigResult",
+    "build_connection_sdk_config",
+    "build_sdk_config",
+    "sdk_available",
+]

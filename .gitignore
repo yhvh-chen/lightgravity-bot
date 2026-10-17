@@ -8,7 +8,8 @@
 /PROJECT.md
 /PROGRESS.md
 /BACKLOG.md
-/docs/
+/docs/*
+!/docs/install.md
 /backlog/
 /.agents/
 /probes/

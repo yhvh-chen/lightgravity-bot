@@ -15,6 +15,11 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from lightgravity.adapter.provider_matrix import (
+    capabilities_for_connection,
+    capabilities_for_registration,
+    validate_provider_fields,
+)
 from lightgravity.adapter.registry import ImplementationRegistry, default_registry
 from lightgravity.store import ConfigInvalid, EntityNotFound, Versioned
 from lightgravity.store import Store
@@ -32,6 +37,8 @@ CONNECTION_KIND = "connection"
 SETTINGS_RELATIVE = ("settings", "SETTINGS.md")
 _CONNECTIONS_SUBDIR = ("resources", "connections")
 _AGENTS_SUBDIR = ("resources", "agents")
+
+_UNSET: Any = object()
 
 
 def _require_str(data: dict[str, Any], field: str, kind: str) -> str:
@@ -62,6 +69,11 @@ def _connection_from_versioned(versioned: Versioned) -> Connection:
         model=_optional_str(data, "model"),
         base_url=_optional_str(data, "base_url"),
         credential_ref=_optional_str(data, "credential_ref"),
+        auth_mode=_optional_str(data, "auth_mode"),
+        project=_optional_str(data, "project"),
+        location=_optional_str(data, "location"),
+        model_path=_optional_str(data, "model_path"),
+        litert_backend=_optional_str(data, "litert_backend"),
         data=dict(data),
     )
 
@@ -76,6 +88,11 @@ def _optional_positive_int(data: dict[str, Any], field: str, *, default: int) ->
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
         return default
     return value
+
+
+def _optional_mapping(data: dict[str, Any], field: str) -> dict[str, Any] | None:
+    value = data.get(field)
+    return dict(value) if isinstance(value, dict) else None
 
 
 def _settings_from_versioned(versioned: Versioned) -> GlobalSettings:
@@ -93,6 +110,7 @@ def _settings_from_versioned(versioned: Versioned) -> GlobalSettings:
         decentralized_claim_enabled=_optional_bool(data, "decentralized_claim_enabled"),
         collab_requests_enabled=_optional_bool(data, "collab_requests_enabled"),
         claim_lease_seconds=_optional_positive_int(data, "claim_lease_seconds", default=300),
+        embedding=_optional_mapping(data, "embedding"),
         exists=True,
         data=dict(data),
     )
@@ -105,6 +123,7 @@ def _empty_settings() -> GlobalSettings:
         default_coordinator_connection_ref=None,
         default_worker_connection_ref=None,
         default_reviewer_connection_ref=None,
+        embedding=None,
         exists=False,
         data={},
     )
@@ -131,9 +150,47 @@ class ConnectionRepository:
         return self._registry
 
     # ------------------------------------------------------------- connections
+    def capabilities(self, backend: str) -> dict[str, bool | None] | None:
+        registration = self._registry.backend(backend)
+        if registration is None:
+            return None
+        return capabilities_for_registration(registration)
+
+    def connection_capabilities(
+        self, connection: Connection
+    ) -> dict[str, bool | None] | None:
+        """Capability facts for this record, including its endpoint host policy."""
+
+        registration = self._registry.backend(connection.backend)
+        if registration is None:
+            return None
+        return capabilities_for_connection(
+            registration,
+            backend=connection.backend,
+            base_url=connection.base_url,
+        )
+
     def validate_backend(
-        self, backend: str, *, model: str | None, base_url: str | None
+        self,
+        backend: str,
+        *,
+        model: str | None,
+        base_url: str | None,
+        auth_mode: str | None = None,
+        project: str | None = None,
+        location: str | None = None,
+        model_path: str | None = None,
+        litert_backend: str | None = None,
+        credential_ref: str | None = None,
     ) -> None:
+        """Validate the complete non-secret provider configuration.
+
+        Saving only requires the backend to be *configurable*; it never requires
+        executable/vendor-verified status.  Unknown-but-old backends are not
+        rewritten by reads, but a save/update through this validator must use a
+        registered backend.
+        """
+
         registration = self._registry.backend(backend)
         if registration is None:
             raise SettingsConfigInvalid(
@@ -146,31 +203,33 @@ class ConnectionRepository:
                     }
                 ],
             )
-        if not registration.verified:
+        if not registration.configurable:
             raise SettingsConfigInvalid(
-                f"backend {backend!r} is not verified in this environment; it cannot be "
-                "saved as an executable connection",
+                f"backend {backend!r} is not configurable in this environment",
                 diagnostics=[
                     {
-                        "code": "backend_unverified",
+                        "code": "backend_unconfigurable",
                         "location": f"{CONNECTION_KIND}.backend",
                         "detail": {"backend": backend},
                     }
                 ],
             )
-        if registration.endpoint_field == "base_url" and not base_url:
+        _, diagnostics = validate_provider_fields(
+            backend=backend,
+            auth_mode=auth_mode,
+            model=model,
+            base_url=base_url,
+            project=project,
+            location=location,
+            model_path=model_path,
+            litert_backend=litert_backend,
+            credential_ref=credential_ref,
+        )
+        if diagnostics:
             raise SettingsConfigInvalid(
-                "openai-compatible connection requires base_url",
-                diagnostics=[
-                    {"code": "endpoint_missing", "location": f"{CONNECTION_KIND}.base_url"}
-                ],
-            )
-        if registration.requires_credential and not model:
-            raise SettingsConfigInvalid(
-                "connection requires an explicit model; refusing to guess a model id",
-                diagnostics=[
-                    {"code": "model_missing", "location": f"{CONNECTION_KIND}.model"}
-                ],
+                f"connection {backend!r} configuration is invalid",
+                diagnostics=diagnostics,
+                location=f"{CONNECTION_KIND}.backend",
             )
 
     def read_connection(self, connection_id: str) -> Connection:
@@ -207,10 +266,25 @@ class ConnectionRepository:
         base_url: str | None = None,
         credential_ref: str | None = None,
         enabled: bool = True,
+        auth_mode: Any = _UNSET,
+        project: Any = _UNSET,
+        location: Any = _UNSET,
+        model_path: Any = _UNSET,
+        litert_backend: Any = _UNSET,
         actor: str,
         request_id: str,
     ) -> Connection:
-        self.validate_backend(backend, model=model, base_url=base_url)
+        self.validate_backend(
+            backend,
+            model=model,
+            base_url=base_url,
+            auth_mode=None if auth_mode is _UNSET else auth_mode,
+            project=None if project is _UNSET else project,
+            location=None if location is _UNSET else location,
+            model_path=None if model_path is _UNSET else model_path,
+            litert_backend=None if litert_backend is _UNSET else litert_backend,
+            credential_ref=credential_ref,
+        )
         content: dict[str, Any] = {
             "title": title or connection_id,
             "enabled": enabled,
@@ -219,6 +293,15 @@ class ConnectionRepository:
             "base_url": base_url,
             "credential_ref": credential_ref,
         }
+        for key, value in (
+            ("auth_mode", auth_mode),
+            ("project", project),
+            ("location", location),
+            ("model_path", model_path),
+            ("litert_backend", litert_backend),
+        ):
+            if value is not _UNSET:
+                content[key] = value
         versioned = self._store.create(
             CONNECTION_KIND,
             connection_id,
@@ -245,6 +328,35 @@ class ConnectionRepository:
         )
         return _connection_from_versioned(versioned)
 
+    def delete_connection(
+        self,
+        connection_id: str,
+        *,
+        expected_revision: int,
+        actor: str,
+        guard: Any = None,
+    ) -> None:
+        """Delete one Connection under the store's entity lock.
+
+        ``guard`` runs after the revision check while the lock is still held, so
+        reference/default checks and the unlink share one controlled boundary.
+        No secret-store value is read or removed here.
+        """
+
+        delete = getattr(self._store, "delete", None)
+        if not callable(delete):
+            raise SettingsConfigInvalid(
+                "the configured store does not support controlled deletion",
+                diagnostics=[{"code": "delete_unsupported", "location": CONNECTION_KIND}],
+            )
+        delete(
+            CONNECTION_KIND,
+            connection_id,
+            expected_revision=expected_revision,
+            actor=actor,
+            guard=guard,
+        )
+
     # ---------------------------------------------------------------- settings
     def read_settings(self) -> GlobalSettings:
         try:
@@ -262,10 +374,11 @@ class ConnectionRepository:
         decentralized_claim_enabled: bool = False,
         collab_requests_enabled: bool = False,
         claim_lease_seconds: int = 300,
+        embedding: dict[str, Any] | None = None,
         actor: str,
         request_id: str,
     ) -> GlobalSettings:
-        content = {
+        content: dict[str, Any] = {
             "default_coordinator_connection_ref": default_coordinator_connection_ref,
             "default_worker_connection_ref": default_worker_connection_ref,
             "default_reviewer_connection_ref": default_reviewer_connection_ref,
@@ -273,6 +386,8 @@ class ConnectionRepository:
             "collab_requests_enabled": collab_requests_enabled,
             "claim_lease_seconds": claim_lease_seconds,
         }
+        if embedding is not None:
+            content["embedding"] = embedding
         versioned = self._store.create(
             SETTINGS_KIND, SETTINGS_ID, content, actor=actor, request_id=request_id
         )

@@ -33,7 +33,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["backend/lightgravity"]
-
+include = ["backend/lightgravity/runtime/roles/agency/**"]
+artifacts = ["backend/lightgravity/runtime/roles/agency/**"]
 
 [tool.mypy]
 python_version = "3.12"

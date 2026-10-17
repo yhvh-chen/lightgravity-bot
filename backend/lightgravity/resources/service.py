@@ -21,6 +21,8 @@ provider/model list and never resolves a secret value (``credential_ref`` only).
 
 from __future__ import annotations
 
+from contextlib import nullcontext
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
@@ -51,7 +53,9 @@ from lightgravity.adapter.schema import (
 )
 from lightgravity.contracts import AppError, ErrorCode
 from lightgravity.store import ConfigInvalid, EntityNotFound, Store, Versioned
+from lightgravity.store.locking import connection_reference_lock
 from lightgravity.store.entities import RESOURCE_DIRS
+from lightgravity.runtime.roles.catalog import CAPABILITIES, EXECUTABLE_CAPABILITIES
 
 #: Every kind the catalog can read.  ``connection`` is included for reads and
 #: diagnostics but excluded from the controlled-write path.
@@ -130,6 +134,75 @@ _AGENT_REF_FIELDS: tuple[tuple[str, str], ...] = (
 
 def _availability(state: str, *reasons: str) -> dict[str, Any]:
     return {"state": state, "reasons": [reason for reason in reasons if reason]}
+
+
+def _role_metadata(entity: dict[str, Any]) -> dict[str, Any]:
+    """Additive LG-120 role metadata; never used to grant a tool.
+
+    Unknown frontmatter is preserved by the Store, and unknown capability words
+    are retained in ``declared_capabilities`` for diagnostics but do not enter
+    the controlled scheduler vocabulary.
+    """
+
+    raw_capabilities = entity.get("capabilities")
+    declared = (
+        [str(item) for item in raw_capabilities]
+        if isinstance(raw_capabilities, (list, tuple))
+        else []
+    )
+    capabilities = [item for item in declared if item in CAPABILITIES]
+    agency_source = entity.get("agency_source")
+    seed = entity.get("seed")
+    upstream = entity.get("upstream")
+    summary = ""
+    if isinstance(upstream, dict):
+        summary = str(upstream.get("description") or "")
+    if not summary:
+        summary = str(entity.get("description") or "")
+    declared_recruitable = entity.get("recruitable")
+    return {
+        "role_category": str(
+            entity.get("role_category")
+            or ("agency" if isinstance(agency_source, dict) else "custom")
+        ),
+        "capabilities": capabilities,
+        "declared_capabilities": declared,
+        "agency_source": dict(agency_source) if isinstance(agency_source, dict) else None,
+        "seed": dict(seed) if isinstance(seed, dict) else None,
+        "summary": summary,
+        "unsupported_reasons": [
+            str(item) for item in entity.get("unsupported_reasons") or ()
+        ]
+        if isinstance(entity.get("unsupported_reasons"), (list, tuple))
+        else [],
+        "capability_notes": [
+            str(item) for item in entity.get("capability_notes") or ()
+        ]
+        if isinstance(entity.get("capability_notes"), (list, tuple))
+        else [],
+        "declared_recruitable": (
+            bool(declared_recruitable) if isinstance(declared_recruitable, bool) else None
+        ),
+    }
+
+
+def _effective_recruitable(
+    metadata: dict[str, Any], availability: dict[str, Any]
+) -> bool:
+    """Mapping-level recruitable state, excluding disabled/invalid templates.
+
+    Actual execution still requires the compiled connection/tool refs; the
+    separate ``executable`` field reports that distinct fact.
+    """
+
+    declared = metadata.pop("declared_recruitable")
+    if availability["state"] in ("disabled", "invalid"):
+        return False
+    if declared is None:
+        return availability["state"] == "unknown"
+    if not declared:
+        return False
+    return any(item in EXECUTABLE_CAPABILITIES for item in metadata["capabilities"])
 
 
 class ResourceService:
@@ -463,6 +536,9 @@ class ResourceService:
     def _agent_summary(self, versioned: Versioned) -> dict[str, Any]:
         parsed = self._safe_parse("agent", versioned)
         if parsed["invalid"]:
+            metadata = _role_metadata(dict(versioned.entity))
+            metadata["recruitable"] = False
+            metadata.pop("declared_recruitable", None)
             return {
                 "id": versioned.entity_id,
                 "kind": "agent",
@@ -474,10 +550,13 @@ class ResourceService:
                 "skill_refs": [],
                 "connection_ref": None,
                 "config_hash": None,
+                **metadata,
             }
         assert isinstance(parsed["value"], AgentResource)
         agent = parsed["value"]
         availability = self._compile_availability(versioned.entity_id, agent)
+        metadata = _role_metadata(dict(versioned.entity))
+        metadata["recruitable"] = _effective_recruitable(metadata, availability)
         return {
             "id": versioned.entity_id,
             "kind": "agent",
@@ -497,6 +576,7 @@ class ResourceService:
             "availability": availability,
             "executable": availability["state"] == "unknown",
             "body": versioned.body,
+            **metadata,
         }
 
     def _compile_availability(self, agent_id: str, agent: AgentResource) -> dict[str, Any]:
@@ -634,50 +714,51 @@ class ResourceService:
         actor: str,
         body: str | None = None,
     ) -> dict[str, Any]:
-        self._require_kind(kind)
-        if kind == "connection":
-            raise AppError(
-                ErrorCode.INVALID_REQUEST,
-                "connections are edited through the Settings endpoints; there is one "
-                "Connection authority and no second model list",
-                details={
-                    "kind": kind,
-                    "id": resource_id,
-                    "use": f"/api/v1/settings/connections/{resource_id}",
-                },
+        with connection_reference_lock(self._store) if kind == "agent" else nullcontext():
+            self._require_kind(kind)
+            if kind == "connection":
+                raise AppError(
+                    ErrorCode.INVALID_REQUEST,
+                    "connections are edited through the Settings endpoints; there is one "
+                    "Connection authority and no second model list",
+                    details={
+                        "kind": kind,
+                        "id": resource_id,
+                        "use": f"/api/v1/settings/connections/{resource_id}",
+                    },
+                )
+            allowed = set(UPDATABLE_FIELDS.get(kind, ()))
+            unknown = sorted(set(patch) - allowed)
+            if unknown:
+                raise AppError(
+                    ErrorCode.INVALID_REQUEST,
+                    f"fields not editable through this controlled path: {', '.join(unknown)}",
+                    details={"kind": kind, "allowed": sorted(allowed), "rejected": unknown},
+                )
+            if not patch and body is None:
+                raise AppError(
+                    ErrorCode.INVALID_REQUEST,
+                    "nothing to update: provide at least one allowed field or a body",
+                    details={"kind": kind, "allowed": sorted(allowed)},
+                )
+            current = self._store.read(kind, resource_id)
+            merged = dict(current.entity)
+            merged.update(patch)
+            candidate = Versioned(
+                kind=kind,
+                entity_id=resource_id,
+                entity=merged,
+                revision=current.revision,
+                content_hash=current.content_hash,
+                body=current.body if body is None else body,
+                path=current.path,
             )
-        allowed = set(UPDATABLE_FIELDS.get(kind, ()))
-        unknown = sorted(set(patch) - allowed)
-        if unknown:
-            raise AppError(
-                ErrorCode.INVALID_REQUEST,
-                f"fields not editable through this controlled path: {', '.join(unknown)}",
-                details={"kind": kind, "allowed": sorted(allowed), "rejected": unknown},
-            )
-        if not patch and body is None:
-            raise AppError(
-                ErrorCode.INVALID_REQUEST,
-                "nothing to update: provide at least one allowed field or a body",
-                details={"kind": kind, "allowed": sorted(allowed)},
-            )
-        current = self._store.read(kind, resource_id)
-        merged = dict(current.entity)
-        merged.update(patch)
-        candidate = Versioned(
-            kind=kind,
-            entity_id=resource_id,
-            entity=merged,
-            revision=current.revision,
-            content_hash=current.content_hash,
-            body=current.body if body is None else body,
-            path=current.path,
-        )
-        # Program validation before the Store write: adapter schema/field
-        # combinations, then every reference must resolve.  A model proposal is
-        # therefore checked, never trusted.
-        self._validate_candidate(kind, candidate)
-        written = self._write(kind, resource_id, patch, body, expected_revision, actor)
-        return self._detail_from(kind, written)
+            # Program validation before the Store write: adapter schema/field
+            # combinations, then every reference must resolve.  A model proposal is
+            # therefore checked, never trusted.
+            self._validate_candidate(kind, candidate)
+            written = self._write(kind, resource_id, patch, body, expected_revision, actor)
+            return self._detail_from(kind, written)
 
     def _write(
         self,

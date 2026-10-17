@@ -34,6 +34,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from ..adapter import ExecutorAdapter
+from ..attachments import build_attachments_router
 from ..config import Settings
 from ..contracts import (
     API_PREFIX,
@@ -340,6 +341,9 @@ def create_app(
     app.include_router(build_events_router(), prefix=API_PREFIX)
     app.include_router(build_notifications_router(), prefix=API_PREFIX)
     app.include_router(build_conversations_router(), prefix=API_PREFIX)
+    # LG-124 integration: the complete LG-119 private attachment factory is
+    # mounted here (the package routes themselves were delivered complete).
+    app.include_router(build_attachments_router(), prefix=API_PREFIX)
     app.include_router(build_acceptance_router(verification_service), prefix=API_PREFIX)
     app.include_router(build_settings_router(connections, tester=tester), prefix=API_PREFIX)
     return app

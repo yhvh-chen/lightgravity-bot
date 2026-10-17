@@ -63,6 +63,12 @@ async def health(request: Request) -> HealthResponse:
         # Team mode only (single-user keeps the 1.14 surface untouched); older
         # backends report false and the UI degrades honestly.
         "accounts": bool(getattr(context, "team", None)),
+        # LG-117 additive: the embedding settings view/PUT/draft routes are
+        # mounted inside the settings router.  Optional for older backends.
+        "embedding_settings": wired,
+        # LG-119 additive: the complete private attachment router is mounted in
+        # api/app.py and Personal messages accept the private attachment seam.
+        "private_attachments": wired,
         # The real SDK adapter is only advertised once LG-006/LG-010 inject it.
         "sdk_adapter": bool(getattr(context, "real_executor", False)),
     }

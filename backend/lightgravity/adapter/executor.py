@@ -855,6 +855,17 @@ class AntigravityExecutor:
             )
         if not parts:
             parts.append("Proceed with the assigned subtask.")
+        parts.insert(
+            0,
+            "Execution context (provided by the coordinator):\n"
+            f"Task ID: {request.task_id}\n"
+            f"Run ID: {request.run_id}\n"
+            f"Subtask ID: {request.subtask_id}\n"
+            f"Assigned workspace: {request.workspace_path}\n"
+            "Use these identifiers when reporting results. Do not search parent "
+            "directories for task metadata or create another Task/Run. "
+            "These facts do not expand tool permissions or workspace access.",
+        )
         del compiled  # instructions already travel as system_instructions
         return "\n\n".join(parts)
 
