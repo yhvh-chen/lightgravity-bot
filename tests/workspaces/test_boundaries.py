@@ -76,3 +76,78 @@ def test_symlink_escape_is_rejected(repo: GitRepo, tmp_path: Path) -> None:
     with pytest.raises(WorkspaceError) as excinfo:
         manager._authorize(link)
     assert excinfo.value.code is ErrorCode.PATH_OUTSIDE_WORKSPACE
+
+
+def test_automatic_task_under_host_repo_gets_independent_empty_base(tmp_path: Path) -> None:
+    from gitfixtures import git, init_repo
+    from lightgravity.workspaces import GraphWorkspaceProvider
+
+    host = init_repo(tmp_path / "host")
+    for name in ("AGENTS.md", "PROJECT.md", "design.md"):
+        (host / name).write_text("HOST CANARY: must not enter task\n")
+    git(host, "add", "-A")
+    git(host, "commit", "-qm", "host canaries")
+    host_head = git(host, "rev-parse", "HEAD").strip()
+    root = host / "runtime" / "workspaces"
+    task = root / "tasks" / "task_new"
+    task.mkdir(parents=True)
+    manager = WorktreeManager(root)
+    assert not manager.is_git_repo(task, scratch=root / ".scratch")
+    provider = GraphWorkspaceProvider(manager)
+    isolated = provider.isolate(
+        task_id="task_new", run_id="run_new", node_key="deliver",
+        subtask_id="subtask_new", base_workspace=str(task),
+    )
+    assert isolated is not None
+    worktree = Path(isolated)
+    assert git(task, "rev-parse", "--show-toplevel").strip() == str(task)
+    assert git(task, "ls-tree", "-r", "--name-only", "HEAD") == ""
+    assert git(task, "rev-list", "--count", "HEAD").strip() == "1"
+    assert git(task, "rev-parse", "HEAD").strip() != host_head
+    assert set(p.name for p in worktree.iterdir()) == {".git"}
+    assert git(host, "rev-parse", "HEAD").strip() == host_head
+    # A later Run reuses the task's own repository rather than reinitializing.
+    second = manager.begin_run("task_new", "run_again", source_repo=task)
+    assert second.base_commit == git(task, "rev-parse", "HEAD").strip()
+
+
+@pytest.mark.parametrize("nonempty", [False, True])
+def test_unowned_directory_never_borrows_ancestor_repo(tmp_path: Path, nonempty: bool) -> None:
+    from gitfixtures import init_repo
+
+    host = init_repo(tmp_path / "host")
+    root = host / "workspace"
+    # Even an ancestor inside the authorized root is not the requested repo.
+    init_repo(root)
+    child = root / ("tasks/task_new" if nonempty else "project-subdirectory")
+    child.mkdir(parents=True)
+    if nonempty:
+        (child / "existing.txt").write_text("preserve me")
+    manager = WorktreeManager(root)
+    with pytest.raises(WorkspaceError, match="not a git repository root"):
+        manager.begin_run("task_new", "run_reject", source_repo=child)
+    assert not (child / ".git").exists()
+    if nonempty:
+        assert (child / "existing.txt").read_text() == "preserve me"
+
+
+def test_source_symlink_outside_authorized_root_is_rejected(tmp_path: Path) -> None:
+    from gitfixtures import init_repo
+
+    outside = init_repo(tmp_path / "outside")
+    root = tmp_path / "workspace"
+    root.mkdir()
+    (root / "project").symlink_to(outside, target_is_directory=True)
+    with pytest.raises(WorkspaceError) as excinfo:
+        WorktreeManager(root).begin_run("task_new", "run_bad", source_repo=root / "project")
+    assert excinfo.value.code is ErrorCode.PATH_OUTSIDE_WORKSPACE
+
+
+def test_explicit_linked_worktree_root_remains_supported(repo: GitRepo) -> None:
+    manager = WorktreeManager(repo.path.parent)
+    first = manager.begin_run("task_A", "run_original", source_repo=repo.path)
+    linked = first.isolate("deliver", "subtask_A").path
+    assert manager.is_git_repo(linked, scratch=manager.worktrees_root / ".probe")
+    second = manager.begin_run("task_A", "run_linked", source_repo=linked)
+    assert second.base_commit == first.base_commit
+    assert (second.isolate("deliver", "subtask_B").path / "README.md").exists()
