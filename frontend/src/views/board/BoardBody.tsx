@@ -309,14 +309,23 @@ function TaskDetailPanel(props: DetailPanelProps) {
                     <li key={ref ?? entry.name} className="lg-board__evidence-item">
                       <span className="lg-card__path">{entry.name}</span>
                       {ref ? (
-                        <a
-                          className="lg-link-button"
-                          href={artifactPreviewHref(props.taskRef, ref)}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Preview
-                        </a>
+                        <>
+                          <a
+                            className="lg-link-button"
+                            href={artifactPreviewHref(props.taskRef, ref)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Preview
+                          </a>
+                          <a
+                            className="lg-link-button"
+                            href={artifactDownloadHref(props.taskRef, ref)}
+                            download
+                          >
+                            Download
+                          </a>
+                        </>
                       ) : null}
                     </li>
                   )
@@ -386,4 +395,17 @@ function AcceptanceSection({
 function artifactPreviewHref(taskRef: string, evidenceRef: string): string {
   const params = new URLSearchParams({ evidence_ref: evidenceRef })
   return `/api/v1/tasks/${encodeURIComponent(taskRef)}/artifacts/content?${params.toString()}`
+}
+
+/**
+ * Canonical evidence download (LG-066 optional affordance).
+ *
+ * Uses the existing Task-scoped `/artifacts/download` endpoint, which resolves
+ * the `evidence:<run>/<name>@sha256:<hex>` reference against the owning Task
+ * under the authenticated session. The UI only ever passes the canonical
+ * evidence ref back — no absolute path or cross-Task reference is exposed.
+ */
+function artifactDownloadHref(taskRef: string, evidenceRef: string): string {
+  const params = new URLSearchParams({ evidence_ref: evidenceRef })
+  return `/api/v1/tasks/${encodeURIComponent(taskRef)}/artifacts/download?${params.toString()}`
 }

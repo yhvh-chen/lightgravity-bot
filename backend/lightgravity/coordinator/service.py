@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -44,6 +45,7 @@ from lightgravity.store import (
     Versioned,
     new_id,
 )
+from lightgravity.store.ids import id_matches_kind
 from lightgravity.store.locking import LockManager
 
 # LG-017: the rework orchestrator's spawner returns this structural outcome.
@@ -205,6 +207,41 @@ class CoordinatorResult:
 #: Characters that may directly follow the bot mention and still count as a
 #: mention (ASCII + common CJK punctuation).
 _MENTION_FOLLOW_PUNCT = ",.!?;:)]}、。，！？；：）】》。"
+
+#: An exact legal runtime Task id token: ``task_`` followed by the 26-char
+#: Crockford Base32 ULID alphabet used by ``store/ids.py``.  The lookarounds
+#: require a standalone token so a longer/differently-prefixed id is not
+#: truncated into a valid-looking one.  Crockford excludes I, L, O and U.
+_TASK_ID_TOKEN_RE = re.compile(
+    r"(?<![0-9A-Za-z_])task_[0-9A-HJKMNP-TV-Z]{26}(?![0-9A-Za-z_])"
+)
+#: A looser "looks like a task reference" detector so a malformed token (wrong
+#: length/alphabet/prefix) is reported as invalid rather than silently ignored.
+_TASK_REF_LIKE_RE = re.compile(
+    r"(?<![0-9A-Za-z_])task_[0-9A-Za-z]{1,}(?![0-9A-Za-z_])"
+)
+
+
+def _parse_task_id_tokens(content: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Split pasted Task ID tokens into ``(legal, invalid)`` stable tuples.
+
+    ``legal`` holds exact ``task_<ULID>`` tokens in first-seen order; anything
+    task-like that is not an exact legal id is returned in ``invalid``.  This
+    lets the global query distinguish "no id" / "malformed id" / "multiple"
+    without ever guessing an arbitrary target.
+    """
+
+    text = content or ""
+    legal: list[str] = []
+    for match in _TASK_ID_TOKEN_RE.findall(text):
+        if match not in legal:
+            legal.append(match)
+    legal_set = set(legal)
+    invalid: list[str] = []
+    for match in _TASK_REF_LIKE_RE.findall(text):
+        if match not in legal_set and match not in invalid:
+            invalid.append(match)
+    return tuple(legal), tuple(invalid)
 
 
 def _is_bot_mention(content: str, mention: str) -> bool:
@@ -803,6 +840,18 @@ class Coordinator:
             created["conversation_id"] = conversation_id
             created["data"] = {"intent": classification.intent.value, "creates_task": True}
             return self._result_from(created)
+        if classification.next_action == "query":
+            # LG-066: a global/Team status query is resolved *only* from an
+            # explicit legal Task ID pasted in the message (no contract field,
+            # no "nearest active Task" guess).  It reads persisted state and
+            # never creates a Task, Run or worker.
+            return self._route_global_status_query(
+                conversation_id=conversation_id,
+                message=message,
+                request_id=request_id,
+                task_ref=task_ref,
+                intent=classification.intent.value,
+            )
         target, candidates = self._resolve_target(task_ref)
         if target is None:
             return CoordinatorResult(
@@ -1355,6 +1404,172 @@ class Coordinator:
         if state == "unconfirmed":
             return f"Task {task_id} 的 {action} 尚未确认停止，保持取消/暂停中间态。"
         return f"Task {task_id} 的 {action} 未生效：{reason or '当前阶段不允许'}。"
+
+    # ------------------------------------------------- global status query
+    def _route_global_status_query(
+        self,
+        *,
+        conversation_id: str,
+        message: dict[str, Any],
+        request_id: str,
+        task_ref: str | None,
+        intent: str,
+    ) -> CoordinatorResult:
+        """Resolve one global/Team status query from an explicit Task ID.
+
+        LG-066: the global route has no ``task_ref`` request field, so the Task
+        is identified only by an exact legal ``task_<ULID>`` token pasted in
+        the message content (or an internally supplied valid ``task_ref``).
+        Missing/malformed/unresolvable/ambiguous targets return an honest
+        ``clarify`` instead of guessing the single active Task.  A successful
+        query returns the persisted snapshot and never creates a Task/Run, so
+        it stays immediate while a worker is busy.  The reply is written to
+        the shared global conversation so every logged-in member can see it.
+        """
+
+        content = str(message.get("content", ""))
+        in_reply_to = str(message.get("message_id") or request_id)
+
+        explicit = task_ref if task_ref and id_matches_kind("task", task_ref) else None
+        if explicit is not None:
+            legal: tuple[str, ...] = (explicit,)
+            invalid: tuple[str, ...] = ()
+        else:
+            legal, invalid = _parse_task_id_tokens(content)
+
+        if invalid:
+            return self._persist_global_query_clarify(
+                conversation_id=conversation_id,
+                in_reply_to=in_reply_to,
+                reply=(
+                    "查询中的 "
+                    + "、".join(invalid)
+                    + " 不是合法的 Task ID（应为 task_ 加 26 位 Crockford Base32）。"
+                    "请核对后重试；未创建或启动任何任务。"
+                ),
+                data={"intent": intent, "invalid_task_ids": list(invalid)},
+            )
+        if len(legal) > 1:
+            return self._persist_global_query_clarify(
+                conversation_id=conversation_id,
+                in_reply_to=in_reply_to,
+                reply=(
+                    "查询中出现多个不同的 Task ID（"
+                    + "、".join(legal)
+                    + "），无法确定唯一目标。请只发送要查询的那一个 Task ID；"
+                    "未创建或启动任何任务。"
+                ),
+                data={"intent": intent, "ambiguous": True, "task_ids": list(legal)},
+            )
+        if not legal:
+            return self._persist_global_query_clarify(
+                conversation_id=conversation_id,
+                in_reply_to=in_reply_to,
+                reply=(
+                    "全局查询需要明确的 Task ID（task_…）。请粘贴要查询的那个 Task ID；"
+                    "未创建或启动任何任务。"
+                ),
+                data={"intent": intent, "missing_task_id": True},
+            )
+
+        task_id = legal[0]
+        try:
+            snapshot = self._global_status_snapshot(task_id)
+        except EntityNotFound:
+            return self._persist_global_query_clarify(
+                conversation_id=conversation_id,
+                in_reply_to=in_reply_to,
+                reply=(
+                    f"未找到共享 Task {task_id}。请确认该 ID 属于当前共享工作区；"
+                    "未创建或启动任何任务。"
+                ),
+                data={"intent": intent, "unknown_task_id": task_id},
+            )
+
+        reply = self._global_status_reply(snapshot)
+        self._persist_assistant_reply(
+            conversation_id=conversation_id,
+            task_id=None,
+            in_reply_to=in_reply_to,
+            reply=reply,
+            selected=None,
+            extra={"intent": intent, "task_id": task_id, "query": True},
+        )
+        return CoordinatorResult(
+            kind="query",
+            reply=reply,
+            task_id=task_id,
+            conversation_id=conversation_id,
+            data=snapshot,
+        )
+
+    def _persist_global_query_clarify(
+        self,
+        *,
+        conversation_id: str,
+        in_reply_to: str,
+        reply: str,
+        data: dict[str, Any],
+    ) -> CoordinatorResult:
+        """Persist an honest query clarification and never create work."""
+
+        self._persist_assistant_reply(
+            conversation_id=conversation_id,
+            task_id=None,
+            in_reply_to=in_reply_to,
+            reply=reply,
+            selected=None,
+            extra={
+                "intent": str(data.get("intent", "status_query")),
+                "query_clarify": True,
+            },
+        )
+        return CoordinatorResult(
+            kind="clarify",
+            reply=reply,
+            conversation_id=conversation_id,
+            data=data,
+        )
+
+    def _global_status_snapshot(self, task_id: str) -> dict[str, Any]:
+        """Persisted status plus artifact facts for a global query reply.
+
+        ``status()`` supplies phase/queue/active Run; the Task's persisted
+        acceptance record supplies the current candidate and canonical evidence
+        refs.  This reads the store only -- no worker, Run or model call.
+        """
+
+        snapshot = self.status(task_id)
+        task = self._store.read("task", task_id)
+        acceptance = task.entity.get("acceptance")
+        acceptance = acceptance if isinstance(acceptance, dict) else {}
+        refs = acceptance.get("evidence_refs")
+        snapshot["acceptance_status"] = acceptance.get("status")
+        snapshot["candidate_ref"] = acceptance.get("candidate_ref")
+        snapshot["artifact_refs"] = [
+            ref for ref in (refs or []) if isinstance(ref, str)
+        ]
+        snapshot["creates_task"] = False
+        snapshot["creates_run"] = False
+        return snapshot
+
+    @staticmethod
+    def _global_status_reply(snapshot: Mapping[str, Any]) -> str:
+        queue = snapshot.get("queue")
+        queue = queue if isinstance(queue, Mapping) else {}
+        parts = [
+            f"Task {snapshot['task_id']}: status={snapshot['status']} "
+            f"phase={snapshot['phase']} queue={queue.get('state')} "
+            f"run={snapshot['run_state']}."
+        ]
+        candidate = snapshot.get("candidate_ref")
+        if isinstance(candidate, str) and candidate:
+            parts.append(f"candidate={candidate}")
+        refs = snapshot.get("artifact_refs")
+        if isinstance(refs, list) and refs:
+            parts.append(f"artifacts={len(refs)}")
+        parts.append("只读查询，未创建或启动 Task/Run。")
+        return " ".join(parts)
 
     # ---------------------------------------------------------------- status
     def status(self, task_id: str) -> dict[str, Any]:

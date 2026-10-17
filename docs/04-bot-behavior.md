@@ -2,7 +2,7 @@
 title: "Bot 行为与交互契约"
 doc_type: specification
 category: product
-updated: "2026-10-15"
+updated: "2026-10-17"
 ---
 
 # Bot 行为与交互契约
@@ -45,7 +45,7 @@ Bot 在同一身份下接收指令、回答问题、维护 Task 上下文和汇�
 
 ## 4. 全局对话与 Task 对话
 
-全局入口需要最小会话记录，用于普通问答、任务选择和创建过程；不强迫每次闲聊创建 Task。候选存储为 `bot-data/conversations/<conversation-id>/messages.jsonl`。Task 创建后，其目标与相关输入写入 TASK.md/inputs，后续任务消息进入 Task 的 conversation.jsonl；全局历史保存 task_ref 导航，不复制整条 Task 对话。
+全局入口需要最小会话记录，用于普通问答、任务选择和创建过程；不强迫每次闲聊创建 Task。候选存储为 `bot-data/conversations/<conversation-id>/messages.jsonl`。Task 创建后，其目标与相关输入写入 TASK.md/inputs，后续任务消息进入 Task 的 conversation.jsonl；全局历史保存 task_ref 导航，不复制整条 Task 对话。全局/Team 对话的状态查询按消息内**显式合法 Task ID**（`task_` 加 26 位 Crockford Base32）解析并读取持久状态快照，不依赖“最近/唯一活跃任务”猜测；缺失、非法、未知或出现多个不同 Task ID 时先澄清请求唯一目标，绝不任取第一个。该只读查询在 worker 忙时立即返回，不创建 Task/Run/worker，回复写入共享全局对话供所有登录成员查看；Team 的 Personal 私聊仍仅聊天且按身份隔离（LG-054）。
 
 消息至少记录 `messageId`、角色、时间、内容/附件引用、Task 关联和 correlationId。客户端重试发送相同 messageId 时幂等返回，不重复建 Task/执行。SDK 工具事件、成员会话在 Run 详情展示，主聊天以问题、决定、里程碑和交付为主。
 

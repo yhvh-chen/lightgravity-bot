@@ -181,6 +181,24 @@ describe('LG-013 Board: real phase and control state', () => {
     )
   })
 
+  it('offers a canonical evidence Download link without absolute refs', async () => {
+    renderBoard(makeTaskApi())
+    fireEvent.click(await screen.findByText('Add login'))
+
+    const download = await screen.findByRole('link', { name: 'Download' })
+    expect(download).toHaveAttribute(
+      'href',
+      '/api/v1/tasks/task_01A/artifacts/download?evidence_ref=evidence%3Arun_01X%2Fdiff%40sha256%3Aabc',
+    )
+    // The Task-scoped endpoint re-authorizes the canonical evidence ref; the UI
+    // never emits an absolute path, a protocol URL or a cross-Task escape.
+    const href = download.getAttribute('href') ?? ''
+    const params = new URLSearchParams(href.split('?')[1])
+    expect(params.get('evidence_ref')).toBe('evidence:run_01X/diff@sha256:abc')
+    expect(href).not.toContain('://')
+    expect(href).not.toContain('../')
+  })
+
   it('never shows a failed task as active', async () => {
     const api = makeTaskApi({
       listTasks: vi.fn(async () => ({
