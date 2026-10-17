@@ -3,6 +3,21 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
+#: docs/08 §13: 1.17.0 (2026-10-17) is the LG-104/LG-109 additive MINOR for the
+#: compact provider New/Edit modal backend: optional non-secret Connection
+#: fields ``auth_mode``/``project``/``location``/``model_path``/
+#: ``litert_backend``, additive ``capabilities`` facts on the connection view,
+#: the protected ``POST /api/v1/settings/connections/test-draft`` envelope with
+#: transient write-only ``credential_value`` and optional saved-id/revision
+#: reuse, and additive ``draft``/nullable identity fields on TestResult.
+#: Gemini/Vertex API-key configurations become saveable/testable through the
+#: installed SDK; LiteRT is static-only.  Native task execution/defaults stay
+#: limited to the existing openai-compat path, no endpoint/enum/error-code
+#: semantics or migration direction changes, and draft tests persist no
+#: connection/secret/default/diagnostic/Task.  1.16.0 was the LG-066 global/
+#: Team Task-ID status query additive MINOR; summary below is retained for
+#: historical context.
+#:
 #: docs/08 §13/§17: 1.16.0 (2026-10-17) is the additive MINOR bump for the
 #: LG-066 global/Team Task-ID status query registered by the generic
 #: integration: the existing global-conversation POST response gains the
@@ -141,7 +156,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.16.0"
+CONTRACT_VERSION = "1.17.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

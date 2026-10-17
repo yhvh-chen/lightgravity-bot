@@ -1,7 +1,9 @@
-# Settings backend (LG-025)
+# Settings backend (LG-025 / LG-104 / LG-109)
 
-Store-authoritative model settings: first-version DeepSeek connection,
-`SETTINGS.md` defaults, controlled credentials and layered connection tests.
+Store-authoritative model settings: provider Connections, `SETTINGS.md`
+defaults, controlled credentials and layered saved/draft connection tests.
+LG-104/LG-109 add optional non-secret provider fields, separate capability
+facts and the transient `POST /settings/connections/test-draft` endpoint.
 See [docs/07](../../../docs/07-settings-and-models.md),
 [docs/08 §4.3/§6.5/§8.1](../../../docs/08-interface-contract.md).
 
@@ -13,11 +15,11 @@ for LG-012 to mount.
 | File | Purpose |
 |---|---|
 | `models.py` | Private value types (`Connection`, `GlobalSettings`, `CredentialStatus`, `PinnedConnection`, `ConnectionTestResult`). Not added to frozen `contracts`. |
-| `repository.py` | `ConnectionRepository`: reads/writes `resources/connections/<id>.md` and `settings/SETTINGS.md` through the LG-004 `Store`; validates first-version backend rules. |
+| `repository.py` | `ConnectionRepository`: reads/writes `resources/connections/<id>.md` and `settings/SETTINGS.md` through the LG-004 `Store`; validates the registered provider/auth matrix. |
 | `secret_store.py` | `FileSecretStore` (owner-only `0700/0600`, atomic, versioned) and `SecretStoreCredentialResolver` (store → environment), implementing the LG-006 `CredentialResolver`. |
 | `service.py` | `ConnectionService`: defaults legality, reference blocking, cross-file compensation, credential lifecycle, revision pinning. |
-| `testing.py` | `ConnectionTester` + `ConnectionTestLog`: layered tests reusing the LG-006 `LocalAuthProxy`; results bound to connection revision + credential version. |
-| `router.py` | `build_settings_router(service, *, tester=None)`: the settings HTTP routes. |
+| `testing.py` | `ConnectionTester` + `ConnectionTestLog`: layered saved tests and transient draft tests. OpenAI-compatible uses the LG-006 proxy; Gemini/Vertex use the installed SDK's real config with one minimal request; LiteRT is static-only. |
+| `router.py` | `build_settings_router(service, *, tester=None)`: the settings HTTP routes, including the protected draft-test envelope. |
 
 ## Guarantees
 
@@ -32,7 +34,8 @@ for LG-012 to mount.
   raises the frozen `revision_conflict` (409). Test requests can also pin the
   revision they were made against.
 - **No dangling defaults**: a default must resolve to an existing, enabled,
-  verified (`openai-compat`) connection. Disabling a default connection requires
+  **executable** (`openai-compat`) connection. Configurable/testable providers
+  are deliberately not default-eligible. Disabling a default connection requires
   clearing the default in the same call (`clear_defaults=true`); the settings
   write is rolled back if the later connection write fails.
 - **Reference blocking**: a credential still referenced by a connection cannot
@@ -45,13 +48,29 @@ for LG-012 to mount.
   result are separate from the SDK `capability` *declaration*
   (`adapter_capabilities`); `tool_probe` / `structured_output` stay separate and
   are reported `skipped` (not fabricated). A result is `stale` once its
-  connection revision or credential version changes.
+  connection revision or credential version changes. Draft results carry
+  `draft=true`, nullable saved identity, and are never persisted.
+- **Separate facts**: `configurable` (may save), `testable` (may run test
+  layers), `executable` (may run Tasks/be a default) and `vendor_verified`
+  (real vendor evidence) are never inferred from one another.
 
 ## First-version limits
 
-- Only `openai-compat` (DeepSeek) may be saved as an executable connection;
-  `gemini`/`vertex` are rejected as unverified. `model` defaults to
-  `deepseek-v4-flash`, `base_url` to `https://api.deepseek.com/v1`.
+- Gemini API, Vertex Express, Vertex Project + ADC and LiteRT are saveable and
+  testable, but only `openai-compat` (DeepSeek) is executable/default-eligible.
+  `model` defaults to `deepseek-v4-flash`, `base_url` to
+  `https://api.deepseek.com/v1` for the executable path.
+- LiteRT is static-only: package presence, an allowed model path under the
+  configured workspace root and SDK config construction. It never installs,
+  downloads, loads or infers a model.
+- Vertex ADC is environment-owned. Static tests never run gcloud or request
+  metadata; an explicit network test only proceeds when a local ADC credential
+  file is detected (or a test injects the prerequisite).
+- A draft test may reuse an existing secret only with the saved id + current
+  revision + unchanged backend/auth/credential-recipient endpoint. Changing that
+  identity requires a fresh write-only key; the old secret is never sent to the
+  new target. Draft tests never write a Connection, secret, default, diagnostic,
+  Task/Run or SDK config.
 - The store is local and permission-protected; it is **not** encrypted at rest.
 - `tool_probe` / `structured_output` are not executed in LG-025; they require an
   isolated SDK session with its own temp workspace and budget.
@@ -78,6 +97,6 @@ Recorded here instead of editing shared/frozen files (docs/08 §11):
 - **LG-026 (frontend)**: consume the router's public views; never cache secrets
   in local/session storage; treat `credential.configured`/`source` only. Use
   `expected_revision`/`ETag` for edits and show old test results as stale.
-- **contracts**: no new DTOs were added; the private types in `models.py` are the
-  candidate wire shapes for a later additive contract change if LG-012/LG-026
-  want them frozen.
+- **contracts**: LG-109 owns the `1.17.0` additive MINOR constant. The private
+  types in `models.py` remain the implementation value types; root PM owns the
+  normative Markdown registration.

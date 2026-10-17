@@ -37,17 +37,27 @@ def test_create_fills_first_version_defaults(service: ConnectionService) -> None
     assert "credential_value" not in result
 
 
-def test_unverified_backend_rejected(service: ConnectionService) -> None:
-    with pytest.raises(SettingsConfigInvalid):
-        service.create_connection(
-            "gemini",
-            backend="gemini",
-            model="gemini-2.0",
-            base_url="https://example.invalid",
+def test_configurable_non_executable_backend_saves_but_is_not_a_default(
+    service: ConnectionService,
+) -> None:
+    created = service.create_connection(
+        "gemini",
+        backend="gemini",
+        model="gemini-3.8-flash",
+        auth_mode="api_key",
+        credential_ref="gemini-key",
+        actor="test",
+        request_id="req-gemini",
+    )
+    assert created["capabilities"]["configurable"] is True
+    assert created["capabilities"]["testable"] is True
+    assert created["capabilities"]["executable"] is False
+    with pytest.raises(ConnectionReferenceInvalid):
+        service.update_settings(
+            expected_revision=None,
             actor="test",
-            request_id="req-gemini",
+            default_worker_connection_ref="gemini",
         )
-    assert service.list_connections() == []
 
 
 def test_repository_backend_requirements(service: ConnectionService) -> None:

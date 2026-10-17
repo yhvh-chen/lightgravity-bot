@@ -54,6 +54,7 @@ from .service import ConnectionService
 from .testing import (
     ConnectionTestLog,
     ConnectionTester,
+    DraftConnectionSpec,
     default_http_post,
 )
 
@@ -92,6 +93,7 @@ __all__ = [
     # testing
     "ConnectionTester",
     "ConnectionTestLog",
+    "DraftConnectionSpec",
     "default_http_post",
     # api
     "build_settings_router",

@@ -52,6 +52,13 @@ class Connection:
     model: str | None
     base_url: str | None
     credential_ref: str | None
+    #: LG-104 additive non-secret provider fields.  ``None`` means absent or
+    #: explicitly cleared; old files are never migrated on read.
+    auth_mode: str | None = None
+    project: str | None = None
+    location: str | None = None
+    model_path: str | None = None
+    litert_backend: str | None = None
     data: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -67,6 +74,11 @@ class Connection:
             "model": self.model,
             "base_url": self.base_url,
             "credential_ref": self.credential_ref,
+            "auth_mode": self.auth_mode,
+            "project": self.project,
+            "location": self.location,
+            "model_path": self.model_path,
+            "litert_backend": self.litert_backend,
         }
 
 
@@ -214,8 +226,9 @@ class ConnectionTestResult:
     """
 
     test_id: str
-    connection_id: str
-    connection_revision: int
+    #: ``None`` for an unsaved draft test; a saved test always carries both.
+    connection_id: str | None
+    connection_revision: int | None
     credential_ref: str | None
     credential_version: str | None
     backend: str
@@ -226,6 +239,8 @@ class ConnectionTestResult:
     layers: tuple[TestLayerResult, ...]
     overall: str  # verified | partial | failed | not_run
     note: str = ""
+    #: LG-104 draft tests are transient and never persisted as diagnostics.
+    draft: bool = False
 
     def layer(self, name: str) -> TestLayerResult | None:
         for item in self.layers:
@@ -234,11 +249,11 @@ class ConnectionTestResult:
         return None
 
     def is_stale(
-        self, connection_revision: int, credential_version: str | None
+        self, connection_revision: int | None, credential_version: str | None
     ) -> bool:
-        return self.connection_revision != connection_revision or (
-            (self.credential_version or None) != (credential_version or None)
-        )
+        if self.connection_revision != connection_revision:
+            return True
+        return (self.credential_version or None) != (credential_version or None)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -255,6 +270,7 @@ class ConnectionTestResult:
             "layers": [layer.to_dict() for layer in self.layers],
             "overall": self.overall,
             "note": self.note,
+            "draft": self.draft,
         }
 
 

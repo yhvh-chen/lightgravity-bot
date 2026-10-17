@@ -156,6 +156,13 @@ class ConnectionResource:
     model: str | None
     credential_ref: str | None
     base_url: str | None
+    #: LG-104 additive non-secret provider fields.  ``None`` means the old file
+    #: did not store the field; callers infer the preset without rewriting it.
+    auth_mode: str | None = None
+    project: str | None = None
+    location: str | None = None
+    model_path: str | None = None
+    litert_backend: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -278,6 +285,11 @@ def parse_connection(versioned: Versioned) -> ConnectionResource:
         model=_optional_str(data, "model", "connection"),
         credential_ref=_optional_str(data, "credential_ref", "connection"),
         base_url=_optional_str(data, "base_url", "connection"),
+        auth_mode=_optional_str(data, "auth_mode", "connection"),
+        project=_optional_str(data, "project", "connection"),
+        location=_optional_str(data, "location", "connection"),
+        model_path=_optional_str(data, "model_path", "connection"),
+        litert_backend=_optional_str(data, "litert_backend", "connection"),
     )
 
 

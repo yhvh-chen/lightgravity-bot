@@ -21,6 +21,11 @@ from lightgravity.store.models import Diagnostic
 
 from .capabilities import AdapterCapabilities, SDK_PINNED_VERSION, adapter_capabilities
 from .errors import AdapterConfigInvalid, ReferenceInvalid
+from .provider_matrix import (
+    auth_requires_credential,
+    capabilities_for_registration,
+    effective_auth_mode,
+)
 from .redaction import redact, sensitive_paths
 from .registry import (
     HookRegistration,
@@ -220,12 +225,24 @@ class CompiledConnection:
     sdk_config_kind: str
     supports_api_key_field: bool
     verified: bool
+    #: LG-104 additive non-secret provider fields.  Old files leave them
+    #: ``None``; the effective auth mode is inferred without rewriting.
+    auth_mode: str | None = None
+    project: str | None = None
+    location: str | None = None
+    model_path: str | None = None
+    litert_backend: str | None = None
     #: How the connection was chosen (``explicit`` | ``pinned`` | ``override``
     #: | ``default`` | ``missing``); informational and hash-relevant only.
     connection_source: str = "explicit"
     #: Opaque credential version token when a default/pinned selection carried
     #: one; it is never a secret value.
     credential_version: str | None = None
+    #: Separate capability facts; ``None`` means not declared.
+    configurable: bool | None = None
+    testable: bool | None = None
+    executable: bool | None = None
+    vendor_verified: bool | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -237,8 +254,19 @@ class CompiledConnection:
             "sdk_config_kind": self.sdk_config_kind,
             "supports_api_key_field": self.supports_api_key_field,
             "verified": self.verified,
+            "auth_mode": self.auth_mode,
+            "project": self.project,
+            "location": self.location,
+            "model_path": self.model_path,
+            "litert_backend": self.litert_backend,
             "connection_source": self.connection_source,
             "credential_version": self.credential_version,
+            "capabilities": {
+                "configurable": self.configurable,
+                "testable": self.testable,
+                "executable": self.executable,
+                "vendor_verified": self.vendor_verified,
+            },
         }
 
 
@@ -492,6 +520,26 @@ class ResourceCompiler:
             executable_reasons.append("connection_missing")
             return None
         connection = parse_connection(self._read("connection", ref, versions))
+        if connection.backend == "litert" and connection.model_path:
+            # Keep the local model path under the same authorized workspace root
+            # the existing path policy uses.  This resolves/stats only; it never
+            # reads model contents or starts LiteRT.
+            try:
+                self._store.resolve_path(connection.model_path, write=False)
+            except Exception as exc:  # noqa: BLE001 - bind every escape to config_invalid
+                raise AdapterConfigInvalid(
+                    f"LiteRT model_path {connection.model_path!r} is outside the "
+                    "authorized model roots",
+                    diagnostics=[
+                        {
+                            "code": "model_path_outside_roots",
+                            "message": "LiteRT model_path escaped the allowed root",
+                            "location": "connection.model_path",
+                            "detail": {"backend": connection.backend},
+                        }
+                    ],
+                    location="connection.model_path",
+                ) from exc
         if pin is not None and (
             pin.revision != connection.revision or pin.content_hash != connection.content_hash
         ):
@@ -520,6 +568,14 @@ class ResourceCompiler:
                     }
                 ],
             )
+        effective_auth = effective_auth_mode(
+            connection.backend,
+            connection.auth_mode,
+            project=connection.project,
+            location=connection.location,
+            credential_ref=connection.credential_ref,
+        )
+        facts = capabilities_for_registration(backend)
         compiled = CompiledConnection(
             ref=connection.id,
             backend=connection.backend,
@@ -529,25 +585,35 @@ class ResourceCompiler:
             sdk_config_kind=backend.sdk_config_kind,
             supports_api_key_field=backend.supports_api_key_field,
             verified=backend.verified,
+            auth_mode=connection.auth_mode,
+            project=connection.project,
+            location=connection.location,
+            model_path=connection.model_path,
+            litert_backend=connection.litert_backend,
             connection_source=connection_source,
             credential_version=pin.credential_version if pin else None,
+            configurable=facts["configurable"],
+            testable=facts["testable"],
+            executable=facts["executable"],
+            vendor_verified=facts["vendor_verified"],
         )
         if not connection.enabled:
             unavailable.append(
                 UnavailableResource(connection.id, "connection", "connection_disabled", "enabled=false")
             )
             executable_reasons.append("connection_disabled")
-        if not backend.verified:
+        if not backend.executable:
             unavailable.append(
                 UnavailableResource(
                     connection.id,
                     "connection",
                     "backend_unverified",
-                    f"{connection.backend} is not verified in this environment",
+                    f"{connection.backend} is configurable/testable but not an "
+                    "executable product backend in this build",
                 )
             )
             executable_reasons.append("backend_unverified")
-        if backend.requires_credential and not connection.credential_ref:
+        if auth_requires_credential(connection.backend, effective_auth) and not connection.credential_ref:
             unavailable.append(
                 UnavailableResource(
                     connection.id,

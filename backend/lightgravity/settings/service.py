@@ -18,9 +18,14 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any, Callable
+from pathlib import Path
+from typing import Any, Callable, Sequence
 
 from lightgravity.adapter.credentials import CredentialResolver, EnvCredentialResolver, Secret
+from lightgravity.adapter.provider_matrix import (
+    credential_recipient_identity,
+    effective_auth_mode,
+)
 from lightgravity.adapter.registry import ImplementationRegistry
 from lightgravity.store import Store
 
@@ -76,11 +81,21 @@ class ConnectionService:
         secret_store: FileSecretStore,
         registry: ImplementationRegistry | None = None,
         env_resolver: CredentialResolver | None = None,
+        allowed_model_roots: Sequence[Path | str] | None = None,
     ) -> None:
         self._repo = ConnectionRepository(store, registry=registry)
         self._secrets = secret_store
         self._resolver = SecretStoreCredentialResolver(
             secret_store, env_resolver=env_resolver or EnvCredentialResolver()
+        )
+        root = getattr(store, "workspace_root", None)
+        self._allowed_model_roots = tuple(
+            Path(item)
+            for item in (
+                allowed_model_roots
+                if allowed_model_roots is not None
+                else ([root] if root is not None else [])
+            )
         )
 
     # --------------------------------------------------------------- exposure
@@ -116,12 +131,40 @@ class ConnectionService:
         credential_ref: str | None = None,
         credential_value: str | None = None,
         enabled: bool = True,
+        auth_mode: Any = _UNSET,
+        project: Any = _UNSET,
+        location: Any = _UNSET,
+        model_path: Any = _UNSET,
+        litert_backend: Any = _UNSET,
         actor: str,
         request_id: str,
     ) -> dict[str, Any]:
         if backend == DEFAULT_EXECUTABLE_BACKEND:
             model = model or PREFERRED_MODEL
             base_url = base_url or DEFAULT_BASE_URL
+        optional = {
+            "auth_mode": auth_mode,
+            "project": project,
+            "location": location,
+            "model_path": model_path,
+            "litert_backend": litert_backend,
+        }
+        # Omitted optional fields stay absent on a new record (legacy-compatible
+        # shape); explicitly supplied values, including null, are persisted.
+        persisted_fields = {
+            key: value for key, value in optional.items() if value is not _UNSET
+        }
+        validation_fields = {
+            key: (None if value is _UNSET else value)
+            for key, value in optional.items()
+        }
+        self._validate_connection_fields(
+            backend=backend,
+            model=model,
+            base_url=base_url,
+            credential_ref=credential_ref,
+            **validation_fields,
+        )
         compensation = _Compensation()
         try:
             if credential_ref and credential_value:
@@ -143,6 +186,7 @@ class ConnectionService:
                 base_url=base_url,
                 credential_ref=credential_ref,
                 enabled=enabled,
+                **persisted_fields,
                 actor=actor,
                 request_id=request_id,
             )
@@ -164,12 +208,18 @@ class ConnectionService:
         actor: str,
         title: str | None = None,
         enabled: bool | None = None,
+        backend: Any = _UNSET,
         model: Any = _UNSET,
         base_url: Any = _UNSET,
         credential_ref: Any = _UNSET,
         credential_action: str = "keep",
         credential_value: str | None = None,
         clear_defaults: bool = False,
+        auth_mode: Any = _UNSET,
+        project: Any = _UNSET,
+        location: Any = _UNSET,
+        model_path: Any = _UNSET,
+        litert_backend: Any = _UNSET,
     ) -> dict[str, Any]:
         if credential_action not in VALID_CREDENTIAL_ACTIONS:
             raise SettingsConfigInvalid(
@@ -184,12 +234,25 @@ class ConnectionService:
             updates["title"] = title
         if enabled is not None:
             updates["enabled"] = enabled
-        if model is not _UNSET:
-            updates["model"] = model
-        if base_url is not _UNSET:
-            updates["base_url"] = base_url
-        if credential_ref is not _UNSET:
-            updates["credential_ref"] = credential_ref
+        if backend is not _UNSET:
+            if not isinstance(backend, str) or not backend:
+                raise SettingsConfigInvalid(
+                    "backend must be a non-empty string when supplied",
+                    diagnostics=[{"code": "backend_invalid", "location": "backend"}],
+                )
+            updates["backend"] = backend
+        for key, value in (
+            ("model", model),
+            ("base_url", base_url),
+            ("credential_ref", credential_ref),
+            ("auth_mode", auth_mode),
+            ("project", project),
+            ("location", location),
+            ("model_path", model_path),
+            ("litert_backend", litert_backend),
+        ):
+            if value is not _UNSET:
+                updates[key] = value
 
         if credential_action == "remove":
             updates["credential_ref"] = None
@@ -215,11 +278,47 @@ class ConnectionService:
                 )
             updates["credential_ref"] = target_ref
 
-        final_model = updates.get("model", current.model)
-        final_base_url = updates.get("base_url", current.base_url)
-        self._repo.validate_backend(
-            current.backend, model=final_model, base_url=final_base_url
+        final = {
+            "backend": updates.get("backend", current.backend),
+            "model": updates.get("model", current.model),
+            "base_url": updates.get("base_url", current.base_url),
+            "credential_ref": updates.get("credential_ref", current.credential_ref),
+            "auth_mode": updates.get("auth_mode", current.auth_mode),
+            "project": updates.get("project", current.project),
+            "location": updates.get("location", current.location),
+            "model_path": updates.get("model_path", current.model_path),
+            "litert_backend": updates.get("litert_backend", current.litert_backend),
+        }
+        self._validate_connection_fields(**final)
+
+        # Do not silently carry a stored key to a different provider/auth mode or
+        # endpoint recipient.  The old secret file is never deleted here; it is
+        # merely detached so no later test/execution can send it to a new target.
+        old_identity = credential_recipient_identity(
+            backend=current.backend,
+            auth_mode=current.auth_mode,
+            base_url=current.base_url,
+            project=current.project,
+            location=current.location,
+            credential_ref=current.credential_ref,
         )
+        new_identity = credential_recipient_identity(
+            backend=final["backend"],
+            auth_mode=final["auth_mode"],
+            base_url=final["base_url"],
+            project=final["project"],
+            location=final["location"],
+            credential_ref=final["credential_ref"],
+        )
+        if (
+            old_identity != new_identity
+            and credential_action == "keep"
+            and not credential_value
+            and final["credential_ref"]
+        ):
+            updates["credential_ref"] = None
+            final["credential_ref"] = None
+        self._validate_connection_fields(**final)
 
         refs = self.references_to(connection_id)
         disabling = enabled is False and current.enabled
@@ -509,10 +608,10 @@ class ConnectionService:
                 detail=f"{role}_default_disabled",
             )
         registration = self._repo.registry.backend(connection.backend)
-        if registration is None or not registration.verified:
+        if registration is None or not registration.executable:
             raise ConnectionReferenceInvalid(
-                f"default {role} connection {ref!r} uses unverified backend "
-                f"{connection.backend!r}",
+                f"default {role} connection {ref!r} uses a backend that is not "
+                f"executable in this build ({connection.backend!r})",
                 kind="connection",
                 ref=ref,
                 detail=f"{role}_default_unverified",
@@ -527,6 +626,7 @@ class ConnectionService:
         summary = connection.to_dict()
         summary["resolved"] = True
         summary["credential"] = self.credential_status(connection.credential_ref).to_dict()
+        summary["capabilities"] = self._repo.capabilities(connection.backend)
         return summary
 
     # ------------------------------------------------------------ credentials
@@ -606,6 +706,11 @@ class ConnectionService:
                 "model": connection.model,
                 "base_url": connection.base_url,
                 "credential_ref": connection.credential_ref,
+                "auth_mode": connection.auth_mode,
+                "project": connection.project,
+                "location": connection.location,
+                "model_path": connection.model_path,
+                "litert_backend": connection.litert_backend,
                 "credential_version": credential.version,
             },
             sort_keys=True,
@@ -630,7 +735,116 @@ class ConnectionService:
         payload["credential"] = self.credential_status(connection.credential_ref).to_dict()
         refs = self.references_to(connection.id)
         payload["references"] = refs.to_dict()
+        payload["capabilities"] = self._repo.capabilities(connection.backend)
         return payload
+
+    # --------------------------------------------------------- provider policy
+    def validate_connection_spec(
+        self,
+        *,
+        backend: str,
+        model: str | None,
+        base_url: str | None = None,
+        auth_mode: str | None = None,
+        project: str | None = None,
+        location: str | None = None,
+        model_path: str | None = None,
+        litert_backend: str | None = None,
+        credential_ref: str | None = None,
+    ) -> str:
+        """Validate a complete provider spec (saved or draft); return auth mode.
+
+        The draft endpoint uses this exact path, so an unsaved provider is held
+        to the same matrix as a saved one.  No secret value is accepted here.
+        """
+
+        self._validate_connection_fields(
+            backend=backend,
+            model=model,
+            base_url=base_url,
+            credential_ref=credential_ref,
+            auth_mode=auth_mode,
+            project=project,
+            location=location,
+            model_path=model_path,
+            litert_backend=litert_backend,
+        )
+        return effective_auth_mode(
+            backend,
+            auth_mode,
+            project=project,
+            location=location,
+            credential_ref=credential_ref,
+        )
+
+    def _validate_connection_fields(
+        self,
+        *,
+        backend: str,
+        model: str | None,
+        base_url: str | None,
+        credential_ref: str | None,
+        auth_mode: str | None = None,
+        project: str | None = None,
+        location: str | None = None,
+        model_path: str | None = None,
+        litert_backend: str | None = None,
+    ) -> None:
+        self._repo.validate_backend(
+            backend,
+            model=model,
+            base_url=base_url,
+            auth_mode=auth_mode,
+            project=project,
+            location=location,
+            model_path=model_path,
+            litert_backend=litert_backend,
+            credential_ref=credential_ref,
+        )
+        if backend == "litert":
+            self._validate_model_path(model_path)
+
+    def _validate_model_path(self, model_path: str | None) -> None:
+        """Keep LiteRT model paths inside configured roots without reading them.
+
+        The existing Store path policy is the lexical/symlink containment choke
+        point.  This validation only resolves/stats the path; it never reads file
+        contents and never installs/downloads anything.
+        """
+
+        if not model_path:
+            return
+        if not self._allowed_model_roots:
+            raise SettingsConfigInvalid(
+                "no configured LiteRT model root is available",
+                diagnostics=[
+                    {"code": "model_root_unavailable", "location": "connection.model_path"}
+                ],
+            )
+        candidate = Path(model_path)
+        allowed = False
+        for root in self._allowed_model_roots:
+            root_abs = Path(str(root)).expanduser().absolute()
+            try:
+                resolved = (
+                    Path(model_path).expanduser().absolute()
+                    if candidate.is_absolute()
+                    else (root_abs / candidate).absolute()
+                )
+                resolved = resolved.resolve(strict=False)
+                real_root = root_abs.resolve(strict=False)
+                resolved.relative_to(real_root)
+            except (OSError, ValueError):
+                continue
+            allowed = True
+            break
+        if not allowed:
+            raise SettingsConfigInvalid(
+                "LiteRT model_path must resolve inside an allowed model root",
+                diagnostics=[
+                    {"code": "model_path_outside_roots", "location": "connection.model_path"}
+                ],
+            )
 
 
 __all__ = ["ConnectionService"]
