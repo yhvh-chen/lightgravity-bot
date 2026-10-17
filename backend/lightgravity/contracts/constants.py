@@ -3,6 +3,17 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
+#: docs/08 §13/§17: 1.16.0 (2026-10-17) is the additive MINOR bump for the
+#: LG-066 global/Team Task-ID status query registered by the generic
+#: integration: the existing global-conversation POST response gains the
+#: additive ``query``/``clarify`` kinds and a read-only ``data`` snapshot (plus
+#: clarification markers).  Missing/malformed/unknown/multiple Task IDs
+#: clarify instead of guessing; a successful query never creates a Task/Run,
+#: dispatches a worker or calls a model.  No new endpoint, request field,
+#: error code, entity schema, state/phase/acceptance enum, transition,
+#: role/recruitment flow, execution budget or provider; ordinary team messages
+#: stay ``recorded`` and frontend minimum compatibility is unchanged.
+#:
 #: docs/08 §13/§16: 1.15.0 (2026-10-17) is the additive MINOR bump for the
 #: LG-062 account-management milestone: team-only admin ``/api/v1/accounts*``
 #: endpoints and the self-service ``POST /api/v1/account/password`` endpoint,
@@ -130,7 +141,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.15.0"
+CONTRACT_VERSION = "1.16.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

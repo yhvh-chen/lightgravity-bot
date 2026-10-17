@@ -38,8 +38,12 @@ def test_frozen_constants() -> None:
     # 1.15.0 (LG-062 account management: additive team-only ``/accounts*`` and
     # ``/account/password`` endpoints, additive account ``enabled``/``revision``/
     # ``session_version`` fields, session invalidation, last-active-admin guard
-    # and the ``accounts`` health capability). Additive MINOR only.
-    assert CONTRACT_VERSION == "1.15.0"
+    # and the ``accounts`` health capability) -> 1.16.0 (LG-066 global/Team
+    # Task-ID status query: additive ``query``/``clarify`` response kinds and a
+    # read-only ``data`` snapshot on the existing global-messages endpoint;
+    # explicit legal Task ID only, no guess, no Task/Run/worker/model side
+    # effect). Additive MINOR only.
+    assert CONTRACT_VERSION == "1.16.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 

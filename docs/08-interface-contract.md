@@ -2,13 +2,17 @@
 title: "首版接口与状态契约（v1）"
 doc_type: specification
 category: architecture
-contract_version: "1.13.0"
-updated: "2026-10-16"
+contract_version: "1.16.0"
+updated: "2026-10-17"
 ---
 
 # 首版接口与状态契约（v1）
 
-> **当前契约 1.13.0（2026-10-16，LG-050 加性 MINOR）**：新增显式启用的共享团队模式、账号会话端点、服务端消息作者及 `forbidden` 错误码。范围见 §14；已本地合入并通过独立 QA（PASS_WITH_LIMITATIONS，含真实 HTTP、CLI 与 Firefox 双用户上下文端到端），[证据](../probes/team-chat-20261016/qa/QA-REPORT.md)。用户最终验收待定。默认单用户行为保持；下方长段版本记录自 1.12.0 起为历史沿革，不是当前版本号。
+> **当前契约 1.16.0（2026-10-17，LG-066 全局查询/澄清的加性 MINOR）**：在既有全局会话消息端点上加性新增 `query`/`clarify` 响应与只读状态 `data` 快照；按消息内显式合法 Task ID 解析，缺失、非法、未知或出现多个不同 ID 时诚实澄清，绝不猜测目标；成功查询只读持久状态并返回 `creates_task=false`/`creates_run=false`，不创建 Task/Run/worker、不调用模型；回复写入共享全局会话，Personal 仍仅聊天且按身份隔离。范围与精确响应见 §17。无新端点、请求字段、错误码、实体 schema、状态/阶段/验收枚举、迁移方向、角色、招募流程或执行预算。默认单用户与 1.15 团队行为保持；前端最低兼容仍为 `>=1.13,<2`（加性兼容，无需提高）。
+>
+> **基线对齐（合并时必须保留）**：本候选提交树的 docs/08 历史最高版本行仍为 1.13.0；1.14.0（Personal，§15）与 1.15.0（账户管理，§16）的契约正文与版本表行只存在于根工作区未提交的 docs/08 中，产品 `CONTRACT_VERSION` 常量在本候选树已是 1.15.0。§17 按与根工作区合并后的目标编号；合并时必须保留 §15/§16、1.14.0/1.15.0 版本行与“上一契约 1.14.0/1.15.0”说明，只应用本补丁的 1.16.0 头、1.16.0 版本行与 §17，不得用本候选提交树覆盖根工作区版本历史。`README.md`、`agent.md`、`docs/06` 的版本引用属于根工作区未提交文档，另行由主集成更新，不在本补丁内。
+>
+> **上一契约（候选提交树基线）1.13.0（2026-10-16，LG-050 加性 MINOR）**：新增显式启用的共享团队模式、账号会话端点、服务端消息作者及 `forbidden` 错误码。范围见 §14；已本地合入并通过独立 QA（PASS_WITH_LIMITATIONS，含真实 HTTP、CLI 与 Firefox 双用户上下文端到端），[证据](../probes/team-chat-20261016/qa/QA-REPORT.md)。用户最终验收待定。默认单用户行为保持；下方长段版本记录自 1.12.0 起为历史沿革，不是当前版本号。
 
 > 性质：LG-001 冻结的候选实现契约。它把 [产品与架构设计](01-design.md)、[Task 与 SDK 资源契约](02-task-and-sdk-resources.md)、[Bot 行为契约](04-bot-behavior.md)、[SDK 能力审计](03-sdk-capability-audit.md)、[导航设计](05-navigation-and-team.md)、[模型设置](07-settings-and-models.md) 收敛到可实现的接口与状态边界，不新增产品能力，也不代表功能已实现或经过运行时验证。
 >
@@ -339,6 +343,7 @@ ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间�
 - 执行中的状态查询与控制消息不排队等待代码任务结束。
 - Task 消息信封可携带**加性可选字段** `resource_proposal`（`{kind, id, expected_revision, patch, body}`）：它是程序结构而非自然语言，只接受已认证的 `role=user` Task 消息。协调器在写入前完成 allow-list、adapter schema、引用解析与 `expected_revision` 校验，再调用 `ResourceService.update`；实际结果/冲突写回同一 Task 对话（`message.appended`，回写 assistant 消息附 `resource_result.status`，取值 `applied`/`conflict`/`rejected`/`invalid_proposal`/`unauthorized_source`），不创建 Run、不等待代码任务、不让 model/worker 直接写控制。连接类资源仍走 Settings。
 - 全局对话（`GET/POST /api/v1/conversations/global/messages`）只暴露**单例 global 会话**；`POST` 以 `message_id` 幂等，可选 `request_id` 作为控制副作用第二道幂等键；`workspace_ref`/`agent_ref` 来源受限——只接受服务端已授权的 workspace（经 `Store.resolve_path` 限制在授权根内）与已知 agent 引用，越界或不存在返回 `path_outside_workspace`/`reference_invalid`，不允许浏览器直接指定任意执行身份。该端点只做消息持久与路由，不新建会话平台。
+- 全局/Team 状态查询（`1.16.0`，§17）：对既有 `POST /conversations/global/messages` 的**加性响应扩展**——成功返回 `kind:"query"` 与只读持久状态 `data` 快照；缺失、非法、未知或出现多个不同 Task ID 返回 `kind:"clarify"` 与对应非秘密标记。两者都不创建 Task/Run/worker、不调用模型；普通未 mention 的团队消息仍为 `kind:"recorded"`、`reply:null`。请求 schema 不变，`task_ref` 不是客户端字段。
 - 资料接入消息（`1.6.0`，LG-033，未实现）：资料消息可复用现有 `attachments`（`{path, media_type}`），**不新增**与 `resource_proposal` 混淆的字段；`resource_proposal` 仅用于受控资源写，不用于资料摄取。上传文件/消息的 frontmatter **不是**受信 Task/资源配置或指令，未知字段保留但**不获得执行语义**（不得 import/eval、不得启动 MCP/Trigger、不得改控制状态，§6.6）。
 
 ## 6. 实体状态契约
@@ -758,7 +763,7 @@ class ExecutorAdapter(Protocol):
 
 LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与版本 QA）：
 
-- [ ] 契约版本与 `/api/v1`、`lightgravity.bot/v1` 在本文一致声明（LG-001 冻结 `1.0.0`；当前 `1.13.0`，变更记录见第 13 节）。
+- [ ] 契约版本与 `/api/v1`、`lightgravity.bot/v1` 在本文一致声明（LG-001 冻结 `1.0.0`；当前 `1.16.0`，变更记录见第 13 节；本候选提交树的 1.14.0/1.15.0 版本表基线说明见第 13 节）。
 - [ ] ID 语法、时间格式、命名约定明确，且与 docs/02 资源示例的差异有说明。
 - [ ] API 端点表覆盖首版所需路径，错误码表覆盖配置失败、冲突、取消未确认、能力不可用、验收过期。
 - [ ] Task/Subtask/Run/Member 状态枚举、合法组合与迁移方向齐备，无 `done + executing` 类矛盾。
@@ -772,10 +777,12 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 ## 13. 变更控制与证据
 
 - 契约版本：新增向后兼容字段/事件类型为 MINOR；改字段语义、枚举、状态迁移或删除端点为 MAJOR，必须同步 README、agent.md、docs/06 与相关设计，并记录迁移影响。
+- **版本表基线说明（本候选提交树）**：下表从 `1.16.0` 直接到 `1.13.0`，缺少 `1.14.0`/`1.15.0` 两行，因为其正文与版本行只存在于根工作区未提交的 docs/08（§15/§16）；产品 `CONTRACT_VERSION` 常量已是 `1.15.0`。合并到根工作区时必须保留既有 `1.14.0`/`1.15.0` 行，仅加入 `1.16.0` 行与 §17。
 - 变更记录：
 
 | 版本 | 日期 | 级别 | 变更 | API/实体字段影响 |
 |---|---|---|---|---|
+| `1.16.0` | 2026-10-17 | MINOR | LG-066 全局/Team 状态查询与澄清的契约登记（实现随 generic 候选集成，§17）：既有 `POST /api/v1/conversations/global/messages` 加性新增响应 `kind:"query"`/`kind:"clarify"`、只读 `data` 快照与澄清标记；只按消息内显式合法 Task ID 唯一解析，缺失/非法/未知/多个不同 ID 时澄清，不猜测；成功查询不创建 Task/Run/worker、不调用模型，回复写入共享全局会话；Personal 仍 `switch_to_team` 且按身份隔离。**不新增**端点、请求字段、错误码、实体 schema、`state`/`phase`/`acceptance` 枚举、迁移方向、角色、招募流程、执行预算或供应商。普通团队消息仍 `recorded`；未知 `kind`/加性 `data` 可忽略。前端最低契约保持 `1.13.0`。 |
 | `1.13.0` | 2026-10-16 | MINOR | LG-050 共享团队模式**实现**（接口范围见 §14）：显式、默认关闭的团队模式；新增 `/api/v1/auth/me|login|logout` 会话端点；消息加性可选 `author:{kind,username,role}`（服务端按会话写入）；新增 `forbidden`（403）错误码；`GET /auth/me` 以 `mode:"single"|"team"` 供前端判别。详见 [probes/team-chat-20261016](../probes/team-chat-20261016/README.md) | **仅新增可选端点、加性可选消息字段与一个新的错误码**；不改变既有端点、`state`/`phase`/`acceptance` 枚举或迁移方向；默认单用户逐字不变；`X-LG-Token` 不构成团队身份；团队模式匿名业务访问 default-deny。无秘密，账号仅存盐+哈希 |
 | `1.9.0` | 2026-10-16 | MINOR | 首版返修后的串行集成收拢（唯一集成 owner）：① 新增加性可逆归档——`source` 加性布尔字段 `archived`（默认 `false`，§6.6）、`POST /sources/{id}/actions` 新增 `archive`/`unarchive` 动作与可选 `expected_revision`（§4.3、§6.6）；② 挂载 LG-037 可选向量端点 `GET /vector/status`、`GET /vector/search`、`POST /vector/rebuild`（§4.3、§6.6，默认禁用、仅环境变量配置、候选回源核对） | **仅新增可选非秘密字段、两个可逆动作与三个可选端点**；不改变 `revoke`/`delete` 语义（撤销仍 `status=archived` + 失效命中），不新增事件类型，不改变 `state`/`phase`/`acceptance`/`source.status` 枚举；向量默认关闭，不可用时词法/原件仍可用；不新增供应商、秘密表单或常驻编排 agent |
 | `1.10.0` | 2026-10-16 | MINOR | LG-022 第二轮针对性返修（REFIX-R2）：① 停止门可接受**真实停止事实**（§9）——成功 Run 的 `cleanup` 常为 `pending`，停止门除 `cleanup=done` 外接受权威适配器停止确认（SDK session `__aexit__` / loopback 代理真实关闭），Run 加性新增可选 `reviewer_cleanup`（`{status,confirmed,...}`）；未知/仍活跃/关闭失败保留 `unconfirmed` 与 `session_refs`，不伪 `done`。② `GET /api/v1/diagnostics/generation` 加性新增 `persistent`（及损坏时 `corrupt`/`reason`）——全局生成计数改为受控 dataRoot 下持久账本，转发前持久预留，跨重启不归零，损坏绝不当 0 | **仅新增可选非秘密字段/诊断字段与停止门事实来源**；不新增端点、错误码、`state`/`phase`/`acceptance` 枚举或迁移方向；不改远端 exactly-once 语义；不新增供应商/秘密表单/常驻编排 agent |
@@ -808,6 +815,7 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 | 独立复核者配置/装配/无 reviewer 阻止 accept/真实 SDK reviewer 路径（§5.1、§6.1、§6.5、§9） | LG-017、**LG-022（集中 QA）** |
 | 去中心化发现/领取/租约 fencing/协作/预算（§4.3、§5.1、§6.2、§6.3） | LG-029、LG-030、LG-031、**LG-032（集中 QA）** |
 | 资料摄取/来源版本/去重/回源/索引失效与可选向量降级（§4.3、§5.1、§6.6） | LG-034～038、LG-039、**LG-040（集中 QA）** |
+| 全局/Team 状态查询：唯一合法 Task ID、澄清、只读快照、不建 Task/Run、Personal/团队权限（§17） | LG-096（独立 QA）、LG-097 分类修复串行集成后最终复验 |
 
 ## 14. 共享团队模式（1.13.0，LG-050，独立 QA 通过、有限制）
 
@@ -850,6 +858,71 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 - 前端启动探测 `/auth/me` 为显式三态：探测中显示 Loading；仅**明确 `mode:"single"` 或 legacy `404`** 进入单用户工作台；网络/服务端错误显示可重试错误，绝不乐观降级为单用户绕过登录。团队匿名才显示登录门。
 
 LG-050 已本地合入并通过独立技术 QA；限制和真实证据见上述报告。本次未重验真实模型/SDK 交付链路，未发布部署。
+
+## 17. 全局/Team 状态查询与澄清（1.16.0，LG-066 实现与 generic 集成的契约登记）
+
+> 加性 MINOR，**不是新功能授权**：HTTP 行为与前端 `reply` 渲染已在 generic 集成候选中；本节只把已实现的公开行为登记到 docs/08。未新增端点、请求字段、错误码、实体 schema、状态/阶段/验收枚举、迁移方向、角色、招募流程、执行预算或供应商。默认单用户与 1.15 团队模式保持。
+
+### 17.1 请求、身份与目标解析
+
+- 复用 `POST /api/v1/conversations/global/messages` 与既有 `GlobalMessageRequest`；请求字段不变（`message_id`、`content`、`role`、`attachments`、`correlation_id`、`request_id`、`workspace_ref`、`agent_ref`、`selected_sources`）。**不新增** `task_ref`/`task_id` 客户端字段；`extra="forbid"` 保持，客户端自报 `author`/`owner` 等仍为 `422`。
+- Team 模式：匿名 `401 unauthorized`；已登录 `member`/`admin` 均可查询同一共享工作区的 Task。仅显式 `@bot`（`LIGHTGRAVITY_TEAM_BOT_MENTION`）消息进入分类与查询路由；未 mention 的普通消息仍只持久化。Personal 通道不执行此查询：状态查询作为非聊天请求返回 `kind:"switch_to_team"`，不创建 Task/Run、不写共享全局/Task 日志或事件、不跨用户可见。
+- 单用户模式：沿用既有全局入口，无需 mention；Personal 复用同一全局会话，行为与旧单用户全局对话一致。
+- Task 目标只来自消息正文中的**精确合法** `task_<26 位 Crockford Base32>` token（§3.1）；内部调用提供的合法 `task_ref` 可作为唯一目标。**没有**“最近/唯一活跃 Task”猜测，也不做跨实例全局解析：另一实例未持有的合法 ID 仍按未知澄清。
+- 任何 task 形状但不符合精确语法的 token 均记为非法；非法 token 与合法 token 同时出现时仍先澄清非法值，不执行部分解析。
+
+### 17.2 响应与只读状态快照
+
+成功（唯一合法且存在的 Task）沿用既有结果信封，加性扩展如下；示例由当前实现组装，**不是**新增 JSON Schema：
+
+```json
+{
+  "kind": "query",
+  "reply": "Task task_...: status=done phase=completed queue=... run=... 只读查询，未创建或启动 Task/Run。",
+  "task_id": "task_...",
+  "run_id": null,
+  "conversation_id": "conv_...",
+  "queue_state": null,
+  "candidates": [],
+  "data": {
+    "task_id": "task_...",
+    "status": "done | in-progress | todo",
+    "phase": "<现有 TaskPhase>",
+    "revision": 3,
+    "queue": {"state": "<队列状态|null>", "order": 1, "owner": "<owner|null>"},
+    "active_run": "run_...|null",
+    "run_state": "<现有 RunState|missing|null>",
+    "archived": false,
+    "acceptance_status": "<现有 acceptance.status|null>",
+    "candidate_ref": "<当前候选引用|null>",
+    "artifact_refs": ["evidence:<run_id>/<name>@sha256:<hex>"],
+    "creates_task": false,
+    "creates_run": false
+  }
+}
+```
+
+- `status`/`phase`/`run_state`/`acceptance_status` 只使用既有 §6 取值；`run_state` 额外允许 `missing` 表示 `active_run` 指针指向已不存在的 Run。`queue_state`/`run_id`/`queue`/候选/验收/产物字段可为 `null` 或空。`artifact_refs` 是持久化字符串引用列表（沿用既有 canonical evidence 引用），不新增产物实体。
+- `data` 是**读取时快照**，可能立即过期；它不是租约、锁、预留或执行授权。查询只读持久 TASK/RUN 状态，不打开 worker/session、不创建或调度 Run、不调用模型、不修改 Task/Run/队列/验收状态。
+- 查询回复以确定性 assistant 消息写入**同一共享全局会话**，所有登录成员可见；相同 `message_id` 幂等，不重复追加。
+
+澄清（`kind:"clarify"`、`task_id:null`、`reply` 说明原因并明确未创建/启动任何任务）：
+
+| 情况 | `data` 加性标记 |
+|---|---|
+| 没有 Task ID | `{intent, missing_task_id:true}` |
+| 非法 Token | `{intent, invalid_task_ids:[...]}` |
+| 多个不同合法 ID | `{intent, ambiguous:true, task_ids:[...]}` |
+| 合法但未知 | `{intent, unknown_task_id:"task_..."}` |
+
+澄清回复同样持久化到共享会话，但绝不创建 Task/Run/worker、不调用模型；`candidates` 不用于这类查询澄清（仍保留给既有控制目标解析）。普通 Team 消息保持 `kind:"recorded"`、`reply:null`、`data:{"intent":"recorded","creates_task":false}`，不做查询、不写 assistant 回复。
+
+### 17.3 兼容、边界与版本判定
+
+- **为什么是 MINOR**：既有端点与请求 schema 不变，普通消息行为不变；仅新增 `kind` 取值与 `data` 加性键。不知道 `query`/`clarify` 的客户端仍有 `reply`/`task_id`，并可忽略未知 `data`。无新错误码，失败沿用既有 `unauthorized`/校验语义。未新增 health capability；前端最低兼容仍为 `>=1.13,<2`，通过既有 `reply` 路径渲染，不做版本门控。按 §13“新增向后兼容字段/事件类型为 MINOR”记为 `1.16.0`。
+- **不构成 MAJOR**：旧全局查询曾可能落入未冻结的通用回退（`data.record_seq` + 通用 reply），但该形状从未写入 §5.2/§14.3；docs/04 已要求显式目标与不猜测。本节冻结校正后的行为，因此不属于改动已冻结字段语义。
+- **分类边界**：查询入口仍使用既有分类器；包含状态词汇的交付描述仍可能被分类为查询，这是独立的分类器缺陷（LG-097），本节不修、不新增优先级规则，也不代表其已修复。
+- **验证边界**：确定性 coordinator/HTTP 测试与前端渲染属于 generic 候选证据；独立版本 QA 仍待 LG-096，LG-097 串行修复后需最终复验。本节不声称真实 SDK/模型验证。
 
 ## 参考
 
