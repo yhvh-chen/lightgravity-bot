@@ -31,6 +31,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+from threading import Lock
 from typing import Any
 from urllib.parse import urlparse
 
@@ -172,10 +173,13 @@ class ConnectionTester:
         self._allow_loopback_upstream = allow_loopback_upstream
         self._max_network_calls = max_network_calls
         self._network_calls = 0
+        self._network_calls_lock = Lock()
 
     @property
     def network_calls(self) -> int:
-        return self._network_calls
+        """Cumulative attempted requests for diagnostics, not a shared budget."""
+        with self._network_calls_lock:
+            return self._network_calls
 
     def test(
         self,
@@ -302,7 +306,10 @@ class ConnectionTester:
                     detail="network test not requested (allow_network=false)",
                 )
             )
-        if self._network_calls >= self._max_network_calls:
+        # This layer makes exactly one request per explicit test invocation.
+        # Each invocation gets its own allowance; the cumulative diagnostic
+        # count must never gate another invocation (including concurrent ones).
+        if self._max_network_calls <= 0:
             return _LayerOutcome(
                 TestLayerResult(
                     name=LAYER_RUNTIME_NETWORK,
@@ -342,7 +349,8 @@ class ConnectionTester:
                     name=LAYER_RUNTIME_NETWORK, status="failed", detail=str(exc)
                 )
             )
-        self._network_calls += 1
+        with self._network_calls_lock:
+            self._network_calls += 1
         try:
             body = json.dumps(
                 {

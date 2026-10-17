@@ -156,7 +156,7 @@ def test_optional_probe_layers_are_separate_and_skipped(service: ConnectionServi
     assert structured is not None and structured.status == "skipped"
 
 
-def test_network_budget_is_bounded(service: ConnectionService) -> None:
+def test_network_budget_is_per_explicit_invocation(service: ConnectionService) -> None:
     _connection(service)
 
     def http_post(url: str, body: bytes, timeout: float) -> tuple[int, dict[str, Any]]:
@@ -166,5 +166,42 @@ def test_network_budget_is_bounded(service: ConnectionService) -> None:
     first = tester.test("deepseek", allow_network=True)
     second = tester.test("deepseek", allow_network=True)
     assert first.layer(LAYER_RUNTIME_NETWORK).status == "passed"  # type: ignore[union-attr]
-    assert second.layer(LAYER_RUNTIME_NETWORK).status == "skipped"  # type: ignore[union-attr]
-    assert tester.network_calls == 1
+    assert second.layer(LAYER_RUNTIME_NETWORK).status == "passed"  # type: ignore[union-attr]
+    assert tester.network_calls == 2
+
+
+def test_zero_network_budget_blocks_every_invocation(service: ConnectionService) -> None:
+    _connection(service)
+
+    def forbidden(*args: Any) -> Any:
+        raise AssertionError('zero budget must not make a request')
+
+    tester, created = _make_tester(service, forbidden, max_network_calls=0)
+    for _ in range(2):
+        result = tester.test('deepseek', allow_network=True)
+        network = result.layer(LAYER_RUNTIME_NETWORK)
+        assert network is not None and network.status == 'skipped'
+        assert 'budget exhausted' in network.detail
+    assert tester.network_calls == 0
+    assert created == []
+
+
+def test_failed_invocation_does_not_retry_or_spend_next_budget(
+    service: ConnectionService,
+) -> None:
+    _connection(service)
+    attempts = 0
+
+    def fail(url: str, body: bytes, timeout: float) -> tuple[int, dict[str, Any]]:
+        nonlocal attempts
+        attempts += 1
+        raise TimeoutError('local simulated timeout')
+
+    tester, created = _make_tester(service, fail)
+    for expected in (1, 2):
+        result = tester.test('deepseek', allow_network=True)
+        network = result.layer(LAYER_RUNTIME_NETWORK)
+        assert network is not None and network.status == 'failed'
+        assert attempts == expected
+    assert tester.network_calls == 2
+    assert all(not proxy.is_running for proxy in created)
