@@ -1,0 +1,313 @@
+$ npx vitest run
+
+ RUN  v2.1.9 /home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend
+
+ ✓ tests/lg038-materials.test.tsx (15 tests) 444ms
+stderr | tests/resources.test.tsx > LG-015 Resources: connection ownership > sends Connection edits to Settings instead of building a second model list
+Warning: An update to ResourcesView inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ResourcesView (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/resources/ResourcesView.tsx:51:39)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at ViewWithState (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/tests/resources.test.tsx:108:3)
+
+stderr | tests/resources.test.tsx > LG-015 Resources: connection ownership > routes a Connection reference to Settings with the stable id
+Warning: An update to ResourcesView inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ResourcesView (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/resources/ResourcesView.tsx:51:39)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at ViewWithState (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/tests/resources.test.tsx:108:3)
+
+ ✓ tests/lg044-selected-material.test.tsx (15 tests) 626ms
+ ✓ tests/resources.test.tsx (10 tests) 1240ms
+ ✓ tests/settings.test.tsx (8 tests) 1430ms
+   ✓ LG-026 Settings: save, conflict and credentials > surfaces a real revision conflict, reloads the latest revision and retries safely 301ms
+ ✓ tests/team-auth.test.tsx (11 tests) 1489ms
+   ✓ LG-050 auth: login gate > shows the login gate for an unauthenticated team session and enters the workspace after login 456ms
+   ✓ LG-050 auth: identity, logout and admin entry > enables Settings for both roles; members reach only My Account 400ms
+ ✓ tests/board.test.tsx (25 tests) 2647ms
+ ✓ tests/files.test.tsx (11 tests) 769ms
+ ✓ tests/provider-setup.test.tsx (20 tests) 3357ms
+   ✓ LG-110 modal lifecycle and accessibility > opens one accessible modal, traps Tab, makes the background inert and returns focus on close 305ms
+   ✓ LG-110 modal lifecycle and accessibility > keeps the draft when the dirty-close confirmation is cancelled, then discards on request 385ms
+ ✓ tests/lg062-accounts.test.tsx (10 tests) 916ms
+stderr | tests/shell.test.tsx > Single navigation shell > dismisses search on navigation so Files task controls are not covered
+Warning: An update to TaskDirectory inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TaskDirectory (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/files/TaskDirectory.tsx:11:26)
+    at div
+    at FilesView (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/files/FilesView.tsx:50:54)
+    at div
+    at main
+    at div
+    at div
+    at AppShell (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AppShell.tsx:26:53)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at AuthGate (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/App.tsx:14:70)
+    at AuthProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AuthProvider.tsx:52:25)
+    at App
+Warning: An update to FilesPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at FilesPanel (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/files/FilesView.tsx:97:3)
+    at div
+    at FilesView (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/files/FilesView.tsx:50:54)
+    at div
+    at main
+    at div
+    at div
+    at AppShell (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AppShell.tsx:26:53)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at AuthGate (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/App.tsx:14:70)
+    at AuthProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AuthProvider.tsx:52:25)
+    at App
+Warning: An update to FilesPanel inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at FilesPanel (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/files/FilesView.tsx:97:3)
+    at div
+    at FilesView (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/files/FilesView.tsx:50:54)
+    at div
+    at main
+    at div
+    at div
+    at AppShell (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AppShell.tsx:26:53)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at AuthGate (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/App.tsx:14:70)
+    at AuthProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AuthProvider.tsx:52:25)
+    at App
+
+stderr | tests/lg057-channel-regression.test.tsx > LG057 private UI isolation > unmounts shared attachment controls in private Personal and restores them in Team
+Warning: An update to ChatBody inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ChatBody (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/chat/ChatBody.tsx:39:21)
+    at Harness (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/tests/lg057-channel-regression.test.tsx:34:20)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at AuthProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AuthProvider.tsx:52:25)
+Warning: An update to ChatBody inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at ChatBody (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/chat/ChatBody.tsx:39:21)
+    at Harness (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/tests/lg057-channel-regression.test.tsx:34:20)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at AuthProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AuthProvider.tsx:52:25)
+
+ ✓ tests/lg057-channel-regression.test.tsx (9 tests) 1326ms
+   ✓ LG057 single-user preservation > keeps Files-style task navigation and materials in Personal with Team disabled 458ms
+ ✓ tests/team.test.tsx (10 tests) 1004ms
+stderr | tests/shell.test.tsx > Task state and one conversation > can hide the optional right chat without creating another conversation
+Warning: An update to BoardBody inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BoardBody (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/board/BoardBody.tsx:28:22)
+    at BoardView
+    at div
+    at main
+    at div
+    at div
+    at AppShell (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AppShell.tsx:26:53)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at AuthGate (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/App.tsx:14:70)
+    at AuthProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AuthProvider.tsx:52:25)
+    at App
+Warning: An update to BoardBody inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BoardBody (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/board/BoardBody.tsx:28:22)
+    at BoardView
+    at div
+    at main
+    at div
+    at div
+    at AppShell (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AppShell.tsx:26:53)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at AuthGate (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/App.tsx:14:70)
+    at AuthProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AuthProvider.tsx:52:25)
+    at App
+Warning: An update to BoardBody inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BoardBody (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/board/BoardBody.tsx:28:22)
+    at BoardView
+    at div
+    at main
+    at div
+    at div
+    at AppShell (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AppShell.tsx:26:53)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at AuthGate (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/App.tsx:14:70)
+    at AuthProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AuthProvider.tsx:52:25)
+    at App
+
+ ✓ tests/chat-author.test.tsx (8 tests) 725ms
+ ✓ tests/lg054-personal-team.test.tsx (5 tests) 617ms
+ ✓ tests/shell.test.tsx (16 tests) 3545ms
+   ✓ Single navigation shell > provides resource categories directly and pins Settings after work entries 489ms
+   ✓ Single navigation shell > opens resources from navigation and restores the selected category on refresh 419ms
+   ✓ Single navigation shell > dismisses search on navigation so Files task controls are not covered 360ms
+   ✓ Task state and one conversation > preserves deep-linked task/run and its draft while changing views 353ms
+stderr | tests/shell.test.tsx > Narrow layout > uses one keyboard-dismissable navigation drawer and has no context drawer
+Warning: An update to BoardBody inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BoardBody (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/board/BoardBody.tsx:28:22)
+    at BoardView
+    at div
+    at main
+    at div
+    at div
+    at AppShell (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AppShell.tsx:26:53)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at AuthGate (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/App.tsx:14:70)
+    at AuthProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AuthProvider.tsx:52:25)
+    at App
+Warning: An update to BoardBody inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BoardBody (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/board/BoardBody.tsx:28:22)
+    at BoardView
+    at div
+    at main
+    at div
+    at div
+    at AppShell (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AppShell.tsx:26:53)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at AuthGate (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/App.tsx:14:70)
+    at AuthProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AuthProvider.tsx:52:25)
+    at App
+Warning: An update to BoardBody inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at BoardBody (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/views/board/BoardBody.tsx:28:22)
+    at BoardView
+    at div
+    at main
+    at div
+    at div
+    at AppShell (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AppShell.tsx:26:53)
+    at ShellSessionProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:21:33)
+    at ShellProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/ShellProvider.tsx:10:26)
+    at AuthGate (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/App.tsx:14:70)
+    at AuthProvider (/home/yhvh/code/lightgravity-bot-worktrees/provider-integrated-20261017/frontend/src/app/AuthProvider.tsx:52:25)
+    at App
+
+ ✓ tests/lg053-navigation-regression.test.tsx (6 tests) 630ms
+ ✓ tests/lg071-query-outcome.test.tsx (16 tests) 1029ms
+ ✓ tests/notifications.test.tsx (6 tests) 219ms
+ ✓ tests/chat.test.tsx (4 tests) 583ms
+ ✓ tests/backend-compatibility.test.tsx (18 tests) 215ms
+ ✓ tests/chatApi.test.ts (3 tests) 13ms
+ ✓ tests/settings-auth.test.ts (4 tests) 15ms
+ ✓ tests/components.test.tsx (6 tests) 190ms
+ ✓ tests/smoke.test.tsx (1 test) 117ms
+
+ Test Files  23 passed (23)
+      Tests  237 passed (237)
+   Start at  22:25:31
+   Duration  9.69s (transform 2.36s, setup 2.50s, collect 8.87s, tests 23.15s, environment 18.29s, prepare 3.22s)

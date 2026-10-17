@@ -1,0 +1,2 @@
+$ PYTHONPATH=backend python -m mypy backend/lightgravity
+Success: no issues found in 147 source files

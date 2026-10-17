@@ -1,0 +1,10 @@
+$ PYTHONPATH=backend python -m pytest -q tests/settings/test_provider_integration_lg111.py tests/adapter/test_provider_host_policy.py tests/team/test_provider_draft_access.py tests/settings/test_router.py tests/settings/test_provider_connections.py tests/settings/test_draft_testing.py tests/settings/test_testing.py tests/settings/test_testing_budget.py tests/settings/test_connection_service.py tests/adapter/test_provider_matrix.py tests/adapter/test_sdk_config_provider_auth.py tests/adapter/test_proxy.py tests/adapter/test_registry_capabilities.py tests/adapter/test_compile_resources.py tests/adapter/test_default_connection.py tests/adapter/test_sdk_config.py tests/contracts/test_contracts.py tests/api/test_provider_settings_api.py tests/startup/test_settings_to_task.py tests/e2e/settings/test_lg027_default_pin.py tests/e2e/settings/test_lg027_error_branches.py
+........................................................................ [ 55%]
+.........................................................                [100%]
+=============================== warnings summary ===============================
+../../lightgravity-bot/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/yhvh/code/lightgravity-bot/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+129 passed, 1 warning in 12.76s
