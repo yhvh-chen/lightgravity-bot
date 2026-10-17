@@ -26,8 +26,7 @@ test.describe('LG-055 top material search', () => {
     })
     await waitForSearchHit(page.context().request, token)
 
-    await page.getByRole('button', { name: 'Search materials' }).click()
-    const input = page.getByRole('textbox', { name: 'Search materials', exact: true })
+    const input = page.getByRole('searchbox', { name: 'Search materials', exact: true })
     await input.fill(token)
     await input.press('Enter')
 
@@ -47,10 +46,8 @@ test.describe('LG-055 top material search', () => {
     await expect(page.locator('#lg-material-search')).toHaveCount(0)
 
     // An unmatched query reports "no matching material", never a fake result.
-    await page.getByRole('button', { name: 'Search materials' }).click()
-    const emptyInput = page.getByRole('textbox', { name: 'Search materials', exact: true })
-    await emptyInput.fill(`nomatch${uniqueToken('x').replace(/-/g, '')}`)
-    await emptyInput.press('Enter')
+    await input.fill(`nomatch${uniqueToken('x').replace(/-/g, '')}`)
+    await input.press('Enter')
     await expect(page.getByText('No matching material')).toBeVisible()
   })
 })

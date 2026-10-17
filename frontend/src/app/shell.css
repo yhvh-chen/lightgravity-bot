@@ -27,7 +27,8 @@
 
 .lg-topbar {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(280px, 36vw, 460px) minmax(0, 1fr);
   align-items: center;
   gap: var(--lg-space-3);
   height: var(--lg-topbar-height);
@@ -35,6 +36,13 @@
   padding: 0 var(--lg-space-3);
   background: var(--lg-color-panel);
   border-bottom: 1px solid var(--lg-color-border);
+}
+
+.lg-topbar__left {
+  display: flex;
+  align-items: center;
+  gap: var(--lg-space-2);
+  min-width: 0;
 }
 
 .lg-topbar__brand {
@@ -81,7 +89,9 @@
 .lg-topbar__actions {
   display: flex;
   align-items: center;
+  justify-self: end;
   gap: var(--lg-space-1);
+  min-width: 0;
 }
 
 /* Signed-in identity + sign-out (team mode only, LG-050). */
@@ -95,12 +105,13 @@
 }
 
 .lg-topbar__identity-user {
-  font-size: var(--lg-font-size-xs);
-  color: var(--lg-color-text);
+  min-width: 0;
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text);
 }
 
 .lg-topbar__identity-role {
@@ -976,7 +987,7 @@
   }
 }
 
-/* On phones the top bar keeps only navigation/panel/notification controls. */
+/* On phones the top bar keeps navigation, search, panel and notification controls. */
 @media (max-width: 699px) {
   .lg-topbar__title,
   .lg-topbar__scope,
@@ -1009,12 +1020,13 @@
 .lg-rail__label { font-size: 13px; line-height: 1.3; }
 .lg-drawer--nav { width: var(--lg-rail-width); }
 .lg-drawer--nav .lg-rail { flex: 1 1 auto; width: 100%; }
-.lg-top-search { position: relative; min-width: 0; }
-.lg-top-search__panel { position: fixed; top: var(--lg-topbar-height); left: max(8px, calc(50% - 300px)); width: min(600px, calc(100vw - 16px)); max-height: calc(100dvh - var(--lg-topbar-height) - 16px); overflow-y: auto; z-index: 50; padding: 12px; background: var(--lg-color-panel); border: 1px solid var(--lg-color-border); border-radius: var(--lg-radius-panel); box-shadow: 0 8px 24px #0002; }
+.lg-top-search { position: relative; width: 100%; min-width: 0; }
+.lg-top-search .lg-top-search__input { width: 100%; min-width: 0; height: 32px; padding: 0 var(--lg-space-3); }
+.lg-top-search__panel { position: fixed; top: var(--lg-topbar-height); left: 50%; width: min(600px, calc(100vw - 16px)); max-height: calc(100dvh - var(--lg-topbar-height) - 16px); overflow-y: auto; z-index: 50; padding: 12px; background: var(--lg-color-panel); border: 1px solid var(--lg-color-border); border-radius: var(--lg-radius-panel); box-shadow: var(--lg-shadow-overlay); transform: translateX(-50%); }
 @media (max-width: 699px) {
-  .lg-topbar { gap: 4px; padding-left: 4px; padding-right: 4px; }
+  .lg-topbar { grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px; padding-left: 4px; padding-right: 4px; }
+  .lg-topbar__left { gap: 4px; }
   .lg-topbar__brand { display: none; }
-  .lg-top-search > .lg-button { padding: 0 8px; font-size: 12px; }
   .lg-topbar__identity { flex-direction: column; gap: 0; padding: 0; margin: 0; border: 0; }
   .lg-topbar__logout { min-height: 22px; padding: 0 4px; }
   .lg-topbar__identity-role { display: none; }
