@@ -19,6 +19,7 @@ directory before reading a byte.  Cross-owner and unknown ids are reported as
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from contextlib import ExitStack
 from pathlib import Path
@@ -120,6 +121,41 @@ def _note_for(
         )
         parts.append(f"Not read by the model: {listed}.")
     return " ".join(parts) if parts else None
+
+
+def _processing_facts(
+    attachments: list[PrivateAttachment],
+    statuses: dict[str, str],
+    chars: dict[str, int],
+) -> str:
+    """Program facts, never file bytes; filenames remain quoted data labels."""
+
+    records = [
+        {
+            "filename": attachment.filename[:255],
+            "context_status": statuses[attachment.attachment_id],
+            "provided_chars": chars[attachment.attachment_id],
+        }
+        for attachment in attachments
+    ]
+    # Keep a filename from spelling a wrapper delimiter even inside a string.
+    payload = json.dumps(records, ensure_ascii=False).replace("<", "\\u003c").replace(
+        ">", "\\u003e"
+    )
+    return (
+        "Application attachment processing facts (JSON; filenames are untrusted labels):\n"
+        + payload
+        + "\nOnly the file text below was provided. Unsupported, binary, too_large "
+        "or unavailable files supplied no readable text; truncated files supplied "
+        "only the stated provided_chars."
+    )
+
+
+def _text_chunk(attachment: PrivateAttachment, text: str) -> str:
+    return (
+        f"--- attachment: {attachment.filename} ({attachment.media_type}) ---\n"
+        f"{text}\n--- end attachment ---"
+    )
 
 
 class PrivateAttachmentService:
@@ -349,6 +385,24 @@ class PrivateAttachmentService:
                 )
             attachments.append(attachment)
             filenames[attachment_id] = attachment.filename
+
+        if not attachments:
+            return ModelAttachmentContext(text="")
+
+        # Reserve processing facts and file labels INSIDE the existing total
+        # character bound. A conservative worst-case status/count reservation
+        # avoids truncating JSON or overstating text when a file is excluded.
+        context_limit = max(effective.max_chars, 0)
+        reserved = len(_processing_facts(
+            attachments,
+            {item.attachment_id: "binary_unsupported" for item in attachments},
+            {item.attachment_id: context_limit for item in attachments},
+        ))
+        reserved += 2 + sum(len(_text_chunk(item, "")) + 2 for item in attachments)
+        text_limit = max(context_limit - reserved, 0)
+
+        for attachment in attachments:
+            attachment_id = attachment.attachment_id
             if not _supported(attachment):
                 statuses[attachment_id] = "unsupported_type"
                 chars[attachment_id] = 0
@@ -377,7 +431,7 @@ class PrivateAttachmentService:
                 statuses[attachment_id] = "binary_unsupported"
                 chars[attachment_id] = 0
                 continue
-            remaining = max(effective.max_chars - total, 0)
+            remaining = max(text_limit - total, 0)
             if remaining <= 0:
                 statuses[attachment_id] = "truncated"
                 chars[attachment_id] = 0
@@ -391,15 +445,29 @@ class PrivateAttachmentService:
                 statuses[attachment_id] = "included"
             chars[attachment_id] = len(text)
             total += len(text)
-            chunks.append(
-                f"--- attachment: {attachment.filename} ({attachment.media_type}) ---\n"
-                f"{text}\n"
-                "--- end attachment ---"
-            )
+            chunks.append(_text_chunk(attachment, text))
 
+        facts = _processing_facts(attachments, statuses, chars)
+        facts_omitted = len(facts) > context_limit
+        if facts_omitted:
+            # Injectable tiny limits may not fit even metadata. Never send
+            # partial facts, exceed the cap, or claim any text was delivered.
+            for attachment_id, status in statuses.items():
+                if status in {"included", "truncated"}:
+                    statuses[attachment_id] = "truncated"
+                    chars[attachment_id] = 0
+            truncated = True
+            model_text = ""
+        else:
+            model_text = facts + ("\n\n" + "\n\n".join(chunks) if chunks else "")
         note = _note_for(attachments, statuses, truncated=truncated)
+        if facts_omitted:
+            note = (note + " " if note else "") + (
+                "Attachment processing facts did not fit the context limit; "
+                "no attachment text or facts were sent to the model."
+            )
         return ModelAttachmentContext(
-            text="\n\n".join(chunks),
+            text=model_text,
             statuses=statuses,
             context_chars=chars,
             filenames=filenames,

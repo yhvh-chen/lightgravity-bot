@@ -29,6 +29,7 @@ and artifact verification / human acceptance (LG-009) remain separate tasks.
 """
 
 from .api import build_router
+from .capacity import CapacityConfig, CapacityGovernor
 from .classification import (
     READ_ONLY_TOOL_CEILING,
     Classification,
@@ -113,6 +114,8 @@ from .scheduler import (
 from .service import CandidateVerifier, Coordinator, CoordinatorResult
 
 __all__ = [
+    "CapacityConfig",
+    "CapacityGovernor",
     "READ_ONLY_TOOL_CEILING",
     "Classification",
     "MessageIntent",

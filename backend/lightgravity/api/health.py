@@ -69,6 +69,15 @@ async def health(request: Request) -> HealthResponse:
         # LG-119 additive: the complete private attachment router is mounted in
         # api/app.py and Personal messages accept the private attachment seam.
         "private_attachments": wired,
+        # LG-126 additive: the read-only grouped Team projection router is
+        # mounted in api/app.py; the bounded capacity governor is the one the
+        # application coordinator actually constructed/configured.  Both are
+        # advertised only from the real wired object, never guessed.
+        "team_groups": wired,
+        "capacity_v2": bool(
+            wired
+            and callable(getattr(getattr(context, "coordinator", None), "capacity_snapshot", None))
+        ),
         # The real SDK adapter is only advertised once LG-006/LG-010 inject it.
         "sdk_adapter": bool(getattr(context, "real_executor", False)),
     }

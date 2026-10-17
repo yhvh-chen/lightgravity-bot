@@ -44,6 +44,7 @@ from ..contracts import (
     error_envelope,
 )
 from ..coordinator import Coordinator, build_router as build_coordinator_router
+from ..coordinator.capacity import CapacityConfig
 from ..coordinator.dispatcher import (
     Dispatcher,
     SingleSlotDispatcher,
@@ -85,6 +86,7 @@ from .resources import build_resource_router
 from .search import build_search_router
 from .sources import build_sources_router
 from .tasks import build_task_router
+from .team_groups import build_team_groups_router
 from .vector import build_vector_router
 
 _STATUS_TO_CODE: dict[int, ErrorCode] = {
@@ -197,6 +199,15 @@ def create_app(
         responder=responder,
         team_mode=resolved.team_mode,
         bot_mention=resolved.team_bot_mention,
+        # LG-126: the app's real governor uses the already-validated Settings
+        # values, so a directly-constructed app has the same bounded defaults as
+        # the bootstrap path instead of silently reading a different env view.
+        capacity=CapacityConfig(
+            max_active_tasks=resolved.max_active_tasks,
+            max_global_sessions=resolved.max_global_sessions,
+            max_reviewer_sessions=resolved.max_reviewer_sessions,
+            max_parallel_nodes_per_task=resolved.max_parallel_nodes_per_task,
+        ),
     )
     # An injected coordinator must share this app's verification service so the
     # normal POST /tasks delivery path auto-verifies there too, not only in the
@@ -341,6 +352,11 @@ def create_app(
     app.include_router(build_events_router(), prefix=API_PREFIX)
     app.include_router(build_notifications_router(), prefix=API_PREFIX)
     app.include_router(build_conversations_router(), prefix=API_PREFIX)
+    # LG-126 integration: the read-only Team groups projection is mounted in
+    # the real factory (not only in tests), so health may advertise
+    # ``team_groups`` truthfully.  It derives from persisted facts and writes
+    # nothing.
+    app.include_router(build_team_groups_router(), prefix=API_PREFIX)
     # LG-124 integration: the complete LG-119 private attachment factory is
     # mounted here (the package routes themselves were delivered complete).
     app.include_router(build_attachments_router(), prefix=API_PREFIX)

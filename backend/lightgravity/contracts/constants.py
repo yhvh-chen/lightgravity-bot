@@ -3,7 +3,15 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
-#: docs/08 §13: 1.17.0 (2026-10-17) is the LG-104/LG-109 additive MINOR for the
+#: docs/08 §13: 1.18.0 (2026-10-18) is the LG-122 additive MINOR implemented in
+#: the isolated complete candidate: read-only Team grouping projection, Personal
+#: private attachments with bounded model context, independent Embedding settings,
+#: goal-fit team provenance and bounded multi-Task capacity/waiting reasons.
+#: This candidate still requires independent LG-123 QA and has not replaced the
+#: public 8123 service; no new Task/Run phase/state/acceptance enum or migration
+#: direction is introduced.  Historical summary follows.
+#:
+#: 1.17.0 (2026-10-17) is the LG-104/LG-109 additive MINOR for the
 #: compact provider New/Edit modal backend: optional non-secret Connection
 #: fields ``auth_mode``/``project``/``location``/``model_path``/
 #: ``litert_backend``, additive ``capabilities`` facts on the connection view,
@@ -158,7 +166,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.17.0"
+CONTRACT_VERSION = "1.18.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

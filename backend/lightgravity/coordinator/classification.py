@@ -262,6 +262,29 @@ _DELIVERY = (
     "refactor",
 )
 
+# Explicit refusal to create a new Task is routing intent, not a delivery
+# request. Keep this vocabulary bounded to Task creation; it is not a general
+# negation parser ("do not deploy" must not suppress an authorized file goal).
+_NO_NEW_TASK = re.compile(
+    r"(?:不要|别|无需|不用|不必)\s*(?:创建|新建)\s*(?:新的?|一个)?\s*(?:任务|task\b)|"
+    r"\b(?:do\s+not|don't|never)\s+(?:create|open|start)\s+"
+    r"(?:(?:a|any)\s+)?(?:new\s+)?task\b"
+)
+
+
+def _without_no_task_requests(text: str) -> tuple[str, bool]:
+    """Mask only unquoted no-new-Task phrases, preserving all other evidence."""
+
+    quoted = _quoted_spans(text)
+    spans = [match.span() for match in _NO_NEW_TASK.finditer(text)
+             if not _inside(quoted, match.start())]
+    masked = text
+    # Once refusal is explicit, quoted examples cannot supply a conflicting
+    # delivery goal either. Preserve the original text for all other routes.
+    for start, end in sorted(spans + (list(quoted) if spans else []), reverse=True):
+        masked = masked[:start] + " " * (end - start) + masked[end:]
+    return masked, bool(spans)
+
 
 def _starts_delivery_request(text: str) -> bool:
     """Recognize an initial delivery imperative, not a mentioned/negated verb.
@@ -291,8 +314,9 @@ def classify_message(content: str) -> Classification:
     if not text:
         return Classification(intent=MessageIntent.UNKNOWN, next_action="clarify", note="empty message")
 
+    delivery_text, no_new_task = _without_no_task_requests(text)
     delivery_request = (
-        _starts_delivery_request(text)
+        _starts_delivery_request(delivery_text)
         and not _hit(text, _BOUNDED_READ)
         and not _hit(text, _QUESTION)
     )
@@ -317,6 +341,21 @@ def classify_message(content: str) -> Classification:
                 requires_target=intent in {MessageIntent.CONTROL, MessageIntent.DECISION},
             )
 
+    conflicting_delivery = no_new_task and _hit(delivery_text, _DELIVERY) and (
+        any(_starts_delivery_request(clause.strip()) and not _hit(clause, _QUESTION)
+            for clause in _CLAUSE_BOUNDARY.split(delivery_text))
+        or not (_hit(text, _QUESTION) or _hit(text, _BOUNDED_READ))
+    )
+    if no_new_task and conflicting_delivery:
+        # A conflicting write goal cannot bypass the Task/Run record through
+        # a direct answer or bounded read. Existing control/query routes above
+        # still operate on their existing targets.
+        return Classification(
+            intent=MessageIntent.UNKNOWN,
+            next_action="clarify",
+            note="delivery goal conflicts with explicit no-new-Task request",
+        )
+
     matched = _hit(text, _BOUNDED_READ)
     if matched:
         return Classification(
@@ -335,7 +374,7 @@ def classify_message(content: str) -> Classification:
             matched=_hit(text, _QUESTION),
         )
 
-    matched = _hit(text, _DELIVERY)
+    matched = _hit(delivery_text, _DELIVERY)
     if matched:
         return Classification(
             intent=MessageIntent.DELIVERY,

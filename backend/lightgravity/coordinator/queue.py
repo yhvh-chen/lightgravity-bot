@@ -23,6 +23,7 @@ class QueuePosition:
     order: int | None
     queued_at: str | None
     state: str
+    waiting_reason: str | None = None
 
 
 class TaskQueue:
@@ -53,7 +54,38 @@ class TaskQueue:
             order=order if isinstance(order, int) and not isinstance(order, bool) else None,
             queued_at=queue.get("queued_at") if isinstance(queue.get("queued_at"), str) else None,
             state=str(queue.get("state", "not_queued")),
+            waiting_reason=(
+                queue.get("waiting_reason")
+                if isinstance(queue.get("waiting_reason"), str)
+                and queue.get("waiting_reason")
+                else None
+            ),
         )
+
+    def waiting_reason(self, task_id: str) -> str | None:
+        entity = self._store.read("task", task_id).entity
+        queue = entity.get("queue")
+        if not isinstance(queue, dict):
+            return None
+        reason = queue.get("waiting_reason")
+        return reason if isinstance(reason, str) and reason else None
+
+    def set_waiting_reason(self, task_id: str, reason: str | None) -> bool:
+        """Additive queue fact: why a legally queued Task is not admitted.
+
+        No state/phase is invented here; ``None`` clears the hint.  The write is
+        skipped when unchanged so a polling pump cannot churn revisions.
+        """
+
+        entity = self._store.read("task", task_id).entity
+        queue = entity.get("queue")
+        current = queue.get("waiting_reason") if isinstance(queue, dict) else None
+        if current == reason:
+            return False
+        queue_map = dict(queue) if isinstance(queue, dict) else {}
+        queue_map["waiting_reason"] = reason
+        self._writer.write_task(task_id, {"queue": queue_map})
+        return True
 
     def next_order(self) -> int:
         highest = 0
@@ -113,6 +145,7 @@ class TaskQueue:
                     "queued_at": queued_at,
                     "owner": None,
                     "lease_expires_at": None,
+                    "waiting_reason": None,
                 }
             },
         )

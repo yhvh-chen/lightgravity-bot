@@ -58,6 +58,8 @@ export interface TeamGroupRun {
   plan_source?: string | null
   plan_hash?: string | null
   team_refs: string[]
+  /** Additive persisted Run references (LG-126 integration wire). */
+  subtask_refs?: string[]
   cleanup: TeamGroupCleanup
   reviewer_cleanup?: TeamGroupReviewerCleanup | null
   /**
@@ -88,6 +90,9 @@ export interface TeamGroupMember {
   id: string
   run_ref: string
   role_ref: string | null
+  /** Additive provenance fields returned by the LG-126 projection. */
+  role_category?: string | null
+  selection_reason?: string | null
   state: string | null
   template_version?: string | null
   connection_ref?: string | null

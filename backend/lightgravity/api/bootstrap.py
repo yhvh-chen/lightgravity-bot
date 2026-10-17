@@ -45,6 +45,7 @@ from ..adapter.compiler import ConnectionPin
 from ..adapter.proxy import global_generation_counter
 from ..config import Settings
 from ..coordinator import GraphDispatcher
+from ..coordinator.capacity import CapacityConfig
 from ..collaboration import (
     ClaimPolicyReader,
     CollaborationService,
@@ -59,7 +60,7 @@ from ..coordinator.dialogue import (
 )
 from ..verify.review import resolve_reviewer_support
 from ..coordinator.graph import DEFAULT_CAPABILITIES
-from ..coordinator.recruiter import RoleCatalog
+from ..coordinator.recruiter import RoleCatalog, RoleProfile
 from ..settings import (
     ROLE_COORDINATOR,
     ROLE_REVIEWER,
@@ -362,7 +363,7 @@ def load_role_catalog(
     # Existing/user templates without capability metadata keep the previous
     # implementation+verification fallback, so an upgrade does not silently
     # remove already-recruitable operator agents.
-    rows: list[tuple[str, tuple[str, ...], bool]] = []
+    rows: list[tuple[str, tuple[str, ...], bool, RoleProfile]] = []
     for agent_id in agents:
         try:
             versioned = store.read("agent", agent_id)
@@ -381,26 +382,49 @@ def load_role_catalog(
         selected = declared if declared else tuple(DEFAULT_CAPABILITIES)
         if not selected:
             continue
-        rows.append((agent_id, selected, is_agency))
+        raw_upstream = entity.get("upstream")
+        upstream: dict[str, Any] = raw_upstream if isinstance(raw_upstream, dict) else {}
+        profile = RoleProfile(
+            agent_ref=agent_id,
+            title=str(entity.get("title") or agent_id),
+            description=str(upstream.get("description") or ""),
+            role_category=str(entity.get("role_category") or ""),
+            division=str(upstream.get("division") or ""),
+            capabilities=tuple(selected),
+            instructions=versioned.body,
+            builtin_default=agent_id == DEFAULT_AGENT_ID,
+        )
+        rows.append((agent_id, selected, is_agency, profile))
     if not rows:
         return None
-    # Operator/custom and built-in templates come first (the built-in seed last
-    # within that group); the agency library is a large fallback pool after them.
-    non_agency = sorted(
-        (row for row in rows if not row[2]),
-        key=lambda row: (row[0] == DEFAULT_AGENT_ID, row[0]),
+    # User/operator custom templates are honoured first; the packaged agency
+    # library is the broad capability pool; the generic built-in worker is the
+    # last-resort fallback rather than shadowing all mapped roles.
+    custom_rows = sorted(
+        (
+            row
+            for row in rows
+            if not row[2] and row[0] != DEFAULT_AGENT_ID
+        ),
+        key=lambda row: row[0],
     )
     agency_rows = sorted((row for row in rows if row[2]), key=lambda row: row[0])
-    ordered = non_agency + agency_rows
+    default_rows = [row for row in rows if row[0] == DEFAULT_AGENT_ID and not row[2]]
+    ordered = custom_rows + agency_rows + default_rows
     capability_map: dict[str, list[str]] = {
         capability: [] for capability in EXECUTABLE_CAPABILITIES
     }
-    for agent_id, capabilities, _is_agency in ordered:
+    profiles: dict[str, RoleProfile] = {}
+    for agent_id, capabilities, _is_agency, profile in ordered:
+        profiles[agent_id] = profile
         for capability in capabilities:
             if agent_id not in capability_map[capability]:
                 capability_map[capability].append(agent_id)
+    fallback_ref = DEFAULT_AGENT_ID if DEFAULT_AGENT_ID in profiles else None
     return RoleCatalog(
-        {capability: refs for capability, refs in capability_map.items() if refs}
+        {capability: refs for capability, refs in capability_map.items() if refs},
+        profiles=profiles,
+        fallback_ref=fallback_ref,
     )
 
 
@@ -524,6 +548,7 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
                 compiler=compiler,
                 connections=connection_pins,
                 workspaces=GraphWorkspaceProvider(WorktreeManager(settings.workspace_root)),
+                max_parallel=settings.max_parallel_nodes_per_task,
                 collaboration=CollaborationService(store, policy=collab_policy),
                 grant_registry=grant_registry if decentralized else None,
                 autonomous_claim=decentralized,
@@ -584,6 +609,24 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
         # LG-061: first-initialisation default admin, gated so read-only
         # diagnostics never write the account fact source.
         initialize_team_accounts=options.seed_default_admin,
+    )
+    # LG-126: create_app builds the coordinator before this minimal assembly
+    # seam runs.  Apply the already-validated capacity values (environment or an
+    # explicit StartupOptions.settings) before the lifespan starts admission.
+    app.state.coordinator.configure_capacity(
+        CapacityConfig(
+            max_active_tasks=settings.max_active_tasks,
+            max_global_sessions=settings.max_global_sessions,
+            max_reviewer_sessions=settings.max_reviewer_sessions,
+            max_parallel_nodes_per_task=settings.max_parallel_nodes_per_task,
+        )
+    )
+    log(
+        "capacity: "
+        f"active_tasks={settings.max_active_tasks} "
+        f"global_sessions={settings.max_global_sessions} "
+        f"reviewer_sessions={settings.max_reviewer_sessions} "
+        f"nodes_per_task={settings.max_parallel_nodes_per_task}"
     )
     allowed_hosts = options.allowed_hosts
     env_hosts = os.environ.get(ALLOWED_HOSTS_ENV, "")
