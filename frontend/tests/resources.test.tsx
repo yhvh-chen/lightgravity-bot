@@ -196,7 +196,7 @@ describe('LG-015 Resources: catalogue and detail', () => {
         }),
       },
     })
-    renderResources(api)
+    renderResources(api, { initialRef: 'connections' })
     expect(await screen.findByText('1 Connections')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: /DeepSeek/ }))
     expect(await screen.findByText('health unknown')).toBeInTheDocument()
@@ -226,7 +226,7 @@ describe('LG-015 Resources: connection ownership', () => {
         }),
       },
     })
-    const { onNavigate, onSelectItem } = renderResources(api)
+    const { onNavigate, onSelectItem } = renderResources(api, { initialRef: 'connections' })
     fireEvent.click(await screen.findByRole('button', { name: /DeepSeek/ }))
     // The connection-only detail explains Settings owns the same record.
     expect(await screen.findByText(/same record Settings edits/)).toBeInTheDocument()
@@ -238,6 +238,27 @@ describe('LG-015 Resources: connection ownership', () => {
     expect(onSelectItem).toHaveBeenCalledWith('settings:connection:deepseek')
     // No controlled-change form and no duplicated model editor is rendered.
     expect(screen.queryByRole('button', { name: 'Save controlled change' })).toBeNull()
+  })
+
+  it('routes a Connection reference to Settings with the stable id', async () => {
+    const { api } = makeApi({
+      summaries: { hook: [makeSummary({ id: 'policy', kind: 'hook', title: 'Policy' })] },
+      details: {
+        'hook:policy': makeDetail({
+          id: 'policy',
+          kind: 'hook',
+          title: 'Policy',
+          references: [
+            { field: 'connection_ref', kind: 'connection', ref: 'deepseek', state: 'resolved' },
+          ],
+        }),
+      },
+    })
+    const { onNavigate, onSelectItem } = renderResources(api, { initialRef: 'hooks' })
+    fireEvent.click(await screen.findByRole('button', { name: /Policy/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /connection:deepseek/ }))
+    expect(onSelectItem).toHaveBeenCalledWith('settings:connection:deepseek')
+    expect(onNavigate).toHaveBeenCalledWith('settings')
   })
 })
 

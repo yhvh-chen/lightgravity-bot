@@ -1,5 +1,5 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ApiError } from '../src/api/client'
 import type {
@@ -254,6 +254,101 @@ describe('LG-026 Settings: load and list', () => {
     )
     // The Task scope is preserved while Settings is open.
     expect(screen.getByText('task_01TASK')).toBeInTheDocument()
+  })
+
+  it('shows an explicit missing target instead of silently selecting another connection', async () => {
+    const { api } = makeFakeApi({
+      connections: [
+        makeConnection({ id: 'deepseek-primary', title: 'DeepSeek (primary)' }),
+        makeConnection({ id: 'deepseek-backup', title: 'DeepSeek (backup)' }),
+      ],
+    })
+    render(<SettingsView api={api} connectionId="connection-that-does-not-exist" />)
+
+    expect(await screen.findByText('Connection not found')).toBeInTheDocument()
+    expect(screen.getByText(/No other connection was selected/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /DeepSeek \(primary\)/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(screen.getByRole('button', { name: /DeepSeek \(backup\)/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(screen.queryByRole('button', { name: 'Save changes' })).toBeNull()
+  })
+
+  it('synchronizes the editor when an external target opens a different connection', async () => {
+    const { api } = makeFakeApi({
+      connections: [
+        makeConnection({ id: 'deepseek-primary', title: 'DeepSeek (primary)' }),
+        makeConnection({ id: 'deepseek-backup', title: 'DeepSeek (backup)' }),
+      ],
+    })
+    const view = render(<SettingsView api={api} connectionId="deepseek-primary" />)
+    expect(await screen.findByLabelText('Title')).toHaveValue('DeepSeek (primary)')
+
+    fireEvent.change(screen.getByLabelText('Title'), {
+      target: { value: 'unsaved primary edit' },
+    })
+    view.rerender(<SettingsView api={api} connectionId="deepseek-backup" />)
+
+    await waitFor(() => expect(screen.getByLabelText('Title')).toHaveValue('DeepSeek (backup)'))
+    expect(screen.getByRole('button', { name: /DeepSeek \(backup\)/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+    expect(screen.getByRole('button', { name: /DeepSeek \(primary\)/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+  })
+
+  it('ignores a late save for the previous connection after opening another one', async () => {
+    const { api } = makeFakeApi({
+      connections: [
+        makeConnection({ id: 'deepseek-primary', title: 'DeepSeek (primary)' }),
+        makeConnection({ id: 'deepseek-backup', title: 'DeepSeek (backup)' }),
+      ],
+    })
+    let release: (() => void) | null = null
+    api.updateConnection = vi.fn(
+      () =>
+        new Promise<ConnectionView>((resolve) => {
+          release = () =>
+            resolve(
+              makeConnection({
+                id: 'deepseek-primary',
+                title: 'primary saved later',
+                revision: 4,
+              }),
+            )
+        }),
+    )
+
+    render(<SettingsView api={api} connectionId="deepseek-primary" />)
+    expect(await screen.findByLabelText('Title')).toHaveValue('DeepSeek (primary)')
+    fireEvent.change(screen.getByLabelText('Title'), {
+      target: { value: 'primary edit' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+    await waitFor(() => expect(release).not.toBeNull())
+
+    fireEvent.click(screen.getByRole('button', { name: /DeepSeek \(backup\)/ }))
+    expect(screen.getByLabelText('Title')).toHaveValue('DeepSeek (backup)')
+
+    await act(async () => {
+      release?.()
+    })
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /DeepSeek \(backup\)/ })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      ),
+    )
+    expect(screen.getByLabelText('Title')).toHaveValue('DeepSeek (backup)')
+    expect(screen.queryByDisplayValue('primary saved later')).toBeNull()
   })
 
   it('marks a planned backend as unavailable and disables executable actions', async () => {

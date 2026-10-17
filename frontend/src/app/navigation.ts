@@ -1,5 +1,5 @@
 /** Shared view routes and direct primary navigation targets. */
-import { RESOURCE_CATEGORIES } from '../api/resources'
+import { NAV_RESOURCE_CATEGORIES } from '../api/resources'
 import type { IconName } from '../components/icons'
 
 export type ViewId = 'chat' | 'board' | 'files' | 'team' | 'resources' | 'settings'
@@ -31,7 +31,7 @@ export const WORK_NAV_ITEMS: readonly NavItem[] = [
   { id: 'board', view: 'board', label: 'Board', icon: 'board', ownerTask: 'LG-013' },
   { id: 'files', view: 'files', label: 'Files', icon: 'files', ownerTask: 'LG-014' },
   { id: 'team', view: 'team', label: 'Team', icon: 'team', ownerTask: 'LG-015' },
-  ...RESOURCE_CATEGORIES.map(({ id, label }) => ({
+  ...NAV_RESOURCE_CATEGORIES.map(({ id, label }) => ({
     id, label, view: 'resources' as const, itemRef: id, icon: RESOURCE_ICONS[id] ?? 'resources', ownerTask: 'LG-015',
   })),
 ] as const

@@ -4,7 +4,12 @@ import {
   type NavItem,
   type ViewId,
 } from './navigation'
-import { categoryById, categoryByKind, isResourceKind } from '../api/resources'
+import {
+  categoryById,
+  categoryByKind,
+  isResourceKind,
+  NAV_RESOURCE_CATEGORIES,
+} from '../api/resources'
 import { Icon } from '../components/icons'
 
 export interface NavigationRailProps {
@@ -25,7 +30,9 @@ export function NavigationRail({ current, selectedItemRef, onNavigate, variant =
   // Providers, Accounts) are hidden in the view and enforced by the backend
   // (403), never by disabling the entry point.
   const kind = selectedItemRef?.startsWith('resources:') ? selectedItemRef.split(':')[1] : null
-  const category = (kind && isResourceKind(kind) ? categoryByKind(kind) : categoryById(selectedItemRef ?? null))?.id ?? 'connections'
+  const category =
+    (kind && isResourceKind(kind) ? categoryByKind(kind) : categoryById(selectedItemRef ?? null))?.id ??
+    NAV_RESOURCE_CATEGORIES[0]?.id
   const renderItem = (item: NavItem) => (
       <li key={item.id}>
         <button

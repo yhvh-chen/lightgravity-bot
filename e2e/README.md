@@ -55,7 +55,7 @@ Set `LG_E2E_SKIP_BUILD=1` to reuse an already-built `frontend/dist`.
 | Spec | Covers |
 |---|---|
 | `00-api-smoke` | contract 1.14.0, `personal_chat`, anonymous 401, per-identity private isolation, chat-only delivery |
-| `01-meta-and-navigation` | seven resource categories in one rail, no second context/Scope/Run, all pages no fatal console/5xx/404, task_ref preservation, 1440/1024/390, drawer Escape/focus |
+| `01-meta-and-navigation` | six direct resource categories plus Settings in one rail (Connections lives in Settings), no second context/Scope/Run, all pages no fatal console/5xx/404, task_ref preservation, 1440/1024/390, drawer Escape/focus |
 | `02-chat-composer` | simple composer + attachment menu, three-source cap, failure draft, Personal hides shared tools |
 | `03-files-search` | top material search -> Files backlink + empty state, Files Task -> exact Chat scope + refresh/back |
 | `04-personal-team-privacy` | two browser contexts, admin cannot read a member's private history, polling isolation, shared Task/source stay shared |

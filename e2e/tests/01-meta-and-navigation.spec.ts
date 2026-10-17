@@ -11,7 +11,6 @@ const WORK_AND_RESOURCES = [
   'Board',
   'Files',
   'Team',
-  'Connections',
   'Session Profiles',
   'Hooks',
   'MCP',
@@ -31,14 +30,15 @@ async function navLabels(page: import('@playwright/test').Page): Promise<string[
 }
 
 test.describe('LG-055 navigation and layout', () => {
-  test('single left rail with seven resource categories; no second context/scope/run', async ({
+  test('single left rail with six direct resource categories plus Settings; no second context/scope/run', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await loginAs(page, ACCOUNTS.alice)
 
     expect(await navLabels(page)).toEqual(ALL_NAV)
-    // Seven resource categories are direct entries in the one rail.
+    // Six resource categories are direct entries in the one rail; Connections
+    // is managed inside Settings (LG-103).
     await expect(
       page.getByRole('navigation', { name: 'Primary navigation' }).locator('.lg-rail__item'),
     ).toHaveCount(ALL_NAV.length)

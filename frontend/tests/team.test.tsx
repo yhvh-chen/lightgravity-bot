@@ -140,6 +140,17 @@ describe('LG-015 Team: available templates', () => {
     expect(window.sessionStorage.getItem('lg015.team-return')).toContain('team:agent:developer')
   })
 
+  it('opens a Connection reference in Settings at the stable id', async () => {
+    const { api } = makeApi([makeAgent()], [])
+    const { selectItem, navigate } = renderTeam(api)
+    fireEvent.click(await screen.findByRole('button', { name: /Developer/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /connection:deepseek/ }))
+    expect(selectItem).toHaveBeenCalledWith('settings:connection:deepseek')
+    expect(navigate).toHaveBeenCalledWith('settings')
+    // Connections live only in Settings; no second Resources connection page.
+    expect(navigate).not.toHaveBeenCalledWith('resources')
+  })
+
   it('requests a role through Task Chat instead of starting a worker', async () => {
     const { api } = makeApi([makeAgent()], [])
     const { navigate, openChatDraft } = renderTeam(api)

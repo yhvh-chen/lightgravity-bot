@@ -24,7 +24,7 @@ describe('Single navigation shell', () => {
     await renderShell()
     const nav = screen.getByRole('navigation', { name: 'Primary navigation' })
     expect(within(nav).getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual([
-      'Chat', 'Board', 'Files', 'Team', 'Connections', 'Session Profiles', 'Hooks', 'MCP', 'Tools', 'Triggers', 'Skills', 'Settings',
+      'Chat', 'Board', 'Files', 'Team', 'Session Profiles', 'Hooks', 'MCP', 'Tools', 'Triggers', 'Skills', 'Settings',
     ])
     expect(within(nav).getByRole('button', { name: 'Chat' })).toHaveAttribute('aria-current', 'page')
     expect(screen.queryByLabelText('Scope')).toBeNull()
@@ -32,6 +32,27 @@ describe('Single navigation shell', () => {
     expect(screen.queryByRole('complementary', { name: 'Context' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Toggle context panel' })).toBeNull()
     expect(screen.queryByRole('separator', { name: 'Resize context panel' })).toBeNull()
+  })
+  it('does not expose a standalone Connections entry but keeps the six other categories direct', async () => {
+    window.history.replaceState(null, '', '/?view=resources&item=connections&task=task_real&run=run_real')
+    await renderShell()
+    const nav = screen.getByRole('navigation', { name: 'Primary navigation' })
+    expect(within(nav).queryByRole('button', { name: 'Connections' })).toBeNull()
+    expect(within(nav).getByRole('button', { name: 'Settings' })).toHaveAttribute('aria-current', 'page')
+    expect(window.location.search).toContain('view=settings')
+    expect(window.location.search).toContain('task=task_real')
+    expect(window.location.search).toContain('run=run_real')
+    expect(window.location.search).not.toContain('item=connections')
+  })
+  it('transparently redirects a legacy Connection detail link to the same Settings target', async () => {
+    window.history.replaceState(null, '', '/?view=resources&item=resources:connection:deepseek&task=task_real')
+    await renderShell()
+    expect(screen.getByRole('button', { name: 'Settings' })).toHaveAttribute('aria-current', 'page')
+    expect(window.location.search).toContain('view=settings')
+    expect(window.location.search).toContain('item=settings%3Aconnection%3Adeepseek')
+    expect(window.location.search).toContain('task=task_real')
+    // Settings owns the same record; the legacy Resources page is not mounted.
+    expect(screen.queryByRole('heading', { name: 'Resources' })).toBeNull()
   })
   it('opens resources from navigation and restores the selected category on refresh', async () => {
     await renderShell()

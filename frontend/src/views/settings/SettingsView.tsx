@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { getRuntimeToken } from '../../api/auth'
 import { useAuth } from '../../app/AuthProvider'
@@ -61,8 +61,50 @@ function ModelsPanel(props: SettingsViewProps = {}) {
     null,
   )
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [missingTarget, setMissingTarget] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+
+  // LG-103 selection guards.  `selectedIdRef` lets a late save/reload observe
+  // the *current* selection instead of the one captured when the request
+  // started; `targetRef` is the external navigation target (Connection id from
+  // a Team/Resources reference) and is cleared once the user picks manually.
+  const selectedIdRef = useRef<string | null>(null)
+  const targetRef = useRef<string | null>(connectionId ?? null)
+  const lastConnectionIdRef = useRef<string | null>(connectionId ?? null)
+  const creatingRef = useRef(false)
+
+  const selectConnection = useCallback((id: string | null) => {
+    selectedIdRef.current = id
+    setSelectedId(id)
+  }, [])
+
+  const selectExisting = useCallback(
+    (id: string) => {
+      targetRef.current = null
+      setMissingTarget(null)
+      setCreating(false)
+      creatingRef.current = false
+      selectConnection(id)
+    },
+    [selectConnection],
+  )
+
+  const startCreating = useCallback(() => {
+    targetRef.current = null
+    setMissingTarget(null)
+    setCreating(true)
+    creatingRef.current = true
+    selectConnection(null)
+  }, [selectConnection])
+
+  const cancelCreating = useCallback(() => {
+    setCreating(false)
+    creatingRef.current = false
+    targetRef.current = null
+    setMissingTarget(null)
+    selectConnection(connections?.[0]?.id ?? null)
+  }, [connections, selectConnection])
 
   useEffect(() => {
     let cancelled = false
@@ -76,14 +118,26 @@ function ModelsPanel(props: SettingsViewProps = {}) {
         if (cancelled) return
         setConnections(list)
         setSettings(loadedSettings)
-        setSelectedId((previous) => {
-          if (connectionId && list.some((connection) => connection.id === connectionId)) {
-            return connectionId
+        const target = targetRef.current
+        if (target) {
+          if (list.some((connection) => connection.id === target)) {
+            selectConnection(target)
+            setMissingTarget(null)
+          } else {
+            // Never silently select a different Connection when the requested
+            // stable id is absent. Keep the explicit miss visible instead.
+            selectConnection(null)
+            setMissingTarget(target)
           }
-          return previous && list.some((connection) => connection.id === previous)
+          return
+        }
+        const previous = selectedIdRef.current
+        selectConnection(
+          previous && list.some((connection) => connection.id === previous)
             ? previous
-            : (list[0]?.id ?? null)
-        })
+            : (list[0]?.id ?? null),
+        )
+        setMissingTarget(null)
       })
       .catch((cause: unknown) => {
         if (cancelled || controller.signal.aborted) return
@@ -96,7 +150,24 @@ function ModelsPanel(props: SettingsViewProps = {}) {
       cancelled = true
       controller.abort()
     }
-  }, [api, refreshKey, connectionId])
+  }, [api, refreshKey, selectConnection])
+
+  // A new external Connection target (e.g. navigating from Team while Settings
+  // is already mounted) applies immediately, or waits for the first list load.
+  useEffect(() => {
+    const next = connectionId ?? null
+    if (next === lastConnectionIdRef.current) return
+    lastConnectionIdRef.current = next
+    targetRef.current = next
+    setMissingTarget(null)
+    if (next === null || connections === null) return
+    if (connections.some((connection) => connection.id === next)) {
+      selectConnection(next)
+    } else {
+      selectConnection(null)
+      setMissingTarget(next)
+    }
+  }, [connectionId, connections, selectConnection])
 
   const reload = useCallback(() => setRefreshKey((key) => key + 1), [])
 
@@ -129,8 +200,9 @@ function ModelsPanel(props: SettingsViewProps = {}) {
 
   const handleSaved = useCallback(
     (updated: ConnectionView) => {
+      const wasCreating = creatingRef.current
+      creatingRef.current = false
       setCreating(false)
-      setSelectedId(updated.id)
       setConnections((previous) =>
         previous
           ? previous.map((connection) =>
@@ -138,9 +210,16 @@ function ModelsPanel(props: SettingsViewProps = {}) {
             )
           : [updated],
       )
+      // A response for an older Connection must not pull the editor back after
+      // the user selected another id (cross-ID late-response guard).
+      if (selectedIdRef.current === updated.id || (wasCreating && creatingRef.current === false && selectedIdRef.current === null)) {
+        targetRef.current = null
+        setMissingTarget(null)
+        selectConnection(updated.id)
+      }
       reload()
     },
-    [reload],
+    [reload, selectConnection],
   )
 
   const selected =
@@ -173,11 +252,19 @@ function ModelsPanel(props: SettingsViewProps = {}) {
       <section className="lg-settings-view__intro" aria-label="Connections overview">
         <h3 className="lg-section-card__title">Connections</h3>
         <p className="lg-field__hint">
-          The same Connection entity as Resources → Connections. Only the verified
-          OpenAI-compatible (DeepSeek) backend can be saved as executable; other
-          backends are status-only.
+          The single Connection authority linked from Team and resource references.
+          Only the verified OpenAI-compatible (DeepSeek) backend can be saved as
+          executable; other backends are status-only.
         </p>
       </section>
+
+      {missingTarget ? (
+        <ErrorState
+          title="Connection not found"
+          message={`Connection "${missingTarget}" does not exist in this workspace. No other connection was selected. Choose a connection from the list or create a new one.`}
+          code="not_found"
+        />
+      ) : null}
 
       {loadError ? (
         <ErrorState
@@ -196,15 +283,12 @@ function ModelsPanel(props: SettingsViewProps = {}) {
         <EmptyState title="No connections yet">
           <p>
             Create a DeepSeek (OpenAI-compatible) connection to let the bot
-            execute tasks. Resources → Connections reads the same record.
+            execute tasks. Team and resource references open this same record.
           </p>
           <button
             type="button"
             className="lg-button lg-button--primary"
-            onClick={() => {
-              setCreating(true)
-              setSelectedId(null)
-            }}
+            onClick={startCreating}
           >
             New connection
           </button>
@@ -220,10 +304,7 @@ function ModelsPanel(props: SettingsViewProps = {}) {
               <button
                 type="button"
                 className="lg-button"
-                onClick={() => {
-                  setCreating(true)
-                  setSelectedId(null)
-                }}
+                onClick={startCreating}
               >
                 New connection
               </button>
@@ -237,10 +318,7 @@ function ModelsPanel(props: SettingsViewProps = {}) {
                       type="button"
                       className={`lg-settings__item${isSelected ? ' is-selected' : ''}`}
                       aria-pressed={isSelected}
-                      onClick={() => {
-                        setCreating(false)
-                        setSelectedId(connection.id)
-                      }}
+                      onClick={() => selectExisting(connection.id)}
                     >
                       <span className="lg-settings__item-title">
                         {connection.title}
@@ -288,14 +366,7 @@ function ModelsPanel(props: SettingsViewProps = {}) {
                 connection={creating ? null : selected}
                 onSaved={handleSaved}
                 onReload={reloadConnection}
-                onCancel={
-                  creating
-                    ? () => {
-                        setCreating(false)
-                        setSelectedId(connections?.[0]?.id ?? null)
-                      }
-                    : undefined
-                }
+                onCancel={creating ? cancelCreating : undefined}
               />
             ) : (
               <EmptyState title="No connection selected">
@@ -348,8 +419,9 @@ export function SettingsView(props: SettingsViewProps = {}) {
     return result
   }, [isTeam, isAdmin, accountsAvailable])
 
+  const requestedConnectionId = props.connectionId ?? null
   const [section, setSection] = useState<SettingsSectionId | null>(() =>
-    sections.includes('models') && props.connectionId ? 'models' : (sections[0] ?? null),
+    sections.includes('models') && requestedConnectionId ? 'models' : (sections[0] ?? null),
   )
   const sectionKey = sections.join(',')
   const current = section && sections.includes(section) ? section : (sections[0] ?? null)
@@ -380,6 +452,14 @@ export function SettingsView(props: SettingsViewProps = {}) {
 
   return (
     <div className="lg-settings-view">
+      {requestedConnectionId && !sections.includes('models') ? (
+        <p className="lg-notice" role="note">
+          Connection &quot;{requestedConnectionId}&quot; configuration is managed by
+          administrators. No model or credential configuration was loaded. You can
+          manage your own account below.
+        </p>
+      ) : null}
+
       {sections.length > 1 ? (
         <div role="tablist" aria-label="Settings sections" className="lg-settings-tabs">
           {sections.map((id) => (

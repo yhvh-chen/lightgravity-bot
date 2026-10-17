@@ -232,6 +232,33 @@ describe('LG-050 auth: identity, logout and admin entry', () => {
     expect(settingsCalls).toHaveLength(0)
   })
 
+  it('shows My Account plus an honest admin-only notice for an explicit member connection target', async () => {
+    window.history.replaceState(
+      null,
+      '',
+      '/?view=settings&item=settings:connection:deepseek&task=task_real',
+    )
+    const fetchMock = installFetch({
+      authMe: () =>
+        jsonResponse({ mode: 'team', authenticated: true, username: 'bob', role: 'member' }),
+    })
+    render(<App />)
+
+    expect(
+      await screen.findByText(/configuration is managed by\s+administrators/),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'My Account' })).toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: 'Models & Providers' })).toBeNull()
+    expect(screen.queryByRole('tab', { name: 'Accounts' })).toBeNull()
+    expect(window.location.search).toContain('view=settings')
+    expect(window.location.search).toContain('task=task_real')
+    expect(window.location.search).toContain('item=settings%3Aconnection%3Adeepseek')
+    const settingsCalls = fetchMock.mock.calls.filter((call) =>
+      urlOf(call[0]).includes('/api/v1/settings'),
+    )
+    expect(settingsCalls).toHaveLength(0)
+  })
+
   it('returns to the login gate when a request reports an expired session (401)', async () => {
     installFetch({
       authMe: () =>

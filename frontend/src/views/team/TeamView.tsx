@@ -12,7 +12,7 @@ import {
 import type { ViewId } from '../../app/navigation'
 import { useShell } from '../../app/ShellProvider'
 import { useAuth } from '../../app/AuthProvider'
-import { draftKey } from '../../app/uiState'
+import { draftKey, settingsConnectionRef } from '../../app/uiState'
 import { DetailHeader } from '../../components/DetailHeader'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
@@ -169,6 +169,14 @@ export function TeamView(props: TeamViewProps = {}) {
 
   const goToResource = useCallback(
     (kind: string, id: string, from: Selection) => {
+      if (kind === 'connection') {
+        // LG-103: Connection management lives only in Settings. Carry the
+        // stable Connection id so the matching record is selected; Task/Run
+        // and the browser return position are preserved by the shell.
+        selectItem(settingsConnectionRef(id))
+        navigate('settings')
+        return
+      }
       rememberTeamReturn(itemRef(from) ?? (from.tab === 'recruited' ? 'team:recruited' : 'team:available'))
       selectItem(`resources:${kind}:${id}`)
       navigate('resources')
