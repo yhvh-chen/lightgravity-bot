@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 
 import { ApiError } from '../../api/client'
 import { useAuth } from '../../app/AuthProvider'
+import { Logo } from '../../components/Logo'
 import './auth.css'
 
 /**
@@ -45,9 +46,7 @@ export function LoginView() {
     <div className="lg-auth" role="main" aria-label="Sign in">
       <form className="lg-auth__card" onSubmit={handleSubmit}>
         <div className="lg-auth__brand">
-          <span className="lg-auth__mark" aria-hidden="true">
-            LG
-          </span>
+          <Logo className="lg-auth__mark" size={36} />
           <div>
             <h1 className="lg-auth__title">LightGravity Bot</h1>
             <p className="lg-auth__subtitle">Shared workspace · sign in to continue</p>
@@ -100,8 +99,8 @@ export function LoginView() {
         >
           {submitting ? 'Signing in…' : 'Sign in'}
         </button>
-        <p className="lg-auth__hint">
-          Accounts are managed by an administrator on the server.
+        <p className="lg-auth__hint" lang="zh-CN">
+          默认账号：admin，默认密码：admin123。请管理员登录后立即修改密码。
         </p>
       </form>
     </div>

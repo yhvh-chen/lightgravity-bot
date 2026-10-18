@@ -31,12 +31,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--lg-radius-control);
-  background: var(--lg-color-accent-soft);
-  color: var(--lg-color-accent);
-  font-weight: 700;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
 }
 
 .lg-auth__title {

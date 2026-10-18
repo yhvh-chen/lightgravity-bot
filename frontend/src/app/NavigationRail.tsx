@@ -11,6 +11,7 @@ import {
   NAV_RESOURCE_CATEGORIES,
 } from '../api/resources'
 import { Icon } from '../components/icons'
+import { Logo } from '../components/Logo'
 
 export interface NavigationRailProps {
   current: ViewId
@@ -56,6 +57,14 @@ export function NavigationRail({ current, selectedItemRef, onNavigate, variant =
       className="lg-rail"
       aria-label={variant === 'drawer' ? 'Primary navigation (drawer)' : 'Primary navigation'}
     >
+      {/* The top-bar brand is hidden on phones, so the narrow drawer carries
+       * the same mark and wordmark once. The inline rail needs no duplicate. */}
+      {variant === 'drawer' ? (
+        <div className="lg-rail__brand">
+          <Logo className="lg-rail__brand-mark" size={24} />
+          <span className="lg-rail__brand-name">LightGravity Bot</span>
+        </div>
+      ) : null}
       <ul className="lg-rail__list">{WORK_NAV_ITEMS.map(renderItem)}</ul>
       <div className="lg-rail__spacer" />
       <ul className="lg-rail__list">{renderItem(SETTINGS_NAV_ITEM)}</ul>

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { NotificationList, type NotificationListItem } from '../components/NotificationList'
 import { Icon } from '../components/icons'
+import { Logo } from '../components/Logo'
 import { MaterialSearch } from '../components/MaterialSearch'
 import { useAuth } from './AuthProvider'
 import { useShell } from './ShellProvider'
@@ -103,9 +104,7 @@ export function TopBar({
         ) : null}
 
         <div className="lg-topbar__brand">
-          <span className="lg-topbar__mark" aria-hidden="true">
-            LG
-          </span>
+          <Logo className="lg-topbar__mark" size={24} />
           <h1 className="lg-topbar__title">LightGravity Bot</h1>
         </div>
       </div>
