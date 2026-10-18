@@ -234,7 +234,7 @@ Chat 接收问题、目标、补充证据、展示结果和请求必要决定；
 
 资料的常规接入入口是 Chat（上传/拖拽/粘贴链接），Files 负责预览/浏览/来源追溯/归档调整/校订/重处理/下载；原件、带源版本的派生、人工校订版本与可重建索引/向量缓存分层，方向已确认但**尚未实现、接口未冻结**，见 [资料接入与检索设计](09-source-intake-and-retrieval.md)。
 
-五个一级入口放在固定左侧窄图标栏，顶栏用于范围和面板控制。Agent 合并到 Team 的待招募/已招募，分别读取角色模板与临时成员实例；历史 Run 保留已释放名单。Resources 集中管理 Connections、Session Profiles、Hooks、MCP、Tools、Triggers、Skills，Conversation 实例在 Chat/成员详情中查看。完整布局、范围和交互见 [左侧导航、Team 与 Resources](05-navigation-and-team.md)。
+按 LG-051 的界面要求，Chat、Board、Files、Team 和七类资源 Connections、Session Profiles、Hooks、MCP、Tools、Triggers、Skills 直接放在同一个左导航；不保留第二上下文栏。顶部提供资料 Search，移除 Scope/Run 下拉，通过 Files 的真实 Tasks 清单进入任务对话。Agent 在 Team 中区分待招募模板和已招募实例，历史 Run 保留已释放名单；Resources 仍为七类资源共用的实现归属。Personal/Team 对话的身份边界、默认单用户兼容与实际交付状态见 [导航与团队设计](05-navigation-and-team.md) 和 [接口契约](08-interface-contract.md)。
 
 左导航底部另提供 Settings 接入模型和管理凭证，使用同一 Connection 权威文件；默认引用在 SETTINGS.md，敏感值只进后端秘密存储。设置页表单是普通资源对话修改规则的必要例外，不增加第二份配置库。首版先接通已验收的 OpenAI-compatible（`LocalOpenAIAgentConfig`）→ DeepSeek 路径；Gemini/Vertex 等未验收后端待各自探针通过后开放，见 [模型设置](07-settings-and-models.md) 与 [契约 §8.1](08-interface-contract.md)。
 

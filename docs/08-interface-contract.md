@@ -8,9 +8,9 @@ updated: "2026-10-18"
 
 # 首版接口与状态契约（v1）
 
-> **候选契约 1.21.0（2026-10-18，LG-206 串行集成；实现待 LG-207 独立版本/浏览器 QA）**：加性登记 Tasks 工作区候选的两项公开变化：`SourceView` 只读可用性字段 `context_selectable`/`context_unavailable_reason`（由真实可读正文推导，不作为持久状态），以及只读 Team 对话历史投影 `GET /api/v1/conversations/history`。无既有端点、请求字段、错误码、实体状态/阶段/验收枚举、迁移方向或权限变化；旧客户端忽略新可选字段/端点即可。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 在该候选为 `1.21.0`（已由 1.22 候选取代）；**公开 8123 服务仍为 1.20.0**，本候选未部署/推送。冻结的英文 ASR 下一版本线不属于本候选。范围与兼容边界见 §22。
+> **已验收候选契约 1.21.0（2026-10-18，LG-206 串行集成；LG-207 独立版本/浏览器 QA 为 PASS_WITH_LIMITATIONS；已合入本地 main，未部署）**：加性登记 Tasks 工作区候选的两项公开变化：`SourceView` 只读可用性字段 `context_selectable`/`context_unavailable_reason`（由真实可读正文推导，不作为持久状态），以及只读 Team 对话历史投影 `GET /api/v1/conversations/history`。无既有端点、请求字段、错误码、实体状态/阶段/验收枚举、迁移方向或权限变化；旧客户端忽略新可选字段/端点即可。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 在该候选为 `1.21.0`（已由 1.22 候选取代）；**公开 8123 服务仍为 1.20.0**，本候选未部署/推送。冻结的英文 ASR 下一版本线不属于本候选。范围与兼容边界见 §22。
 
-> **候选契约 1.22.0（2026-10-18，LG-238 串行集成；实现待 LG-239 独立版本/浏览器 QA）**：§23 加性登记 Google 原生音频转写 provider 的配置/公共接口/错误与文件归属，并登记已随本候选精确合入的 LG-229/230 行为（取消 OpenAI 兼容主机白名单与模型/API 用量上限，保留计数、超时、取消与并发容量）。LG-236 后端与 LG-237 前端已在隔离候选装配，公共 backend runtime 已真实实现：源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.22.0**；公开 8123 仍为 1.20.0，本候选未部署/推送。旧英文 Reader 质量 **FAILED**、§18～§22 字段与历史失败证据全部保留，不追溯改判。LG-235 仅用既有 H1/H2 各一次真实 Google 原生请求；LG-238 的装配检查使用记录的 H1/H2 响应与 fake transport，**不宣称真实产品 Google API 已在运行时验证**；首次真实 UI/摄取调用留给 LG-239。证据见 [LG-235 CONTRACT](../probes/google-native-asr-20261018/lg235/CONTRACT.md) 与 LG-238 交付。
+> **已验收候选契约 1.22.0（2026-10-18，LG-238 串行集成；LG-239 独立版本/浏览器与真实 Google 调用 QA 为 PASS_WITH_LIMITATIONS；已合入本地 main，未部署）**：§23 加性登记 Google 原生音频转写 provider 的配置/公共接口/错误与文件归属，并登记已随本候选精确合入的 LG-229/230 行为（取消 OpenAI 兼容主机白名单与模型/API 用量上限，保留计数、超时、取消与并发容量）。LG-236 后端与 LG-237 前端已在隔离候选装配，公共 backend runtime 已真实实现：源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.22.0**；公开 8123 仍为 1.20.0，本候选未部署/推送。旧英文 Reader 质量 **FAILED**、§18～§22 字段与历史失败证据全部保留，不追溯改判。LG-235 仅用既有 H1/H2 各一次真实 Google 原生请求；LG-238 的装配检查使用记录的 H1/H2 响应与 fake transport，装配阶段不宣称真实产品 Google API 已验证；LG-239 已通过真实 UI/摄取完成一次真实 Google 调用（PASS_WITH_LIMITATIONS，仅限该样本）。证据见 [LG-235 CONTRACT](../probes/google-native-asr-20261018/lg235/CONTRACT.md) 与 LG-238 交付。
 
 > **契约 1.19.0 冻结（2026-10-18，LG-140；仅契约准备，未实现）**：本节新增资料摄取 v2 的加性请求/响应字段、独立回执分支、能力门、媒体直接 embedding、持久服务端摄取、配额/重试/取消/重启与显式重建边界，见 §20。**源码与运行服务仍为 1.18.0**；在 LG-141～LG-143 实现、LG-144 串行集成并由 LG-145 独立验收前，不得修改 `CONTRACT_VERSION`、`/health` 新能力或宣称自动索引已可用。旧客户端不发送新字段时保持 1.18.0 行为；Team Personal 私有附件隔离与 ASR 不可用边界不变。
 
@@ -802,8 +802,8 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 
 | 版本 | 日期 | 级别 | 变更 | API/实体字段影响 |
 |---|---|---|---|---|
-| `1.22.0` | 2026-10-18 | MINOR | LG-238 串行装配 LG-235 冻结、LG-236 实现、LG-237 UI 的 Google 原生英文音频转写（§23）：`english_asr` 加性 `provider`/`runtime` 判别、Google 设置视图/PUT（write-only 托管凭证、原生 base_url/model/limits）、健康 `english_asr` 按 provider 的 attemptable 语义、原生 inline-audio REST 请求/响应映射与错误分类、加性 receipt `machine` provenance；同时登记 §23.1 的 LG-229/230 主机/调用上限放宽。候选已实现/装配并完成局部检查，**待 LG-239 独立版本/浏览器与真实 Google 调用 QA**，未部署 | 仅新增可选 provider 判别/视图/请求字段、reason 字符串与 `machine` 可选字段；旧块无 `provider` 时 1.20/1.21 行为逐字保持；无 Task/Run/Member/Subtask/`source.status` 枚举、迁移方向或 HTTP 错误码变化；不新增前端直连供应商端点；`contract_version` 随真实装配为 `1.22.0`，生产仍 `1.20.0`；旧 Reader 质量 FAILED 保留 |
-| `1.21.0` | 2026-10-18 | MINOR | LG-206 Tasks 工作区串行集成候选（§22）：`SourceView` 加性只读字段 `context_selectable`/`context_unavailable_reason`；只读 `GET /conversations/history` Team 对话历史投影。前端删除 Chat 主页面、Files→Tasks、New task、上下文选材移入 Tasks、Team 历史图标。候选已实现/局部验证，**待 LG-207 独立版本/浏览器 QA**，未部署 | 仅新增可选 SourceView 只读投影字段与一个只读端点/响应；无既有端点、请求字段、错误码、Task/Run/Member/Subtask/`source.status` 枚举、迁移方向或权限变化；旧后端缺 SourceView 字段时前端保守禁用选材并如实说明；历史接口不返回正文/作者/附件/Personal；不新增 health 能力，`contract_version` 随真实装配为 `1.21.0`，生产仍 `1.20.0` |
+| `1.22.0` | 2026-10-18 | MINOR | LG-238 串行装配 LG-235 冻结、LG-236 实现、LG-237 UI 的 Google 原生英文音频转写（§23）：`english_asr` 加性 `provider`/`runtime` 判别、Google 设置视图/PUT（write-only 托管凭证、原生 base_url/model/limits）、健康 `english_asr` 按 provider 的 attemptable 语义、原生 inline-audio REST 请求/响应映射与错误分类、加性 receipt `machine` provenance；同时登记 §23.1 的 LG-229/230 主机/调用上限放宽。LG-239 独立版本/浏览器与真实 Google 调用 QA PASS_WITH_LIMITATIONS；已合入本地 main，未部署 | 仅新增可选 provider 判别/视图/请求字段、reason 字符串与 `machine` 可选字段；旧块无 `provider` 时 1.20/1.21 行为逐字保持；无 Task/Run/Member/Subtask/`source.status` 枚举、迁移方向或 HTTP 错误码变化；不新增前端直连供应商端点；`contract_version` 随真实装配为 `1.22.0`，生产仍 `1.20.0`；旧 Reader 质量 FAILED 保留 |
+| `1.21.0` | 2026-10-18 | MINOR | LG-206 Tasks 工作区串行集成候选（§22）：`SourceView` 加性只读字段 `context_selectable`/`context_unavailable_reason`；只读 `GET /conversations/history` Team 对话历史投影。前端删除 Chat 主页面、Files→Tasks、New task、上下文选材移入 Tasks、Team 历史图标。LG-207 独立版本/浏览器 QA PASS_WITH_LIMITATIONS；已合入本地 main，未部署 | 仅新增可选 SourceView 只读投影字段与一个只读端点/响应；无既有端点、请求字段、错误码、Task/Run/Member/Subtask/`source.status` 枚举、迁移方向或权限变化；旧后端缺 SourceView 字段时前端保守禁用选材并如实说明；历史接口不返回正文/作者/附件/Personal；不新增 health 能力，`contract_version` 随真实装配为 `1.21.0`，生产仍 `1.20.0` |
 | `1.20.0` | 2026-10-18 | MINOR | 英文Reader转写及Settings/Chat/Files接入（§21）；UI与后端由LG168部署1.20，ASR关闭、质量QA失败保留 | 加性english_asr配置/处理能力/机器provenance；默认关闭，Personal隔离不变，30秒/无时间戳；处理可用不等于质量通过 |
 | `1.19.0` | 2026-10-18 | MINOR | LG-140 冻结资料摄取 v2（§20）：`POST /sources` 加性 `intake_mode`（默认 `sync`）、消息加性 `source_refs`、`source`/`intake_job` 加性摄取边界字段、`GET /sources/{id}/receipt` 的 `receipt_version:2` 与独立 `text`/`keyword`/`semantic` 分支、健康能力 `material_intake_v2`/`semantic_search`/`media_direct_embedding`；明确发送前不摄取/不索引、后端持久工作、媒体直接 embedding、无自动重试、取消确认、重启不重放、搜索/保存设置不隐式全库重建，`POST /vector/rebuild` 收紧为管理员/受保护写入。**1.19功能已实现、独立QA通过，并已包含于LG168部署的1.20**；英文ASR保持关闭/质量门失败 | 仅新增可选请求/响应/实体/事件 payload 字段与三个默认 false 的能力；旧客户端缺省字段行为不变；不新增端点、错误码、Task/Run/Member/Subtask `state`/`phase`/`acceptance` 枚举或迁移方向；Personal 私有附件、ASR 不可用、既有 `selected_sources` 权限与 Task/Run 门不变 |
 | `1.17.0` | 2026-10-17 | MINOR | LG-104连接弹窗与SDK provider配置/测试（§18），已实现/独立R2 QA通过 | 新增草稿测试/引用保护删除端点、Connection可选认证/本地模型字段/capabilities/last_test、TestResult可选draft标记；旧端点兼容、不迁移旧文件、不扩大native任务执行或任意custom host放行 |
@@ -1606,9 +1606,9 @@ ready 时 `derivatives` 加性条目：
 
 2026-10-18最终复验补充：候选2fbff57/tree5be57d3，LG163-R2独立46/46浏览器检查、PCM32修复、31秒前模型拒绝边界通过；0新推理、同账本77条hash98a5b466不变。整体质量FAILED，历史未跑startup/lifespan选择仍INCOMPLETE。自有QA进程/端口已关闭，未部署，见[最终报告](../probes/english-asr-20261018/lg163-r2/REPORT.md)。
 
-## 22. Tasks 工作区与 Team 对话历史（1.21.0 候选；LG-206 集成，LG-207 独立 QA 待执行）
+## 22. Tasks 工作区与 Team 对话历史（1.21.0 已验收候选；LG-206 集成，LG-207 PASS_WITH_LIMITATIONS）
 
-> **状态与门**：本节登记 LG-201～205 在 LG-206 隔离串行候选中的实际公开加性变化。候选源码 `CONTRACT_VERSION` 与 `GET /api/v1/health.contract_version` 为 `1.21.0`；**公开 8123/5173 仍为 1.20.0**，未部署、未推送。候选已通过集成者的前端全量测试/typecheck/build 及相关后端回归，但**尚未经过 LG-207 独立版本与真实浏览器 QA**，不得据此宣称版本验收或生产可用。已冻结的英文 ASR 下一版本线（1.21 代码/文档/远端模型路径）不属于本候选，也不改变 §20/§21 的 ASR 质量失败与默认关闭事实。
+> **状态与门**：本节登记 LG-201～205 在 LG-206 隔离串行候选中的实际公开加性变化。候选源码 `CONTRACT_VERSION` 与 `GET /api/v1/health.contract_version` 为 `1.21.0`；**公开 8123/5173 仍为 1.20.0**，未部署、未推送。候选已通过集成者的前端全量测试/typecheck/build 及相关后端回归；LG-207 独立版本与真实浏览器 QA 为 **PASS_WITH_LIMITATIONS**，已随本 1.22 候选合入本地 main，但未部署；仍不得据此宣称生产可用。已冻结的英文 ASR 下一版本线（1.21 代码/文档/远端模型路径）不属于本候选，也不改变 §20/§21 的 ASR 质量失败与默认关闭事实。
 
 ### 22.1 `SourceView` 只读上下文可用性（LG-221）
 
@@ -1671,15 +1671,17 @@ ready 时 `derivatives` 加性条目：
 - 集成分支 `integration/demo-tasks-20261018`；包含 LG-202 最终 `84a20ce` 的收尾增量（General 优先于迟到的 Task 校验）、LG-203/204 `afb898d`、LG-219 `6b89dc8`、LG-221 `95dd524`、LG-205 `c3ad950`。
 - 最终候选提交、全量前端与相关后端命令/退出码/限制记录在 `probes/demo-tasks-20261018/lg206/DELIVERY.md`；任务状态仍由根项目管理维护。
 
-## 23. Google 原生音频转写（1.22.0 已实现候选；LG-238 装配，LG-239 独立 QA 待执行）
+## 23. Google 原生音频转写（1.22.0 已验收候选；LG-238 装配，LG-239 PASS_WITH_LIMITATIONS）
 
-> **状态与门**：本节冻结 **加性 MINOR** 的 provider 判别、配置/秘密字段、能力语义、原生 REST 请求/响应映射、错误分类、来源/回执 provenance、计数/用量与文件归属。LG-235 完成接口冻结与一次真实小样本原型，LG-236（后端）与 LG-237（UI）分别实现，LG-238 已在隔离候选串行装配：源码 `CONTRACT_VERSION` 与 `GET /health.contract_version` 现为 `1.22.0`，真实公共 backend runtime 已实现并通过局部/契约/类型/构建检查。**未部署**（公开 8123/5173 仍为 1.20.0），**尚未经过 LG-239 独立版本与真实浏览器/Google 调用 QA**，不得据此宣称版本验收、生产可用或质量通过。装配检查使用记录的 H1/H2 响应与 fake transport，不冒充真实运行时调用。
+> **状态与门**：本节冻结 **加性 MINOR** 的 provider 判别、配置/秘密字段、能力语义、原生 REST 请求/响应映射、错误分类、来源/回执 provenance、计数/用量与文件归属。LG-235 完成接口冻结与一次真实小样本原型，LG-236（后端）与 LG-237（UI）分别实现，LG-238 已在隔离候选串行装配：源码 `CONTRACT_VERSION` 与 `GET /health.contract_version` 现为 `1.22.0`，真实公共 backend runtime 已实现并通过局部/契约/类型/构建检查。**未部署**（公开 8123/5173 仍为 1.20.0），LG-239 独立版本/浏览器与一次真实 Google 调用 QA 为 **PASS_WITH_LIMITATIONS**，候选已合入本地 main，但未部署；不据此宣称生产可用或质量通过。装配检查使用记录的 H1/H2 响应与 fake transport，真实调用证据见 LG-239。
 >
 > 本路径**替代本轮 demo 的 EG2/Reader 远端帧桥接**，但**不删除、不改判**旧 Reader 实现与质量 FAILED 历史。Google provider 不得 import `torch`/`numpy`/`transformers`/Reader，不得调用本机音频编码器、模型容器或 `192.168.8.12`；Settings 的 Google 模式不得要求 `model_dir`/`reader_dir`。
 
 ### 23.1 随 1.22 候选合入的 LG-229/230 行为
 
 本分支已按原提交精确合入 LG-229 `dad742d` 与 LG-230 `cd0e8c8`，保留 Tasks 1.21 核心。其公开行为变化如下（与 Google 转写同属下一 MINOR，但二者可独立验收）：
+
+> §18 中“仅 DeepSeek 可执行/设默认”的约束随 LG-229/230 作废；旧作业保留原值不迁移，PDF OCR 处理全部页面（原 100 页截断）。
 
 - **主机**：取消 OpenAI 兼容主机白名单。任意带主机名的 `openai-compat` 连接 `capabilities.executable=true`，可设为默认，代理向其转发该连接自己的凭证；`vendor_verified` 仍只对端到端核实过的 `api.deepseek.com` 为 `true`（事实展示，不是白名单）。
 - **调用次数**：执行器每 session 代理默认上限（原 8）、对话与独立复核的单次调用上限（原 1）、代理默认上限（原 64）均改为不设上限；仅当请求显式给出 `budget.max_model_calls` 或运维显式配置时才生效。协作请求只认显式 `max_collab_requests`。

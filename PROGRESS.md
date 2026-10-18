@@ -2,10 +2,88 @@
 title: "2026-10-15 开发进展与续接记录"
 doc_type: report
 category: project
-updated: "2026-10-16"
+updated: "2026-10-17"
 ---
 
 # 当前进展与续接记录
+
+> **品牌上线与ASR拆分实施（2026-10-18）**：Logo/默认账号提醒已上线8123，root main8a3f04d7、原后端1.20/PID536200保持；品牌独立112项/29测试与生产44项通过，无服务重启/账户数据改动/模型调用/远端推送。ASR已按用户纠正关闭本机路径，选定远端EG2+本地Reader容器；Reader容器与精确帧数修复已交付，新帧服务/应用接线在独立分支准备，当前远端默认SSH密钥被拒绝，真实部署联调和完整169/172/173待完成。[品牌部署](probes/remote-reader-20261018/lg212/DELIVERY.md) · [SSH核查](probes/remote-reader-20261018/lg213/REPORT.md)。原质量FAILED保留。
+
+> **已部署并提交（LG138，2026-10-18）**：8123已运行1.18.0，根main b29cd7b；GitHub main/dev 2f9f927、Gitea main/dev 164990f均正常推送及回读。4组真实浏览器/19局部测试通过，282角色补齐，账号/资源/计数保留，任务执行仍关闭。首次/tmp配额错误及恢复记录保留；安装预览release未改。[交付](probes/chat-task-teams-20261017/lg138/deploy-LG138-DELIVERY.md)。
+
+
+> **Chat与多任务团队版本独立QA有界通过（2026-10-18）**：隔离候选94571a0/契约1.18.0；真实SDK双Task重叠、各Task组队与停止释放、队列取消、私聊文本/未读二进制事实及UI已验。累计36请求、历史账本前缀保留；旧失败/限制保留。README已更新自动组队与Swarm探索边界；LG128已同步双远端development/task-teams-20261018（GitHub634aa18／Gitea2cf0d42，回读和新克隆确认），服务未部署更新。[最终QA](probes/chat-task-teams-20261017/qa-LG123-final/REPORT.md)。
+
+
+> **连接弹窗版本已交付（2026-10-17，LG-104 done）**：main df53ead，契约1.17.0，8123 PID2707896；Settings连接列表＋New/Edit紧凑弹窗，Provider条件字段、草稿测试后保存、Advanced、自定义BaseURL主显及默认选择。新独立pi R2 PASS：8项真实前后端Playwright/1440,1024,390，默认200轮/Agent120轮并发零悬空；112相关、72 Store/host、并发8/startup1、前端39及类型/构建通过。首轮3fixture失败、2真实竞态、QA阻断和文案过密均有定位/修复/复验证据，未假称首次全绿。旧全套仅按精确树范围复用，最终未再跑全套。账号/资料/秘密位置/生成计数0与无限全局额度、no-executor保留，5173/18123不变；未推送，重启可能需重登录。新provider任务执行/custom host放行未扩展，无真实厂商/LiteRT硬件验证。[独立复验](probes/provider-setup-20261017/qa-r2/QA-R2.md) · [交付](probes/provider-setup-20261017/qa-r2/DELIVERY.md)。下方“当前/最新”为此前历史快照。
+
+> **连接管理已收敛至Settings（LG-103 done）**：main85d009d／8123移除独立Connections侧栏，Settings完整功能保留；连接引用／旧深链按ID定位，Task/Run及成员权限保持。68项相关回归、导航6/6、真实后端浏览器72/72、类型／构建通过，未知ID与跨ID迟到保存保护已核对；小批次待后续版本QA。三个服务未重启，原连接／账户／资料保持，无模型调用或推送。[交付](probes/settings-connections-20261017/DELIVERY.md)。
+
+> **导航图标已更新（LG-102）**：main503dca3／8123七资源和Settings改为统一18px线性SVG，23项既有回归、类型／构建及真实前后端浏览器9/9通过，桌面与390drawer不裁剪／溢出、导航功能及选中态保持。三个服务未重启，无数据／模型调用／远端发布。[证据与截图](probes/nav-icons-20261017/DELIVERY.md)。
+
+> **搜索框文案更新（LG-101）**：main bd3b13b／8123已将顶栏placeholder与可访问名称改为Search，布局／功能保持。14项既有shell测试和类型／构建通过，无后端重启／数据变化。[交付](probes/search-label-20261017/DELIVERY.md)。
+
+> **居中资料搜索框已更新（2026-10-17，LG-100 done）**：`main@52ca568` 已在8123提供新前端，常显可编辑输入框居中，Enter真实查询／Files回链／Escape焦点与1440/1024/390布局通过Playwright，35项相关前端回归及类型／构建通过。无后端重启、用户数据／模型调用／远端推送，契约仍1.16.0。小任务待后续版本QA。[交付](probes/centered-search-20261017/DELIVERY.md)。
+
+> **8123 已重启到最新版（2026-10-17，LG-099 done）**：当前 http://192.168.8.50:8123 为契约1.16.0、PID2329479，前端构建摘要与QA一致；健康、静态资源、匿名401及真实Chrome登录页检查通过。账户／业务文件保持，团队认证与no-executor/cap0保留，生成0→0；旧进程优雅超时后强制停止。5173因监听资源耗尽退出后以同端口／代理和轮询监听恢复，PID2332542；18123 PID1597462未变。可能需重新登录，源码仍ca58b35，未提交／推送。[运行交付](probes/generic-merge-20261017/RESTART.md)。下方“尚未重启／旧8123”为此次运行更新前快照。
+
+> **通用协作与可靠性合入版本已交付（LG-094～098）**：八项通用能力已合入 `main@ca58b35`，契约1.16.0，完整提交树与独立 QA `2024205` 相同。首轮 QA FAIL 的长工作区前缀状态词误判，经原生 Codex 返修后独立复验 PASS_WITH_LIMITATIONS；32条边界、220协调器／契约、类型检查、新浏览器7/7通过，前端216与旧14浏览器按同树复用。失败与返修记录保留，未重跑真实模型／SDK。游戏角色／固定招募映射／演示预算数据未导入。root既有dirty/index、安装脚本、dist及8123／5173／18123服务保持；8123仍旧1.15运行版本。未推送／发布／部署，无产品模型调用，用户最终产品验收待定。[交付](probes/generic-merge-20261017/DELIVERY.md) · [独立复验](probes/generic-merge-20261017/qa/QA-R2.md)。
+
+本轮收口 CLI 实测：98 项／0 diagnostics、97 done／1 todo／0 in-progress，ready 为空；唯一既有待办 LG-041 中文 ASR 质量门保持。PM 在合入保全核对完成后只追加／更新项目说明与契约版本引用；产品树未再改动，索引仍为空，未暂存或提交此前用户文档修改。
+
+> **Gitea／GitHub 已发布安装预览（LG-093）**：GitHub main89ac38d／Gitea maina1bbeaf，release `install-preview-20261017`，两平台均提供同一预构建包、SHA与清单，远端refs／新克隆源码／全部附件下载摘要核实。[GitHub](https://github.com/yhvh-chen/lightgravity-bot/releases/tag/install-preview-20261017) · [Gitea](http://192.168.8.50:3000/admin/lightgravity-bot/releases/tag/install-preview-20261017) · [发布证据](probes/install-publish-20261017/DELIVERY.md)。private可见性不变，正常非force更新；业务仍b6c738d，未迁入隔离demo。公开包实际免Node安装／前端及API／团队登录／停止自检通过，独立版本QA待进行。root2c68131与既有dirty/index／服务保持，无产品模型调用或云资源。当前93项：92done、1todo（LG041），无in-progress。
+
+> **安装简化已交付（LG-092）**：源码／解压包执行 `bash install.sh`，生成固定 launcher；预构建包目标端不需要 Node/npm，仍需 Linux、uv 和联网下载 Python／依赖。main 2c68131 仅新增四个安装／文档文件，产品 backend/frontend 树仍为 b6c738d；旧 dirty 保留，既有 8123／5173／18123 不动。pi 实际安装／启动／状态／停止／HTML及JS／登录／重装保留账户配置、无 Node PATH 和含空格路径自检通过，待后续版本 QA。主目录打包成功，最终包与已测包仅 RELEASE-INFO 不同；[交付与安装包](probes/install-simple-20261017/DELIVERY.md)、[安装指南](docs/install.md)。无产品模型调用、无云资源或远端发布。当前 92 项：91 done、1 todo（LG-041 既有质量门）；下方 main b6c738d 与91项为历史快照。
+
+> **两分钟最终成片已交付（LG086～091 done）**：[最终MP4](probes/video-20261017/v2/demo-120s.mp4)，120.000秒／1920×1080／30fps／3600帧，英文字幕无配音，约62MB。新独立pi [LG091 QA PASS](probes/video-20261017/v2/qa/QA.md)：570帧局部页脚修复、全帧解码、22处精确browserseek／120秒ended、字幕／来源／区域外及运动一致性与2次真实DeepSeek图像审看通过。源码33a69a6，电影SHA76fb25…fad29；[工程、字幕、EDL、复现与历史](probes/video-20261017/README.md)。v1/P3/D2、渲染／预检／配额／socket失败全部保留；辅助图像累计10/12，pi创作上下文另计未知，产品89/96与既有服务保持，无新生成／发布。当前91项：90done／1todo（LG041既有ASR质量门）。
+
+
+> **双账户小游戏 Demo 已完成本地技术交付（LG-063～085）**。独立pi PASS_LINKED：真实SDK开发/验证/独立模型复核/停止确认，以及当前候选下载、桌面/390各完整30秒、B反馈、A查看并真实Board Accept闭合；Taskdone/completed、Runcompleted/cleanupdone。最终18123浏览器冒烟通过，两账户/同Task/已验收下载/游戏/禁重复Accept均核实，89/96不变（旧64失败+本次24worker+1reviewer）。稳定入口 http://192.168.8.50:18123 ，无执行器回放已完成结果。源码固定61e2269，delivery/lg068-local-20261017隔离worktree；主目录main仍b6c738d，因为5173监听主目录源码，保留旧8123/5173及静态包。历史失败保留，无新生成/远端推送；当时未剪辑视频，最终成片见上方。见 [交付](probes/demo-team-game-20261017/DELIVERY.md)、[独立QA](probes/demo-team-game-20261017/CONTINUATION-QA.md)、[120秒脚本](docs/12-team-game-demo-runsheet.md)。下方“最新闭环”为上一版本。
+
+上一轮技术交付任务收口：85项／0diagnostics，84done／1todo／0in-progress，ready完整且为空；LG063及22子项完成，唯一既有待办LG041质量门不变。
+
+> **GitHub 推送更新**：2026-10-17 用户要求推送后，已将独立源码导出仓库正常推送至 GitHub main，提交 [376b6bb](https://github.com/yhvh-chen/lightgravity-bot/commit/376b6bb46c3c7ac21f1b9acda3c6e34f68ce4195)。250 个发布文件，应用源码与 main b6c738d 一致，英文 README 已更新；内部开发历史、文档、测试、运行数据及真实密钥未发布。构建／依赖／密钥扫描通过，远端 HEAD 和 main 已核对一致。根工作区既有改动和运行服务保持；Gitea 未推送。 下方“未推送”为此次推送前快照。
+
+> **最新闭环（2026-10-17，LG-061／062 done）**：账户管理版本 LG-061／062 已完成：main b6c738d、契约 1.15.0，产品／测试树与独立 QA 固定 dbf7b0c 一致。最终独立 QA PASS：30 Chromium E2E、18 独立浏览器检查、3 次导航稳定性检查通过；产品相同树沿用 1061 后端通过／2 跳过、181 前端和跨进程安全证据。当前 http://192.168.8.50:8123（0.0.0.0:8123，PID 1093724）另有 27／27 真实普通浏览器检查通过。用户指定 admin/admin123 已生效，Settings 提供 Accounts 与 My Account；已有账号／资料保持，首次空库初始化不覆盖后来改密。无真实产品模型调用，保留 no-executor／cap0，未远端推送，用户最终验收待定。 [报告与失败历史](probes/accounts-20261017/README.md)。后续旧“当前”均为历史快照。
+
+任务 CLI 收口实测：62 项／0 diagnostics，61 done／1 todo／0 in-progress，ready=[]。唯一待办 LG-041 的中文 ASR 质量门不变。
+
+> **历史运行状态（LG-060，2026-10-17）**：0.0.0.0:8123，普通浏览器访问 http://192.168.8.50:8123 显示团队账号登录页。已创建admin并实际验证36项通过；Cookie认证、匿名保护与退出正常，未改源码／模型策略、未推送。详见 [LAN记录](probes/lan-publish-20261017/README.md)。下方LG-051闭环仍有效，其loopback／单用户运行方式已由此次部署替代。
+
+> **历史闭环（2026-10-17，LG-051 done）**：本地 `main@ea6da80`，契约 1.14.0，产品树与 QA 候选 602c7af 一致。独立 pi QA PASS_WITH_LIMITATIONS：后端 1004 通过／5 跳过、前端 171 通过、Playwright 50 场景通过；实际 http://127.0.0.1:8123 另有 30 项检查通过，支持的启动／token 认证入口已运行，Settings 临时配置已清理。真实生成保持 0／0，模型执行仍关闭；未推送，用户最终验收待定。59 tasks：58 done／1 todo／0 in-progress，validate 无诊断、ready 为空。证据见 [交付记录](probes/ui-repair-20261017/README.md)。以下进行中／凭证缺失／旧契约描述为历史阶段记录，不是当前状态。
+
+
+> 历史中间记录：2026-10-17 LG-051 复验记录：DeepSeek 别名已识别，pi 正常执行。首轮版本 QA 未通过；Codex 子代理分别修复 WAL 初始化锁竞争（LG-056）、界面／跨账号草稿／兼容性（LG-057）和 Files 对私聊及内部日志的读取（LG-058），随后交 pi 整合并独立复验。未发布或推送，产品模型调用保持禁止；开发费用未知。
+
+
+## 历史阶段：2026-10-17 继续 LG-051 修复闭环
+
+- .env 的 DeepSeek 配置使用非标准 deepseek-api 标签，已进程内映射并验证 pi 可用，原文件与密钥未打印或修改。此前凭证阻塞解除。
+- pi 负责串行集成两个 Codex 修复候选、个人／团队会话新增与 Playwright 接入；独立 pi QA 在候选完成后执行，失败回 Codex 子代理修复。
+- Personal 暂按私聊实现，Team 沿用共享对话；资料与 Task 仍共享，个人聊天不自动创建共享 Task 或共享个人上传。执行假设已说明，具体实现与验证待交付。
+- 主目录已有文档和 .gitignore 修改保持，代码在独立整合 worktree，不自动远端推送。下方“pi缺少key”是上一阶段记录，不再是当前阻塞。
+
+## 历史阶段：2026-10-16 LG-051 界面修复进行中
+
+- 最新分工：Codex 主代理管理；Codex 子代理修复；pi 开发、串行集成、QA 与 Playwright 浏览器验收。下方历史“仅 pi”等约定以当前 agent.md 为准。
+- LG-052：已从 main 已集成后端源码安全替换旧 1.0.0 运行实例；8123 与 5173 代理均报告契约 1.13.0，48 路由，所需读取接口 200。原配置数据根为空，无活跃任务；模型执行关闭、生成 0，不代表模型交付已启用。
+- LG-052 兼容性修复候选：fix/lg052-runtime-20261016@2f6f567，worktree ../lightgravity-bot-lg052；类型／构建、21 前端局部和 15 权限回归通过。历史广泛检查 141/142，唯一 shell fixture 由 LG-053 修改，尚未联合复验。
+- LG-053：候选 fix/lg053-ui-20261016@502f1f2 已交付，去第二栏、资源入左导航、Search 顶部、简化输入和 Files 真实任务入口；类型／构建和 17 files / 137 非浏览器测试通过，未与 LG-052 联合复验。
+- LG-054：待用户明确 Personal/Team 对话语义。LG-055：pi 缺少 DeepSeek key，串行集成、Playwright 接入与独立 QA 受阻；不得用 Codex 替代这几项。
+- 本轮无远端推送，未修改 github-export 的已发布快照；两个前端候选均未合入主目录，不能宣称当前页面已呈现新布局或版本 QA 通过。详情见 backlog/tasks/LG-051～055。
+
+## 2026-10-16 会话状态快照（用户要求记录）
+
+- **记录基线**：`main@d873a36`；写入本快照前工作树 clean。契约 `1.12.0`，SDK `0.1.22`。
+- **已完成**：选定资料快速原型已合入 main，LG-042～049 均完成。支持原生 UTF-8 文本/Markdown 接入、手选最多 3 份资料、总计 12000 Unicode 字符的有界上下文、问答与文件交付、Sources 回看和历史持久化。Sources 表示提供给模型的上下文，不是经过逐段验证的引用。
+- **技术验收**：LG-047 命名里程碑结论为 `PASS_WITH_LIMITATIONS`。真实浏览器上传→选材→回答→Sources/Files 回看及历史重载通过，390/1024/1440 宽度和过渡无溢出；真实 SDK `deliver`＋`verify`、独立 ModelReviewer、accept 前 worker/reviewer 停止确认及测试 Task 验收完成均有证据。用户最终验收仍待进行。
+- **测试证据口径**：H 集成时后端全量 930 passed / 2 skipped、mypy 139 files；J 分类修复后相关集合 240 passed；前端 112 项测试及类型检查/构建通过。没有宣称 J 之后重跑了后端全量套件。
+- **看板重新核对**：`tasks digest` 完整、无诊断；49 项任务，48 done / 1 todo / 0 in-progress，`ready=[]`。唯一待办 LG-041 受中文 ASR 质量门阻塞，当前不宣传任何语言的 ASR 支持。
+- **保留边界**：英文市场为主，现阶段中文可接受；自动 RAG、Project、Office、额外连接器及模型规划等继续暂缓。普通文件交付保留单执行槽内依次运行的生成、验证 SDK 节点和独立复核，不宣称只需一个模型请求。
+- **调用账目**：R3 实际 8/16（生成 2、验证 5、复核 1）；R2 实际 8/8，失败记录保留；R1 已知 1 次并存在审计缺口。产品全生命周期累计成本未知且非零，不用新一轮通过覆盖旧失败。
+- **运行与续接**：未推送、未部署，本次记录不启动或重启服务；既有 8123 服务未由本轮开发更新。后续从本快照和下列验收/演示入口继续；目前不自动认领新任务、不追加模型调用预算。
+
+演示入口：[选定资料演示指南](docs/11-selected-material-demo.md)。完整证据与历史限制：[收尾报告](probes/prototype-selected-material-20261016/K-RELEASE-CLOSE/REPORT.md)、[R3 生命周期验收](probes/prototype-selected-material-20261016/N-R3-LIFECYCLE/REPORT-N-R3-LIFECYCLE-20261016.md)。
 
 > **2026-10-16 selected-material 原型命名里程碑闭环（最新事实）**：LG-047 独立版本 QA 据 LG-049 `N-R3-LIFECYCLE` 实际 **PASS_WITH_LIMITATIONS** 置 `done`；LG-049 亦置 `done`。真实完整 SDK 交付生命周期跑通（原生 API 上传 alpha → EXACT 目标交付路由 → `deliver`+`verify` 双 SDK 节点 → 真实 SDK worker 6/6 事实 → 真实独立 ModelReviewer passed → worker/reviewer stop CONFIRMED 于 accept 前 → API accept done），**8/16 前向**；本轮 root PM 仅 `--no-ff` 合入 probes/docs（合并 `76f10c7`），产品树 `main` == `0188ca2`。CLI 实测 **49 tasks / 0 diagnostics / 48 done / 1 todo / 0 in-progress / ready=[]**；LG-041 保持 `todo`（质量门）。历史 R1/R2 FAIL 与成本（unknown 非 0）保留不改。详见 [K-RELEASE-CLOSE REPORT](probes/prototype-selected-material-20261016/K-RELEASE-CLOSE/REPORT.md)。其下 LG-047 R1 FAIL 节为上一轮事实，再往下为历史保留不改。
 
@@ -823,3 +901,58 @@ LG-032 零真实请求预检发现 selector scratch 与 SDK workspace_root 边�
   LG-024 本地 review package 只锚 `e0`/contract `1.10`（sha `581f1de…`），**发布准备 done ≠ 发布授权**，**own 公开 LICENSE 未选**，
   本轮**不普通确认、不擅选许可**。
 - **本包产品真实生成 0、外部服务调用 0**；未 push/deploy/publish；未删 worktree/原始实验/历史失败。**唯一 future block** 见 RESUME §2。
+
+## 2026-10-18：资料上传与自动索引体验候选（LG139）
+
+用户已授权实施。隔离1.19最终候选为`c3796abef41e07ae0173c43b6957b7b10afb4d90`，产品子树与LG153 `b83fe16`相同，仅补充确定性FIFO测试。Chat发送时接入、后端常驻摄取/原件/frontmatter/独立索引回执、Files追溯/控制、Keyword/Semantic已实施；Personal私有隔离、ASR未开放保持。
+
+首轮[独立QA](probes/material-intake-20261018/lg145/REPORT.md)判FAILED，真实PNG/WAV主线通过但5项缺陷需修。LG148～156修复并串行集成，132重点/354组合+1skip/650跨API/64前端通过，mypy160与typecheck/build通过；原始flaky失败保留，确定性修复后完整worker15项通过。重复重型启动检查被PM中断，未记PASS，相关历史证据仅按未变路径复用。[最终候选交付](probes/material-intake-20261018/lg156/DELIVERY.md)。
+
+第二轮独立pi真实浏览器/模型复验进行中，原FAILED不改写，同物理账本固定4OCR/20embedding/15秒音频继续累计。尚非版本PASS，未推送/部署，根main/8123仍1.18，现有数据与服务未改。开发pi及native成本/精确token未汇总，未知不记0。
+
+### LG139 最终候选门（同日补记）
+
+LG145-R2 **PASS**，首轮5项缺陷独立关闭；[报告](probes/material-intake-20261018/lg145-r2/REPORT.md)。最终c3796ab/tree1cd44bf，327后端+1skip/64前端、149脚本检查/22截图、typecheck/build与相关mypy通过，累计4OCR/17embedding/11.874558秒。旧34行账本前缀原字节保持。真实品质范围与未跑重型检查按报告保留，不泛化。仅本地候选，不合入运行根main、不推送部署，线上1.18不变；用户最终验收另计。pi/native精确token/费用与全生命周期耗时未汇总，记unknown，不记0。
+
+## 2026-10-18：英文EG2 Reader与UI版本（LG158，集成中）
+
+用户授权TTS生成英文测试后接UI，基于c3796ab。真实EG2音频编码器+Reader路径已跑通：官方英文对照WER4.167%；同3固定文本Piper合成样本平均WER3.858%，数字日期均保留，逐字短语12/13（scanned→scan）使原strict gate仍false。PM接受该词形误差为非阻塞已知限制进入实施，非真人/中文/广义质量批准；原eSpeak24.735%FAIL和全部迟记审计保留。[就绪决定](probes/english-asr-20261018/IMPLEMENTATION-READINESS.md)。
+
+LG160后端e0979ab已交付，项目自身runtime真实8.301秒样本首次13.682秒输出与原型一致；309项ASR+sources含1skip、112项Settings/API与mypy40通过。LG161前端5770325已交付，全量322项/typecheck/build通过。LG162已认领独立worktree串行装配，随后LG163新独立pi真实浏览器/Reader验收。[设计](docs/15-english-asr-and-ui.md)。
+
+本轮同物理账本显式PM修订后上限TTS10/200秒、Reader36/600秒、embedding20/audio180秒；目前TTS7、Reader22、embedding0，QA保留2TTS/8Reader/6embedding。旧资料QA账本不动。主代理仅PM，pi开发/集成/QA，原生Codex修缺陷。尚未版本QA，不部署/推送或改根main/8123，线上仍1.18。ASR默认off、需显式准备可选runtime及校验模型，再由管理员配置；TTS仅测试用途，产品不调用TTS。
+
+
+2026-10-18 英文ASR/1.20隔离候选：LG163首轮独立QA完成FAILED（723da1e），功能/UI/持久化/权限路径通过，质量H1/H2 WER8%/21.739%，实体门失败。LG164文案修复与LG166 PCM32一般性修复已交付，质量限制未消除。按用户优先复用开源ASR指导，LG167正在直接运行上游完整路径对照相同失败音频；LG165等待结论后统一集成、LG163独立复验。原质量门不放宽、失败不覆盖，无部署推送，生产1.18不变。
+
+
+2026-10-18：英文最终修复复验完成：2fbff57/tree5be57d3，LG163-R2功能/修复检查通过（46浏览器、PCM32、31秒拒绝），0新模型，整体质量FAILED。LG163/父158质量阻塞，无活动执行者、无部署；Reader30/36、TTS9/10、embedding7/20、OCR0、0open。
+
+
+2026-10-18当前部署：LG168已done：UI/后端部署main1ab4d7b、线上8123与5173均1.20，ASR off/unconfigured。73/73公共部署浏览器检查、46相关测试+2skip/typecheck/build通过；账号/资源/持久数据保留，5173/18123原PID不变，0产品推理，未推送/发布。认证后生产管理页未登录验证，原英文质量FAILED及LG163/158阻塞不变。部署证据probes/english-asr-20261018/lg168/DELIVERY.md，执行者已退出。
+
+
+### 2026-10-18 Demo核心优先与ASR冻结（用户最新指令）
+
+用户明确冻结ASR功能，优先最快完成Chat/Tasks改造以开始demo视频。关键路径LG202→LG203/204/205→LG206→LG207；LG219认证作为集成前置与202并行，LG221选材缺陷并行修复。性能208/209与会话持久210后排，不再阻挡核心。ASR未完成的实施、联调、QA和部署不再派发；既有候选/质量失败保留。派工与证据见[demo核心派工](probes/demo-tasks-20261018/DISPATCH.md)。
+
+
+### 2026-10-18 Demo核心改造技术交付与视频开工
+
+LG201核心里程碑技术交付：Tasks取代Chat主页面/Files，General与真实Task工作区、唯一右侧Bot Chat、New task、正文选材/chip、Team历史及统一401处理已组成隔离候选8d869fff（1.21.0）。345前端与98相关后端、类型/构建通过；独立LG207为PASS_WITH_LIMITATIONS，修正主浏览器28/28、针对误断言的R2 6/6与空实例2/2通过。无确认产品缺陷；首轮验收脚本被覆盖的历史证据限制、单用户横幅仅单元、短暂旧资料行及无真实执行等见[独立QA](probes/demo-tasks-20261018/lg207/QA.md)。未合根/部署/推送，8123仍1.20；用户最终验收待定。LG232已开始采集约20秒新版核心操作素材用于demo剪辑，不把本项写成完整新版两分钟成片。ASR继续冻结。
+
+LG232核心操作素材已交付：[20秒1080p/30fps MP4](probes/demo-tasks-20261018/video-core/core-workspace-20s.mp4)，全片解码/元数据验证通过；真实浏览器操作与demo数据标记，无SDK成功声明，非完整新版两分钟成片。8123原服务与旧影片保持，ASR冻结。
+
+
+### 2026-10-18 用户选择Google原生音频转写
+
+本轮demo改走Google Gemini原生音频API：音频原件→原生API→机器转写正文→已有索引与Chat/Tasks回执。复用根.env的genai_api仅作进程内测试凭据引用，不写入提示/日志/源码；开发pi仍DeepSeek。旧EG2/Reader质量FAILED与远端部署未完成记录保留；仅启用Google新路径实施，旧本机编码/远端帧服务/Reader工作继续冻结。不创建Cloud资源、不改变聊天和向量默认连接，不自动部署/推送。命名里程碑LG234，子项见probes/google-native-asr-20261018/TASKS.md；先真实两段旧音频与契约，再后端/UI并行、pi集成与独立真实浏览器QA。
+
+
+### 2026-10-18 Google原生转写候选技术交付
+
+LG234及子项235–239技术交付完成，固定候选`ecda49f692097b07d6f574652f9ed72b6387919a`、契约1.22.0；包含Chat/Tasks核心改造及Google原生音频转写。集成检查123后端、35资料、353前端及类型/构建通过；轻量环境mypy172文件通过，另一次根环境mypy超时记录保留。独立pi QA为 **PASS_WITH_LIMITATIONS**：真实UI上传音频调用Google一次HTTP200、6.082秒，正文持久化、关键词检索/回链、Chat回执/Tasks预览、正式/机器文本分离、关闭后历史、权限及1440/1024/390布局通过；无需Torch/Reader。调用前后本机RSS约64→70MiB，不代表Cloud Run实测。仅有限合成音频验证，H2字面thought前缀及人名误识别保留，旧Reader质量FAILED不变。候选未合根/部署/推送，8123仍1.20；独立测试服务已停止，用户最终验收待定。证据见[独立QA](probes/google-native-asr-20261018/lg239/QA.md)与[集成交付](probes/google-native-asr-20261018/lg238/DELIVERY.md)。
+
+### 2026-10-18 Gitea 串行集成（本地 main，未部署/未推送）
+
+- 从 `cd0e8c8` 合并 Gitea 已发布历史（保留当前内部产品树）及已验收候选 `9592185`（冻结产品 `ecda49f`；LG-239 与 LG-207 独立 QA 均为 PASS_WITH_LIMITATIONS），契约 1.22.0。合并树产品子树与冻结候选一致；公开 8123/5173 仍为 1.20.0，未部署、未重启、未调用 Google。根工作区 PM 文档单独 checkpoint，用户最终验收与部署另按授权处理。

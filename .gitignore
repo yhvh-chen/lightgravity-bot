@@ -1,50 +1,82 @@
-# Environment and secrets
+# Public source boundary: tracked files remain tracked in the internal repository.
+# Publish a fresh allowlisted source snapshot; never push internal Git history.
+
+# Internal development documents and agent configuration (root only)
+/AGENTS.md
+/agent.md
+/design.md
+/PROJECT.md
+/PROGRESS.md
+/BACKLOG.md
+/docs/
+/backlog/
+/.agents/
+/probes/
+/qa/
+/examples/
+/github-export*/
+
+# Tests and test evidence
+/tests/
+/frontend/tests/
+**/__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+.coverage
+.coverage.*
+coverage/
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+
+# Environment and private credentials
 .env
 .env.*
 !.env.example
-
-# Credentials
 *.pem
 *.key
+*.p12
+*.pfx
 credentials.json
 secrets.json
+/secrets/
 
-# Editor swap/backup files
-*.swp
-*.swo
-*.tmp
-*~
-
-# Temporary logs
+# Runtime data, local databases, worktrees and caches
+/bot-data/
+/.worktrees/
+/worktrees/
+*.sqlite
+*.sqlite3
+*.db
 *.log
+*.pid
+.cache/
 
-# Python
+# Python environments and generated packages
 __pycache__/
 *.py[cod]
 .venv/
 venv/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
+*.egg-info/
+/build/
+/dist/
 
-# Node / frontend
+# Frontend dependencies and generated output
 node_modules/
-frontend/dist/
+/frontend/dist/
 *.tsbuildinfo
 
-# LightGravity runtime data and secret store (must stay out of source control)
-bot-data/
-secrets/
-
-# LG-031 phase3/phase4 runtime ledger lock (ephemeral, not evidence)
-probes/lg031/phase3/ledger/**/*.lock
-probes/lg031/phase4/ledger/**/*.lock
-
-# LG-023 phase ledger lock (ephemeral, not evidence)
-probes/lg023/ledger/**/*.lock
-
-# LG-032 FAIRNESS-CORRECTION: per-sample frozen seed git object store.
-# Regenerable deterministically from fixtures/<sample>/initial + the pinned
-# fixtures/<sample>/seed.sha256 (fixed author/committer/date), so only the SHA
-# pin is source; the live object store stays out of source control.
-probes/lg032/FINAL-COHORT/fixtures/*/seed.git/
+# Editor and operating system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+*~

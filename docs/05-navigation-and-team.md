@@ -11,7 +11,7 @@ updated: "2026-10-18"
 
 ## 1. 布局与范围
 
-> **2026-10-18 用户决策（LG-202～205 已集成于隔离候选，待 LG-207 独立版本/浏览器 QA）**：删除 Chat 主页面，Files 更名 Tasks；右侧 Bot Chat 是唯一对话界面并绑定当前 Task。下方示意图与 §2～4 已按此更新，旧 Chat 主区描述作废。实现证据见 [LG-206 交付](../../probes/demo-tasks-20261018/lg206/DELIVERY.md)，生产 8123 仍为 1.20.0、尚未部署本候选。决策记录见 PROJECT.md。
+> **2026-10-18 用户决策（LG-202～205 已集成，LG-207 独立版本/浏览器 QA 为 PASS_WITH_LIMITATIONS；已合入本地 main，未部署）**：删除 Chat 主页面，Files 更名 Tasks；右侧 Bot Chat 是唯一对话界面并绑定当前 Task。下方示意图与 §2～4 已按此更新，旧 Chat 主区描述作废。实现证据见 [LG-206 交付](../../probes/demo-tasks-20261018/lg206/DELIVERY.md)，生产 8123 仍为 1.20.0、未部署本候选。决策记录见 PROJECT.md。
 
 LG-102 统一资源与底部Settings的线性SVG图标，18px尺寸与一致描边；LG-103 随后移除独立 Connections 入口，保留六类资源与 Settings，原 Chat／Board／Files／Team 图形保持。[图标交付](../probes/nav-icons-20261017/DELIVERY.md) · [连接入口收敛](../probes/settings-connections-20261017/DELIVERY.md)。
 

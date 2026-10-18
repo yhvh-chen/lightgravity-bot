@@ -2,7 +2,7 @@
 title: "资料接入与检索设计（方向已确认；核心已实现，集中 QA 已完成）"
 doc_type: design
 category: product
-updated: "2026-10-16"
+updated: "2026-10-18"
 ---
 
 # 资料接入与检索设计（方向已确认；核心已实现，集中 QA 已完成）
@@ -224,3 +224,14 @@ LAN 端点只作**一次性只读探针目标**记录，**不是运行默认或�
 5. **后续接入** → 可选向量 [LG-037 接入 EmbeddingGemma 2 可选多模态向量索引](../backlog/tasks/LG-037.md)；中文音频先由 [LG-039 验证中文语音转写后端与质量](../backlog/tasks/LG-039.md)，达标后由 [LG-041 质量达标后接入中文转写与音频来源索引](../backlog/tasks/LG-041.md) 条件实施；集中验收见 [LG-040 集中验收资料接入与 Embedding 版本](../backlog/tasks/LG-040.md)。Office 完整支持、邮箱、文件夹增量与网页正文抓取暂缓，本轮不加排。
 
 - 集中验收与条件：图片/PDF、词法、可选向量与 Chat/Files 统一由 [LG-040](../backlog/tasks/LG-040.md) 集中 QA，**中文 ASR 不阻塞该门**；只有 [LG-039](../backlog/tasks/LG-039.md) 质量结论达标，才实施 [LG-041](../backlog/tasks/LG-041.md)。
+
+## 13. 资料上传与自动索引体验补充（2026-10-18，隔离候选QA通过）
+
+当前部署基线为 1.18.0；上文早期“未迁移/待实现”和历史版本号不代表当前全量能力。新增用户确认的体验设计以 [docs/14](14-material-intake-and-auto-index.md) 为准：Chat 提交一次，由后端保存原件/资料 frontmatter、按能力独立完成文字/词法和已启用的媒体向量，Chat/Files 显示分项真实结果，顶部搜索提供 Keyword/Semantic 与来源回链。LG140已核实缺口，自动向量触发已在隔离1.19候选接齐，LG145第二轮独立QA通过；现有线上1.18服务不因文档更新获得该能力。
+
+仅规划，任务 LG-139～145，排期见 [docs/06 §8](06-roadmap.md)。团队 Personal 私有附件仍不进入共享摄取/索引，任何语言 ASR 当前不可用；启用 Embedding 后仅后续接入自动索引，旧资料显式重建，配置保存/搜索不隐式全库调用。公开行为变化由 LG-140 先按 docs/08 升版冻结，不在本次规划更改运行契约。
+
+
+### 英文转写UI更新（2026-10-18，已部署、ASR关闭）
+
+1.20隔离候选新增默认关闭的共享英文Reader转写及Settings/Chat/Files接入，最长30秒、路径只写留空保留、机器provenance、无词时间戳；已存正文停用后仍可读取，Team Personal隔离不变。独立LG163功能/UI/权限路径通过，质量门FAILED（WER8%/21.739%、关键实体丢失）；上游原版H2输出相同，H1原版未验证。最终候选2fbff57的文案/PCM32修复与独立针对性复验已完成，46项浏览器检查通过，整体质量门仍FAILED；生产/根源码现为1.20（main 1ab4d7b），LG168已部署UI与后端，ASR仍关闭且未配置，无远端推送。见[英文设计](15-english-asr-and-ui.md)与[契约§21](08-interface-contract.md)。
