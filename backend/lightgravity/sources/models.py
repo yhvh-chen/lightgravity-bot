@@ -238,6 +238,9 @@ class ReceiptEntry:
     text: dict[str, Any] = field(default_factory=pending_text_branch)
     keyword: dict[str, Any] = field(default_factory=pending_keyword_branch)
     semantic: dict[str, Any] = field(default_factory=pending_semantic_branch)
+    #: Read-time provenance only; absent legacy fields may use file inference.
+    #: An explicit pending branch is authoritative and must stay pending.
+    branch_fields: frozenset[str] = frozenset({"text", "keyword", "semantic"})
 
     def to_dict(self) -> dict[str, Any]:
         return {

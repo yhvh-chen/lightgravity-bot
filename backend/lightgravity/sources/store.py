@@ -368,6 +368,9 @@ class SourceStore:
                         text=normalize_text_branch(record.get("text")),
                         keyword=normalize_keyword_branch(record.get("keyword")),
                         semantic=normalize_semantic_branch(record.get("semantic")),
+                        branch_fields=frozenset(
+                            name for name in ("text", "keyword", "semantic") if name in record
+                        ),
                     )
                 )
             except (TypeError, ValueError):

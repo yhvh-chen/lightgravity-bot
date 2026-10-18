@@ -794,6 +794,7 @@ class SourceService:
                     "semantic": entry.semantic,
                 },
                 current_inference if matches_current else pending_inference,
+                branch_fields=entry.branch_fields,
             )
             item.update(branches)
             item["searchable"] = branches["keyword"]["status"] == "searchable"
@@ -815,6 +816,8 @@ class SourceService:
         self,
         explicit: dict[str, Any],
         inferred: dict[str, Any],
+        *,
+        branch_fields: frozenset[str],
     ) -> dict[str, Any]:
         merged: dict[str, Any] = {}
         for name, normalizer, pending in (
@@ -823,7 +826,7 @@ class SourceService:
             ("semantic", normalize_semantic_branch, pending_semantic_branch),
         ):
             branch = normalizer(explicit.get(name))
-            if branch["status"] == "pending" and inferred[name]["status"] != "pending":
+            if name not in branch_fields:
                 branch = inferred[name]
             merged[name] = branch
         return merged
