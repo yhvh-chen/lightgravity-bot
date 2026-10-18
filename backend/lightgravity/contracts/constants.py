@@ -3,6 +3,23 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
+#: docs/08 §25: 1.24.0 (2026-10-19) is the follow-up batch serial integration
+#: candidate.  It registers three public behaviors: (a) LG-210 team login
+#: sessions now persist as hash-only records under the controlled team root and
+#: survive a service/process restart, replacing the old "restart forces
+#: re-login" semantics without changing any endpoint, cookie or account schema;
+#: (b) LG-217 an absent assistant responder now returns ``kind: unavailable``
+#: with ``data.unavailable=true`` on every direct/bounded-read surface and never
+#: attaches ``resolved_source_bindings``/provided-context claims -- an
+#: intentional replacement of the previous fabricated stock-prose reply, with
+#: coordinator/reviewer default changes still requiring a server restart; and
+#: (c) LG-256 an explicitly present receipt branch (``pending`` or a terminal
+#: outcome) is authoritative and only genuinely absent legacy branch fields may
+#: be inferred from current source state.  No endpoint, request/response field,
+#: cookie, error code, entity enum or migration direction is added.  Isolated
+#: local candidate: not deployed, and independent functional/browser review is
+#: still pending.  The frozen LG-252 candidate 3444cdd/1.23.0 is unchanged.
+#:
 #: docs/08 §24: 1.23.0 (2026-10-18) is the LG-251 local demo-recording
 #: integration candidate.  It additively registers the read-only canonical
 #: TASK.md definition endpoint (LG-242), default-delivery workspace + recorded
@@ -219,7 +236,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.23.0"
+CONTRACT_VERSION = "1.24.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

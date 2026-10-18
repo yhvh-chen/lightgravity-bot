@@ -13,7 +13,7 @@ Covered seams (docs/08 §23, contract 1.22.0):
   ``credential_configured``);
 * the 1.22 GET view/PUT field shape, default model/base URL, read-only limits
   and absence of secrets/local paths;
-* ``/health.contract_version == 1.23.0`` and attemptable ``english_asr``
+* ``/health.contract_version == 1.24.0`` and attemptable ``english_asr``
   capability without torch/numpy installed;
 * an upload through the real deferred intake worker producing a Google
   ``machine`` transcript/receipt/index entry with the frozen provenance;
@@ -147,8 +147,8 @@ async def test_assembled_lazy_service_uses_controlled_secret_store_and_122_views
         ) as client:
             health = await client.get(f"{API_PREFIX}/health")
             assert health.status_code == 200, health.text
-            assert health.json()["contract_version"] == "1.23.0"
-            assert CONTRACT_VERSION == "1.23.0"
+            assert health.json()["contract_version"] == "1.24.0"
+            assert CONTRACT_VERSION == "1.24.0"
             # Default off, but the admin configuration view stays available.
             default_view = (await client.get(f"{API_PREFIX}/settings")).json()[
                 "english_asr"
@@ -211,7 +211,7 @@ async def test_assembled_lazy_service_uses_controlled_secret_store_and_122_views
             assert reloaded["revision"] == 0
 
             health = (await client.get(f"{API_PREFIX}/health")).json()
-            assert health["contract_version"] == "1.23.0"
+            assert health["contract_version"] == "1.24.0"
             assert health["capabilities"]["english_asr"] is True
 
             # An update without ``provider`` follows the existing Google block

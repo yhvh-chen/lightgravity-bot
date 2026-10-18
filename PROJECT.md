@@ -2,10 +2,12 @@
 title: "LightGravity Bot 项目手册"
 doc_type: handbook
 category: project
-updated: "2026-10-18"
+updated: "2026-10-19"
 ---
 
 # LightGravity Bot 项目手册
+
+> **后续修复批次已本地串行集成（2026-10-19；未部署）**：隔离分支 `work/followup-candidate-20261019` 基于冻结功能基点 `3444cdd`（1.23.0），按序 cherry-pick LG256 `209f9d4`、LG217 后端 `4be61e3`、前端 `c00c502→f6a6193→d02e537` 与 LG210 `340b53e`，契约按 MINOR 升至 **1.24.0**（docs/08 §25）。登记三项公共行为：Team 登录会话改为受控目录下仅哈希持久、跨重启保留（LG-210，取代“重启即重新登录”）；无 responder 时 all direct/bounded-read 面返回 `kind:unavailable`、不再伪造固定话术与“已提供上下文”来源声明（LG-217，有意行为变更；coordinator/reviewer 默认变更仍需重启，worker 默认在新 Run 冻结）；回执显式分支（`pending`/终态）权威，仅真正缺失字段的历史记录才按当前状态推断（LG-256）。前端 LG-261 可读正文/Advanced 折叠、LG-225 **PARTIAL** 语义与 ASR 可用性如实文案、LG-217 成员/管理员不可用与重启提示同批装配；LG-225 的公开 OCR/ASR 能力字段与持久 Embedding `last_test` 仍待补充，整项不关闭。未新增端点/字段/cookie/错误码/枚举/迁移方向。验证仅为最小相关功能点与必要前端构建，未跑全套/类型/安全/性能/浏览器矩阵或真实模型/OCR/ASR；**非独立 QA**，未推送/合根/部署/重启，冻结的 LG-252 候选 `3444cdd` 不受影响。交付、证据与限制见 [integration](../probes/demo-followup-20261019/integration/DELIVERY.md)，复核交接见 [QA-HANDOFF](../probes/demo-followup-20261019/integration/QA-HANDOFF.md)。
 
 > **Demo录制修复候选已本地集成（2026-10-18，LG-251；未部署）**：隔离分支 `work/lg248-candidate-20261018` 基于 native Files/hint `cd755da`，按内容去重后串行合入 LG-208 parse cache、LG-244/LG-243/LG-249 后端链、LG-224 PDF 文字层，并把契约升至 **1.23.0**（§24）。新端点/DTO/投影字段为加性，但**不是纯加性批次**：LG-249 有意把 Team Task 普通消息改为默认只记录、仅前导配置 mention 才路由；单用户路由不变。候选包含只读 canonical `TASK.md`、机器检查 required/绑定/验收状态、每 Run 的计划 worker 与真实 reviewer 执行证据、PDF 文字层优先，以及真实 `health.team_bot_mention`。已运行受影响后端/前端测试、typecheck、build；原前端完整套件 **400 通过/1 失败**与隔离复跑 5/5 作为前缀历史保留，失败已由 root/native **LG259** `4fa884e` 证实为启动 filter-reset race 并修复，不是 flake；候选 targeted **28 通过**，且候选 `frontend` 树与 native 修复树一致，复用其 full **406 通过**。候选状态仍 **PROVISIONAL，LG-251 in-progress 待 root 核验**；这是开发者集成证据，**不是独立 QA**，本轮未重核线上 8123/5173 版本，未推送/合根/部署，LG-252 浏览器录制验收待 root claim 与采集门批准。详细登记见 docs/08 §24。
 
@@ -96,6 +98,15 @@ LG174调查已完成：[报告](probes/demo-brand-asr-20261018/lg174/REPORT.md)�
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-19：后续修复批次串行集成，契约 1.24.0 本地隔离候选（未部署）
+
+- 唯一授权补丁集：LG256 `209f9d4` → LG217 后端 `4be61e3`、前端 `c00c502→f6a6193→d02e537`、LG210 `340b53e`，逐个 cherry-pick（带 `-x` provenance）到 `3444cdd` 的隔离 worktree；未整分支导入，未发现源码冲突。每个 picked commit 与来源提交在对应路径树上逐字一致。
+- 契约 MINOR 升至 **1.24.0**（docs/08 §25）：无端点/字段/cookie/错误码/枚举/迁移变化，但 LG-210/LG-217 是**有意语义替换**，不写成“无行为变化”。LG-256 是回执投影权威性修复。
+- LG-217 采用重启语义：无 responder 诚实不可用，不实现热接线；coordinator/reviewer 默认变更由 Settings 提示重启，worker 默认仅在新 Run 冻结时生效。不新增平台。
+- LG-210 只存令牌哈希；重启保留有效登录，退出/改密/角色/禁用/`session_version`/过期跨重启失效，损坏文件失败关闭；不是完整安全复核。
+- LG-225 保持 **PARTIAL**：仅前端如实文案，公开 OCR/ASR 能力字段与持久 Embedding `last_test` 未实现，未发明字段。LG-222/223 未认领，不实施；LG-249 已覆盖 LG-218 提示，不重复。
+- 验证仅限最小相关功能点（会话/回执/无 responder/前端具名用例）与必要前端构建；未跑全量套件或浏览器，**非独立 QA**。不推送、不合根 main、不部署、不重启现有服务或改真实数据；本地既有 dirty 文档/内容/外部任务保持不动。
 
 ### 2026-10-18：Demo录制修复批次冻结 1.23.0 本地隔离候选（LG-251，未部署）
 

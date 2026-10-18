@@ -71,8 +71,11 @@ def test_frozen_constants() -> None:
     # allowlisted Run execution evidence + task-scoped history endpoint,
     # text-layer-first PDF extraction and Team Task configured-mention routing +
     # health.team_bot_mention; isolated local candidate, not deployed, LG-252
-    # independent browser/recording QA pending).  Additive MINOR.
-    assert CONTRACT_VERSION == "1.23.0"
+    # independent browser/recording QA pending) -> 1.24.0 (follow-up batch
+    # serial integration: LG-210 hash-only durable team sessions, LG-217 honest
+    # unavailable assistant replies without false provided-context, and LG-256
+    # authoritative explicit receipt branches; no new endpoint/field/enum).
+    assert CONTRACT_VERSION == "1.24.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 

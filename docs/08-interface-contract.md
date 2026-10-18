@@ -2,13 +2,15 @@
 title: "首版接口与状态契约（v1）"
 doc_type: specification
 category: architecture
-contract_version: "1.23.0"
-updated: "2026-10-18"
+contract_version: "1.24.0"
+updated: "2026-10-19"
 ---
 
 # 首版接口与状态契约（v1）
 
-> **当前本地隔离候选契约 1.23.0（2026-10-18，LG-251 串行集成；未部署，状态 PROVISIONAL，独立 LG-252 浏览器/录制 QA 待执行）**：§24 登记 demo 录制修复批次的真实已实现公共行为：只读 canonical `TASK.md` 定义读取（LG-242）、默认交付工作区与记录型机器检查策略/绑定/验收事实（LG-244）、严格 allowlist 的 Run 执行来源投影及 Task 级历史端点（LG-243）、PDF 文字层优先并保留可选 OCR/`extractor` 来源（LG-224）、以及 Team Task 配置 mention 路由与真实 `health.team_bot_mention`（LG-249）。**新端点/DTO/投影字段是加性扩展，但本批并非纯加性：LG-249 有意把 Team Task 普通消息从既有机器人路由改为默认 `recorded`-only，只有带前导配置 mention 的消息才路由；单用户行为不变。** 既有公开 `run.connection_pin` 字段、Task/Run 状态/阶段/验收枚举、迁移方向和错误码不变。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.23.0**。Native **LG259** `4fa884e` 已修复前端启动 filter-reset 分页 race；原 400/1 失败与隔离 5/5 作为前缀历史保留，候选 targeted 28 通过并复用同树 native full 406。本候选仍为 **PROVISIONAL**，未部署/推送，本轮未重新核对线上 8123/5173 版本，也不代表独立 QA 或用户验收通过。
+> **当前本地隔离候选契约 1.24.0（2026-10-19，pi 串行集成 followup-candidate；未部署，状态 PROVISIONAL，独立功能复核待执行）**：§25 登记本轮最小诚实范围的三项公共行为——LG-210 Team 登录会话改为受控目录下**仅哈希持久**并跨服务/进程重启保留（取代旧的“重启即需重新登录”语义）；LG-217 无注入 responder 时所有 direct/bounded-read 面返回 `kind: "unavailable"` 且**不再伪造固定话术回复或“已提供上下文”的来源绑定**（有意行为变更），coordinator/reviewer 默认连接变更仍需重启；LG-256 回执中**显式存在**的分支（`pending` 或终态）为权威，仅真正缺失字段的历史记录才按当前资料状态推断。三者都不新增/改变端点、请求/响应字段、cookie、错误码、实体枚举或迁移方向。前端 LG-261/LG-225（部分）/LG-217 UI 属纯展示与文案修正，不改变 API/schema；LG-225 整项仍为 **PARTIAL**。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.24.0**。本候选由开发者 pi 完成串行集成与最小功能点检查，**不是独立 QA**；未推送/部署/重启，未重核线上 8123/5173，冻结的 LG-252 候选 `3444cdd`/1.23.0 不受影响。
+
+> **上一本地隔离候选契约 1.23.0（2026-10-18，LG-251 串行集成；已被本候选 1.24.0 取代，未部署）**：§24 登记 demo 录制修复批次的真实已实现公共行为：只读 canonical `TASK.md` 定义读取（LG-242）、默认交付工作区与记录型机器检查策略/绑定/验收事实（LG-244）、严格 allowlist 的 Run 执行来源投影及 Task 级历史端点（LG-243）、PDF 文字层优先并保留可选 OCR/`extractor` 来源（LG-224）、以及 Team Task 配置 mention 路由与真实 `health.team_bot_mention`（LG-249）。**新端点/DTO/投影字段是加性扩展，但本批并非纯加性：LG-249 有意把 Team Task 普通消息从既有机器人路由改为默认 `recorded`-only，只有带前导配置 mention 的消息才路由；单用户行为不变。** 既有公开 `run.connection_pin` 字段、Task/Run 状态/阶段/验收枚举、迁移方向和错误码不变。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.23.0**。Native **LG259** `4fa884e` 已修复前端启动 filter-reset 分页 race；原 400/1 失败与隔离 5/5 作为前缀历史保留，候选 targeted 28 通过并复用同树 native full 406。本候选仍为 **PROVISIONAL**，未部署/推送，本轮未重新核对线上 8123/5173 版本，也不代表独立 QA 或用户验收通过。
 
 > **已验收候选契约 1.21.0（2026-10-18，LG-206 串行集成；LG-207 独立版本/浏览器 QA 为 PASS_WITH_LIMITATIONS；已合入本地 main，未部署）**：加性登记 Tasks 工作区候选的两项公开变化：`SourceView` 只读可用性字段 `context_selectable`/`context_unavailable_reason`（由真实可读正文推导，不作为持久状态），以及只读 Team 对话历史投影 `GET /api/v1/conversations/history`。无既有端点、请求字段、错误码、实体状态/阶段/验收枚举、迁移方向或权限变化；旧客户端忽略新可选字段/端点即可。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 在该候选为 `1.21.0`（已由 1.22 候选取代）；**公开 8123 服务仍为 1.20.0**，本候选未部署/推送。冻结的英文 ASR 下一版本线不属于本候选。范围与兼容边界见 §22。
 
@@ -942,6 +944,8 @@ LG-050 已本地合入并通过独立技术 QA；限制和真实证据见上述�
 - 会话记录签发时的账号 `session_version`；每次请求与既有 SSE 重校验（约 2s）读取存储中的当前 `enabled`/`role`/`session_version`，绝不信任会话缓存的旧角色。
 - 改密/重置、禁用、角色变更使 `session_version+1`，目标旧会话在下一请求失效，SSE 流约 2 秒重校验后关闭；重新启用不会复活旧 cookie；管理员改自己的口令也回到登录门。
 - 服务重启仍使内存会话失效（1.14 既有语义）。
+
+> **1.24.0 语义替换（LG-210）**：Team 模式会话改为受控目录下仅哈希持久，服务/进程重启不再使有效会话失效。上一条旧描述仅适用于 `SessionRegistry(store_path=None)` 的内存模式；持久模式的文件/失效/损坏边界见 §25.1。单用户模式不变。
 
 ### 16.4 前端与兼容
 
@@ -1924,7 +1928,7 @@ LG-235 真实原型（仅既有测试音频，各一次请求，无 TTS、无 Fi
 
 ## 24. Demo 录制修复批次（`1.23.0` 本地隔离候选；LG-251 串行集成）
 
-> **状态**：本节登记 LG-248 录制前修复批次中已真实实现并由 LG-251 串行装配的公共行为。新增端点/DTO/投影字段是加性扩展；**LG-249 则有意改变 Team Task 普通消息的既有路由行为**（默认只记录，前导配置 mention 才路由），因此本批不能整体称为“纯加性”。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.23.0**。候选基于隔离 worktree `work/lg248-candidate-20261018`，**未部署/未推送/未合入根 main**；本轮未重新核对线上 8123/5173 版本。本批由开发者 pi 完成集成与局部检查，**不是独立 QA**；LG-252 的 Playwright 真实前后端/录制验收待执行，LG-254 采集门独立于产品候选。
+> **状态**：本节登记 LG-248 录制前修复批次中已真实实现并由 LG-251 串行装配的公共行为。新增端点/DTO/投影字段是加性扩展；**LG-249 则有意改变 Team Task 普通消息的既有路由行为**（默认只记录，前导配置 mention 才路由），因此本批不能整体称为“纯加性”。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 在该候选为 **1.23.0**（当前已由 §25 的 1.24.0 候选取代）。候选基于隔离 worktree `work/lg248-candidate-20261018`，**未部署/未推送/未合入根 main**；本轮未重新核对线上 8123/5173 版本。本批由开发者 pi 完成集成与局部检查，**不是独立 QA**；LG-252 的 Playwright 真实前后端/录制验收待执行，LG-254 采集门独立于产品候选。
 
 ### 24.1 只读 canonical `TASK.md`（LG-242）
 
@@ -2020,6 +2024,71 @@ LG-235 真实原型（仅既有测试音频，各一次请求，无 TTS、无 Fi
 - **兼容性必须分开表述**：新只读端点、响应/DTO 字段、Run/Task 加性字段和健康字段是加性扩展；默认交付 Task 的 required 检查事实被收紧；而 **LG-249 有意改变 Team Task 普通消息的既有行为**（无前导配置 mention 时只记录，不再分类/回复）。单用户路由不变，旧 Task 的缺省检查/验收兼容性保留。不新增/删除 `state`/`phase`/`acceptance`/`source.status` 枚举、迁移方向、错误码或权限；旧客户端可忽略新字段，但不能把 Team Task 的行为变化当作“无行为变化”。
 - LG-208 的 parsed read cache 是进程内可丢弃派生缓存，Markdown 仍为唯一事实源，未改变公开契约；LG-253 的 SQLite 连接生命周期修复随基线与缓存子集验证，不新增接口。
 - 本候选只做开发者局部集成检查（明确列出的后端测试/类型检查与前端测试/typecheck/build）；没有真实产品模型/OCR/ASR 调用，没有浏览器录制或独立 QA。失败/跳过/限制在 LG-251 交付记录中如实保留，不把局部通过写成完整套件或版本验收通过。
+
+## 25. 后续批量修复集成（`1.24.0` 本地隔离候选；pi 串行集成）
+
+> **状态**：本节登记 followup-candidate 串行集成中真实实现并由最小功能点检查覆盖的公共行为。三项行为都**没有**新增/删除端点、请求/响应字段、cookie、错误码、实体 `state`/`phase`/`acceptance`/`source.status` 枚举或迁移方向；但**不是无行为变化**：LG-210 替换“重启需重新登录”的既有语义，LG-217 替换无 responder 时的固定话术回复，二者是有意行为变更。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.24.0**。候选为隔离 worktree `work/followup-candidate-20261019`，基于冻结功能基点 `3444cdd`（1.23.0），**未部署/未推送/未重启任何服务**；冻结的 LG-252 候选 `3444cdd` 不受影响。本轮由开发者 pi 执行串行集成与最小功能点检查，**不是独立 QA**，也没有浏览器/录制验收。
+
+### 25.1 Team 登录会话持久化（LG-210）
+
+- 有效会话在服务/进程重启后继续有效；旧的“服务重启使所有会话失效、需重新登录”只在内存模式（`SessionRegistry(store_path=None)`）保留，产品 Team 模式使用持久模式。单用户模式不创建、不读取任何会话文件，行为不变。
+- 会话事实源为受控 JSON 文件：默认 `<dataRoot>/team/sessions.json`；当 `LIGHTGRAVITY_TEAM_ACCOUNTS` 指向另一账号文件时，会话文件位于该账号文件同级目录。schema id 为 `lightgravity.team.sessions/v1`：
+
+```json
+{
+  "schema": "lightgravity.team.sessions/v1",
+  "sessions": {
+    "<sha256(token)>": {
+      "username": "alice",
+      "role": "member",
+      "expires_at": 1760000000.0,
+      "session_version": 3
+    }
+  }
+}
+```
+
+- 键为 cookie 令牌的 SHA-256 哈希；**明文令牌不落盘**。文件内 `role` 仅描述会话形状，授权仍每次回读账号事实源（§16.2）；持久化的缓存角色不授予任何权限。
+- 绝对 TTL 过期、退出/撤销、改密/重置、角色变更、禁用与 `session_version` 不匹配仍在下一请求立即失效，且失效在重启/另一进程后依然生效。退出操作持久撤销，重启不会复活令牌。
+- 写入使用同目录跨进程 `flock` 侧文件 + 原子替换（临时文件 + `fsync` + `os.replace`），并发创建/撤销不互相丢更新；文件模式强制 `0600`，团队目录 `0700`。
+- 会话文件**损坏时失败关闭**：空、不可读、非 UTF-8、非法 JSON、schema 不符、哈希键/记录非法或为符号链接时，一律不解析任何会话（不回退内存、不放宽认证），用户视为未登录。显式恢复路径是用真实凭据重新登录：成功登录以新的合法哈希文件替换损坏文件，旧令牌仍然无效。读取不跟随符号链接；成功登录替换链接本身而不写到其目标。
+- 未改变：`POST /auth/login` 仍返回 `{username, role}` 并设置同名 `lg_session` cookie（`HttpOnly; SameSite=Lax; Path=/`，`Max-Age` 取自既有 TTL，`Secure` 仅在配置时），`GET /auth/me`、`POST /auth/logout`、端点/字段/错误码、账户 schema 与令牌熵均不变；SSE 既有重校验路径复用同一解析，因此能看到跨进程撤销。
+- **边界**：本项不是完整安全复核。多写者压力竞态、多主机/分布式锁与 `fsync`/`replace` 之间的崩溃注入未测试；前端 401 统一处理仍属 LG-219。
+
+### 25.2 无 responder 时诚实不可用（LG-217）
+
+- 未注入 responder 时，global、Team `@bot`、Task 直答与 Personal 四面的 direct 与 bounded-read 请求都返回诚实不可用，而不再返回固定话术冒充模型回复：
+
+```json
+{"kind":"unavailable","reply":"Assistant unavailable. Configure a default coordinator connection and credentials in Settings, then restart the server and retry.","data":{"intent":"answer","unavailable":true,"creates_task":false,"creates_run":false}}
+```
+
+- bounded-read 的回复以 `Read-only assistant unavailable.` 开头并保留 `intent: "bounded_read"`；Personal 另外保留 `private: true`。既有 `conversation_id`/`task_id` 仍标识原对话。
+- 不可用结果与助手消息**都不携带** `resolved_source_bindings`、`selected_context` 或 `attachment_context_included`，即使请求带了 `selected_sources`；用户消息中的选择仍原样保留。这修复了“实际没有模型收到上下文却显示 Sources · provided context”的假象。
+- 助手回复沿用既有持久化与幂等语义：相同 `message_id` 重放返回同一结果，不重复追加助手行、不新建 Task/Run；`creates_task`/`creates_run` 均为 `false`。
+- **这是有意行为变更**：此前同样的请求返回 `kind: "direct"`（或 bounded-read）的确定性固定话术。旧客户端若按 `kind` 分支，需要把 `unavailable` 当作既有语义的诚实不可用，而不是模型回答。无新增端点、字段或持久化格式。
+- 启动接线未改变：coordinator/reviewer 默认连接变更**仍需重启服务**后在 Settings 明确提示；worker 默认连接继续在**新 Run 冻结**时生效，既有活跃 Run 的 pin 不变。本轮不实现热接线平台。
+- 前端随本候选同版本交付：成员提示“Ask an administrator”，管理员看到 Settings/默认 coordinator/凭证/重启指引；不可用消息不渲染来源声明，历史重载后仍保持不可用，也不伪造助手气泡或客户端创建 Task/Run。Team 非 mention 普通消息的记录行为与既有注入 responder 和选定来源回复路径不变。
+
+### 25.3 回执显式状态优先（LG-256）
+
+- 回执（receipt）分支状态以**显式存在**的值为权威：显式 `pending`、以及所有显式终态（如 `searchable`/`failed`/`disabled`）不再被按当前资料状态推断出的分支覆盖。
+- 只有历史记录中**真正缺失**该分支字段时，才沿用既有“按当前 source 状态推断”的兼容行为。因此冷启动后首次摄取不会再因旧索引推断把已配置语义分支错误投影为 `Disabled · vector_backend_unavailable`；显式 `pending` 会按真实后台结果变为 `searchable`，服务失败仍如实变为失败。
+- 该“字段是否显式存在”的 provenance 只在读取时用于投影，**不序列化**、不写入回执 JSONL，也不出现在 API 输出；无新持久字段、无 schema/端点变化。
+- **不宣称**通用冷服务修复、真实供应商冷启动浏览器验收或 OCR/模型质量：本轮仅验证受控复现的 `pending` 保留、真实未配置分支、受控服务 503 失败与历史缺失字段兼容。
+
+### 25.4 前端展示与文案（纯展示，无 API 变化）
+
+- **LG-261**：View material 默认只展示可读正文（标题与机器转写），并标注机器文本**未经人工校订**、保留来源回链与原件下载；YAML frontmatter、`extractor`/model/hash 等内部字段、校订编辑框与高级操作收进原生 **Advanced details** 折叠区，切换来源时复位。原始内容、`expected_revision` 保护、校订草稿与 API 权限语义不变。
+- **LG-225（仍为 PARTIAL）**：语义模式抬头显示 `Semantic search`；向量后端 `configured=false` 即使 `enabled=true` 也明确标注不可用；已配置语义模型不等于连通性已验证。公共 ASR 布尔值只映射为可用/不可用，缺失或错误映射为 unknown，并明确 enabled/配置/provider/limits **未上报**；Google 转写不得套用旧 Reader 的 30 秒限制。**仍待补充（不在本候选）**：公开只读 OCR `configured/available/reason`、公开 ASR `enabled/configured/available/provider/language/limits/reason`、以及绑定精确配置版本的持久 Embedding `last_test`。LG-225 整项**不关闭**。
+- **LG-217 UI** 的成员/管理员文案、重启提示与不可用展示见 §25.2。
+- 这些前端改动不改变接口、字段、枚举或权限；默认设置保存仍走既有 `expected_revision` 保护。
+
+### 25.5 兼容、验证与证据边界
+
+- **兼容性分开表述**：LG-210 与 LG-217 是有意的既有语义替换（会话跨重启保留；无 responder 时返回 `unavailable` 而非固定话术）；LG-256 是投影权威性修复；LG-261/LG-225 前端项无 API 变化。没有新增端点/字段/cookie/错误码/枚举/迁移方向，旧客户端仍可解析既有信封字段，但不得把 LG-210/LG-217 说成“无行为变化”。
+- 本候选只运行最小相关功能点：会话重启/退出/改密/角色/禁用/损坏聚焦检查、LG-256 显式 `pending` 回执回归、LG-217 无 responder 与假来源绑定用例、以及前端 readable/advanced、semantic、成员/管理员不可用、重启提示的具名聚焦用例；另做必要前端构建以产出可审阅 UI 资产。未运行全量 pytest/vitest/mypy/类型矩阵、安全/性能/跨浏览器矩阵，也未做浏览器录制、真实模型/供应商/OCR/ASR 调用或真实数据/服务操作。
+- 证据与限制见 [integration delivery](../probes/demo-followup-20261019/integration/DELIVERY.md) 与 [QA-HANDOFF](../probes/demo-followup-20261019/integration/QA-HANDOFF.md)。独立功能/浏览器复核、LG-225 后端能力补充、LG-222/LG-223 资料功能仍待后续。
 
 ## 参考
 
