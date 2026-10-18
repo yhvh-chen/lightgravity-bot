@@ -131,6 +131,7 @@ class ControlService:
             if phase not in {
                 TaskPhase.CANCELLING.value,
                 TaskPhase.AWAITING_ACCEPTANCE.value,
+                TaskPhase.RECOVERY_REQUIRED.value,
             }:
                 self._writer.transition_task(
                     task_id, TaskPhase.CANCELLING, run_ref=active_run
@@ -141,9 +142,9 @@ class ControlService:
                     task_id, TaskPhase.PAUSING, run_ref=active_run
                 )
             elif phase == TaskPhase.WAITING_USER.value:
-                self._writer.transition_task(
-                    task_id, TaskPhase.PAUSED, run_ref=active_run
-                )
+                # A waiting Task can still own unconfirmed native sessions.
+                # Do not publish paused until their stop is confirmed.
+                pass
             elif phase in {TaskPhase.VERIFYING.value, TaskPhase.REPAIRING.value}:
                 # LG-022 R1: the independent reviewer can be the long-running
                 # thing in ``verifying``.  ``verifying -> pausing`` is not a
@@ -204,14 +205,34 @@ class ControlService:
             confirmed = True
             reason = reason or review_stop.reason
         elif not confirmed and phase in {
-            TaskPhase.VERIFYING.value,
-            TaskPhase.REPAIRING.value,
-        }:
-            # Nothing is executing/reviewing; a stop request on an idle
-            # verify/repair phase has nothing left to stop, so the slot release
-            # is confirmed honestly rather than reported as unconfirmed.
-            confirmed = True
-            reason = reason or "no executor or reviewer running; slot released"
+            TaskPhase.VERIFYING.value, TaskPhase.REPAIRING.value,
+            TaskPhase.WAITING_USER.value, TaskPhase.RECOVERY_REQUIRED.value,
+        } and getattr(cancel_result, "state", None) == "not_found":
+            # No in-process dispatch is not evidence that old SDK sessions
+            # stopped. Only persisted cleanup or adapter confirmation can prove it.
+            run = self._store.read("run", active_run).entity
+            cleanup = run.get("cleanup")
+            reviewer_cleanup = run.get("reviewer_cleanup")
+            reviewer_stopped = not reviewer_cleanup or (
+                isinstance(reviewer_cleanup, dict)
+                and reviewer_cleanup.get("confirmed") is True
+            )
+            worker_stopped = isinstance(cleanup, dict) and cleanup.get("status") == "done"
+            if not worker_stopped:
+                confirm = getattr(self._dispatcher, "confirm_stopped", None)
+                if callable(confirm):
+                    try:
+                        proof = confirm(active_run, tuple(run.get("session_refs") or ()))
+                        worker_stopped = bool(getattr(proof, "confirmed", False))
+                    except Exception:  # unknown stop facts must keep the slot
+                        worker_stopped = False
+            confirmed = bool(worker_stopped and reviewer_stopped)
+            reason = (
+                "persisted cleanup or adapter confirms resources stopped"
+                if confirmed else
+                "No active dispatch found, but persisted sessions/reviewer are not confirmed stopped; "
+                "manual recovery verification is required."
+            )
 
         if not confirmed:
             self._record_unconfirmed(task_id, active_run, action, reason)
