@@ -38,6 +38,8 @@ import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
 import { MarkdownViewer } from '../../components/MarkdownViewer'
 import { StatusBadge } from '../../components/StatusBadge'
+import { isSourceContextSelectable, sourceContextUnavailableReason } from '../chat/sourceContext'
+import { useSharedChatSelection } from '../chat/useChatSelection'
 import {
   MaterialBranchList,
   receiptIsTerminal,
@@ -89,6 +91,12 @@ export function FilesMaterialsPanel({
   >('idle')
   const [machineError, setMachineError] = useState<ApiError | null>(null)
 
+  // LG-204: the workspace material rows are the context selector. The same
+  // bounded selection (version/hash/limit) appears as chips above the Chat
+  // composer; the provider in AppShell makes both surfaces share one state.
+  const selection = useSharedChatSelection(taskRef)
+  const selectedIds = new Set(selection.selection.map((item) => item.source_id))
+
   const receiptItem = receipt?.latest ?? receipt?.items[0] ?? null
   const receiptText: SourceTextBranch | null = receiptItem?.text ?? null
   const transcriptDerivative = selected ? findTranscriptDerivative(selected) : null
@@ -100,15 +108,37 @@ export function FilesMaterialsPanel({
           Boolean(receiptText?.machine))),
   )
 
-  // Load the authorized source list for the current scope.
+  // Load the authorized source list for the current scope. Only the current
+  // Task and global materials are offered; another Task's materials are never
+  // cross-selected (docs/10 §5).
   useEffect(() => {
     const controller = new AbortController()
     setListStatus('loading')
     setListError(null)
-    api
-      .listSources({ task_ref: taskRef ?? undefined, limit: 200 }, controller.signal)
-      .then((page) => {
-        setSources(page.items)
+    const load = async () => {
+      const taskPage = await api.listSources(
+        { task_ref: taskRef ?? undefined, limit: 200 },
+        controller.signal,
+      )
+      let items = taskPage.items
+      if (taskRef) {
+        const globalPage = await api.listSources({ limit: 200 }, controller.signal)
+        const seen = new Set(items.map((item) => item.source_id))
+        items = [
+          ...items,
+          ...globalPage.items.filter(
+            (item) => item.scope.task_ref == null && !seen.has(item.source_id),
+          ),
+        ]
+      } else {
+        items = items.filter((item) => item.scope.task_ref == null)
+      }
+      return items
+    }
+    load()
+      .then((items) => {
+        if (controller.signal.aborted) return
+        setSources(items)
         setListStatus('ready')
       })
       .catch((cause: unknown) => {
@@ -510,12 +540,16 @@ export function FilesMaterialsPanel({
             </EmptyState>
           ) : (
             <ul className="lg-files-materials__list">
-              {sources.map((source) => (
+              {sources.map((source) => {
+                const selectable = isSourceContextSelectable(source)
+                const isSelected = selectedIds.has(source.source_id)
+                const rowScope: 'global' | 'task' = source.scope.task_ref ? 'task' : 'global'
+                return (
                 <li key={source.source_id}>
                   <button
                     type="button"
                     className={`lg-files__entry${
-                      selected?.source_id === source.source_id ? ' is-selected' : ''
+                      isSelected ? ' is-selected' : ''
                     }`}
                     title={source.source_id}
                     onClick={() => void openSource(source.source_id)}
@@ -530,8 +564,29 @@ export function FilesMaterialsPanel({
                         : ''}
                     </span>
                   </button>
+                  <div className="lg-files-materials__context">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        disabled={
+                          (!selectable && !isSelected) || (selection.atLimit && !isSelected)
+                        }
+                        aria-label={`Use ${source.title ?? source.source_id} as context`}
+                        onChange={() => selection.toggle(source, rowScope)}
+                      />
+                      Use as context
+                    </label>
+                    <StatusBadge kind="neutral">{rowScope}</StatusBadge>
+                    {!selectable ? (
+                      <span className="lg-files-materials__context-note">
+                        {sourceContextUnavailableReason(source)}
+                      </span>
+                    ) : null}
+                  </div>
                 </li>
-              ))}
+                )
+              })}
             </ul>
           )}
         </div>

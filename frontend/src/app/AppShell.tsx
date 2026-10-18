@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef } from 'react'
 
 import { ChatPanel } from '../components/ChatPanel'
 import { PanelResizer } from '../components/SplitPane'
+import { ChatSelectionProvider } from '../views/chat/useChatSelection'
 import { VIEW_DEFINITIONS } from '../views/registry'
+import { useAuth } from './AuthProvider'
 import { NavigationRail } from './NavigationRail'
 import { useShell } from './ShellProvider'
 import { TopBar } from './TopBar'
@@ -31,11 +33,16 @@ const DRAWER_LABELS: Record<'nav' | 'chat', string> = {
  */
 export function AppShell() {
   const { state, dispatch } = useShell()
+  const { isTeam, personalChatAvailable } = useAuth()
   const compact = useIsCompact()
   const mobile = useIsMobile()
   const definition = VIEW_DEFINITIONS[state.view]
   const Main = definition.Main
   const drawerRef = useRef<HTMLDivElement>(null)
+  // LG-204: Tasks selection and the single right Chat share one store. A
+  // private Personal conversation never inherits the shared Task selection.
+  const selectionTaskRef =
+    isTeam && state.chatChannel === 'personal' && personalChatAvailable ? null : state.taskRef
 
   const closeDrawer = useCallback(
     () => dispatch({ type: 'setOpenDrawer', drawer: null }),
@@ -81,6 +88,7 @@ export function AppShell() {
   )
 
   return (
+    <ChatSelectionProvider taskRef={selectionTaskRef}>
     <div className="lg-app">
       <TopBar
         compact={compact}
@@ -162,5 +170,6 @@ export function AppShell() {
         </>
       ) : null}
     </div>
+    </ChatSelectionProvider>
   )
 }

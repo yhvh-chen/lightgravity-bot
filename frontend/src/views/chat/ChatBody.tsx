@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   createAttachmentsApi,
@@ -36,14 +36,16 @@ import { MarkdownViewer } from '../../components/MarkdownViewer'
 import { StatusBadge } from '../../components/StatusBadge'
 import {
   ChatDraftChips,
-  ChatMaterialIntake,
   ChatMaterialReceipts,
 } from './ChatMaterialIntake'
-import { ChatSourcePicker } from './ChatSourcePicker'
 import { ChatSources } from './ChatSources'
 import { useChat } from './useChat'
 import { useChatDrafts, useChatMaterials } from './useChatMaterials'
-import { useChatSelection } from './useChatSelection'
+import {
+  MAX_SELECTED_SOURCES,
+  useSharedChatSelection,
+  type SelectedMaterial,
+} from './useChatSelection'
 
 export interface ChatBodyProps {
   /** `main` = Chat view body; `rail` = right column on other views. */
@@ -57,11 +59,6 @@ export interface ChatBodyProps {
   sourcesRuntime?: SourcesRuntimeConfig
   /** Injectable private-attachment client for tests; defaults to the real routes. */
   attachmentsApi?: AttachmentsApi
-}
-
-interface PendingAttachment {
-  path: string
-  media_type: string | null
 }
 
 interface PrivatePendingAttachment {
@@ -139,9 +136,7 @@ export function ChatBody({
       createAttachmentsApi({ getApiToken: getRuntimeToken }),
     [attachmentsApi],
   )
-  const selection = useChatSelection(effectiveTaskRef)
-  const [extrasOpen, setExtrasOpen] = useState(false)
-  const [materialNotice, setMaterialNotice] = useState<string | null>(null)
+  const selection = useSharedChatSelection(effectiveTaskRef)
   // Capability gate: default false so a 1.18 backend (or a failed health read)
   // never activates deferred intake/receipt v2. The real health response is
   // cached and re-checked before a file pick, closing the startup race.
@@ -198,7 +193,6 @@ export function ChatBody({
     return () => { active = false }
   }, [loadHealth])
   const [notice, setNotice] = useState<string | null>(null)
-  const [attachments, setAttachments] = useState<PendingAttachment[]>([])
   const [privateAttachments, setPrivateAttachments] = useState<PrivatePendingAttachment[]>([])
   const [privateAttachmentsAvailable, setPrivateAttachmentsAvailable] = useState<boolean | null>(null)
   const privateUploads = useRef<Map<string, AbortController>>(new Map())
@@ -213,7 +207,6 @@ export function ChatBody({
   useEffect(() => {
     setLastSendSources(null)
     selection.clear()
-    setAttachments([])
     // In-flight private uploads are aborted and their ids dropped so a late
     // response can never bind to the newly selected channel/account.
     privateUploads.current.forEach((controller) => controller.abort())
@@ -222,7 +215,6 @@ export function ChatBody({
     setAttachmentError(null)
     materials.reset()
     drafts.reset()
-    setExtrasOpen(false)
     // A scope switch starts at the latest message, not a stale "new messages"
     // badge held over from the previous conversation.
     atBottomRef.current = true
@@ -312,17 +304,6 @@ export function ChatBody({
     // the Task scope. LG-202 removed the old Files/Chat main views.
     dispatch({ type: 'selectItem', itemRef: `source:${sourceId}` })
     dispatch({ type: 'setView', view: 'tasks' })
-  }
-
-  const handleAddAttachment = (event: ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value.trim()
-    if (!value) return
-    setAttachments((current) => [
-      ...current,
-      { path: value, media_type: guessMediaType(value) },
-    ])
-    setAttachmentError(null)
-    event.target.value = ''
   }
 
   const uploadPrivateFile = (
@@ -501,10 +482,7 @@ export function ChatBody({
       ? privateAttachments
           .filter((item) => item.status === 'ready')
           .map((item) => ({ attachment_id: item.attachmentId }))
-      : attachments.map((item) => ({
-          path: item.path,
-          media_type: item.media_type,
-        }))
+      : []
     const selectedRefs = frozenSelection
     setNotice(null)
     sendSourceRefs.current = sourceRefs ?? null
@@ -513,7 +491,6 @@ export function ChatBody({
       if (!mounted.current) return
       dispatch({ type: 'setDraft', key: frozenDraftKey, value: '' })
       if (requestGeneration !== conversationGeneration.current) return
-      setAttachments([])
       setPrivateAttachments([])
       if (!frozenPersonal && sharedIntakeV2) drafts.clear()
       // Implementation choice (docs/10 §8): clear the selection once the rule
@@ -746,67 +723,45 @@ export function ChatBody({
             capability missing). Shared Team files remain available in Team.
           </p>
         ) : null}
-        {!privatePersonal ? (
-          <div className="lg-chat__tools">
-            <button type="button" className="lg-button" aria-label="Add attachments and materials" aria-expanded={extrasOpen} aria-controls="lg-chat-extras" onClick={() => setExtrasOpen(!extrasOpen)}>+</button>
-            {selection.selection.length > 0 && !extrasOpen ? <span>{selection.selection.length} selected material(s) <button type="button" className="lg-link-button" onClick={() => setExtrasOpen(true)}>Review</button></span> : null}
-            {!extrasOpen && drafts.drafts.length > 0 ? <span aria-live="polite">{drafts.busy ? 'Storing materials…' : `${drafts.drafts.length} draft file(s)`} <button type="button" className="lg-link-button" onClick={() => setExtrasOpen(true)}>Review</button></span> : null}
-            {!extrasOpen && intakeCapabilityChecked && !sharedIntakeV2 && materials.materials.length > 0 ? <span aria-live="polite">{materials.busy ? 'Uploading…' : `${materials.materials.length} upload receipt(s)`} <button type="button" className="lg-link-button" onClick={() => setExtrasOpen(true)}>View uploads</button></span> : null}
-          </div>
+        {!privatePersonal && intakeCapabilityChecked && !sharedIntakeV2 && materials.materials.length > 0 ? (
+          <section className="lg-chat__legacy-receipts" aria-label="Legacy upload receipts">
+            <p className="lg-field__hint">
+              This backend has no deferred intake. The attachment button uploads directly; these
+              are its real receipts, not model context.
+            </p>
+            <ul className="lg-materials__list">
+              {materials.materials.map((item) => (
+                <li key={item.requestId} className="lg-materials__item">
+                  <div className="lg-materials__item-head">
+                    <span className="lg-materials__name" title={item.externalRef ?? item.filename}>
+                      {item.filename}
+                    </span>
+                    <StatusBadge kind="neutral">{item.state}</StatusBadge>
+                    {item.originKind === 'link' ? <StatusBadge kind="warning">link_only</StatusBadge> : null}
+                  </div>
+                  {item.error ? <p className="lg-materials__detail">{item.error.message}</p> : null}
+                  <div className="lg-materials__item-actions">
+                    <button
+                      type="button"
+                      className="lg-link-button"
+                      onClick={() => void materials.refresh(item.requestId)}
+                      disabled={!item.sourceId}
+                    >
+                      Refresh state
+                    </button>
+                    <button
+                      type="button"
+                      className="lg-link-button"
+                      onClick={() => materials.dismiss(item.requestId)}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
         ) : null}
-        {!privatePersonal ? <div id="lg-chat-extras" hidden={!extrasOpen}>
-        {sharedIntakeV2 ? (
-          <p className="lg-notice" role="status">
-            Files chosen with the paperclip stay local until Send. Intake then runs in the
-            background and its receipt appears under the message. Materials below are still
-            explicit context, not automated selection.
-          </p>
-        ) : !intakeCapabilityChecked ? (
-          <p className="lg-notice" role="status">
-            Checking material intake support before enabling uploads…
-          </p>
-        ) : (
-          <ChatMaterialIntake
-            materials={materials.materials}
-            busy={materials.busy}
-            scopeLabel={scopeLabel}
-            canWrite
-            notice={materialNotice}
-            onUploadFiles={(files) => {
-              setMaterialNotice(null)
-              void materials.uploadFiles(files, { taskRef: effectiveTaskRef })
-            }}
-            onRecordLink={(url) => {
-              setMaterialNotice(null)
-              materials.recordLink(url, { taskRef: effectiveTaskRef }).catch((cause: unknown) => {
-                setMaterialNotice(cause instanceof Error ? cause.message : 'Invalid link')
-              })
-            }}
-            onRefresh={(requestId) => void materials.refresh(requestId)}
-            onDismiss={materials.dismiss}
-          />
-        )}
-        <ChatSourcePicker
-          api={resolvedSourcesApi}
-          taskRef={effectiveTaskRef}
-          selection={selection.selection}
-          atLimit={selection.atLimit}
-          onToggle={selection.toggle}
-          onRemove={selection.remove}
-          onClear={selection.clear}
-          disabled={chat.sending}
-        />
-        <label className="lg-chat__attach">
-          <span className="lg-visually-hidden">Reference a file by path</span>
-          <input
-            type="text"
-            className="lg-input"
-            placeholder="Attach file path (workspace-relative)…"
-            aria-label="Attach file path"
-            onChange={handleAddAttachment}
-          />
-        </label>
-        </div> : null}
         <ChatComposer
           value={draft}
           onChange={(value) => {
@@ -838,93 +793,101 @@ export function ChatBody({
               : 'Wait for the attachment upload to finish before sending.'
           }
           attachments={
-            privatePersonal ? (
-              privateAttachments.length > 0 ? (
-                <ul className="lg-chat__chip-row" aria-label="Pending attachments">
-                  {privateAttachments.map((attachment) => (
-                    <li key={attachment.attachmentId} className="lg-chip">
-                      <span className="lg-card__path">{attachment.filename}</span>
-                      <span
-                        className={`lg-chat__attachment-status lg-chat__attachment-status--${attachment.status}`}
-                        title={attachment.error ?? undefined}
-                      >
-                        {attachment.status === 'uploading'
-                          ? 'uploading…'
-                          : attachment.status === 'failed'
-                            ? `not uploaded${attachment.error ? `: ${attachment.error}` : ''}`
-                            : 'uploaded'}
-                      </span>
-                      {attachment.status === 'failed' ? (
-                        <button
-                          type="button"
-                          className="lg-link-button"
-                          onClick={() => retryPrivateAttachment(attachment)}
-                        >
-                          Retry
-                        </button>
-                      ) : null}
-                      <button
-                        type="button"
-                        className="lg-icon-button"
-                        aria-label={`Remove attachment ${attachment.filename}`}
-                        onClick={() => removePrivateAttachment(attachment)}
-                      >
-                        <Icon name="close" size={12} />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ) : null
-            ) : sharedIntakeV2 ? (
-              <>
-                <ChatDraftChips
-                  drafts={drafts.drafts}
-                  onRemove={drafts.remove}
-                  disabled={chat.sending || drafts.busy}
+            <>
+              {!privatePersonal ? (
+                <SelectedContextChips
+                  selection={selection.selection}
+                  onRemove={selection.remove}
+                  disabled={chat.sending}
                 />
-                {attachments.length > 0 ? (
+              ) : null}
+              {privatePersonal ? (
+                privateAttachments.length > 0 ? (
                   <ul className="lg-chat__chip-row" aria-label="Pending attachments">
-                    {attachments.map((attachment, index) => (
-                      <li key={`${attachment.path}-${index}`} className="lg-chip">
-                        <span className="lg-card__path">{attachment.path}</span>
+                    {privateAttachments.map((attachment) => (
+                      <li key={attachment.attachmentId} className="lg-chip">
+                        <span className="lg-card__path">{attachment.filename}</span>
+                        <span
+                          className={`lg-chat__attachment-status lg-chat__attachment-status--${attachment.status}`}
+                          title={attachment.error ?? undefined}
+                        >
+                          {attachment.status === 'uploading'
+                            ? 'uploading…'
+                            : attachment.status === 'failed'
+                              ? `not uploaded${attachment.error ? `: ${attachment.error}` : ''}`
+                              : 'uploaded'}
+                        </span>
+                        {attachment.status === 'failed' ? (
+                          <button
+                            type="button"
+                            className="lg-link-button"
+                            onClick={() => retryPrivateAttachment(attachment)}
+                          >
+                            Retry
+                          </button>
+                        ) : null}
                         <button
                           type="button"
                           className="lg-icon-button"
-                          aria-label={`Remove attachment ${attachment.path}`}
-                          onClick={() =>
-                            setAttachments((current) => current.filter((_, i) => i !== index))
-                          }
+                          aria-label={`Remove attachment ${attachment.filename}`}
+                          onClick={() => removePrivateAttachment(attachment)}
                         >
                           <Icon name="close" size={12} />
                         </button>
                       </li>
                     ))}
                   </ul>
-                ) : null}
-              </>
-            ) : attachments.length > 0 ? (
-              <ul className="lg-chat__chip-row" aria-label="Pending attachments">
-                {attachments.map((attachment, index) => (
-                  <li key={`${attachment.path}-${index}`} className="lg-chip">
-                    <span className="lg-card__path">{attachment.path}</span>
-                    <button
-                      type="button"
-                      className="lg-icon-button"
-                      aria-label={`Remove attachment ${attachment.path}`}
-                      onClick={() =>
-                        setAttachments((current) => current.filter((_, i) => i !== index))
-                      }
-                    >
-                      <Icon name="close" size={12} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : null
+                ) : null
+              ) : sharedIntakeV2 ? (
+                <ChatDraftChips
+                  drafts={drafts.drafts}
+                  onRemove={drafts.remove}
+                  disabled={chat.sending || drafts.busy}
+                />
+              ) : null}
+            </>
           }
         />
       </footer>
     </section>
+  )
+}
+
+function SelectedContextChips({
+  selection,
+  onRemove,
+  disabled,
+}: {
+  selection: SelectedMaterial[]
+  onRemove: (sourceId: string) => void
+  disabled: boolean
+}) {
+  if (selection.length === 0) return null
+  return (
+    <ul className="lg-chat__chip-row" aria-label="Selected context materials">
+      {selection.map((item) => (
+        <li key={item.source_id} className="lg-chip">
+          <span className="lg-materials__name" title={item.title ?? item.source_id}>
+            {item.title ?? item.source_id}
+          </span>
+          <span className="lg-card__path">
+            {item.scope} · v{item.source_version ?? '?'}
+          </span>
+          <button
+            type="button"
+            className="lg-icon-button"
+            aria-label={`Remove context ${item.title ?? item.source_id}`}
+            onClick={() => onRemove(item.source_id)}
+            disabled={disabled}
+          >
+            <Icon name="close" size={12} />
+          </button>
+        </li>
+      ))}
+      <li className="lg-field__hint" aria-live="polite">
+        {selection.length}/{MAX_SELECTED_SOURCES} selected in Tasks
+      </li>
+    </ul>
   )
 }
 
@@ -943,16 +906,4 @@ function privateContextLabel(status: string): string {
     default:
       return 'not read — unavailable'
   }
-}
-
-function guessMediaType(path: string): string | null {
-  // Reference-only attachment classification; no bytes leave the browser.
-
-  const lower = path.toLowerCase()
-  if (lower.endsWith('.md')) return 'text/markdown'
-  if (lower.endsWith('.json')) return 'application/json'
-  if (lower.endsWith('.txt')) return 'text/plain'
-  if (lower.endsWith('.png')) return 'image/png'
-  if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg'
-  return null
 }

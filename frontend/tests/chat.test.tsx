@@ -105,21 +105,14 @@ describe('LG-013 Chat: real history and sending', () => {
     expect(await screen.findByLabelText('Message for task_01ABC')).toBeInTheDocument()
   })
 
-  it('sends attachment references as paths, not bytes', async () => {
+  it('offers a direct file picker instead of the removed path input', async () => {
     const api = makeChatApi()
     renderChat(api)
 
-    fireEvent.click(screen.getByRole('button', { name: 'Add attachments and materials' }))
-    fireEvent.change(await screen.findByLabelText('Attach file path'), {
-      target: { value: 'inputs/spec.md' },
-    })
-    const composer = screen.getByLabelText('Message for Global')
-    fireEvent.change(composer, { target: { value: 'see attached' } })
-    fireEvent.keyDown(composer, { key: 'Enter' })
-
-    await waitFor(() => expect(api.sent).toHaveLength(1))
-    expect(api.sent[0].body.attachments).toEqual([
-      { path: 'inputs/spec.md', media_type: 'text/markdown' },
-    ])
+    await screen.findByLabelText('Message for Global')
+    // LG-204 removed the composer extras panel and workspace-relative path input.
+    expect(screen.queryByLabelText('Attach file path')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Add attachments and materials' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Upload file' })).toBeInTheDocument()
   })
 })

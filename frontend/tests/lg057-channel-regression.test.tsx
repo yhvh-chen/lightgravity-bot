@@ -46,8 +46,11 @@ describe('LG057 single-user preservation', () => {
     expect(screen.getByRole('tab', { name: 'Personal' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('tab', { name: 'Team' })).toBeDisabled()
     expect(screen.getByLabelText('Route channel')).toHaveTextContent('personal')
-    fireEvent.click(screen.getByRole('button', { name: 'Add attachments and materials' }))
-    expect(screen.getByLabelText('Attach file path')).toBeVisible()
+    // LG-204: the shared selection lives in Tasks; Chat keeps only the direct
+    // file picker and no workspace-relative path input/extras toggle.
+    expect(screen.queryByLabelText('Attach file path')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Add attachments and materials' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Upload file' })).toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Personal' }))
     expect(screen.getByLabelText('Message for task_actual')).toBeInTheDocument()
     expect(screen.queryByText('Team conversation')).toBeNull()
@@ -60,7 +63,8 @@ describe('LG057 single-user preservation', () => {
     fireEvent.keyDown(composer, { key: 'Enter' })
     expect(await screen.findByLabelText('Message for task_created')).toBeInTheDocument()
     expect(screen.getByLabelText('Route channel')).toHaveTextContent('personal')
-    expect(screen.getByRole('button', { name: 'Add attachments and materials' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Upload file' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Add attachments and materials' })).toBeNull()
   })
 })
 
@@ -101,8 +105,8 @@ describe('LG057 private UI isolation', () => {
     expect(screen.queryByLabelText('Attach file path')).toBeNull()
     expect(screen.getByLabelText('Upload file for Personal')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Team' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Add attachments and materials' }))
-    expect(screen.getByLabelText('Attach file path')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Upload file' })).toBeInTheDocument()
+    expect(screen.queryByLabelText('Attach file path')).toBeNull()
   })
   it('does not reuse another signed-in identity private draft or unowned legacy draft', async () => {
     sessionStorage.setItem('lg011.shell-prefs', JSON.stringify({ drafts: { 'chat:personal:global': 'unowned secret' } }))

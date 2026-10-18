@@ -18,7 +18,7 @@
  * component the integration owner can mount with explicit props or a factory.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { getRuntimeToken } from '../../api/auth'
 import { fetchHealth } from '../../api/client'
@@ -148,10 +148,15 @@ export function FilesView(props: FilesViewProps = {}) {
     <TaskDirectory
       activeTaskRef={taskRef}
       onOpen={(ref) => {
-        // LG-202: selecting a Task keeps the Tasks workspace and updates the
-        // shell task_ref, which binds the single right Bot Chat to the same task.
+        // LG-202/203: selecting a Task keeps the Tasks workspace, binds the
+        // single right Bot Chat to it and (for a newly created Task) opens the
+        // Chat rail so the user lands in the real task conversation.
         props.onSelectTaskRef?.(ref)
-        dispatch({ type: 'selectTask', taskRef: ref })
+        dispatch(
+          ref
+            ? { type: 'openTaskConversation', taskRef: ref }
+            : { type: 'selectTask', taskRef: null },
+        )
       }}
     />
     <FilesPanel
@@ -191,7 +196,6 @@ export function FilesPanel({
   const [status, setStatus] = useState<StatusMessage | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [refreshToken, setRefreshToken] = useState(0)
-  const uploadRef = useRef<HTMLInputElement>(null)
 
   // Task scope: load artifact association and start from its workspace.
   useEffect(() => {
@@ -294,32 +298,6 @@ export function FilesPanel({
       }
     },
     [api],
-  )
-
-  const upload = useCallback(
-    async (file: File) => {
-      const targetPath = cwd ? `${cwd}/${file.name}` : file.name
-      const existing = listing?.items.find(
-        (item) => item.type === 'file' && item.path === targetPath,
-      )
-      const expected =
-        selected?.path === targetPath ? selected.revision : existing?.revision ?? null
-      setStatus(null)
-      try {
-        const result = await api.uploadFile(targetPath, file, expected)
-        setStatus({
-          kind: 'success',
-          text: `${result.created ? 'Uploaded' : 'Updated'} ${result.name} (revision ${
-            result.revision ?? 'unknown'
-          })`,
-        })
-        setRefreshToken((value) => value + 1)
-        if (selected?.path === targetPath) await openFile(targetPath)
-      } catch (error) {
-        setStatus({ kind: 'error', text: describeError(asApiError(error), 'Upload failed') })
-      }
-    },
-    [api, cwd, listing, openFile, selected],
   )
 
   const copyPath = useCallback(async (value: string) => {
@@ -530,7 +508,7 @@ export function FilesPanel({
             <EmptyState title="Loading files…" compact />
           ) : !listing || listing.items.length === 0 ? (
             <EmptyState title="This directory is empty" compact>
-              Upload a file here or select another directory.
+              Select another directory, or add materials in Chat.
             </EmptyState>
           ) : (
             <ul className="lg-files__tree">
@@ -621,31 +599,6 @@ export function FilesPanel({
           )}
         </section>
       </div>
-
-      <footer className="lg-files__upload">
-        <input
-          ref={uploadRef}
-          type="file"
-          className="lg-visually-hidden"
-          onChange={(event) => {
-            const file = event.target.files?.[0]
-            event.target.value = ''
-            if (file) void upload(file)
-          }}
-        />
-        <button
-          type="button"
-          className="lg-button"
-          onClick={() => uploadRef.current?.click()}
-        >
-          Upload to {cwd ? cwd : 'workspace root'}
-        </button>
-        <span className="lg-files__note">
-          Upload is a protected write; without an injected token the backend returns
-          unauthorized and nothing is written. The legacy endpoint and its history are kept; to
-          add material to the archive, use Chat (the single regular intake entry).
-        </span>
-      </footer>
       </>
       ) : null}
     </div>

@@ -17,7 +17,16 @@
  * matches; the selection itself grants no execution permission (docs/10 §2).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 
 import type { SelectedSourceRef } from '../../api/chat'
 import type { SourceView } from '../../api/sources'
@@ -115,4 +124,34 @@ export function useChatSelection(taskRef: string | null): UseChatSelectionResult
       requestRefs,
     }
   }, [selection, toggle, remove, clear])
+}
+
+const SharedChatSelectionContext = createContext<UseChatSelectionResult | null>(null)
+
+/**
+ * LG-204: the Tasks workspace and the right Bot Chat must share one bounded
+ * selection (same version/hash and 3-source limit) without carrying it across
+ * Task scopes. The provider owns the single hook instance; consumers rendered
+ * standalone in tests fall back to local state.
+ */
+export function ChatSelectionProvider({
+  taskRef,
+  children,
+}: {
+  taskRef: string | null
+  children: ReactNode
+}) {
+  const selection = useChatSelection(taskRef)
+  return (
+    <SharedChatSelectionContext.Provider value={selection}>
+      {children}
+    </SharedChatSelectionContext.Provider>
+  )
+}
+
+export function useSharedChatSelection(taskRef: string | null): UseChatSelectionResult {
+  const shared = useContext(SharedChatSelectionContext)
+  // Hook order is unconditional so a standalone consumer still gets real state.
+  const local = useChatSelection(taskRef)
+  return shared ?? local
 }

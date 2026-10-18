@@ -487,3 +487,87 @@
 .lg-files-materials__transcript .lg-files-materials__facts {
   overflow-wrap: anywhere;
 }
+
+/* ------------------------------------------------ LG-203 New task dialog */
+.lg-task-directory__head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lg-space-2);
+  flex-wrap: wrap;
+}
+
+.lg-new-task-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 8vh var(--lg-space-3) var(--lg-space-3);
+  background: rgb(15 23 42 / 45%);
+}
+
+.lg-new-task {
+  width: min(440px, 100%);
+  max-height: 84vh;
+  overflow: auto;
+  background: var(--lg-color-panel);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+  box-shadow: 0 12px 32px rgb(15 23 42 / 18%);
+}
+
+.lg-new-task .lg-modal__header,
+.lg-new-task .lg-modal__body,
+.lg-new-task .lg-modal__footer {
+  padding: var(--lg-space-3);
+}
+
+.lg-new-task .lg-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lg-space-2);
+  border-bottom: 1px solid var(--lg-color-border);
+}
+
+.lg-new-task .lg-modal__title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.lg-new-task .lg-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+}
+
+.lg-new-task .lg-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--lg-space-2);
+  border-top: 1px solid var(--lg-color-border);
+}
+
+/* LG-204 Tasks material rows */
+.lg-files-materials__context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-1) var(--lg-space-2);
+  margin-top: var(--lg-space-1);
+}
+
+.lg-files-materials__context label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lg-space-1);
+  font-size: 12px;
+  color: var(--lg-color-text-muted);
+}
+
+.lg-files-materials__context-note {
+  font-size: 12px;
+  color: var(--lg-color-text-muted);
+}

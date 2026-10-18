@@ -180,13 +180,11 @@ describe('Task state and one conversation', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Toggle chat panel' }))
     expect(screen.getAllByLabelText(/^Message for /)).toHaveLength(1)
   })
-  it('keeps advanced attachment inputs collapsed until requested', async () => {
+  it('keeps the direct file picker and no path input or extras toggle', async () => {
     await renderShell()
-    expect(screen.getByLabelText('Attach file path')).not.toBeVisible()
-    fireEvent.click(screen.getByRole('button', { name: 'Add attachments and materials' }))
-    expect(screen.getByLabelText('Attach file path')).toBeVisible()
-    fireEvent.click(screen.getByRole('button', { name: 'Add attachments and materials' }))
-    expect(screen.getByLabelText('Attach file path')).not.toBeVisible()
+    expect(screen.queryByLabelText('Attach file path')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Add attachments and materials' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Upload file' })).toBeInTheDocument()
   })
 })
 

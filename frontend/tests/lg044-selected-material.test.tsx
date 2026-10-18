@@ -32,7 +32,9 @@ import { ChatSourcePicker } from '../src/views/chat/ChatSourcePicker'
 import { ChatSources } from '../src/views/chat/ChatSources'
 import {
   MAX_SELECTED_SOURCES,
+  ChatSelectionProvider,
   useChatSelection,
+  useSharedChatSelection,
   type SelectedMaterial,
 } from '../src/views/chat/useChatSelection'
 
@@ -350,16 +352,28 @@ describe('ChatSources (LG-044 §4)', () => {
 })
 
 describe('ChatBody integration (LG-044 §8)', () => {
+  function SelectionHarness({ taskRef, value }: { taskRef: string | null; value: SourceView }) {
+    const selection = useSharedChatSelection(taskRef)
+    return (
+      <button type="button" onClick={() => selection.toggle(value, 'global')}>
+        pick context
+      </button>
+    )
+  }
+
   function renderChat(api: ChatApi, sourcesApi: SourcesApi, taskRefFromUrl?: string) {
     if (taskRefFromUrl) window.history.replaceState(null, '', `/?task=${taskRefFromUrl}`)
     return render(
       <ShellProvider>
-        <ChatBody variant="main" api={api} sourcesApi={sourcesApi} />
+        <ChatSelectionProvider taskRef={taskRefFromUrl ?? null}>
+          <SelectionHarness taskRef={taskRefFromUrl ?? null} value={source()} />
+          <ChatBody variant="main" api={api} sourcesApi={sourcesApi} />
+        </ChatSelectionProvider>
       </ShellProvider>,
     )
   }
 
-  it('sends selected_sources when a material is selected and clears it after', async () => {
+  it('sends selected_sources when a material is selected in Tasks and clears it after', async () => {
     const sourcesApi = makeSourcesApi({
       listSources: vi.fn(async () => ({ items: [source()], next_cursor: null })),
     })
@@ -367,11 +381,8 @@ describe('ChatBody integration (LG-044 §8)', () => {
     renderChat(api, sourcesApi)
     window.history.replaceState(null, '', '/')
 
-    // Open the picker and select the material.
-    fireEvent.click(await screen.findByText('Select materials'))
-    const checkbox = (await screen.findByLabelText('Select notes.md')) as HTMLInputElement
-    fireEvent.click(checkbox)
-    expect(checkbox.checked).toBe(true)
+    fireEvent.click(await screen.findByRole('button', { name: 'pick context' }))
+    expect(screen.getByLabelText('Selected context materials')).toBeInTheDocument()
 
     const composer = screen.getByLabelText('Message for Global')
     fireEvent.change(composer, { target: { value: 'summarize' } })
@@ -388,7 +399,7 @@ describe('ChatBody integration (LG-044 §8)', () => {
     ])
     // Implementation choice: selection cleared after a successful send.
     await waitFor(() =>
-      expect(screen.getByText(/No materials selected/)).toBeTruthy(),
+      expect(screen.queryByLabelText('Selected context materials')).toBeNull(),
     )
   })
 
