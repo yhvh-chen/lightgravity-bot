@@ -80,3 +80,8 @@ Thumbs.db
 *.swo
 *.tmp
 *~
+
+# Media assets and voice synthesis
+content/james.mp3
+content/demo/voice/
+content/pitch/slides/.hyperframes/

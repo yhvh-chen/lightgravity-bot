@@ -1,0 +1,436 @@
+{
+  "schema": "lg.demo-narration/v1",
+  "source": "content/demo/narration.md",
+  "language": "en",
+  "tts": {
+    "service": "http://192.168.8.12:7860/api/tts",
+    "mode": "zero_shot",
+    "speed": 1.0,
+    "stream": 0,
+    "reference_audio": "content/demo/voice/ref-james-6s.wav",
+    "reference_field": "prompt_wav",
+    "reference_text_field": "prompt_text",
+    "note": "reference transcript must match the clip; 6 s works, 15 s fails; do not pass voice_name (do not save the voice on the shared server)"
+  },
+  "join": {
+    "gap_seconds_between_lines": 0.3,
+    "pad_seconds_each_end": 0.2
+  },
+  "scenes": [
+    {
+      "scene": "1",
+      "film_start": "0:00",
+      "film_end": "0:15",
+      "title": "Problem",
+      "shot_seconds": 15,
+      "max_speech_seconds": 12,
+      "file": "scene-1.wav"
+    },
+    {
+      "scene": "2",
+      "film_start": "0:15",
+      "film_end": "0:35",
+      "title": "A task is a folder",
+      "shot_seconds": 20,
+      "max_speech_seconds": 17,
+      "file": "scene-2.wav"
+    },
+    {
+      "scene": "3a",
+      "film_start": "0:35",
+      "film_end": "0:45",
+      "title": "Intake: PDF",
+      "shot_seconds": 10,
+      "max_speech_seconds": 8,
+      "file": "scene-3a.wav"
+    },
+    {
+      "scene": "3b",
+      "film_start": "0:45",
+      "film_end": "0:55",
+      "title": "Intake: image and OCR",
+      "shot_seconds": 10,
+      "max_speech_seconds": 8,
+      "file": "scene-3b.wav"
+    },
+    {
+      "scene": "3c",
+      "film_start": "0:55",
+      "film_end": "1:02",
+      "title": "Intake: audio",
+      "shot_seconds": 7,
+      "max_speech_seconds": 5,
+      "file": "scene-3c.wav"
+    },
+    {
+      "scene": "3d",
+      "film_start": "1:02",
+      "film_end": "1:08",
+      "title": "Search",
+      "shot_seconds": 6,
+      "max_speech_seconds": 5,
+      "file": "scene-3d.wav"
+    },
+    {
+      "scene": "4",
+      "film_start": "1:08",
+      "film_end": "1:30",
+      "title": "Human team layer",
+      "shot_seconds": 22,
+      "max_speech_seconds": 18,
+      "file": "scene-4.wav"
+    },
+    {
+      "scene": "5",
+      "film_start": "1:30",
+      "film_end": "2:05",
+      "title": "AI task team",
+      "shot_seconds": 35,
+      "max_speech_seconds": 29,
+      "file": "scene-5.wav"
+    },
+    {
+      "scene": "6",
+      "film_start": "2:05",
+      "film_end": "2:30",
+      "title": "Reviewer is not the author",
+      "shot_seconds": 25,
+      "max_speech_seconds": 21,
+      "file": "scene-6.wav"
+    },
+    {
+      "scene": "7",
+      "film_start": "2:30",
+      "film_end": "3:05",
+      "title": "Cross-account acceptance",
+      "shot_seconds": 35,
+      "max_speech_seconds": 29,
+      "file": "scene-7.wav"
+    },
+    {
+      "scene": "8",
+      "film_start": "3:05",
+      "film_end": "3:20",
+      "title": "Proof",
+      "shot_seconds": 15,
+      "max_speech_seconds": 12,
+      "file": "scene-8.wav"
+    },
+    {
+      "scene": "9",
+      "film_start": "3:20",
+      "film_end": "3:35",
+      "title": "Closer",
+      "shot_seconds": 15,
+      "max_speech_seconds": 12,
+      "file": "scene-9.wav"
+    }
+  ],
+  "lines": [
+    {
+      "id": "1-1",
+      "scene": "1",
+      "line": 1,
+      "text": "AI agents now do real team work.",
+      "words": 7,
+      "est_seconds": 3.0,
+      "file": "scene-1-line1-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "1-2",
+      "scene": "1",
+      "line": 2,
+      "text": "But chat threads lose context, and nobody can say who checked the result.",
+      "words": 13,
+      "est_seconds": 5.7,
+      "file": "scene-1-line2-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "1-3",
+      "scene": "1",
+      "line": 3,
+      "text": "LightGravity changes that.",
+      "words": 3,
+      "est_seconds": 1.3,
+      "file": "scene-1-line3-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "2-1",
+      "scene": "2",
+      "line": 1,
+      "text": "In LightGravity, every task is a folder you own.",
+      "words": 9,
+      "est_seconds": 3.9,
+      "file": "scene-2-line1-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "2-2",
+      "scene": "2",
+      "line": 2,
+      "text": "Markdown, Y-A-M-L and logs, on disk, not buried in a chat history.",
+      "words": 12,
+      "est_seconds": 5.2,
+      "file": "scene-2-line2-take1.wav",
+      "risky": true
+    },
+    {
+      "id": "2-3",
+      "scene": "2",
+      "line": 3,
+      "text": "Open any task, and you can read exactly what happened.",
+      "words": 10,
+      "est_seconds": 4.3,
+      "file": "scene-2-line3-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "3a-1",
+      "scene": "3a",
+      "line": 1,
+      "text": "Alice drops in the source material, starting with a product brief.",
+      "words": 11,
+      "est_seconds": 4.8,
+      "file": "scene-3a-line1-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "3b-1",
+      "scene": "3b",
+      "line": 1,
+      "text": "Photos and scans are read too.",
+      "words": 6,
+      "est_seconds": 2.6,
+      "file": "scene-3b-line1-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "3b-2",
+      "scene": "3b",
+      "line": 2,
+      "text": "The text is extracted, and it stays linked to the original.",
+      "words": 11,
+      "est_seconds": 4.8,
+      "file": "scene-3b-line2-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "3c-1",
+      "scene": "3c",
+      "line": 1,
+      "text": "Customer calls are transcribed by Gemini.",
+      "words": 6,
+      "est_seconds": 2.6,
+      "file": "scene-3c-line1-take1.wav",
+      "risky": true
+    },
+    {
+      "id": "3d-1",
+      "scene": "3d",
+      "line": 1,
+      "text": "Then everything is searchable by meaning, powered by Embedding Gemma two.",
+      "words": 11,
+      "est_seconds": 4.8,
+      "file": "scene-3d-line1-take1.wav",
+      "risky": true
+    },
+    {
+      "id": "4-1",
+      "scene": "4",
+      "line": 1,
+      "text": "The team talks freely, and the bot stays quiet.",
+      "words": 9,
+      "est_seconds": 3.9,
+      "file": "scene-4-line1-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "4-2",
+      "scene": "4",
+      "line": 2,
+      "text": "It only joins when someone says, at bot, and it works only from the sources they chose.",
+      "words": 17,
+      "est_seconds": 7.4,
+      "file": "scene-4-line2-take1.wav",
+      "risky": true
+    },
+    {
+      "id": "4-3",
+      "scene": "4",
+      "line": 3,
+      "text": "Alice asks for a launch brief, and a new task is created.",
+      "words": 12,
+      "est_seconds": 5.2,
+      "file": "scene-4-line3-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "5-1",
+      "scene": "5",
+      "line": 1,
+      "text": "For each task, LightGravity recruits a small team from its library of specialist roles.",
+      "words": 14,
+      "est_seconds": 6.1,
+      "file": "scene-5-line1-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "5-2",
+      "scene": "5",
+      "line": 2,
+      "text": "You can see who was recruited, and what each member is working on.",
+      "words": 13,
+      "est_seconds": 5.7,
+      "file": "scene-5-line2-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "5-3",
+      "scene": "5",
+      "line": 3,
+      "text": "Every step, and every file, lands in the task's own folder.",
+      "words": 11,
+      "est_seconds": 4.8,
+      "file": "scene-5-line3-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "5-4",
+      "scene": "5",
+      "line": 4,
+      "text": "This part is sped up.",
+      "words": 5,
+      "est_seconds": 2.2,
+      "file": "scene-5-line4-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "6-1",
+      "scene": "6",
+      "line": 1,
+      "text": "Workers can't mark their own work done.",
+      "words": 7,
+      "est_seconds": 3.0,
+      "file": "scene-6-line1-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "6-2",
+      "scene": "6",
+      "line": 2,
+      "text": "Machine checks run first.",
+      "words": 4,
+      "est_seconds": 1.7,
+      "file": "scene-6-line2-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "6-3",
+      "scene": "6",
+      "line": 3,
+      "text": "Then an independent reviewer, on a separate model connection, checks the result against the requirements.",
+      "words": 15,
+      "est_seconds": 6.5,
+      "file": "scene-6-line3-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "7-1",
+      "scene": "7",
+      "line": 1,
+      "text": "Now Ben, signed in separately, opens the same task.",
+      "words": 9,
+      "est_seconds": 3.9,
+      "file": "scene-7-line1-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "7-2",
+      "scene": "7",
+      "line": 2,
+      "text": "He reads the launch brief, checks every point against its source, and leaves feedback.",
+      "words": 14,
+      "est_seconds": 6.1,
+      "file": "scene-7-line2-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "7-3",
+      "scene": "7",
+      "line": 3,
+      "text": "Back in Alice's account, the feedback is right there on the same task.",
+      "words": 13,
+      "est_seconds": 5.7,
+      "file": "scene-7-line3-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "7-4",
+      "scene": "7",
+      "line": 4,
+      "text": "She accepts the delivery.",
+      "words": 4,
+      "est_seconds": 1.7,
+      "file": "scene-7-line4-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "7-5",
+      "scene": "7",
+      "line": 5,
+      "text": "Done means a person accepted it.",
+      "words": 6,
+      "est_seconds": 2.6,
+      "file": "scene-7-line5-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "8-1",
+      "scene": "8",
+      "line": 1,
+      "text": "The whole record stays in open files: the requirements, the candidate, and the acceptance.",
+      "words": 14,
+      "est_seconds": 6.1,
+      "file": "scene-8-line1-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "8-2",
+      "scene": "8",
+      "line": 2,
+      "text": "Built on Google's Antigravity S-D-K, with Gemma for retrieval.",
+      "words": 9,
+      "est_seconds": 3.9,
+      "file": "scene-8-line2-take1.wav",
+      "risky": true
+    },
+    {
+      "id": "9-1",
+      "scene": "9",
+      "line": 1,
+      "text": "LightGravity.",
+      "words": 1,
+      "est_seconds": 0.4,
+      "file": "scene-9-line1-take1.wav",
+      "risky": false
+    },
+    {
+      "id": "9-2",
+      "scene": "9",
+      "line": 2,
+      "text": "Trust the delivery, not just the output.",
+      "words": 7,
+      "est_seconds": 3.0,
+      "file": "scene-9-line2-take1.wav",
+      "risky": false
+    }
+  ],
+  "totals": {
+    "lines": 30,
+    "words": 283,
+    "est_seconds": 122.9
+  }
+}
