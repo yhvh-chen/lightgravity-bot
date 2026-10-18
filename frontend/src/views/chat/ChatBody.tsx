@@ -513,6 +513,9 @@ export function ChatBody({
         setNotice('Personal chat needs a configured model. Configure one in Settings, or use Team.')
       } else if (outcome.createdTaskRef) {
         setNotice(`Created Task ${outcome.createdTaskRef}. Opening its workspace.`)
+        // Preserve the effective channel explicitly when the initial route used
+        // its deployment default; the destination helper preserves that value.
+        if (state.chatChannel !== channel) dispatch({ type: 'setChatChannel', channel })
         dispatch(openTaskDestination({ taskRef: outcome.createdTaskRef, view: 'tasks' }))
       } else if (outcome.reply) {
         setNotice(null)
