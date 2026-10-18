@@ -8,9 +8,9 @@ Built on **Antigravity SDK**, with **EmbeddingGemma 2** as an optional semantic 
 
 [Installation preview](#installation-preview) · [Install and start](#install-and-start) · [Automatic task teams](#automatic-task-teams) · [Swarm direction](#toward-a-governed-self-organizing-swarm) · [Team mode](#team-mode) · [Architecture](#architecture) · [Validation and limitations](#validation-and-limitations)
 
-> **Development source branch · October 18, 2026.** The branch `development/task-teams-20261018` is ahead of the published installation preview. It contains the accepted contract **1.18.0** source candidate for Chat and task teams: grouped task-scoped teams, real overlapping SDK tasks, confirmed stop and release, queue cancellation, private Personal attachment context, optional Embedding settings, and desktop/mobile UI. Independent final QA **passed within the documented bounded cases** on this accepted source (`94571a0`); that verdict is not user final acceptance, a release, or a deployment. This is a **source-only development branch**; the existing services were not updated. The published [installation preview](http://192.168.8.50:3000/admin/lightgravity-bot/releases/tag/install-preview-20261017) and its prebuilt archive remain the earlier preview and were not rebuilt from this branch.
+> **Development source branch · October 18, 2026.** The branch `development/task-teams-20261018` is ahead of the published installation preview. It contains the accepted contract **1.18.0** source candidate for Chat and task teams: grouped task-scoped teams, real overlapping SDK tasks, confirmed stop and release, queue cancellation, private Personal attachment context, optional Embedding settings, and desktop/mobile UI. Independent final QA **passed within the documented bounded cases** on this accepted source (`94571a0`); that verdict is not user final acceptance or a release. The accepted source has also been deployed to the existing tested local service, which now serves contract **1.18.0** with the matching production frontend. Existing accounts, sources, tasks, settings, secret references, and generation counting were preserved; task execution remains disabled by the no-executor policy. The QA result remains bounded to the documented samples, and self-organizing swarm behavior remains exploratory. The published [installation preview](http://192.168.8.50:3000/admin/lightgravity-bot/releases/tag/install-preview-20261017) and its prebuilt archive remain the earlier preview and were not rebuilt from this branch.
 
-> **Publication scope.** This source distribution was exported from the accepted development snapshot without its tests, probes, runtime data, credentials, project-management documents, or internal Git history. The branch and both private repositories remain private; authorized access is required. No service restart, installer run on live data, product model request, or live-data change was performed for this publication.
+> **Publication scope.** This source distribution was exported from the accepted development snapshot without its tests, probes, runtime data, credentials, project-management documents, or internal Git history. The branch and both private repositories remain private; authorized access is required. The separate tested local deployment restarted only the existing service after a staged production build and preserved existing user data; this publication itself did not run the installer on live data, make a product model request, or change live data.
 
 ## Installation preview
 
@@ -144,7 +144,7 @@ The current foundation is explicit schemas, stable references, and program-valid
 
 Delivery work uses task-scoped AI teams: choose roles for the goal, assign dependent work, check the result, and release execution resources after confirmed stop. Ordinary questions follow the direct-answer path. Each task keeps its conversation, members, artifacts, and history.
 
-The current development milestone extends the existing rule-based recruitment and stop-confirmation foundation. Its status below describes the accepted isolated candidate and the bounded independent QA result, **not the running service or a released version**.
+The current development milestone extends the existing rule-based recruitment and stop-confirmation foundation. Its status below describes the accepted candidate, its bounded independent QA result, and the tested local deployment; it is not a released version.
 
 | Feature | Current milestone status |
 |---|---|
@@ -240,7 +240,7 @@ You control the files and deployment environment. Model requests still go to the
 
 ## Validation and limitations
 
-This repository branch is a **source-only development snapshot**, not a release, deployment, or user final acceptance. Its prebuilt release archive was not rebuilt from this branch. The existing services remain on their earlier version and were not updated by this publication.
+This repository branch is a **development snapshot and tested local deployment**, not a release or user final acceptance. Its prebuilt release archive was not rebuilt from this branch; the published installation preview remains older. The existing tested local service now serves contract **1.18.0** with the matching production frontend. Task execution remains disabled, and existing user data was preserved.
 
 **Independent final QA on the accepted candidate:** the final independent PI verdict was **PASSED within the documented bounded scope**. The campaign used isolated data roots and ports, the candidate backend and frontend, and no mock response for the fresh private-context sample. It included:
 
@@ -256,13 +256,13 @@ This repository branch is a **source-only development snapshot**, not a release,
 
 **Fresh versus reused evidence:** the private-attachment service, its focused tests, the final real Personal probe, browser smoke, typing, and build were fresh on the accepted bytes. The two-task SDK/Team run, stop/queue/Board behavior, and unchanged composer/Team/embedding UI evidence were independently re-audited and reused from the preceding R2 campaign because those product paths are byte-identical. They are not presented as a fresh rerun on the changed private-attachment service. Earlier full test suites were not rerun for this loop.
 
-**Source and publication checks (this branch):** the exported source tree was parsed and built locally; the frontend production build and locked Python dependency check completed against the same source. The role library's 282 adapted templates and 282 original upstream Markdown files were checked against the manifest's SHA-256 and git blob hashes, and the wheel package was inspected to confirm that the role data, manifest, license, and notice are included. Secret, runtime-data, internal-path, and forbidden-path scans were run over the exported tree. No product model call, installer run on live data, service restart, or live-data change was performed for this publication.
+**Source and publication checks (this branch):** the exported source tree was parsed and built locally; the frontend production build and locked Python dependency check completed against the same source. The role library's 282 adapted templates and 282 original upstream Markdown files were checked against the manifest's SHA-256 and git blob hashes, and the wheel package was inspected to confirm that the role data, manifest, license, and notice are included. Secret, runtime-data, internal-path, and forbidden-path scans were run over the exported tree. No product model call or installer run on live data was performed for this publication; the separate local deployment restarted only the existing service, preserved user data, and made no model call.
 
 **Prior product validation:** earlier account-management and interface milestones passed independent browser, backend, and frontend campaigns on their frozen candidates. Those suites and detailed reports are not included in this distribution and were not rerun for this branch.
 
 Current limitations:
 
-- **User final acceptance is separate.** Independent QA and operator Board acceptance are not the user's final acceptance, a release, or a deployment.
+- **User final acceptance is separate.** Independent QA and operator Board acceptance are not the user's final acceptance or a release; the tested local deployment is described above.
 - **This branch is ahead of the release.** The published prebuilt archive corresponds to an earlier source tree. Rebuilding and revalidating an archive from this branch is a separate action.
 - **Tested on Linux x86_64 only for the published preview.** Other operating systems and architectures are not claimed for this branch.
 - **No cloud deployment.** The installer prepares a local service; hosting, public access, and managed cloud operation are out of scope.
@@ -275,7 +275,7 @@ Current limitations:
 - **Recovery is bounded.** Operations with unknown side effects are not automatically replayed. Complete checkpoint-skipping scheduling is not implemented.
 - **Embedding quality is unproven.** Optional Embedding settings are disabled by default; final checks covered a labelled local protocol fixture and fallback, not vendor retrieval quality.
 - **Private attachments are bounded.** Personal text context is owner-only, capped at 12,000 characters, 3 files, and 64 KiB per supported text file. Unsupported binary content is not read. One real sample does not guarantee future free-form model accuracy.
-- **Integration, deployment, and acceptance are separate.** Local QA does not establish that a running service is updated, a release is published in every environment, or final user acceptance has occurred.
+- **Integration, deployment, and acceptance are separate.** Local QA alone did not update the service; the separate tested deployment did. Neither establishes a release in every environment or final user acceptance.
 - **A project-wide license has not been selected.** Do not assume that dependency licenses grant rights to all repository content. The bundled agency-agents role library is MIT-licensed; see `THIRD-PARTY-NOTICES.md`.
 
 ## Source layout and development
