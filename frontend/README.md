@@ -33,7 +33,7 @@ The shell is a **layout prototype** and is **not backend-connected**:
 - LG-011 evidence: 19 vitest tests, 23/23 dependency-free Chrome checks
   (desktop 1440 / 1024 / 390px drawer), `tsc` / `vite build` pass; **no real
   backend integration test** was run. Results are executor-local and marked
-  "待版本 QA".
+  "pending milestone QA".
 
 ## Toolchain ownership (LG-002)
 
