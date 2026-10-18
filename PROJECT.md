@@ -7,7 +7,7 @@ updated: "2026-10-18"
 
 # LightGravity Bot 项目手册
 
-> **Demo录制修复候选已本地集成（2026-10-18，LG-251；未部署）**：隔离分支 `work/lg248-candidate-20261018` 基于 native Files/hint `cd755da`，按内容去重后串行合入 LG-208 parse cache、LG-244/LG-243/LG-249 后端链、LG-224 PDF 文字层，并把契约升至 **1.23.0**（§24）。新端点/DTO/投影字段为加性，但**不是纯加性批次**：LG-249 有意把 Team Task 普通消息改为默认只记录、仅前导配置 mention 才路由；单用户路由不变。候选包含只读 canonical `TASK.md`、机器检查 required/绑定/验收状态、每 Run 的计划 worker 与真实 reviewer 执行证据、PDF 文字层优先，以及真实 `health.team_bot_mention`。已运行受影响后端/前端测试、typecheck、build；前端完整套件为 **400 通过/1 失败**，`lg120` 分页失败保持 **OPEN/未分类**待 native Files 处置，隔离复跑 5/5 只作线索，不据此判为 flake。候选状态 **PROVISIONAL，LG-251 未完成**；这是开发者集成证据，**不是独立 QA**，公开 8123/5173 仍为 1.20.0，未推送/合根/部署，LG-252 浏览器录制验收待新采集门批准。详细登记见 docs/08 §24。
+> **Demo录制修复候选已本地集成（2026-10-18，LG-251；未部署）**：隔离分支 `work/lg248-candidate-20261018` 基于 native Files/hint `cd755da`，按内容去重后串行合入 LG-208 parse cache、LG-244/LG-243/LG-249 后端链、LG-224 PDF 文字层，并把契约升至 **1.23.0**（§24）。新端点/DTO/投影字段为加性，但**不是纯加性批次**：LG-249 有意把 Team Task 普通消息改为默认只记录、仅前导配置 mention 才路由；单用户路由不变。候选包含只读 canonical `TASK.md`、机器检查 required/绑定/验收状态、每 Run 的计划 worker 与真实 reviewer 执行证据、PDF 文字层优先，以及真实 `health.team_bot_mention`。已运行受影响后端/前端测试、typecheck、build；前端完整套件为 **400 通过/1 失败**，`lg120` 分页失败保持 **OPEN/未分类**待 native Files 处置，隔离复跑 5/5 只作线索，不据此判为 flake。候选状态 **PROVISIONAL，LG-251 未完成**；这是开发者集成证据，**不是独立 QA**，本轮未重核线上 8123/5173 版本，未推送/合根/部署，LG-252 浏览器录制验收待新采集门批准。详细登记见 docs/08 §24。
 
 > **品牌已上线、ASR远端待接通（2026-10-18）**：LG211品牌子集112项独立浏览器检查+29前端测试通过；LG212已将Logo/默认账号说明上线8123，root main8a3f04d7，实际生产44项通过，后端仍原1.20/PID536200、ASR关闭rev1，三个服务未重启、账户/资料保持。5173品牌源码同步，不把其他开发改动算入本包验收。[部署记录](probes/remote-reader-20261018/lg212/DELIVERY.md)。LG213一次现有默认SSH密钥认证被192.168.8.12拒绝，远端帧服务实际部署/转写联调需要可用入口；原质量FAILED与里程碑169待完成保持。Reader容器已构建、加载约640～874MiB，尚未测实际推理峰值。
 
