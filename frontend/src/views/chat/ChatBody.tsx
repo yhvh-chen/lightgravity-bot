@@ -507,7 +507,7 @@ export function ChatBody({
         setNotice('Personal is private and chat-only. Switch to Team to create a task or run delivery — nothing was created.')
       } else if (outcome.kind === 'unavailable') {
         setNotice('Personal chat needs a configured model. Configure one in Settings, or use Team.')
-      } else if (outcome.kind === 'create_task' && outcome.createdTaskRef) {
+      } else if (outcome.createdTaskRef) {
         setNotice(`Created Task ${outcome.createdTaskRef}. Opening its workspace.`)
         dispatch(openTaskDestination({ taskRef: outcome.createdTaskRef, view: 'tasks' }))
       } else if (outcome.reply) {

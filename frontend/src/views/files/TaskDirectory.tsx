@@ -57,22 +57,32 @@ export function TaskDirectory({ onOpen, activeTaskRef = null, api: injectedApi, 
     const controller = new AbortController()
     setLoading(true)
     setError(null)
-    api.listTasks({ limit: 100 }, controller.signal).then((page) => {
+    api.listTasks({ limit: 100 }, controller.signal).then(async (page) => {
       if (controller.signal.aborted) return
-      setTasks(page.items)
+      let items = page.items
+      // Chat-created Tasks may be newer than this mounted list, or beyond its
+      // first page. Fetch the selected real Task rather than inventing a row.
+      if (activeTaskRef && !items.some((task) => task.id === activeTaskRef)) {
+        const selected = await api.getTask(activeTaskRef, controller.signal)
+        if (controller.signal.aborted) return
+        if (selected.id !== activeTaskRef) throw new Error('The task identity changed. Refresh the task directory.')
+        items = [...items, selected]
+      }
+      if (controller.signal.aborted) return
+      setTasks(items)
       setCursor(page.next_cursor)
     }).catch((cause: unknown) => {
       if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'Cannot load tasks')
     }).finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
-  }, [api, reload])
+  }, [api, reload, activeTaskRef])
   const loadMore = async () => {
     if (!cursor) return
     setLoading(true)
     try {
       const page = await api.listTasks({ limit: 100, cursor })
       if (!mounted.current) return
-      setTasks((current) => [...(current ?? []), ...page.items])
+      setTasks((current) => Array.from(new Map([...(current ?? []), ...page.items].map((task) => [task.id, task])).values()))
       setCursor(page.next_cursor)
       setError(null)
     } catch (cause) {

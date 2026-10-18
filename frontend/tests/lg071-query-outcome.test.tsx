@@ -109,9 +109,9 @@ describe('LG071 response target versus newly created Task', () => {
     expect(dispatched).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'selectTask' }))
   })
 
-  it.each([['Team', team], ['single-user Personal', single]] as const)('keeps the original creation notice and navigation for %s delivery', async (_label, probe) => {
+  it.each([['Team', team, 'create_task'], ['single-user Personal', single, 'create_task'], ['Team canonical', team, 'task'], ['single-user canonical', single, 'task']] as const)('opens the real workspace and conversation for %s delivery', async (_label, probe, kind) => {
     history.replaceState(null, '', '?view=team')
-    const api = makeApi({ kind: 'create_task', task_id: TASK, reply: 'Created delivery', data: { creates_task: true } })
+    const api = makeApi({ kind, task_id: TASK, reply: 'Created delivery', data: { creates_task: true } })
     renderChat(api, probe)
     await submit('Message for Global', '@bot create a page')
     expect(await screen.findByText(`Created Task ${TASK}. Opening its workspace.`)).toBeInTheDocument()

@@ -242,7 +242,7 @@ export function useChat(
         return {
           taskRef: returnedTaskRef,
           // A Task reference identifies the response target, not a creation.
-          createdTaskRef: result.kind === 'create_task' ? returnedTaskRef : null,
+          createdTaskRef: result.kind === 'task' || result.kind === 'create_task' ? returnedTaskRef : null,
           reply: result.reply ?? null,
           resolvedSources: resolvedSourcesFromResult(result),
           kind: result.kind ?? null,

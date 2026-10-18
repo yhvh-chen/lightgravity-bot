@@ -91,3 +91,15 @@ describe('LG-202 Tasks directory', () => {
     expect(api.getTask).toHaveBeenCalledWith('task_real', expect.any(AbortSignal))
   })
 })
+
+
+it('refreshes a mounted directory for a Chat-created Task and includes a real selected Task beyond page one', async () => {
+  const created = { ...task, id: 'task_created', task_id: 'task_created', title: 'Launch brief' }
+  const api = taskApi({ getTask: vi.fn(async (id) => ({ ...created, id, task_id: id, run: null, members: [], subtasks: [] }) as TaskDetail) })
+  const view = render(<TaskDirectory api={api} activeTaskRef={null} onOpen={() => {}} />)
+  await screen.findByRole('button', { name: /Review source/ })
+  view.rerender(<TaskDirectory api={api} activeTaskRef="task_created" onOpen={() => {}} />)
+  expect(await screen.findByRole('button', { name: /Launch brief/ })).toHaveAttribute('aria-current', 'page')
+  expect(api.listTasks).toHaveBeenCalledTimes(2)
+  expect(api.getTask).toHaveBeenCalledWith('task_created', expect.any(AbortSignal))
+})
