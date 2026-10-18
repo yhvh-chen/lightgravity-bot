@@ -22,8 +22,11 @@ owning Task/Run.
 
 from __future__ import annotations
 
+import os
 import time
 from collections.abc import Callable
+from copy import deepcopy
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -59,6 +62,42 @@ from .models import (
 
 _STORE_TEMP_GLOB = f"{TEMP_PREFIX}*"
 
+#: A file-version signature.  ``st_dev``/``st_ino`` catch atomic replacement
+#: (the Store's own write path), while the timestamps and size catch external
+#: in-place edits.  Nothing in this signature survives the process.
+_FileSignature = tuple[int, int, int, int, int]
+
+
+def _stat_signature(stat: os.stat_result) -> _FileSignature:
+    return (
+        stat.st_dev,
+        stat.st_ino,
+        stat.st_mtime_ns,
+        stat.st_ctime_ns,
+        stat.st_size,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class _CachedDocument:
+    """Parsed/validated result for one exact file version (never authoritative)."""
+
+    signature: _FileSignature
+    versioned: Versioned
+
+    def snapshot(self) -> Versioned:
+        """Return a caller-owned copy so cached mutable data cannot leak."""
+
+        return Versioned(
+            kind=self.versioned.kind,
+            entity_id=self.versioned.entity_id,
+            entity=deepcopy(self.versioned.entity),
+            revision=self.versioned.revision,
+            content_hash=self.versioned.content_hash,
+            body=self.versioned.body,
+            path=self.versioned.path,
+        )
+
 
 class FileStore:
     """Markdown filesystem source of truth."""
@@ -79,6 +118,10 @@ class FileStore:
         self._messages = MessageLog(self._data_dir, self._locks, clock)
         self._entries: dict[tuple[str, str], Any] | None = None
         self._index_diagnostics: list[Diagnostic] = []
+        # Path -> last successfully parsed/validated file version.  This is a
+        # disposable in-process cache only: Markdown files remain the single
+        # source of truth and every hit is gated by the current file signature.
+        self._read_cache: dict[Path, _CachedDocument] = {}
 
     # ------------------------------------------------------------------ paths
     @property
@@ -132,12 +175,33 @@ class FileStore:
     def _lock_key(self, kind: str, entity_id: str) -> str:
         return f"entity:{kind}:{entity_id}"
 
+    @staticmethod
+    def _file_signature(path: Path) -> _FileSignature | None:
+        try:
+            return _stat_signature(path.stat())
+        except OSError:
+            return None
+
+    def _invalidate_read_cache(self, path: Path) -> None:
+        # Unified Store writes invalidate immediately; the signature check also
+        # handles external writers that never go through this Store instance.
+        self._read_cache.pop(path, None)
+
     # ------------------------------------------------------------------- read
     def read(self, kind: str, entity_id: str) -> Versioned:
         self._validate_kind_id(kind, entity_id)
         path = self.entity_path(kind, entity_id)
         if not path.is_file():
+            self._invalidate_read_cache(path)
             raise EntityNotFound(kind, entity_id, path=str(path))
+        signature = self._file_signature(path)
+        if signature is None:
+            self._invalidate_read_cache(path)
+            raise EntityNotFound(kind, entity_id, path=str(path))
+        cached = self._read_cache.get(path)
+        if cached is not None and cached.signature == signature:
+            return cached.snapshot()
+
         text = path.read_text("utf-8")
         raw, body = parse_document(text, source=str(path))
         data = plain(raw)
@@ -151,13 +215,16 @@ class FileStore:
                 )
             )
         if diagnostics:
+            # Never cache a failed validation: repeating the read must repeat
+            # the same authoritative check until the file itself is fixed.
+            self._invalidate_read_cache(path)
             raise ConfigInvalid(
                 f"{kind} {entity_id!r} failed validation",
                 diagnostics=[d.to_dict() for d in diagnostics],
                 location=str(path),
             )
         revision = data["revision"]
-        return Versioned(
+        versioned = Versioned(
             kind=kind,
             entity_id=entity_id,
             entity=data,
@@ -166,6 +233,16 @@ class FileStore:
             body=body,
             path=str(path),
         )
+        # Cache only a snapshot that still corresponds to the signature that
+        # was observed before reading.  A concurrent replacement makes the
+        # check fail and the next read simply parses the newer file.
+        if self._file_signature(path) == signature:
+            cached = _CachedDocument(signature=signature, versioned=versioned)
+            self._read_cache[path] = cached
+            # The cold read must already be caller-owned: otherwise mutating it
+            # would mutate the object now held by the cache.
+            return cached.snapshot()
+        return versioned
 
     # ----------------------------------------------------------------- create
     def create(
@@ -208,6 +285,7 @@ class FileStore:
                 )
             text = render_document(raw, body or "")
             atomic_write_text(path, text)
+            self._invalidate_read_cache(path)
             self._touch_index(kind, entity_id, data, 0, str(path))
             return Versioned(
                 kind=kind,
@@ -309,6 +387,7 @@ class FileStore:
             if guard is not None:
                 guard()
             path.unlink()
+            self._invalidate_read_cache(path)
             if self._entries is not None:
                 self._entries.pop((kind, entity_id), None)
             return Versioned(
@@ -355,6 +434,7 @@ class FileStore:
         new_body = old_body if body is None else body
         text = render_document(raw, new_body)
         atomic_write_text(path, text)
+        self._invalidate_read_cache(path)
         self._touch_index(kind, entity_id, new_data, current + 1, str(path))
         return Versioned(
             kind=kind,
