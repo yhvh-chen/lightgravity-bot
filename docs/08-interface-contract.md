@@ -8,7 +8,7 @@ updated: "2026-10-18"
 
 # 首版接口与状态契约（v1）
 
-> **当前本地隔离候选契约 1.23.0（2026-10-18，LG-251 串行集成；未部署，独立 LG-252 浏览器/录制 QA 待执行）**：§24 加性登记 demo 录制修复批次的真实已实现公共行为：只读 canonical `TASK.md` 定义读取（LG-242）、默认交付工作区与记录型机器检查策略/绑定/验收事实（LG-244）、严格 allowlist 的 Run 执行来源投影及 Task 级历史端点（LG-243）、PDF 文字层优先并保留可选 OCR/`extractor` 来源（LG-224）、以及 Team Task 配置 mention 路由与真实 `health.team_bot_mention`（LG-249）。既有公开 `run.connection_pin` 字段、Task/Run 状态/阶段/验收枚举、迁移方向和错误码不变；旧客户端忽略加性字段即可。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.23.0**；公开 8123/5173 仍为 **1.20.0**，本候选未部署/推送，也不代表独立 QA 或用户验收通过。
+> **当前本地隔离候选契约 1.23.0（2026-10-18，LG-251 串行集成；未部署，状态 PROVISIONAL，独立 LG-252 浏览器/录制 QA 待执行）**：§24 登记 demo 录制修复批次的真实已实现公共行为：只读 canonical `TASK.md` 定义读取（LG-242）、默认交付工作区与记录型机器检查策略/绑定/验收事实（LG-244）、严格 allowlist 的 Run 执行来源投影及 Task 级历史端点（LG-243）、PDF 文字层优先并保留可选 OCR/`extractor` 来源（LG-224）、以及 Team Task 配置 mention 路由与真实 `health.team_bot_mention`（LG-249）。**新端点/DTO/投影字段是加性扩展，但本批并非纯加性：LG-249 有意把 Team Task 普通消息从既有机器人路由改为默认 `recorded`-only，只有带前导配置 mention 的消息才路由；单用户行为不变。** 既有公开 `run.connection_pin` 字段、Task/Run 状态/阶段/验收枚举、迁移方向和错误码不变。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.23.0**；公开 8123/5173 仍为 **1.20.0**，本候选未部署/推送，也不代表独立 QA 或用户验收通过。
 
 > **已验收候选契约 1.21.0（2026-10-18，LG-206 串行集成；LG-207 独立版本/浏览器 QA 为 PASS_WITH_LIMITATIONS；已合入本地 main，未部署）**：加性登记 Tasks 工作区候选的两项公开变化：`SourceView` 只读可用性字段 `context_selectable`/`context_unavailable_reason`（由真实可读正文推导，不作为持久状态），以及只读 Team 对话历史投影 `GET /api/v1/conversations/history`。无既有端点、请求字段、错误码、实体状态/阶段/验收枚举、迁移方向或权限变化；旧客户端忽略新可选字段/端点即可。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 在该候选为 `1.21.0`（已由 1.22 候选取代）；**公开 8123 服务仍为 1.20.0**，本候选未部署/推送。冻结的英文 ASR 下一版本线不属于本候选。范围与兼容边界见 §22。
 
@@ -814,7 +814,7 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 
 | 版本 | 日期 | 级别 | 变更 | API/实体字段影响 |
 |---|---|---|---|---|
-| `1.23.0` | 2026-10-18 | MINOR | LG-251 demo 录制修复批次本地隔离串行集成候选（§24）：LG-242 只读 canonical `TASK.md` 端点；LG-244 默认交付工作区、`machine_check_policy`、Run `machine_checks` 绑定/required/`checked_at`、验收 `checks.status` 与真实 pre-review/Accept 门；LG-243 Run `execution_evidence` 与 Task 详情/独立端点 `execution` 严格 allowlist 投影；LG-224 PDF 文字层优先、per-page `extractor` 与加性 record types；LG-249 Team Task 配置 mention 路由及 `health.team_bot_mention`。**未部署**，公开 8123/5173 仍 1.20.0；LG-252 独立浏览器/录制 QA 待执行 | 仅新增可选只读端点/响应字段、可选实体字段与健康字段，并收紧默认交付 Task 的机器检查 required 事实；既有 `run.connection_pin` 公开字段、Task/Run/Member/Subtask/`source.status` 枚举、迁移方向与 HTTP 错误码不变；旧客户端忽略新字段即可；无新权限、无秘密值、无产品模型/OCR/ASR 调用 |
+| `1.23.0` | 2026-10-18 | MINOR | LG-251 demo 录制修复批次本地隔离串行集成候选（§24）：LG-242 只读 canonical `TASK.md` 端点；LG-244 默认交付工作区、`machine_check_policy`、Run `machine_checks` 绑定/required/`checked_at`、验收 `checks.status` 与真实 pre-review/Accept 门；LG-243 Run `execution_evidence` 与 Task 详情/独立端点 `execution` 严格 allowlist 投影；LG-224 PDF 文字层优先、per-page `extractor` 与加性 record types；LG-249 Team Task 配置 mention 路由及 `health.team_bot_mention`。**未部署**，公开 8123/5173 仍 1.20.0；LG-251 状态 PROVISIONAL，前端完整套件留有 OPEN/未分类的 lg120 分页失败，LG-252 独立浏览器/录制 QA 待执行 | 新只读端点/响应字段、可选实体字段与健康字段为加性；默认交付 Task 的机器检查 required 事实收紧；**LG-249 有意改变既有 Team Task 普通消息路由为默认 recorded-only，单用户不变**。既有 `run.connection_pin` 公开字段、Task/Run/Member/Subtask/`source.status` 枚举、迁移方向与 HTTP 错误码不变；无新权限、无秘密值、无产品模型/OCR/ASR 调用 |
 | `1.22.0` | 2026-10-18 | MINOR | LG-238 串行装配 LG-235 冻结、LG-236 实现、LG-237 UI 的 Google 原生英文音频转写（§23）：`english_asr` 加性 `provider`/`runtime` 判别、Google 设置视图/PUT（write-only 托管凭证、原生 base_url/model/limits）、健康 `english_asr` 按 provider 的 attemptable 语义、原生 inline-audio REST 请求/响应映射与错误分类、加性 receipt `machine` provenance；同时登记 §23.1 的 LG-229/230 主机/调用上限放宽。LG-239 独立版本/浏览器与真实 Google 调用 QA PASS_WITH_LIMITATIONS；已合入本地 main，未部署 | 仅新增可选 provider 判别/视图/请求字段、reason 字符串与 `machine` 可选字段；旧块无 `provider` 时 1.20/1.21 行为逐字保持；无 Task/Run/Member/Subtask/`source.status` 枚举、迁移方向或 HTTP 错误码变化；不新增前端直连供应商端点；`contract_version` 随真实装配为 `1.22.0`，生产仍 `1.20.0`；旧 Reader 质量 FAILED 保留 |
 | `1.21.0` | 2026-10-18 | MINOR | LG-206 Tasks 工作区串行集成候选（§22）：`SourceView` 加性只读字段 `context_selectable`/`context_unavailable_reason`；只读 `GET /conversations/history` Team 对话历史投影。前端删除 Chat 主页面、Files→Tasks、New task、上下文选材移入 Tasks、Team 历史图标。LG-207 独立版本/浏览器 QA PASS_WITH_LIMITATIONS；已合入本地 main，未部署 | 仅新增可选 SourceView 只读投影字段与一个只读端点/响应；无既有端点、请求字段、错误码、Task/Run/Member/Subtask/`source.status` 枚举、迁移方向或权限变化；旧后端缺 SourceView 字段时前端保守禁用选材并如实说明；历史接口不返回正文/作者/附件/Personal；不新增 health 能力，`contract_version` 随真实装配为 `1.21.0`，生产仍 `1.20.0` |
 | `1.20.0` | 2026-10-18 | MINOR | 英文Reader转写及Settings/Chat/Files接入（§21）；UI与后端由LG168部署1.20，ASR关闭、质量QA失败保留 | 加性english_asr配置/处理能力/机器provenance；默认关闭，Personal隔离不变，30秒/无时间戳；处理可用不等于质量通过 |
@@ -1924,7 +1924,7 @@ LG-235 真实原型（仅既有测试音频，各一次请求，无 TTS、无 Fi
 
 ## 24. Demo 录制修复批次（`1.23.0` 本地隔离候选；LG-251 串行集成）
 
-> **状态**：本节登记 LG-248 录制前修复批次中已真实实现并由 LG-251 串行装配的加性公共行为。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.23.0**。候选基于隔离 worktree `work/lg248-candidate-20261018`，**未部署/未推送/未合入根 main**；公开 8123/5173 仍为 1.20.0。本批由开发者 pi 完成集成与局部检查，**不是独立 QA**；LG-252 的 Playwright 真实前后端/录制验收待执行，LG-254 采集门独立于产品候选。
+> **状态**：本节登记 LG-248 录制前修复批次中已真实实现并由 LG-251 串行装配的公共行为。新增端点/DTO/投影字段是加性扩展；**LG-249 则有意改变 Team Task 普通消息的既有路由行为**（默认只记录，前导配置 mention 才路由），因此本批不能整体称为“纯加性”。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.23.0**。候选基于隔离 worktree `work/lg248-candidate-20261018`，**未部署/未推送/未合入根 main**；公开 8123/5173 仍为 1.20.0。本批由开发者 pi 完成集成与局部检查，**不是独立 QA**；LG-252 的 Playwright 真实前后端/录制验收待执行，LG-254 采集门独立于产品候选。
 
 ### 24.1 只读 canonical `TASK.md`（LG-242）
 
@@ -2010,14 +2010,14 @@ LG-235 真实原型（仅既有测试音频，各一次请求，无 TTS、无 Fi
 
 ### 24.5 Team Task mention 路由与健康字段（LG-249）
 
-- Team 模式的普通 Task 对话消息先持久化，然后只记为 `recorded`：不调用分类器/responder/模型，不创建 Task/Run，不写 assistant 回复；HTTP 返回 `kind:"recorded"`、`reply:null`、目标 `task_id` 与 `data:{"intent":"recorded","creates_task":false}`。相同 `message_id` 重放返回同一结果且不重复追加消息。
+- **这是对既有 Team Task 普通消息路由的有意行为变更，不是纯加性字段扩展。** Team 模式的普通 Task 对话消息先持久化，然后只记为 `recorded`：不调用分类器/responder/模型，不创建 Task/Run，不写 assistant 回复；HTTP 返回 `kind:"recorded"`、`reply:null`、目标 `task_id` 与 `data:{"intent":"recorded","creates_task":false}`。相同 `message_id` 重放返回同一结果且不重复追加消息。
 - 仅当消息开头（允许前导空白）为配置的 mention 且后接空白、标点或结束时进入机器人路由；配置值来自真实 `Settings.team_bot_mention`（环境 `LIGHTGRAVITY_TEAM_BOT_MENTION`，默认 `@bot`），`@bottom` 不算 mention，自定义值（如 `!lg`）同样适用。只从路由副本剥离前缀，持久用户消息保留原文；查询/控制/重试/澄清行为不变。
 - 单用户模式不加 mention 门、不剥离前缀，Task 路由保持原行为。`resource_proposal` 仍走既有受控写入权限，不受普通文本 mention 门影响。
 - `GET /api/v1/health` 加性顶层 `team_bot_mention: string|null`：Team 模式返回真实 resolved 配置，单用户模式为 `null`；该字段与 enforcing 路由同版本发布，旧后端不伪造该能力。前端只读取真实非空值显示 Team Global/Task 提示，`null`/缺省/空白不显示，也不以 `@bot` 兜底；Personal/单用户输入框不变。
 
 ### 24.6 兼容、测试与证据边界
 
-- 本批只新增可选只读端点/响应字段、可选实体字段与健康字段，并收紧默认交付 Task 的 required 检查事实；不新增/删除 `state`/`phase`/`acceptance`/`source.status` 枚举、迁移方向、错误码或权限。旧客户端忽略新字段即可；旧 Task 缺省行为保持。
+- **兼容性必须分开表述**：新只读端点、响应/DTO 字段、Run/Task 加性字段和健康字段是加性扩展；默认交付 Task 的 required 检查事实被收紧；而 **LG-249 有意改变 Team Task 普通消息的既有行为**（无前导配置 mention 时只记录，不再分类/回复）。单用户路由不变，旧 Task 的缺省检查/验收兼容性保留。不新增/删除 `state`/`phase`/`acceptance`/`source.status` 枚举、迁移方向、错误码或权限；旧客户端可忽略新字段，但不能把 Team Task 的行为变化当作“无行为变化”。
 - LG-208 的 parsed read cache 是进程内可丢弃派生缓存，Markdown 仍为唯一事实源，未改变公开契约；LG-253 的 SQLite 连接生命周期修复随基线与缓存子集验证，不新增接口。
 - 本候选只做开发者局部集成检查（明确列出的后端测试/类型检查与前端测试/typecheck/build）；没有真实产品模型/OCR/ASR 调用，没有浏览器录制或独立 QA。失败/跳过/限制在 LG-251 交付记录中如实保留，不把局部通过写成完整套件或版本验收通过。
 
