@@ -59,8 +59,14 @@ def test_frozen_constants() -> None:
     # branch; raw LG-159 quality gate remains FAIL) -> 1.21.0 (LG-206 integrated
     # Tasks-workspace candidate: read-only Team conversation history projection
     # and additive SourceView context availability fields; independent LG-207 QA
-    # still pending; public service remains 1.20.0).  Additive MINOR.
-    assert CONTRACT_VERSION == "1.21.0"
+    # still pending) -> 1.22.0 (LG-238 serial assembly of the LG-236 Google
+    # native backend + LG-237 provider-aware UI: additive google-native provider
+    # discriminator, protected english_asr settings view/PUT with a write-only
+    # managed credential, native inline-audio REST transcription without
+    # torch/numpy/Reader/SDK, and additive machine provenance; legacy 1.20
+    # blocks keep their behavior, the old Reader quality gate stays FAILED and
+    # independent LG-239 version/browser QA is still pending).  Additive MINOR.
+    assert CONTRACT_VERSION == "1.22.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 

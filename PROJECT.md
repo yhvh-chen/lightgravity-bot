@@ -2,7 +2,7 @@
 title: "LightGravity Bot 项目手册"
 doc_type: handbook
 category: project
-updated: "2026-10-16"
+updated: "2026-10-18"
 ---
 
 # LightGravity Bot 项目手册
@@ -44,6 +44,14 @@ updated: "2026-10-16"
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-18：Google 原生音频转写轻量候选（LG-235→236/237→238，契约 1.22.0，待 LG-239 QA）
+
+- 用户明确选择 Gemini 原生音频 REST 作为本轮英文 demo 路径，替代 EG2/Reader 远端帧桥；不部署模型容器/Torch/Reader/帧服务，复用既有资料摄取、machine 正文、索引与回执。
+- 契约由 LG-235 以加性 MINOR 冻结（§23），并精确合入已在 main 的 LG-229（取消 OpenAI 兼容主机白名单）/LG-230（取消模型与 API 调用上限，保留计数/超时/取消/并发）。LG-236 后端、LG-237 UI 隔离并行，LG-238 串行装配；本候选源码 `CONTRACT_VERSION=1.22.0`。
+- 旧块无 `provider` 时 1.20/1.21 行为逐字保留；Google 凭证只经受保护 Settings 的 write-only 字段进入 `FileSecretStore`，产品不读环境 Google key；原生请求只用 `x-goog-api-key` 头、inline base64 音频与固定 prompt，无 SDK/Files API/自动 fallback/自动重试。
+- 真实 Google 证据仍限于 LG-235 的 H1/H2 各一次原型；LG-238 装配检查仅用记录的响应与 fake transport，不声称真实运行时 API 已验证。**公开 8123/5173 仍为 1.20.0**，未部署/推送；旧 Reader 质量 **FAILED** 与 §21 限制保留，不追溯改判。
+- 下一步：LG-239 独立 pi 以真实前后端与一次真实 Google UI/摄取调用复验；在完成前不宣称版本验收、质量通过或生产可用。
 
 ### 2026-10-16：共享团队聊天与简单认证快速原型（LG-050，实施中）
 

@@ -2,7 +2,7 @@
 title: "Settings、模型接入与凭证管理"
 doc_type: specification
 category: product
-updated: "2026-10-15"
+updated: "2026-10-18"
 ---
 
 # Settings、模型接入与凭证管理
@@ -82,3 +82,25 @@ Connection 文件只保存 credential_ref。浏览器不写 localStorage/Indexed
 LG-003 早期 SDK 探针可使用明确测试环境凭证，不依赖尚未完成的设置页；运行配置来源由 adapter 汇合到同一解析流程。LG-020 的首次启动/本地分发验收须包含设置页路径，LG-021/022 包含设置专项结果。
 
 实现前仍要固定实际字段与秘密存储方案。首版真实后端选择已由 2026-10-15 用户决定更新为 DeepSeek；Gemini/Vertex 待后续探针通过后另行开放。此次只完成设计和开发任务，不保存真实凭证、不发起连接测试、不安装或启动模型。
+
+## 8. 英文音频转写（English ASR，契约 1.20/1.22）
+
+Settings 内的 English ASR 是独立的机器转写配置，不是模型连接，不参与默认 coordinator/worker 选择。它只处理英文音频并写入资料的 machine 派生正文；人工正式版、检索、下载与撤销/归档语义不变。
+
+| 项 | 线上 8123（1.20） | 1.22 候选（未部署） |
+|---|---|---|
+| provider | 旧块无 `provider`，等价 `eg2-reader` + `inprocess` | 旧块行为逐字保留；新配置可用 `google-native` |
+| 运行依赖 | 固定版本 EG2 编码器/Reader 权重与 `english-asr` 运行时 | 仅标准库 HTTPS 调用原生 REST，无 Torch/numpy/transformers/Reader/模型容器/`192.168.8.12` |
+| 音频边界 | 旧 30 秒/字节/线程等字段不变 | raw `max_audio_bytes` 默认 10,000,000、上限 14,000,000；序列化请求总量只读上限 20,000,000（base64 膨胀已计入）；无数字 `max_audio_seconds` |
+| 质量记录 | 旧 Reader 独立质量门 **FAILED**；不追溯改判 | Google 仅 LG-235 两次真实小样本原型，**不宣称质量通过** |
+
+### 8.1 Google native 轻量用法（1.22 候选）
+
+1. 管理员在 Settings → English ASR 选择 **Google native audio**。Model 默认 `gemini-3.8-flash`；Base URL 固定为 `https://generativelanguage.googleapis.com/v1beta`（实际端点 `/v1beta/interactions`），拒绝 `/v1beta/openai`、http、其他 host、userinfo/query/fragment 与代理 URL。
+2. API key 是**只写**字段，经既有受控 `FileSecretStore` 保存；GET 视图只返回 `credential_configured`，不回显 key/ref/路径。产品**不读取** `LG_GOOGLE_ASR_API_KEY` 或任何环境变量作为 Google 产品凭证。留空保存表示保留已存 key；显式 `null`/空串返回 `422`，不会静默清空。
+3. 保存只做 schema/host/secret/上限校验：不验证 key、不发网络请求、不加载模型、不推理、不自动重处理旧资料。`available=true` 仅表示可尝试，不代表 key/model/网络已核实；单文件成功只由 `source.receipt` 与正文证明。
+4. Google 表单不显示/不写入 `model_dir`、`reader_dir`、`device`、`threads`，不显示 Reader/30 秒限制文案；`max_audio_seconds` 省略或 `null`。旧的 EG2/Reader 表单与字段保持原义，切换 provider 不重处理旧来源。
+5. 每次作业最多一次 ASR 尝试（既有 `max_asr_calls=1` 有界语义），失败（401/403、429、模型不可用、5xx、超时/取消未确认等）如实报告且**不自动换模型/供应商、不回退 Reader、不自动重试**；手工 `reprocess` 是新的显式尝试。发送后超时/取消按未知副作用停车，不写部分正文。
+6. machine 正文按原样保存模型输出（包括已知缺陷，如原型 H2 的字面 `thought` 前缀），不按样本清洗或注入标准答案；receipt 记录 provider/model/endpoint/prompt version/音频 hash/字节/latency/非秘密 usage，不伪造 Reader/编码器与时间戳。
+
+**部署边界**：上述 1.22 行为只存在于隔离候选，独立 LG-239 真实浏览器与一次真实 Google 摄取验证仍待执行；公开 8123/5173 仍是 1.20.0，旧 Reader 质量 FAILED 与 §21 限制不变。

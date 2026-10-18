@@ -7,7 +7,9 @@ updated: "2026-10-18"
 
 # LightGravity Bot
 
-> **Tasks workspace candidate · October 18, 2026 (not deployed):** the isolated LG-206 integration candidate replaces the Chat main page with the Tasks workspace, binds the single right Bot Chat to the current Task, adds title-only New task through the existing `POST /tasks`, moves context selection into Tasks, and adds the Team conversation-history picker. Contract is the additive **1.21.0** candidate; existing endpoints/task semantics/permissions are unchanged and no ASR, media, model/provider or deployment work is included. Independent LG-207 version/browser QA is **pending**; the public 8123/5173 service remains **1.20.0**. [Integration delivery](probes/demo-tasks-20261018/lg206/DELIVERY.md).
+> **Google native audio candidate · October 18, 2026 (not deployed):** the isolated LG-238 candidate assembles the LG-236 backend and LG-237 UI for a lightweight English audio path that calls the native Gemini inline-audio REST endpoint (no SDK, Torch, numpy, Reader, remote 192.168.8.12 service, Files API or environment product key). Contract is the additive **1.22.0** candidate; legacy EG2/Reader blocks without `provider` keep their 1.20 behavior, the old Reader quality record stays **FAILED**, and no quality pass is claimed. Checks used recorded responses with a fake transport; the public 8123/5173 service remains **1.20.0**. Independent LG-239 real-browser/Google verification is **pending**. [Integration delivery](probes/google-native-asr-20261018/lg238/DELIVERY.md).
+
+> **Tasks workspace candidate · October 18, 2026 (not deployed):** the isolated LG-206 integration candidate replaces the Chat main page with the Tasks workspace, binds the single right Bot Chat to the current Task, adds title-only New task through the existing `POST /tasks`, moves context selection into Tasks, and adds the Team conversation-history picker. Contract was the additive **1.21.0** candidate; existing endpoints/task semantics/permissions are unchanged. Independent LG-207 version/browser QA is **pending**; the public 8123/5173 service remains **1.20.0**. [Integration delivery](probes/demo-tasks-20261018/lg206/DELIVERY.md).
 
 **Give your team bot the context and the goal. Get work you can inspect, review, and accept.**
 
@@ -179,7 +181,7 @@ Current limitations:
 
 - **Page loading needs repair.** Historical reports described failures in Files, Team, and Models & Providers; the cause was not fully verified. The isolated 1.21.0 Tasks-workspace candidate replaces the Chat main page, renames Files to Tasks and adds New task/context selection/Team history, but its independent LG-207 browser QA is still pending and it is not deployed.
 - **Source bindings record provided context.** Model citations have not been verified against individual source spans.
-- **Media support is bounded.** PDF and image processing use explicit OCR. ASR is unavailable; Chinese transcription awaits its quality gate. Office formats have not been comprehensively tested.
+- **Media support is bounded.** PDF and image processing use explicit OCR. English audio has an optional Google native candidate (contract 1.22.0, pending independent LG-239 real-browser/provider verification) and a default-off legacy EG2/Reader path whose independent quality gate **FAILED**; neither is deployed as 1.22, and no quality pass is claimed. Chinese transcription awaits its quality gate. Office formats have not been comprehensively tested.
 - **Recovery is bounded.** Operations with unknown side effects are not automatically replayed. Complete checkpoint-skipping scheduling is not implemented.
 - **Integration, deployment, and acceptance are separate.** Local integration and historical QA do not establish that a running service is updated, a release is published, or final user acceptance has occurred.
 
@@ -208,8 +210,8 @@ Most detailed project documents are currently in Chinese; the selected-material 
 | [Backlog](BACKLOG.md) · [Roadmap](docs/06-roadmap.md) | Tasks, dependencies, and milestone acceptance |
 | [Architecture](docs/01-design.md) · [Tasks and resources](docs/02-task-and-sdk-resources.md) | Work model, module boundaries, and resource configuration |
 | [SDK audit](docs/03-sdk-capability-audit.md) · [Bot behavior](docs/04-bot-behavior.md) | Execution foundation, message routing, and runtime rules |
-| [Navigation](docs/05-navigation-and-team.md) · [Model settings](docs/07-settings-and-models.md) | Tasks workspace, single right Bot Chat, connections, and credentials; the 1.21.0 Tasks candidate is implemented pending LG-207 QA |
-| [Interface and state contract](docs/08-interface-contract.md) | Contract **1.21.0** candidate: read-only Team conversation history and additive source-context availability fields; independent QA pending. Public service remains **1.20.0** |
+| [Navigation](docs/05-navigation-and-team.md) · [Model settings](docs/07-settings-and-models.md) | Tasks workspace, single right Bot Chat, connections, and credentials; provider-aware English ASR settings (legacy EG2/Reader and Google native) |
+| [Interface and state contract](docs/08-interface-contract.md) | Contract **1.22.0** candidate: Google native audio transcription (§23) plus the 1.21 Tasks-workspace fields; independent LG-239/LG-207 QA pending. Public service remains **1.20.0** |
 | [Source intake and retrieval](docs/09-source-intake-and-retrieval.md) | Originals, derived content, indexes, and quality boundaries |
 | [Selected-material prototype](docs/10-selected-material-prototype.md) · [Example guide](docs/11-selected-material-demo.md) | Source binding and reproducible workflows |
 
