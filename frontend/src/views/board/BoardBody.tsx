@@ -12,6 +12,7 @@ import { ErrorState } from '../../components/ErrorState'
 import { StatusBadge } from '../../components/StatusBadge'
 import { TaskCard } from '../../components/TaskCard'
 import { phaseBadge, isActivePhase, isPendingPhase } from './phase'
+import { MachineChecksSection } from './MachineChecksSection'
 import {
   BOARD_AUTO_REFRESH_MS,
   useBoardAutoRefresh,
@@ -315,6 +316,7 @@ function TaskDetailPanel(props: DetailPanelProps) {
             </p>
           ) : null}
 
+          <MachineChecksSection task={detail} snapshot={acceptance} />
           <AcceptanceSection
             acceptance={acceptance}
             canDecide={canDecide}
