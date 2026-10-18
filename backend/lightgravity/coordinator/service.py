@@ -1307,7 +1307,13 @@ class Coordinator:
     async def submit_task_message(
         self, task_id: str, message: dict[str, Any]
     ) -> CoordinatorResult:
-        """Persist and route a message in a Task conversation."""
+        """Persist and route a message in a Task conversation.
+
+        Team mode applies the same mention gate as the Team/global channel:
+        an ordinary message is persisted only, while a message starting with
+        the configured bot mention is stripped and routed to the bot.  Single
+        user mode keeps the original no-mention-required behaviour.
+        """
 
         message_id = self._require_message_id(message)
         key = f"message:{message_id}"
@@ -1317,9 +1323,15 @@ class Coordinator:
         _reject_private_attachment_refs(
             message.get("attachments"), surface="task"
         )
+        content = str(message.get("content", ""))
+        record_only = self._team_mode and not _is_bot_mention(
+            content, self._bot_mention
+        )
         # LG-043: resolve optional selected sources before persisting/dispatching.
         # Classification below still uses only the original user content.
-        selected = self._resolve_selected(task_id, message)
+        # LG-249: an ordinary Team message never consumes model context; keep
+        # selected refs as message data without resolving a trusted snapshot.
+        selected = None if record_only else self._resolve_selected(task_id, message)
         if selected is not None:
             message = dict(message)
             message["selected_context"] = selected.snapshot()
@@ -1332,7 +1344,19 @@ class Coordinator:
             result = self._route_resource_proposal(task_id, message)
             self._idempotency.record(key, result.to_dict())
             return result
-        content = str(message.get("content", ""))
+        if record_only:
+            # Ordinary Team Task message: persist only.  No classifier, no
+            # responder/model call, no Task/Run creation, no assistant reply.
+            result = CoordinatorResult(
+                kind="recorded",
+                reply="",
+                task_id=task_id,
+                data={"intent": "recorded", "creates_task": False},
+            )
+            self._idempotency.record(key, result.to_dict())
+            return result
+        if self._team_mode:
+            content = content.lstrip()[len(self._bot_mention):].lstrip()
         classification = self._classifier(content)
         if classification.next_action == "query":
             result = CoordinatorResult(

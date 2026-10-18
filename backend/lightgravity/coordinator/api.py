@@ -150,7 +150,12 @@ def build_router(coordinator: Coordinator) -> APIRouter:
             if normalized:
                 message["source_refs"] = normalized
         result = await coordinator.submit_task_message(task_id, message)
-        return result.to_dict()
+        response = result.to_dict()
+        if response.get("kind") == "recorded":
+            # Team-mode ordinary Task messages are persisted only; match the
+            # Team/global recorded envelope (reply:null, no bot turn).
+            response["reply"] = None
+        return response
 
     @router.get("/tasks/{task_id}/messages")
     async def read_messages(

@@ -114,7 +114,7 @@ async def test_concurrent_duplicate_message_runs_bot_once(
             assert len(calls) == 1
 
 
-async def test_task_messages_are_not_subject_to_bot_gating(
+async def test_task_messages_use_the_same_bot_mention_gate(
     team_settings: Settings, seeded_accounts: TeamAccounts
 ) -> None:
     calls: list[str] = []
@@ -132,11 +132,33 @@ async def test_task_messages_are_not_subject_to_bot_gating(
             )
             assert created.status_code == 200, created.text
             task_id = created.json()["task_id"]
-            # No @bot prefix: Task messages always use the existing route.
-            message = await client.post(
+
+            # LG-249: without the configured mention the Task message is
+            # persisted only; it is never classified or answered.
+            plain = await client.post(
                 f"/api/v1/tasks/{task_id}/messages",
                 json={"message_id": "msg_task_1", "content": "hello task"},
             )
-            assert message.status_code == 200, message.text
-            assert message.json()["kind"] != "recorded"
-            assert len(calls) == 1
+            assert plain.status_code == 200, plain.text
+            assert plain.json()["kind"] == "recorded"
+            assert plain.json()["reply"] is None
+            assert calls == []
+
+            history = await client.get(f"/api/v1/tasks/{task_id}/messages")
+            items = history.json()["items"]
+            assert [item["message_id"] for item in items] == ["msg_task_1"]
+            assert items[0]["message"]["author"] == {
+                "kind": "user",
+                "username": "alice",
+                "role": "member",
+            }
+
+            # A message whose first token is the configured mention is stripped
+            # and routed through the existing bot path.
+            mentioned = await client.post(
+                f"/api/v1/tasks/{task_id}/messages",
+                json={"message_id": "msg_task_2", "content": "  @bot  hello task"},
+            )
+            assert mentioned.status_code == 200, mentioned.text
+            assert mentioned.json()["kind"] != "recorded"
+            assert calls == ["hello task"]

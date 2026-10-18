@@ -2,7 +2,7 @@
 title: "Bot 行为与交互契约"
 doc_type: specification
 category: product
-updated: "2026-10-17"
+updated: "2026-10-18"
 ---
 
 # Bot 行为与交互契约
@@ -46,6 +46,8 @@ Bot 在同一身份下接收指令、回答问题、维护 Task 上下文和汇�
 ## 4. 全局对话与 Task 对话
 
 全局入口需要最小会话记录，用于普通问答、任务选择和创建过程；不强迫每次闲聊创建 Task。候选存储为 `bot-data/conversations/<conversation-id>/messages.jsonl`。Task 创建后，其目标与相关输入写入 TASK.md/inputs，后续任务消息进入 Task 的 conversation.jsonl；全局历史保存 task_ref 导航，不复制整条 Task 对话。全局/Team 对话的状态查询按消息内**显式合法 Task ID**（`task_` 加 26 位 Crockford Base32）解析并读取持久状态快照，不依赖“最近/唯一活跃任务”猜测；缺失、非法、未知或出现多个不同 Task ID 时先澄清请求唯一目标，绝不任取第一个。该只读查询在 worker 忙时立即返回，不创建 Task/Run/worker，回复写入共享全局对话供所有登录成员查看；Team 的 Personal 私聊仍仅聊天且按身份隔离（LG-054）。该查询复用现有会话身份与 Task 权限，不新增角色、招募流程或执行预算。
+
+团队模式下，Team 共享频道与 Task 对话使用同一 mention 判定：只有消息开头（允许前导空白）为配置的 bot mention（默认 `@bot`，后接空白、标点或结束）时才去除前缀并进入分类/机器人路由；未 mention 的普通消息只持久化，不调用分类器、responder/模型，不创建 Task/Run，也不写入 assistant 回复。单用户模式不要求 mention，Task 对话沿用原路由；带 `resource_proposal` 的结构化受控写入仍按资源提案权限处理，不受普通文本 mention 门影响。
 
 消息至少记录 `messageId`、角色、时间、内容/附件引用、Task 关联和 correlationId。客户端重试发送相同 messageId 时幂等返回，不重复建 Task/执行。SDK 工具事件、成员会话在 Run 详情展示，主聊天以问题、决定、里程碑和交付为主。
 

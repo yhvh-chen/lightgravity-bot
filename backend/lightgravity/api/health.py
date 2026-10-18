@@ -135,6 +135,15 @@ async def health(request: Request) -> HealthResponse:
         contract_version=CONTRACT_VERSION,
         schema_version=SCHEMA_NAMESPACE,
         capabilities=capabilities,
+        # LG-249: expose the real resolved Team mention only in team mode.  It
+        # is public, non-secret routing metadata already supplied by config;
+        # single-user keeps the prior health shape with no routing rule to
+        # advertise.  The frontend must show its hint only for this value.
+        team_bot_mention=(
+            context.settings.team_bot_mention
+            if context is not None and context.settings.team_mode
+            else None
+        ),
     )
 
 

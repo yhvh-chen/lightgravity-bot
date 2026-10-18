@@ -58,6 +58,10 @@ class HealthResponse(BaseModel):
     contract_version: str
     schema_version: str
     capabilities: dict[str, bool] = Field(default_factory=dict)
+    # LG-249 additive, non-secret: the exact configured Team routing mention.
+    # Populated only in team mode; single-user/older backends omit or return
+    # null. Clients must never substitute a hard-coded @bot fallback.
+    team_bot_mention: str | None = None
 
 
 class VersionResponse(BaseModel):

@@ -21,6 +21,9 @@ async def test_health_reports_liveness_and_capabilities(
     assert body["capabilities"]["version"] is True
     # Unimplemented features must not be advertised as available.
     assert body["capabilities"]["sdk_adapter"] is False
+    # LG-249 additive field: single-user has no Team mention rule to advertise.
+    assert "team_bot_mention" in body
+    assert body["team_bot_mention"] is None
 
 
 async def test_version_reports_runtime_facts(client: httpx.AsyncClient) -> None:
