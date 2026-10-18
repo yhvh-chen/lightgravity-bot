@@ -588,8 +588,7 @@ class ProcessingEngine:
             return False
         if str(pages.get("status") or "") not in ("succeeded", "partial"):
             return False
-        markdown = content.read_machine_markdown(source_version)
-        return markdown is not None and bool(markdown.strip())
+        return content.read_usable_machine_markdown(source_version) is not None
 
     def _has_usable_body(self, source_id: str, source_version: int) -> bool:
         """A formal body or trusted machine body is already readable."""

@@ -2,17 +2,19 @@
 title: "首版接口与状态契约（v1）"
 doc_type: specification
 category: architecture
-contract_version: "1.25.0"
+contract_version: "1.26.0"
 updated: "2026-10-19"
 ---
 
 # 首版接口与状态契约（v1）
 
-> **当前本地隔离候选契约 1.25.0（2026-10-19，pi 串行集成 architect-candidate；未部署，状态 PROVISIONAL，独立 QA 未执行）**：§26 登记 LG-222/LG-223 已交付实现（来源提交 `74baa6a`，从 `ff44eda`/1.24.0 干净 cherry-pick，来源树与候选树逐字一致）的公共行为。**加性**：只读投影 `source.reprocess`（`kind`/`available`/`reason`/`ocr_configured`，音频另有 `configured`/`enabled`）、`source.formal.origin`、`ProcessingOutcome.preserved_existing_body`。**有意行为变化（不得写成“无行为变化”）**：① 显式 `reprocess` 改为按类型路由，音频只走 ASR 并创建一个有界延迟摄取 job，绝不当 OCR；② 未配置/不支持的处置在**任何写入前**返回 `503 capability_unavailable`（旧行为可能先尝试 OCR 并返回 200 `failed`、写失败派生）；③ `reprocess` 现在执行 `expected_revision` 校验，不匹配返回 `409 revision_conflict`；④ 失败尝试若已有可用正文则不覆盖该正文与索引，如实报 `partial` + `preserved_existing_body=true`；⑤ 无机器派生时允许写入**首个人工正文**并记录 `formal.origin="human"`。**PDF 保持 LG-224 文字层优先**：其 reprocess 能力 `available=true` 只表示“允许尝试内嵌文字层”，不是 OCR 已配置或成功承诺；无文字层的扫描 PDF 在无 OCR 时以真实失败结束，不伪造正文/索引。无新增端点、请求字段、cookie、错误码、实体枚举或迁移方向；旧客户端可忽略新字段，但必须把上述语义收紧/替换当作行为变化。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.25.0**。本候选由开发者 pi 完成串行集成与最小相关功能点检查（含一次必要前端构建），**不是独立 QA**；未推送/部署/重启，未重核线上 8123/5173。§26.7 登记一个已交 native 的确定性投影缺陷（首次真实提取失败时 `context_selectable` 误报 true），本候选不自行修产品代码。
+> **当前本地隔离候选契约 1.26.0（2026-10-19，pi 串行集成 architect-final；未部署，状态 PROVISIONAL，独立 QA 未执行）**：§27 登记四个实际 native 交付的串行汇合（均为 `cherry-pick -x`，无整分支合并、无证据后续提交）：LG265 `1b993cf`（默认连接保存后即时装配）、LG263 `d3dc22a`（中断 waiting_user Run 保守停车）、LG264 `0aa58569`（RecruitedPanel 展示，纯前端）与 LG267 `75571200`（失败提取产物不再可选材，修复 §26.7 已登记缺陷）。**加性**：`PATCH /settings` 在提交 coordinator/reviewer 默认字段时可选返回 `runtime_applied:boolean`/`runtime_message:string`；Recruited 详情为前端展示。**有意行为变化**：coordinator/reviewer 默认保存后对**后续对话/新 Run**即时生效（已有 Run 保留冻结 reviewer；`runtime_applied=true` 不证明凭证、网络或模型执行），新增合法 Task 迁移 `waiting_user → recovery_required`，停车写入失败时以既有 `error.recorded` 的 payload code `recovery_transition_failed` 诚实报告，idle/recovery 控制仅在持久 `cleanup=done` 或适配器真实确认（且无未确认 reviewer cleanup）时视为已停止（空图/缺失 refs 不构成停止证据），失败提取产物可预览但**不可选材**（resolver 返回既有 `capability_unavailable`）。既有 Run 的 reviewer 冻结、未知 stop 不伪造释放 slot、首个人工正文与 PDF 文字层优先（§26.6 例外）全部保留。未新增端点、请求字段、cookie、错误码、实体枚举值或证据重放路径；per-source、formal 与 Run revision 语义不变。另登记 LG-268 的**消息分类优先级修复**（`write`/`draft`/`produce` 与显式交付优先于内嵌 how/what/why；无新增 API 字段/端点/枚举/schema，版本保持 1.26.0，见 §5.2）。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.26.0**。本候选由唯一开发 pi 完成串行集成与最小相关功能点检查（各包命名用例 + 一次最终前端构建），**不是独立 QA**；未推送/部署/重启，未操作旧 18252 样本或任何既有服务/数据，不承诺旧样本可解锁。
 
-> **上一本地隔离候选契约 1.24.0（2026-10-19，pi 串行集成 followup-candidate；已被本候选 1.25.0 取代，未部署）**：§25 登记 LG-210 Team 登录会话仅哈希持久并跨重启保留（取代旧“重启需重新登录”语义）、LG-217 无 responder 时 `kind:"unavailable"` 且不伪造固定话术与“已提供上下文”来源声明（有意行为变更）、LG-256 回执显式分支权威；前端 LG-261/LG-225（部分）/LG-217 UI 为纯展示。无端点/字段/cookie/错误码/枚举/迁移方向变化；`CONTRACT_VERSION` 在该候选为 1.24.0。
+> **上一本地隔离候选契约 1.25.0（2026-10-19，pi 串行集成 architect-candidate；已被本候选 1.26.0 取代，未部署）**：§26 登记 LG-222/LG-223 已交付实现（来源提交 `74baa6a`，从 `ff44eda`/1.24.0 干净 cherry-pick，来源树与候选树逐字一致）的公共行为。**加性**：只读投影 `source.reprocess`（`kind`/`available`/`reason`/`ocr_configured`，音频另有 `configured`/`enabled`）、`source.formal.origin`、`ProcessingOutcome.preserved_existing_body`。**有意行为变化（不得写成“无行为变化”）**：① 显式 `reprocess` 改为按类型路由，音频只走 ASR 并创建一个有界延迟摄取 job，绝不当 OCR；② 未配置/不支持的处置在**任何写入前**返回 `503 capability_unavailable`（旧行为可能先尝试 OCR 并返回 200 `failed`、写失败派生）；③ `reprocess` 现在执行 `expected_revision` 校验，不匹配返回 `409 revision_conflict`；④ 失败尝试若已有可用正文则不覆盖该正文与索引，如实报 `partial` + `preserved_existing_body=true`；⑤ 无机器派生时允许写入**首个人工正文**并记录 `formal.origin="human"`。**PDF 保持 LG-224 文字层优先**：其 reprocess 能力 `available=true` 只表示“允许尝试内嵌文字层”，不是 OCR 已配置或成功承诺；无文字层的扫描 PDF 在无 OCR 时以真实失败结束，不伪造正文/索引。无新增端点、请求字段、cookie、错误码、实体枚举或迁移方向；旧客户端可忽略新字段，但必须把上述语义收紧/替换当作行为变化。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.25.0**。本候选由开发者 pi 完成串行集成与最小相关功能点检查（含一次必要前端构建），**不是独立 QA**；未推送/部署/重启，未重核线上 8123/5173。§26.7 登记一个已交 native 的确定性投影缺陷（首次真实提取失败时 `context_selectable` 误报 true），本候选不自行修产品代码。
 
-> **上一本地隔离候选契约 1.23.0（2026-10-18，LG-251 串行集成；已被本候选 1.24.0 取代，未部署）**：§24 登记 demo 录制修复批次的真实已实现公共行为：只读 canonical `TASK.md` 定义读取（LG-242）、默认交付工作区与记录型机器检查策略/绑定/验收事实（LG-244）、严格 allowlist 的 Run 执行来源投影及 Task 级历史端点（LG-243）、PDF 文字层优先并保留可选 OCR/`extractor` 来源（LG-224）、以及 Team Task 配置 mention 路由与真实 `health.team_bot_mention`（LG-249）。**新端点/DTO/投影字段是加性扩展，但本批并非纯加性：LG-249 有意把 Team Task 普通消息从既有机器人路由改为默认 `recorded`-only，只有带前导配置 mention 的消息才路由；单用户行为不变。** 既有公开 `run.connection_pin` 字段、Task/Run 状态/阶段/验收枚举、迁移方向和错误码不变。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.23.0**。Native **LG259** `4fa884e` 已修复前端启动 filter-reset 分页 race；原 400/1 失败与隔离 5/5 作为前缀历史保留，候选 targeted 28 通过并复用同树 native full 406。本候选仍为 **PROVISIONAL**，未部署/推送，本轮未重新核对线上 8123/5173 版本，也不代表独立 QA 或用户验收通过。
+> **更早的本地隔离候选契约 1.24.0（2026-10-19，pi 串行集成 followup-candidate；已由 §26 的 1.25.0 候选取代，未部署）**：§25 登记 LG-210 Team 登录会话仅哈希持久并跨重启保留（取代旧“重启需重新登录”语义）、LG-217 无 responder 时 `kind:"unavailable"` 且不伪造固定话术与“已提供上下文”来源声明（有意行为变更）、LG-256 回执显式分支权威；前端 LG-261/LG-225（部分）/LG-217 UI 为纯展示。无端点/字段/cookie/错误码/枚举/迁移方向变化；`CONTRACT_VERSION` 在该候选为 1.24.0。
+
+> **更早的本地隔离候选契约 1.23.0（2026-10-18，LG-251 串行集成；已由 1.24.0 候选取代，未部署）**：§24 登记 demo 录制修复批次的真实已实现公共行为：只读 canonical `TASK.md` 定义读取（LG-242）、默认交付工作区与记录型机器检查策略/绑定/验收事实（LG-244）、严格 allowlist 的 Run 执行来源投影及 Task 级历史端点（LG-243）、PDF 文字层优先并保留可选 OCR/`extractor` 来源（LG-224）、以及 Team Task 配置 mention 路由与真实 `health.team_bot_mention`（LG-249）。**新端点/DTO/投影字段是加性扩展，但本批并非纯加性：LG-249 有意把 Team Task 普通消息从既有机器人路由改为默认 `recorded`-only，只有带前导配置 mention 的消息才路由；单用户行为不变。** 既有公开 `run.connection_pin` 字段、Task/Run 状态/阶段/验收枚举、迁移方向和错误码不变。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.23.0**。Native **LG259** `4fa884e` 已修复前端启动 filter-reset 分页 race；原 400/1 失败与隔离 5/5 作为前缀历史保留，候选 targeted 28 通过并复用同树 native full 406。本候选仍为 **PROVISIONAL**，未部署/推送，本轮未重新核对线上 8123/5173 版本，也不代表独立 QA 或用户验收通过。
 
 > **已验收候选契约 1.21.0（2026-10-18，LG-206 串行集成；LG-207 独立版本/浏览器 QA 为 PASS_WITH_LIMITATIONS；已合入本地 main，未部署）**：加性登记 Tasks 工作区候选的两项公开变化：`SourceView` 只读可用性字段 `context_selectable`/`context_unavailable_reason`（由真实可读正文推导，不作为持久状态），以及只读 Team 对话历史投影 `GET /api/v1/conversations/history`。无既有端点、请求字段、错误码、实体状态/阶段/验收枚举、迁移方向或权限变化；旧客户端忽略新可选字段/端点即可。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 在该候选为 `1.21.0`（已由 1.22 候选取代）；**公开 8123 服务仍为 1.20.0**，本候选未部署/推送。冻结的英文 ASR 下一版本线不属于本候选。范围与兼容边界见 §22。
 
@@ -375,6 +377,7 @@ ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间�
 - 全局对话（`GET/POST /api/v1/conversations/global/messages`）只暴露**单例 global 会话**；`POST` 以 `message_id` 幂等，可选 `request_id` 作为控制副作用第二道幂等键；`workspace_ref`/`agent_ref` 来源受限——只接受服务端已授权的 workspace（经 `Store.resolve_path` 限制在授权根内）与已知 agent 引用，越界或不存在返回 `path_outside_workspace`/`reference_invalid`，不允许浏览器直接指定任意执行身份。该端点只做消息持久与路由，不新建会话平台。
 - 全局/Team 状态查询（`1.16.0`，§17）：对既有 `POST /conversations/global/messages` 的**加性响应扩展**——成功返回 `kind:"query"` 与只读持久状态 `data` 快照；缺失、非法、未知或出现多个不同 Task ID 返回 `kind:"clarify"` 与对应非秘密标记。两者都不创建 Task/Run/worker、不调用模型；普通未 mention 的团队消息仍为 `kind:"recorded"`、`reply:null`。请求 schema 不变，`task_ref` 不是客户端字段。
 - 资料接入消息（`1.6.0`/`1.19.0`）：资料消息可复用现有 `attachments`（`{path, media_type}`）；`resource_proposal` 仅用于受控资源写，不用于资料摄取。`1.6.0` 不新增资料专用字段；`1.19.0` 加性新增 `source_refs`（§20.3），它只把消息关联到已接收资料以恢复回执/溯源，**不是**模型上下文、不自动选材、不与 `resource_proposal` 混淆。上传文件/消息的 frontmatter **不是**受信 Task/资源配置或指令，未知字段保留但**不获得执行语义**（不得 import/eval、不得启动 MCP/Trigger、不得改控制状态，§6.6）。
+- **消息分类优先级修复（LG-268；契约 1.26.0，无版本变化）**：显式交付命令优先于交付内容中的提问词。交付动词在既有 create/modify 等之外加性识别 `write`/`draft`/`produce`；允许有界的资料范围前缀（selected/provided/attached + sources/materials/files/context），例如演示 P1 的 “Using the selected sources, write launch-brief.md: … and how we answer it …”。因此带 `@bot` 的完整 P1 走交付路由（`kind:"task"`、创建并排队一个 Task），不再因句中的 `how` 被当成问答。边界不变：普通 Team 非 mention 消息仍为 `kind:"recorded"` 且不调用 Bot/模型、不建 Task；真正问句仍 `direct`、有界只读仍 `bounded_read`、控制/决策/重试/状态查询路由不变；命令含义问句保持问答/状态行为；Team mention gate 无改动。没有新端点、请求/响应字段、错误码、实体枚举或 schema 变化，也不调用模型。证据是进程内真实 Team 消息 API 的最小功能检查（临时 dataRoot、fixture responder、no executor），**不是** UI 发送、真实模型生成或独立 QA；原 LG-266 两次录制失败证据保留。
 
 ## 6. 实体状态契约
 
@@ -2159,7 +2162,7 @@ LG-235 真实原型（仅既有测试音频，各一次请求，无 TTS、无 Fi
 - 动作结果保持既有形状并加性返回 `preserved_existing_body:true`；`derivative_path` 为该次尝试的 `null`。旧客户端可忽略该字段。
 - 当仍有可用的正式/机器正文时，source 展示状态为 **`partial`**（旧成功 + 新失败），而不是笼统 `failed`；本次失败仍通过动作结果（`status:"failed"`、`reason`、`preserved_existing_body:true`）和/或 job/回执可见。
 - `context_selectable` 依据真实可读字节判定；`context_unavailable_reason=extraction_failed` 仅在 `status=failed` 且不存在可用正文时使用。**首次**提取失败且确实无可用正文时仍为 `failed`，保持既有诚实无正文行为。
-- 已知缺陷（交 native，未在本候选修复）：见 §26.7 第 4 条。
+- 已知缺陷（交 native）：见 §26.7 第 4 条。**本版本（1.26.0，§27.4）已修复，原失败描述与证据保留。**
 
 ### 26.5 LG-223：首个人工正文与 `formal.origin`
 
@@ -2187,7 +2190,59 @@ LG-235 真实原型（仅既有测试音频，各一次请求，无 TTS、无 Fi
    - 首个人工正文：无机器正文时保存成功（`origin:"human"`、带 human-authored provenance 注释、`kind=machine` 仍 404），词法可检索、`context_selectable=true`，过期 `expected_revision` 返回 `409 revision_conflict` 且不覆盖已存正文。
    - 一次必要前端构建（`tsc --noEmit && vite build`）通过，产物与来源交付一致。原始命令、退出码、JSON 输出与日志见 [MATERIAL-BOUNDARY](../probes/architect-fixes-20261019/integration/MATERIAL-BOUNDARY.md) 与 `logs/`。
 3. **未运行**：独立 QA、浏览器/Playwright、全量 pytest/vitest、mypy/类型矩阵、安全/性能/跨浏览器矩阵、真实 OCR/Google ASR/模型/供应商调用、部署、服务重启、线上 8123/5173 版本重核。不得把本节当作 QA 通过或版本验收。
-4. **已知确定性缺陷（已交 native，本候选未修产品代码）**：在“首次真实提取失败、且因此写入了失败派生文件”的资料上，`_source_view` 的 `context_selectable` 会误报 `true`、`context_unavailable_reason` 为 `null`（基点 `ff44eda` 为 `false`/`extraction_failed`），且既有选材解析会把仅含失败说明的机器正文当作 `layer:"machine"` 上下文接受。该误报会把不可用资料呈现为可选上下文，属材料边界假阳性；复现与对照证据见 MATERIAL-BOUNDARY 第 4 节。此处只登记事实，不代表该行为已被接受。
+4. **已知确定性缺陷（已交 native，本候选未修产品代码）**：在“首次真实提取失败、且因此写入了失败派生文件”的资料上，`_source_view` 的 `context_selectable` 会误报 `true`、`context_unavailable_reason` 为 `null`（基点 `ff44eda` 为 `false`/`extraction_failed`），且既有选材解析会把仅含失败说明的机器正文当作 `layer:"machine"` 上下文接受。该误报会把不可用资料呈现为可选上下文，属材料边界假阳性；复现与对照证据见 MATERIAL-BOUNDARY §6。此处只登记事实，不代表该行为已被接受。**已在 1.26.0（§27.4，LG-267）修复；以上失败事实与原始证据保留，不改写为一次全绿。**
+
+## 27. 最终 native 缺陷修复汇合（`1.26.0` 本地隔离候选；pi 串行集成）
+
+> **状态**：本节登记四个 native 交付经 `git cherry-pick -x` 串行汇合后的真实公共行为（LG265 `1b993cf`、LG263 `d3dc22a`、LG264 `0aa58569`、LG267 `75571200`）。未整分支合并、未导入证据后续提交（LG264 的 `80df596` 证据提交不在候选内）。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.26.0**。候选基于 §26 的 1.25.0 候选；未部署/未推送/未操作旧 18252 样本或任何服务/用户数据。本候选由唯一开发 pi 完成串行集成与最小相关功能点检查，**不是独立 QA**、不是版本验收。
+
+### 27.1 默认连接保存后的即时装配（LG-265）
+
+- 当 `PATCH /api/v1/settings` 的请求体包含 `default_coordinator_connection_ref` 或 `default_reviewer_connection_ref`（含显式 `null` 清空）时，响应在既有字段之外**加性可选**返回：
+
+```json
+{"runtime_applied": true, "runtime_message": null}
+{"runtime_applied": false, "runtime_message": "Defaults saved. Runtime changes were not fully applied; restart the server."}
+```
+
+- 设置持久化成功仍是 **HTTP 200**。`runtime_applied=false` 表示默认值已保存但运行时未完全装配，客户端应提示重启；`true` 只表示本次运行时装配已完成，**不证明**凭证有效、网络可达、模型已响应或执行成功。
+- 其他设置请求（不含上述默认字段）保持既有响应形状；旧客户端可忽略新字段；旧 server 不返回这些字段时，前端保留保守的重启说明。
+- 生效范围：coordinator 默认对**后续对话调用**生效；reviewer 默认对**新开的 Run** 生效。已有 Run 保留其已冻结的 reviewer 对象/连接支持与在途复核资源（替换或清空默认不替换现有 Run）；清空 reviewer 默认使后续工作诚实 `unavailable`（UnavailableReviewer），不伪造通过。
+- 并发保存与运行时装配在 router 内串行化，避免后完成的保存被先应用的装配覆盖；装配失败/缺少回调返回 `false` + 明确 saved/restart 文案；部分装配可能已发生时以重启为回退。未新增 review-only 重试、自动重放、模型校验或活跃 Member 热替换。
+
+### 27.2 中断 waiting_user Run 的保守停车与恢复（LG-263）
+
+- 新增合法 Task phase 迁移 **`waiting_user → recovery_required`**（加性迁移方向）。重启扫描遇到 waiting_user 且仍有非终态 Run 时，将 Task **保守停车**为 `recovery_required`，保留 `active_run`、session refs、cleanup、候选与产物；不重放、不声称验收、不制造终态 Run、不释放未知执行资源。
+- 停车写入失败时不再报告成功动作：扫描器改报 `action:"none"`，并发出既有 `error.recorded` 事件，payload 含 `mode:"recovery"`、`code:"recovery_transition_failed"` 与说明。该 `code` 是既有事件 payload 的新值，不是新事件类型或 HTTP 错误码。
+- 停止确认收紧：idle `verifying`/`repairing`/`waiting_user`/`recovery_required` 的控制操作只有在**持久 `cleanup.status=done`** 或**权威适配器真实停止确认**（且无未确认 `reviewer_cleanup`）时才视为已停止；空图、无内存引用或无 `session_refs` **不构成**停止证据。`GraphDispatcher` 只转发适配器既有的 stop-fact 端口（`confirm_stopped`），不从图状态推断。
+- 未确认停止返回既有 unconfirmed 记录并**保留 slot**；不伪造 `cleanup=done`/终态。`waiting_user` 的 Pause 在确认前不再发布 `paused`。`recovery_required` 的 Cancel 在真实确认后走既有直接 `cancelled` 迁移。
+- 不新增端点、请求字段、force-clear、review-only 动作或存储迁移。**不承诺旧样本解锁**：若历史 Run 的会话/关闭证据已无法重建，程序会准确停车并保留 slot，Cancel 保持 unconfirmed、Resume 仍阻塞、Accept 不被绕过；旧 18252 样本未被操作。
+
+### 27.3 Recruited 详情展示（LG-264，纯前端）
+
+- 默认视图显示 Task 标题/phase、member 角色/分配与**真实** member 状态；Run ID、attempt、worker/reviewer cleanup 与 Run 历史收进原生 `<details>`；Member ID 保留在既有 member Details 控件。等待/失败原因与 stop-unconfirmed 警告仍在默认视图可见。
+- 无 reviewer 会话事实显示 `No independent review session is recorded`：只描述可用证据，不推断复核未运行、未配置或已通过。显式 reviewer cleanup 状态与 `confirmed` 标记原样保留（含 unavailable/未配置）。
+- ID 使用带标签只读输入、显式 Copy 按钮，并在剪贴板不可用时提供键盘/文本菜单选择回退；不改变导航、API 数据或权限。无 API/schema 变化。
+
+### 27.4 正文可用性由结构化提取事实决定（LG-267，修复 1.25 已登记缺陷）
+
+- 机器正文是否可进入上下文由**结构化提取事实**决定：`extraction_status` 不得为 `failed`；存在 pages 文档时其 `status` 必须为 `succeeded`/`partial`，且至少一页 `succeeded` 且文本非空。
+- 失败提取产物仍可通过 content 预览读取（失败说明是证据），但**不可选材**：`context_selectable=false`、`context_unavailable_reason="extraction_failed"`，选材解析返回既有 `503 capability_unavailable`，且拒绝不改变预览内容。
+- 已可信机器正文（含 `partial`）与“失败尝试保留旧正文”（§26.4 `preserved_existing_body`）保持可选；首个人工正式正文继续优先且可选（§26.5）；PDF 文字层优先例外不变（§26.6）。
+- 旧的无结构化元数据的 plain machine 文件保持兼容：元数据缺失本身不证明失败。
+- 本项修复 §26.7 第 4 条登记的假阳性（原失败描述、基线与候选对照证据保留在 [MATERIAL-BOUNDARY](../probes/architect-fixes-20261019/integration/MATERIAL-BOUNDARY.md) §6 与 [MATERIAL-BOUNDARY-FINAL](../probes/architect-fixes-20261019/integration/MATERIAL-BOUNDARY-FINAL.md)）。无新端点/字段/枚举；新增可用性读取器为内部实现。
+
+### 27.5 兼容、验证与证据边界
+
+1. **兼容性分开表述**：`runtime_applied`/`runtime_message` 是加性可选响应字段；Recruited 详情为纯前端。**有意行为变化**：默认连接的即时生效（取代“保存后必须重启”）、新增 `waiting_user → recovery_required` 迁移与 `recovery_transition_failed` 诊断、停止确认收紧、失败提取产物不可选材（比 1.25 更严格）。没有新增端点、请求字段、cookie、HTTP 错误码或实体枚举值；`error.recorded` 的 `code` 是既有 payload 的新值。旧客户端可忽略新字段，但不得把上述变化写成“无行为变化”。
+2. **本候选实际执行的最小检查**（临时 dataRoot，无真实模型/供应商/SDK 调用）：
+   - LG265 命名用例 3 项：默认保存后即时重接、清空不替换已存在 Run、装配回调失败时 saved+restart 诚实反馈（3 passed）。
+   - LG263 命名用例 3 项：waiting_user+verifying 重启保守停车不伪造停止、未知 stop 保留 slot 且 Resume 阻塞、恢复写入失败不报告成功（3 passed）。
+   - LG264 目标 DOM 用例 3 项（`-t LG-264`；其余 8 跳过）：默认摘要/Details、精确 ID 复制回退、未记录复核与 stop 警告（3 passed）。
+   - LG267：既有单个 resolver 拒绝用例（失败产物可预览不可选，1 passed）；另以最终材料边界脚本重跑一次，确认扫描失败件 `context_selectable=false`/resolver 拒绝、文字层 PDF 与首个人工正文仍可选。
+   - 版本断言：仅命名版本用例；一次最终 `npm run build`（`tsc --noEmit && vite build`）。
+3. **未运行**：独立 QA、浏览器/Playwright、全量 pytest/vitest、mypy/类型/安全/性能/跨浏览器矩阵、真实模型/供应商/SDK 调用、部署、服务重启、线上 8123/5173 版本重核；未操作旧 18252 样本。不得把本节当作 QA 通过、版本验收或旧样本已解锁。
+4. 证据与限制：[FINAL-DELIVERY](../probes/architect-fixes-20261019/integration/FINAL-DELIVERY.md)、[MATERIAL-BOUNDARY-FINAL](../probes/architect-fixes-20261019/integration/MATERIAL-BOUNDARY-FINAL.md)、`logs/stage2/`；阶段 1 证据保留于 `MATERIAL-BOUNDARY.md` 与 `logs/`。
 
 ## 参考
 
