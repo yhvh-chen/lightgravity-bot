@@ -25,9 +25,10 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, Iterator
 
 from ...store.locking import LockManager
 
@@ -184,7 +185,8 @@ class LexicalIndex:
                     pass
 
     # --------------------------------------------------------------- connection
-    def _connect(self) -> sqlite3.Connection:
+    @contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
         # SQLite serializes transactions, but competing first connections can
         # fail immediately while switching an empty database to WAL. Serialize
         # setup across cache instances/processes, leaving transactions to SQLite.
@@ -201,7 +203,14 @@ class LexicalIndex:
             except BaseException:
                 conn.close()
                 raise
-            return conn
+        # sqlite3.Connection's context manager commits/rolls back, but does not
+        # close. Close deterministically so late GC cannot checkpoint an old WAL
+        # over a subsequently modified cache file or retain unused descriptors.
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def ensure_schema(self) -> None:
         with self._connect() as conn:

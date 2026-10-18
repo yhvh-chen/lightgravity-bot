@@ -8,6 +8,7 @@ reproducibility, and honest corruption reporting.
 from __future__ import annotations
 
 import sqlite3
+import gc
 from pathlib import Path
 
 import pytest
@@ -108,13 +109,39 @@ def test_replace_all_rebuilds_and_reports(tmp_path: Path) -> None:
 
 
 def test_corrupt_cache_is_reported_not_silently_empty(tmp_path: Path) -> None:
+    # Prevent incidental collection before corruption, then force collection at
+    # the exact old failure window. A leaked WAL connection used to restore the
+    # overwritten database at this point instead of reporting corruption.
+    was_enabled = gc.isenabled()
+    gc.disable()
+    try:
+        index = LexicalIndex(tmp_path)
+        index.upsert(_doc())
+        index.db_path.write_bytes(b"not a sqlite database")
+        assert index.readable() is False
+        gc.collect()
+        assert index.db_path.read_bytes() == b"not a sqlite database"
+        with pytest.raises(IndexCorruptError):
+            index.search('"ht"')
+    finally:
+        if was_enabled:
+            gc.enable()
+
+
+def test_connections_close_after_transactions_and_roll_back_on_error(tmp_path: Path) -> None:
     index = LexicalIndex(tmp_path)
-    index.upsert(_doc())
-    # Corrupt the underlying file.
-    index.db_path.write_bytes(b"not a sqlite database")
-    assert index.readable() is False
-    with pytest.raises(IndexCorruptError):
-        index.search('"ht"')
+    with index._connect() as connection:
+        connection.execute("CREATE TABLE lifecycle (value TEXT)")
+    with pytest.raises(sqlite3.ProgrammingError, match="closed"):
+        connection.execute("SELECT 1")
+    with pytest.raises(RuntimeError, match="abort transaction"):
+        with index._connect() as failed_connection:
+            failed_connection.execute("INSERT INTO lifecycle VALUES ('discard')")
+            raise RuntimeError("abort transaction")
+    with pytest.raises(sqlite3.ProgrammingError, match="closed"):
+        failed_connection.execute("SELECT 1")
+    with index._connect() as connection:
+        assert connection.execute("SELECT count(*) FROM lifecycle").fetchone() == (0,)
 
 
 def test_search_expression_cannot_inject_fts_operators(tmp_path: Path) -> None:
