@@ -87,12 +87,13 @@ describe('LG-054 Personal / Team channel tabs', () => {
     await waitFor(() =>
       expect(reads.some((scope) => scope.personal === true && scope.taskRef === null)).toBe(true),
     )
-    // Personal is explicitly chat-only and hides shared-material tools.
-    expect(
-      screen.getByText(/Private to you and chat-only — no shared Task, materials, or team messages/),
-    ).toBeInTheDocument()
+    // Personal hides shared-material tools. The old permanent footer hint is
+    // gone; LG-119 provides a real private Upload file button (disabled here
+    // because the test health fixture does not advertise private_attachments).
     expect(screen.queryByRole('button', { name: 'Add attachments and materials' })).toBeNull()
-    expect(screen.getByText(/Shared materials and task delivery are available in Team/)).toBeInTheDocument()
+    expect(screen.queryByText(/Shared materials and task delivery are available in Team/)).toBeNull()
+    const upload = screen.getByRole('button', { name: 'Upload file' })
+    await waitFor(() => expect(upload).toBeDisabled())
     // The shared Team read never used the personal endpoint.
     expect(reads[0]).toMatchObject({ taskRef: null, personal: false })
   })

@@ -66,6 +66,8 @@ export interface UseChatMaterialsResult {
   materials: MaterialRecord[]
   /** True while at least one upload/link is in flight. */
   busy: boolean
+  /** Drop all local receipts and ignore late in-flight results (scope switch). */
+  reset: () => void
   uploadFiles: (files: File[], options?: { taskRef?: string | null }) => Promise<void>
   recordLink: (url: string, options?: { taskRef?: string | null }) => Promise<void>
   /** Re-read one source's state from the backend (reconnect / manual refresh). */
@@ -173,6 +175,10 @@ export function useChatMaterials(api: SourcesApi): UseChatMaterialsResult {
   const [busy, setBusy] = useState(false)
   // Stable per-attempt request ids so a retry is idempotent server-side.
   const pending = useRef<Map<string, string>>(new Map())
+  // LG-119: a channel/Task switch drops local receipts and makes late upload
+  // responses inert, so one conversation's material state cannot paint into
+  // another channel or account.
+  const generation = useRef(0)
 
   const patch = useCallback((requestId: string, updater: (r: MaterialRecord) => MaterialRecord) => {
     setMaterials((current) =>
@@ -180,18 +186,34 @@ export function useChatMaterials(api: SourcesApi): UseChatMaterialsResult {
     )
   }, [])
 
+  const patchIfCurrent = useCallback(
+    (requestGeneration: number, requestId: string, updater: (r: MaterialRecord) => MaterialRecord) => {
+      if (requestGeneration !== generation.current) return
+      patch(requestId, updater)
+    },
+    [patch],
+  )
+
+  const reset = useCallback(() => {
+    generation.current += 1
+    pending.current.clear()
+    setMaterials([])
+    setBusy(false)
+  }, [])
+
   const refresh = useCallback(
     async (requestId: string) => {
+      const requestGeneration = generation.current
       const record = materials.find((item) => item.requestId === requestId)
       if (!record?.sourceId) return
       try {
         const source = await api.getSource(record.sourceId)
-        patch(requestId, (item) => applySource(item, source))
+        patchIfCurrent(requestGeneration, requestId, (item) => applySource(item, source))
       } catch (cause) {
-        patch(requestId, (item) => ({ ...item, error: asError(cause) }))
+        patchIfCurrent(requestGeneration, requestId, (item) => ({ ...item, error: asError(cause) }))
       }
     },
-    [api, materials, patch],
+    [api, materials, patchIfCurrent],
   )
 
   const submit = useCallback(
@@ -207,6 +229,7 @@ export function useChatMaterials(api: SourcesApi): UseChatMaterialsResult {
         externalRef?: string | null
       },
     ) => {
+      const requestGeneration = generation.current
       try {
         const result = await api.createSource({
           request_id: record.requestId,
@@ -221,7 +244,7 @@ export function useChatMaterials(api: SourcesApi): UseChatMaterialsResult {
             ? { kind: 'link', external_ref: body.externalRef, fetched: false }
             : { kind: 'upload', fetched: false },
         })
-        patch(record.requestId, (item) => {
+        patchIfCurrent(requestGeneration, record.requestId, (item) => {
           const applied = applySource(item, result.source)
           return {
             ...applied,
@@ -234,7 +257,7 @@ export function useChatMaterials(api: SourcesApi): UseChatMaterialsResult {
           }
         })
       } catch (cause) {
-        patch(record.requestId, (item) => {
+        patchIfCurrent(requestGeneration, record.requestId, (item) => {
           const error = asError(cause)
           // Honest status for an unavailable capability; never a fake success.
           const state: MaterialState =
@@ -243,16 +266,18 @@ export function useChatMaterials(api: SourcesApi): UseChatMaterialsResult {
         })
       }
     },
-    [api, patch],
+    [api, patchIfCurrent],
   )
 
   const uploadFiles = useCallback(
     async (files: File[], options: { taskRef?: string | null } = {}) => {
       if (files.length === 0) return
+      const requestGeneration = generation.current
       const scopeKey = options.taskRef ?? 'global'
       setBusy(true)
       try {
         for (const file of files) {
+          if (requestGeneration !== generation.current) return
           const key = `${scopeKey}:${file.name}`
           const requestId = pending.current.get(key) ?? newIntakeRequestId()
           pending.current.set(key, requestId)
@@ -262,8 +287,9 @@ export function useChatMaterials(api: SourcesApi): UseChatMaterialsResult {
             originKind: 'upload',
             externalRef: null,
           })
+          if (requestGeneration !== generation.current) return
           setMaterials((current) => [...current, record])
-          patch(requestId, (item) => ({ ...item, state: 'processing' }))
+          patchIfCurrent(requestGeneration, requestId, (item) => ({ ...item, state: 'processing' }))
           try {
             const content_base64 = await fileToBase64(file)
             await submit(record, {
@@ -274,22 +300,23 @@ export function useChatMaterials(api: SourcesApi): UseChatMaterialsResult {
             })
             pending.current.delete(key)
           } catch (cause) {
-            patch(requestId, (item) => ({ ...item, state: 'failed', error: asError(cause) }))
+            patchIfCurrent(requestGeneration, requestId, (item) => ({ ...item, state: 'failed', error: asError(cause) }))
           }
           // Read back the real receipt so reconnect shows the same state.
           await refresh(requestId)
         }
       } finally {
-        setBusy(false)
+        if (requestGeneration === generation.current) setBusy(false)
       }
     },
-    [patch, refresh, submit],
+    [patchIfCurrent, refresh, submit],
   )
 
   const recordLink = useCallback(
     async (url: string, options: { taskRef?: string | null } = {}) => {
       const value = url.trim()
       if (!isLikelyUrl(value)) throw new Error('Not a valid http(s) link')
+      const requestGeneration = generation.current
       const scopeKey = `${options.taskRef ?? 'global'}:link:${value}`
       const requestId = pending.current.get(scopeKey) ?? newIntakeRequestId()
       pending.current.set(scopeKey, requestId)
@@ -306,6 +333,7 @@ export function useChatMaterials(api: SourcesApi): UseChatMaterialsResult {
         originKind: 'link',
         externalRef: value,
       })
+      if (requestGeneration !== generation.current) return
       setMaterials((current) => [...current, record])
       setBusy(true)
       try {
@@ -322,7 +350,7 @@ export function useChatMaterials(api: SourcesApi): UseChatMaterialsResult {
         pending.current.delete(scopeKey)
         await refresh(requestId)
       } finally {
-        setBusy(false)
+        if (requestGeneration === generation.current) setBusy(false)
       }
     },
     [refresh, submit],
@@ -332,7 +360,7 @@ export function useChatMaterials(api: SourcesApi): UseChatMaterialsResult {
     setMaterials((current) => current.filter((item) => item.requestId !== requestId))
   }, [])
 
-  return { materials, busy, uploadFiles, recordLink, refresh, dismiss }
+  return { materials, busy, reset, uploadFiles, recordLink, refresh, dismiss }
 }
 
 function asError(cause: unknown): { code: string; message: string } {

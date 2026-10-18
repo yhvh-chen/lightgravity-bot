@@ -63,7 +63,10 @@ async def test_rule_planner_single_node_derives_acceptance_without_declared() ->
     assert [subtask.key for subtask in proposal.subtasks] == ["deliver"]
     deliver = proposal.subtasks[0]
     assert deliver.acceptance and "report.md" in deliver.acceptance[0]
-    plan = PlanValidator(known_capabilities=["implementation"]).validate(
+    # LG-126 goal-fit: a Markdown/document goal recruits a writing capability
+    # rather than always the implementation capability.
+    assert deliver.capability == "writing"
+    plan = PlanValidator(known_capabilities=["writing"]).validate(
         proposal, workspace_path="/tmp/ws"
     )
     assert plan.order == ("deliver",)

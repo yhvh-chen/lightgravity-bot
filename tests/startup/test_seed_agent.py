@@ -156,7 +156,14 @@ def test_build_runtime_seeds_catalog_and_stays_honest(tmp_path: Path) -> None:
 
     catalog = load_role_catalog(state.store, settings.data_dir)
     assert catalog is not None
-    assert catalog.candidate_refs("implementation") == (DEFAULT_AGENT_ID,)
+    # LG-120: the complete agency role library is in the same capability catalog;
+    # LG-126 keeps the built-in worker as the generic *fallback* (last), not as
+    # a blanket first candidate that shadows mapped roles.
+    candidates = catalog.candidate_refs("implementation")
+    assert candidates[-1] == DEFAULT_AGENT_ID
+    assert catalog.ranked_candidates("implementation", "implement login")[0] == DEFAULT_AGENT_ID
+    assert "engineering-frontend-developer" in candidates
+    assert "marketing-content-creator" in catalog.candidate_refs("writing")
 
     report = state.execution_report()
     assert DEFAULT_AGENT_ID in report["agent_refs"]
@@ -197,4 +204,10 @@ def test_operator_agent_is_preferred_over_the_seed(tmp_path: Path) -> None:
     assert catalog is not None
     candidates = catalog.candidate_refs("implementation")
     assert candidates[0] == "zzz-operator"
-    assert candidates[-1] == DEFAULT_AGENT_ID
+    assert DEFAULT_AGENT_ID in candidates
+    # User/operator custom templates stay ahead; the generic built-in worker is
+    # the last-resort fallback after the mapped agency pool.
+    assert candidates.index("zzz-operator") == 0
+    assert candidates.index(DEFAULT_AGENT_ID) > candidates.index(
+        "engineering-frontend-developer"
+    )

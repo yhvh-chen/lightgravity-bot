@@ -45,9 +45,13 @@ def test_frozen_constants() -> None:
     # effect) -> 1.17.0 (LG-104/LG-109 provider modal backend: additive
     # Connection auth/provider fields, capability facts, draft test endpoint,
     # additive TestResult draft/nullable identity, saved last_test summary and
-    # the revision/reference-gated DELETE endpoint; no native task execution).
-    # Additive MINOR only.
-    assert CONTRACT_VERSION == "1.17.0"
+    # the revision/reference-gated DELETE endpoint; no native task execution)
+    # -> 1.18.0 (LG-122 additive MINOR implemented in the isolated complete
+    # candidate: read-only Team groups projection, Personal private attachments
+    # with bounded model context, independent Embedding settings, goal-fit team
+    # provenance and bounded multi-Task capacity/waiting reasons; independent
+    # LG-123 QA is still pending).  Additive MINOR only.
+    assert CONTRACT_VERSION == "1.18.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 

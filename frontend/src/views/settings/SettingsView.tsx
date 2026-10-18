@@ -4,6 +4,8 @@ import { useAuth } from '../../app/AuthProvider'
 import {
   createSettingsApi,
   type ConnectionView,
+  type EmbeddingSettingsView,
+  type EmbeddingUpdateResult,
   type GlobalSettingsView,
   type SettingsApi,
 } from '../../api/settings'
@@ -17,6 +19,7 @@ import { presetForConnection } from './backends'
 import { AccountsPanel } from './AccountsPanel'
 import { ConnectionEditor } from './ConnectionEditor'
 import { DefaultsEditor } from './DefaultsEditor'
+import { EmbeddingPanel } from './EmbeddingPanel'
 import { MyAccountPanel } from './MyAccountPanel'
 
 export interface SettingsViewProps {
@@ -48,6 +51,31 @@ interface DeleteState {
   id: string
   busy: boolean
   error: RowError | null
+}
+
+function embeddingCacheLabel(embedding: EmbeddingSettingsView): {
+  kind: 'neutral' | 'accent' | 'success' | 'warning' | 'error'
+  label: string
+} {
+  if (embedding.cache.compatible === true) {
+    return { kind: 'success', label: 'cache compatible' }
+  }
+  if (embedding.cache.reason === 'model_mismatch_rebuild_required') {
+    return { kind: 'warning', label: 'vector rebuild required' }
+  }
+  if (embedding.cache.reason === 'cache_version_mismatch_rebuild_required') {
+    return { kind: 'warning', label: 'vector rebuild required' }
+  }
+  if (embedding.cache.reason === 'embedding_disabled') {
+    return { kind: 'neutral', label: 'disabled' }
+  }
+  if (embedding.cache.reason === 'cache_missing') {
+    return { kind: 'neutral', label: 'no vector cache yet' }
+  }
+  return {
+    kind: 'neutral',
+    label: embedding.cache.reason ?? 'cache status unavailable',
+  }
 }
 
 function persistedTestStatus(connection: ConnectionView): {
@@ -107,6 +135,7 @@ function ModelsPanel(props: SettingsViewProps = {}) {
   const [deleteState, setDeleteState] = useState<DeleteState | null>(null)
   const [listNotice, setListNotice] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [embeddingOpen, setEmbeddingOpen] = useState(false)
 
   // LG-103/LG-110 target + late-response guards. A deeplink target opens Edit
   // exactly once; closing the modal never changes the target and reopens it.
@@ -269,6 +298,24 @@ function ModelsPanel(props: SettingsViewProps = {}) {
     setListNotice(`Saved "${saved.title}" at revision ${saved.revision}.`)
     // Refresh list-level persisted test status/references from the real backend.
     setRefreshKey((key) => key + 1)
+  }, [])
+
+  const handleEmbeddingSaved = useCallback((result: EmbeddingUpdateResult) => {
+    const { revision: settingsRevision, content_hash, ...embeddingView } = result
+    setSettings((previous) =>
+      previous
+        ? {
+            ...previous,
+            revision: settingsRevision,
+            content_hash,
+            embedding: embeddingView,
+          }
+        : previous,
+    )
+    setEmbeddingOpen(false)
+    setListNotice(
+      `Embedding settings saved at settings revision ${settingsRevision}.`,
+    )
   }, [])
 
   const handleConnectionUpdated = useCallback((updated: ConnectionView) => {
@@ -546,6 +593,78 @@ function ModelsPanel(props: SettingsViewProps = {}) {
       ) : null}
 
       {settings ? (
+        <section className="lg-section-card lg-embedding-summary" aria-label="Embedding settings">
+          <div className="lg-embedding-summary__head">
+            <div>
+              <h3 className="lg-section-card__title">Embedding</h3>
+              <p className="lg-field__hint">
+                Independent semantic retrieval only. It is never a chat, worker,
+                reviewer or default connection. Disabling it keeps lexical search
+                and original files available.
+              </p>
+            </div>
+            {settings.embedding ? (
+              <button
+                type="button"
+                className="lg-button"
+                onClick={() => setEmbeddingOpen(true)}
+              >
+                Configure Embedding
+              </button>
+            ) : null}
+          </div>
+          {settings.embedding ? (
+            <>
+              <div className="lg-connection-row__badges">
+                <StatusBadge kind={settings.embedding.enabled ? 'success' : 'neutral'}>
+                  {settings.embedding.enabled ? 'enabled' : 'disabled'}
+                </StatusBadge>
+                <StatusBadge kind="accent">
+                  source: {settings.embedding.source}
+                </StatusBadge>
+                <StatusBadge
+                  kind={settings.embedding.credential.configured ? 'success' : 'warning'}
+                >
+                  {settings.embedding.credential.configured
+                    ? `credential: ${settings.embedding.credential.source ?? 'configured'}`
+                    : 'no credential'}
+                </StatusBadge>
+                <StatusBadge kind={embeddingCacheLabel(settings.embedding).kind}>
+                  {embeddingCacheLabel(settings.embedding).label}
+                </StatusBadge>
+              </div>
+              <dl className="lg-connection-row__facts">
+                <div>
+                  <dt>Model</dt>
+                  <dd>{settings.embedding.model ?? '—'}</dd>
+                </div>
+                <div>
+                  <dt>Base URL</dt>
+                  <dd>{settings.embedding.base_url ?? '—'}</dd>
+                </div>
+                <div>
+                  <dt>Cache model</dt>
+                  <dd>{settings.embedding.cache.vector_model ?? '—'}</dd>
+                </div>
+              </dl>
+              {settings.embedding.cache.compatible === false ? (
+                <p className="lg-notice" role="note">
+                  The saved model does not match the existing vector cache. Rebuild
+                  the vector index before relying on semantic hits; lexical search
+                  remains available meanwhile. Connectivity is not retrieval quality.
+                </p>
+              ) : null}
+            </>
+          ) : (
+            <p className="lg-notice" role="note">
+              This backend does not expose independent Embedding settings. No
+              configuration was loaded or guessed. Update the backend to enable it.
+            </p>
+          )}
+        </section>
+      ) : null}
+
+      {settings ? (
         <details className="lg-disclosure" aria-label="Default models">
           <summary className="lg-disclosure__summary">Default models</summary>
           <div className="lg-disclosure__body">
@@ -570,6 +689,17 @@ function ModelsPanel(props: SettingsViewProps = {}) {
           onReload={reloadConnection}
           onClose={closeModal}
           onConnectionUpdated={handleConnectionUpdated}
+        />
+      ) : null}
+
+      {embeddingOpen && settings?.embedding ? (
+        <EmbeddingPanel
+          key={settings.revision}
+          api={api}
+          embedding={settings.embedding}
+          revision={settings.revision}
+          onSaved={handleEmbeddingSaved}
+          onClose={() => setEmbeddingOpen(false)}
         />
       ) : null}
     </div>

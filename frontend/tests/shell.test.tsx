@@ -102,7 +102,7 @@ describe('Single navigation shell', () => {
     fireEvent.pointerDown(input)
     expect(screen.getByLabelText('Search materials panel')).toBeInTheDocument()
     expect(await screen.findByText('Search failed')).toBeInTheDocument()
-    fireEvent.pointerDown(screen.getByRole('heading', { name: 'Chat' }))
+    fireEvent.pointerDown(screen.getByLabelText('Chat workspace'))
     expect(screen.queryByLabelText('Search materials panel')).toBeNull()
     fireEvent.keyDown(input, { key: 'Enter' })
     expect(await screen.findByText('Search failed')).toBeInTheDocument()

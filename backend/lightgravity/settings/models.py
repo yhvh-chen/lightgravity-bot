@@ -100,6 +100,10 @@ class GlobalSettings:
     decentralized_claim_enabled: bool = False
     collab_requests_enabled: bool = False
     claim_lease_seconds: int = 300
+    #: LG-117 additive optional ``SETTINGS.md.embedding`` block.  It is a
+    #: non-secret mapping; the settings service validates it and exposes only a
+    #: computed view.  ``None`` means the block is absent (environment fallback).
+    embedding: dict[str, Any] | None = None
     exists: bool = True
     data: dict[str, Any] = field(default_factory=dict)
 
@@ -121,7 +125,7 @@ class GlobalSettings:
 class CredentialStatus:
     """Whether a ``credential_ref`` resolves, and from where (never the value)."""
 
-    ref: str
+    ref: str | None
     configured: bool
     source: str | None = None  # "secret_store" | "environment" | None
     version: str | None = None

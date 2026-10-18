@@ -122,6 +122,9 @@ class EmbedResult:
     prompt_tokens: int | None
     #: Raw response body (redacted evidence only; may be large).
     raw_response: str
+    #: Model id actually reported by the service response, when present.  It is
+    #: never fabricated from the requested configuration (LG-117).
+    reported_model: str | None = None
 
 
 class EmbeddingBackend(Protocol):
@@ -241,7 +244,7 @@ class OpenAICompatEmbeddingBackend:
         latency = time.monotonic() - started
         if status != 200:
             raise EmbeddingServiceError(status=status, message="unexpected status")
-        vector, usage = _parse_embeddings_response(raw)
+        vector, usage, reported_model = _parse_embeddings_response(raw)
         digest_source = _digest_source(item)
         return EmbedResult(
             vector=vector,
@@ -253,6 +256,7 @@ class OpenAICompatEmbeddingBackend:
             latency_seconds=latency,
             prompt_tokens=_as_int(usage.get("prompt_tokens")),
             raw_response=raw,
+            reported_model=reported_model,
         )
 
 
@@ -283,7 +287,9 @@ def _digest_source(item: EmbedInput) -> bytes:
     return item.data or b""
 
 
-def _parse_embeddings_response(raw: str) -> tuple[tuple[float, ...], dict[str, Any]]:
+def _parse_embeddings_response(
+    raw: str,
+) -> tuple[tuple[float, ...], dict[str, Any], str | None]:
     try:
         payload = json.loads(raw)
     except json.JSONDecodeError:
@@ -307,7 +313,8 @@ def _parse_embeddings_response(raw: str) -> tuple[tuple[float, ...], dict[str, A
         vector.append(number)
     usage = payload.get("usage")
     usage = usage if isinstance(usage, dict) else {}
-    return tuple(vector), usage
+    reported = payload.get("model")
+    return tuple(vector), usage, reported if isinstance(reported, str) and reported.strip() else None
 
 
 def _safe_error_text(exc: urllib.error.HTTPError) -> str:
@@ -346,6 +353,36 @@ ENV_VECTOR_TIMEOUT = "LIGHTGRAVITY_VECTOR_TIMEOUT_SECONDS"
 ENV_VECTOR_COLD_TIMEOUT = "LIGHTGRAVITY_VECTOR_COLD_TIMEOUT_SECONDS"
 #: Optional expected dimension override; the live vector still records its own.
 ENV_VECTOR_DIM = "LIGHTGRAVITY_VECTOR_DIM"
+
+
+def backend_from_values(
+    *,
+    base_url: str | None,
+    model: str | None,
+    bearer_token: str | None = None,
+    timeout_seconds: float | None = None,
+    cold_timeout_seconds: float | None = None,
+    unavailable_reason: str = "embedding backend is not configured",
+) -> EmbeddingBackend:
+    """Build an embedding backend from explicit resolved values.
+
+    This is the additive seam LG-117 uses after resolving the saved
+    ``SETTINGS.md.embedding`` block or the environment fallback.  It keeps the
+    original :func:`backend_from_env` path intact and never hard-codes a host.
+    """
+
+    base = (base_url or "").strip()
+    name = (model or "").strip()
+    if not base or not name:
+        return UnavailableEmbeddingBackend(unavailable_reason)
+    kwargs: dict[str, Any] = {"base_url": base, "model": name}
+    token = (bearer_token or "").strip() or None
+    kwargs["bearer_token"] = token
+    if timeout_seconds is not None:
+        kwargs["default_timeout_seconds"] = float(timeout_seconds)
+    if cold_timeout_seconds is not None:
+        kwargs["cold_timeout_seconds"] = float(cold_timeout_seconds)
+    return OpenAICompatEmbeddingBackend(**kwargs)
 
 
 def backend_from_env(env: Any = None) -> EmbeddingBackend:
@@ -417,5 +454,6 @@ __all__ = [
     "OpenAICompatEmbeddingBackend",
     "UnavailableEmbeddingBackend",
     "backend_from_env",
+    "backend_from_values",
     "cosine_similarity",
 ]

@@ -90,6 +90,11 @@ def _optional_positive_int(data: dict[str, Any], field: str, *, default: int) ->
     return value
 
 
+def _optional_mapping(data: dict[str, Any], field: str) -> dict[str, Any] | None:
+    value = data.get(field)
+    return dict(value) if isinstance(value, dict) else None
+
+
 def _settings_from_versioned(versioned: Versioned) -> GlobalSettings:
     data = versioned.entity
     return GlobalSettings(
@@ -105,6 +110,7 @@ def _settings_from_versioned(versioned: Versioned) -> GlobalSettings:
         decentralized_claim_enabled=_optional_bool(data, "decentralized_claim_enabled"),
         collab_requests_enabled=_optional_bool(data, "collab_requests_enabled"),
         claim_lease_seconds=_optional_positive_int(data, "claim_lease_seconds", default=300),
+        embedding=_optional_mapping(data, "embedding"),
         exists=True,
         data=dict(data),
     )
@@ -117,6 +123,7 @@ def _empty_settings() -> GlobalSettings:
         default_coordinator_connection_ref=None,
         default_worker_connection_ref=None,
         default_reviewer_connection_ref=None,
+        embedding=None,
         exists=False,
         data={},
     )
@@ -367,10 +374,11 @@ class ConnectionRepository:
         decentralized_claim_enabled: bool = False,
         collab_requests_enabled: bool = False,
         claim_lease_seconds: int = 300,
+        embedding: dict[str, Any] | None = None,
         actor: str,
         request_id: str,
     ) -> GlobalSettings:
-        content = {
+        content: dict[str, Any] = {
             "default_coordinator_connection_ref": default_coordinator_connection_ref,
             "default_worker_connection_ref": default_worker_connection_ref,
             "default_reviewer_connection_ref": default_reviewer_connection_ref,
@@ -378,6 +386,8 @@ class ConnectionRepository:
             "collab_requests_enabled": collab_requests_enabled,
             "claim_lease_seconds": claim_lease_seconds,
         }
+        if embedding is not None:
+            content["embedding"] = embedding
         versioned = self._store.create(
             SETTINGS_KIND, SETTINGS_ID, content, actor=actor, request_id=request_id
         )

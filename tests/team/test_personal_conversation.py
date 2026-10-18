@@ -233,7 +233,10 @@ async def test_personal_unavailable_without_model(
 @pytest.mark.parametrize(
     "extra,field",
     [
-        ({"attachments": [{"path": "a.txt", "media_type": "text/plain"}]}, "attachments"),
+        # LG-119 replaces the old wholesale attachment rejection: a shared path
+        # shape is now a 422 validation error (covered in
+        # tests/api/test_private_attachments.py). Selected sources and workspace
+        # refs remain unsupported with the Team hint.
         ({"selected_sources": [{"source_id": "src_1"}]}, "selected_sources"),
         ({"workspace_ref": "project"}, "workspace_ref"),
     ],

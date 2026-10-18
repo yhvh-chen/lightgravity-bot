@@ -18,6 +18,13 @@ the same facts the adapter compiler reads; no second provider/model database is
 created.  Secret values never enter Markdown, responses, events or logs.
 """
 
+from .embedding import (
+    EMBEDDING_CREDENTIAL_REF,
+    EmbeddingConfig,
+    EmbeddingSettingsService,
+    ResolvedEmbedding,
+)
+from .embedding_testing import DraftEmbeddingSpec, EmbeddingDraftTester
 from .errors import (
     ConnectionReferenceInvalid,
     CredentialUnavailable,
@@ -83,6 +90,13 @@ __all__ = [
     "DEFAULT_BASE_URL",
     # repository
     "ConnectionRepository",
+    # embedding (LG-117)
+    "EmbeddingConfig",
+    "EmbeddingSettingsService",
+    "ResolvedEmbedding",
+    "EMBEDDING_CREDENTIAL_REF",
+    "DraftEmbeddingSpec",
+    "EmbeddingDraftTester",
     # secrets
     "FileSecretStore",
     "SecretStoreCredentialResolver",

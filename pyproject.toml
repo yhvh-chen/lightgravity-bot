@@ -42,6 +42,10 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["backend/lightgravity"]
+# LG-120: the complete pinned role library is package data, not a runtime clone.
+# Both directives are explicit so a VCS-ignore or filtering change cannot drop it.
+include = ["backend/lightgravity/runtime/roles/agency/**"]
+artifacts = ["backend/lightgravity/runtime/roles/agency/**"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

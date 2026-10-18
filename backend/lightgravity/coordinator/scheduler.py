@@ -265,6 +265,9 @@ class SubtaskClaimer:
                 "state": state,
                 "owner": owner,
                 "lease_expires_at": expiry,
+                # A real claim/start clears any capacity hint; the fact remains
+                # on the pending Subtask only while it cannot start.
+                "waiting_reason": None,
             },
         )
         self._writer.emit(

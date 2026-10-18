@@ -8,13 +8,33 @@
  *   Task/Run, plus released history.  Released members are history, never
  *   counted as the current team.
  *
- * Both endpoints are additive reads introduced by LG-015; docs/08 §4.3 does not
- * list them yet, so the shell/integration layer must register them.
+ * Both endpoints are additive reads introduced by LG-015.  LG-120 adds optional
+ * role metadata to Available (role_category, capabilities, agency_source,
+ * seed, recruitable, summary and honest unsupported reasons).
  */
 
 import { getRuntimeToken, runtimeTokenHeaders } from './auth'
 import { apiRequest } from './client'
 import type { ResourceAvailability, ResourceDiagnostic } from './resources'
+
+export interface AgencySource {
+  repository?: string
+  commit: string
+  path: string
+  blob_sha: string
+  sha256: string
+  license: string
+  copyright?: string
+}
+
+export interface RoleSeedMetadata {
+  library?: string
+  version?: number | string
+  source_commit?: string
+  content_hash?: string
+  update_available?: boolean
+  available_content_hash?: string | null
+}
 
 export interface AvailableAgent {
   id: string
@@ -36,6 +56,16 @@ export interface AvailableAgent {
   executable?: boolean
   body?: string
   diagnostics?: ResourceDiagnostic[]
+  /** LG-120 additive role metadata from `GET /team/available`. */
+  role_category?: string
+  capabilities?: string[]
+  declared_capabilities?: string[]
+  agency_source?: AgencySource | null
+  seed?: RoleSeedMetadata | null
+  summary?: string
+  unsupported_reasons?: string[]
+  capability_notes?: string[]
+  recruitable?: boolean
 }
 
 export interface TeamMember {

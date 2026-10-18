@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import inspect
 import tempfile
 import os
 import re
@@ -52,6 +53,7 @@ from lightgravity.evidence import EvidenceRefError, import_evidence, parse_evide
 from lightgravity.store import Store, new_id
 from lightgravity.workspaces import WorkspaceProvider
 
+from .capacity import CapacityGovernor, SessionLease, WriterLease
 from .dispatcher import DispatchContext, DispatchOutcome
 from .planner import (
     ModelProposalError,
@@ -179,6 +181,7 @@ class GraphDispatcher:
         grant_registry: Any | None = None,
         autonomous_claim: bool = False,
         autonomous_pool: bool = False,
+        capacity: CapacityGovernor | None = None,
     ) -> None:
         if max_parallel < 1:
             raise ValueError("max_parallel must be >= 1")
@@ -186,7 +189,11 @@ class GraphDispatcher:
         self._executor = executor
         #: Program-side minimal plan builder.  Used for every Run unless an
         #: explicit on-demand request selects the optional model planner.
-        self._program_planner: Planner = RuleBasedPlanner()
+        self._program_planner: Planner = RuleBasedPlanner(
+            available_capabilities=(
+                catalog.capabilities if catalog is not None else DEFAULT_CAPABILITIES
+            )
+        )
         #: Optional injected model proposal interface.  ``None`` (the default)
         #: means planning is program-side only; it is never constructed by the
         #: default assembly.
@@ -231,6 +238,12 @@ class GraphDispatcher:
         #: program authenticates/validates/grants atomically.  Default ``False``
         #: keeps the exact prior behavior (program pre-claims per node).
         self._autonomous_claim = autonomous_claim
+        #: LG-126 optional shared global governor.  The coordinator injects its
+        #: own instance so worker nodes, reviewers and other Tasks draw from one
+        #: bounded pool.  ``None`` keeps standalone LG-008 dispatcher tests on
+        #: their historical per-Run-only concurrency behaviour.
+        self._capacity = capacity
+        self._capacity_attached = capacity is not None
         #: node key -> (grant token, subtask id) for explicit revocation on stop.
         self._node_grants: dict[str, tuple[str, str]] = {}
         #: LG-031 POOL-FIX additive: when true (and the decentralized path is
@@ -251,6 +264,28 @@ class GraphDispatcher:
     @property
     def executor(self) -> ExecutorAdapter:
         return self._executor
+
+    @property
+    def capacity(self) -> CapacityGovernor | None:
+        return self._capacity
+
+    def set_capacity_governor(self, governor: CapacityGovernor | None) -> None:
+        """Attach the coordinator's shared global governor (LG-126)."""
+
+        self._capacity = governor
+        self._capacity_attached = governor is not None
+
+    def _effective_max_parallel(self, context: DispatchContext) -> int:
+        """Per-Run node cap = dispatcher cap and Task budget, never higher."""
+
+        limit = self._max_parallel
+        budget = context.budget.get("max_parallel") if context.budget else None
+        if isinstance(budget, int) and not isinstance(budget, bool) and budget > 0:
+            limit = min(limit, budget)
+        governor = self._capacity
+        if governor is not None:
+            limit = min(limit, governor.config.max_parallel_nodes_per_task)
+        return max(1, limit)
 
     @property
     def planner(self) -> Planner | None:
@@ -357,7 +392,7 @@ class GraphDispatcher:
         controller.set_run_state("recruiting")
         try:
             recruiter = self._recruiter or self._build_recruiter(context)
-            team = recruiter.recruit(plan)
+            team = self._recruit_team(recruiter, plan, context)
         except RecruitError as exc:
             return self._plan_failure(controller, "recruit", exc)
         except AppError as exc:
@@ -423,6 +458,28 @@ class GraphDispatcher:
             subtasks=proposal.subtasks,
             source=proposal.source,
             notes=(*proposal.notes, note),
+        )
+
+    @staticmethod
+    def _recruit_team(
+        recruiter: Recruiter, plan: Plan, context: DispatchContext
+    ) -> TeamPlan:
+        """Call the recruiter with additive goal-fit hints when it supports them."""
+
+        method = recruiter.recruit
+        try:
+            parameter_names = set(inspect.signature(method).parameters)
+        except (TypeError, ValueError):  # builtins/C-callables: keep old call
+            parameter_names = set()
+        if "goal_text" not in parameter_names and "preferred_agent_ref" not in parameter_names:
+            return method(plan)
+        goal_text = "\n".join(
+            (context.objective, *context.acceptance_criteria)
+        )
+        return method(
+            plan,
+            goal_text=goal_text,
+            preferred_agent_ref=context.agent_ref,
         )
 
     def _resolve_run_pin(self) -> ConnectionPin | None:
@@ -494,6 +551,8 @@ class GraphDispatcher:
                     "budget": dict(context.budget),
                     "config_hash": member.config_hash,
                     "capabilities": list(member.capabilities),
+                    "role_category": member.candidate.role_category or None,
+                    "selection_reason": member.selection_reason or None,
                 },
                 body=f"# Member {member.role_ref}\n\nRole: {member.role_ref}\n",
             )
@@ -648,27 +707,87 @@ class GraphDispatcher:
                     continue
                 if not all(states[dep] == "passed" for dep in deps):
                     continue
-                if len(memory.running) >= self._max_parallel:
+                if len(memory.running) >= self._effective_max_parallel(context):
                     continue
                 writer_key = self._writer_key(node, context)
                 if node.spec.write and writer_key in memory.writer_keys:
+                    self._set_pending_reason(
+                        node, controller, "workspace_write_conflict"
+                    )
                     continue  # single writer per workspace: serialize
+                session_lease: SessionLease | None = None
+                writer_lease: WriterLease | None = None
+                writer_path = (
+                    self._execution_workspace(node, context)
+                    if node.spec.write
+                    else ""
+                )
+                if self._capacity is not None and node.spec.write and writer_path:
+                    writer_lease = self._capacity.try_acquire_writer(
+                        task_id=context.task_id,
+                        run_id=context.run_id,
+                        path=writer_path,
+                    )
+                    if writer_lease is None:
+                        self._set_pending_reason(
+                            node, controller, "workspace_write_conflict"
+                        )
+                        continue
+                if self._capacity is not None:
+                    session_lease = self._capacity.try_acquire_session(
+                        context.task_id,
+                        kind="worker",
+                        run_id=context.run_id,
+                        node_ref=node.subtask_id,
+                    )
+                    if session_lease is None:
+                        self._capacity.release_writer(writer_lease)
+                        self._set_pending_reason(
+                            node, controller, "global_session_limit"
+                        )
+                        continue
+                controller.set_subtask_waiting_reason(node.subtask_id, None)
                 states[key] = "running"
                 if node.spec.write and writer_key:
                     memory.writer_keys.add(writer_key)
                 memory.running[key] = asyncio.ensure_future(
-                    self._execute_node(node, context, controller, memory, claimer, emit)
+                    self._execute_node(
+                        node,
+                        context,
+                        controller,
+                        memory,
+                        claimer,
+                        emit,
+                        session_lease=session_lease,
+                        writer_lease=writer_lease,
+                    )
                 )
 
             if not memory.running:
                 if all(state in _TERMINAL_STATES for state in states.values()):
                     break
+                if any(state == "pending" for state in states.values()):
+                    # Capacity/writer wait: keep the legal pending node pending
+                    # and wake on a real release instead of serializing or
+                    # failing the Run early.
+                    if self._capacity is not None:
+                        await self._capacity.wait_for_change()
+                    else:
+                        await asyncio.sleep(0.05)
+                    continue
                 # Nothing runnable and nothing in flight: avoid an infinite loop.
                 break
 
             done, _ = await asyncio.wait(
-                set(memory.running.values()), return_when=asyncio.FIRST_COMPLETED
+                set(memory.running.values()),
+                return_when=asyncio.FIRST_COMPLETED,
+                # Bounded wake lets a released *global* session start this
+                # Task's pending node even while its current node is still in
+                # flight; it is not a serial fallback and adds no new Run.
+                timeout=0.25,
             )
+            if not done:
+                continue
             for key, task in list(memory.running.items()):
                 if task not in done:
                     continue
@@ -838,7 +957,7 @@ class GraphDispatcher:
             for member_id in member_ids:
                 if member_id in slots:
                     continue
-                if len(slots) >= self._max_parallel:
+                if len(slots) >= self._effective_max_parallel(context):
                     break
                 pool = self._legal_candidates(member_id, nodes, states, memory, context)
                 if not pool:
@@ -871,8 +990,12 @@ class GraphDispatcher:
                 break
 
             done, _ = await asyncio.wait(
-                set(slots.values()), return_when=asyncio.FIRST_COMPLETED
+                set(slots.values()),
+                return_when=asyncio.FIRST_COMPLETED,
+                timeout=0.25,
             )
+            if not done:
+                continue
             for member_id, task in list(slots.items()):
                 if task not in done:
                     continue
@@ -1000,7 +1123,23 @@ class GraphDispatcher:
             workspace=selection_workspace,
         )
         run_id = context.run_id
-        selection_result = await self._run_executor_task(selection_request, context, emit, slot_id)
+        selection_lease = (
+            await self._capacity.acquire_session(
+                context.task_id,
+                kind="worker",
+                run_id=run_id,
+                node_ref=slot_id,
+            )
+            if self._capacity is not None
+            else None
+        )
+        try:
+            selection_result = await self._run_executor_task(
+                selection_request, context, emit, slot_id
+            )
+        finally:
+            if self._capacity is not None:
+                self._capacity.release_session(selection_lease)
 
         from lightgravity.collaboration import default_registry
 
@@ -1057,7 +1196,37 @@ class GraphDispatcher:
         execution_request = self._build_request(
             node, context, upstream, grant_token=node_grant_token
         )
-        result = await self._run_executor_task(execution_request, context, emit, slot_id)
+        execution_lease = (
+            await self._capacity.acquire_session(
+                context.task_id,
+                kind="worker",
+                run_id=run_id,
+                node_ref=node.subtask_id,
+            )
+            if self._capacity is not None
+            else None
+        )
+        writer_lease = None
+        if self._capacity is not None and node.spec.write:
+            writer_lease = await self._capacity.acquire_writer(
+                task_id=context.task_id,
+                run_id=run_id,
+                path=execution_request.workspace_path or context.workspace_path,
+            )
+        result: ExecutorResult | None = None
+        try:
+            result = await self._run_executor_task(
+                execution_request, context, emit, slot_id
+            )
+        finally:
+            stopped = not (
+                result is not None
+                and result.state == "cancelled"
+                and result.stop_confirmed is False
+            )
+            if stopped and self._capacity is not None:
+                self._capacity.release_session(execution_lease)
+                self._capacity.release_writer(writer_lease)
         if node_grant_token is not None:
             (self._grant_registry or default_registry()).revoke_token(node_grant_token)
 
@@ -1748,6 +1917,43 @@ class GraphDispatcher:
         memory: _RunMemory,
         claimer: SubtaskClaimer,
         emit: Callable[[dict[str, Any]], Any],
+        *,
+        session_lease: SessionLease | None = None,
+        writer_lease: WriterLease | None = None,
+    ) -> NodeResult:
+        """Execute one node and return its capacity leases honestly.
+
+        A cancel whose stop is *unconfirmed* keeps both the session and writer
+        slots: the UI then shows Stop unconfirmed and another Task cannot
+        silently take over the still-unknown resources.
+        """
+
+        result: NodeResult | None = None
+        try:
+            result = await self._execute_node_body(
+                node, context, controller, memory, claimer, emit
+            )
+            return result
+        finally:
+            unconfirmed = bool(
+                result is not None
+                and result.result is not None
+                and result.result.state == "cancelled"
+                and result.result.stop_confirmed is False
+            )
+            if not unconfirmed:
+                if self._capacity is not None:
+                    self._capacity.release_session(session_lease)
+                    self._capacity.release_writer(writer_lease)
+
+    async def _execute_node_body(
+        self,
+        node: _Node,
+        context: DispatchContext,
+        controller: RunController,
+        memory: _RunMemory,
+        claimer: SubtaskClaimer,
+        emit: Callable[[dict[str, Any]], Any],
     ) -> NodeResult:
         upstream = encode_handoffs(
             [memory.handoffs[dep] for dep in node.spec.depends_on if dep in memory.handoffs]
@@ -2343,7 +2549,7 @@ class GraphDispatcher:
         controller.transition_subtask(
             node.subtask_id,
             "failed",
-            extra={"fail_reason": message},
+            extra={"fail_reason": message, "waiting_reason": None},
             acceptance={
                 "status": "failed",
                 "criteria": list(node.spec.acceptance),
@@ -2371,7 +2577,11 @@ class GraphDispatcher:
         controller.transition_subtask(
             node.subtask_id,
             "failed",
-            extra={"fail_reason": message, "blocked_by": list(failed_deps)},
+            extra={
+                "fail_reason": message,
+                "blocked_by": list(failed_deps),
+                "waiting_reason": None,
+            },
             acceptance={
                 "status": "blocked",
                 "criteria": list(node.spec.acceptance),
@@ -2605,6 +2815,17 @@ class GraphDispatcher:
             # before scheduling, so the map is complete).
             return f"node:{node.key}"
         return context.workspace_path
+
+    @staticmethod
+    def _set_pending_reason(
+        node: _Node, controller: RunController, reason: str | None
+    ) -> None:
+        """Persist an additive scheduling fact without changing Subtask state."""
+
+        try:
+            controller.set_subtask_waiting_reason(node.subtask_id, reason)
+        except Exception:  # noqa: BLE001 - a hint write must never abort scheduling
+            return
 
     def _plan_failure(
         self, controller: RunController, stage: str, exc: AppError

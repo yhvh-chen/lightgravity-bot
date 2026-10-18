@@ -92,12 +92,14 @@ describe('LG057 private UI isolation', () => {
     expect(sessionStorage.getItem('lg011.shell-prefs:team:bob')).toContain('Bob draft')
     expect(sessionStorage.getItem('lg011.shell-prefs:team:alice')).toBeNull()
   })
-  it('unmounts shared attachment controls in private Personal and restores them in Team', async () => {
+  it('uses a private picker in Personal and the shared intake in Team', async () => {
     render(tree(member('alice'), api()))
     fireEvent.click(await screen.findByRole('tab', { name: 'Personal' }))
     expect(await screen.findByLabelText('Message for Personal')).toBeInTheDocument()
+    // LG-119: Personal has its own direct file picker; the shared path/material
+    // controls stay out of this channel.
     expect(screen.queryByLabelText('Attach file path')).toBeNull()
-    expect(document.querySelector('input[type="file"]')).toBeNull()
+    expect(screen.getByLabelText('Upload file for Personal')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('tab', { name: 'Team' }))
     fireEvent.click(screen.getByRole('button', { name: 'Add attachments and materials' }))
     expect(screen.getByLabelText('Attach file path')).toBeVisible()

@@ -19,7 +19,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Any, Callable, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from lightgravity.adapter.credentials import CredentialResolver, EnvCredentialResolver, Secret
 from lightgravity.adapter.provider_matrix import (
@@ -30,6 +30,7 @@ from lightgravity.adapter.registry import ImplementationRegistry
 from lightgravity.store import Store
 from lightgravity.store.locking import connection_reference_lock
 
+from .embedding import EmbeddingSettingsService
 from .errors import ConnectionReferenceInvalid, SecretStoreError, SettingsConfigInvalid
 from .models import (
     DEFAULT_BASE_URL,
@@ -84,6 +85,7 @@ class ConnectionService:
         env_resolver: CredentialResolver | None = None,
         allowed_model_roots: Sequence[Path | str] | None = None,
         test_diagnostics: Any | None = None,
+        env: Mapping[str, str] | None = None,
     ) -> None:
         self._repo = ConnectionRepository(store, registry=registry)
         self._secrets = secret_store
@@ -103,6 +105,9 @@ class ConnectionService:
         # writes a second Connection state; draft results are never recorded by
         # the tester and are filtered again defensively here.
         self._test_diagnostics = test_diagnostics
+        self._embedding = EmbeddingSettingsService(
+            self._repo, secret_store=self._secrets, env=env
+        )
 
     # --------------------------------------------------------------- exposure
     @property
@@ -118,6 +123,12 @@ class ConnectionService:
         """The resolver LG-006 should use for ``credential_ref`` lookups."""
 
         return self._resolver
+
+    @property
+    def embedding(self) -> EmbeddingSettingsService:
+        """Independent Embedding purpose; never a chat/worker default."""
+
+        return self._embedding
 
     # ------------------------------------------------------------- connections
     def list_connections(self) -> list[dict[str, Any]]:
@@ -462,6 +473,8 @@ class ConnectionService:
                     settings.default_reviewer_connection_ref
                 ),
             },
+            # LG-117 additive read-only view; secrets are never included.
+            "embedding": self._embedding.view(settings),
         }
 
     def update_settings(

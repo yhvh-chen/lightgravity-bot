@@ -218,6 +218,12 @@ function makeFakeApi(initial?: Partial<FakeState>): { api: SettingsApi; state: F
       state.draftTestCalls.push(input)
       return makeDraftResult()
     },
+    async updateEmbedding() {
+      throw new Error('embedding API is not used in this test')
+    },
+    async testDraftEmbedding() {
+      throw new Error('embedding API is not used in this test')
+    },
     async deleteConnection(id) {
       state.deleteCalls.push(id)
       state.connections = state.connections.filter(

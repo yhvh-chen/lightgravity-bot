@@ -22,6 +22,7 @@ Design guarantees relevant to the acceptance conditions:
 from __future__ import annotations
 
 import asyncio
+import inspect
 import os
 import re
 from collections.abc import Callable, Mapping
@@ -54,6 +55,7 @@ from lightgravity.store.locking import LockManager
 # duplicating the type.
 from lightgravity.verify.rework import SpawnOutcome
 
+from .capacity import CapacityConfig, CapacityGovernor
 from .classification import Classification, MessageIntent, classify_message
 from .resource_commands import (
     PROPOSAL_AUTHOR_ROLES,
@@ -262,6 +264,48 @@ def _is_bot_mention(content: str, mention: str) -> bool:
     return rest[0].isspace() or rest[0] in _MENTION_FOLLOW_PUNCT
 
 
+def _responder_accepts_attachment_context(responder: Callable[..., Any]) -> bool:
+    """Whether a responder can receive the separate attachment-context argument."""
+
+    try:
+        parameters = inspect.signature(responder).parameters.values()
+    except (TypeError, ValueError):  # builtins/partials: keep the safe 2-arg call
+        return False
+    positional = 0
+    for parameter in parameters:
+        if parameter.kind in (
+            inspect.Parameter.VAR_POSITIONAL,
+            inspect.Parameter.VAR_KEYWORD,
+        ):
+            return True
+        if parameter.kind in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        ):
+            positional += 1
+    return positional >= 3
+
+
+def _reject_private_attachment_refs(
+    attachments: Any, *, surface: str
+) -> None:
+    """Private ``attachment_id`` refs are Personal-only (docs/08 §19.3).
+
+    Task/Team messages keep the existing ``{path, media_type?}`` shape.  A
+    private id must never be rewritten into a shared path or task attachment.
+    """
+
+    if not isinstance(attachments, list):
+        return
+    if any(isinstance(item, dict) and "attachment_id" in item for item in attachments):
+        raise AppError(
+            ErrorCode.VALIDATION_FAILED,
+            "attachment_id is only accepted by the Personal conversation; "
+            "Task/Team messages use path references",
+            details={"field": "attachments", "surface": surface},
+        )
+
+
 def _default_responder(content: str, classification: Classification) -> str:
     if classification.intent == MessageIntent.BOUNDED_READ:
         return (
@@ -311,6 +355,7 @@ def _task_content(
             "queued_at": None,
             "owner": None,
             "lease_expires_at": None,
+            "waiting_reason": None,
         },
         "acceptance": {
             "status": "pending",
@@ -367,12 +412,24 @@ class Coordinator:
         source_service: Any | None = None,
         team_mode: bool = False,
         bot_mention: str = "@bot",
+        capacity: CapacityConfig | CapacityGovernor | None = None,
     ) -> None:
         self._store = store
         self._owner = owner or f"coordinator:{os.getpid()}"
         self._writer = StateWriter(store, actor=self._owner)
         self._queue = TaskQueue(store, self._writer)
         self._dispatcher = dispatcher or SingleSlotDispatcher(UnavailableExecutor())
+        # LG-126: one global governor shared by every Task's graph dispatch and
+        # the independent reviewer.  In-memory only; restart starts empty and
+        # the recovery scan runs before any admission.
+        self._capacity = (
+            capacity
+            if isinstance(capacity, CapacityGovernor)
+            else CapacityGovernor(capacity or CapacityConfig.from_env())
+        )
+        attach_capacity = getattr(self._dispatcher, "set_capacity_governor", None)
+        if callable(attach_capacity):
+            attach_capacity(self._capacity)
         resolved_data_dir = data_dir if data_dir is not None else getattr(store, "data_dir", None)
         if resolved_data_dir is None:
             raise AppError(
@@ -391,6 +448,12 @@ class Coordinator:
         self._budget: dict[str, int] = dict(budget or {})
         self._classifier = classifier or classify_message
         self._responder = responder or _default_responder
+        #: LG-119: whether the injected Personal responder can receive the
+        #: separate bounded attachment-context argument.  Existing 2-arg test
+        #: lambdas keep working; the real bootstrap dialogue responder accepts it.
+        self._responder_accepts_attachment_context = (
+            _responder_accepts_attachment_context(self._responder)
+        )
         #: LG-054: whether a real direct-answer responder was injected.  When
         #: ``False`` the private Personal channel honestly reports
         #: ``unavailable`` instead of dressing the deterministic fallback up as
@@ -429,6 +492,12 @@ class Coordinator:
         self._loop_task: asyncio.Task[None] | None = None
         self._stopping = False
         self._last_recovery: RecoveryReport | None = None
+        #: Per-Task dispatch jobs (one Task can have at most one non-terminal
+        #: Run, but different Tasks execute concurrently inside the governor).
+        self._running_tasks: dict[str, asyncio.Task[None]] = {}
+        #: Reviewer/verification jobs keyed by Run; the reviewer slot is acquired
+        #: before the review starts and released only after its real teardown.
+        self._verification_tasks: dict[str, asyncio.Task[None]] = {}
         #: LG-022 R1: independent-reviewer lifecycle so a review runs off the
         #: coordinator event loop and can be stopped with confirmation.  Shared
         #: with the control service so pause/cancel can stop a running reviewer.
@@ -477,10 +546,67 @@ class Coordinator:
         return self._active_run_id
 
     @property
+    def capacity(self) -> CapacityGovernor:
+        """The process-global capacity governor (diagnostics/tests)."""
+
+        return self._capacity
+
+    def capacity_snapshot(self) -> dict[str, Any]:
+        """Read-only capacity facts for diagnostics; never admits or writes."""
+
+        return self._capacity.snapshot().to_dict()
+
+    def configure_capacity(self, config: CapacityConfig) -> None:
+        """Wire startup-resolved config before the worker loop starts."""
+
+        self._capacity = CapacityGovernor(config)
+        attach_capacity = getattr(self._dispatcher, "set_capacity_governor", None)
+        if callable(attach_capacity):
+            attach_capacity(self._capacity)
+
+    @property
     def responder_configured(self) -> bool:
         """Whether a real (model-backed) direct-answer responder is wired."""
 
         return self._responder_configured
+
+    def _invoke_responder(
+        self,
+        content: str,
+        classification: Classification,
+        *,
+        attachment_context: str | None = None,
+        attachment_note: str | None = None,
+    ) -> str:
+        """Call the responder with bounded attachment context kept separate.
+
+        The context is never merged into persisted user content.  If the
+        injected responder cannot accept it, the reply explicitly says the
+        attachment text was not delivered instead of silently claiming it was
+        read.
+        """
+
+        if (
+            attachment_context is not None
+            and self._responder_accepts_attachment_context
+        ):
+            reply = cast(Callable[..., str], self._responder)(
+                content, classification, attachment_context
+            )
+        else:
+            reply = self._responder(content, classification)
+            if attachment_context is not None:
+                attachment_note = (
+                    "The configured responder could not receive the attachment "
+                    "text; it was not read by the model."
+                    if not attachment_note
+                    else attachment_note
+                    + " The configured responder could not receive the "
+                    "attachment text."
+                )
+        if attachment_note:
+            reply = f"{attachment_note}\n\n{reply}" if reply else attachment_note
+        return reply
 
     @property
     def review_lifecycle(self) -> Any:
@@ -590,6 +716,14 @@ class Coordinator:
                 await task
             except (asyncio.CancelledError, Exception):  # noqa: BLE001 - shutdown is best effort
                 pass
+        jobs = [*self._running_tasks.values(), *self._verification_tasks.values()]
+        for job in jobs:
+            if not job.done():
+                job.cancel()
+        if jobs:
+            await asyncio.gather(*jobs, return_exceptions=True)
+        self._running_tasks.clear()
+        self._verification_tasks.clear()
 
     # ----------------------------------------------------------- task create
     def create_task(
@@ -727,12 +861,19 @@ class Coordinator:
         message: dict[str, Any],
         *,
         request_id: str | None = None,
+        attachment_context: str | None = None,
+        attachment_note: str | None = None,
+        personal_private: bool = False,
     ) -> CoordinatorResult:
         message_id = self._require_message_id(message)
         key = f"message:{message_id}"
         existing = self._idempotency.lookup(key)
         if existing is not None:
             return self._result_from(existing)
+        if not personal_private:
+            _reject_private_attachment_refs(
+                message.get("attachments"), surface="global/team"
+            )
         # LG-043: resolve optional selected sources before any side effect/model
         # call.  A malformed/stale/revoked/cross-Task ref is rejected here.
         selected = self._resolve_selected(None, message)
@@ -766,6 +907,9 @@ class Coordinator:
             task_ref=self._message_task_ref(message),
             request_id=request_id or message_id,
             selected=selected,
+            attachment_context=attachment_context,
+            attachment_note=attachment_note,
+            personal_private=personal_private,
         )
         self._idempotency.record(key, result.to_dict())
         return result
@@ -780,10 +924,18 @@ class Coordinator:
         task_ref: str | None,
         request_id: str,
         selected: SelectedContext | None = None,
+        attachment_context: str | None = None,
+        attachment_note: str | None = None,
+        personal_private: bool = False,
     ) -> CoordinatorResult:
         content = str(message.get("content", ""))
         if classification.next_action in {"direct", "bounded_read"}:
-            reply = self._responder(compose_prompt(content, selected), classification)
+            reply = self._invoke_responder(
+                compose_prompt(content, selected),
+                classification,
+                attachment_context=attachment_context,
+                attachment_note=attachment_note,
+            )
             data: dict[str, Any] = {
                 "intent": classification.intent.value,
                 "bounded_tools": list(classification.bounded_tools),
@@ -809,6 +961,37 @@ class Coordinator:
                 reply=reply,
                 conversation_id=conversation_id,
                 data=data,
+            )
+        if personal_private:
+            reply = (
+                "Messages with private attachments stay in Personal chat and do "
+                "not create a shared Task. Remove the attachment or use the "
+                "shared Team/material flow to create delivery work. Nothing was "
+                "created here."
+            )
+            if attachment_note:
+                reply = f"{attachment_note}\n\n{reply}"
+            self._persist_assistant_reply(
+                conversation_id=conversation_id,
+                task_id=None,
+                in_reply_to=str(message.get("message_id") or request_id),
+                reply=reply,
+                selected=None,
+                extra={
+                    "intent": classification.intent.value,
+                    "private": True,
+                    "creates_task": False,
+                },
+            )
+            return CoordinatorResult(
+                kind="recorded",
+                reply=reply,
+                conversation_id=conversation_id,
+                data={
+                    "intent": classification.intent.value,
+                    "creates_task": False,
+                    "private": True,
+                },
             )
         if classification.next_action == "create_task":
             title = content.strip().splitlines()[0][:120] or "New task"
@@ -892,6 +1075,8 @@ class Coordinator:
         *,
         owner: str,
         request_id: str | None = None,
+        attachment_context: str | None = None,
+        attachment_note: str | None = None,
     ) -> CoordinatorResult:
         """Persist and answer one message in a person's private conversation.
 
@@ -907,13 +1092,31 @@ class Coordinator:
         """
 
         if not self._team_mode:
+            # Single-user Personal is the legacy global conversation.  Only a
+            # message carrying private attachment context is forced to stay a
+            # private chat turn; ordinary legacy messages keep the exact
+            # task-creation behaviour.  The private context is still carried on
+            # a separate responder argument, never merged into user content.
+            private_turn = (
+                attachment_context is not None or attachment_note is not None
+            )
             return await self._submit_global_unlocked(
-                conversation_id, message, request_id=request_id
+                conversation_id,
+                message,
+                request_id=request_id,
+                attachment_context=attachment_context,
+                attachment_note=attachment_note,
+                personal_private=private_turn,
             )
         lock = self._conversation_lock(conversation_id)
         async with lock:
             return await self._submit_personal_unlocked(
-                conversation_id, message, owner=owner, request_id=request_id
+                conversation_id,
+                message,
+                owner=owner,
+                request_id=request_id,
+                attachment_context=attachment_context,
+                attachment_note=attachment_note,
             )
 
     async def _submit_personal_unlocked(
@@ -923,6 +1126,8 @@ class Coordinator:
         *,
         owner: str,
         request_id: str | None = None,
+        attachment_context: str | None = None,
+        attachment_note: str | None = None,
     ) -> CoordinatorResult:
         message_id = self._require_message_id(message)
         # Namespace the idempotency key by owner + channel so two users can
@@ -940,6 +1145,8 @@ class Coordinator:
             classification=classification,
             record_seq=record.seq,
             request_id=request_id or message_id,
+            attachment_context=attachment_context,
+            attachment_note=attachment_note,
         )
         self._idempotency.record(key, result.to_dict())
         return result
@@ -953,6 +1160,8 @@ class Coordinator:
         classification: Classification,
         record_seq: int,
         request_id: str,
+        attachment_context: str | None = None,
+        attachment_note: str | None = None,
     ) -> CoordinatorResult:
         """Answer a private message without any shared side effect (LG-054)."""
 
@@ -984,14 +1193,27 @@ class Coordinator:
                         "unavailable": True,
                     },
                 )
-            reply = self._responder(content, classification)
+            reply = self._invoke_responder(
+                content,
+                classification,
+                attachment_context=attachment_context,
+                attachment_note=attachment_note,
+            )
+            extra: dict[str, Any] = {
+                "intent": classification.intent.value,
+                "private": True,
+            }
+            if attachment_context is not None:
+                extra["attachment_context_included"] = True
+            if attachment_note:
+                extra["attachment_context_note"] = True
             self._persist_assistant_reply(
                 conversation_id=conversation_id,
                 task_id=None,
                 in_reply_to=in_reply_to,
                 reply=reply,
                 selected=None,
-                extra={"intent": classification.intent.value, "private": True},
+                extra=extra,
             )
             return CoordinatorResult(
                 kind=classification.next_action,
@@ -1002,6 +1224,7 @@ class Coordinator:
                     "bounded_tools": list(classification.bounded_tools),
                     "creates_task": False,
                     "private": True,
+                    "attachment_context_included": attachment_context is not None,
                 },
             )
         # Chat-only: never create a shared Task/Run, never invoke the team task
@@ -1011,6 +1234,8 @@ class Coordinator:
             "delivery, upload materials, or use shared sources, switch to Team. "
             "Nothing was created here."
         )
+        if attachment_note:
+            reply = f"{attachment_note}\n\n{reply}"
         self._persist_assistant_reply(
             conversation_id=conversation_id,
             task_id=None,
@@ -1048,6 +1273,9 @@ class Coordinator:
         existing = self._idempotency.lookup(key)
         if existing is not None:
             return self._result_from(existing)
+        _reject_private_attachment_refs(
+            message.get("attachments"), surface="task"
+        )
         # LG-043: resolve optional selected sources before persisting/dispatching.
         # Classification below still uses only the original user content.
         selected = self._resolve_selected(task_id, message)
@@ -1369,6 +1597,9 @@ class Coordinator:
                 f"unsupported control action {action!r}",
                 details={"action": action},
             )
+        self._sync_task_admission(task_id)
+        if outcome.confirmed and action in {"pause", "cancel"} and outcome.run_id:
+            self._cancel_verification_job(outcome.run_id)
         reply = self._control_reply(outcome)
         data: dict[str, Any] = {
             "action": outcome.action,
@@ -1594,6 +1825,7 @@ class Coordinator:
                 "state": queue.get("state"),
                 "order": queue.get("order"),
                 "owner": queue.get("owner"),
+                "waiting_reason": queue.get("waiting_reason"),
             },
             "active_run": active_run,
             "run_state": run_state,
@@ -1638,9 +1870,18 @@ class Coordinator:
 
     # ------------------------------------------------------------- worker loop
     async def _run_loop(self) -> None:
+        """Bounded multi-Task pump.
+
+        The loop admits up to the global active-Task cap and starts each Task's
+        dispatch as an independent job.  It never holds the loop across a worker
+        execution, so status queries, control actions and other Tasks stay
+        responsive.  A third Task remains honestly queued with
+        ``waiting_reason=active_task_limit``.
+        """
+
         while not self._stopping:
             try:
-                processed = await self._process_one()
+                processed = await self._pump_once()
             except asyncio.CancelledError:
                 raise
             except Exception:  # noqa: BLE001 - the loop must survive a bad task
@@ -1651,28 +1892,288 @@ class Coordinator:
                 except asyncio.CancelledError:
                     raise
 
+    async def _pump_once(self) -> bool:
+        self._reap_finished_jobs()
+        # Verification/reviewer jobs are gated by the shared reviewer sub-cap;
+        # a reviewer waits for a real worker session release instead of blocking
+        # the pump behind a single worker.
+        if self._pending_auto_verify:
+            self._schedule_pending_verifications()
+            return True
+        if self._pending_rework:
+            if self._schedule_pending_rework():
+                return True
+        processed = False
+        while self._capacity.has_active_slot():
+            summary = self._queue.next_queued()
+            if summary is None:
+                break
+            task_id = summary.id
+            if task_id in self._running_tasks:
+                break
+            if not self._capacity.admit_task(task_id):
+                break
+            try:
+                self._store.claim(task_id, self._owner, lease_seconds=self._lease_seconds)
+            except LockConflict:
+                self._capacity.release_task(task_id)
+                break
+            except Exception:  # noqa: BLE001 - one bad Task must not stop the pump
+                self._capacity.release_task(task_id)
+                break
+            self._running_tasks[task_id] = asyncio.create_task(
+                self._run_claimed_task(task_id)
+            )
+            processed = True
+        if not self._capacity.has_active_slot():
+            self._mark_queued_capacity_waiting()
+        return processed
+
+    def _reap_finished_jobs(self) -> None:
+        for task_id, job in list(self._running_tasks.items()):
+            if not job.done():
+                continue
+            self._running_tasks.pop(task_id, None)
+            try:
+                job.result()
+            except asyncio.CancelledError:
+                pass
+            except Exception as exc:  # noqa: BLE001 - the loop must survive
+                self._safe_error(
+                    task_id, "worker", "internal_error", f"{type(exc).__name__}: {exc}"
+                )
+            self._sync_task_admission(task_id)
+        for run_id, job in list(self._verification_tasks.items()):
+            if not job.done():
+                continue
+            self._verification_tasks.pop(run_id, None)
+            try:
+                job.result()
+            except asyncio.CancelledError:
+                pass
+            except Exception as exc:  # noqa: BLE001 - keep serving other Runs
+                try:
+                    task_id = str(self._store.read("run", run_id).entity.get("task_ref", ""))
+                except EntityNotFound:
+                    task_id = ""
+                if task_id:
+                    self._safe_error(
+                        task_id, "verify", "internal_error", f"{type(exc).__name__}: {exc}",
+                        run_id=run_id,
+                    )
+
+    async def _run_claimed_task(self, task_id: str) -> None:
+        """Open and dispatch one already-admitted, claimed Task."""
+
+        try:
+            task = self._store.read("task", task_id)
+            queue = task.entity.get("queue")
+            # The pump creates this job before it gets its first event-loop
+            # turn. A queued cancel can win that gap without any Run existing;
+            # the late job must not open an orphan Run after confirmed cancel.
+            if (
+                task.entity.get("phase") != TaskPhase.QUEUED.value
+                or not isinstance(queue, dict)
+                or queue.get("state") != "claimed"
+                or queue.get("owner") != self._owner
+            ):
+                return
+            run_id = self._open_run(task)
+            await self._dispatch_run(task, run_id, claimed_event=True)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - report, never fabricate a Run
+            self._safe_error(
+                task_id, "worker", "internal_error", f"{type(exc).__name__}: {exc}"
+            )
+        finally:
+            try:
+                if self._queue_state(task_id) == "claimed":
+                    self._store.release(task_id, self._owner)
+            except LockConflict:
+                pass
+            self._sync_task_admission(task_id)
+
+    def _sync_task_admission(self, task_id: str) -> None:
+        """Release the in-memory active-Task slot only after real stop/park.
+
+        The Store phase is authoritative: terminal/paused/recovery/waiting
+        phases no longer hold execution resources.  A stale/absent Task is also
+        released (it cannot own a live slot forever).
+        """
+
+        if not self._capacity.is_admitted(task_id):
+            return
+        try:
+            phase = str(self._store.read("task", task_id).entity.get("phase", ""))
+        except EntityNotFound:
+            self._capacity.release_task(task_id)
+            return
+        if phase not in ACTIVE_TASK_PHASES:
+            self._capacity.release_task(task_id)
+
+    def _mark_queued_capacity_waiting(self) -> None:
+        for summary in self._store.list_tasks():
+            if summary.phase != TaskPhase.QUEUED.value or summary.queue_state != "queued":
+                continue
+            try:
+                self._queue.set_waiting_reason(summary.id, "active_task_limit")
+            except (AppError, EntityNotFound, LockConflict):
+                continue
+
+    def _schedule_pending_verifications(self) -> None:
+        while self._pending_auto_verify:
+            task_id, run_id = self._pending_auto_verify.pop(0)
+            if run_id in self._verification_tasks:
+                continue
+            try:
+                task = self._store.read("task", task_id).entity
+            except EntityNotFound:
+                continue
+            if (
+                str(task.get("phase")) != TaskPhase.VERIFYING.value
+                or task.get("active_run") != run_id
+            ):
+                continue
+            self._verification_tasks[run_id] = asyncio.create_task(
+                self._auto_verify_with_capacity(task_id, run_id)
+            )
+
+    async def _auto_verify_with_capacity(self, task_id: str, run_id: str) -> None:
+        """Acquire a reviewer/global session slot before the independent review.
+
+        Worker and reviewer share ``max_global_sessions``; the reviewer sub-cap
+        gates only the review phase.  Waiting writes the additive
+        ``run.waiting_reason=reviewer_limit`` and does not fake acceptance.
+        """
+
+        lease = self._capacity.try_acquire_session(
+            task_id, kind="reviewer", run_id=run_id
+        )
+        try:
+            if lease is None:
+                self._set_run_waiting_reason(run_id, "reviewer_limit")
+                lease = await self._capacity.acquire_session(
+                    task_id, kind="reviewer", run_id=run_id
+                )
+            self._set_run_waiting_reason(run_id, None)
+            # A cancel/pause may have stopped the Run while this job waited for
+            # a reviewer slot.  Never review a stale candidate.
+            try:
+                task = self._store.read("task", task_id).entity
+            except EntityNotFound:
+                return
+            if (
+                str(task.get("phase")) != TaskPhase.VERIFYING.value
+                or task.get("active_run") != run_id
+            ):
+                return
+            await self._auto_verify_async(task_id, run_id)
+        finally:
+            self._capacity.release_session(lease)
+            self._verification_tasks.pop(run_id, None)
+            self._sync_task_admission(task_id)
+
+    def _cancel_verification_job(self, run_id: str) -> None:
+        """Drop a verifier that is still waiting after a confirmed stop.
+
+        Cancel/pause already proved the reviewer/worker stopped through the
+        lifecycle/dispatcher.  The waiting verification job would only observe a
+        stale phase; cancelling it releases no slot that is not already gone in
+        its own ``finally``.
+        """
+
+        job = self._verification_tasks.get(run_id)
+        if job is not None and not job.done():
+            job.cancel()
+
+    def _set_run_waiting_reason(self, run_id: str, reason: str | None) -> None:
+        try:
+            current = self._store.read("run", run_id).entity
+        except EntityNotFound:
+            return
+        if current.get("waiting_reason") == reason:
+            return
+        try:
+            self._writer.write_run(run_id, {"waiting_reason": reason})
+        except (AppError, LockConflict):
+            return
+
+    def _safe_error(
+        self,
+        task_id: str,
+        mode: str,
+        code: str,
+        message: str,
+        *,
+        run_id: str | None = None,
+    ) -> None:
+        try:
+            self._writer.emit(
+                task_id,
+                EventType.ERROR_RECORDED,
+                {"mode": mode, "code": code, "message": message},
+                task_ref=task_id,
+                run_ref=run_id,
+            )
+        except Exception:  # noqa: BLE001 - diagnostics must never crash the pump
+            return
+
+    def _schedule_pending_rework(self) -> bool:
+        if not self._pending_rework:
+            return False
+        task_id, findings = self._pending_rework.pop(0)
+        if task_id in self._running_tasks:
+            self._pending_rework.insert(0, (task_id, findings))
+            return False
+        if not self._capacity.admit_task(task_id):
+            self._pending_rework.insert(0, (task_id, findings))
+            return False
+        self._running_tasks[task_id] = asyncio.create_task(
+            self._run_rework_job(task_id, findings)
+        )
+        return True
+
+    async def _run_rework_job(
+        self, task_id: str, findings: tuple[dict[str, Any], ...]
+    ) -> None:
+        try:
+            await self._dispatch_rework_item(task_id, findings)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001 - report, never fabricate a Run
+            self._safe_error(
+                task_id, "rework", "internal_error", f"{type(exc).__name__}: {exc}"
+            )
+        finally:
+            self._sync_task_admission(task_id)
+
     async def _process_one(self) -> bool:
-        # LG-022 D2: drain any pending independent-review step first.  The review
-        # runs off this loop (see ``_auto_verify_async``), so status/control are
-        # still served while it is in flight.
+        """Process one unit synchronously (legacy/direct-driver compatibility).
+
+        The resident ``_run_loop`` uses the concurrent ``_pump_once``; this
+        method remains a deterministic one-shot for existing callers.  It still
+        honours the global active-Task and reviewer caps.
+        """
+
         if self._pending_auto_verify:
             task_id, run_id = self._pending_auto_verify[0]
             self._pending_auto_verify.pop(0)
-            await self._auto_verify_async(task_id, run_id)
+            await self._auto_verify_with_capacity(task_id, run_id)
             return True
-        # LG-017 rework Runs are dispatched directly (the frozen contract allows
-        # ``repairing -> executing``, not ``repairing -> queued``), so they are
-        # drained here *before* the normal queue.  A rework Run still opens a
-        # fresh Run, re-recruits and re-verifies through the same dispatcher.
         if self._pending_rework:
             return await self._process_rework()
         summary = self._queue.next_queued()
         if summary is None:
             return False
         task_id = summary.id
+        if not self._capacity.admit_task(task_id):
+            self._queue.set_waiting_reason(task_id, "active_task_limit")
+            return False
         try:
-            claim = self._store.claim(task_id, self._owner, lease_seconds=self._lease_seconds)
+            self._store.claim(task_id, self._owner, lease_seconds=self._lease_seconds)
         except LockConflict:
+            self._capacity.release_task(task_id)
             return False
         try:
             task = self._store.read("task", task_id)
@@ -1690,6 +2191,7 @@ class Coordinator:
                     self._store.release(task_id, self._owner)
             except LockConflict:
                 pass
+            self._sync_task_admission(task_id)
 
     async def _dispatch_run(
         self,
@@ -1741,32 +2243,36 @@ class Coordinator:
         self._apply_outcome(task_id, run_id, outcome)
 
     async def _process_rework(self) -> bool:
-        """Open and dispatch one queued LG-017 rework Run.
+        """Open and dispatch one queued LG-017 rework Run (one-shot driver)."""
 
-        The Task is already in ``repairing`` (set by the orchestrator).  The
-        only frozen transition out of ``repairing`` is ``executing``; the new
-        Run is opened and dispatched there, re-recruiting a team and re-running
-        verification.  A Task that is no longer spawnable is dropped with an
-        honest error event instead of being retried forever.
-        """
+        if not self._pending_rework:
+            return False
+        task_id, findings = self._pending_rework.pop(0)
+        if not self._capacity.admit_task(task_id):
+            self._pending_rework.insert(0, (task_id, findings))
+            return False
+        try:
+            processed = await self._dispatch_rework_item(task_id, findings)
+        finally:
+            self._sync_task_admission(task_id)
+        return processed
 
-        task_id, findings = self._pending_rework[0]
+    async def _dispatch_rework_item(
+        self, task_id: str, findings: tuple[dict[str, Any], ...]
+    ) -> bool:
+        """Dispatch one already-dequeued rework item (legacy and pump paths)."""
+
         try:
             task = self._store.read("task", task_id)
         except EntityNotFound:
-            self._pending_rework.pop(0)
             return False
         phase = str(task.entity.get("phase", ""))
         if phase != TaskPhase.REPAIRING.value:
-            self._pending_rework.pop(0)
-            self._writer.emit(
+            self._safe_error(
                 task_id,
-                EventType.ERROR_RECORDED,
-                {
-                    "mode": "rework",
-                    "code": "not_ready",
-                    "message": f"rework dropped: task phase is {phase!r}, not repairing",
-                },
+                "rework",
+                "not_ready",
+                f"rework dropped: task phase is {phase!r}, not repairing",
             )
             return True
         try:
@@ -1777,18 +2283,13 @@ class Coordinator:
             task = self._store.read("task", task_id)
             run_id = self._open_run(task, rework=True)
         except Exception as exc:  # noqa: BLE001 - report, never fabricate a Run
-            self._pending_rework.pop(0)
-            self._writer.emit(
+            self._safe_error(
                 task_id,
-                EventType.ERROR_RECORDED,
-                {
-                    "mode": "rework",
-                    "code": "not_ready",
-                    "message": f"could not open rework Run: {type(exc).__name__}: {exc}",
-                },
+                "rework",
+                "not_ready",
+                f"could not open rework Run: {type(exc).__name__}: {exc}",
             )
             return True
-        self._pending_rework.pop(0)
         await self._dispatch_run(task, run_id, claimed_event=False, rework=True)
         return True
 
@@ -2348,7 +2849,7 @@ class Coordinator:
             )
             self._writer.transition_task(task_id, task_phase, run_ref=run_id)
             return
-        run_extra: dict[str, Any] = {}
+        run_extra: dict[str, Any] = {"waiting_reason": None}
         if run_state in {"failed", "cancelled"}:
             run_extra["ended_at"] = _now_iso()
         # LG-022 D3: only a real failure/cancellation may carry ``fail_reason``.

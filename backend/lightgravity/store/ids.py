@@ -13,7 +13,20 @@ import time
 
 _CROCKFORD = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
 
-_RUNTIME_PREFIXES = ("task", "run", "subtask", "member", "conv", "msg", "evt", "notif", "req")
+_RUNTIME_PREFIXES = (
+    "task",
+    "run",
+    "subtask",
+    "member",
+    "conv",
+    "msg",
+    "evt",
+    "notif",
+    "req",
+    # LG-119 additive private-attachment id. It is a client-generated
+    # idempotency key for a Personal-only attachment, not a Task/Run/resource.
+    "att",
+)
 
 _ULID_RE = re.compile(r"^[0-9A-HJKMNP-TV-Z]{26}$")
 _SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,63}$")

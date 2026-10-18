@@ -55,6 +55,7 @@ from lightgravity.contracts import AppError, ErrorCode
 from lightgravity.store import ConfigInvalid, EntityNotFound, Store, Versioned
 from lightgravity.store.locking import connection_reference_lock
 from lightgravity.store.entities import RESOURCE_DIRS
+from lightgravity.runtime.roles.catalog import CAPABILITIES, EXECUTABLE_CAPABILITIES
 
 #: Every kind the catalog can read.  ``connection`` is included for reads and
 #: diagnostics but excluded from the controlled-write path.
@@ -133,6 +134,75 @@ _AGENT_REF_FIELDS: tuple[tuple[str, str], ...] = (
 
 def _availability(state: str, *reasons: str) -> dict[str, Any]:
     return {"state": state, "reasons": [reason for reason in reasons if reason]}
+
+
+def _role_metadata(entity: dict[str, Any]) -> dict[str, Any]:
+    """Additive LG-120 role metadata; never used to grant a tool.
+
+    Unknown frontmatter is preserved by the Store, and unknown capability words
+    are retained in ``declared_capabilities`` for diagnostics but do not enter
+    the controlled scheduler vocabulary.
+    """
+
+    raw_capabilities = entity.get("capabilities")
+    declared = (
+        [str(item) for item in raw_capabilities]
+        if isinstance(raw_capabilities, (list, tuple))
+        else []
+    )
+    capabilities = [item for item in declared if item in CAPABILITIES]
+    agency_source = entity.get("agency_source")
+    seed = entity.get("seed")
+    upstream = entity.get("upstream")
+    summary = ""
+    if isinstance(upstream, dict):
+        summary = str(upstream.get("description") or "")
+    if not summary:
+        summary = str(entity.get("description") or "")
+    declared_recruitable = entity.get("recruitable")
+    return {
+        "role_category": str(
+            entity.get("role_category")
+            or ("agency" if isinstance(agency_source, dict) else "custom")
+        ),
+        "capabilities": capabilities,
+        "declared_capabilities": declared,
+        "agency_source": dict(agency_source) if isinstance(agency_source, dict) else None,
+        "seed": dict(seed) if isinstance(seed, dict) else None,
+        "summary": summary,
+        "unsupported_reasons": [
+            str(item) for item in entity.get("unsupported_reasons") or ()
+        ]
+        if isinstance(entity.get("unsupported_reasons"), (list, tuple))
+        else [],
+        "capability_notes": [
+            str(item) for item in entity.get("capability_notes") or ()
+        ]
+        if isinstance(entity.get("capability_notes"), (list, tuple))
+        else [],
+        "declared_recruitable": (
+            bool(declared_recruitable) if isinstance(declared_recruitable, bool) else None
+        ),
+    }
+
+
+def _effective_recruitable(
+    metadata: dict[str, Any], availability: dict[str, Any]
+) -> bool:
+    """Mapping-level recruitable state, excluding disabled/invalid templates.
+
+    Actual execution still requires the compiled connection/tool refs; the
+    separate ``executable`` field reports that distinct fact.
+    """
+
+    declared = metadata.pop("declared_recruitable")
+    if availability["state"] in ("disabled", "invalid"):
+        return False
+    if declared is None:
+        return availability["state"] == "unknown"
+    if not declared:
+        return False
+    return any(item in EXECUTABLE_CAPABILITIES for item in metadata["capabilities"])
 
 
 class ResourceService:
@@ -466,6 +536,9 @@ class ResourceService:
     def _agent_summary(self, versioned: Versioned) -> dict[str, Any]:
         parsed = self._safe_parse("agent", versioned)
         if parsed["invalid"]:
+            metadata = _role_metadata(dict(versioned.entity))
+            metadata["recruitable"] = False
+            metadata.pop("declared_recruitable", None)
             return {
                 "id": versioned.entity_id,
                 "kind": "agent",
@@ -477,10 +550,13 @@ class ResourceService:
                 "skill_refs": [],
                 "connection_ref": None,
                 "config_hash": None,
+                **metadata,
             }
         assert isinstance(parsed["value"], AgentResource)
         agent = parsed["value"]
         availability = self._compile_availability(versioned.entity_id, agent)
+        metadata = _role_metadata(dict(versioned.entity))
+        metadata["recruitable"] = _effective_recruitable(metadata, availability)
         return {
             "id": versioned.entity_id,
             "kind": "agent",
@@ -500,6 +576,7 @@ class ResourceService:
             "availability": availability,
             "executable": availability["state"] == "unknown",
             "body": versioned.body,
+            **metadata,
         }
 
     def _compile_availability(self, agent_id: str, agent: AgentResource) -> dict[str, Any]:

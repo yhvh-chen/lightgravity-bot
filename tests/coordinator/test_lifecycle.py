@@ -7,6 +7,7 @@ import asyncio
 import pytest
 
 from lightgravity.contracts import AppError, ErrorCode
+from lightgravity.coordinator.capacity import CapacityConfig
 from lightgravity.store import FileStore
 
 from coordinator_helpers import FakeExecutor, make_coordinator, message, wait_for_phase
@@ -15,7 +16,13 @@ from coordinator_helpers import FakeExecutor, make_coordinator, message, wait_fo
 async def test_single_execution_slot(store: FileStore) -> None:
     gate = asyncio.Event()
     executor = FakeExecutor(gate=gate)
-    coordinator = make_coordinator(store, executor)
+    coordinator = make_coordinator(
+        store,
+        executor,
+        # Explicit legacy single-Task admission regression (not a 1/1 global
+        # fallback: global session pool still has capacity for a reviewer).
+        capacity=CapacityConfig(1, 2, 1, 1),
+    )
     coordinator.start()
     try:
         first = coordinator.create_task("req-1", "First", "do first").task_id

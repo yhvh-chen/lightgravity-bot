@@ -57,6 +57,24 @@ locked development closure contains MIT, ISC, Apache-2.0, BSD-family, MIT-0, and
 CC-BY-4.0 entries (for browser data such as `caniuse-lite`); those development
 packages are not distributed in the archive.
 
+## Bundled agency-agents role library
+
+The release archive and Python wheel bundle the complete role library from
+[msitarzewski/agency-agents](https://github.com/msitarzewski/agency-agents) at
+the pinned commit `652b2692f8d8ec2b1f1a38e559073e287dfdc469`.
+
+- License: MIT
+- Copyright: Copyright (c) 2025 AgentLand Contributors
+- Package paths: `lightgravity/runtime/roles/agency/` in the wheel,
+  `backend/lightgravity/runtime/roles/agency/` in the source tree
+- `LICENSE` and `NOTICE.md` are included with the library.
+- `MANIFEST.json` records every adapted role's upstream path, git blob SHA-1,
+  source SHA-256, adapted body SHA-256, capability metadata and license; the
+  original upstream role Markdown files are preserved under `upstream/`.
+- The product does not execute upstream installation/conversion scripts and
+  does not clone the repository at runtime. Role text does not grant tools,
+  network access, credentials, budget, or execution permission.
+
 ## Generated artwork and media
 
 No model weights, embedding models, OCR models, media samples, or third-party

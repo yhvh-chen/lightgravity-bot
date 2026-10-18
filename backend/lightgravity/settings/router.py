@@ -33,6 +33,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from lightgravity.contracts import AppError, ErrorCode
 
+from .embedding_testing import DraftEmbeddingSpec, EmbeddingDraftTester
 from .models import DEFAULT_BASE_URL, DEFAULT_EXECUTABLE_BACKEND, PREFERRED_MODEL
 from .service import ConnectionService
 from .testing import ConnectionTester, DraftConnectionSpec
@@ -150,6 +151,35 @@ class ConnectionDeleteRequest(BaseModel):
     expected_revision: int
 
 
+class EmbeddingUpdateRequest(BaseModel):
+    """LG-117 PUT /settings/embedding (write-only credential)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    expected_revision: int | None = None
+    enabled: bool
+    base_url: str | None = None
+    model: str | None = None
+    credential_action: Literal["keep", "set", "remove"] = "keep"
+    credential_value: str | None = None
+    timeout_seconds: float | None = Field(default=None, gt=0)
+    cold_timeout_seconds: float | None = Field(default=None, gt=0)
+
+
+class EmbeddingDraftTestRequest(BaseModel):
+    """LG-117 POST /settings/embedding/test-draft (never persists)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    base_url: str | None = None
+    model: str | None = None
+    credential_value: str | None = None
+    use_existing_credential: bool = False
+    allow_network: bool = False
+    timeout_seconds: float | None = Field(default=None, gt=0)
+    cold_timeout_seconds: float | None = Field(default=None, gt=0)
+
+
 def _require_loopback_origin(request: Request) -> None:
     """Reject cross-site browser origins on sensitive credential writes."""
 
@@ -206,10 +236,14 @@ def build_settings_router(
     service: ConnectionService,
     *,
     tester: ConnectionTester | None = None,
+    embedding_tester: EmbeddingDraftTester | None = None,
 ) -> APIRouter:
     """Build the settings router; LG-012 mounts it under ``/api/v1``."""
 
     router = APIRouter(tags=["settings"])
+    resolved_embedding_tester = embedding_tester or EmbeddingDraftTester(
+        service.embedding
+    )
 
     @router.get("/settings")
     def get_settings(response: Response) -> dict[str, Any]:
@@ -239,6 +273,41 @@ def build_settings_router(
         )
         _no_store(response)
         _etag(response, int(result["revision"]))
+        return result
+
+    @router.put("/settings/embedding")
+    def update_embedding(
+        payload: EmbeddingUpdateRequest,
+        request: Request,
+        response: Response,
+        x_lg_actor: str | None = Header(default=None),
+    ) -> dict[str, Any]:
+        _require_safe_origin(request)
+        data = payload.model_dump()
+        expected = data.pop("expected_revision")
+        result = service.embedding.update(
+            expected_revision=expected,
+            actor=_actor(x_lg_actor),
+            **data,
+        )
+        # A saved base_url/model/enabled change must not keep serving a vector
+        # service built from the previous configuration.
+        request.app.state.vector_search_service = None
+        _no_store(response)
+        _etag(response, int(result["revision"]))
+        return result
+
+    @router.post("/settings/embedding/test-draft")
+    def test_embedding_draft(
+        payload: EmbeddingDraftTestRequest,
+        request: Request,
+        response: Response,
+    ) -> dict[str, Any]:
+        _require_safe_origin(request)
+        result = resolved_embedding_tester.test_draft(
+            DraftEmbeddingSpec(**payload.model_dump())
+        )
+        _no_store(response)
         return result
 
     @router.get("/settings/connections")
@@ -388,4 +457,6 @@ __all__ = [
     "SettingsUpdateRequest",
     "ConnectionTestRequest",
     "ConnectionDeleteRequest",
+    "EmbeddingUpdateRequest",
+    "EmbeddingDraftTestRequest",
 ]

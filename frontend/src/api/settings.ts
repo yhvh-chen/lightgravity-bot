@@ -59,7 +59,7 @@ export interface ConnectionCapabilities {
 /* ------------------------------------------------------------------ wire types */
 
 export interface CredentialStatus {
-  ref: string
+  ref: string | null
   configured: boolean
   /** `secret_store` | `environment` | null */
   source: string | null
@@ -128,6 +128,78 @@ export interface DefaultDescription {
   references?: ConnectionReferences
 }
 
+/* ------------------------------------------------ LG-117 Embedding purpose */
+
+export interface EmbeddingCacheView {
+  compatible: boolean | null
+  reason: string | null
+  vector_model: string | null
+}
+
+/**
+ * Independent Embedding usage view (docs/08 §19.4). It is never a chat,
+ * coordinator, worker or reviewer default. Credential values are never present.
+ */
+export interface EmbeddingSettingsView {
+  enabled: boolean
+  base_url: string | null
+  model: string | null
+  timeout_seconds: number
+  cold_timeout_seconds: number
+  source: 'settings' | 'environment' | 'none' | string
+  credential: CredentialStatus
+  cache: EmbeddingCacheView
+}
+
+export interface EmbeddingUpdateInput {
+  expected_revision: number
+  enabled: boolean
+  base_url: string | null
+  model: string | null
+  credential_action: CredentialAction
+  /** Write-only; only sent for `credential_action: 'set'`. */
+  credential_value?: string | null
+  timeout_seconds?: number
+  cold_timeout_seconds?: number
+}
+
+export interface EmbeddingUpdateResult extends EmbeddingSettingsView {
+  revision: number
+  content_hash: string
+}
+
+export interface EmbeddingDraftTestInput {
+  base_url: string | null
+  model: string | null
+  credential_value?: string
+  use_existing_credential: boolean
+  /** The frontend Test button is the explicit network opt-in. */
+  allow_network: boolean
+  timeout_seconds?: number
+  cold_timeout_seconds?: number
+}
+
+export interface EmbeddingDraftCheck {
+  name: string
+  status: 'passed' | 'failed' | 'skipped' | string
+  detail: string
+}
+
+/** POST /settings/embedding/test-draft; never saved and never a retrieval claim. */
+export interface EmbeddingDraftTestResult {
+  draft: true
+  overall: 'verified' | 'partial' | 'failed' | 'not_run' | string
+  requested_model: string | null
+  reported_model: string | null
+  dim: number | null
+  latency_seconds: number | null
+  finished_at: string
+  credential_source: 'secret_store' | 'environment' | 'none' | string
+  checks: EmbeddingDraftCheck[]
+  error: { code?: string; message: string } | null
+  cache_impact: 'none' | 'rebuild_required' | string
+}
+
 export interface GlobalSettingsView {
   revision: number
   exists: boolean
@@ -146,6 +218,11 @@ export interface GlobalSettingsView {
     worker: DefaultDescription | null
     reviewer: DefaultDescription | null
   }
+  /**
+   * LG-117 additive view. Optional so an older backend (or an older test fake)
+   * is shown as unavailable rather than guessed from a 404.
+   */
+  embedding?: EmbeddingSettingsView | null
 }
 
 export interface TestLayer {
@@ -300,6 +377,16 @@ export interface SettingsApi {
     input: DraftConnectionTestInput,
     signal?: AbortSignal,
   ): Promise<DraftConnectionTestResult>
+  /** LG-117: save the independent Embedding settings (separate from defaults). */
+  updateEmbedding(
+    input: EmbeddingUpdateInput,
+    signal?: AbortSignal,
+  ): Promise<EmbeddingUpdateResult>
+  /** LG-117: draft Embedding test; never persists and only networks on request. */
+  testDraftEmbedding(
+    input: EmbeddingDraftTestInput,
+    signal?: AbortSignal,
+  ): Promise<EmbeddingDraftTestResult>
   /** Delete a saved Connection; the server must reject referenced/default rows. */
   deleteConnection(
     id: string,
@@ -442,6 +529,24 @@ export function createSettingsApi(
           signal,
         },
       )
+    },
+
+    updateEmbedding(input, signal) {
+      return apiRequest<EmbeddingUpdateResult>('/settings/embedding', {
+        method: 'PUT',
+        headers: headers(token(), true),
+        body: JSON.stringify(input),
+        signal,
+      })
+    },
+
+    testDraftEmbedding(input, signal) {
+      return apiRequest<EmbeddingDraftTestResult>('/settings/embedding/test-draft', {
+        method: 'POST',
+        headers: headers(token(), true),
+        body: JSON.stringify(input),
+        signal,
+      })
     },
 
     async deleteConnection(id, expectedRevision, signal) {
