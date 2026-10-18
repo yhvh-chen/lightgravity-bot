@@ -613,47 +613,10 @@ export function FilesMaterialsPanel({
                   {selected.title ?? selected.source_id}
                 </span>
                 <StatusBadge kind="neutral">{selected.status}</StatusBadge>
-                <StatusBadge kind="neutral">rev {selected.revision}</StatusBadge>
                 {selected.origin.kind === 'link' && !selected.origin.fetched ? (
                   <StatusBadge kind="warning">link_only — not text</StatusBadge>
                 ) : null}
               </div>
-
-              <dl className="lg-files-materials__facts">
-                <div>
-                  <dt>Source</dt>
-                  <dd className="lg-card__path">{selected.source_id}</dd>
-                </div>
-                <div>
-                  <dt>Version / hash</dt>
-                  <dd className="lg-card__path">
-                    v{selected.source_version}
-                    {selected.content_hash ? ` · #${selected.content_hash.slice(0, 16)}` : ''}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Index</dt>
-                  <dd>
-                    lexical: {selected.index?.lexical ?? 'n/a'}
-                    {selected.index?.vector && selected.index.vector !== 'disabled'
-                      ? ` · vector: ${selected.index.vector}`
-                      : ' · vector: disabled'}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Scope</dt>
-                  <dd>{selected.scope.task_ref ?? selected.scope.inbox_ref ?? 'global'}</dd>
-                </div>
-                <div>
-                  <dt>Intake</dt>
-                  <dd>
-                    {selected.intake_mode ?? 'sync'}
-                    {mediaDirectEmbedding && receipt && isSourceReceiptV2(receipt)
-                      ? mediaKindLabel(receipt)
-                      : ''}
-                  </dd>
-                </div>
-              </dl>
 
               {materialIntakeV2 ? (
                 <section className="lg-files-materials__receipt" aria-label="Intake receipt">
@@ -756,31 +719,14 @@ export function FilesMaterialsPanel({
               {content ? (
                 <>
                   <p className="lg-files__note">
-                    Showing <strong>{content.kind}</strong> content
-                    {content.formal_present ? ' (human formal version present)' : ''}.
-                    {content.kind === 'machine'
-                      ? ' Editing below creates/updates the human formal version without touching the machine derivative.'
-                      : ''}
+                    <strong>{content.kind === 'machine'
+                      ? originalMediaType(selected).startsWith('audio/') ? 'Machine transcription' : 'Machine text'
+                      : 'Human formal version'}</strong>
+                    {content.kind === 'machine' ? ' · machine-derived, not human-corrected' : ''}
                   </p>
-                  {content.kind === 'machine' && machineEvidence ? (
-                    <MachineTranscriptMeta
-                      source={selected}
-                      branch={receiptText}
-                      derivative={transcriptDerivative}
-                    />
-                  ) : null}
                   <div className="lg-files__preview-body">
-                    <MarkdownViewer content={content.content} />
+                    <MarkdownViewer content={materialBody(content.content)} />
                   </div>
-                  <label className="lg-files-materials__editor">
-                    <span className="lg-files__note">Correct formal version (Markdown)</span>
-                    <textarea
-                      className="lg-input lg-files-materials__textarea"
-                      value={draft}
-                      onChange={(event) => setDraft(event.target.value)}
-                      aria-label="Formal version content"
-                    />
-                  </label>
                 </>
               ) : null}
 
@@ -822,7 +768,7 @@ export function FilesMaterialsPanel({
                   ) : null}
                   {machineStatus === 'ready' && machineContent ? (
                     <div className="lg-files__preview-body">
-                      <MarkdownViewer content={machineContent.content} />
+                      <MarkdownViewer content={materialBody(machineContent.content)} />
                     </div>
                   ) : null}
                   {machineStatus === 'unavailable' ? (
@@ -842,81 +788,140 @@ export function FilesMaterialsPanel({
                       retryable={machineError.retryable}
                     />
                   ) : null}
-                  <MachineTranscriptMeta
-                    source={selected}
-                    branch={receiptText}
-                    derivative={transcriptDerivative}
-                  />
                 </section>
               ) : null}
 
-              <div className="lg-files-materials__actions">
-                <button
-                  type="button"
-                  className="lg-button lg-button--primary"
-                  onClick={() => void saveFormal()}
-                  disabled={!content}
-                >
-                  Save correction
-                </button>
-                <button
-                  type="button"
-                  className="lg-button"
-                  onClick={() => void toggleArchive()}
-                >
-                  {selected.archived ? 'Unarchive' : 'Archive'}
-                </button>
-                <button type="button" className="lg-button" onClick={() => void reprocess()}>
-                  Reprocess (OCR)
-                </button>
-                {materialIntakeV2 && receipt && intakeJobId(receipt) ? (
-                  <>
-                    {job && jobViewIsRunning(job) ? (
-                      <button
-                        type="button"
-                        className="lg-button"
-                        onClick={() => void cancelIntake()}
-                        disabled={controlPending || Boolean(job.cancel?.requested)}
-                      >
-                        {controlPending || job.cancel?.requested
-                          ? 'Cancellation requested…'
-                          : 'Cancel intake'}
-                      </button>
+              <p className="lg-files__note">
+                Source:{' '}
+                <a href={`?${new URLSearchParams({ view: 'tasks', item: `source:${selected.source_id}`, ...(taskRef ? { task: taskRef } : {}) })}`}>
+                  {selected.title ?? selected.source_id}
+                </a>
+              </p>
+              <button type="button" className="lg-button" onClick={() => void download('original')}>
+                Download original
+              </button>
+              <details key={selected.source_id} className="lg-disclosure" aria-label="Advanced details">
+                <summary className="lg-disclosure__summary">Advanced details</summary>
+                <div className="lg-disclosure__body">
+                  <dl className="lg-files-materials__facts">
+                    <div>
+                      <dt>Source</dt>
+                      <dd className="lg-card__path">{selected.source_id}</dd>
+                    </div>
+                    <div>
+                      <dt>Revision / version / hash</dt>
+                      <dd className="lg-card__path">
+                        rev {selected.revision} · v{selected.source_version}
+                        {selected.content_hash ? ` · #${selected.content_hash.slice(0, 16)}` : ''}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Index</dt>
+                      <dd>
+                        lexical: {selected.index?.lexical ?? 'n/a'}
+                        {selected.index?.vector && selected.index.vector !== 'disabled'
+                          ? ` · vector: ${selected.index.vector}`
+                          : ' · vector: disabled'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Scope</dt>
+                      <dd>{selected.scope.task_ref ?? selected.scope.inbox_ref ?? 'global'}</dd>
+                    </div>
+                    <div>
+                      <dt>Intake</dt>
+                      <dd>
+                        {selected.intake_mode ?? 'sync'}
+                        {mediaDirectEmbedding && receipt && isSourceReceiptV2(receipt)
+                          ? mediaKindLabel(receipt)
+                          : ''}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  {content ? (
+                    <>
+                      <h3 className="lg-files__section-title">Raw content and frontmatter</h3>
+                      <pre className="lg-files__code">{content.content}</pre>
+                      {machineContent ? <pre className="lg-files__code">{machineContent.content}</pre> : null}
+                      <label className="lg-files-materials__editor">
+                        <span className="lg-files__note">Correct formal version (Markdown)</span>
+                        <textarea className="lg-input lg-files-materials__textarea" value={draft}
+                          onChange={(event) => setDraft(event.target.value)} aria-label="Formal version content" />
+                      </label>
+                      <p className="lg-files__note">Saving a correction updates the human formal version and preserves the machine derivative.</p>
+                    </>
+                  ) : null}
+                  {machineEvidence ? <MachineTranscriptMeta source={selected} branch={receiptText} derivative={transcriptDerivative} /> : null}
+                  <div className="lg-files-materials__actions">
+                    <button
+                      type="button"
+                      className="lg-button lg-button--primary"
+                      onClick={() => void saveFormal()}
+                      disabled={!content}
+                    >
+                      Save correction
+                    </button>
+                    <button
+                      type="button"
+                      className="lg-button"
+                      onClick={() => void toggleArchive()}
+                    >
+                      {selected.archived ? 'Unarchive' : 'Archive'}
+                    </button>
+                    <button type="button" className="lg-button" onClick={() => void reprocess()}>
+                      Reprocess (OCR)
+                    </button>
+                    {materialIntakeV2 && receipt && intakeJobId(receipt) ? (
+                      <>
+                        {job && jobViewIsRunning(job) ? (
+                          <button
+                            type="button"
+                            className="lg-button"
+                            onClick={() => void cancelIntake()}
+                            disabled={controlPending || Boolean(job.cancel?.requested)}
+                          >
+                            {controlPending || job.cancel?.requested
+                              ? 'Cancellation requested…'
+                              : 'Cancel intake'}
+                          </button>
+                        ) : null}
+                        {job && (job.status === 'failed' || job.status === 'partial') ? (
+                          <button
+                            type="button"
+                            className="lg-button"
+                            onClick={() => void retryIntake()}
+                            disabled={controlPending}
+                          >
+                            Retry intake
+                          </button>
+                        ) : null}
+                      </>
                     ) : null}
-                    {job && (job.status === 'failed' || job.status === 'partial') ? (
-                      <button
-                        type="button"
-                        className="lg-button"
-                        onClick={() => void retryIntake()}
-                        disabled={controlPending}
-                      >
-                        Retry intake
-                      </button>
-                    ) : null}
-                  </>
-                ) : null}
-                <button
-                  type="button"
-                  className="lg-button"
-                  onClick={() => void download('original')}
-                >
-                  Download original
-                </button>
-                <button
-                  type="button"
-                  className="lg-button"
-                  onClick={() => void download('formal')}
-                  disabled={!selected.formal?.path}
-                >
-                  Download formal
-                </button>
-              </div>
+                    <button
+                      type="button"
+                      className="lg-button"
+                      onClick={() => void download('formal')}
+                      disabled={!selected.formal?.path}
+                    >
+                      Download formal
+                    </button>
+                  </div>
+                </div>
+              </details>
             </>
           )}
         </div>
       </div>
     </section>
   )
+}
+
+/** Display-only frontmatter separation; raw bytes and correction drafts stay intact. */
+function materialBody(content: string): string {
+  const header = /^(?:\uFEFF)?---\r?\n([\s\S]*?)\r?\n(?:---|\.\.\.)(?:\r?\n|$)/.exec(content)
+  return header && /(?:^|\n)[A-Za-z_][\w-]*:/.test(header[1])
+    ? content.slice(header[0].length) : content
 }
 
 function intakeJobId(receipt: SourceReceipt): string | null {

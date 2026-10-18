@@ -13,7 +13,7 @@
  * * search hits carry source/version/hash and can be opened.
  */
 
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ApiError } from '../src/api/client'
@@ -359,6 +359,7 @@ describe('FilesMaterialsPanel', () => {
     render(<FilesMaterialsPanel api={api} taskRef={null} />)
     fireEvent.click(await screen.findByText('notes.md'))
     await screen.findAllByText(/extracted body/)
+    fireEvent.click(screen.getByText('Advanced details', { selector: 'summary' }))
     fireEvent.click(screen.getByText('Save correction'))
     await screen.findByText(/Conflict: the formal version changed/)
     expect(editFormal).toHaveBeenCalledWith(
@@ -462,4 +463,30 @@ describe('sources client search query shape', () => {
     vi.unstubAllGlobals()
     await waitFor(() => expect(fetchSpy).toHaveBeenCalled())
   })
+})
+
+
+it('opens readable machine content first and keeps raw bytes/correction behind accessible details', async () => {
+  const raw = '---\nschema: lightgravity.machine/v1\nextractor: lg035-ocr\ninput_sha256: source-hash\n---\n# Meeting notes\nReadable extracted text.'
+  const api = makeApi({ getContent: vi.fn(async () => ({ source_id: 'source_01J', kind: 'machine',
+    path: 'derivative/machine.v1.md', media_type: 'text/markdown', content: raw, formal_present: false })) })
+  render(<FilesMaterialsPanel api={api} taskRef={null} />)
+  fireEvent.click(await screen.findByText('notes.md'))
+  expect(await screen.findByRole('heading', { name: 'Meeting notes' })).toBeVisible()
+  expect(screen.getByText('Machine text')).toBeVisible()
+  expect(screen.getByRole('textbox', { name: 'Formal version content' })).not.toBeVisible()
+  expect(screen.getByRole('link', { name: 'notes.md' }).getAttribute('href')).toContain('source%3Asource_01J')
+  const summary = screen.getByText('Advanced details', { selector: 'summary' })
+  const details = summary.closest('details')!
+  expect(details.open).toBe(false)
+  summary.focus()
+  expect(summary).toHaveFocus()
+  fireEvent.click(summary)
+  expect(details.open).toBe(true)
+  expect(within(details).getByRole('textbox', { name: 'Formal version content' })).toHaveValue(raw)
+  expect(within(details).getByText(/input_sha256: source-hash/, { selector: 'pre' })).toBeVisible()
+  expect(api.editFormal).not.toHaveBeenCalled()
+  fireEvent.change(screen.getByRole('textbox', { name: 'Formal version content' }), { target: { value: '# corrected' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Save correction' }))
+  await waitFor(() => expect(api.editFormal).toHaveBeenCalledWith('source_01J', expect.objectContaining({ expected_revision: 1 })))
 })
