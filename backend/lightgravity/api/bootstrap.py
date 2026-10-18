@@ -275,7 +275,7 @@ def _dialogue_responder(
 
 
 def _wire_independent_reviewer(
-    app: FastAPI, connections: ConnectionService, log: LogSink
+    app: FastAPI, connections: ConnectionService, log: LogSink, *, strict: bool = False
 ) -> dict[str, Any]:
     """Assemble the LG-017 reviewer from the *reviewer* default connection.
 
@@ -293,6 +293,8 @@ def _wire_independent_reviewer(
     try:
         pinned = connections.resolve_default(ROLE_REVIEWER)
     except Exception as exc:  # noqa: BLE001 - startup must never crash here
+        if strict:
+            raise
         log(f"reviewer not wired: {type(exc).__name__}: {exc}")
         return {"reviewer": "unavailable", "reason": f"{type(exc).__name__}: {exc}"}
     support = resolve_reviewer_support(
@@ -304,6 +306,9 @@ def _wire_independent_reviewer(
         ),
     )
     if support is None:
+        if strict and pinned is not None:
+            raise ValueError("reviewer default has no supported runtime configuration")
+        coordinator.set_rework(None)
         log(
             "reviewer not wired: no default reviewer connection configured; "
             "candidates will report an honest 'review unavailable' instead of a "
@@ -682,6 +687,25 @@ def build_runtime(options: StartupOptions) -> RuntimeState:
 
     agents = _enabled_agents(store, settings.data_dir)
     reviewer_status = _wire_independent_reviewer(app, connections, log)
+
+    def apply_runtime_defaults(changed: set[str]) -> bool:
+        # The router serializes this with settings writes. Active objects stay
+        # pinned; only defaults for subsequent dialogue and Runs are replaced.
+        applied = True
+        if "default_coordinator_connection_ref" in changed:
+            pinned = connections.resolve_default(ROLE_COORDINATOR)
+            responder = _dialogue_responder(connections, log)
+            if pinned is not None and responder is None:
+                applied = False
+            else:
+                app.state.coordinator.set_responder(responder)
+        if "default_reviewer_connection_ref" in changed:
+            status = _wire_independent_reviewer(app, connections, log, strict=True)
+            reviewer_status.clear()
+            reviewer_status.update(status)
+        return applied
+
+    app.state.apply_runtime_defaults = apply_runtime_defaults
     state = RuntimeState(
         app=app,
         settings=settings,

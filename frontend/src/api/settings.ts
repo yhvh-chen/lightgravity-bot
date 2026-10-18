@@ -202,6 +202,8 @@ export interface EmbeddingDraftTestResult {
 }
 
 export interface GlobalSettingsView {
+  runtime_applied?: boolean
+  runtime_message?: string
   revision: number
   exists: boolean
   content_hash: string

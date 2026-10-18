@@ -1,0 +1,5 @@
+# Public contract handoff to pi
+
+PATCH /api/v1/settings, when coordinator/reviewer default fields are supplied, adds optional runtime_applied:boolean and runtime_message:string (message present on false). Settings persistence success remains HTTP 200; false means saved but runtime not fully applied, restart required. true means runtime assembly succeeded; it does not establish credentials, network availability, or model execution. Other settings requests keep their existing response shape. Older clients ignore the fields; older servers trigger a conservative frontend restart notice.
+
+Coordinator defaults apply to subsequent dialogue calls; reviewer defaults apply to new Runs. Existing Runs keep their reviewer object/connection support, including active reviews. Clearing defaults makes subsequent work honestly unavailable. No review-only retry, automatic replay, model validation, or live Member hot-swap was added. Register in the shared contract/appropriate docs during pi serial integration.
