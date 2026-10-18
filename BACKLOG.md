@@ -21,9 +21,13 @@ updated: "2026-10-18"
 
 - [LG-248 Demo录制前修复批次](backlog/tasks/LG-248.md)（聚合门）
 - 后端：[LG-240](backlog/tasks/LG-240.md) · [LG-241](backlog/tasks/LG-241.md) · [LG-244](backlog/tasks/LG-244.md) · [LG-246](backlog/tasks/LG-246.md) · [LG-224](backlog/tasks/LG-224.md) · [LG-249 Task对话仅@bot](backlog/tasks/LG-249.md) · [LG-250 英文文案](backlog/tasks/LG-250.md)
-- 前端：LG-240前端 · [LG-242](backlog/tasks/LG-242.md) · [LG-243](backlog/tasks/LG-243.md)＋[LG-216](backlog/tasks/LG-216.md) · [LG-245](backlog/tasks/LG-245.md) · LG-250前端
+- 前端：LG-240前端 · [LG-261 View material折叠内部字段](backlog/tasks/LG-261.md) · [LG-242](backlog/tasks/LG-242.md) · [LG-243](backlog/tasks/LG-243.md)＋[LG-216](backlog/tasks/LG-216.md) · [LG-245](backlog/tasks/LG-245.md) · LG-250前端
 - 性能：[LG-208](backlog/tasks/LG-208.md)
 - [LG-251 串行集成](backlog/tasks/LG-251.md) → [LG-252 重跑摸底/录制前验收](backlog/tasks/LG-252.md)
+- 2026-10-19调整（开发不再录屏）：LG-254/257搁置，[LG-252](backlog/tasks/LG-252.md)收窄为无录像功能验收，[LG-263](backlog/tasks/LG-263.md)接通Reviewer，[LG-217](backlog/tasks/LG-217.md)默认连接热接线，[LG-264 Team Recruited折叠内部ID](backlog/tasks/LG-264.md)；排期见[docs/06 §11.1](docs/06-roadmap.md)
+- 录制：[LG-266 产品镜头批量录制（原型版）](backlog/tasks/LG-266.md)（pi进行中；旁白已生成于content/demo/voice，12段共120.8s）
+- 旁白：[LG-262 CosyVoice3克隆音色合成英文旁白](backlog/tasks/LG-262.md)（待参考片段逐字稿）
+- 早期素材：[LG-255 录制3b图片OCR与3d搜索](backlog/tasks/LG-255.md)（pi进行中，先行积累，冻结候选上界面未变才可入成片）
 
 ## 英文UX闭环修复（2026-10-18，仅建任务）
 
