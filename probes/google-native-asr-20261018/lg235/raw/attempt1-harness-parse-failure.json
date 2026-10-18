@@ -1,0 +1,76 @@
+{
+  "probe": "LG-235 google native audio",
+  "official_sources": [
+    "https://ai.google.dev/gemini-api/docs/audio",
+    "https://ai.google.dev/gemini-api/docs/generate-content/audio",
+    "https://ai.google.dev/gemini-api/docs/transcribe"
+  ],
+  "endpoint_host": "generativelanguage.googleapis.com",
+  "endpoint_path": "/v1beta/interactions",
+  "model": "gemini-3.8-flash",
+  "prompt": "Transcribe the speech in this audio verbatim. Return only the plain transcription text, with no commentary, labels, or formatting.",
+  "requests": [
+    {
+      "kind": "model_metadata",
+      "status": 200,
+      "latency_seconds": 0.335,
+      "sanitized_body": "{\n  \"name\": \"models/gemini-3.8-flash\",\n  \"version\": \"3.0\",\n  \"displayName\": \"Gemini 3.8 Flash\",\n  \"description\": \"Gemini 3.8 Flash\",\n  \"inputTokenLimit\": 1048576,\n  \"outputTokenLimit\": 65536,\n  \"supportedGenerationMethods\": [\n    \"generateContent\",\n    \"countTokens\",\n    \"createCachedContent\",\n    \"batchGenerateContent\"\n  ],\n  \"temperature\": 1,\n  \"topP\": 0.95,\n  \"topK\": 64,\n  \"maxTemperature\": 2,\n  \"thinking\": true\n}\n"
+    },
+    {
+      "kind": "transcription",
+      "clip": "H1",
+      "audio_path": "probes/english-asr-20261018/lg163/artifacts/tts/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+      "audio_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+      "audio_bytes": 333332,
+      "mime_type": "audio/wav",
+      "status": 200,
+      "latency_seconds": 6.078,
+      "usage": {
+        "total_tokens": 320,
+        "total_input_tokens": 287,
+        "input_tokens_by_modality": [
+          {
+            "modality": "audio",
+            "tokens": 261
+          },
+          {
+            "modality": "text",
+            "tokens": 26
+          }
+        ],
+        "total_cached_tokens": 0,
+        "total_output_tokens": 33,
+        "total_tool_use_tokens": 0,
+        "total_thought_tokens": 0
+      },
+      "text": null,
+      "top_level_keys": [
+        "created",
+        "id",
+        "model",
+        "object",
+        "service_tier",
+        "status",
+        "steps",
+        "updated",
+        "usage"
+      ],
+      "sanitized_body": "{\"id\":\"v1_ChdaWnpVYXRMc0VJU1d2cjBQaFlPUndRURIXWlp6VWF0THNFSVNXdnIwUGhZT1J3UVE\",\"status\":\"completed\",\"usage\":{\"total_tokens\":320,\"total_input_tokens\":287,\"input_tokens_by_modality\":[{\"modality\":\"audio\",\"tokens\":261},{\"modality\":\"text\",\"tokens\":26}],\"total_cached_tokens\":0,\"total_output_tokens\":33,\"total_tool_use_tokens\":0,\"total_thought_tokens\":0},\"created\":\"2026-10-18T10:16:07Z\",\"updated\":\"2026-10-18T10:16:07Z\",\"service_tier\":\"standard\",\"steps\":[{\"signature\":\"EmkKZwFpFH0Tsfx0dG5b0193WGEgnWCLM6twqq2fgTS552vrpkmD98d6E0r77Ml7DLhdbINAiVYUnaYchRZZZDlNTR1rhQ5pCGaBQM7QoplhIJSJV5hUBINdOP5j9LPmncy6PDTk3h2EUio=\",\"type\":\"thought\"},{\"content\":[{\"text\":\"On April 9th 2027 the North Harbor market opens at 6:45 and the ferry to Cedar Island carries 38 passengers.\",\"type\":\"text\"}],\"type\":\"model_output\"}],\"object\":\"interaction\",\"model\":\"gemini-3.8-flash\"}"
+    }
+  ],
+  "stop_reason": "H1_protocol_or_status_failure",
+  "model_metadata": {
+    "name": "models/gemini-3.8-flash",
+    "displayName": "Gemini 3.8 Flash",
+    "description": "Gemini 3.8 Flash",
+    "supportedGenerationMethods": [
+      "generateContent",
+      "countTokens",
+      "createCachedContent",
+      "batchGenerateContent"
+    ],
+    "inputTokenLimit": 1048576,
+    "outputTokenLimit": 65536,
+    "version": "3.0"
+  }
+}

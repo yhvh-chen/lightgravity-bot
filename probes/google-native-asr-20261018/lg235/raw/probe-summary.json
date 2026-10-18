@@ -1,0 +1,188 @@
+{
+  "probe": "LG-235 google native audio (gemini-3.8-flash, /v1beta/interactions, inline base64)",
+  "access_date": "2026-10-18",
+  "official_sources": [
+    "https://ai.google.dev/gemini-api/docs/audio",
+    "https://ai.google.dev/gemini-api/docs/generate-content/audio",
+    "https://ai.google.dev/gemini-api/docs/transcribe"
+  ],
+  "model": "gemini-3.8-flash",
+  "model_metadata": {
+    "name": "models/gemini-3.8-flash",
+    "displayName": "Gemini 3.8 Flash",
+    "description": "Gemini 3.8 Flash",
+    "supportedGenerationMethods": [
+      "generateContent",
+      "countTokens",
+      "createCachedContent",
+      "batchGenerateContent"
+    ],
+    "inputTokenLimit": 1048576,
+    "outputTokenLimit": 65536,
+    "version": "3.0"
+  },
+  "endpoint_host": "generativelanguage.googleapis.com",
+  "endpoint_path": "/v1beta/interactions",
+  "prompt": "Transcribe the speech in this audio verbatim. Return only the plain transcription text, with no commentary, labels, or formatting.",
+  "inference_requests": [
+    {
+      "kind": "transcription",
+      "clip": "H1",
+      "audio_path": "probes/english-asr-20261018/lg163/artifacts/tts/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+      "audio_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+      "audio_bytes": 333332,
+      "mime_type": "audio/wav",
+      "status": 200,
+      "latency_seconds": 6.078,
+      "usage": {
+        "total_tokens": 320,
+        "total_input_tokens": 287,
+        "input_tokens_by_modality": [
+          {
+            "modality": "audio",
+            "tokens": 261
+          },
+          {
+            "modality": "text",
+            "tokens": 26
+          }
+        ],
+        "total_cached_tokens": 0,
+        "total_output_tokens": 33,
+        "total_tool_use_tokens": 0,
+        "total_thought_tokens": 0
+      },
+      "text": "On April 9th 2027 the North Harbor market opens at 6:45 and the ferry to Cedar Island carries 38 passengers.",
+      "reused_existing_response": "h1-response.json",
+      "top_level_keys": [
+        "created",
+        "id",
+        "model",
+        "object",
+        "service_tier",
+        "status",
+        "steps",
+        "updated",
+        "usage"
+      ]
+    },
+    {
+      "kind": "transcription",
+      "clip": "H2",
+      "audio_path": "probes/english-asr-20261018/lg163/artifacts/tts/qa-h2-clinic.piper-ljspeech-high.16k.wav",
+      "audio_sha256": "b590b0ccb2df0cdf29012d79840ab7077c644190533d70d3cc0eecddde6702e6",
+      "audio_bytes": 312526,
+      "mime_type": "audio/wav",
+      "status": 200,
+      "latency_seconds": 7.221,
+      "usage": {
+        "total_tokens": 392,
+        "total_input_tokens": 271,
+        "input_tokens_by_modality": [
+          {
+            "modality": "audio",
+            "tokens": 245
+          },
+          {
+            "modality": "text",
+            "tokens": 26
+          }
+        ],
+        "total_cached_tokens": 0,
+        "total_output_tokens": 34,
+        "total_tool_use_tokens": 0,
+        "total_thought_tokens": 87
+      },
+      "text": "thought\nDr. Lina Ortiz will visit the Eastside clinic on November 12th to review 29 patient files and collect 17 samples before noon.",
+      "top_level_keys": [
+        "created",
+        "id",
+        "model",
+        "object",
+        "service_tier",
+        "status",
+        "steps",
+        "updated",
+        "usage"
+      ],
+      "sanitized_body": null
+    }
+  ],
+  "no_third_inference": true,
+  "stop_reason": null,
+  "harness_note": "First H1 POST returned HTTP 200 but the first parser did not read steps[type=model_output]; no extra H1 request was made. The saved response was parsed and only H2 was then requested once. The first sanitized record is preserved in attempt1-harness-parse-failure.json.",
+  "quality": {
+    "H1": {
+      "reference_normalized": "on april ninth twenty twenty seven the north harbor market opens at six forty five and the ferry to cedar island carries thirty eight passengers",
+      "hypothesis_normalized": "on april 9th twenty twenty seven the north harbor market opens at six forty five and the ferry to cedar island carries thirty eight passengers",
+      "distance": 1,
+      "substitutions": 1,
+      "deletions": 0,
+      "insertions": 0,
+      "wer": 0.04,
+      "key_facts_present": 5,
+      "key_facts_total": 6,
+      "nonempty": true,
+      "ascii_english": true
+    },
+    "H2": {
+      "reference_normalized": "doctor lena ortiz will visit the eastside clinic on november twelfth to review twenty nine patient files and collect seventeen samples before noon",
+      "hypothesis_normalized": "thought dr lina ortiz will visit the eastside clinic on november 12th to review twenty nine patient files and collect seventeen samples before noon",
+      "distance": 4,
+      "substitutions": 3,
+      "deletions": 0,
+      "insertions": 1,
+      "wer": 0.17391,
+      "key_facts_present": 3,
+      "key_facts_total": 5,
+      "nonempty": true,
+      "ascii_english": true
+    }
+  },
+  "reader_comparison": {
+    "same_audio_and_existing_normalizer": true,
+    "reader_H1": {
+      "wer": 0.08,
+      "key_facts_present": 5,
+      "key_facts_total": 6,
+      "missing": [
+        "Cedar Island"
+      ],
+      "source": "probes/english-asr-20261018/lg163/REPORT.md"
+    },
+    "reader_H2": {
+      "wer": 0.21739,
+      "key_facts_present": 3,
+      "key_facts_total": 5,
+      "missing": [
+        "Lena Ortiz",
+        "Eastside Clinic"
+      ],
+      "source": "probes/english-asr-20261018/lg163/REPORT.md"
+    },
+    "google_H1": {
+      "wer": 0.04,
+      "key_facts_present": 5,
+      "key_facts_total": 6,
+      "missing": [
+        "April ninth"
+      ]
+    },
+    "google_H2": {
+      "wer": 0.17391,
+      "key_facts_present": 3,
+      "key_facts_total": 5,
+      "missing": [
+        "Lena Ortiz",
+        "November twelfth"
+      ]
+    },
+    "note": "Old Reader FAILED labels are preserved and not rewritten. Google H1/H2 are a separate scoped prototype, not a quality-gate pass. Existing normalizer does not convert ordinals such as 9th/12th; H1 April ninth and H2 November twelfth are therefore missing as surface forms although the numbers were recognized. H2 raw output also contains a literal leading thought line and Lina for Lena."
+  },
+  "limitations": [
+    "Synthetic Piper TTS audio only; nominal truth is the TTS input, not human transcript.",
+    "Two short English clips; no human/accented/noisy/Chinese/multilingual/long-audio quality claim.",
+    "Dedicated gemini-3.5-transcribe was not called or assumed enabled.",
+    "No Files API, no SDK, no retry, no model fallback, no product deployment."
+  ]
+}
