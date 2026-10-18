@@ -1,162 +1,154 @@
 ---
-title: "左侧导航、Team 与 Resources 视图设计"
+title: "左侧导航、任务入口与资源视图设计"
 doc_type: design
 category: frontend
-updated: "2026-10-17"
+updated: "2026-10-18"
 ---
 
-# 左侧导航、Team 与 Resources 视图设计
+# 左侧导航、任务入口与资源视图设计
 
-> 日期：2026-10-14。阶段：设计。用户要求主要入口采用 Olav OS 风格的左侧导航，取代上方一级 tab。当前仓库没有已实现网页，本次确定布局与交互契约。
+> 2026-10-16 用户七项反馈取代旧四栏布局。LG-051 已完成技术交付：候选 602c7af 独立 QA PASS_WITH_LIMITATIONS，主目录 ea6da80 产品树一致，实际入口另有 30 项检查通过。当前实施与证据见 [LG-051](../backlog/tasks/LG-051.md) 和 [PROJECT](../PROJECT.md)。
 
-## 1. 布局依据与范围
+## 1. 布局与范围
 
-参考 Olav OS 的固定窄图标栏、资源栏、主内容区和 Agent 对话栏。保留 LightGravity Bot 的单用户、Task 主入口和临时团队设计，不引入组织、岗位和长期员工系统。
+> **2026-10-18 用户决策（LG-202～205 已集成于隔离候选，待 LG-207 独立版本/浏览器 QA）**：删除 Chat 主页面，Files 更名 Tasks；右侧 Bot Chat 是唯一对话界面并绑定当前 Task。下方示意图与 §2～4 已按此更新，旧 Chat 主区描述作废。实现证据见 [LG-206 交付](../../probes/demo-tasks-20261018/lg206/DELIVERY.md)，生产 8123 仍为 1.20.0、尚未部署本候选。决策记录见 PROJECT.md。
 
-参考：[Olav OS 四栏反馈](../../olav-os/ideas/ce/20260926-workbench-four-pane-and-global-chat-feedback.md)、[左侧导航 renderer](../../olav-os/experiments/t-37-human-ai-swarm-skeleton/navigation-defaults/renderers/left-sidebar/renderer.css)。参考的是布局与交互原则，不意味着复制其插件导航运行时或其全部页面。
+LG-102 统一资源与底部Settings的线性SVG图标，18px尺寸与一致描边；LG-103 随后移除独立 Connections 入口，保留六类资源与 Settings，原 Chat／Board／Files／Team 图形保持。[图标交付](../probes/nav-icons-20261017/DELIVERY.md) · [连接入口收敛](../probes/settings-connections-20261017/DELIVERY.md)。
 
-## 2. 桌面壳层
+界面使用一个左侧导航、主内容与右侧 Bot Chat。删除第二上下文栏、对应显隐开关、resize 和窄屏资源抽屉。只挂载右侧一个活动对话，不产生重复 session。
 
 ```text
-┌──────┬──────────────────────────────────────────────────────────┐
-│ Logo │ LightGravity Bot · 全局 / Task 标题    资源栏 对话 通知  │
-├──────┼──────────────┬───────────────────────┬───────────────────┤
-│ Chat │ 上下文资源栏 │ 主内容区              │ Bot 对话栏        │
-│ Board│              │ 看板 / 文件预览 /     │ 当前 Task 或      │
-│ Files│ 历史、任务、 │ 成员详情              │ 全局会话          │
-│ Team │ 文件、角色   │                       │                   │
-│ Res. │ 配置资源     │                       │                   │
-│      │              │                       │                   │
-│ Set. │ 模型设置     │                       │                   │
-└──────┴──────────────┴───────────────────────┴───────────────────┘
+顶部：品牌 · [Search 可编辑搜索框，居中] · 对话开关 · 通知/账号
+┌─────────────────┬─────────────────────────┬─────────────────────┐
+│ Tasks           │ 主内容                  │ Bot Chat            │
+│ Board           │ Task 工作区（文件/预览/ │ [Personal][Team] 🕘 │
+│ Team            │ 产物）/ 看板 / AI 成员 /│ 绑定当前 Task，     │
+│                 │ 资源详情                │ 无 Task 时为 Global │
+│ Session Profiles│                         │                     │
+│ Hooks / MCP     │                         │                     │
+│ Tools / Triggers│                         │                     │
+│ Skills          │                         │                     │
+│ Settings（底部）│                         │                     │
+└─────────────────┴─────────────────────────┴─────────────────────┘
 ```
 
-最左一级导航固定为窄栏，只显示图标；hover/focus 显示文字提示，当前项明确高亮，并提供可访问名称。建议初始宽度 56px，属于候选视觉参数，需按真实页面验证。
+导航项可在同一栏分组、滚动和折叠；文字与图标保持可辨认，选中状态、可访问名称和键盘操作明确。窄屏用单一导航抽屉与一个主面板；不恢复顶栏一级 tabs。具体尺寸由真实浏览器验收确认。
 
-顶栏只提供品牌、当前范围/任务、资源栏与对话栏开关、通知入口。不再放 Chat／Board／Files／Team／Resources 一级横向 tabs。Task 选择器不是必须先选择 Project 的入口。
+顶栏删除 Scope/Run 选择器。真实任务标题放在 Bot Chat 或 Tasks 工作区头部；Run 细节仍可在任务执行详情查看。界面入口简化不删除底层 Run、成员或验收记录。
 
-资源栏和对话栏可折叠；桌面具备空间时允许拖动宽度。优先确保主内容可读，最小宽度与断点实现时验证；不能为追求四栏在窄屏强行压缩内容。栏宽/显隐属于 UI 偏好，不能写进 Task 业务状态。
+## 2. 入口与主内容
 
-## 3. 左侧一级入口
+| 入口 | 内容与边界 |
+|---|---|
+| 右侧 Bot Chat | 不占导航项；全局或当前 Task 对话、消息与交付结果；Personal／Team 右侧历史图标 |
+| Tasks（原 Files） | 顶部固定 General；真实 Task 目录与 New task；选中后为该 Task 工作区文件树、预览、产物、证据与上下文材料选择 |
+| Board | 真实 Task 卡片、阶段、队列与运行详情 |
+| Team | AI 角色模板与实际运行成员，Available/Recruited 在主区切换 |
+| Session Profiles | 会话配置模板，真实聊天仍由 Chat／成员详情承接 |
+| Hooks / MCP / Tools / Triggers / Skills | 对应资源列表、详情、引用与诊断，复用现有 renderer |
+| Settings | 左导航底部；Models & Providers 为完整连接管理唯一入口，另含 Accounts（管理员）和 My Account（所有团队登录用户） |
 
-| 顺序 | 入口 | 建议图标 | 资源栏 | 主内容 |
-|---|---|---|---|---|
-| 1 | Chat | message-circle | 全局会话与 Task 历史 | 对话工作区及关联任务摘要 |
-| 2 | Board | columns-3 | 任务范围与阶段筛选 | Task 卡片，展开 Run/Subtask |
-| 3 | Files | folder-open | 当前 Task 文件列表/目录 | 文件预览、产物与证据 |
-| 4 | Team | users-round | 待招募／已招募的纵向选择及列表 | 角色或临时成员详情 |
-| 5 | Resources | boxes | Connections／Session Profiles／Hooks／MCP／Tools／Triggers／Skills 纵向分类 | 配置、引用、诊断与实际可用性 |
-| 底部 | Settings | settings | Models & Providers | 模型连接、凭证、默认选择与测试 |
+Board 的验收/拒绝只在当前 Task 的当前 Run 已完成验证、处于待验收、机器检查满足且候选/需求/交付版本与计划哈希一致时启用；按钮只是交互门，服务端仍复核。证据项通过 Task 范围 `/artifacts/download` 下载 canonical evidence，不暴露绝对路径或跨 Task 引用。
 
-图标为设计候选，保持五个工作入口与底部设置入口易区分。Agent 不另设一级入口，统一在 Team 管理；其余能力收束到 Resources，首版不增加工单、岗位、办公室入口。
+Session Profiles／Hooks／MCP／Tools／Triggers／Skills 六类资源直接从左导航到达，Resources 作为共用资源页面实现与业务归属保留，不要求经过中间分类页。Connection 仍是 canonical 资源，UI 管理统一归 Settings；Team／资源连接引用及旧 Connections 深链规范化到 Settings 并定位稳定 ID，保留 Task/Run/channel。其余旧资源深链继续解析到对应分类／详情。
 
-Chat 入口聚焦当前会话并展开对话工作区；其他入口可以同时保留右侧 Chat。Chat 页面主内容与右侧栏是同一个对话组件的布局切换，不显示两份相同聊天，不生成额外 session。切换 Board／Files／Team／Resources 不取消任务、不重置会话。
+## 3. Task 入口与导航状态
 
-### 3.1 Chat 与 Files：资料接入目标与当前实现差异（待实现，见 docs/09）
+Tasks 通过受控任务 API 获取真实 id/title，形成任务目录（磁盘上即 `tasks/<id>/`）。点击后以稳定 task_ref 进入该 Task 工作区并把右侧对话切到该 Task；必要时加载该 Task 的授权 workspace 与产物。General 表示 task_ref 为空的 Global 对话。
 
-**目标交互（未实现）**：
+- New task：弹窗输入标题，调用 `POST /tasks`（`request_id` 幂等，`objective` 默认取标题），由后端创建 `tasks/<id>/TASK.md` 与默认工作区，成功后进入新 Task。前端不直接创建目录；在 Global 对话中由协调器建 Task 的原路径保留。
+- 上下文材料：工作区文件／材料行提供 Use as context，沿用现有选择状态与上限，范围仅限当前 Task 与全局材料（跨 Task 禁止，服务端复核）；右侧输入框以 chip 显示已选并可移除。原输入框 `+` 扩展面板与按路径引用文件输入删除。
+- 历史图标（第一期）：在 Team 下列出 General 与有消息的各 Task 对话，按最近活动排序，点击即切换 task_ref；不新建会话。Personal 保持不挂 Task 的个人私聊；Task 内私聊、每 Task 多会话为第二期，需后端会话与权限设计。
 
-- Chat 是唯一常规资料接入入口，支持上传、拖拽、粘贴链接；未来文件夹/邮箱从对话发起，选择器/授权页完成选择后**返回同一对话**。Task Chat 内资料默认归属该 Task，全局上传**不强建 Task**。
-- Files 不承担常规上传入口，负责预览/浏览/来源追溯/归档调整/校订/重处理/下载，**不新增一级知识库入口**。邮箱资料连接器不同于模型 Connection，不暗加到冻结 schema。
+- data_dir 下的 TASK.md 元数据目录与 workspace_root 文件树是不同边界，不直接把整个 data_dir 暴露给 Files。
+- 不能根据普通文件夹名、任意 TASK.md 内容或模拟 ID 获得任务身份。
+- Task 不存在、失效链接或无权限时提供可恢复说明，保留草稿，不持续向不存在的任务发消息。
+- 打开 Task 同时更新 view、task、run/item 导航；沿用选 Task 时清理旧 run/item 的一致行为。
+- 跨 Board、Files、Team 和资源入口保持有效 task_ref 与当前对话，不取消后台任务、不意外创建新 Run。
+- 刷新、后退和旧链接按真实实体恢复；UI 偏好只保存导航、滚动、栏宽和草稿，不写业务状态。
+- 退出任务返回全局后，不自动将旧任务资料当作全局上下文。
+- 删除模拟 Scope/Run 业务选择；演示数据不可成为真实 API 请求的任务身份。
 
-**当前实现（诚实差异）**：
+## 4. 顶部资料搜索与简化 Chat
 
-- Chat 仍为壳层占位：消息发送未接线（LG-007/LG-013），发送不伪造消息也不创建 Task，尚无资料上传/拖拽/链接入口。
-- Files 已挂载工作区只读浏览/预览/下载与历史上传 API/UI（LG-014）：上传需运行时 token，无 token 时如实返回 `unauthorized`；它不提供来源追溯/校订/重处理/摄取回执，也不是目标接入入口。
-- **迁移未开始**：不应把现有 Files 上传当作目标交互，也不应据此声称资料接入/检索已实现。目标与分层见 [资料接入与检索设计](09-source-intake-and-retrieval.md)。
+Search 移到顶部，复用现有资料词法检索。当前查询范围与 Task／global 归属必须可理解；它尚不代表聊天历史、任意源码和全部任务的全局搜索。
 
-## 4. 全局与 Task 范围
+LG-100 将搜索入口改为顶栏中部常显可编辑输入框，宽屏约360–460px居中，窄屏自适应无横向溢出。直接输入并按Enter打开真实结果面板，结果保留Files回链；Escape关闭面板、保留查询并返回搜索框焦点，不再要求先点击Search按钮或在两个输入框间重复填写。现有范围与过期响应处理保持。
 
-顶栏显示“全局”或明确 Task ID/标题。选择 Task 后，Board、Files、Team 和 Chat 共享 task_ref；切换左侧入口保留该范围，并保留必要的 Run 选择。Task 详情不以浏览器当前文件路径临时推断身份。
+- 结果显示来源与版本，可打开 Files；切换范围时清理或取消旧结果，迟到请求不得污染新范围。
+- loading、empty、stale、index_unavailable、权限错误与网络失败保持可区分。
+- 不因界面移动自动启用向量检索、扩大资料权限或新增模型调用。
 
-- 全局 Chat 可以普通问答或创建交付需求；历史含 Task 导航。
-- 全局 Board 显示 Task 列表，打开卡片进入该 Task。Board 的验收/拒绝只在当前 Task 的当前 Run 已完成验证、处于待验收、机器检查满足且候选/需求/交付版本与计划哈希一致时启用；按钮只是交互门，服务端仍复核。证据项通过 Task 范围 `/artifacts/download` 下载 canonical evidence，不暴露绝对路径或跨 Task 引用。
-- 全局 Files 显示获准任务目录入口，进入 Task 后显示其文件；不暴露任意系统文件树。
-- 全局 Team 默认进入待招募角色目录；已招募展示各 Task 当前成员并标明归属，提供 Task 筛选。
-- Task Team 默认进入当前 Run 的已招募列表；可以切到待招募查看候选角色。
-- Resources 默认展示获准的共享配置目录；进入 Task 后保留 task_ref，可筛选该任务实际引用的资源。查看共享资源不自动把该资源授予当前 Task，也不把配置正文直接当作任务指令。
+本批 Chat 设计只呈现 Personal/Team（及其右侧历史图标）、消息、多行输入、框内附件按钮和右下角发送 icon；文件按钮直接打开文件选择器，不设扩展面板（2026-10-18），删除清单与输入框自适应规则见 [docs/13 §5](13-chat-and-task-teams.md#5-chat-和附件的确定交互)。已选附件、处理状态和失败信息仍可见；实现已进入隔离完整候选，待 LG-123 独立版本/浏览器 QA。
 
-从通知、任务卡、历史或文件入口进入同一 Task 应解析到同一稳定 ID。退出 Task 返回全局时，不将当前任务文件默认为全局聊天上下文。
+- 保留 IME 保护、Enter/Shift+Enter 行为、发送失败草稿与历史阅读位置。
+- 保留来源数量上限、版本／哈希绑定和消息幂等。
+- 来源绑定表示提供的上下文，不暗示引用已逐段核验。
+- 暂停、取消、恢复和验收仍使用真实动作与反馈，不能以停止显示冒充后台停止。
+- Chat 摄取是受控资料操作，不自动创建交付任务或团队。Files 继续负责浏览、预览、追溯与管理。
 
-## 5. Team：待招募与已招募
+## 5. Personal / Team 对话头部
 
-Team 的二级切换也放在左侧资源栏，以纵向“待招募／已招募”呈现，不重新在顶栏建立全局 tabs。名称中的“待招募”表示候选角色库，不是所有角色正在排队等待加入。
+用户要求对话上方有个人／团队标签；2026-10-17 持续执行授权下，按已向用户说明的执行假设补齐 Personal 私聊／Team 共享聊天，见 [LG-054](../backlog/tasks/LG-054.md)。已整合并通过独立技术 QA，用户最终验收待定。
 
-| 视图 | 权威来源 | 展示字段 | 生命周期 |
-|---|---|---|---|
-| 待招募 | resources/agents/*.md 及引用资源 | 角色名称、职责、能力标签、skills、工具、来源版本与可用性 | 长期角色模板 |
-| 已招募 | Task/Run 的 team/*.md | memberId、角色、Task/Run、分派 Subtask、会话状态、结果与可取得的用量 | 临时实例与历史 |
+当前团队模式是一个共享工作区，global 与 Task 历史共享；人类账号与 Team 页中的 AI Member 不同。部署级 isTeam 不是可任意切换的会话权限。
 
-SDK Agent 的配置模板合并到“待招募”，SDK Agent 会话由“已招募”成员承接；用户只面对角色与成员，不需要再到另一个 Agent 页面招募。默认协调角色在模板中标明系统用途，不算作当前 Run 的已招募 worker。角色详情显示 Connections、Session Profile、Skills、Hooks、MCP、Tools、Triggers 的声明引用；成员详情显示本次实际解析版本、有效权限、可用性与会话记录。
+Personal 私聊由服务端登录身份绑定并隔离读写，不把旧 shared global 历史迁移为某人的私人记录。仅在前端按 author 过滤不能构成隔离。草稿、附件、选材、游标和在途消息也须按身份和对话隔离。LG-054 历史交付限定问答；本批 LG-119 已确认增加仅本人私聊可用的附件，不隐式创建共享 Task 或把个人上传写为共享来源；Team 仍用共享资料与任务对话。私人附件已在隔离完整候选实现（权限与接口见 docs/08 §19.3），待 LG-123 独立 QA。
 
-模板缺少工具、技能或后端时显示“不可用”与原因，不能因为 Markdown 文件存在就显示可执行。待招募角色不是空闲 worker，不占运行资源。
+默认单用户部署保留原 global 问答、Task 创建、Files 任务对话与资料能力；不能因 Team 未开启导致核心交付不可用。团队模式打开共享 Task 时进入 Team，Personal 不假装提供私有 Task／资料。Team 页中的 AI 成员管理继续独立于人类群聊，不混写两个实体。
 
-临时成员建议状态：`recruiting → ready → running → released`，分支为 `waiting_user`、`failed`。这是 Member 状态，不覆盖 Subtask 验收状态。暂停且已关闭 session 的实例显示已释放，其恢复配置和历史保留；恢复时创建新成员实例并记录来源。
+## 6. Team 与资源边界
 
-招募中、招募失败、任务执行与已释放都在已招募详情中可观察。当前队伍计数不含已释放成员；“查看历史”筛选可以查看旧 Run 的成员，旧 Run 明确标识。交付待验收时当前队伍可能为零，但历史名单与成果必须可查看。
+本批详细线框、按任务队伍分组、状态操作、Active/History、自动解散与并发隔离见 [docs/13 §2～4](13-chat-and-task-teams.md#2-team-的信息架构与线框)，属于已确认需求的设计细化、尚未实现。
 
-自动组队通过 Recruiter/调度器生成成员记录。首版页面以查看为主：从角色卡“请求用于当前任务”可以打开 Task Chat 并表达意图，不绕过计划校验直接创建 SDK worker；没有 Task 时先在 Chat 明确目标。导入角色、编辑模板、复杂招募表单暂缓。
+Available 读取长期 Agent 角色模板；Recruited 读取 Task/Run 的 Member 实例。默认协调角色不计作执行 worker。模板与实例展示职责、能力、配置引用、实际版本、可用性及结果。
 
-## 6. Markdown 渲染与数据边界
+当前名单排除已释放成员，历史名单与证据保留。队伍为空时区分未招募、已释放与招募失败。角色卡请求进入当前 Task Chat，不直接创建 SDK worker。
 
-Team 复用 schema/kind renderer：Agent 卡读取角色模板 frontmatter，Member 卡读取运行成员 frontmatter，正文显示职责/执行说明。能力与资源引用可导航到详情，但不为七类 SDK 资源都增加一级 tab。
+| 资源 | 权威来源 |
+|---|---|
+| Connections（Settings 管理） | resources/connections/*.md |
+| Session Profiles | resources/conversations/*.md |
+| Hooks | resources/hooks/*.md |
+| MCP | resources/mcp/*.md |
+| Tools | resources/tools/*.md |
+| Triggers | resources/triggers/*.md |
+| Skills | resources/skills/*/SKILL.md 及获准项目技能 |
 
-导航配置首版可以是程序内固定五个工作入口与底部 Settings，不建立动态插件加载器。Team/Resources 列表、运行状态和通知从持久文件/事件刷新，解析失败显示诊断，不能渲染假成功成员。
+资源引用进入正确分类／详情并保留返回位置。声明启用、解析有效、依赖齐备和实际可用分别呈现。预览不执行 handler、不连接 MCP、不启动 Trigger。MCP 派生工具保留服务来源，不复制为第二份 callable 配置。
 
-页面路由必须保留 view、task_ref、run_ref 和选中资源。深链刷新可恢复这些范围；会话和执行事实来自文件，导航选中项、滚动和栏宽来自 UI 偏好。
+Skills 沿用原生格式与显式映射。资源以 canonical 文件为准，索引可重建。普通配置按现有受控对话写入；模型／凭证走 Settings 受保护表单。真实密钥不进入对话、Markdown 或浏览器持久草稿。
 
-### 6.1 Resources 二级导航与归属
+模板修改仅影响后续招募，活跃 Member 固定实际配置版本；session 和用量不回写共享模板。禁用或删除引用资源时遵循既有引用校验。
 
-Resources 二级入口放在左侧资源栏，主内容显示选中资源的 frontmatter 字段、Markdown 正文、引用关系和诊断。不是每个 SDK 模块一个一级 tab。
+## 7. 可用性与错误
 
-| 二级入口 | 权威来源 | 管理对象与展示 |
-|---|---|---|
-| Connections | resources/connections/*.md | 已支持的 adapter、模型、认证引用、区域及连接健康 |
-| Session Profiles | resources/conversations/*.md | 上下文、压缩、存储与 continuation 的会话配置模板 |
-| Hooks | resources/hooks/*.md | 已注册生命周期 handler、策略和参数 |
-| MCP | resources/mcp/*.md | stdio/HTTP 服务配置、工具选择、连接状态与工具发现 |
-| Tools | resources/tools/*.md | SDK builtin/已注册函数描述，MCP 工具目录以所属服务关联展示 |
-| Triggers | resources/triggers/*.md | 事件/时间规则、作用域、启用状态和最近触发记录 |
-| Skills | resources/skills/*/SKILL.md 及获准项目技能 | 工作方法、引用文件、脚本与依赖 |
+运行版本、必要能力与实际接口应先验证，再显示系统就绪。只有 health 成功的旧骨架服务不能被视作完整工作台。
 
-Session Profiles 管理 Conversation 的配置，不管理聊天消息。真实用户对话在 Chat/Task，成员 SDK Conversation 在已招募详情与 Run 历史。Resources 只链接到关联会话，不复制日志或维护第二份聊天状态。
+区分连接失败、后端不兼容、缺少模型配置、真实任务不存在、目录不存在与未授权。不能将所有 HTTP 404 显示为 Scope not found；不能通过认证降级绕过登录。每页覆盖实际适用的 loading、empty、error、unavailable 与 disconnected。
 
-Skills 的原生 SKILL.md 格式与应用资源 frontmatter 需要显式映射；不能为了网页渲染强行添加会破坏 SDK 发现的字段。身份、版本及来源可通过受控索引/描述引用展示，但内容以 canonical 文件为准，索引可重建。
+通知反映真实未读事件；恢复按游标补齐。Settings 保留当前任务返回位置，不改变其授权或热切换模型。
 
-MCP 动态发现的工具在 Tools 中作为服务派生项展示，来源、名称与所属服务明确；不能把相同工具再复制成独立 callable 配置。未连接时显示缓存/未知可用性，不伪装实时健康。
+Settings 使用页内子区，不增设第二左侧栏。Accounts 管理新增、角色、启用／禁用及密码重置，用户名不可变、没有删除功能；My Account 只修改本人密码。普通成员不拉取 Models/Connections 或账户列表。末位可用管理员保护、口令写入后清空、会话撤销及旧后端能力降级按 [docs/08 §16](08-interface-contract.md)。LG-061／062 已完成独立 QA 与本地部署，见 [账户管理证据](../probes/accounts-20261017/README.md)。
 
-所有资源区分声明启用、解析有效、依赖齐备、运行可用四种信息。声明 enabled 不等于已建立连接，更不意味着在后台启动 Trigger/MCP。健康检查、启用与运行走获准接口，不能由页面预览或文件解析自动执行。
+Models & Providers 保留连接列表、新建编辑、凭据、连接测试及默认模型的完整表单。连接引用按 `settings:connection:<id>` 统一定位；未知目标明确提示且不选中／保存另一连接，跨 ID 迟到保存不改变当前选择。普通成员打开连接目标时只显示管理员管理提示和 My Account，不发起管理员配置请求。LG-103 已通过真实隔离管理员／成员与390宽度验证，原连接数据及后端 API 保持。
 
-### 6.2 Team 与 Resources 关联及修改
+LG-104已交付列表＋紧凑新增/编辑弹窗，默认模型独立放列表下方；连接引用打开对应ID编辑弹窗，关闭后不因同一深链反复重开，未知目标仍提示。草稿测试不要求保存，结果只绑定当前草稿；主流程不展示SDK类名/代理/内部ID说明，DeepSeek预设地址收进Advanced，Custom地址主显。焦点/Escape/放弃修改/迟到响应边界见design.md，公开API见docs/08 §18。main df53ead/8123契约1.17.0，独立R2真实前后端8场景及1440/1024/390通过；旧常驻长表单为此前快照。[交付](../probes/provider-setup-20261017/qa-r2/DELIVERY.md)。
 
-从待招募角色或已招募成员点击资源引用，进入 Resources 对应详情，保留 Task/Run/Member 的返回位置。返回 Team 仍是原成员；跨页面只改变查看位置，不变更实际绑定。
+## 8. 验收与实现状态
 
-首版提供列表、详情、诊断和关联导航。普通资源更改通过 Chat 请求受控写入，明确修改的是共享模板还是当前任务约束；涉及两种范围时不自动猜测。模型接入与凭证通过 Settings 的受保护表单，是必要例外；Connections 提供同一资源的详情与编辑导航。程序校验引用、权限与版本后保存，其他复杂编辑表单与批量导入暂缓。
+LG-052／053 修复者提供必要局部类型、构建与非浏览器回归。串行集成与独立版本 QA 归 pi，Playwright 连接隔离数据和端口的真实前后端：
 
-模板修改只影响后续招募；已招募成员固定本次配置版本与哈希。正在运行的任务若确需变更，经过协调器暂停、修订和重新绑定，不能静默热替换。删除/禁用被引用资源应提示受影响模板和任务，首版可阻止删除，不留下悬空引用。
+- 实际版本／接口就绪，所有入口到达真实 handler；团队匿名 401、管理员门禁保持。
+- 无第二左栏和 Scope/Run，六类资源直接可达，Connections 统一由 Settings 管理；只挂一个活动对话。
+- Files 真实 Task 打开对应历史，普通同名目录反例、失效链接、刷新／后退均有效。
+- 顶部搜索到 Files 回链、范围切换、选材版本与失败草稿保持。
+- 1440、1024、390 宽度以及长标题、键盘、导航滚动和抽屉。
+- Personal/Team 按 LG-054 最终语义验证；若涉及私聊，覆盖两个身份的读写隔离与迟到结果。
+- 截图、trace 与实际结果可追溯；构建、静态 mock 和局部测试不能替代真实浏览器验收。
 
-成员运行记录中的 SDK session、解析后参数和用量是运行事实，不能把它们回写到共享配置模板。凭证只显示引用和是否配置，不显示真实值。
+实现、独立版本 QA 和本地实际入口更新均已完成，证据见 [LG-051 交付记录](../probes/ui-repair-20261017/README.md)。用户最终验收、远端推送及发布分别处理；本轮未推送。
 
-## 7. 窄屏与状态反馈
+## 资料上传与自动索引体验补充（2026-10-18，隔离候选QA通过）
 
-Settings 的入口、字段、凭证管理、分层连接测试及与 Resources/Team 的共享引用见 [模型设置设计](07-settings-and-models.md)。Settings 是全局配置页，保留返回当前 Task 的位置；进入设置不把当前 Task 授权或模型绑定自动改成全局默认。
-
-窄屏保留左侧一级入口或可打开的侧边抽屉，资源栏改为抽屉，对话与详情一次显示一个主要面板。导航从左侧打开，不退回上方五个一级 tabs。面板切换保留输入草稿，并提供返回当前 Task 的明确入口。
-
-每个页面需设计加载、空态、解析错误、资源不可用与断线状态。Team 空态区分“没有角色模板”“还未组队”“队伍已释放”和“当前 Run 招募失败”。通知徽标只反映未读记录，不把队伍数量当作通知数量。
-
-## 8. 验收条件
-
-- 桌面一级入口在最左侧固定展示，无重复顶栏 tabs；键盘、tooltip 和选中状态有效。
-- Task 内跨五个入口保持相同 task_ref，不改变运行或意外新建会话。
-- Chat 页面与右侧 Chat 只呈现一个活动对话，切换后草稿和历史保持。
-- Team 待招募读模板，已招募读实例；自动招募、失败和释放真实反映在页面。
-- 当前名单排除已释放实例，历史可导航到正确 Run 与证据。
-- Agent 只在 Team 展示模板/实例；其余七类配置在 Resources 有对应分类，真实 Conversation 留在 Chat/成员详情。
-- 角色/成员的资源引用能导航到正确版本和返回原位置；模板修改不改变正在运行的成员配置。
-- 无效、未安装、未连接或禁用资源可区分；预览不启动连接/触发器，凭证不泄露。
-- 左导航底部能进入 Settings，Connections 的编辑指向同一 Connection；默认变更不热切换活跃成员，凭证不经聊天/Markdown。
-- 深链刷新恢复所选 Task/Run/成员；不能串到另一个任务。
-- 窄屏能完成对话、查看任务、打开文件与成员详情，面板不相互覆盖。
-
-当前只完成设计，不代表上述页面或交互已交付。
+[docs/14](14-material-intake-and-auto-index.md) 为 LG-139～145 的新增设计依据：Chat 是常规接入入口、逐文件回执显示独立处理状态；Files 预览/追溯/校订/重处理；顶部搜索面板提供 Keyword/Semantic 和回链，不增加主导航。团队 Personal 不写共享资料或调用媒体索引。已在隔离1.19候选实现并完成局部检查，LG145第二轮独立QA通过，线上仍1.18；排期见 [docs/06 §8](06-roadmap.md)。

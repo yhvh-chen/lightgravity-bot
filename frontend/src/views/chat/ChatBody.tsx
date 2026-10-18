@@ -38,6 +38,7 @@ import {
   ChatDraftChips,
   ChatMaterialReceipts,
 } from './ChatMaterialIntake'
+import { ChatHistory } from './ChatHistory'
 import { ChatSources } from './ChatSources'
 import { useChat } from './useChat'
 import { useChatDrafts, useChatMaterials } from './useChatMaterials'
@@ -562,16 +563,24 @@ export function ChatBody({
               Team
             </button>
           </div>
-          {onRequestClose ? (
-            <button
-              type="button"
-              className="lg-icon-button"
-              onClick={onRequestClose}
-              aria-label="Close chat panel"
-            >
-              <Icon name="close" />
-            </button>
-          ) : null}
+          <div className="lg-chat-history-actions">
+            <ChatHistory
+              isTeam={isTeam}
+              channel={channel}
+              activeTaskRef={effectiveTaskRef}
+              onSelectTask={(taskRef) => dispatch({ type: 'selectTask', taskRef, channel: 'team' })}
+            />
+            {onRequestClose ? (
+              <button
+                type="button"
+                className="lg-icon-button"
+                onClick={onRequestClose}
+                aria-label="Close chat panel"
+              >
+                <Icon name="close" />
+              </button>
+            ) : null}
+          </div>
         </div>
         {isTeam && !personalChatAvailable ? (
           <p className="lg-chat__channel-note">

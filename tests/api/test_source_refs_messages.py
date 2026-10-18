@@ -401,7 +401,7 @@ async def test_material_gate_stays_false_without_started_worker(tmp_path: Path) 
             transport=transport, base_url="http://testserver"
         ) as api:
             body = (await api.get(f"{API_PREFIX}/health")).json()
-            assert body["contract_version"] == "1.20.0"
+            assert body["contract_version"] == "1.21.0"
             assert body["capabilities"]["material_intake_v2"] is False
             # Semantic/search routes and the media path are still really mounted.
             assert body["capabilities"]["semantic_search"] is True

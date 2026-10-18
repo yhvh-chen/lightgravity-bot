@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { TaskApi } from '../src/api/tasks'
@@ -61,6 +61,22 @@ describe('LG-202 Tasks directory', () => {
     expect(screen.getByRole('button', { name: 'New task' })).toBeInTheDocument()
     fireEvent.click(general)
     expect(onOpen).toHaveBeenCalledWith(null)
+  })
+
+  it('keeps General selected when a Task verification resolves late', async () => {
+    let resolveTask!: (task: TaskDetail) => void
+    const getTask = vi.fn(
+      () => new Promise<TaskDetail>((resolve) => { resolveTask = resolve }),
+    )
+    const onOpen = vi.fn()
+    render(<TaskDirectory api={taskApi({ getTask })} onOpen={onOpen} />)
+    fireEvent.click(await screen.findByRole('button', { name: /Review source/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'General' }))
+    expect(onOpen).toHaveBeenCalledWith(null)
+    await act(async () => {
+      resolveTask({ ...task, run: null, members: [], subtasks: [] } as TaskDetail)
+    })
+    expect(onOpen).not.toHaveBeenCalledWith('task_real')
   })
 
   it('verifies the real Task and reports the selected Task', async () => {

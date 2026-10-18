@@ -234,8 +234,14 @@ describe('LG-219 auth gate integration', () => {
       })
     })
 
-    expect(screen.getByRole('alert')).toHaveTextContent(/Session expired/)
-    expect(screen.getByRole('alert')).toHaveTextContent(/Refresh the page/)
+    // Tasks is the default view in the integrated candidate, so its own
+    // unavailable-state alert may coexist with the session notice. Scope the
+    // assertion to the session-expiry banner rather than assuming one alert.
+    const sessionAlert = screen
+      .getAllByRole('alert')
+      .find((element) => element.textContent?.includes('Session expired'))
+    expect(sessionAlert).toHaveTextContent(/Session expired/)
+    expect(sessionAlert).toHaveTextContent(/Refresh the page/)
     expect(screen.getByRole('button', { name: 'Refresh page' })).toBeInTheDocument()
     expect(screen.queryByRole('main', { name: 'Sign in' })).toBeNull()
     // The workspace (and therefore drafts) stays mounted behind the notice.

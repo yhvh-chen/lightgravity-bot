@@ -79,6 +79,15 @@ export function TaskDirectory({ onOpen, activeTaskRef = null, api: injectedApi, 
       if (mounted.current) setError(cause instanceof Error ? cause.message : 'Cannot load tasks')
     } finally { if (mounted.current) setLoading(false) }
   }
+  const openGeneral = () => {
+    // General must win over an in-flight Task verification: abort it so a late
+    // response cannot select a Task after the user returned to Global.
+    openRequest.current?.abort()
+    openRequest.current = null
+    setOpening(null)
+    setError(null)
+    onOpen(null)
+  }
   const open = async (taskRef: string) => {
     openRequest.current?.abort()
     const controller = new AbortController()
@@ -169,7 +178,7 @@ export function TaskDirectory({ onOpen, activeTaskRef = null, api: injectedApi, 
         className="lg-button lg-task-directory__general"
         aria-current={activeTaskRef ? undefined : 'page'}
         title="Global conversation without a Task scope"
-        onClick={() => onOpen(null)}
+        onClick={openGeneral}
       >
         <span aria-hidden="true">▸</span> General
       </button>
