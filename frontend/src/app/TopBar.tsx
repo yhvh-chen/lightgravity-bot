@@ -6,6 +6,7 @@ import { Logo } from '../components/Logo'
 import { MaterialSearch } from '../components/MaterialSearch'
 import { useAuth } from './AuthProvider'
 import { useShell } from './ShellProvider'
+import { openTaskDestination } from './taskDestination'
 import { useBackendStatus } from '../api/useBackendStatus'
 import { useNotifications } from './useNotifications'
 import { NOTIFICATION_REFRESH_TYPES, useEventStream } from './useEventStream'
@@ -75,8 +76,7 @@ export function TopBar({
     (item: NotificationListItem) => {
       if (item.mock || !item.taskRef) return
       // Return to the exact Task/Run and persist the read flag on the backend.
-      dispatch({ type: 'selectTask', taskRef: item.taskRef })
-      if (item.runRef) dispatch({ type: 'selectRun', runRef: item.runRef })
+      dispatch(openTaskDestination({ taskRef: item.taskRef, runRef: item.runRef, view: 'board' }))
       void notifications.markRead([item.id])
       setNotifOpen(false)
     },

@@ -110,12 +110,15 @@ describe('LG071 response target versus newly created Task', () => {
   })
 
   it.each([['Team', team], ['single-user Personal', single]] as const)('keeps the original creation notice and navigation for %s delivery', async (_label, probe) => {
+    history.replaceState(null, '', '?view=team')
     const api = makeApi({ kind: 'create_task', task_id: TASK, reply: 'Created delivery', data: { creates_task: true } })
     renderChat(api, probe)
     await submit('Message for Global', '@bot create a page')
-    expect(await screen.findByText(`Created Task ${TASK}. Opening its Board scope.`)).toBeInTheDocument()
+    expect(await screen.findByText(`Created Task ${TASK}. Opening its workspace.`)).toBeInTheDocument()
     expect(await screen.findByLabelText(`Message for ${TASK}`)).toBeInTheDocument()
-    expect(dispatched).toHaveBeenCalledWith({ type: 'selectTask', taskRef: TASK })
+    expect(dispatched).toHaveBeenCalledWith({ type: 'openTaskDestination', view: 'tasks', taskRef: TASK, runRef: null, itemRef: null })
+    expect(new URLSearchParams(location.search).get('view')).toBe('tasks')
+    expect(new URLSearchParams(location.search).get('task')).toBe(TASK)
     expect(screen.getByRole('tab', { name: probe === team ? 'Team' : 'Personal' })).toHaveAttribute('aria-selected', 'true')
   })
 

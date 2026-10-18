@@ -26,6 +26,7 @@ import {
   type SourceRefInput,
 } from '../../api/types'
 import { useShell } from '../../app/ShellProvider'
+import { openTaskDestination } from '../../app/taskDestination'
 import { useAuth } from '../../app/AuthProvider'
 import { draftKey, type ChatChannel } from '../../app/uiState'
 import { ChatComposer } from '../../components/ChatComposer'
@@ -507,8 +508,8 @@ export function ChatBody({
       } else if (outcome.kind === 'unavailable') {
         setNotice('Personal chat needs a configured model. Configure one in Settings, or use Team.')
       } else if (outcome.kind === 'create_task' && outcome.createdTaskRef) {
-        setNotice(`Created Task ${outcome.createdTaskRef}. Opening its Board scope.`)
-        dispatch({ type: 'selectTask', taskRef: outcome.createdTaskRef })
+        setNotice(`Created Task ${outcome.createdTaskRef}. Opening its workspace.`)
+        dispatch(openTaskDestination({ taskRef: outcome.createdTaskRef, view: 'tasks' }))
       } else if (outcome.reply) {
         setNotice(null)
       }
