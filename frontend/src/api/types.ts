@@ -47,6 +47,12 @@ export interface HealthResponse {
   contract_version: string
   schema_version: string
   capabilities: Record<string, boolean>
+  /**
+   * LG-249 additive non-secret configuration: the leading bot mention used by
+   * team-mode message routing. It is present only when the backend exposes the
+   * configured value; the UI must never guess or hardcode a mention.
+   */
+  team_bot_mention?: string | null
 }
 
 export interface VersionResponse {

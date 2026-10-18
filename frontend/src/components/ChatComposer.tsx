@@ -14,6 +14,8 @@ export interface ChatComposerProps {
   onSubmit: () => void
   /** Scope the draft belongs to, e.g. "Global" or "task_...". */
   scopeLabel: string
+  /** Optional placeholder; Team uses the backend-configured mention rule. */
+  placeholder?: string
   disabled?: boolean
   disabledReason?: string
   /**
@@ -42,6 +44,7 @@ export function ChatComposer({
   onChange,
   onSubmit,
   scopeLabel,
+  placeholder = 'Message…',
   disabled = false,
   disabledReason,
   onFilesPicked,
@@ -115,7 +118,7 @@ export function ChatComposer({
           id="lg-chat-input"
           className="lg-composer__input"
           value={value}
-          placeholder="Message…"
+          placeholder={placeholder}
           rows={1}
           disabled={disabled}
           onChange={handleChange}

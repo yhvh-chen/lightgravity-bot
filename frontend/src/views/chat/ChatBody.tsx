@@ -76,6 +76,17 @@ interface PrivatePendingAttachment {
 }
 
 /**
+ * LG-249: the leading mention used by Team message routing must come from the
+ * backend's configured value.  Absence/blank means the backend did not publish
+ * it, so the UI stays silent instead of guessing `@bot`.
+ */
+export function configuredTeamBotMention(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const mention = value.trim()
+  return mention.length > 0 ? mention : null
+}
+
+/**
  * The single Chat surface (LG-013; docs/05 §3, design.md §2).
  *
  * The Chat view body and the shell's right rail render this same component, so
@@ -148,6 +159,9 @@ export function ChatBody({
   const [mediaDirectEmbedding, setMediaDirectEmbedding] = useState(false)
   const [intakeCapabilityChecked, setIntakeCapabilityChecked] = useState(false)
   const [executionAvailable, setExecutionAvailable] = useState<boolean | null>(null)
+  // LG-249: configured leading Team mention from real backend health, never a
+  // frontend default.  Missing means no hint (old backend), not an assumed @bot.
+  const [teamBotMention, setTeamBotMention] = useState<string | null>(null)
   const healthRequest = useRef<Promise<HealthResponse> | null>(null)
   // Resolved source bindings for the most recent send in this scope, so the
   // freshly returned reply can show its Sources before/without a reload.
@@ -186,12 +200,14 @@ export function ChatBody({
       .then((health) => {
         if (!active) return
         setExecutionAvailable(typeof health.capabilities.sdk_adapter === 'boolean' ? health.capabilities.sdk_adapter : null)
+        setTeamBotMention(configuredTeamBotMention(health.team_bot_mention))
         setSharedIntakeV2(supportsMaterialIntakeV2(health))
         setMediaDirectEmbedding(supportsMediaDirectEmbedding(health))
         setIntakeCapabilityChecked(true)
       })
       .catch(() => {
         if (!active) return
+        setTeamBotMention(null)
         setSharedIntakeV2(false)
         setMediaDirectEmbedding(false)
         setIntakeCapabilityChecked(true)
@@ -291,6 +307,11 @@ export function ChatBody({
   }
 
   const scopeLabel = effectiveTaskRef ?? (privatePersonal ? 'Personal' : 'Global')
+  // Team Global and Task messages follow the same leading-mention rule. Private
+  // Personal and single-user mode are deliberately unchanged and get no hint.
+  const teamMentionHint = isTeam && !privatePersonal && teamBotMention
+    ? `Start with ${teamBotMention} to ask the assistant or create a task.`
+    : null
 
   const switchToTeam = () => {
     setNotice(null)
@@ -506,7 +527,13 @@ export function ChatBody({
       setLastSendSources(outcome.resolvedSources)
       if (outcome.kind === 'recorded') {
         // Team-mode plain message: persisted for the team only, no bot reply.
-        setNotice('Shared with the team.')
+        // The rule copy uses the backend-configured mention; old backends keep
+        // the previous receipt without an invented mention.
+        setNotice(
+          teamMentionHint
+            ? `Recorded for the team; no bot reply was started. ${teamMentionHint}`
+            : 'Shared with the team.',
+        )
       } else if (outcome.kind === 'switch_to_team') {
         setNotice('Personal is private and chat-only. Switch to Team to create a task or run delivery — nothing was created.')
       } else if (outcome.kind === 'unavailable') {
@@ -789,6 +816,7 @@ export function ChatBody({
           }}
           onSubmit={handleSubmit}
           scopeLabel={scopeLabel}
+          placeholder={teamMentionHint ?? 'Message…'}
           onFilesPicked={handleFilesPicked}
           attachDisabled={
             privatePersonal
