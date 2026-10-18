@@ -6,7 +6,14 @@ This package distributes the complete role library from
 
 - License: MIT
 - Copyright: Copyright (c) 2025 AgentLand Contributors
-- Original upstream role files are preserved byte-for-byte under `upstream/`.
+- Upstream role files are preserved under `upstream/`. All remain byte-for-byte
+  originals except `security/security-senior-secops.md`: three illustrative
+  private-key headers use explicit non-key placeholders so the unmodified
+  release secret scanner can inspect the entire package. No key body was present.
+  Its `agency_source.sha256` and `blob_sha` retain original upstream identity;
+  `packaged_sha256` and `packaged_blob_sha` identify the locally adapted bytes.
+  The adapted native template uses the same placeholders. Source commit,
+  repository, path, copyright and MIT license are retained.
 - Adapted native Agent templates are under `templates/`; `MANIFEST.json` records
   each upstream path, git blob SHA-1, source SHA-256, adapted body SHA-256,
   capability metadata and license.

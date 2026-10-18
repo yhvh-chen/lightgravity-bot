@@ -95,7 +95,7 @@ def test_capability_catalog_is_reusable_metadata_not_three_ids() -> None:
     }
 
 
-def test_original_upstream_bytes_and_license_are_preserved() -> None:
+def test_packaged_upstream_integrity_and_license_are_preserved() -> None:
     root = Path(__file__).resolve().parents[2] / "backend/lightgravity/runtime/roles/agency"
     license_text = (root / "LICENSE").read_text("utf-8")
     assert AGENCY_LICENSE == "MIT"
@@ -104,11 +104,15 @@ def test_original_upstream_bytes_and_license_are_preserved() -> None:
         original = root / "upstream" / template.agency_source["path"]
         assert original.is_file()
         raw = original.read_bytes()
-        assert hashlib.sha256(raw).hexdigest() == template.agency_source["sha256"]
+        assert hashlib.sha256(raw).hexdigest() == template.agency_source.get("packaged_sha256", template.agency_source["sha256"])
         blob = hashlib.sha1()
         blob.update(f"blob {len(raw)}\0".encode("ascii"))
         blob.update(raw)
-        assert blob.hexdigest() == template.agency_source["blob_sha"]
+        assert blob.hexdigest() == template.agency_source.get("packaged_blob_sha", template.agency_source["blob_sha"])
+        if template.id == "security-senior-secops":
+            assert template.agency_source["sha256"] == "80f83d40f631134ab458247433b616e8fbdfdc0c7bdc568e356d4e6902385359"
+            assert template.agency_source["blob_sha"] == "b13d3ed90c3aa12fdd7d34e3bd477d98a6b7b922"
+            assert "local_adaptation" in template.agency_source
 
 
 def test_seed_creates_full_library_and_is_idempotent(tmp_path: Path) -> None:

@@ -43,9 +43,9 @@ mysql://user:password@host
 redis://:password@host
 
 # Private key material
------BEGIN RSA PRIVATE KEY-----
------BEGIN EC PRIVATE KEY-----
------BEGIN PGP PRIVATE KEY-----
+<ILLUSTRATIVE_HEADER: RSA PRIVATE KEY>
+<ILLUSTRATIVE_HEADER: EC PRIVATE KEY>
+<ILLUSTRATIVE_HEADER: PGP PRIVATE KEY>
 
 # Cloud provider credentials
 AKIA[0-9A-Z]{16}          # AWS Access Key ID pattern
