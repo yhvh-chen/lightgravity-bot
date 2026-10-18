@@ -351,3 +351,14 @@ it('requests canonical content and download endpoints without treating their env
   expect(second.searchParams.get('revision')).toBe('12-1')
   vi.unstubAllGlobals()
 })
+
+
+it('opens Board canonical Markdown deep links in the Files preview', async () => {
+  const ref = 'evidence:run_1/launch-brief.md@sha256:abc'
+  const api = makeApi({ readArtifact: vi.fn(async () => content({ path: ref,
+    evidence_ref: ref, name: 'launch-brief.md', content: '# Launch brief' })) })
+  render(<FilesPanel taskRef="task_1" runRef="run_1" selectedItemRef={ref} api={api} />)
+  expect(await screen.findByRole('heading', { name: 'Launch brief' })).toBeInTheDocument()
+  expect(api.readArtifact).toHaveBeenCalledWith('task_1', ref)
+  expect(api.readContent).not.toHaveBeenCalled()
+})

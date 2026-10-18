@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { TaskApi } from '../../api/tasks'
 import type { TaskDetail, TaskSummary } from '../../api/types'
 import { useShell } from '../../app/ShellProvider'
+import { openTaskDestination } from '../../app/taskDestination'
+import { routeQuery } from '../../app/uiState'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
 import { StatusBadge } from '../../components/StatusBadge'
@@ -236,6 +238,7 @@ interface DetailPanelProps {
 }
 
 function TaskDetailPanel(props: DetailPanelProps) {
+  const { state, dispatch } = useShell()
   const { detail, error, loading, artifacts, acceptance, controlPending } = props
   const canDecide = !loading && !error && canDecideCandidate(props.taskRef, detail, acceptance)
   const evidence = artifacts?.evidence ?? []
@@ -326,6 +329,8 @@ function TaskDetailPanel(props: DetailPanelProps) {
               <ul className="lg-board__list">
                 {evidence.map((entry) => {
                   const ref = entry.evidence_ref ?? entry.ref ?? null
+                  const runRef = /^evidence:([^/]+)\//.exec(ref ?? '')?.[1] ?? entry.run_ref ?? state.runRef
+                  const destination = { taskRef: props.taskRef, runRef, view: 'tasks' as const, itemRef: ref }
                   return (
                     <li key={ref ?? entry.name} className="lg-board__evidence-item">
                       <span className="lg-card__path">{entry.name}</span>
@@ -333,9 +338,12 @@ function TaskDetailPanel(props: DetailPanelProps) {
                         <>
                           <a
                             className="lg-link-button"
-                            href={artifactPreviewHref(props.taskRef, ref)}
-                            target="_blank"
-                            rel="noreferrer"
+                            href={routeQuery({ view: 'tasks', taskRef: props.taskRef, runRef, selectedItemRef: ref, chatChannel: state.chatChannel })}
+                            onClick={(event) => {
+                              if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+                              event.preventDefault()
+                              dispatch(openTaskDestination(destination))
+                            }}
                           >
                             Preview
                           </a>
@@ -445,10 +453,6 @@ function AcceptanceSection({
   )
 }
 
-function artifactPreviewHref(taskRef: string, evidenceRef: string): string {
-  const params = new URLSearchParams({ evidence_ref: evidenceRef })
-  return `/api/v1/tasks/${encodeURIComponent(taskRef)}/artifacts/content?${params.toString()}`
-}
 
 /**
  * Canonical evidence download (LG-066 optional affordance).

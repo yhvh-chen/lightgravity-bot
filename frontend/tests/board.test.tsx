@@ -187,16 +187,20 @@ describe('LG-013 Board: real phase and control state', () => {
     expect(await screen.findByText(/decision is stale/)).toBeInTheDocument()
   })
 
-  it('lists real artifacts with an evidence preview link', async () => {
+  it('opens real artifacts in the safe Tasks preview with exact Task/Run binding', async () => {
     renderBoard(makeTaskApi())
     fireEvent.click(await screen.findByText('Add login'))
 
     expect(await screen.findByText('diff.patch')).toBeInTheDocument()
     const link = screen.getByRole('link', { name: 'Preview' })
-    expect(link).toHaveAttribute(
-      'href',
-      '/api/v1/tasks/task_01A/artifacts/content?evidence_ref=evidence%3Arun_01X%2Fdiff%40sha256%3Aabc',
-    )
+    const target = new URL(link.getAttribute('href')!, location.origin)
+    expect(target.searchParams.get('view')).toBe('tasks')
+    expect(target.searchParams.get('item')).toBe('evidence:run_01X/diff@sha256:abc')
+    fireEvent.click(link)
+    await waitFor(() => expect(new URLSearchParams(location.search).get('view')).toBe('tasks'))
+    expect(new URLSearchParams(location.search).get('task')).toBe('task_01A')
+    expect(new URLSearchParams(location.search).get('run')).toBe('run_01X')
+    expect(new URLSearchParams(location.search).get('item')).toBe('evidence:run_01X/diff@sha256:abc')
   })
 
   it('offers a canonical evidence Download link without absolute refs', async () => {

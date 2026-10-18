@@ -352,11 +352,18 @@ export function FilesPanel({
   const segments = cwd ? cwd.split('/') : []
   const previewKind = selected ? classify(selected) : null
   const deepLinkedSource = parseSourceRef(selectedItemRef)
+  const deepLinkedArtifact = selectedItemRef?.startsWith('evidence:') ? selectedItemRef : null
 
   // A `source:<id>` selection (from Chat hits/attachments) opens Materials.
   useEffect(() => {
     if (deepLinkedSource) setSurface('materials')
   }, [deepLinkedSource])
+
+  useEffect(() => {
+    if (!deepLinkedArtifact || !taskRef) return
+    setSurface('workspace')
+    void openFile(deepLinkedArtifact, deepLinkedArtifact)
+  }, [deepLinkedArtifact, taskRef, openFile])
 
   return (
     <div className="lg-files">

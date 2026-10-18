@@ -99,8 +99,8 @@ export function LoginView() {
         >
           {submitting ? 'Signing in…' : 'Sign in'}
         </button>
-        <p className="lg-auth__hint" lang="zh-CN">
-          默认账号：admin，默认密码：admin123。请管理员登录后立即修改密码。
+        <p className="lg-auth__hint" lang="en">
+          Default account: admin / admin123. Administrators should change the password after signing in.
         </p>
       </form>
     </div>
