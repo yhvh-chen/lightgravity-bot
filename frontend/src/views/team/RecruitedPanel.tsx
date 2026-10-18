@@ -497,9 +497,6 @@ function GroupCard({
           <span id={`team-group-title-${safeDomId(group.task.id)}`} className="lg-team-group__name">
             {group.task.title}
           </span>
-          <span className="lg-card__path lg-team-group__shortid" title={group.task.id}>
-            {shortTaskId(group.task.id)}
-          </span>
         </button>
 
         <div className="lg-team-group__badges">
@@ -507,7 +504,6 @@ function GroupCard({
             {status.label}
           </StatusBadge>
           {currentTask ? <StatusBadge kind="accent">Current chat</StatusBadge> : null}
-          <span className="lg-team-group__run">{runHeading(run, Boolean(current))}</span>
         </div>
 
         <div className="lg-team-group__actions">
@@ -573,49 +569,13 @@ function GroupBody({
   const waiting = formatWaitingReason(run?.waiting_reason)
   return (
     <>
-      <section className="lg-team-group__section" aria-label="Run facts">
-        <h4 className="lg-section__title">Run</h4>
-        {run ? (
-          <dl className="lg-kv">
-            <dt>Run</dt>
-            <dd>{runHeading(run, current)}</dd>
-            <dt>run id</dt>
-            <dd className="lg-card__path">{run.id}</dd>
-            <dt>attempt</dt>
-            <dd>{run.attempt}</dd>
-            <dt>worker cleanup</dt>
-            <dd>{run.cleanup?.status ?? 'not recorded'}</dd>
-            <dt>reviewer cleanup</dt>
-            <dd>
-              {run.reviewer_cleanup
-                ? run.reviewer_cleanup.confirmed === true
-                  ? 'confirmed'
-                  : 'not confirmed'
-                : 'no reviewer session recorded'}
-            </dd>
-            {waiting ? (
-              <>
-                <dt>waiting</dt>
-                <dd>{waiting}</dd>
-              </>
-            ) : null}
-            {run.fail_reason ? (
-              <>
-                <dt>failure</dt>
-                <dd>{run.fail_reason}</dd>
-              </>
-            ) : null}
-          </dl>
-        ) : (
-          <p className="lg-field__hint">No Run is recorded for this Task yet.</p>
-        )}
-        {group.task.queue?.waiting_reason ? (
-          <p className="lg-field__hint">
-            Queue waiting: {formatWaitingReason(group.task.queue.waiting_reason)}
-          </p>
-        ) : null}
-      </section>
-
+      {waiting ? <p className="lg-field__hint">Waiting: {waiting}</p> : null}
+      {run?.fail_reason ? <p className="lg-field__hint">Failure: {run.fail_reason}</p> : null}
+      {group.task.queue?.waiting_reason ? (
+        <p className="lg-field__hint">
+          Queue waiting: {formatWaitingReason(group.task.queue.waiting_reason)}
+        </p>
+      ) : null}
       <section className="lg-team-group__section" aria-label="Team members">
         <h4 className="lg-section__title">Members</h4>
         {members.length === 0 ? (
@@ -637,28 +597,59 @@ function GroupBody({
         )}
       </section>
 
-      {group.runs.length > 0 ? (
-        <section className="lg-team-group__section" aria-label="Run history">
-          <h4 className="lg-section__title">Runs</h4>
-          <ul className="lg-team-runs">
-            {[...group.runs]
-              .sort((a, b) => a.attempt - b.attempt || a.id.localeCompare(b.id))
-              .map((candidate) => (
-                <li key={candidate.id} className="lg-team-runs__item">
-                  <span>
-                    Run {candidate.attempt} · {candidate.state}
-                    {candidate.id === run?.id ? ' · current view' : ''}
-                  </span>
-                  <span className="lg-card__path">{candidate.id}</span>
-                  <span className="lg-field__hint">
-                    cleanup: {candidate.cleanup?.status ?? 'not recorded'}
-                    {candidate.fail_reason ? ` · ${candidate.fail_reason}` : ''}
-                  </span>
-                </li>
-              ))}
-          </ul>
+      <details className="lg-team-group__section">
+        <summary aria-label={`Details for ${group.task.title}`}>Details</summary>
+        <section aria-label="Run facts">
+          <h4 className="lg-section__title">Run</h4>
+          <dl className="lg-kv">
+            <dt>Task ID</dt>
+            <dd><CopyableId label="Task ID" value={group.task.id} /></dd>
+            {run ? (
+              <>
+                <dt>Run</dt>
+                <dd>{runHeading(run, current)}</dd>
+                <dt>Run ID</dt>
+                <dd><CopyableId label="Run ID" value={run.id} /></dd>
+                <dt>Attempt</dt>
+                <dd>{run.attempt}</dd>
+                <dt>Worker cleanup</dt>
+                <dd>{run.cleanup?.status ?? 'not recorded'}</dd>
+                <dt>Reviewer cleanup</dt>
+                <dd>
+                  {run.reviewer_cleanup
+                    ? `${run.reviewer_cleanup.status ? `${run.reviewer_cleanup.status} · ` : ''}${
+                        run.reviewer_cleanup.confirmed === true ? 'confirmed' : 'not confirmed'
+                      }`
+                    : 'No independent review session is recorded'}
+                </dd>
+              </>
+            ) : null}
+          </dl>
+          {!run ? <p className="lg-field__hint">No Run is recorded for this Task yet.</p> : null}
         </section>
-      ) : null}
+        {group.runs.length > 0 ? (
+          <section className="lg-team-group__section" aria-label="Run history">
+            <h4 className="lg-section__title">Runs</h4>
+            <ul className="lg-team-runs">
+              {[...group.runs]
+                .sort((a, b) => a.attempt - b.attempt || a.id.localeCompare(b.id))
+                .map((candidate) => (
+                  <li key={candidate.id} className="lg-team-runs__item">
+                    <span>
+                      Run {candidate.attempt} · {candidate.state}
+                      {candidate.id === run?.id ? ' · current view' : ''}
+                    </span>
+                    <CopyableId label={`Run ${candidate.attempt} ID`} value={candidate.id} />
+                    <span className="lg-field__hint">
+                      cleanup: {candidate.cleanup?.status ?? 'not recorded'}
+                      {candidate.fail_reason ? ` · ${candidate.fail_reason}` : ''}
+                    </span>
+                  </li>
+                ))}
+            </ul>
+          </section>
+        ) : null}
+      </details>
     </>
   )
 }
@@ -686,8 +677,7 @@ function MemberRow({
     <li className="lg-team-member" data-team-member={member.id}>
       <div className="lg-team-member__header">
         <div className="lg-team-member__identity">
-          <h5 className="lg-team-member__role">{member.role_ref ?? member.id}</h5>
-          <span className="lg-card__path">{member.id}</span>
+          <h5 className="lg-team-member__role">{member.role_ref ?? 'Team member'}</h5>
         </div>
         <StatusBadge kind={status.kind} title={status.detail ?? status.label}>
           {status.label}
@@ -697,7 +687,7 @@ function MemberRow({
           className="lg-button"
           aria-expanded={expanded}
           aria-controls={bodyId}
-          aria-label={`${expanded ? 'Hide' : 'Show'} details for ${member.role_ref ?? member.id}`}
+          aria-label={`${expanded ? 'Hide' : 'Show'} details for ${member.role_ref ?? 'team member'}`}
           onClick={onToggle}
         >
           Details
@@ -716,9 +706,9 @@ function MemberRow({
         <div id={bodyId} className="lg-team-member__body">
           <dl className="lg-kv">
             <dt>member</dt>
-            <dd className="lg-card__path">{member.id}</dd>
+            <dd><CopyableId label="Member ID" value={member.id} /></dd>
             <dt>run</dt>
-            <dd className="lg-card__path">{member.run_ref}</dd>
+            <dd><CopyableId label="Member Run ID" value={member.run_ref} /></dd>
             <dt>member state</dt>
             <dd>{member.state ?? 'unknown'}</dd>
             <dt>template version</dt>
@@ -779,5 +769,37 @@ function SubtaskRow({ group, subtask }: { group: TeamGroup; subtask: TeamGroupSu
         {subtask.fail_reason ? ` · failure: ${subtask.fail_reason}` : ''}
       </span>
     </li>
+  )
+}
+
+/** Read-only text remains keyboard-selectable when clipboard access is unavailable. */
+function CopyableId({ label, value }: { label: string; value: string }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [feedback, setFeedback] = useState('')
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(value)
+      setFeedback('Copied')
+    } catch {
+      inputRef.current?.focus()
+      inputRef.current?.select()
+      setFeedback('Select and copy the ID with your keyboard or text menu.')
+    }
+  }
+  return (
+    <span>
+      <input
+        ref={inputRef}
+        className="lg-input lg-card__path"
+        aria-label={label}
+        value={value}
+        readOnly
+        onFocus={(event) => event.currentTarget.select()}
+      />
+      <button type="button" className="lg-button" aria-label={`Copy ${label}`} onClick={() => void copy()}>
+        Copy
+      </button>
+      <span className="lg-field__hint" role="status">{feedback}</span>
+    </span>
   )
 }

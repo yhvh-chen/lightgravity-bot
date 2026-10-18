@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ApiError } from '../src/api/client'
@@ -423,5 +423,68 @@ describe('LG-125 grouped team capability gate', () => {
     expect(await screen.findByText('Grouped teams unavailable')).toBeInTheDocument()
     expect(screen.getByText(/No team-groups request was sent/)).toBeInTheDocument()
     expect(fixture.calls).toHaveLength(0)
+  })
+})
+
+
+describe('LG-264 recruited details', () => {
+  it('keeps assignments visible and identifiers/lifecycle/history inside closed Details', () => {
+    const group = makeGroup({ attempt: 3 })
+    panel([group])
+    expect(screen.getByRole('button', { name: group.task.title })).toBeInTheDocument()
+    expect(screen.getByText('Running')).toBeVisible()
+    expect(screen.getByText('engineering-frontend-developer')).toBeVisible()
+    expect(screen.getByText(/page — Working/)).toBeVisible()
+    const summary = screen.getByText('Details', { selector: 'summary' })
+    const details = summary.closest('details')!
+    expect(details.open).toBe(false)
+    expect(within(details).getByText('Attempt')).not.toBeVisible()
+    expect(within(details).getByText('Worker cleanup')).not.toBeVisible()
+    expect(within(details).getByLabelText('Run ID')).toHaveValue(group.runs[0].id)
+    expect(screen.queryByLabelText('Member ID')).toBeNull()
+    // Native summary owns keyboard activation; no custom key interception.
+    expect(summary).toHaveAccessibleName(`Details for ${group.task.title}`)
+    fireEvent.click(summary)
+    expect(details.open).toBe(true)
+    expect(within(details).getByText('Attempt')).toBeVisible()
+    expect(within(details).getByText('No independent review session is recorded')).toBeVisible()
+    fireEvent.click(summary)
+    expect(details.open).toBe(false)
+  })
+
+  it('opens member IDs on request and copies exact IDs with a selectable fallback', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+    const group = makeGroup()
+    panel([group])
+    const button = screen.getByRole('button', { name: /Show details for engineering-frontend-developer/ })
+    fireEvent.click(button)
+    expect(button).toHaveAttribute('aria-expanded', 'true')
+    const input = screen.getByRole('textbox', { name: 'Member ID' }) as HTMLInputElement
+    expect(input).toHaveValue(group.members[0].id)
+    expect(document.getElementById(button.getAttribute('aria-controls')!)).toContainElement(input)
+    fireEvent.click(screen.getByRole('button', { name: 'Copy Member ID' }))
+    await waitFor(() => expect(screen.getByText('Copied')).toBeInTheDocument())
+    expect(writeText).toHaveBeenCalledWith(group.members[0].id)
+    writeText.mockRejectedValueOnce(new Error('clipboard blocked'))
+    fireEvent.click(screen.getByRole('button', { name: 'Copy Member ID' }))
+    await waitFor(() => expect(input).toHaveFocus())
+    expect(input.selectionStart).toBe(0)
+    expect(input.selectionEnd).toBe(group.members[0].id.length)
+    expect(screen.getByText(/Select and copy the ID/)).toBeVisible()
+    fireEvent.click(button)
+    expect(screen.queryByLabelText('Member ID')).toBeNull()
+    Reflect.deleteProperty(navigator, 'clipboard')
+  })
+
+  it('retains review unavailability and stop warnings without suggesting success', () => {
+    const group = makeGroup({ phase: 'failed', runState: 'failed', cleanupStatus: 'done', reviewerConfirmed: false })
+    group.runs[0].reviewer_cleanup!.status = 'unavailable: reviewer not configured'
+    panel([group])
+    expect(screen.getByText('Reviewer stop is not confirmed')).toBeVisible()
+    expect(screen.getByText('Failure: worker failed')).toBeVisible()
+    fireEvent.click(screen.getByText('Details', { selector: 'summary' }))
+    expect(screen.getByText('unavailable: reviewer not configured · not confirmed')).toBeVisible()
+    expect(screen.queryByText('No independent review session is recorded')).toBeNull()
   })
 })
