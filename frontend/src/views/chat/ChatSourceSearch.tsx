@@ -174,7 +174,7 @@ export function ChatSourceSearch({
           compact
         >
           {mode === 'semantic'
-            ? 'Nothing in your authorized scope matched a vector. Audio can only match through a media vector; it has no transcript.'
+            ? 'Nothing in your authorized scope matched a vector. Machine transcripts, when available, remain separate from media vectors.'
             : 'Nothing in your authorized scope matched. Materials with no trusted body are not indexed.'}
         </EmptyState>
       ) : null}
@@ -238,7 +238,7 @@ function SemanticAvailability({
     cacheReason === 'model_mismatch_rebuild_required' ||
     cacheReason === 'cache_version_mismatch_rebuild_required'
 
-  if (!status.enabled) {
+  if (!status.enabled || status.backend?.configured === false) {
     return (
       <div className="lg-notice lg-search-notice" role="status">
         <p>
@@ -269,7 +269,8 @@ function SemanticAvailability({
 
   return (
     <p className="lg-materials__hint">
-      Semantic model: <span className="lg-card__path">{status.backend?.model ?? 'configured'}</span>
+      Semantic model: <span className="lg-card__path">{status.backend?.model ?? 'not reported'}</span>
+      {' · connectivity verification status is not reported by this endpoint'}
       {status.cache?.documents != null ? ` · ${status.cache.documents} cached vector(s)` : ''}
     </p>
   )

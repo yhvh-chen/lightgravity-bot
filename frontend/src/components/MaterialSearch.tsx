@@ -123,7 +123,7 @@ export function MaterialSearch({
       {open ? (
         <section id="lg-material-search" className="lg-top-search__panel" aria-label="Search materials panel">
           <p className="lg-field__hint">
-            {state.taskRef ? 'Current task and shared materials' : 'Shared materials'} · Text search
+            {state.taskRef ? 'Current task and shared materials' : 'Shared materials'} · {search.mode === 'semantic' ? 'Semantic search' : 'Text search'}
           </p>
           <ChatSourceSearch
             api={api}

@@ -861,6 +861,7 @@ function ModelsPanel(props: SettingsViewProps = {}) {
                   {embeddingCacheLabel(settings.embedding).label}
                 </StatusBadge>
               </div>
+              <p className="lg-field__hint">Saved connectivity verification: not reported. Configuration and cache status do not prove a successful test; test the current draft in Configure Embedding.</p>
               <dl className="lg-connection-row__facts">
                 <div>
                   <dt>Model</dt>

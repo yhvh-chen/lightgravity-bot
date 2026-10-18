@@ -158,6 +158,7 @@ export function ChatBody({
   const [sharedIntakeV2, setSharedIntakeV2] = useState(false)
   const [mediaDirectEmbedding, setMediaDirectEmbedding] = useState(false)
   const [intakeCapabilityChecked, setIntakeCapabilityChecked] = useState(false)
+  const [englishAsrAvailable, setEnglishAsrAvailable] = useState<boolean | null>(null)
   const [executionAvailable, setExecutionAvailable] = useState<boolean | null>(null)
   // LG-249: configured leading Team mention from real backend health, never a
   // frontend default.  Missing means no hint (old backend), not an assumed @bot.
@@ -200,6 +201,7 @@ export function ChatBody({
       .then((health) => {
         if (!active) return
         setExecutionAvailable(typeof health.capabilities.sdk_adapter === 'boolean' ? health.capabilities.sdk_adapter : null)
+        setEnglishAsrAvailable(typeof health.capabilities.english_asr === 'boolean' ? health.capabilities.english_asr : null)
         setTeamBotMention(configuredTeamBotMention(health.team_bot_mention))
         setSharedIntakeV2(supportsMaterialIntakeV2(health))
         setMediaDirectEmbedding(supportsMediaDirectEmbedding(health))
@@ -754,6 +756,9 @@ export function ChatBody({
             <span className="lg-card__path">({chat.sendError.code})</span>
           </p>
         ) : null}
+        <p className="lg-field__hint" role="note">
+          English audio transcription: {englishAsrAvailable === null ? 'availability unknown' : englishAsrAvailable ? 'available' : 'unavailable'}. Provider, enabled configuration and duration limits are not reported by this backend capability.
+        </p>
         {attachmentError ? (
           <p className="lg-notice lg-notice--error" role="alert">
             {attachmentError}

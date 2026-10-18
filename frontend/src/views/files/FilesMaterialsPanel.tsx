@@ -536,7 +536,7 @@ export function FilesMaterialsPanel({
             <EmptyState title="Loading materials…" compact />
           ) : sources.length === 0 ? (
             <EmptyState title="No materials in this scope" compact>
-              Materials are added from Chat (upload, drag-drop or a recorded link).
+              Add materials with the attachment button in Chat.
             </EmptyState>
           ) : (
             <ul className="lg-files-materials__list">

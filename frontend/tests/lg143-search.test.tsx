@@ -206,6 +206,7 @@ describe('LG-143 material search modes', () => {
 
     fireEvent.click(screen.getByRole('tab', { name: 'Semantic' }))
     await waitFor(() => expect(api.getVectorStatus).toHaveBeenCalledTimes(1))
+    expect(screen.getByText(/Shared materials · Semantic search/)).toBeVisible()
 
     enter(input)
     expect(await screen.findByText('meeting.mp3')).toBeInTheDocument()
@@ -269,7 +270,7 @@ describe('LG-143 material search modes', () => {
     const searchApi = makeSearchApi({
       getVectorStatus: vi.fn(async () =>
         status({
-          enabled: false,
+          enabled: true,
           backend: { configured: false, model: null },
           reason: 'embedding_disabled',
         }),
