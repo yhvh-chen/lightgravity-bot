@@ -595,7 +595,11 @@ class ResourceCompiler:
             # The legacy ``verified`` summary describes the concrete endpoint,
             # not just its provider enum: a custom OpenAI-compatible host is not
             # silently badged as the verified DeepSeek path.
-            verified=bool(backend.verified and facts["executable"] is True),
+            verified=bool(
+                backend.verified
+                and facts["executable"] is True
+                and facts["vendor_verified"] is not False
+            ),
             auth_mode=connection.auth_mode,
             project=connection.project,
             location=connection.location,

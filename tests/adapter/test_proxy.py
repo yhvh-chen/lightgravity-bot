@@ -151,12 +151,14 @@ def test_proxy_enforces_call_cap(upstream: str) -> None:
         proxy.stop()
 
 
-def test_proxy_refuses_unauthorized_upstream() -> None:
+def test_proxy_accepts_any_absolute_upstream_but_not_a_relative_one() -> None:
+    # LG-230: no host allowlist; the admin-configured endpoint is used as given.
+    LocalAuthProxy(
+        credential=Secret(_FAKE_SECRET),
+        upstream_url="https://custom.example.com/v1/chat/completions",
+    )
     with pytest.raises(CapabilityUnavailable):
-        LocalAuthProxy(
-            credential=Secret(_FAKE_SECRET),
-            upstream_url="https://evil.example.com/v1/chat/completions",
-        )
+        LocalAuthProxy(credential=Secret(_FAKE_SECRET), upstream_url="/v1/chat/completions")
 
 
 def test_proxy_accepts_google_openai_compat_upstream() -> None:

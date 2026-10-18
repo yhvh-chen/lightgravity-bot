@@ -37,13 +37,11 @@ API_KEY_BACKENDS = frozenset({"gemini", "vertex"})
 #: Backends where the credential is injected by the product loopback proxy.
 PROXY_KEY_BACKENDS = frozenset({"openai-compat"})
 
-#: The OpenAI-compatible upstream hosts the current product may execute or
-#: select as a default.  The backend enum alone is not enough: an arbitrary
-#: custom host is configurable/testable but not executable in this build.
-#: LG-229 adds Google's OpenAI-compatible endpoint for the online demo.
-EXECUTABLE_OPENAI_COMPAT_HOSTS = frozenset({"api.deepseek.com", "generativelanguage.googleapis.com"})
-#: Loopback is the existing constructor-level test seam, never a saved product
-#: host policy.  Public Settings capabilities keep it non-executable.
+#: OpenAI-compatible hosts whose path was verified end to end against the
+#: vendor.  This is a displayed fact only: LG-230 lets any configured host
+#: execute and be a default (the product does not restrict models or hosts).
+VENDOR_VERIFIED_OPENAI_COMPAT_HOSTS = frozenset({"api.deepseek.com"})
+#: Loopback stays the constructor-level test seam for the verified path.
 _LOOPBACK_TEST_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})
 
 
@@ -392,19 +390,13 @@ def execution_eligible(
 ) -> bool:
     """Whether a connection may currently execute tasks / be a default.
 
-    Only the existing DeepSeek/OpenAI-compatible path is executable.  Any other
-    non-loopback ``openai-compat`` host is preserved and testable but not
-    executable; this is the actual host allowlist, not a provider-enum shortcut.
-    ``allow_loopback`` is reserved for the existing constructor-level test seam
-    and is never used for public Settings capabilities/default eligibility.
+    LG-230: any ``openai-compat`` connection with an endpoint host may execute;
+    there is no host allowlist.  ``allow_loopback`` is kept for existing callers
+    and no longer changes the result.
     """
 
-    if backend != "openai-compat":
-        return False
-    host = endpoint_host(base_url)
-    if host in EXECUTABLE_OPENAI_COMPAT_HOSTS:
-        return True
-    return bool(allow_loopback and host in _LOOPBACK_TEST_HOSTS)
+    del allow_loopback
+    return backend == "openai-compat" and endpoint_host(base_url) is not None
 
 
 def capabilities_for_connection(
@@ -422,11 +414,13 @@ def capabilities_for_connection(
     """
 
     facts = capabilities_for_registration(registration)
-    if backend == "openai-compat" and not execution_eligible(
-        backend=backend, base_url=base_url, allow_loopback=allow_loopback
-    ):
-        facts["executable"] = False
-        facts["vendor_verified"] = False
+    if backend == "openai-compat":
+        if not execution_eligible(backend=backend, base_url=base_url):
+            facts["executable"] = False
+        host = endpoint_host(base_url)
+        seam = allow_loopback and host in _LOOPBACK_TEST_HOSTS
+        if host not in VENDOR_VERIFIED_OPENAI_COMPAT_HOSTS and not seam:
+            facts["vendor_verified"] = False
     return facts
 
 
@@ -445,5 +439,5 @@ __all__ = [
     "capabilities_for_connection",
     "endpoint_host",
     "execution_eligible",
-    "EXECUTABLE_OPENAI_COMPAT_HOSTS",
+    "VENDOR_VERIFIED_OPENAI_COMPAT_HOSTS",
 ]

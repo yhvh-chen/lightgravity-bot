@@ -63,7 +63,6 @@ from .executor import (
     snapshot_tree,
 )
 from .proxy import (
-    AUTHORIZED_UPSTREAM_HOSTS,
     DEEPSEEK_UPSTREAM_URL,
     GenerationCounter,
     LocalAuthProxy,
@@ -133,7 +132,6 @@ __all__ = [
     "diff_snapshots",
     "snapshot_tree",
     # proxy
-    "AUTHORIZED_UPSTREAM_HOSTS",
     "DEEPSEEK_UPSTREAM_URL",
     "GenerationCounter",
     "LocalAuthProxy",

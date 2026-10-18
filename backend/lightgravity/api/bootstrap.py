@@ -123,9 +123,9 @@ class StartupOptions:
     #: strictly read-only.
     seed_default_admin: bool = True
     tester: bool = True
-    #: Hard caps forwarded to the real executor (used by the gated real-model
-    #: verification; ``None`` keeps the adapter default).
-    max_proxy_calls: int = 8
+    #: Optional caps forwarded to the real executor (gated real-model
+    #: verification only).  LG-230: ``None`` = no product limit.
+    max_proxy_calls: int | None = None
     model_calls_cap: int | None = None
     log: LogSink = _noop
 

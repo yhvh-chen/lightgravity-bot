@@ -71,11 +71,6 @@ DEFAULT_COLLAB_TIMEOUT_SECONDS = 120
 #: Maximum accepted ``timeout_seconds`` on a single request (bounded waiting).
 MAX_COLLAB_TIMEOUT_SECONDS = 600
 
-#: Fraction of the Task ``budget`` treated as the collaboration allowance when
-#: no explicit key is present.  Kept conservative: collaboration is a supplement
-#: to the delivery budget, not a second budget.
-_BUDGET_SHARE = 0.5
-
 
 class CollabRefused(AppError):
     """A peer request the program refuses, carrying a stable machine ``reason``."""
@@ -326,20 +321,15 @@ class PeerService:
     def _budget_ceiling(self, task_ref: str) -> int | None:
         """Resolve the Task's collaboration request allowance.
 
-        ``budget.max_collab_requests`` wins when present; otherwise a
-        conservative share of ``max_repair_rounds``/``max_workers`` is used so
-        collaboration cannot exceed the delivery budget.  ``None`` means the
-        system default applies.
+        Only an explicit ``budget.max_collab_requests`` limits requests; LG-230
+        removed the ceiling derived from worker/repair capacity, so ``None``
+        (no limit) is the default.
         """
 
         budget = self._task_budget(task_ref)
         explicit = budget.get("max_collab_requests")
         if isinstance(explicit, int) and not isinstance(explicit, bool) and explicit >= 0:
             return explicit
-        for key in ("max_workers", "max_parallel", "max_repair_rounds"):
-            value = budget.get(key)
-            if isinstance(value, int) and not isinstance(value, bool) and value > 0:
-                return max(1, int(value * (1 + _BUDGET_SHARE)))
         return None
 
     # ------------------------------------------------------------------ public

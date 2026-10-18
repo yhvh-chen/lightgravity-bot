@@ -359,12 +359,12 @@ class AntigravityExecutor:
         credential_resolver: CredentialResolver | None = None,
         artifacts: ArtifactSink | None = None,
         workspace_root: Path | str | None = None,
-        max_proxy_calls: int = 8,
+        max_proxy_calls: int | None = None,
         model_calls_cap: int | None = None,
         cancel_timeout: float = 15.0,
         upstream_timeout: float = 120.0,
         allow_loopback_upstream: bool = False,
-        proxy_factory: Callable[[Secret, str, int], LocalAuthProxy] | None = None,
+        proxy_factory: Callable[[Secret, str, int | None], LocalAuthProxy] | None = None,
         generation_budget: GenerationCounter | None = None,
     ) -> None:
         self._store = store
@@ -405,7 +405,9 @@ class AntigravityExecutor:
     def model_calls_made(self) -> int:
         return self._model_calls_made
 
-    def _make_proxy(self, credential: Secret, upstream: str, max_calls: int) -> LocalAuthProxy:
+    def _make_proxy(
+        self, credential: Secret, upstream: str, max_calls: int | None
+    ) -> LocalAuthProxy:
         if self._proxy_factory is not None:
             return self._proxy_factory(credential, upstream, max_calls)
         return LocalAuthProxy(
@@ -591,12 +593,11 @@ class AntigravityExecutor:
         # the SDK's real stop reason (the phase3 failure).  When the request sets
         # no model budget the behaviour is unchanged (additive only).
         request_model_calls = _int_or_none((request.budget or {}).get("max_model_calls"))
-        ceilings = [self._max_proxy_calls]
-        if remaining is not None:
-            ceilings.append(remaining)
+        # LG-230: no product default cap; only explicitly configured ceilings apply.
+        ceilings = [value for value in (self._max_proxy_calls, remaining) if value is not None]
         if request_model_calls is not None and request_model_calls > 0:
             ceilings.append(request_model_calls)
-        max_calls = min(ceilings)
+        max_calls = min(ceilings) if ceilings else None
 
         upstream = upstream_chat_completions(connection.base_url)
         proxy = self._make_proxy(credential, upstream, max_calls)

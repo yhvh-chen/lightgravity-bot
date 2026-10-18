@@ -473,8 +473,8 @@ class UnavailableReviewer:
         )
 
 
-#: A model-backed review is a *single* bounded, tool-less turn.
-DEFAULT_REVIEW_MODEL_CALLS = 1
+#: A model-backed review is one tool-less turn.  LG-230: no call cap by default.
+DEFAULT_REVIEW_MODEL_CALLS: int | None = None
 DEFAULT_REVIEW_TIMEOUT_SECONDS = 120.0
 
 _REVIEW_SYSTEM_INSTRUCTIONS = (
@@ -714,7 +714,7 @@ class ModelReviewer:
         *,
         turn: Any | None = None,
         timeout_seconds: float = DEFAULT_REVIEW_TIMEOUT_SECONDS,
-        max_model_calls: int = DEFAULT_REVIEW_MODEL_CALLS,
+        max_model_calls: int | None = DEFAULT_REVIEW_MODEL_CALLS,
     ) -> None:
         self._support = support
         self._resolve = credential_resolver
@@ -1033,7 +1033,7 @@ def run_review_turn(
     prompt: str,
     *,
     timeout_seconds: float = DEFAULT_REVIEW_TIMEOUT_SECONDS,
-    max_model_calls: int = DEFAULT_REVIEW_MODEL_CALLS,
+    max_model_calls: int | None = DEFAULT_REVIEW_MODEL_CALLS,
     stop_event: Any | None = None,
     resource_stop_report: dict[str, Any] | None = None,
 ) -> tuple[str | None, dict[str, Any]]:
