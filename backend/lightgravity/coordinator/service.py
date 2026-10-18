@@ -317,6 +317,26 @@ def _default_responder(content: str, classification: Classification) -> str:
     return "I am LightGravity Bot. Describe your delivery goal, or provide a Task ID to check its status."
 
 
+
+def _delivery_title(content: str, mention: str) -> str:
+    """Use the first request sentence as a compact title, without a model call."""
+    text = content.strip()
+    if _is_bot_mention(text, mention):
+        text = text[len(mention):].lstrip()
+    text = " ".join(text.lstrip(":,;：，；").split())
+    # A dot inside a filename/URL is not a sentence boundary.
+    first = re.split(r"(?<=[.!?])(?:\s+|$)|(?<=[。！？])", text, maxsplit=1)[0]
+    first = first.rstrip(".!?。！？").strip()
+    if not first:
+        return "New task"
+    if len(first) <= 60:
+        return first
+    clipped = first[:59].rstrip()
+    # Prefer a nearby word boundary; long tokens still get a bounded title.
+    if " " in clipped and len(clipped.rsplit(" ", 1)[0]) >= 40:
+        clipped = clipped.rsplit(" ", 1)[0]
+    return clipped + "…"
+
 def _task_body(objective: str, scope: str | None, acceptance: tuple[str, ...]) -> str:
     lines = ["# Task", "", "## Objective", "", objective.strip(), ""]
     if scope and scope.strip():
@@ -1003,7 +1023,7 @@ class Coordinator:
                 },
             )
         if classification.next_action == "create_task":
-            title = content.strip().splitlines()[0][:120] or "New task"
+            title = _delivery_title(content, self._bot_mention)
 
             def producer() -> dict[str, Any]:
                 return self._create_task_locked(

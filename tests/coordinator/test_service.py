@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import asyncio
 
+import pytest
+
 from lightgravity.store import FileStore
 
 from coordinator_helpers import CONV, FakeExecutor, make_coordinator, message, raw_task, wait_for_phase
@@ -103,3 +105,56 @@ async def test_worker_survives_request_completion(store: FileStore) -> None:
         assert final in {"verifying", "waiting_user"}
     finally:
         await coordinator.stop()
+
+
+@pytest.mark.parametrize("prompt,expected", [
+    ("Build a landing page. Include a separate deployment guide.", "Build a landing page"),
+    ("Build index.html. Include a short report.", "Build index.html"),
+    ("Build a page across\nwrapped lines. Then test it.", "Build a page across wrapped lines"),
+    ("  @bot Build a launch page! Include an FAQ.", "Build a launch page"),
+    ("创建一个登陆页面。然后添加测试。", "创建一个登陆页面"),
+    ("@bot: Build a launch page. Include an FAQ.", "Build a launch page"),
+    ("", "New task"),
+])
+def test_delivery_title_uses_first_requirement_sentence(prompt, expected):
+    from lightgravity.coordinator.service import _delivery_title
+    assert _delivery_title(prompt, "@bot") == expected
+
+
+@pytest.mark.parametrize("prompt", [
+    "Using the selected sources, build a one-page launch landing page (index.html) for the product in the brief, and a short report.",
+    "Implement " + "a" * 120,
+    "实" * 120,
+])
+def test_long_delivery_title_is_readable_and_bounded(prompt):
+    from lightgravity.coordinator.service import _delivery_title
+    title = _delivery_title(prompt, "@bot")
+    assert len(title) <= 60
+    assert title.endswith("…")
+    assert "\n" not in title
+
+
+async def test_short_title_preserves_full_delivery_request_and_retry_identity(store):
+    coordinator = make_coordinator(store, team_mode=True)
+    objective = (
+        "Build a launch landing page. Include index.html and a short report.\n"
+        "Preserve every requirement and use the selected source material."
+    )
+    msg = message("@bot " + objective, message_id="short-delivery-title")
+    first = await coordinator.submit_global_message(CONV, msg)
+    replay = await coordinator.submit_global_message(CONV, msg)
+    assert replay.to_dict() == first.to_dict()
+    assert len(coordinator.list_tasks()) == 1
+    task = store.read("task", first.task_id)
+    assert task.entity["title"] == "Build a launch landing page"
+    assert task.entity["objective"] == objective
+    assert objective in task.body
+    assert coordinator.read_global_messages(CONV)[0]["message"]["content"] == "@bot " + objective
+    assert len(coordinator.read_global_messages(CONV)) == 2
+
+
+def test_explicit_new_task_title_is_not_rewritten(store):
+    coordinator = make_coordinator(store)
+    title = "User title " + "with extra detail " * 6
+    result = coordinator.create_task("explicit-title", title, "Full objective")
+    assert store.read("task", result.task_id).entity["title"] == title
