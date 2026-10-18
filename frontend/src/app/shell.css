@@ -459,12 +459,6 @@
   padding: var(--lg-space-5);
 }
 
-.lg-view--chat {
-  padding: 0;
-  overflow: hidden;
-  display: flex;
-}
-
 /* ---------------------------------------------------------------- Chat */
 
 .lg-chat {
@@ -975,7 +969,6 @@
    * the wrappers here removes that transient horizontal overflow without any
    * overlay/clipping and without changing what desktop renders. */
   .lg-context--inline,
-  .lg-chat--rail,
   .lg-chat-rail,
   .lg-workspace > .lg-resizer {
     display: none;

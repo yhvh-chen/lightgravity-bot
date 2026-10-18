@@ -307,10 +307,11 @@ export function ChatBody({
     dispatch({ type: 'selectTask', taskRef: null })
   }
 
-  const openSourceInFiles = (sourceId: string) => {
-    // Meaningful backlink: open the real material in Files, keep the Task scope.
+  const openSourceInTasks = (sourceId: string) => {
+    // Meaningful backlink: open the real material in the Tasks workspace, keep
+    // the Task scope. LG-202 removed the old Files/Chat main views.
     dispatch({ type: 'selectItem', itemRef: `source:${sourceId}` })
-    dispatch({ type: 'setView', view: 'files' })
+    dispatch({ type: 'setView', view: 'tasks' })
   }
 
   const handleAddAttachment = (event: ChangeEvent<HTMLInputElement>) => {
@@ -644,7 +645,7 @@ export function ChatBody({
         {chat.error?.httpStatus === 404 ? (
           <div className="lg-chat__recovery">
             <p>Your draft is kept. {effectiveTaskRef ? 'The task or conversation endpoint may no longer be available.' : 'Check that the server supports conversations.'}</p>
-            <button type="button" className="lg-button" onClick={() => dispatch({ type: 'setView', view: 'files' })}>Choose task in Files</button>
+            <button type="button" className="lg-button" onClick={() => dispatch({ type: 'setView', view: 'tasks' })}>Choose task in Tasks</button>
             {effectiveTaskRef ? <button type="button" className="lg-button" onClick={() => dispatch({ type: 'selectTask', taskRef: null })}>Return to conversation</button> : null}
           </div>
         ) : null}
@@ -694,13 +695,13 @@ export function ChatBody({
               </ul>
             ) : null}
             {/* Persisted reply bindings (legacy rows have no `data` ⇒ nothing). */}
-            <ChatSources data={message.data} onOpen={openSourceInFiles} />
+            <ChatSources data={message.data} onOpen={openSourceInTasks} />
             {/* Receipt-only refs stay separate from selected context. */}
             {sharedIntakeV2 && message.source_refs && message.source_refs.length > 0 ? (
               <ChatMaterialReceipts
                 refs={message.source_refs}
                 api={resolvedSourcesApi}
-                onOpen={openSourceInFiles}
+                onOpen={openSourceInTasks}
                 materialIntakeV2={sharedIntakeV2}
                 mediaDirectEmbedding={mediaDirectEmbedding}
               />
@@ -737,7 +738,7 @@ export function ChatBody({
         ) : null}
         {/* Reply-time Sources from the just-returned send (not yet reloaded). */}
         {!privatePersonal && lastSendSources ? (
-          <ChatSources data={lastSendSources} onOpen={openSourceInFiles} />
+          <ChatSources data={lastSendSources} onOpen={openSourceInTasks} />
         ) : null}
         {privatePersonal && privateAttachmentsAvailable === false ? (
           <p className="lg-notice" role="status">

@@ -477,7 +477,7 @@ export function FilesMaterialsPanel({
 
   return (
     <section className="lg-files-materials" aria-label="Materials (sources)">
-      <header className="lg-files-materials__header">
+      <div className="lg-files-materials__header">
         <h2 className="lg-files__section-title">Materials</h2>
         <span className="lg-files__note">
           Same source as Chat. Archive, correct, reprocess and download here.
@@ -490,7 +490,7 @@ export function FilesMaterialsPanel({
             {status.text}
           </p>
         ) : null}
-      </header>
+      </div>
 
       <div className="lg-files-materials__body">
         <div className="lg-files-materials__list-panel">

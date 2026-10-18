@@ -8,7 +8,7 @@
  *   `semantic_search` capability;
  * * keeps the two result sets separate (no score blending);
  * * shows the source id, version and content hash for each hit;
- * * lets the user open the hit in Files, where the same source state is read;
+ * * lets the user open the hit in Tasks, where the same source state is read;
  * * surfaces stale/invalidated hits explicitly;
  * * reports `index_unavailable`, a disabled backend or a model mismatch
  *   honestly and offers an explicit switch back to Keyword;
@@ -31,7 +31,7 @@ import './search.css'
 export interface ChatSourceSearchProps {
   api: SourcesApi
   taskRef: string | null
-  /** Open one source's authoritative view (Files) at this id. */
+  /** Open one source's authoritative view (Tasks) at this id. */
   onOpen: (sourceId: string) => void
   /** Lend the search state from the top bar instead of owning a second input. */
   controller?: MaterialSearchController
@@ -158,7 +158,7 @@ export function ChatSourceSearch({
           <p>
             {mode === 'semantic' ? 'Semantic index unavailable' : 'Search index unavailable'} (
             {result.index_unavailable_reason ?? 'unknown'}). Original files are still viewable in
-            Files; an explicit protected rebuild may be needed.
+            Tasks; an explicit protected rebuild may be needed.
           </p>
           {mode === 'semantic' ? (
             <button type="button" className="lg-link-button" onClick={search.fallbackToKeyword}>
@@ -197,7 +197,7 @@ export function ChatSourceSearch({
         <div className="lg-source-search__stale" role="status">
           <StatusBadge kind="warning">{result.stale.length} stale hit(s) refused</StatusBadge>
           <span className="lg-materials__hint">
-            Their source version or hash changed, or the source was revoked; reopen from Files to
+            Their source version or hash changed, or the source was revoked; reopen from Tasks to
             re-verify.
           </span>
         </div>
@@ -336,7 +336,7 @@ function HitRow({
           <span className="lg-materials__flag">media direct</span>
         ) : null}
         <button type="button" className="lg-link-button" onClick={() => onOpen(hit.source_id)}>
-          Open in Files
+          Open in Tasks
         </button>
       </div>
     </li>

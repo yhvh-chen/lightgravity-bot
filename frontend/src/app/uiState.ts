@@ -120,7 +120,9 @@ export function shellReducer(state: ShellState, action: ShellAction): ShellState
       return { ...state, view: action.view }
     case 'openTaskConversation':
       // The provider derives the channel from authenticated deployment mode.
-      return { ...state, view: 'chat', taskRef: action.taskRef, runRef: null, selectedItemRef: null, openDrawer: null, chatChannel: action.channel ?? state.chatChannel }
+      // LG-202: there is no Chat main view; opening a Task conversation now
+      // means the Tasks workspace with the right Bot Chat bound to that Task.
+      return { ...state, view: 'tasks', taskRef: action.taskRef, runRef: null, selectedItemRef: null, chatOpen: true, openDrawer: 'chat', chatChannel: action.channel ?? state.chatChannel }
     case 'selectTask':
       return {
         ...state,
@@ -163,6 +165,25 @@ export interface ShellRoute {
 }
 
 const ROUTE_PARAMS = ['view', 'task', 'run', 'item', 'channel'] as const
+
+/**
+ * Legacy view ids from before LG-202.  `chat` was the retired main conversation
+ * page and `files` is the same workspace that is now called Tasks; both must
+ * resolve to the real Tasks workspace while preserving task/run/item state.
+ */
+const LEGACY_VIEW_ALIASES: Readonly<Record<string, ViewId>> = {
+  chat: 'tasks',
+  files: 'tasks',
+}
+
+function canonicalView(value: string | null): ViewId {
+  if (isViewId(value)) return value
+  if (value) {
+    const aliased = LEGACY_VIEW_ALIASES[value]
+    if (aliased) return aliased
+  }
+  return 'tasks'
+}
 
 function parseChannel(value: string | null): ChatChannel | null {
   return value === 'personal' || value === 'team' ? value : null
@@ -213,9 +234,8 @@ function normalizeRoute(route: ShellRoute): ShellRoute {
 export function routeFromUrl(search?: string): ShellRoute {
   const raw = search ?? (typeof window === 'undefined' ? '' : window.location.search)
   const params = new URLSearchParams(raw)
-  const viewParam = params.get('view')
   return normalizeRoute({
-    view: isViewId(viewParam) ? viewParam : 'chat',
+    view: canonicalView(params.get('view')),
     taskRef: params.get('task'),
     runRef: params.get('run'),
     selectedItemRef: params.get('item'),

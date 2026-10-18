@@ -293,7 +293,7 @@ describe('ChatSources (LG-044 §4)', () => {
     expect(screen.getByText('#abcdef012345')).toBeTruthy()
     expect(screen.getByText('formal')).toBeTruthy()
     expect(screen.getByText(/NOT span-verified/)).toBeTruthy()
-    fireEvent.click(screen.getByText('Open in Files'))
+    fireEvent.click(screen.getByText('Open in Tasks'))
     // Backlink target is the real source id, not a fabricated local path.
     expect(onOpen).toHaveBeenCalledWith('source_01J')
   })

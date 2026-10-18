@@ -212,7 +212,7 @@ describe('LG-143 material search modes', () => {
     expect(screen.getByText('Audio')).toBeInTheDocument()
     expect(screen.getByText(/no transcript/i)).toBeInTheDocument()
     expect(screen.getByText('media direct')).toBeInTheDocument()
-    expect(screen.getByText('Open in Files')).toBeInTheDocument()
+    expect(screen.getByText('Open in Tasks')).toBeInTheDocument()
     expect(search).toHaveBeenCalledTimes(1)
     expect(api.searchSemantic).toHaveBeenCalledTimes(1)
     const query = vi.mocked(api.searchSemantic).mock.calls[0][0] as unknown as Record<

@@ -145,10 +145,15 @@ export function FilesView(props: FilesViewProps = {}) {
   }, [])
   return (
     <div className="lg-files-workspace">
-    <TaskDirectory onOpen={(ref) => {
-      props.onSelectTaskRef?.(ref)
-      dispatch({ type: 'openTaskConversation', taskRef: ref })
-    }} />
+    <TaskDirectory
+      activeTaskRef={taskRef}
+      onOpen={(ref) => {
+        // LG-202: selecting a Task keeps the Tasks workspace and updates the
+        // shell task_ref, which binds the single right Bot Chat to the same task.
+        props.onSelectTaskRef?.(ref)
+        dispatch({ type: 'selectTask', taskRef: ref })
+      }}
+    />
     <FilesPanel
       taskRef={taskRef}
       runRef={runRef}
@@ -352,7 +357,7 @@ export function FilesPanel({
 
   return (
     <div className="lg-files">
-      <header className="lg-files__header">
+      <div className="lg-files__header">
         <div className="lg-files__scope">
           <span className="lg-files__scope-label">Task scope</span>
           <span className="lg-files__scope-value" title={taskRef ?? 'none'}>
@@ -380,7 +385,7 @@ export function FilesPanel({
             Copy path
           </button>
         </div>
-        <div className="lg-files__surface-tabs" role="tablist" aria-label="Files surfaces">
+        <div className="lg-files__surface-tabs" role="tablist" aria-label="Task workspace surfaces">
           <button
             type="button"
             role="tab"
@@ -400,7 +405,7 @@ export function FilesPanel({
             Materials
           </button>
         </div>
-      </header>
+      </div>
 
       {status ? (
         <p

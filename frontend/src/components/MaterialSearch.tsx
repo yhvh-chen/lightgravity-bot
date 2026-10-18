@@ -137,7 +137,7 @@ export function MaterialSearch({
             searchApi={vectorApi}
             onOpen={(sourceId) => {
               dispatch({ type: 'selectItem', itemRef: `source:${sourceId}` })
-              dispatch({ type: 'setView', view: 'files' })
+              dispatch({ type: 'setView', view: 'tasks' })
               setOpen(false)
             }}
           />

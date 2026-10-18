@@ -4,8 +4,22 @@ import type { TaskSummary } from '../../api/types'
 import { ErrorState } from '../../components/ErrorState'
 import { EmptyState } from '../../components/EmptyState'
 
-/** Logical task directories from the task store, never guessed from a file path. */
-export function TaskDirectory({ onOpen, api: injectedApi }: { onOpen: (taskRef: string) => void; api?: TaskApi }) {
+export interface TaskDirectoryProps {
+  /** `null` selects the fixed General entry (the global conversation). */
+  onOpen: (taskRef: string | null) => void
+  /** Active Task from the shell, used only for the selected state. */
+  activeTaskRef?: string | null
+  api?: TaskApi
+}
+
+/**
+ * Logical task directories from the task store, never guessed from a file path.
+ *
+ * LG-202: General is pinned first and always present; it is the global
+ * conversation with no Task scope. The real Task list follows. Selecting a
+ * Task opens its workspace and binds the right Bot Chat to the same task_ref.
+ */
+export function TaskDirectory({ onOpen, activeTaskRef = null, api: injectedApi }: TaskDirectoryProps) {
   const api = useMemo(() => injectedApi ?? createTaskApi(), [injectedApi])
   const [tasks, setTasks] = useState<TaskSummary[] | null>(null)
   const [cursor, setCursor] = useState<string | null>(null)
@@ -62,17 +76,41 @@ export function TaskDirectory({ onOpen, api: injectedApi }: { onOpen: (taskRef: 
   }
   return (
     <section className="lg-task-directory" aria-label="Task directories">
-      <h2 className="lg-files__section-title">Tasks /</h2>
-      <p className="lg-field__hint">Choose a task directory to open its conversation. Workspace folders remain files.</p>
-      {error ? <ErrorState title="Task directory unavailable" message={error} retryable onRetry={() => setReload(reload + 1)} /> : null}
-      {!tasks && loading ? <p role="status">Loading tasks…</p> : null}
-      {tasks?.length === 0 ? <EmptyState title="No tasks yet" compact>Create a task by describing a goal in Chat.</EmptyState> : null}
-      <ul className="lg-task-directory__list">
-        {tasks?.map((task) => <li key={task.id}><button type="button" className="lg-button" disabled={opening !== null} onClick={() => void open(task.id)} title={task.id}>
-          <span aria-hidden="true">▸</span> {task.title} / <small>{task.archived ? 'archived' : task.phase}</small>{opening === task.id ? ' · Opening…' : ''}
-        </button></li>)}
-      </ul>
-      {cursor ? <button type="button" className="lg-button" disabled={loading} onClick={() => void loadMore()}>More tasks</button> : null}
+      <div className="lg-task-directory__head">
+        <h2 className="lg-files__section-title">Tasks</h2>
+        <p className="lg-field__hint">
+          General is the global conversation. Choose a task directory to open its workspace;
+          workspace folders remain files.
+        </p>
+      </div>
+      <button
+        type="button"
+        className="lg-button lg-task-directory__general"
+        aria-current={activeTaskRef ? undefined : 'page'}
+        title="Global conversation without a Task scope"
+        onClick={() => onOpen(null)}
+      >
+        <span aria-hidden="true">▸</span> General
+      </button>
+      <div className="lg-task-directory__tasks">
+        <h3 className="lg-task-directory__title">Task directories</h3>
+        {error ? <ErrorState title="Task directory unavailable" message={error} retryable onRetry={() => setReload(reload + 1)} /> : null}
+        {!tasks && loading ? <p role="status">Loading tasks…</p> : null}
+        {tasks?.length === 0 ? <EmptyState title="No tasks yet" compact>Create a task by describing a goal in Chat.</EmptyState> : null}
+        <ul className="lg-task-directory__list" aria-label="Task list">
+          {tasks?.map((task) => <li key={task.id}><button
+            type="button"
+            className="lg-button"
+            disabled={opening !== null}
+            aria-current={activeTaskRef === task.id ? 'page' : undefined}
+            onClick={() => void open(task.id)}
+            title={task.id}
+          >
+            <span aria-hidden="true">▸</span> {task.title} / <small>{task.archived ? 'archived' : task.phase}</small>{opening === task.id ? ' · Opening…' : ''}
+          </button></li>)}
+        </ul>
+        {cursor ? <button type="button" className="lg-button" disabled={loading} onClick={() => void loadMore()}>More tasks</button> : null}
+      </div>
     </section>
   )
 }

@@ -24,9 +24,10 @@ describe('Single navigation shell', () => {
     await renderShell()
     const nav = screen.getByRole('navigation', { name: 'Primary navigation' })
     expect(within(nav).getAllByRole('button').map((b) => b.getAttribute('aria-label'))).toEqual([
-      'Chat', 'Board', 'Files', 'Team', 'Session Profiles', 'Hooks', 'MCP', 'Tools', 'Triggers', 'Skills', 'Settings',
+      'Board', 'Tasks', 'Team', 'Session Profiles', 'Hooks', 'MCP', 'Tools', 'Triggers', 'Skills', 'Settings',
     ])
-    expect(within(nav).getByRole('button', { name: 'Chat' })).toHaveAttribute('aria-current', 'page')
+    expect(within(nav).queryByRole('button', { name: 'Chat' })).toBeNull()
+    expect(within(nav).getByRole('button', { name: 'Tasks' })).toHaveAttribute('aria-current', 'page')
     expect(screen.queryByLabelText('Scope')).toBeNull()
     expect(screen.queryByLabelText('Run')).toBeNull()
     expect(screen.queryByRole('complementary', { name: 'Context' })).toBeNull()
@@ -75,7 +76,7 @@ describe('Single navigation shell', () => {
     fireEvent.keyDown(input, { key: 'Enter' })
     expect(within(banner).getByText(/Shared materials.*Text search/)).toBeInTheDocument()
     expect(await screen.findByText('Search failed')).toBeInTheDocument()
-    expect(within(banner).queryByRole('button', { name: 'Files' })).toBeNull()
+    expect(within(banner).queryByRole('button', { name: 'Tasks' })).toBeNull()
     fireEvent.keyDown(input, { key: 'Escape' })
     expect(screen.queryByLabelText('Search materials panel')).toBeNull()
     expect(input).toHaveFocus()
@@ -114,7 +115,7 @@ describe('Single navigation shell', () => {
     expect(await screen.findByRole('tab', { name: 'Semantic' })).toBeInTheDocument()
   })
 
-  it('dismisses search on navigation so Files task controls are not covered', async () => {
+  it('dismisses search on navigation so Tasks controls are not covered', async () => {
     await renderShell()
     const input = screen.getByRole('searchbox', { name: 'Search' })
     fireEvent.change(input, { target: { value: 'findme' } })
@@ -122,9 +123,10 @@ describe('Single navigation shell', () => {
     expect(screen.getByLabelText('Search materials panel')).toBeInTheDocument()
     expect(await screen.findByText('Search failed')).toBeInTheDocument()
     // A click without pointerdown also models keyboard activation.
-    fireEvent.click(screen.getByRole('button', { name: 'Files' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Board' }))
     expect(screen.queryByLabelText('Search materials panel')).toBeNull()
-    expect(screen.getByRole('heading', { name: 'Tasks /' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Tasks' }))
+    expect(screen.getByRole('heading', { name: 'Tasks' })).toBeInTheDocument()
     expect(input).toHaveAttribute('aria-expanded', 'false')
   })
   it('keeps search open for inside pointers and dismisses outside pointers', async () => {
@@ -135,7 +137,7 @@ describe('Single navigation shell', () => {
     fireEvent.pointerDown(input)
     expect(screen.getByLabelText('Search materials panel')).toBeInTheDocument()
     expect(await screen.findByText('Search failed')).toBeInTheDocument()
-    fireEvent.pointerDown(screen.getByLabelText('Chat workspace'))
+    fireEvent.pointerDown(screen.getByLabelText('Chat panel'))
     expect(screen.queryByLabelText('Search materials panel')).toBeNull()
     fireEvent.keyDown(input, { key: 'Enter' })
     expect(await screen.findByText('Search failed')).toBeInTheDocument()
@@ -148,7 +150,7 @@ describe('Single navigation shell', () => {
     await renderShell()
     fireEvent.click(screen.getByRole('button', { name: 'Team' }))
     expect(screen.getByRole('button', { name: 'Team' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('button', { name: 'Chat' })).not.toHaveAttribute('aria-current')
+    expect(screen.getByRole('button', { name: 'Tasks' })).not.toHaveAttribute('aria-current')
   })
 })
 
@@ -157,7 +159,9 @@ describe('Task state and one conversation', () => {
     window.history.replaceState(null, '', '/?view=chat&task=task_real&run=run_real')
     await renderShell()
     fireEvent.change(screen.getByLabelText('Message for task_real'), { target: { value: 'draft text' } })
-    for (const view of ['Board', 'Files', 'Chat']) {
+    expect(window.location.search).toContain('view=tasks')
+    expect(window.location.search).not.toContain('view=chat')
+    for (const view of ['Board', 'Tasks', 'Skills']) {
       fireEvent.click(screen.getByRole('button', { name: view }))
       expect(window.location.search).toContain('task=task_real')
       expect(window.location.search).toContain('run=run_real')
@@ -167,7 +171,8 @@ describe('Task state and one conversation', () => {
   })
   it('can hide the optional right chat without creating another conversation', async () => {
     await renderShell()
-    expect(screen.getByRole('button', { name: 'Toggle chat panel' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Toggle chat panel' })).toBeEnabled()
+    expect(screen.getAllByLabelText('Chat panel')).toHaveLength(1)
     fireEvent.click(screen.getByRole('button', { name: 'Board' }))
     expect(screen.getAllByLabelText('Chat panel')).toHaveLength(1)
     fireEvent.click(screen.getByRole('button', { name: 'Toggle chat panel' }))
@@ -218,8 +223,9 @@ describe('Recoverable failures', () => {
       throw new Error('Connection refused')
     }) as typeof fetch)
     await renderShell()
-    expect(await screen.findByText('Could not load messages')).toBeInTheDocument()
-    expect(screen.getByText(/network_error/)).toBeInTheDocument()
+    const panel = screen.getByLabelText('Chat panel')
+    expect(await within(panel).findByText('Could not load messages')).toBeInTheDocument()
+    expect(within(panel).getByText(/network_error/)).toBeInTheDocument()
   })
 })
 
