@@ -17,9 +17,10 @@ export function MachineChecksSection({ task, snapshot }: { task: TaskDetail; sna
     ? checks.results.map(record).filter((item): item is Record<string, unknown> => item !== null) : []
   const required = strings(checks?.required)
   const binding = record(checks?.binding)
-  const planHash = typeof task.run?.plan_hash === 'string' ? task.run.plan_hash : snapshot?.candidate?.plan_hash
-  const currentBinding = Boolean(snapshot?.task_id === task.task_id && task.run && binding &&
-    binding.run_id === task.run.id && binding.requirements_revision === task.requirements_revision &&
+  const run = task.run ?? (task.execution?.task_id === task.task_id ? task.execution.run : null)
+  const planHash = typeof run?.plan_hash === 'string' ? run.plan_hash : snapshot?.candidate?.plan_hash
+  const currentBinding = Boolean(snapshot?.task_id === task.task_id && run && binding &&
+    binding.run_id === run.id && binding.requirements_revision === task.requirements_revision &&
     snapshot.requirements_revision === task.requirements_revision &&
     typeof planHash === 'string' && planHash.length > 0 && binding.plan_hash === planHash)
   const completeResults = required.length > 0 && results.length > 0 &&

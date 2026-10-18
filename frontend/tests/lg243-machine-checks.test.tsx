@@ -52,3 +52,12 @@ it('shows missing or skipped required results without painting a successful gate
   expect(screen.getByText('Not executed.')).toBeInTheDocument()
   expect(document.querySelector('.lg-status-badge--success')).toBeNull()
 })
+
+
+it('uses the same Task recorded last Run when an accepted Task has no active Run', () => {
+  const completed = { ...task, run: null, execution: { task_id: 'task_1',
+    run: { id: 'run_1', plan_hash: 'plan_1', requirements_revision: 2, state: 'completed', candidate_ref: 'run_1' },
+  } } as unknown as TaskDetail
+  render(<MachineChecksSection task={completed} snapshot={snapshot()} />)
+  expect(screen.getByText('Passed')).toHaveClass('lg-status-badge--success')
+})

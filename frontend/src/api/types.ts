@@ -393,8 +393,68 @@ export interface RunSummary {
   [key: string]: unknown
 }
 
+/** Non-secret snapshots returned by LG243; worker history is planned configuration. */
+export interface ExecutionConnectionEvidence {
+  role: 'worker' | 'reviewer'
+  connection_id: string | null
+  name: string | null
+  provider: string | null
+  model: string | null
+  status: 'recorded' | 'unavailable' | 'unknown'
+  source: 'run_default_pin' | 'run_connection_pin' | 'resolved_reviewer_support' | 'missing'
+  stage: 'planned' | 'review_execution'
+  evidence_kind: 'frozen_run_connection' | 'resolved_reviewer_support' | 'missing'
+  captured_at: string | null
+  reason: string | null
+}
+
+export interface ExecutionFinding {
+  finding_id: string
+  severity: string
+  summary: string
+  evidence_ref: string
+  rework_target: string
+  candidate_ref: string
+  detail: string
+}
+
+export interface TaskExecutionEvidence {
+  task_id: string
+  schema: 'lightgravity.execution-evidence/v1'
+  run: {
+    id: string
+    state: string
+    candidate_ref: string | null
+    requirements_revision: number | null
+    plan_hash: string | null
+  } | null
+  worker: ExecutionConnectionEvidence
+  reviewer: ExecutionConnectionEvidence
+  review: {
+    outcome: 'passed' | 'rework' | 'unavailable'
+    reviewer_kind: 'model' | 'program' | 'unavailable'
+    candidate_ref: string
+    candidate_binding: {
+      run_id: string
+      candidate_ref: string
+      requirements_revision: number
+      plan_hash: string
+    }
+    findings: ExecutionFinding[]
+    unsubstantiated: string[]
+    model_calls: number
+    usage: Record<string, unknown>
+    reviewed_at: string | null
+    reason: string | null
+  } | null
+  connections_distinct: boolean | null
+  missing: string[]
+}
+
 /** `GET /tasks/{task_id}` detail (docs/08 §4.3). */
 export interface TaskDetail extends TaskSummary {
+  /** Absent on older backends; never reconstructed from current Settings. */
+  execution?: TaskExecutionEvidence | null
   run: RunSummary | null
   members: MemberSummary[]
   subtasks: SubtaskSummary[]
