@@ -1,0 +1,14 @@
+
+> lightgravity-frontend@0.1.0 test:run
+> vitest run tests/team-groups.test.tsx
+
+
+ RUN  v2.1.9 /home/yhvh/code/lightgravity-bot-worktrees/lg264-team-details-20261019/frontend
+
+ ✓ tests/team-groups.test.tsx (11 tests) 721ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  00:56:31
+   Duration  1.96s (transform 302ms, setup 78ms, collect 369ms, tests 721ms, environment 372ms, prepare 82ms)
+

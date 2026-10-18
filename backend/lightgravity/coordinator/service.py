@@ -480,6 +480,7 @@ class Coordinator:
         self._responder_configured = responder is not None
         self._verification = verification
         self._rework = rework
+        self._run_reworks: dict[str, ReworkReviewer | None] = {}
         self._resource_service = resource_service
         #: Optional LG-043 selected-material service.  When ``None`` the
         #: selected-material fields are still accepted at the wire boundary but
@@ -588,6 +589,15 @@ class Coordinator:
 
         return self._responder_configured
 
+    def set_responder(self, responder: Callable[..., str] | None) -> None:
+        """Replace the default for subsequent dialogue turns only."""
+        resolved = responder or _default_responder
+        self._responder_accepts_attachment_context = (
+            _responder_accepts_attachment_context(resolved)
+        )
+        self._responder = resolved
+        self._responder_configured = responder is not None
+
     def _invoke_responder(
         self,
         content: str,
@@ -604,15 +614,17 @@ class Coordinator:
         read.
         """
 
+        # Keep the callable throughout this turn if Settings replaces it.
+        responder = self._responder
         if (
             attachment_context is not None
-            and self._responder_accepts_attachment_context
+            and _responder_accepts_attachment_context(responder)
         ):
-            reply = cast(Callable[..., str], self._responder)(
+            reply = cast(Callable[..., str], responder)(
                 content, classification, attachment_context
             )
         else:
-            reply = self._responder(content, classification)
+            reply = responder(content, classification)
             if attachment_context is not None:
                 attachment_note = (
                     "The configured responder could not receive the attachment "
@@ -2573,6 +2585,7 @@ class Coordinator:
             extra={"active_run": run_id},
             reason="lg017 rework Run opened" if rework else None,
         )
+        self._run_reworks[run_id] = self._resolved_rework()
         return run_id
 
     def _selected_resolver(self, task_ref: str | None) -> Any:
@@ -2994,7 +3007,7 @@ class Coordinator:
         """
 
         verifier = self._verification
-        rework = self._resolved_rework()
+        rework = self._run_reworks.get(run_id, self._resolved_rework())
         if verifier is not None and not verifier.check_before_review(task_id):
             return
         if rework is not None:
@@ -3053,7 +3066,7 @@ class Coordinator:
         )
 
         verifier = self._verification
-        rework = self._resolved_rework()
+        rework = self._run_reworks.get(run_id, self._resolved_rework())
         lifecycle = self.review_lifecycle
         if verifier is not None and not verifier.check_before_review(task_id):
             return

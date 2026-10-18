@@ -154,7 +154,11 @@ class RecoveryScanner:
                     action="recovery_required",
                     reason=f"recovery inspection failed: {type(exc).__name__}: {exc}",
                 )
-                self._mark_recovery_required(summary.id, None, decision.reason)
+                if not self._mark_recovery_required(summary.id, None, decision.reason):
+                    decision = RecoveryDecision(
+                        task_id=summary.id, run_id=None, action="none",
+                        reason="recovery inspection failed; transition not persisted",
+                    )
             if decision is not None:
                 report.decisions.append(decision)
         return report
@@ -250,7 +254,12 @@ class RecoveryScanner:
                     if alive is False
                     else "worker liveness unknown after restart; not auto-replaying"
                 )
-                self._mark_recovery_required(task_id, active_run, reason)
+                if not self._mark_recovery_required(task_id, active_run, reason):
+                    return RecoveryDecision(
+                        task_id=task_id, run_id=active_run, action="none",
+                        reason="recovery transition could not be persisted; inspect diagnostics",
+                        alive=alive, has_artifacts=has_artifacts,
+                    )
                 self._release_stale_claim(task_id, queue_state)
                 return RecoveryDecision(
                     task_id=task_id,
@@ -282,10 +291,10 @@ class RecoveryScanner:
 
     def _mark_recovery_required(
         self, task_id: str, run_id: str | None, reason: str
-    ) -> None:
+    ) -> bool:
         current = str(self._store.read("task", task_id).entity.get("phase", ""))
         if current == TaskPhase.RECOVERY_REQUIRED.value:
-            return
+            return True
         try:
             self._writer.transition_task(
                 task_id,
@@ -293,8 +302,14 @@ class RecoveryScanner:
                 run_ref=run_id,
                 reason=reason,
             )
-        except Exception:  # noqa: BLE001 - illegal combos stay reported, never faked
-            pass
+        except Exception:  # noqa: BLE001 - preserve state and report the failed write
+            self._writer.emit(
+                task_id, EventType.ERROR_RECORDED,
+                {"mode": "recovery", "code": "recovery_transition_failed",
+                 "message": f"could not park phase {current!r} for recovery"},
+                task_ref=task_id, run_ref=run_id,
+            )
+            return False
         self._writer.emit(
             task_id,
             EventType.ERROR_RECORDED,
@@ -302,6 +317,7 @@ class RecoveryScanner:
             task_ref=task_id,
             run_ref=run_id,
         )
+        return True
 
     def _release_stale_claim(self, task_id: str, queue_state: str) -> None:
         if queue_state != "claimed":

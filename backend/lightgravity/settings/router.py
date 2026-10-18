@@ -25,6 +25,7 @@ LG-012/LG-020 (docs/08 §4.1) and must wrap the whole API.
 
 from __future__ import annotations
 
+from threading import RLock
 from typing import Any, Literal
 from urllib.parse import urlparse
 
@@ -241,6 +242,7 @@ def build_settings_router(
     """Build the settings router; LG-012 mounts it under ``/api/v1``."""
 
     router = APIRouter(tags=["settings"])
+    defaults_lock = RLock()
     resolved_embedding_tester = embedding_tester or EmbeddingDraftTester(
         service.embedding
     )
@@ -253,6 +255,7 @@ def build_settings_router(
     @router.patch("/settings")
     def update_settings(
         payload: SettingsUpdateRequest,
+        request: Request,
         response: Response,
         x_lg_actor: str | None = Header(default=None),
     ) -> dict[str, Any]:
@@ -268,9 +271,23 @@ def build_settings_router(
         ):
             if key in data and data[key] is None:
                 data.pop(key)
-        result = service.update_settings(
-            expected_revision=expected, actor=_actor(x_lg_actor), **data
-        )
+        with defaults_lock:
+            result = service.update_settings(
+                expected_revision=expected, actor=_actor(x_lg_actor), **data
+            )
+            runtime_fields = {
+                "default_coordinator_connection_ref", "default_reviewer_connection_ref"
+            } & data.keys()
+            if runtime_fields:
+                apply = getattr(request.app.state, "apply_runtime_defaults", None)
+                try:
+                    result["runtime_applied"] = bool(apply and apply(runtime_fields))
+                except Exception:  # saved configuration remains authoritative
+                    result["runtime_applied"] = False
+                if not result["runtime_applied"]:
+                    result["runtime_message"] = (
+                        "Defaults saved. Runtime changes were not fully applied; restart the server."
+                    )
         _no_store(response)
         _etag(response, int(result["revision"]))
         return result

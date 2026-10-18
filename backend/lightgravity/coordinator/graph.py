@@ -2879,6 +2879,11 @@ class GraphDispatcher:
         )
 
     # ---------------------------------------------------------------- cancel
+    def confirm_stopped(self, run_id: str, session_refs: tuple[str, ...]) -> Any:
+        """Forward authoritative adapter stop facts; an empty graph proves nothing."""
+        confirm = getattr(self._executor, "confirm_stopped", None)
+        return confirm(run_id, session_refs) if callable(confirm) else None
+
     async def cancel(self, task_id: str, run_id: str) -> CancelResult:
         self._explicit_cancel.add(run_id)
         inflight = [task for task in self._inflight.get(run_id, set()) if not task.done()]

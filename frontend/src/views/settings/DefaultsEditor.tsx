@@ -82,7 +82,9 @@ export function DefaultsEditor({
       })
       setRevision(updated.revision)
       onSaved(updated)
-      setNotice(`Defaults saved at revision ${updated.revision}. Restart the server to apply coordinator or reviewer changes.`)
+      setNotice(updated.runtime_applied === true
+        ? `Defaults saved at revision ${updated.revision}. Applied to new conversations and Runs.`
+        : updated.runtime_message ?? `Defaults saved at revision ${updated.revision}. Restart the server to apply coordinator or reviewer changes.`)
     } catch (cause) {
       const err = toApiError(cause)
       if (err.code === 'revision_conflict') {
@@ -105,7 +107,8 @@ export function DefaultsEditor({
     <section className="lg-section-card" aria-label="Default models">
       <h3 className="lg-section-card__title">Default models</h3>
       <p className="lg-field__hint">
-        Coordinator and reviewer default changes require a server restart. Worker
+        Coordinator and reviewer defaults apply to new conversations and Runs after saving.
+        Worker
         defaults apply when a new Run freezes its connection. Existing Runs and
         recruited members keep their pinned connection revisions.
       </p>

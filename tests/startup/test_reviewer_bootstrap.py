@@ -111,3 +111,74 @@ def test_reviewer_credential_independence(tmp_path: Path) -> None:
     # the assembly is still real (ModelReviewer wired), not a fake pass.
     assert reviewer.available() is False
     assert reviewer.model_calls == 0
+
+
+async def test_default_save_rewires_and_clear_does_not_replace_existing_run(tmp_path: Path, monkeypatch) -> None:
+    import httpx
+
+    settings = _settings(tmp_path)
+    _seed(tmp_path, settings, reviewer=True)
+    state = _build(tmp_path, settings)
+    coordinator = state.app.state.coordinator
+    from lightgravity.coordinator.dialogue import ModelDialogue
+    from lightgravity.coordinator.classification import classify_message
+
+    async def fixture_answer(self, text, attachment_context=None):
+        return f"fixture:{self.support.model}"
+
+    monkeypatch.setattr(ModelDialogue, "answer", fixture_answer)
+    original = coordinator.rework
+    task = coordinator.create_task("freeze", "write file", "write file")
+    run_id = coordinator._open_run(state.store.read("task", task.task_id))
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=state.app), base_url="http://127.0.0.1",
+        headers={"X-LG-Token": "t"},
+    ) as client:
+        revision = state.connections.get_settings()["revision"]
+        saved = await client.patch("/api/v1/settings", json={
+            "expected_revision": revision,
+            "default_coordinator_connection_ref": "lg-primary",
+            "default_reviewer_connection_ref": None,
+        })
+        assert saved.status_code == 200, saved.text
+        assert saved.json()["runtime_applied"] is True
+        assert coordinator.responder_configured is True
+        assert coordinator._invoke_responder("what is this?", classify_message("what is this?")) == "fixture:deepseek-v4-flash"
+        assert isinstance(coordinator._resolved_rework()._reviewer, UnavailableReviewer)
+        assert coordinator._run_reworks[run_id] is original
+        restored = await client.patch("/api/v1/settings", json={
+            "expected_revision": saved.json()["revision"],
+            "default_coordinator_connection_ref": None,
+            "default_reviewer_connection_ref": "lg-reviewer",
+        })
+        assert restored.json()["runtime_applied"] is True
+        assert coordinator.responder_configured is False
+        assert isinstance(coordinator.rework._reviewer, ModelReviewer)
+        assert coordinator._run_reworks[run_id] is original
+        assert coordinator.rework is not original
+
+
+async def test_rewire_failure_reports_saved_but_restart_required(tmp_path: Path) -> None:
+    import httpx
+
+    settings = _settings(tmp_path)
+    _seed(tmp_path, settings, reviewer=True)
+    state = _build(tmp_path, settings)
+
+    def fail(changed: set[str]) -> bool:
+        raise RuntimeError("fixture wiring failure")
+
+    state.app.state.apply_runtime_defaults = fail
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=state.app), base_url="http://127.0.0.1",
+        headers={"X-LG-Token": "t"},
+    ) as client:
+        saved = await client.patch("/api/v1/settings", json={
+            "expected_revision": state.connections.get_settings()["revision"],
+            "default_coordinator_connection_ref": "lg-primary",
+        })
+        assert saved.status_code == 200, saved.text
+        assert saved.json()["runtime_applied"] is False
+        assert "restart" in saved.json()["runtime_message"]
+        assert state.connections.get_settings()["default_coordinator_connection_ref"] == "lg-primary"
+        assert "fixture wiring failure" not in saved.text

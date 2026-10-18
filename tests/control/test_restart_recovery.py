@@ -145,3 +145,128 @@ def test_missing_active_run_is_cleared(store: FileStore) -> None:
     )
     scanner.scan()
     assert store.read("task", task_id).entity["active_run"] is None
+
+
+def test_waiting_user_verifying_restart_parks_without_inventing_stop(store: FileStore) -> None:
+    task_id = raw_task(store, status="in-progress", phase="waiting_user")
+    run_id = _make_run(store, task_id, state="verifying", pid=None)
+    writer = StateWriter(store, actor="test")
+    writer.write_run(run_id, {"session_refs": ["old-session"], "cleanup": {"status": "pending"}})
+    report = RecoveryScanner(store, writer, probe=_Probe({})).scan()
+    assert report.recovery_required[0].task_id == task_id
+    assert store.read("task", task_id).entity["phase"] == "recovery_required"
+    assert store.read("task", task_id).entity["active_run"] == run_id
+    run = store.read("run", run_id).entity
+    assert run["state"] == "verifying"
+    assert run["cleanup"]["status"] == "pending"
+    assert run["session_refs"] == ["old-session"]
+
+
+async def test_restart_unknown_stop_keeps_slot_and_resume_blocked(store: FileStore) -> None:
+    from lightgravity.coordinator import Coordinator, GraphDispatcher
+    from lightgravity.coordinator.dispatcher import UnavailableExecutor
+
+    task_id = raw_task(store, status="in-progress", phase="waiting_user")
+    run_id = _make_run(store, task_id, state="verifying", pid=None)
+    writer = StateWriter(store, actor="test")
+    writer.write_run(run_id, {"session_refs": ["old-session"]})
+    coordinator = Coordinator(store, dispatcher=GraphDispatcher(store, UnavailableExecutor()))
+    coordinator._recovery.scan()
+    resume = await coordinator.request_control(task_id, "resume", request_id="blocked-resume")
+    assert resume.data["confirmed"] is False
+    cancel = await coordinator.request_control(task_id, "cancel", request_id="unknown-cancel")
+    assert cancel.data["confirmed"] is False
+    assert "not confirmed stopped" in cancel.data["reason"]
+    task = store.read("task", task_id).entity
+    assert task["phase"] == "recovery_required"
+    assert task["active_run"] == run_id
+    assert store.read("run", run_id).entity["cleanup"]["status"] == "pending"
+    assert store.read("run", run_id).entity["state"] == "verifying"
+
+
+async def test_restart_proven_cleanup_can_cancel_then_retry(store: FileStore) -> None:
+    from lightgravity.coordinator import Coordinator, GraphDispatcher
+    from lightgravity.coordinator.dispatcher import UnavailableExecutor
+
+    task_id = raw_task(store, status="in-progress", phase="waiting_user")
+    run_id = _make_run(store, task_id, state="verifying", pid=None)
+    writer = StateWriter(store, actor="test")
+    writer.write_run(run_id, {"session_refs": ["closed-session"], "cleanup": {"status": "done"}})
+    coordinator = Coordinator(store, dispatcher=GraphDispatcher(store, UnavailableExecutor()))
+    coordinator._recovery.scan()
+    cancel = await coordinator.request_control(task_id, "cancel", request_id="proven-cancel")
+    assert cancel.data["confirmed"] is True
+    assert store.read("task", task_id).entity["active_run"] is None
+    assert store.read("run", run_id).entity["state"] == "cancelled"
+    retry = await coordinator.request_control(task_id, "retry", request_id="proven-retry")
+    assert retry.data["confirmed"] is True
+    assert store.read("task", task_id).entity["phase"] == "queued"
+    assert store.read("run", run_id).entity["session_refs"] == ["closed-session"]
+
+
+async def test_idle_waiting_pause_does_not_invent_stop(store: FileStore) -> None:
+    from lightgravity.coordinator import Coordinator, GraphDispatcher
+    from lightgravity.coordinator.dispatcher import UnavailableExecutor
+
+    task_id = raw_task(store, status="in-progress", phase="waiting_user")
+    run_id = _make_run(store, task_id, state="verifying", pid=None)
+    coordinator = Coordinator(store, dispatcher=GraphDispatcher(store, UnavailableExecutor()))
+    result = await coordinator.request_control(task_id, "pause", request_id="unknown-pause")
+    assert result.data["confirmed"] is False
+    assert store.read("task", task_id).entity["phase"] == "waiting_user"
+    assert store.read("task", task_id).entity["active_run"] == run_id
+
+
+async def test_adapter_stop_fact_can_confirm_pending_cleanup(store: FileStore) -> None:
+    from types import SimpleNamespace
+    from lightgravity.coordinator import Coordinator, GraphDispatcher
+    from lightgravity.coordinator.dispatcher import UnavailableExecutor
+
+    class StoppedAdapter(UnavailableExecutor):
+        def confirm_stopped(self, run_id, session_refs):
+            assert session_refs == ("closed-session",)
+            return SimpleNamespace(confirmed=True)
+
+    task_id = raw_task(store, status="in-progress", phase="waiting_user")
+    run_id = _make_run(store, task_id, state="verifying", pid=None)
+    StateWriter(store, actor="test").write_run(run_id, {"session_refs": ["closed-session"]})
+    coordinator = Coordinator(store, dispatcher=GraphDispatcher(store, StoppedAdapter()))
+    coordinator._recovery.scan()
+    result = await coordinator.request_control(task_id, "cancel", request_id="adapter-cancel")
+    assert result.data["confirmed"] is True
+    assert store.read("run", run_id).entity["cleanup"]["status"] == "done"
+
+
+async def test_pending_reviewer_cleanup_blocks_idle_cancel(store: FileStore) -> None:
+    from lightgravity.coordinator import Coordinator, GraphDispatcher
+    from lightgravity.coordinator.dispatcher import UnavailableExecutor
+
+    task_id = raw_task(store, status="in-progress", phase="waiting_user")
+    run_id = _make_run(store, task_id, state="verifying", pid=None)
+    StateWriter(store, actor="test").write_run(run_id, {
+        "cleanup": {"status": "done"},
+        "reviewer_cleanup": {"status": "pending", "confirmed": False},
+    })
+    coordinator = Coordinator(store, dispatcher=GraphDispatcher(store, UnavailableExecutor()))
+    coordinator._recovery.scan()
+    result = await coordinator.request_control(task_id, "cancel", request_id="reviewer-unknown")
+    assert result.data["confirmed"] is False
+    assert store.read("task", task_id).entity["active_run"] == run_id
+    assert store.read("run", run_id).entity["state"] == "verifying"
+
+
+def test_recovery_write_failure_does_not_report_success(store: FileStore, monkeypatch) -> None:
+    task_id = raw_task(store, status="in-progress", phase="waiting_user")
+    _make_run(store, task_id, state="verifying", pid=None)
+    writer = StateWriter(store, actor="test")
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("fixture storage failure")
+
+    monkeypatch.setattr(writer, "transition_task", fail)
+    report = RecoveryScanner(store, writer, probe=_Probe({})).scan()
+    assert report.recovery_required == []
+    assert report.decisions[0].action == "none"
+    assert store.read("task", task_id).entity["phase"] == "waiting_user"
+    errors = [record.event for record in store.read_events(task_id)]
+    assert any(event.get("payload", {}).get("code") == "recovery_transition_failed" for event in errors)

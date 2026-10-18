@@ -148,6 +148,7 @@ TASK_PHASE_TRANSITIONS: dict[TaskPhase, frozenset[TaskPhase]] = {
             TaskPhase.PAUSED,
             TaskPhase.CANCELLING,
             TaskPhase.FAILED,
+            TaskPhase.RECOVERY_REQUIRED,
         }
     ),
     TaskPhase.PAUSING: frozenset(
