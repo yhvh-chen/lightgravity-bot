@@ -259,7 +259,7 @@ describe('LG-082 current candidate decisions', () => {
       fireEvent.click(button)
     }
     expect(api.act).not.toHaveBeenCalled()
-    expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeDisabled()
   })
 
   it.each([
@@ -295,14 +295,14 @@ describe('LG-082 current candidate decisions', () => {
       phase: 'awaiting_acceptance', revision: 9,
       run: { id: 'run_01X', state: 'awaiting_acceptance' },
     })).mockImplementationOnce(() => new Promise((resolve) => { resolveRefresh = resolve }))
-    vi.mocked(api.act).mockResolvedValueOnce({ action: 'pause', state: 'confirmed', confirmed: true, task_id: 'task_01A' })
+    vi.mocked(api.act).mockResolvedValueOnce({ action: 'cancel', state: 'confirmed', confirmed: true, task_id: 'task_01A' })
     renderBoard(api)
     fireEvent.click(await screen.findByText('Add login'))
     expect(await screen.findByRole('button', { name: 'Accept' })).toBeEnabled()
-    fireEvent.click(screen.getByRole('button', { name: 'Pause' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(await screen.findByText('Loading Task…')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Accept' })).toBeDisabled()
-    resolveRefresh(makeDetail({ phase: 'paused', revision: 10 }))
+    resolveRefresh(makeDetail({ phase: 'cancelled', revision: 10 }))
     await waitFor(() => expect(screen.queryByText('Loading Task…')).not.toBeInTheDocument())
     expect(screen.getByRole('button', { name: 'Accept' })).toBeDisabled()
   })

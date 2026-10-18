@@ -31,6 +31,8 @@ import { useAuth } from '../../app/AuthProvider'
 import { draftKey, type ChatChannel } from '../../app/uiState'
 import { ChatComposer } from '../../components/ChatComposer'
 import { EmptyState } from '../../components/EmptyState'
+import { ExecutionAvailability } from '../../components/ExecutionAvailability'
+import { TaskRunFailure } from '../../components/TaskRunFailure'
 import { ErrorState } from '../../components/ErrorState'
 import { Icon } from '../../components/icons'
 import { MarkdownViewer } from '../../components/MarkdownViewer'
@@ -145,6 +147,7 @@ export function ChatBody({
   const [sharedIntakeV2, setSharedIntakeV2] = useState(false)
   const [mediaDirectEmbedding, setMediaDirectEmbedding] = useState(false)
   const [intakeCapabilityChecked, setIntakeCapabilityChecked] = useState(false)
+  const [executionAvailable, setExecutionAvailable] = useState<boolean | null>(null)
   const healthRequest = useRef<Promise<HealthResponse> | null>(null)
   // Resolved source bindings for the most recent send in this scope, so the
   // freshly returned reply can show its Sources before/without a reload.
@@ -182,6 +185,7 @@ export function ChatBody({
     loadHealth()
       .then((health) => {
         if (!active) return
+        setExecutionAvailable(typeof health.capabilities.sdk_adapter === 'boolean' ? health.capabilities.sdk_adapter : null)
         setSharedIntakeV2(supportsMaterialIntakeV2(health))
         setMediaDirectEmbedding(supportsMediaDirectEmbedding(health))
         setIntakeCapabilityChecked(true)
@@ -596,6 +600,7 @@ export function ChatBody({
         ) : null}
       </div>
 
+      {!privatePersonal ? <ExecutionAvailability available={executionAvailable} checked={intakeCapabilityChecked} /> : null}
       {effectiveTaskRef ? (
         <div className="lg-chat__header lg-chat__header--task">
           <span className="lg-chat__subtitle">
@@ -608,6 +613,7 @@ export function ChatBody({
               {isTeam ? 'Team conversation' : 'Conversation'}
             </button>
           </span>
+          <TaskRunFailure taskRef={effectiveTaskRef} />
         </div>
       ) : null}
 

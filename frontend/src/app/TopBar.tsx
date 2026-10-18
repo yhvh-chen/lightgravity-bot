@@ -187,6 +187,7 @@ export function TopBar({
                 taskRef: item.task_ref,
                 runRef: item.run_ref,
                 severity: item.severity,
+                body: item.reason ?? item.body,
                 read: item.read,
               })),
             ]}

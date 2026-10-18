@@ -59,6 +59,7 @@ export function NotificationList({
               ) : null}
               <span>{item.title}</span>
             </span>
+            {item.body && item.body !== item.title ? <span className="lg-notification__meta">{item.body}</span> : null}
             {item.taskRef ? (
               <span className="lg-notification__meta">
                 {item.taskRef}

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { TaskApi } from '../../api/tasks'
+import { useBackendStatus } from '../../api/useBackendStatus'
+import { ExecutionAvailability } from '../../components/ExecutionAvailability'
 import type { TaskDetail, TaskSummary } from '../../api/types'
 import { useShell } from '../../app/ShellProvider'
 import { openTaskDestination } from '../../app/taskDestination'
@@ -51,6 +53,8 @@ function groupTasks(tasks: TaskSummary[]): BoardGroups {
  */
 export function BoardBody({ api, autoRefreshMs = BOARD_AUTO_REFRESH_MS }: BoardBodyProps) {
   const { state, dispatch } = useShell()
+  const backend = useBackendStatus()
+  const executionAvailable = typeof backend.health?.capabilities.sdk_adapter === 'boolean' ? backend.health.capabilities.sdk_adapter : null
   const list = useTaskList(api)
   const detail = useTaskDetail(state.taskRef, api)
   const control = useControlAction(api)
@@ -114,6 +118,7 @@ export function BoardBody({ api, autoRefreshMs = BOARD_AUTO_REFRESH_MS }: BoardB
         </button>
       </header>
 
+      <ExecutionAvailability available={executionAvailable} checked={backend.state !== 'loading'} />
       <div className="lg-board__columns">
         {list.tasksError ? (
           <ErrorState
@@ -161,6 +166,7 @@ export function BoardBody({ api, autoRefreshMs = BOARD_AUTO_REFRESH_MS }: BoardB
           error={detail.error}
           artifacts={detail.artifacts}
           acceptance={detail.acceptance}
+          executionAvailable={executionAvailable}
           controlPending={control.pending}
           note={note}
           onRetry={detail.refresh}
@@ -227,6 +233,7 @@ interface DetailPanelProps {
   error: import('../../api/client').ApiError | null
   artifacts: import('../../api/tasks').TaskArtifacts | null
   acceptance: import('../../api/tasks').AcceptanceSnapshot | null
+  executionAvailable: boolean | null
   controlPending: string | null
   note: string | null
   onRetry: () => void
@@ -242,7 +249,16 @@ function TaskDetailPanel(props: DetailPanelProps) {
   const { detail, error, loading, artifacts, acceptance, controlPending } = props
   const canDecide = !loading && !error && canDecideCandidate(props.taskRef, detail, acceptance)
   const evidence = artifacts?.evidence ?? []
-  const busy = controlPending !== null
+  const busy = controlPending !== null || loading || error !== null
+  const phase = detail?.phase
+  const pauseReason = detail?.run && ['executing', 'verifying', 'repairing', 'waiting_user'].includes(phase ?? '')
+    ? null : 'Pause requires a running Task or a Run waiting for input.'
+  const cancelReason = detail && !['failed', 'cancelled', 'completed', 'cancelling'].includes(phase ?? '')
+    ? null : 'Cancel requires a Task that has not ended or is not already cancelling.'
+  const retryReason = !['failed', 'cancelled', 'recovery_required'].includes(phase ?? '')
+    ? 'Retry is available for failed, cancelled or recovery-required Tasks.'
+    : props.executionAvailable === false ? 'Retry unavailable: Task execution is disabled on this server.'
+    : props.executionAvailable !== true ? 'Retry unavailable: execution availability is unknown.' : null
 
   return (
     <div className="lg-board__detail" aria-label="Task detail">
@@ -269,17 +285,25 @@ function TaskDetailPanel(props: DetailPanelProps) {
             {detail.run ? ` · Run ${detail.run.id} (${detail.run.state})` : ' · no active Run'}
           </p>
 
+          {detail.phase === 'failed' || detail.run?.state === 'failed' ? (
+            <p className="lg-notice lg-notice--error" role="status">
+              Failure reason: {detail.run?.fail_reason || 'No failure reason was recorded.'}
+            </p>
+          ) : null}
           <div className="lg-board__actions">
-            <button type="button" className="lg-button" disabled={busy} onClick={props.onPause}>
+            <button type="button" className="lg-button" disabled={busy || pauseReason !== null} title={pauseReason ?? undefined} aria-describedby="lg-board-control-guidance" onClick={props.onPause}>
               Pause
             </button>
-            <button type="button" className="lg-button" disabled={busy} onClick={props.onCancel}>
+            <button type="button" className="lg-button" disabled={busy || cancelReason !== null} title={cancelReason ?? undefined} aria-describedby="lg-board-control-guidance" onClick={props.onCancel}>
               Cancel
             </button>
-            <button type="button" className="lg-button" disabled={busy} onClick={props.onRetryRun}>
+            <button type="button" className="lg-button" disabled={busy || retryReason !== null} title={retryReason ?? undefined} aria-describedby="lg-board-control-guidance" onClick={props.onRetryRun}>
               Retry
             </button>
           </div>
+          <p id="lg-board-control-guidance" className="lg-chat__subtitle">
+            {[pauseReason, cancelReason, retryReason].filter(Boolean).join(' ')}
+          </p>
           {controlPending ? (
             <p className="lg-notice" role="status">
               Requesting {controlPending}… waiting for the backend to confirm.
