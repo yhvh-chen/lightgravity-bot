@@ -23,6 +23,7 @@ import { ApiError } from '../../api/client'
 import type { SourceView, SourcesApi } from '../../api/sources'
 import { ErrorState } from '../../components/ErrorState'
 import { StatusBadge } from '../../components/StatusBadge'
+import { isSourceContextSelectable, sourceContextUnavailableReason } from './sourceContext'
 import { MAX_SELECTED_SOURCES, type SelectedMaterial } from './useChatSelection'
 
 export interface ChatSourcePickerProps {
@@ -35,23 +36,6 @@ export interface ChatSourcePickerProps {
   onClear: () => void
   /** Disabled while a send is pending (docs/10 §8). */
   disabled?: boolean
-}
-
-/** Only these statuses carry a usable ingested body (never `failed`/link-only). */
-const SELECTABLE_STATUSES = new Set(['extracted', 'attributed', 'indexed', 'partial'])
-
-/**
- * Revoke fail-closed is `status: archived` per docs/08 §6.6 / docs/10 §5; a
- * source is also unusable while still `received`/`processing` (no trusted body).
- */
-function isSelectable(source: SourceView): boolean {
-  return SELECTABLE_STATUSES.has(source.status)
-}
-
-function unusableReason(source: SourceView): string {
-  if (source.status === 'archived') return 'revoked — not selectable'
-  if (source.status === 'failed') return 'failed — not selectable'
-  return 'no ingested body yet — not selectable'
 }
 
 export function ChatSourcePicker({
@@ -199,7 +183,7 @@ export function ChatSourcePicker({
           {sources.length > 0 ? (
             <ul className="lg-source-picker__list" aria-label="Available materials">
               {sources.map((source) => {
-                const selectable = isSelectable(source)
+                const selectable = isSourceContextSelectable(source)
                 const selected = selectedIds.has(source.source_id)
                 const rowScope: 'global' | 'task' = source.scope.task_ref ? 'task' : 'global'
                 return (
@@ -224,7 +208,7 @@ export function ChatSourcePicker({
                       </span>
                     </span>
                     {!selectable ? (
-                      <span className="lg-materials__hint">{unusableReason(source)}</span>
+                      <span className="lg-materials__hint">{sourceContextUnavailableReason(source)}</span>
                     ) : null}
                   </li>
                 )
@@ -240,7 +224,7 @@ export function ChatSourcePicker({
 function badgeTone(source: SourceView): 'neutral' | 'success' | 'warning' | 'error' {
   if (source.status === 'archived' || source.status === 'failed') return 'error'
   if (source.status === 'partial') return 'warning'
-  if (SELECTABLE_STATUSES.has(source.status)) return 'success'
+  if (isSourceContextSelectable(source)) return 'success'
   return 'neutral'
 }
 

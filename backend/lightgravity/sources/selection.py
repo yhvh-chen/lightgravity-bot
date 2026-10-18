@@ -276,6 +276,12 @@ def _reject_path_like(source_id: str, index: int) -> None:
         )
 
 
+def has_usable_source_body(body: str | None) -> bool:
+    """A readable text layer is required; extraction/vector status is insufficient."""
+
+    return body is not None and bool(body.strip())
+
+
 def resolve_selected_sources(
     resolver: SelectionSourceResolver,
     refs: tuple[SelectedSourceRef, ...],
@@ -335,13 +341,14 @@ def resolve_selected_sources(
                     "actual_hash": content_hash,
                 },
             )
-        if body is None or not body.strip():
+        if not has_usable_source_body(body):
             raise AppError(
                 ErrorCode.CAPABILITY_UNAVAILABLE,
                 f"selected source {ref.source_id!r} has no readable body",
                 details={"source_id": ref.source_id, "layer": layer},
             )
 
+        assert body is not None
         original_count = len(body)
         kept = body
         truncated = False
@@ -477,6 +484,7 @@ __all__ = [
     "SelectionSourceResolver",
     "compose_prompt",
     "dumps_snapshot",
+    "has_usable_source_body",
     "parse_selected_sources",
     "resolve_context_from_snapshot",
     "resolve_selected_sources",

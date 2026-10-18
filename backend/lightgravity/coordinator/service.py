@@ -874,15 +874,16 @@ class Coordinator:
             _reject_private_attachment_refs(
                 message.get("attachments"), surface="global/team"
             )
-        # LG-043: resolve optional selected sources before any side effect/model
-        # call.  A malformed/stale/revoked/cross-Task ref is rejected here.
-        selected = self._resolve_selected(None, message)
+        content = str(message.get("content", ""))
+        record_only = self._team_mode and not _is_bot_mention(content, self._bot_mention)
+        # Ordinary Team messages never consume model context. Keep selected refs
+        # as message data without resolving them or persisting a trusted snapshot.
+        selected = None if record_only else self._resolve_selected(None, message)
         if selected is not None:
             message = dict(message)
             message["selected_context"] = selected.snapshot()
         record = self._global.append(conversation_id, message)
-        content = str(message.get("content", ""))
-        if self._team_mode and not _is_bot_mention(content, self._bot_mention):
+        if record_only:
             # Ordinary team message: persist only.  No classifier, no responder,
             # no model call, no Task creation.
             result = CoordinatorResult(

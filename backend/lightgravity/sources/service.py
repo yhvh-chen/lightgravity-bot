@@ -45,6 +45,7 @@ from .models import (
     pending_text_branch,
 )
 from .processing import ProcessingEngine
+from .selection import has_usable_source_body
 from .store import SourceStore, new_inbox_id, sanitize_filename
 
 
@@ -1316,6 +1317,19 @@ class SourceService:
     def _source_view(self, record: SourceRecord) -> dict[str, Any]:
         entity = record.entity
         scope = record.scope
+        # Inspect the same authoritative bytes used by context resolution,
+        # including old sources without a text_status field.
+        selectable = False
+        context_reason: str | None = "no_readable_body"
+        if record.status == "archived":
+            context_reason = "revoked"
+        elif record.status == "failed":
+            context_reason = "extraction_failed"
+        else:
+            resolved = self.selection_layer(record.source_id)
+            selectable = resolved is not None and has_usable_source_body(resolved[1])
+            if selectable:
+                context_reason = None
         return {
             "id": record.source_id,
             "source_id": record.source_id,
@@ -1334,6 +1348,8 @@ class SourceService:
             # non-audio sources and never a second state store.
             "language": entity.get("language"),
             "text_status": entity.get("text_status", "pending"),
+            "context_selectable": selectable,
+            "context_unavailable_reason": context_reason,
             "original": entity.get("original"),
             "derivatives": entity.get("derivatives") or [],
             "formal": entity.get("formal"),

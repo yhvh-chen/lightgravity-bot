@@ -119,6 +119,9 @@ export interface SourceView {
   language?: string | null
   /** Additive 1.20.0 text branch state (same enum as receipt `text.status`). */
   text_status?: SourceTextBranchState | string | null
+  /** Read-time projection of actual selected-context text, independent of vectors. */
+  context_selectable?: boolean
+  context_unavailable_reason?: string | null
   revision: number
   etag: string
   scope: SourceScope

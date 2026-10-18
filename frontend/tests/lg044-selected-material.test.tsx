@@ -45,6 +45,7 @@ function source(overrides: Partial<SourceView> = {}): SourceView {
     title: 'notes.md',
     title_origin: 'user',
     status: 'extracted',
+    context_selectable: true,
     revision: 2,
     etag: 'rev-2',
     scope: { task_ref: null, project_ref: null, inbox_ref: 'inbox_1' },
@@ -206,6 +207,22 @@ describe('ChatSourcePicker (LG-044 §3/§5)', () => {
     expect(bad.disabled).toBe(true)
     expect(rev.disabled).toBe(true)
     expect(screen.getByText('revoked — not selectable')).toBeTruthy()
+  })
+
+  it('disables vector-only partial and extracted materials but enables actual text', async () => {
+    const api = makeSourcesApi({ listSources: vi.fn(async () => ({ items: [
+      source({ source_id: 'media', title: 'audio.wav', status: 'partial', context_selectable: false }),
+      source({ source_id: 'image', title: 'image.png', status: 'extracted', context_selectable: false }),
+      source({ source_id: 'old', title: 'old.txt', text_status: 'pending', context_selectable: true }),
+      source({ source_id: 'unknown', title: 'unknown.txt', context_selectable: undefined }),
+    ], next_cursor: null })) })
+    render(<ChatSourcePicker {...baseProps} api={api} />)
+    fireEvent.click(screen.getByText('Select materials'))
+    expect(((await screen.findByLabelText('Select audio.wav')) as HTMLInputElement).disabled).toBe(true)
+    expect((screen.getByLabelText('Select image.png') as HTMLInputElement).disabled).toBe(true)
+    expect((screen.getByLabelText('Select old.txt') as HTMLInputElement).disabled).toBe(false)
+    expect((screen.getByLabelText('Select unknown.txt') as HTMLInputElement).disabled).toBe(true)
+    expect(screen.getAllByText('no readable text body — not selectable')).toHaveLength(2)
   })
 
   it('marks the current Task scope on each row', async () => {
