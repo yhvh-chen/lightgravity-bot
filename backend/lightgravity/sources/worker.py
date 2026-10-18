@@ -291,7 +291,8 @@ class IntakeWorker:
                 },
                 reuse,
             )
-        if job.attempt == 1 and not self._has_prior_terminal_job(job, source):
+        explicit_reprocess = bool(job.entity.get("reprocess"))
+        if job.attempt == 1 and not explicit_reprocess and not self._has_prior_terminal_job(job, source):
             return (
                 {
                     "text": pending_text_branch(),
@@ -300,7 +301,7 @@ class IntakeWorker:
                 },
                 reuse,
             )
-        if job.attempt == 1:
+        if job.attempt == 1 and not explicit_reprocess:
             # A duplicate/replayed upload of already-terminal work must not
             # trigger another unbounded OCR/embedding run.
             return prior, {"text", "keyword", "semantic"}
@@ -976,6 +977,10 @@ class IntakeWorker:
             return
         job_status = _job_status(text, keyword, semantic)
         source_status = _source_status(text, semantic, job_status)
+        if source_status == "failed" and self._has_usable_body(source):
+            # LG-222: a failed new attempt must not hide an existing usable
+            # formal/machine body.  The attempt failure remains on the receipt.
+            source_status = "partial"
         self._update_source_status(source, source_status)
         self._append_receipt(
             self._service.store.read_job(job_id),
@@ -1067,6 +1072,19 @@ class IntakeWorker:
             )
         except (RevisionConflict, EntityNotFound, ConfigInvalid, AppError):
             return
+
+    def _has_usable_body(self, source: SourceRecord) -> bool:
+        content = ContentStore(source_root=self._service.store.source_dir(source.source_id))
+        formal = content.read_formal()
+        if formal is not None and bool(formal.strip()):
+            return True
+        pages = content.read_pages(source.source_version)
+        if not isinstance(pages, dict):
+            return False
+        if str(pages.get("status") or "") not in ("succeeded", "partial"):
+            return False
+        machine = content.read_machine_markdown(source.source_version)
+        return machine is not None and bool(machine.strip())
 
     def _set_vector_index_state(self, source: SourceRecord, state: str) -> None:
         try:

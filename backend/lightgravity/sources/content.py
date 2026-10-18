@@ -306,19 +306,35 @@ class ContentStore:
             atomic_write_text(self.formal_path(), header + markdown)
         return True
 
-    def write_formal(self, content: str, *, edited_by: str, expected_revision: int | None) -> int:
+    def write_formal(
+        self,
+        content: str,
+        *,
+        edited_by: str,
+        expected_revision: int | None,
+        provenance: str | None = None,
+    ) -> int:
         """Write the human formal version and return its new revision.
 
         The revision is tracked outside the file body (the source frontmatter
         owns ``formal.revision``); this method only writes bytes atomically.
+
+        ``provenance`` is an optional human-readable marker for the formal
+        layer.  ``human-authored`` is used only when the first formal body is
+        written without any machine derivative to seed from (LG-223); it never
+        labels human input as machine extraction.
         """
 
         with self._lock_manager().acquire(f"formal:{self.source_root.name}"):
             current = 0 if expected_revision is None else expected_revision
             header = (
                 "<!-- formal version: human-edited. Reprocessing never overwrites this file. -->\n"
-                f"<!-- edited_by: {edited_by} -->\n\n"
             )
+            if provenance == "human-authored":
+                header += (
+                    "<!-- formal provenance: human-authored; no machine body existed at creation -->\n"
+                )
+            header += f"<!-- edited_by: {edited_by} -->\n\n"
             self.formal_dir().mkdir(parents=True, exist_ok=True)
             atomic_write_text(self.formal_path(), header + content)
         return current + 1

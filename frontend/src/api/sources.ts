@@ -97,6 +97,22 @@ export interface SourceOrigin {
   fetched: boolean
 }
 
+/**
+ * LG-222 additive read-time routing projection for the explicit Reprocess
+ * action. `kind` says which existing extractor would run; `available` is false
+ * when that capability is unconfigured. It never implies an extraction already
+ * ran and never contains model output.
+ */
+export interface SourceReprocessCapability {
+  kind: 'ocr' | 'asr' | 'text' | 'none' | string
+  available: boolean
+  reason: string | null
+  configured?: boolean | null
+  enabled?: boolean | null
+  /** PDFs use the text layer first; false means the OCR fallback is absent. */
+  ocr_configured?: boolean | null
+}
+
 export interface SourceView {
   id: string
   source_id: string
@@ -137,8 +153,16 @@ export interface SourceView {
     archived_at?: string | null
   } | null
   derivatives: Array<Record<string, unknown>>
-  formal: { path?: string | null; revision?: number | null; edited_by?: string | null } | null
+  formal: {
+    path?: string | null
+    revision?: number | null
+    edited_by?: string | null
+    /** Additive LG-223 human provenance; absent on legacy formal records. */
+    origin?: string | null
+  } | null
   index: { lexical?: string | null; lexical_hash?: string | null; vector?: string | null } | null
+  /** Additive LG-222; absent on older backends (legacy fallback stays honest). */
+  reprocess?: SourceReprocessCapability | null
   receipt_ref: string | null
   created_at: string | null
   updated_at: string | null

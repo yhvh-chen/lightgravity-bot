@@ -208,7 +208,7 @@ describe('LG-142 Files detail receipt', () => {
     await waitFor(() => expect(downloadSource).toHaveBeenCalledTimes(2))
     anchorClick.mockRestore()
 
-    fireEvent.click(screen.getByText('Reprocess (OCR)'))
+    fireEvent.click(screen.getByText('Reprocess audio (English ASR)'))
     await waitFor(() =>
       expect(sourceAction).toHaveBeenCalledWith(
         'source_audio',
@@ -248,7 +248,7 @@ describe('LG-142 Files detail receipt', () => {
       const api = makeApi({ sourceAction })
       render(<FilesMaterialsPanel api={api} taskRef={null} materialIntakeV2 />)
       await openSource()
-      fireEvent.click(screen.getByText('Reprocess (OCR)'))
+      fireEvent.click(screen.getByText('Reprocess audio (English ASR)'))
       const notice = await screen.findByText(
         status === 'failed' ? /Reprocess failed:/ :
         status === 'partial' ? /Reprocess partially completed/ :
@@ -266,6 +266,33 @@ describe('LG-142 Files detail receipt', () => {
       await waitFor(() => expect(api.getSource).toHaveBeenCalledTimes(2))
     },
   )
+
+  it('queues audio reprocess and reports the real job terminal state', async () => {
+    const sourceAction = vi.fn(async () => ({
+      source_id: 'source_audio',
+      kind: 'asr',
+      status: 'queued',
+      queued: true,
+      job_id: 'job_reprocess',
+    }))
+    const getIntakeJob = vi.fn(async () => job({
+      id: 'job_reprocess',
+      job_id: 'job_reprocess',
+      status: 'succeeded',
+      stage: 'done',
+      fail_reason: null,
+    }))
+    const api = makeApi({ sourceAction, getIntakeJob })
+    render(<FilesMaterialsPanel api={api} taskRef={null} materialIntakeV2 />)
+    await openSource()
+    fireEvent.click(screen.getByText('Reprocess audio (English ASR)'))
+    await screen.findByText(/queued as a bounded intake job/)
+    await screen.findByText(/English audio reprocess completed/, undefined, { timeout: 4000 })
+    expect(sourceAction).toHaveBeenCalledWith('source_audio', {
+      action: 'reprocess', expected_revision: 4,
+    })
+    expect(getIntakeJob).toHaveBeenCalledWith('job_reprocess')
+  })
 
   it('never claims cancellation until stop is confirmed', async () => {
     const action = vi

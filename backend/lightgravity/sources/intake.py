@@ -551,20 +551,28 @@ class IntakeService:
                         "max_attempts": 1 + max_retries,
                     },
                 )
+            extra: dict[str, Any] = {
+                "queued_at": to_iso(self._clock()),
+                "started_at": None,
+                "finished_at": None,
+                "deadline_at": None,
+                "waiting_reason": None,
+                "cancel": {"requested": False, "confirmed": False},
+            }
+            refreshed_budget = self._refreshed_audio_asr_budget(job)
+            if refreshed_budget is not None:
+                # LG-222: an old audio job created while ASR was off persisted
+                # max_asr_calls=0.  A manual retry after ASR is enabled gets one
+                # new bounded attempt; no product-wide call limit is introduced.
+                extra["budget"] = refreshed_budget
+                extra["reprocess"] = True
             return self.set_stage(
                 job_id,
                 status="queued",
                 stage=_RECEIVED_STAGE,
                 attempt=next_attempt,
                 fail_reason=None,
-                extra={
-                    "queued_at": to_iso(self._clock()),
-                    "started_at": None,
-                    "finished_at": None,
-                    "deadline_at": None,
-                    "waiting_reason": None,
-                    "cancel": {"requested": False, "confirmed": False},
-                },
+                extra=extra,
             )
         return self.set_stage(
             job_id,
@@ -573,6 +581,92 @@ class IntakeService:
             attempt=job.entity.get("attempt", 1) if isinstance(job.entity.get("attempt"), int) else 1,
             fail_reason=None,
         )
+
+    def create_reprocess_job(
+        self, source_id: str, *, asr_enabled: bool
+    ) -> IntakeJobRecord:
+        """Create one explicit deferred reprocess attempt for an existing source.
+
+        The new job persists its own ``max_asr_calls`` budget (1 when English
+        ASR is currently enabled).  It is not an automatic replay: unknown/
+        active jobs for the same source are refused, and the resident worker
+        still owns concurrency, timeout, cancellation and stop confirmation.
+        """
+
+        source = self._store.read_source(source_id)
+        if source.status == "archived":
+            raise AppError(
+                ErrorCode.NOT_FOUND,
+                f"source {source_id!r} is revoked and unavailable",
+                details={"source_id": source_id, "status": source.status, "revoked": True},
+            )
+        for existing in self._store.list_jobs():
+            if existing.source_ref != source_id:
+                continue
+            if existing.status in ("queued", "running", "recovery_required"):
+                raise AppError(
+                    ErrorCode.ILLEGAL_TRANSITION,
+                    "source already has an active or unresolved intake job",
+                    details={
+                        "source_id": source_id,
+                        "job_ref": existing.job_id,
+                        "status": existing.status,
+                    },
+                )
+        now = to_iso(self._clock())
+        job_id = self._store.new_job_id()
+        budget = dict(DEFERRED_BUDGET)
+        budget["max_asr_calls"] = 1 if asr_enabled else 0
+        content: dict[str, Any] = {
+            "source_ref": source_id,
+            "status": "queued",
+            "request_id": f"reprocess-{job_id}",
+            "stage": _RECEIVED_STAGE,
+            "attempt": 1,
+            "cancel": {"requested": False, "confirmed": False},
+            "fail_reason": None,
+            "created_at": now,
+            "updated_at": now,
+            "content_hash": source.content_digest,
+            "intake_mode": "deferred",
+            "queued_at": now,
+            "started_at": None,
+            "finished_at": None,
+            "deadline_at": None,
+            "waiting_reason": None,
+            "budget": budget,
+            # Internal marker: an explicit reprocess is not a duplicate upload,
+            # so the worker must not reuse a previously failed text branch.
+            "reprocess": True,
+        }
+        return self._store.create_job(job_id, content)
+
+    def _refreshed_audio_asr_budget(self, job: IntakeJobRecord) -> dict[str, Any] | None:
+        """Return a budget with one ASR attempt for an old audio job, if enabled."""
+
+        if self._asr_enabled is None or job.source_ref is None:
+            return None
+        try:
+            source = self._store.read_source(job.source_ref)
+        except (EntityNotFound, ConfigInvalid):
+            return None
+        original = source.entity.get("original")
+        original = original if isinstance(original, dict) else {}
+        media_type = str(original.get("media_type") or "").split(";", 1)[0].strip().lower()
+        if not media_type.startswith("audio/"):
+            return None
+        current = job.budget.get("max_asr_calls")
+        if isinstance(current, int) and not isinstance(current, bool) and current > 0:
+            return None
+        try:
+            enabled = bool(self._asr_enabled())
+        except Exception:  # noqa: BLE001 - an optional config failure means off
+            enabled = False
+        if not enabled:
+            return None
+        refreshed = dict(job.budget)
+        refreshed["max_asr_calls"] = 1
+        return refreshed
 
     def recover(self) -> list[str]:
         """Restart-time recovery: repair JSONL and mark interrupted jobs.

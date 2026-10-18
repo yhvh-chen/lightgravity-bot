@@ -82,6 +82,7 @@ export function FilesMaterialsPanel({
   const [receiptError, setReceiptError] = useState<ApiError | null>(null)
   const [job, setJob] = useState<JobView | null>(null)
   const [controlPending, setControlPending] = useState(false)
+  const [reprocessJobId, setReprocessJobId] = useState<string | null>(null)
   const [originalUrl, setOriginalUrl] = useState<string | null>(null)
   const [originalError, setOriginalError] = useState<string | null>(null)
   const originalUrlRef = useRef<string | null>(null)
@@ -106,6 +107,15 @@ export function FilesMaterialsPanel({
         (receiptText?.status === 'ready' &&
           receiptText?.language === 'en' &&
           Boolean(receiptText?.machine))),
+  )
+  const reprocessKind =
+    selected?.reprocess?.kind ??
+    (originalMediaType(selected).startsWith('audio/') ? 'asr' : 'ocr')
+  const reprocessUnavailableReason = reprocessUnavailableText(selected)
+  const reprocessDisabled = Boolean(
+    controlPending ||
+      reprocessJobId ||
+      (selected?.reprocess && !selected.reprocess.available),
   )
 
   // Load the authorized source list for the current scope. Only the current
@@ -182,6 +192,64 @@ export function FilesMaterialsPanel({
   useEffect(() => {
     if (openSourceId) void openSource(openSourceId)
   }, [openSourceId, openSource])
+
+  useEffect(() => {
+    setReprocessJobId(null)
+  }, [selected?.source_id])
+
+  // LG-222: an audio reprocess is a new bounded intake job, not a synchronous
+  // OCR call. Poll only that job and report its real terminal state; the old
+  // body/index stay visible while it runs.
+  useEffect(() => {
+    if (!reprocessJobId || !api.getIntakeJob) return
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const jobId = reprocessJobId
+    const poll = async () => {
+      try {
+        const next = await api.getIntakeJob!(jobId)
+        if (cancelled) return
+        if (RUNNING_JOB_STATES.has(next.status)) {
+          timer = setTimeout(() => void poll(), 2000)
+          return
+        }
+        setReprocessJobId(null)
+        setStatus({
+          kind:
+            next.status === 'succeeded'
+              ? 'success'
+              : next.status === 'failed' || next.status === 'recovery_required'
+                ? 'error'
+                : 'neutral',
+          text:
+            next.status === 'succeeded'
+              ? 'English audio reprocess completed; the machine transcript was updated and existing human formal text was preserved.'
+              : next.status === 'partial'
+                ? 'English audio reprocess partly completed; existing body and indexes were preserved.'
+                : next.status === 'failed'
+                  ? `English audio reprocess failed${next.fail_reason ? `: ${next.fail_reason}` : ''}; existing body and indexes were preserved.`
+                  : next.status === 'recovery_required'
+                    ? 'English audio reprocess stopped with an unknown outcome; it was not replayed and existing body/indexes were preserved.'
+                    : `English audio reprocess ended with status ${next.status}.`,
+        })
+        setRefreshToken((value) => value + 1)
+        if (selected) await openSource(selected.source_id)
+      } catch (cause) {
+        if (cancelled) return
+        setReprocessJobId(null)
+        const error = asApiError(cause)
+        setStatus({
+          kind: 'error',
+          text: `Could not read the audio reprocess job: ${error.message}`,
+        })
+      }
+    }
+    timer = setTimeout(() => void poll(), 1000)
+    return () => {
+      cancelled = true
+      if (timer) clearTimeout(timer)
+    }
+  }, [api, openSource, reprocessJobId, selected])
 
   // Authoritative receipt projection. Poll with bounded exponential backoff
   // while any branch is still progressing; always stop on terminal and clean
@@ -325,7 +393,7 @@ export function FilesMaterialsPanel({
   }, [])
 
   const saveFormal = useCallback(async () => {
-    if (!selected || !content) return
+    if (!selected || !draft.trim()) return
     setStatus(null)
     try {
       const formalRevision =
@@ -337,7 +405,9 @@ export function FilesMaterialsPanel({
       })
       setStatus({
         kind: 'success',
-        text: `Saved formal version (revision ${result.revision}). Machine derivative untouched.`,
+        text: content
+          ? `Saved formal version (revision ${result.revision}). Machine derivative untouched.`
+          : `Saved the first human-authored formal version (revision ${result.revision}). This is not a machine extraction.`,
       })
       setRefreshToken((value) => value + 1)
       await openSource(selected.source_id)
@@ -354,17 +424,29 @@ export function FilesMaterialsPanel({
   }, [api, content, draft, openSource, selected])
 
   const reprocess = useCallback(async () => {
-    if (!selected) return
+    if (!selected || reprocessDisabled) return
     setStatus(null)
     try {
       const result = await api.sourceAction(selected.source_id, {
         action: 'reprocess',
         expected_revision: selected.revision,
       })
+      const jobId = typeof result.job_id === 'string' ? result.job_id : null
+      const outcome = typeof result.status === 'string' ? result.status : 'unknown'
+      if (jobId && (result.queued === true || RUNNING_JOB_STATES.has(outcome))) {
+        setReprocessJobId(jobId)
+        setStatus({
+          kind: 'neutral',
+          text:
+            'English audio reprocess was queued as a bounded intake job; the existing body and indexes remain available until it completes.',
+        })
+        setRefreshToken((value) => value + 1)
+        return
+      }
       // A successful HTTP request may contain a failed/partial extraction.
       // Only the extraction's terminal success earns a success notice.
-      const outcome = typeof result.status === 'string' ? result.status : 'unknown'
       const reason = typeof result.reason === 'string' && result.reason ? ` ${result.reason}` : ''
+      const preserved = result.preserved_existing_body === true
       setStatus({
         kind: outcome === 'succeeded' ? 'success' : outcome === 'failed' ? 'error' : 'neutral',
         text:
@@ -375,7 +457,9 @@ export function FilesMaterialsPanel({
               : outcome === 'partial'
                 ? `Reprocess partially completed;${reason}`
                 : `Reprocess status: ${outcome};${reason}`) +
-          ' original and formal version preserved.',
+          (preserved
+            ? ' the previous readable body and index were preserved.'
+            : ' original and formal version preserved.'),
       })
       setRefreshToken((value) => value + 1)
       await openSource(selected.source_id)
@@ -385,11 +469,11 @@ export function FilesMaterialsPanel({
         kind: error.code === 'capability_unavailable' ? 'neutral' : 'error',
         text:
           error.code === 'capability_unavailable'
-            ? 'OCR service is not configured/reachable; original preserved, no body produced.'
+            ? `${error.message} Original and existing body/index were preserved.`
             : `Reprocess failed: ${error.message}`,
       })
     }
-  }, [api, openSource, selected])
+  }, [api, openSource, reprocessDisabled, selected])
 
   const toggleArchive = useCallback(async () => {
     if (!selected) return
@@ -712,7 +796,8 @@ export function FilesMaterialsPanel({
               {contentStatus === 'ready' && !content ? (
                 <EmptyState title="No trusted text yet" compact>
                   This material has no formal or machine body. If it is an image/PDF, OCR may be
-                  unavailable or still processing; the original is preserved and downloadable.
+                  unavailable or still processing; the original is preserved and downloadable. You
+                  can write a human-authored formal version in Advanced details.
                 </EmptyState>
               ) : null}
 
@@ -722,12 +807,21 @@ export function FilesMaterialsPanel({
                     <strong>{content.kind === 'machine'
                       ? originalMediaType(selected).startsWith('audio/') ? 'Machine transcription' : 'Machine text'
                       : 'Human formal version'}</strong>
-                    {content.kind === 'machine' ? ' · machine-derived, not human-corrected' : ''}
+                    {content.kind === 'machine'
+                      ? ' · machine-derived, not human-corrected'
+                      : ' · human-authored, never presented as machine extraction'}
                   </p>
                   <div className="lg-files__preview-body">
                     <MarkdownViewer content={materialBody(content.content)} />
                   </div>
                 </>
+              ) : null}
+
+              {reprocessUnavailableReason ? (
+                <p className="lg-files__note" role="note">
+                  Reprocess unavailable: {reprocessUnavailableReason} The original and any existing
+                  readable body/index are preserved.
+                </p>
               ) : null}
 
               {content?.kind === 'formal' && machineEvidence ? (
@@ -844,23 +938,29 @@ export function FilesMaterialsPanel({
                       <h3 className="lg-files__section-title">Raw content and frontmatter</h3>
                       <pre className="lg-files__code">{content.content}</pre>
                       {machineContent ? <pre className="lg-files__code">{machineContent.content}</pre> : null}
-                      <label className="lg-files-materials__editor">
-                        <span className="lg-files__note">Correct formal version (Markdown)</span>
-                        <textarea className="lg-input lg-files-materials__textarea" value={draft}
-                          onChange={(event) => setDraft(event.target.value)} aria-label="Formal version content" />
-                      </label>
-                      <p className="lg-files__note">Saving a correction updates the human formal version and preserves the machine derivative.</p>
                     </>
                   ) : null}
+                  <label className="lg-files-materials__editor">
+                    <span className="lg-files__note">
+                      {content ? 'Correct formal version (Markdown)' : 'Write human formal version (Markdown)'}
+                    </span>
+                    <textarea className="lg-input lg-files-materials__textarea" value={draft}
+                      onChange={(event) => setDraft(event.target.value)} aria-label="Formal version content" />
+                  </label>
+                  <p className="lg-files__note">
+                    {content
+                      ? 'Saving a correction updates the human formal version and preserves the machine derivative.'
+                      : 'This creates a human-authored formal version from your own input; it is not a machine extraction and does not fabricate a machine body.'}
+                  </p>
                   {machineEvidence ? <MachineTranscriptMeta source={selected} branch={receiptText} derivative={transcriptDerivative} /> : null}
                   <div className="lg-files-materials__actions">
                     <button
                       type="button"
                       className="lg-button lg-button--primary"
                       onClick={() => void saveFormal()}
-                      disabled={!content}
+                      disabled={!draft.trim() || controlPending}
                     >
-                      Save correction
+                      {content ? 'Save correction' : 'Save human formal version'}
                     </button>
                     <button
                       type="button"
@@ -869,8 +969,15 @@ export function FilesMaterialsPanel({
                     >
                       {selected.archived ? 'Unarchive' : 'Archive'}
                     </button>
-                    <button type="button" className="lg-button" onClick={() => void reprocess()}>
-                      Reprocess (OCR)
+                    <button
+                      type="button"
+                      className="lg-button"
+                      onClick={() => void reprocess()}
+                      disabled={reprocessDisabled}
+                      title={reprocessUnavailableReason ?? undefined}
+                    >
+                      {reprocessLabel(reprocessKind)}
+                      {reprocessJobId ? ' — running…' : ''}
                     </button>
                     {materialIntakeV2 && receipt && intakeJobId(receipt) ? (
                       <>
@@ -953,7 +1060,40 @@ function jobTone(status: string): 'neutral' | 'success' | 'warning' | 'error' {
   return 'neutral'
 }
 
-function originalMediaType(source: SourceView): string {
+function reprocessLabel(kind: string): string {
+  if (kind === 'asr') return 'Reprocess audio (English ASR)'
+  if (kind === 'text') return 'Reprocess text'
+  if (kind === 'none') return 'Reprocess unavailable'
+  // OCR keeps the historic label, including on legacy backends without the
+  // additive routing projection.
+  return 'Reprocess (OCR)'
+}
+
+function reprocessUnavailableText(source: SourceView | null): string | null {
+  const capability = source?.reprocess
+  if (!capability || capability.available) return null
+  const reason = capability.reason
+  if (reason === 'ocr_unconfigured') return 'the OCR service is not configured.'
+  if (reason === 'unsupported_media_type') return 'this material type has no supported reprocess path.'
+  if (reason === 'link_not_fetched') return 'this link was recorded only and was not fetched.'
+  if (reason === 'disabled' || reason === 'asr_disabled') {
+    return 'English transcription is disabled in Settings.'
+  }
+  if (reason === 'credential_missing') return 'the Google ASR credential is not configured.'
+  if (reason === 'model_missing' || reason === 'hash_mismatch' || reason === 'model_unavailable') {
+    return 'the English ASR model files are not available.'
+  }
+  if (reason === 'runtime_unavailable') return 'the English ASR runtime is not available.'
+  if (reason === 'invalid_config') return 'the English ASR configuration is invalid.'
+  if (reason === 'asr_unavailable') return 'English audio transcription is unavailable.'
+  if (reason) return `${reason}.`
+  return capability.kind === 'asr'
+    ? 'English audio transcription is not available.'
+    : 'the configured extraction capability is not available.'
+}
+
+function originalMediaType(source: SourceView | null): string {
+  if (!source) return ''
   const declared = source.original?.media_type
   const original = typeof declared === 'string' ? declared.toLowerCase() : ''
   if (original.startsWith('image/') || original.startsWith('audio/')) return original

@@ -161,6 +161,9 @@ class ProcessingOutcome:
     #: Honest extraction provenance: ``pdfium-text-layer``, ``lg035-ocr``,
     #: ``pdfium-text-layer+ocr``, ``native-utf8-text`` or ``None``.
     extractor: str | None = None
+    #: LG-222 additive: this failed attempt did **not** overwrite a previously
+    #: usable machine body.  The old body/index remain in place.
+    preserved_existing_body: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -174,6 +177,7 @@ class ProcessingOutcome:
             "extractor": self.extractor,
             "derivative_path": self.derivative_path,
             "reason": self.reason,
+            "preserved_existing_body": self.preserved_existing_body,
         }
 
 
@@ -204,6 +208,12 @@ class ProcessingEngine:
     @property
     def backend_model(self) -> str:
         return self._backend.model_id
+
+    @property
+    def ocr_configured(self) -> bool:
+        """Whether a real OCR backend is configured (not the honest stub)."""
+
+        return self._backend.model_id != "unavailable"
 
     def can_process(self, media_type: str | None, data: bytes) -> bool:
         if is_pdf_bytes(data):
@@ -433,15 +443,28 @@ class ProcessingEngine:
         *,
         cancelled: bool,
     ) -> ProcessingOutcome:
-        """Persist one finished draft and return the honest outcome."""
+        """Persist one finished draft and return the honest outcome.
 
-        written = content.write_machine(draft)
+        LG-222: a failed attempt with no successful page must not replace an
+        already usable machine body for the same source version.  In that case
+        no failure derivative is written; the old body and its index remain.
+        """
+
+        preserve_existing = (
+            (draft.status == "failed" or (cancelled and not draft.succeeded_pages))
+            and self._has_trusted_machine(content, draft.source_version)
+        )
+        written: dict[str, Any] | None = None
+        if not preserve_existing:
+            written = content.write_machine(draft)
+            if draft.status in ("succeeded", "partial"):
+                self._record_derivatives(source, draft, written)
         status = draft.status
-        if status in ("succeeded", "partial"):
-            self._record_derivatives(source, draft, written)
         if cancelled:
             status = "cancelled"
-        self._record_outcome(source, job_id, draft, status)
+        self._record_outcome(
+            source, job_id, draft, status, preserved_existing_body=preserve_existing
+        )
         return ProcessingOutcome(
             source_id=source.source_id,
             source_version=draft.source_version,
@@ -450,9 +473,10 @@ class ProcessingEngine:
             succeeded_pages=len(draft.succeeded_pages),
             failed_pages=len(draft.failed_pages),
             model=draft.model,
-            derivative_path=written["markdown_path"],
+            derivative_path=written["markdown_path"] if written is not None else None,
             reason=draft.fail_reason,
             extractor=draft.extractor,
+            preserved_existing_body=preserve_existing,
         )
 
     def _process_native_text(
@@ -533,9 +557,10 @@ class ProcessingEngine:
         """Honest failure for an unusable native text original (no fake body)."""
 
         current = self._store.read_source(source.source_id)
+        preserved = self._has_usable_body(current.source_id, current.source_version)
         self._store.update_source(
             source.source_id,
-            {"status": "failed", "updated_at": to_iso(self._clock())},
+            {"status": "partial" if preserved else "failed", "updated_at": to_iso(self._clock())},
             expected_revision=current.revision,
         )
         if job_id is not None:
@@ -555,6 +580,26 @@ class ProcessingEngine:
         )
 
     # -------------------------------------------------------------- internals
+    def _has_trusted_machine(self, content: ContentStore, source_version: int) -> bool:
+        """Whether a usable machine derivative already exists for this version."""
+
+        pages = content.read_pages(source_version)
+        if not isinstance(pages, dict):
+            return False
+        if str(pages.get("status") or "") not in ("succeeded", "partial"):
+            return False
+        markdown = content.read_machine_markdown(source_version)
+        return markdown is not None and bool(markdown.strip())
+
+    def _has_usable_body(self, source_id: str, source_version: int) -> bool:
+        """A formal body or trusted machine body is already readable."""
+
+        content = ContentStore(source_root=self._store.source_dir(source_id))
+        formal = content.read_formal()
+        if formal is not None and bool(formal.strip()):
+            return True
+        return self._has_trusted_machine(content, source_version)
+
     def _read_original(self, source: SourceRecord) -> tuple[str, bytes]:
         original = source.entity.get("original")
         original = original if isinstance(original, dict) else {}
@@ -827,7 +872,13 @@ class ProcessingEngine:
         )
 
     def _record_outcome(
-        self, source: SourceRecord, job_id: str | None, draft: MachineDraft, status: str
+        self,
+        source: SourceRecord,
+        job_id: str | None,
+        draft: MachineDraft,
+        status: str,
+        *,
+        preserved_existing_body: bool = False,
     ) -> None:
         # Re-read: _record_derivatives may have bumped the revision.
         current = self._store.read_source(source.source_id)
@@ -837,6 +888,13 @@ class ProcessingEngine:
             "failed": "failed",
             "cancelled": "partial" if draft.succeeded_pages else "failed",
         }.get(status, "failed")
+        if new_status == "failed" and (
+            preserved_existing_body
+            or self._has_usable_body(current.source_id, current.source_version)
+        ):
+            # A failed new attempt did not destroy an already usable formal or
+            # machine body: report a mixed state instead of "failed".
+            new_status = "partial"
         index = current.entity.get("index")
         index = dict(index) if isinstance(index, dict) else {}
         index.setdefault("lexical", "not_indexed")
@@ -868,9 +926,10 @@ class ProcessingEngine:
     ) -> ProcessingOutcome:
         # Keep the original, record an explicit failure; never fake a body.
         current = self._store.read_source(source.source_id)
+        preserved = self._has_usable_body(current.source_id, current.source_version)
         self._store.update_source(
             source.source_id,
-            {"status": "failed", "updated_at": to_iso(self._clock())},
+            {"status": "partial" if preserved else "failed", "updated_at": to_iso(self._clock())},
             expected_revision=current.revision,
         )
         if job_id is not None:
@@ -891,9 +950,10 @@ class ProcessingEngine:
 
     def _fail(self, source: SourceRecord, job_id: str | None, reason: str) -> ProcessingOutcome:
         current = self._store.read_source(source.source_id)
+        preserved = self._has_usable_body(current.source_id, current.source_version)
         self._store.update_source(
             source.source_id,
-            {"status": "failed", "updated_at": to_iso(self._clock())},
+            {"status": "partial" if preserved else "failed", "updated_at": to_iso(self._clock())},
             expected_revision=current.revision,
         )
         if job_id is not None:

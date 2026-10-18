@@ -72,6 +72,36 @@ def _expected(record: SourceRecord, expected_revision: int | None) -> int:
 #: searchable (``archive``/``unarchive`` never touch ``status``).
 REVOKED_STATUS = "archived"
 
+#: Media families used only to route the explicit reprocess action.  The actual
+#: extraction path still decides by bytes (see ``ProcessingEngine``).
+_REPROCESS_IMAGE_TYPES = (
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "image/gif",
+    "image/bmp",
+)
+_REPROCESS_TEXT_TYPES = (
+    "text/plain",
+    "text/markdown",
+    "text/x-markdown",
+    "text/x-log",
+    "application/x-ndjson",
+)
+
+
+def _original_media_type(record: SourceRecord) -> str:
+    original = record.entity.get("original")
+    original = original if isinstance(original, dict) else {}
+    return str(original.get("media_type") or "").split(";", 1)[0].strip().lower()
+
+
+def _original_filename(record: SourceRecord) -> str:
+    original = record.entity.get("original")
+    original = original if isinstance(original, dict) else {}
+    path = original.get("path")
+    return path.rsplit("/", 1)[-1].lower() if isinstance(path, str) else record.title.lower()
+
 
 def _ensure_available(record: SourceRecord) -> None:
     """Fail closed when a source has been revoked (docs/08 §6.6).
@@ -732,6 +762,79 @@ class SourceService:
         return self._store.read_inbox_messages(inbox_id, limit=limit)
 
     # ---------------------------------------------------------------- read views
+    def reprocess_capability(self, record: SourceRecord) -> dict[str, Any]:
+        """Honest routing/availability for the explicit ``reprocess`` action.
+
+        Images use the existing OCR backend, PDFs keep the text-layer-first path
+        with optional OCR fallback, native text stays model-free, and English
+        audio uses the configured ASR service.  Unsupported/未配置 capabilities
+        are reported (never silently routed to OCR) so the UI can disable and
+        explain the action before any write.
+        """
+
+        if record.origin.kind == "link" and not record.origin.fetched:
+            return {
+                "kind": "none",
+                "available": False,
+                "reason": "link_not_fetched",
+            }
+        media_type = _original_media_type(record)
+        filename = _original_filename(record)
+        if media_type.startswith("audio/"):
+            service = self._english_asr
+            if service is None:
+                return {
+                    "kind": "asr",
+                    "available": False,
+                    "reason": "asr_unavailable",
+                    "configured": False,
+                    "enabled": False,
+                }
+            try:
+                cap = service.capability()
+            except Exception:  # noqa: BLE001 - a broken optional config is unavailable
+                cap = {"available": False, "reason": "asr_unavailable"}
+            available = bool(cap.get("available"))
+            reason = cap.get("reason") if isinstance(cap.get("reason"), str) else None
+            if not available and not reason:
+                reason = "asr_unavailable"
+            return {
+                "kind": "asr",
+                "available": available,
+                "reason": reason,
+                "configured": bool(cap.get("configured")),
+                "enabled": bool(cap.get("enabled")),
+            }
+        if media_type == "application/pdf" or filename.endswith(".pdf"):
+            configured = bool(
+                self._processing is not None and self._processing.ocr_configured
+            )
+            # The embedded text layer is model-free; a scanned PDF still needs
+            # OCR, which the result/receipt reports honestly if unconfigured.
+            return {
+                "kind": "ocr",
+                "available": True,
+                "reason": None,
+                "ocr_configured": configured,
+            }
+        if media_type in _REPROCESS_IMAGE_TYPES:
+            configured = bool(
+                self._processing is not None and self._processing.ocr_configured
+            )
+            return {
+                "kind": "ocr",
+                "available": configured,
+                "reason": None if configured else "ocr_unconfigured",
+                "ocr_configured": configured,
+            }
+        if media_type in _REPROCESS_TEXT_TYPES:
+            return {"kind": "text", "available": True, "reason": None}
+        return {
+            "kind": "none",
+            "available": False,
+            "reason": "unsupported_media_type",
+        }
+
     def get_source(self, source_id: str) -> dict[str, Any]:
         record = self._store.read_source(source_id)
         return self._source_view(record)
@@ -1150,11 +1253,26 @@ class SourceService:
                     "source_id": source_id,
                 },
             )
+        provenance: str | None = None
         if not content_store.has_formal():
-            # Seed once from the current machine derivative, then apply the edit.
-            content_store.initialize_formal_from_machine(record.source_version, edited_by=edited_by)
+            # Seed once from the current machine derivative when one exists.
+            # LG-223: an image/scan/audio with no machine body may still get its
+            # first **human-authored** formal version; that is not a machine
+            # extraction and must not be labelled as one.
+            machine_body = content_store.read_machine_markdown(record.source_version)
+            if machine_body is not None:
+                content_store.initialize_formal_from_machine(
+                    record.source_version, edited_by=edited_by
+                )
+            else:
+                provenance = "human-authored"
         new_revision = current_revision + 1
-        content_store.write_formal(content, edited_by=edited_by, expected_revision=current_revision)
+        content_store.write_formal(
+            content,
+            edited_by=edited_by,
+            expected_revision=current_revision,
+            provenance=provenance,
+        )
         updated = self._store.update_source(
             source_id,
             {
@@ -1162,6 +1280,8 @@ class SourceService:
                     "path": content_store.formal_relative_path(),
                     "revision": new_revision,
                     "edited_by": edited_by,
+                    # Additive human provenance; the machine layer is separate.
+                    "origin": "human",
                 },
                 "title_origin": record.entity.get("title_origin", "user"),
                 "updated_at": to_iso(_now(self._intake)),
@@ -1204,6 +1324,45 @@ class SourceService:
             # processing path rewrites ``status`` (and can re-index), which
             # would undo the revocation.  Fail closed instead.
             _ensure_available(record)
+            if expected_revision is not None and expected_revision != record.revision:
+                raise AppError(
+                    ErrorCode.REVISION_CONFLICT,
+                    "source revision does not match",
+                    details={
+                        "expected": expected_revision,
+                        "actual": record.revision,
+                        "source_id": source_id,
+                    },
+                )
+            capability = self.reprocess_capability(record)
+            if not capability["available"]:
+                raise AppError(
+                    ErrorCode.CAPABILITY_UNAVAILABLE,
+                    self._reprocess_unavailable_message(capability),
+                    details={
+                        "source_id": source_id,
+                        "kind": capability["kind"],
+                        "reason": capability.get("reason"),
+                    },
+                )
+            if capability["kind"] == "asr":
+                # Audio is an ASR branch, never OCR.  Create one new bounded
+                # deferred attempt with the current ASR-enabled budget; the
+                # resident worker applies its queue/concurrency/timeout rules.
+                job = self._intake.create_reprocess_job(
+                    source_id, asr_enabled=self.asr_settings_enabled()
+                )
+                return {
+                    "source_id": source_id,
+                    "kind": "asr",
+                    "status": job.status,
+                    "queued": True,
+                    "job_id": job.job_id,
+                    "job": self._job_view(job),
+                }
+            # Images/PDFs keep the existing OCR/text-layer path.  Unsupported
+            # kinds never reach an extractor and therefore never overwrite the
+            # old body/index with a fake failure.
             return self.process_source(source_id, job_id=job_id, force=True)
         if action == "cancel":
             if job_id is None:
@@ -1263,6 +1422,20 @@ class SourceService:
             f"unsupported action {action!r}; supported: reprocess, cancel, archive, unarchive, revoke, delete",
             details={"action": action},
         )
+
+    @staticmethod
+    def _reprocess_unavailable_message(capability: dict[str, Any]) -> str:
+        kind = capability.get("kind")
+        reason = capability.get("reason")
+        if reason == "ocr_unconfigured":
+            return "OCR service is not configured; no image text can be reprocessed."
+        if reason == "unsupported_media_type":
+            return "Reprocessing is not supported for this material type."
+        if reason == "link_not_fetched":
+            return "This link was recorded only and has no fetched original to reprocess."
+        if kind == "asr":
+            return "English audio transcription is not configured or available."
+        return "Reprocessing is not available for this material."
 
     # ---------------------------------------------------- lexical index hooks
     def _reindex(self, source_id: str) -> None:
@@ -1326,13 +1499,15 @@ class SourceService:
         context_reason: str | None = "no_readable_body"
         if record.status == "archived":
             context_reason = "revoked"
-        elif record.status == "failed":
-            context_reason = "extraction_failed"
         else:
             resolved = self.selection_layer(record.source_id)
             selectable = resolved is not None and has_usable_source_body(resolved[1])
             if selectable:
+                # A failed *new attempt* must not hide an existing usable body
+                # (LG-222); the failure is reported by the action/job/receipt.
                 context_reason = None
+            elif record.status == "failed":
+                context_reason = "extraction_failed"
         return {
             "id": record.source_id,
             "source_id": record.source_id,
@@ -1357,6 +1532,9 @@ class SourceService:
             "derivatives": entity.get("derivatives") or [],
             "formal": entity.get("formal"),
             "index": entity.get("index"),
+            # LG-222 additive, read-time routing projection.  It never runs an
+            # extractor or model; it only states which existing path would run.
+            "reprocess": self.reprocess_capability(record),
             "receipt_ref": entity.get("receipt_ref"),
             "created_at": entity.get("created_at"),
             "updated_at": entity.get("updated_at"),

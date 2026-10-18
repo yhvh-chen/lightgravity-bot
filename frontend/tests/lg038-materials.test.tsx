@@ -64,7 +64,7 @@ function makeApi(overrides: Partial<SourcesApi> = {}): SourcesApi {
       receipts: [],
     })),
     listSources: vi.fn(async () => ({ items: [source()], next_cursor: null })),
-    getSource: vi.fn(async () => source()),
+    getSource: overrides.getSource ?? vi.fn(async () => source()),
     getReceipt: vi.fn(
       async (): Promise<SourceReceipt> => ({
         source_id: 'source_01J',
@@ -399,7 +399,8 @@ describe('FilesMaterialsPanel', () => {
     fireEvent.click(await screen.findByText('notes.md'))
     await screen.findAllByText(/extracted body/)
     fireEvent.click(screen.getByText('Reprocess (OCR)'))
-    await screen.findByText(/OCR service is not configured/)
+    await screen.findByText(/no OCR backend configured/)
+    expect(screen.getByText(/Original and existing body\/index were preserved/)).toBeTruthy()
   })
 
   it('archives reversibly (no revoke) and keeps the source openable', async () => {
@@ -427,6 +428,61 @@ describe('FilesMaterialsPanel', () => {
     fireEvent.click(await screen.findByText('notes.md'))
     await screen.findAllByText(/extracted body/)
     expect(screen.getByText('Unarchive')).toBeTruthy()
+  })
+
+  it('writes the first human formal version when no machine body exists', async () => {
+    const editFormal = vi.fn(async () => ({ source_id: 'source_01J', formal: {}, revision: 1 }))
+    const api = makeApi({
+      getSource: vi.fn(async () => source({
+        formal: { path: null, revision: null, edited_by: null },
+        reprocess: { kind: 'ocr', available: false, reason: 'ocr_unconfigured' },
+      })),
+      getContent: vi.fn(async () => {
+        throw new ApiError({
+          message: 'no content exists',
+          code: 'not_found',
+          httpStatus: 404,
+          retryable: false,
+        })
+      }),
+      editFormal,
+    })
+    render(<FilesMaterialsPanel api={api} taskRef={null} />)
+    fireEvent.click(await screen.findByText('notes.md'))
+    await screen.findByText('No trusted text yet')
+    fireEvent.click(screen.getByText('Advanced details', { selector: 'summary' }))
+    fireEvent.change(screen.getByLabelText('Formal version content'), {
+      target: { value: 'Human-authored transcript from the image' },
+    })
+    fireEvent.click(screen.getByText('Save human formal version'))
+    await waitFor(() =>
+      expect(editFormal).toHaveBeenCalledWith(
+        'source_01J',
+        expect.objectContaining({
+          content: 'Human-authored transcript from the image',
+          expected_revision: 0,
+        }),
+      ),
+    )
+    await screen.findByText(/first human-authored formal version/)
+  })
+
+  it('disables audio reprocess with the backend-reported ASR reason', async () => {
+    const sourceAction = vi.fn()
+    const api = makeApi({
+      getSource: vi.fn(async () => source({
+        original: { path: 'original/meeting.mp3', media_type: 'audio/mpeg', bytes: 8 },
+        reprocess: { kind: 'asr', available: false, reason: 'disabled' },
+      })),
+      sourceAction,
+    })
+    render(<FilesMaterialsPanel api={api} taskRef={null} />)
+    fireEvent.click(await screen.findByText('notes.md'))
+    await screen.findByText(/Reprocess unavailable: English transcription is disabled/)
+    const button = screen.getByRole('button', { name: 'Reprocess audio (English ASR)' })
+    expect(button).toBeDisabled()
+    fireEvent.click(button)
+    expect(sourceAction).not.toHaveBeenCalled()
   })
 })
 

@@ -34,30 +34,35 @@ async def _upload(api: httpx.AsyncClient, request_id: str, name: str, data: byte
     return str(response.json()["source"]["source_id"])
 
 
-async def test_reprocess_without_backend_keeps_original_and_fails_clearly(
+async def test_reprocess_without_backend_is_disabled_and_keeps_original(
     api: httpx.AsyncClient,
 ) -> None:
     png = make_png()
     source_id = await _upload(api, "req-ocr-api-1", "pic.png", png)
 
+    detail_before = (await api.get(f"/api/v1/sources/{source_id}")).json()
+    assert detail_before["reprocess"]["kind"] == "ocr"
+    assert detail_before["reprocess"]["available"] is False
+    assert detail_before["reprocess"]["reason"] == "ocr_unconfigured"
+
     action = await api.post(
         f"/api/v1/sources/{source_id}/actions",
         json={"action": "reprocess", "confirmed": True},
     )
-    assert action.status_code == 200, action.text
-    body = action.json()
-    assert body["status"] == "failed"
-    assert body["succeeded_pages"] == 0
-    # A failed run may still write a *failure record* derivative, but the content
-    # view must never present that as usable body text.
+    # LG-222: an unconfigured capability is disabled honestly before any write,
+    # instead of attempting OCR and overwriting status/derivatives.
+    assert action.status_code == 503, action.text
+    error = action.json()["error"]
+    assert error["code"] == "capability_unavailable"
+    assert error["details"]["reason"] == "ocr_unconfigured"
+
+    # No failure derivative was written and the source state did not change.
     content = await api.get(f"/api/v1/sources/{source_id}/content?kind=machine")
-    if body["derivative_path"] is not None:
-        assert content.status_code == 200, content.text
-        text = content.json()["content"]
-        assert "was not transcribed" in text
-        assert "unavailable" in text.lower()
-    else:
-        assert content.status_code == 404
+    assert content.status_code == 404
+    detail_after = (await api.get(f"/api/v1/sources/{source_id}")).json()
+    assert detail_after["status"] == detail_before["status"] == "received"
+    assert detail_after["revision"] == detail_before["revision"]
+    assert detail_after["derivatives"] == []
 
     # The original can still be downloaded byte-for-byte.
     download = await api.get(f"/api/v1/sources/{source_id}/download")
@@ -67,13 +72,10 @@ async def test_reprocess_without_backend_keeps_original_and_fails_clearly(
     assert download.headers["x-lg-stat-revision"]
     assert "-" in download.headers["x-lg-stat-revision"]
 
-    # A formal-only content view is absent until extraction produced something.
+    # No formal content exists until a human writes it.
     content = await api.get(f"/api/v1/sources/{source_id}/content?kind=formal")
     assert content.status_code == 404
     assert content.json()["error"]["code"] == "not_found"
-
-    detail = await api.get(f"/api/v1/sources/{source_id}")
-    assert detail.json()["status"] == "failed"
 
 
 async def test_unknown_action_is_rejected(api: httpx.AsyncClient) -> None:
@@ -128,14 +130,13 @@ async def test_formal_edit_is_separate_and_creates_content_view(api: httpx.Async
         f"/api/v1/sources/{source_id}/formal",
         json={"content": "# Human corrected body\n", "edited_by": "user"},
     )
-    # Seeding requires a machine derivative; with no backend there is none, so
-    # the honest outcome is 404 rather than a fabricated seed.
-    assert edit.status_code in (200, 404), edit.text
-    if edit.status_code == 200:
-        view = await api.get(f"/api/v1/sources/{source_id}/content?kind=formal")
-        assert view.status_code == 200
-        assert "Human corrected body" in view.json()["content"]
-        assert view.json()["formal_present"] is True
+    # LG-223: with no machine derivative this creates the first human-authored
+    # formal version; it never fabricates a machine body.
+    assert edit.status_code == 200, edit.text
+    view = await api.get(f"/api/v1/sources/{source_id}/content?kind=formal")
+    assert view.status_code == 200
+    assert "Human corrected body" in view.json()["content"]
+    assert view.json()["formal_present"] is True
 
 
 async def test_content_kind_is_validated(api: httpx.AsyncClient) -> None:
