@@ -3,6 +3,18 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
+#: docs/08 §24: 1.23.0 (2026-10-18) is the LG-251 local demo-recording
+#: integration candidate.  It additively registers the read-only canonical
+#: TASK.md definition endpoint (LG-242), default-delivery workspace + recorded
+#: machine-check policy/binding/acceptance facts (LG-244), the allowlisted
+#: Run execution-evidence projection and task-scoped history endpoint (LG-243),
+#: text-layer-first PDF extraction with per-page extractor provenance (LG-224),
+#: and Team Task configured-mention routing plus ``health.team_bot_mention``
+#: (LG-249).  Existing public ``run.connection_pin`` fields, Task/Run state
+#: enums, transitions and error codes are unchanged.  This is an isolated local
+#: candidate: it is not deployed, public 8123 remains 1.20.0, and independent
+#: LG-252 browser/recording QA is still pending.
+#:
 #: docs/08 §23: 1.22.0 (2026-10-18) is the LG-238 serial assembly of the
 #: additive Google-native English audio MINOR frozen by LG-235 and implemented
 #: by LG-236 (backend) / LG-237 (UI): the ``google-native`` provider
@@ -207,7 +219,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.22.0"
+CONTRACT_VERSION = "1.23.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

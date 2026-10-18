@@ -65,8 +65,14 @@ def test_frozen_constants() -> None:
     # managed credential, native inline-audio REST transcription without
     # torch/numpy/Reader/SDK, and additive machine provenance; legacy 1.20
     # blocks keep their behavior, the old Reader quality gate stays FAILED and
-    # independent LG-239 version/browser QA is still pending).  Additive MINOR.
-    assert CONTRACT_VERSION == "1.22.0"
+    # independent LG-239 version/browser QA is still pending) -> 1.23.0 (LG-251
+    # local demo-recording integration candidate: read-only canonical TASK.md
+    # definition, default-delivery machine-check policy/binding/acceptance facts,
+    # allowlisted Run execution evidence + task-scoped history endpoint,
+    # text-layer-first PDF extraction and Team Task configured-mention routing +
+    # health.team_bot_mention; isolated local candidate, not deployed, LG-252
+    # independent browser/recording QA pending).  Additive MINOR.
+    assert CONTRACT_VERSION == "1.23.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 

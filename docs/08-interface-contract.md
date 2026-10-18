@@ -2,11 +2,13 @@
 title: "首版接口与状态契约（v1）"
 doc_type: specification
 category: architecture
-contract_version: "1.22.0"
+contract_version: "1.23.0"
 updated: "2026-10-18"
 ---
 
 # 首版接口与状态契约（v1）
+
+> **当前本地隔离候选契约 1.23.0（2026-10-18，LG-251 串行集成；未部署，独立 LG-252 浏览器/录制 QA 待执行）**：§24 加性登记 demo 录制修复批次的真实已实现公共行为：只读 canonical `TASK.md` 定义读取（LG-242）、默认交付工作区与记录型机器检查策略/绑定/验收事实（LG-244）、严格 allowlist 的 Run 执行来源投影及 Task 级历史端点（LG-243）、PDF 文字层优先并保留可选 OCR/`extractor` 来源（LG-224）、以及 Team Task 配置 mention 路由与真实 `health.team_bot_mention`（LG-249）。既有公开 `run.connection_pin` 字段、Task/Run 状态/阶段/验收枚举、迁移方向和错误码不变；旧客户端忽略加性字段即可。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.23.0**；公开 8123/5173 仍为 **1.20.0**，本候选未部署/推送，也不代表独立 QA 或用户验收通过。
 
 > **已验收候选契约 1.21.0（2026-10-18，LG-206 串行集成；LG-207 独立版本/浏览器 QA 为 PASS_WITH_LIMITATIONS；已合入本地 main，未部署）**：加性登记 Tasks 工作区候选的两项公开变化：`SourceView` 只读可用性字段 `context_selectable`/`context_unavailable_reason`（由真实可读正文推导，不作为持久状态），以及只读 Team 对话历史投影 `GET /api/v1/conversations/history`。无既有端点、请求字段、错误码、实体状态/阶段/验收枚举、迁移方向或权限变化；旧客户端忽略新可选字段/端点即可。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 在该候选为 `1.21.0`（已由 1.22 候选取代）；**公开 8123 服务仍为 1.20.0**，本候选未部署/推送。冻结的英文 ASR 下一版本线不属于本候选。范围与兼容边界见 §22。
 
@@ -19,7 +21,7 @@ updated: "2026-10-18"
 
 > **上一契约1.17.0（2026-10-17，LG-104已实现/独立R2 QA PASS/本地8123交付）**：加性新增Connection可选provider认证/本地模型字段、能力描述、受保护草稿测试及按版本/引用保护删除，支持弹窗先测试再保存。仅扩展配置/显式手动测试，native Task执行与默认选择不扩大；不改变旧saved-test语义和实体状态迁移。详见§18与[独立QA](../probes/provider-setup-20261017/qa-r2/QA-R2.md)；下方1.16.0为此前版本说明。
 
-> **当前契约 1.16.0（2026-10-17，LG-066 全局查询/澄清的加性 MINOR）**：在既有全局会话消息端点上加性新增 `query`/`clarify` 响应与只读状态 `data` 快照；按消息内显式合法 Task ID 解析，缺失、非法、未知或出现多个不同 ID 时诚实澄清，绝不猜测目标；成功查询只读持久状态并返回 `creates_task=false`/`creates_run=false`，不创建 Task/Run/worker、不调用模型；回复写入共享全局会话，Personal 仍仅聊天且按身份隔离。范围与精确响应见 §17。无新端点、请求字段、错误码、实体 schema、状态/阶段/验收枚举、迁移方向、角色、招募流程或执行预算。默认单用户与 1.15 团队行为保持；前端最低兼容仍为 `>=1.13,<2`（加性兼容，无需提高）。
+> **历史契约 1.16.0（2026-10-17，LG-066 全局查询/澄清的加性 MINOR；非当前版本）**：在既有全局会话消息端点上加性新增 `query`/`clarify` 响应与只读状态 `data` 快照；按消息内显式合法 Task ID 解析，缺失、非法、未知或出现多个不同 ID 时诚实澄清，绝不猜测目标；成功查询只读持久状态并返回 `creates_task=false`/`creates_run=false`，不创建 Task/Run/worker、不调用模型；回复写入共享全局会话，Personal 仍仅聊天且按身份隔离。范围与精确响应见 §17。无新端点、请求字段、错误码、实体 schema、状态/阶段/验收枚举、迁移方向、角色、招募流程或执行预算。默认单用户与 1.15 团队行为保持；前端最低兼容仍为 `>=1.13,<2`（加性兼容，无需提高）。
 >
 > **上一契约 1.15.0（2026-10-17，LG-062 账户管理命名里程碑的加性 MINOR）**：团队模式新增管理员账户管理端点（列表／新增／启用禁用／角色／重置口令）与所有登录用户的自助改密端点 `POST /account/password`；账号事实源加性新增 `enabled`／`revision`／`session_version`；`GET /api/v1/health` 加性新增可选 `capabilities.accounts`。改密／重置、禁用与角色变更使目标旧会话在下一请求失效，既有 SSE 流约 2 秒重校验关闭；末位可用管理员在存储锁内受保护。范围与安全边界见 §16。默认单用户与 1.14 团队行为保持不变；独立最终 pi QA PASS；主目录 b6c738d 与冻结 dbf7b0c 的 backend/frontend/tests/e2e 树一致，已本地部署至 0.0.0.0:8123，实际普通浏览器 27 项检查通过。[账户管理证据](../probes/accounts-20261017/README.md)。未远端推送，用户最终验收待定。
 
@@ -212,7 +214,9 @@ ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间�
 | `GET /api/v1/diagnostics/generation` | 持久全局上游生成请求计数 `{generation:{count,limit,remaining,persistent[,corrupt,reason]}}`（`limit` 来自 `LIGHTGRAVITY_MAX_GENERATION_CALLS`，`None` 仅计数；`persistent` 指示受控 dataRoot 下的持久账本，损坏时另报 `corrupt`/`reason`；仅计数/上限，不含凭证或 prompt） | LG-022 R1/R2 | 已实现（R1 `1.8.0`；R2 持久账本加性字段 `1.10.0`） |
 | `GET /api/v1/tasks` | Task 列表（分页/阶段筛选） | LG-012 | 冻结 |
 | `POST /api/v1/tasks` | 创建 Task（幂等：`request_id`） | LG-007/LG-012 | 冻结 |
-| `GET /api/v1/tasks/{task_id}` | Task 详情（含 phase/queue/acceptance） | LG-012 | 冻结 |
+| `GET /api/v1/tasks/{task_id}` | Task 详情（含 phase/queue/acceptance；1.23 加性 `execution` 只读投影） | LG-012/LG-243 | 冻结 |
+| `GET /api/v1/tasks/{task_id}/definition/content` | 只读 canonical `TASK.md` 定义（`path/name/size/truncated/media_type/encoding/revision/content/read_only:true`；Task 作用域、无写入、非通用 dataRoot） | LG-242 | `1.23.0` 已实现（本地候选） |
+| `GET /api/v1/tasks/{task_id}/execution` | Task 级 Run 执行来源只读投影（可选 `?run_id=`；任务作用域，foreign/missing Run ⇒ `not_found`） | LG-243 | `1.23.0` 已实现（本地候选，待 LG-252） |
 | `PATCH /api/v1/tasks/{task_id}` | 更新标题/范围等（`expected_revision`） | LG-012 | 冻结 |
 | `POST /api/v1/tasks/{task_id}/messages` | 追加用户消息（幂等：`message_id`） | LG-007 | 冻结 |
 | `GET /api/v1/tasks/{task_id}/messages` | 读取 Task 对话（游标） | LG-007 | 冻结 |
@@ -263,6 +267,8 @@ ULID = 26 个 Crockford Base32 字符（0-9、A-Z 去掉 I/L/O/U），按时间�
 | `POST /api/v1/inbox/messages`（或复用全局对话） | 归属未知资料入受控收件区（全局上传**不强建 Task**） | LG-034/038 | 已实现（LG-034 受控收件区；待版本 QA LG-040） |
 
 > `planned` 行只冻结将来的路径与最小语义，**当前实现不提供该端点**；调用方应以 `404`/`not_ready` 如实处理，不得假定已可用。本版无剩余 `planned` 行。
+>
+> **1.23.0 加性只读/健康登记**：`GET /health` 加性顶层 `team_bot_mention: string|null`，仅 Team 模式返回真实 `Settings.team_bot_mention`，单用户/旧后端为 `null` 或缺省；前端只在非空时显示该真实值，不硬编码 `@bot`。`GET /tasks/{task_id}/definition/content` 只暴露该 Task 的 canonical `TASK.md`，不授予通用 dataRoot 或写权限。`GET /tasks/{task_id}/execution` 与 Task 详情 `execution` 共用同一 allowlist 投影，不读取/返回连接凭证。详见 §24。
 >
 > **资料摄取 v2（`1.19.0`，§20）**：不新增路径；`POST /sources` 加性可选 `intake_mode`，消息请求/持久化加性可选 `source_refs`，`GET /sources/{id}/receipt` 加性返回 `receipt_version:2` 与分支对象，`GET /intake/jobs/{id}` 加性返回摄取边界字段。所有新字段缺省时行为与 1.18.0 一致；新客户端必须通过 `material_intake_v2` 能力门。
 >
@@ -411,6 +417,7 @@ acceptance:
   check_records: []           # 加性：机器检查结果（check_id/status/detail）
   note: null                  # 加性：人工决定备注（可选）
 checks: []                  # 加性：授权运行的已注册机器检查 id 列表；未声明则无检查
+machine_check_policy: null  # 加性：default_delivery_v1 或 null；策略要求不等于授权执行
 budget:
   max_workers: 3
   max_parallel: 2
@@ -453,6 +460,7 @@ completed             → queued | planning    # 仅显式重开，requirements_
 - `deliverable_revision` 在某个 Run 进入 `awaiting_acceptance`（产生候选交付）时 +1。
 - 验收有效条件：`acceptance.status == accepted` 且 `acceptance.requirements_revision == task.requirements_revision` 且 `acceptance.deliverable_revision == task.deliverable_revision`。任一不等即失效；`requirements_revision` 增加时把 `status` 重置为 `pending`，保留旧证据。
 - `checks` 为加性可选字段：只列出程序**已注册**的机器检查 id；Task 未声明时运行零个检查（如实为空，不将“无检查”当作通过），授权但未注册的检查记为 `unconfigured` 且不运行。`acceptance.candidate_ref`/`candidate_plan_hash`/`check_records`/`note` 为加性可选字段，分别记录候选 Run 引用、候选计划哈希、机器检查结果与决定备注；既有 `requirements_revision`/`deliverable_revision`/`evidence_refs` 绑定语义不变，决策必须同时匹配 `candidate_ref`。
+- `1.23.0` 加性 `machine_check_policy`（LG-244）：`default_delivery_v1` 由程序在默认交付 Task 创建时写入，要求 `evidence-present` 与 `artifacts-in-workspace` 两个既有只读检查，即使之后 `checks` 授权被删减也仍为 required；策略只提高 required 事实，**不授予执行缺失检查的权限**，也不引入 shell/import/任意 handler。其它显式授权的检查同样 required。未带策略的旧 Task 保持原推进/直接验收兼容性，缺失/空授权的只读视图明确为 `not_configured` 且 `satisfied=false`，绝不当作 `passed`。
 - `1.7.0` 加性 QA/返修账本（LG-017 R1，非秘密）：Task 加性可选字段 `rework`（`review_rounds`/`repair_rounds_spent`/`sdk_retries`/`outcomes`/`last_findings`/`last_candidate_ref`/`history`，以及本轮新增 `reviewer`/`reviewer_kind`/`model_usage`）与 `review_findings`（活跃返修 Run 的目标）。`reviewer_kind ∈ {program, model, unavailable}` 明确区分**程序机器门**与**真实独立模型复核**；`model_usage` 记录真实模型用量，未知计 `unknown`，**不得当 0**。`review_rounds` 由可选 `budget.max_review_rounds`（默认上限 8）约束；`repair_rounds_spent` 由既有 `budget.max_repair_rounds` 在**整个 Task 生命周期**约束，新 Run 不重置；`sdk_retries` 只计 SDK/适配器重试，不是业务返修轮。
 - `queue.state` 与 phase 的关系：进入 `queued` 前置 `queue.state=queued` 并写 `order`/`queued_at`；领取成功后 `claimed` 并写 `owner`/`lease_expires_at`；进入终态或暂停时释放租约并回到 `not_queued`。`waiting_dependencies` 不入队。
 
@@ -473,6 +481,8 @@ plan: null               # 校验后的计划（source/notes/subtasks），dispa
 plan_hash: null          # plan 规范化 JSON 的 SHA-256，冻结派发时的计划版本
 plan_source: null        # 计划来源标记（如 rules / model）
 connection_pin: null     # 加性、非秘密：本 Run 冻结的默认 worker 连接
+machine_checks: null     # 加性：候选绑定的机器检查报告（§24.2）
+execution_evidence: null # 加性：严格 allowlist 的 worker/reviewer/review 快照（§24.3）
 team_refs: []
 subtask_refs: []
 session_refs: []
@@ -484,7 +494,9 @@ fail_reason: null
 
 - 一个 Task 同时最多一个非终止 Run（`active_run`）。
 - `plan`/`plan_hash`/`plan_source` 为加性可选字段：计划先经程序校验，校验通过的完整计划（含每个子任务的 `key`/`objective`/`capability`/`acceptance`/`depends_on`/`write`/`order`）才写入 `plan`，`plan_hash` 为该内容的规范化 SHA-256，`plan_source` 只记录来源、不赋予额外权限；未通过校验的提议不落盘。既有 `plan_ref`（计划文件引用）语义不变。默认计划由程序按明确目标生成（`plan_source=rules`，确定性最小计划、无模型调用）；可选的模型拆解提议是**有界按需**能力，当前未接线、无默认装配，仅在显式记录触发原因时采纳，候选计划仍经同一程序校验；该按需提议的**单 Run** 调用上限由程序按内部请求预算落实（失败尝试计入，重复派发同一 Run 不新开模型循环），不使用跨 Run 的实例全局计数。此为默认策略澄清，不新增字段/端点/事件，不改变本版既有语义。
-- `connection_pin` 为加性可选字段（1.5.0）：Run 招募团队时解析一次当前默认 worker 连接并按 `{connection_id, revision, content_hash, credential_version}` 冻结，供该 Run 的所有 Subtask 复用；活跃 Run 内默认连接或凭证轮换不得在下一 Subtask 静默换用，检测到漂移按 `config_invalid` 失败，新 Run 才重新解析。该字段**永不包含秘密**，不改变既有连接选择优先级（显式模板 `connection_ref` 仍优先）。
+- `connection_pin` 为加性可选字段（1.5.0）：Run 招募团队时解析一次当前默认 worker 连接并按 `{connection_id, revision, content_hash, credential_version}` 冻结，供该 Run 的所有 Subtask 复用；活跃 Run 内默认连接或凭证轮换不得在下一 Subtask 静默换用，检测到漂移按 `config_invalid` 失败，新 Run 才重新解析。该字段**永不包含秘密**，不改变既有连接选择优先级（显式模板 `connection_ref` 仍优先）。`1.23.0` 不删除、不改写该公开响应的既有字段（含 `base_url`/`credential_ref`/不透明 `credential_version`/`config_hash`）；严格 allowlist 只作用于新的 `execution` 投影。
+- `1.23.0` 加性 `machine_checks`（LG-244）：既有 `results`（`check_id/status/detail`）、`authorized`、`registered`、`satisfied` 之外，新增 `required`、`checked_at`（UTC）与 `binding`。`binding` 包含 `run_id`、`requirements_revision`、`plan_hash`、`artifact_refs`、`diff_ref`、`workspace_ref`、`artifact_digests`（workspace artifact ref → SHA256 或 `null`）；不包含会因打开验收而递增的 `deliverable_revision`。报告在真实检查执行后、独立复核前持久化；失败/错误/未配置/跳过/缺失 required 结果阻止复核与打开验收，成功报告在复核后复用前必须匹配当前候选/需求/授权/文件摘要，过期报告不得被静默重跑为验收通过。
+- `1.23.0` 加性 `execution_evidence`（LG-243）：`schema=lightgravity.execution-evidence/v1`，含严格非秘密 allowlist 的 `worker`、`reviewer` 与已校验 `review`。`worker.stage` 恒为 `planned`、`evidence_kind=frozen_run_connection`——它证明本 Run 冻结的**计划连接**，不是真实 worker 模型调用证明；`reviewer.stage=review_execution` 才记录实际解析并执行的 reviewer 配置。缺失/旧 Run 保持 `unknown`/`null`，绝不从当前 Settings 推断；`review.candidate_binding` 记录实际复核的 `run_id/candidate_ref/requirements_revision/plan_hash`。不含 `credential_ref`/`credential_value`/`base_url`/`credential_version`/`config_hash`/headers/prompts。完整投影与 API 见 §24.3。
 - `completed` 与 `cancelled`/`failed` 是不同终态；team cleanup 状态独立记录，清理失败不得掩盖交付成功。
 - `cancelling` → `cancelled` 仅在 adapter 确认停止后。
 - 去中心化协作预算与恢复（`1.6.0`，LG-028，默认关闭）：协作/领取请求受 Task 总预算、`max_workers`/`max_parallel`/`max_repair_rounds` 与协作次数/超时约束，全部计入**同一** Task/Run 预算；worker 不得创建新 Run/Task 或无限递归协作。租约过期/崩溃后，对 `write=true` 或**未知副作用**的节点**不自动重放**，进入既有 `recovery_required`（该状态已在上述枚举中，**不新增迁移方向**）；恢复仅依赖已落盘证据，**完整 checkpoint skip 尚未实现**。
@@ -784,7 +796,7 @@ class ExecutorAdapter(Protocol):
 
 LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与版本 QA）：
 
-- [ ] 契约版本与 `/api/v1`、`lightgravity.bot/v1` 在本文一致声明（LG-001 冻结 `1.0.0`；当前候选 `1.22.0`，生产 `1.20.0`，变更记录见第 13 节）。
+- [ ] 契约版本与 `/api/v1`、`lightgravity.bot/v1` 在本文一致声明（LG-001 冻结 `1.0.0`；当前本地隔离候选 `1.23.0`，生产 `1.20.0`，变更记录见第 13 节）。
 - [ ] ID 语法、时间格式、命名约定明确，且与 docs/02 资源示例的差异有说明。
 - [ ] API 端点表覆盖首版所需路径，错误码表覆盖配置失败、冲突、取消未确认、能力不可用、验收过期。
 - [ ] Task/Subtask/Run/Member 状态枚举、合法组合与迁移方向齐备，无 `done + executing` 类矛盾。
@@ -802,6 +814,7 @@ LG-001 自身的可机械/可复核检查（实现层验证属于后续任务与
 
 | 版本 | 日期 | 级别 | 变更 | API/实体字段影响 |
 |---|---|---|---|---|
+| `1.23.0` | 2026-10-18 | MINOR | LG-251 demo 录制修复批次本地隔离串行集成候选（§24）：LG-242 只读 canonical `TASK.md` 端点；LG-244 默认交付工作区、`machine_check_policy`、Run `machine_checks` 绑定/required/`checked_at`、验收 `checks.status` 与真实 pre-review/Accept 门；LG-243 Run `execution_evidence` 与 Task 详情/独立端点 `execution` 严格 allowlist 投影；LG-224 PDF 文字层优先、per-page `extractor` 与加性 record types；LG-249 Team Task 配置 mention 路由及 `health.team_bot_mention`。**未部署**，公开 8123/5173 仍 1.20.0；LG-252 独立浏览器/录制 QA 待执行 | 仅新增可选只读端点/响应字段、可选实体字段与健康字段，并收紧默认交付 Task 的机器检查 required 事实；既有 `run.connection_pin` 公开字段、Task/Run/Member/Subtask/`source.status` 枚举、迁移方向与 HTTP 错误码不变；旧客户端忽略新字段即可；无新权限、无秘密值、无产品模型/OCR/ASR 调用 |
 | `1.22.0` | 2026-10-18 | MINOR | LG-238 串行装配 LG-235 冻结、LG-236 实现、LG-237 UI 的 Google 原生英文音频转写（§23）：`english_asr` 加性 `provider`/`runtime` 判别、Google 设置视图/PUT（write-only 托管凭证、原生 base_url/model/limits）、健康 `english_asr` 按 provider 的 attemptable 语义、原生 inline-audio REST 请求/响应映射与错误分类、加性 receipt `machine` provenance；同时登记 §23.1 的 LG-229/230 主机/调用上限放宽。LG-239 独立版本/浏览器与真实 Google 调用 QA PASS_WITH_LIMITATIONS；已合入本地 main，未部署 | 仅新增可选 provider 判别/视图/请求字段、reason 字符串与 `machine` 可选字段；旧块无 `provider` 时 1.20/1.21 行为逐字保持；无 Task/Run/Member/Subtask/`source.status` 枚举、迁移方向或 HTTP 错误码变化；不新增前端直连供应商端点；`contract_version` 随真实装配为 `1.22.0`，生产仍 `1.20.0`；旧 Reader 质量 FAILED 保留 |
 | `1.21.0` | 2026-10-18 | MINOR | LG-206 Tasks 工作区串行集成候选（§22）：`SourceView` 加性只读字段 `context_selectable`/`context_unavailable_reason`；只读 `GET /conversations/history` Team 对话历史投影。前端删除 Chat 主页面、Files→Tasks、New task、上下文选材移入 Tasks、Team 历史图标。LG-207 独立版本/浏览器 QA PASS_WITH_LIMITATIONS；已合入本地 main，未部署 | 仅新增可选 SourceView 只读投影字段与一个只读端点/响应；无既有端点、请求字段、错误码、Task/Run/Member/Subtask/`source.status` 枚举、迁移方向或权限变化；旧后端缺 SourceView 字段时前端保守禁用选材并如实说明；历史接口不返回正文/作者/附件/Personal；不新增 health 能力，`contract_version` 随真实装配为 `1.21.0`，生产仍 `1.20.0` |
 | `1.20.0` | 2026-10-18 | MINOR | 英文Reader转写及Settings/Chat/Files接入（§21）；UI与后端由LG168部署1.20，ASR关闭、质量QA失败保留 | 加性english_asr配置/处理能力/机器provenance；默认关闭，Personal隔离不变，30秒/无时间戳；处理可用不等于质量通过 |
@@ -1352,7 +1365,7 @@ budget:
 `deferred` 作业由单一进程内的有界 `IntakeWorker` 驱动，复用既有 `IntakeService`、`ProcessingEngine`、`LexicalSearchService`、`VectorSearchService`，不新增通用 job 框架、数据库或外部队列：
 
 1. worker 按 `created_at`/ID 的 FIFO 取 `queued` 作业，在文件锁/修订校验下写 `running`；已被其他 worker 领取则不重复执行。
-2. 文字分支：原生 UTF-8 文本直接解码；图片/PDF 走既有 OCR；音频/Office/未知二进制不调用 OCR/ASR，`text.unavailable`。OCR 失败/部分成功按既有 `ProcessingEngine` 结果写入，不伪造正文。
+2. 文字分支：原生 UTF-8 文本直接解码；PDF **先读取内嵌文字层**，仅对少于 16 个可见字符的稀疏/扫描页回退既有 OCR，图片走既有 OCR（LG-224，§20.8）；音频/Office/未知二进制不调用 OCR/ASR，`text.unavailable`。OCR 失败/部分成功按既有 `ProcessingEngine` 结果写入，不伪造正文。
 3. 词法分支：仅对可信正式版/机器派生版建索引；无正文为 `no_text`；索引失败为 `failed`，不阻断语义分支。
 4. 语义分支：embedding 未启用/未配置 ⇒ `disabled`；启用时对可信文本和原始 `image/*`/`audio/*`（≤10,000,000 字节）分别尝试直接 embedding，**媒体不先转文字**。每个输入一次调用、无自动重试、有超时；成功写现有向量缓存与 `source.index.vector`，失败只标记对应 kind。
 5. 模型/缓存不兼容：不得自动清空或混用旧缓存。配置模型与缓存模型不一致或缓存损坏时，语义按 `failed` 诚实报告并等待显式 `POST /vector/rebuild`；缓存文件缺失时允许为当前来源初始化一个**仅含该来源**的缓存，但不得把它当作全库重建，也不得删除其他来源数据；旧来源需显式重建。**不得在摄取、搜索或保存设置时隐式全库重建**。
@@ -1364,13 +1377,14 @@ budget:
 |---|---|---|---|---|
 | `text/plain`、`text/markdown`、`text/x-markdown`、`text/x-log`、`application/x-ndjson` | 原件落盘 | 原生 UTF-8，模型无关；可信正文建词法 | 若启用则文本 embedding | 原生正文 ≤ **2,000,000** 字节；超限/非 UTF-8 为 `text.failed` |
 | `image/png`、`image/jpeg`、`image/webp`、`image/gif`、`image/bmp` | 原件落盘 | 既有 OCR；成功/部分成功才建词法 | 启用时原始图片直接 embedding（另加文本向量，若存在） | 原件 ≤ **10,000,000** 字节；OCR ≤ **100** 页、每页 ≤ **2000** tokens；每页一次调用、无自动重试 |
-| PDF（按字节签名识别，不依赖扩展名） | 原件落盘 | 光栅化后逐页 OCR | 启用时只嵌入可信 OCR 文本，不直接嵌入 PDF 字节 | 同上；未配置 OCR 时 `text.failed`/`unavailable`，原件保留 |
+| PDF（按字节签名识别，不依赖扩展名） | 原件落盘 | **文字层优先**：逐页读取内嵌文字（`pdfium-text-layer`）；仅少于 **16** 个可见字符的稀疏/扫描页回退既有 OCR（`lg035-ocr`）；混合 PDF 只 OCR 稀疏页（`pdfium-text-layer+ocr`） | 启用时只嵌入可信文本/OCR 文本，不直接嵌入 PDF 字节 | 既有页数/取消/部分失败/原件保留边界不变；未配置 OCR 时仅稀疏页 `text.failed`/`unavailable`，电子文字页仍可提取；不宣称 OCR 质量或版式重建 |
 | `audio/*`（任意容器/编码） | 原件落盘 | **无 ASR；所有语言 `text.unavailable`，不生成转写** | 启用时原始音频直接 embedding；无转写也可语义命中 | 原件 ≤ **10,000,000** 字节；关键词不承诺检索讲话内容；不得把 embedding 称为转写 |
 | Office/未知二进制/无文字图片以外的媒体 | 原件落盘 | `text.unavailable`；`keyword.no_text` | 无 text/image/audio 输入 ⇒ `unsupported` | 不假装支持；不抓取、不执行内容 |
 | 链接（`origin.kind=link`） | 仅记录，`fetched=false` | 不抓取、不成文 | 不索引 | 不因“已记录”显示为可检索 |
 
 - 超限在接收前返回 `validation_failed`/`invalid_request`，不落半个原件；已接收后的提取超限按分支失败记录。
 - 媒体向量是独立 kind，检索命中必须回源核对 source 版本/哈希/权限；不支持视频、Office 正文、音频转写或任意新供应商协议。
+- `1.23.0` 加性 PDF 来源（LG-224）：`ProcessingOutcome.extractor`、PDF receipt 的 `text.extractor`（可选）与 page-map/页 markdown 的 per-page `extractor` 取值 `pdfium-text-layer`/`lg035-ocr`/`pdfium-text-layer+ocr`/`native-utf8-text`/`null`；派生 `record_type` 可为 `machine_pdf_text_layer` 或 `machine_pdf_text_layer_ocr`。旧回执/非 PDF 回执不补写该可选字段；以上不新增端点、错误码或状态枚举。
 - 任何 OCR/ASR/embedding 的模型/服务不可用都只影响对应分支；词法、原件预览、下载与既有 `selected_sources` 仍可用。
 
 ### 20.9 配额、重试、取消与重启
@@ -1673,7 +1687,7 @@ ready 时 `derivatives` 加性条目：
 
 ## 23. Google 原生音频转写（1.22.0 已验收候选；LG-238 装配，LG-239 PASS_WITH_LIMITATIONS）
 
-> **状态与门**：本节冻结 **加性 MINOR** 的 provider 判别、配置/秘密字段、能力语义、原生 REST 请求/响应映射、错误分类、来源/回执 provenance、计数/用量与文件归属。LG-235 完成接口冻结与一次真实小样本原型，LG-236（后端）与 LG-237（UI）分别实现，LG-238 已在隔离候选串行装配：源码 `CONTRACT_VERSION` 与 `GET /health.contract_version` 现为 `1.22.0`，真实公共 backend runtime 已实现并通过局部/契约/类型/构建检查。**未部署**（公开 8123/5173 仍为 1.20.0），LG-239 独立版本/浏览器与一次真实 Google 调用 QA 为 **PASS_WITH_LIMITATIONS**，候选已合入本地 main，但未部署；不据此宣称生产可用或质量通过。装配检查使用记录的 H1/H2 响应与 fake transport，真实调用证据见 LG-239。
+> **状态与门**：本节冻结 **加性 MINOR** 的 provider 判别、配置/秘密字段、能力语义、原生 REST 请求/响应映射、错误分类、来源/回执 provenance、计数/用量与文件归属。LG-235 完成接口冻结与一次真实小样本原型，LG-236（后端）与 LG-237（UI）分别实现，LG-238 已在隔离候选串行装配：当时源码 `CONTRACT_VERSION` 与 `GET /health.contract_version` 为 `1.22.0`（现由 1.23.0 本地候选取代），真实公共 backend runtime 已实现并通过局部/契约/类型/构建检查。**未部署**（公开 8123/5173 仍为 1.20.0），LG-239 独立版本/浏览器与一次真实 Google 调用 QA 为 **PASS_WITH_LIMITATIONS**，候选已合入本地 main，但未部署；不据此宣称生产可用或质量通过。装配检查使用记录的 H1/H2 响应与 fake transport，真实调用证据见 LG-239。
 >
 > 本路径**替代本轮 demo 的 EG2/Reader 远端帧桥接**，但**不删除、不改判**旧 Reader 实现与质量 FAILED 历史。Google provider 不得 import `torch`/`numpy`/`transformers`/Reader，不得调用本机音频编码器、模型容器或 `192.168.8.12`；Settings 的 Google 模式不得要求 `model_dir`/`reader_dir`。
 
@@ -1905,8 +1919,107 @@ LG-235 真实原型（仅既有测试音频，各一次请求，无 TTS、无 Fi
 ### 23.12 版本与完成判定
 
 - 本节冻结的是 **1.22.0 候选**；LG-235 完成标准是：接口/错误/归属/原型证据可审阅，分支提交干净，**不是**生产/用户验收。
-- LG-238 已在公共 runtime 实际实现后完成串行装配（236 后端 + 237 前端），源码 `CONTRACT_VERSION` 与 `/health.contract_version` 升为 `1.22.0`，并已通过后端聚焦/契约/类型检查与前端全量测试/typecheck/build 的局部检查。LG-239 独立版本/浏览器与一次真实 Google 调用 QA 为 **PASS_WITH_LIMITATIONS**；候选已合入本地 main，但未部署/推送。不把单次真实调用或局部检查写成生产可用或质量通过。
+- LG-238 已在公共 runtime 实际实现后完成串行装配（236 后端 + 237 前端），当时源码 `CONTRACT_VERSION` 与 `/health.contract_version` 升为 `1.22.0`（现由 1.23.0 本地候选取代），并已通过后端聚焦/契约/类型检查与前端全量测试/typecheck/build 的局部检查。LG-239 独立版本/浏览器与一次真实 Google 调用 QA 为 **PASS_WITH_LIMITATIONS**；候选已合入本地 main，但未部署/推送。不把单次真实调用或局部检查写成生产可用或质量通过。
 - 旧 Reader 质量 FAILED、§21 的全部失败/限制、LG-235 的 H2 字面 `thought`/WER/实体差异均保留；Google 新路径单独报告，不改写历史。
+
+## 24. Demo 录制修复批次（`1.23.0` 本地隔离候选；LG-251 串行集成）
+
+> **状态**：本节登记 LG-248 录制前修复批次中已真实实现并由 LG-251 串行装配的加性公共行为。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.23.0**。候选基于隔离 worktree `work/lg248-candidate-20261018`，**未部署/未推送/未合入根 main**；公开 8123/5173 仍为 1.20.0。本批由开发者 pi 完成集成与局部检查，**不是独立 QA**；LG-252 的 Playwright 真实前后端/录制验收待执行，LG-254 采集门独立于产品候选。
+
+### 24.1 只读 canonical `TASK.md`（LG-242）
+
+`GET /api/v1/tasks/{task_id}/definition/content`（只读）
+
+```json
+{
+  "path": "TASK.md",
+  "name": "TASK.md",
+  "size": 1234,
+  "truncated": false,
+  "media_type": "text/markdown",
+  "encoding": "utf-8",
+  "revision": "1234-1760000000000000000",
+  "content": "---\nschema: lightgravity.bot/v1\n...",
+  "read_only": true
+}
+```
+
+- 目标严格限定为 `data_dir/tasks/<task_id>/TASK.md`，先校验 canonical resolve 路径、秘密存储与 Task 存在性；不做通用 dataRoot 浏览，不提供写入、删除、重命名或执行入口。Task 不存在返回既有 `not_found`；路径/符号链接逃逸返回既有 `path_outside_workspace`。
+- 内容最多 `MAX_CONTENT_BYTES`；超出时 `truncated=true` 且只返回截断内容。`revision` 为 stat 型变更令牌（非密码学哈希），与文件预览/下载既有语义一致。
+- 同时修正 artifacts 分类路径相对授权 workspace 根返回；canonical evidence 引用格式不变。
+
+### 24.2 默认交付工作区、机器检查与验收绑定（LG-244）
+
+- `POST /tasks` 的默认交付路径与普通 Chat 交付一致：缺省/空白 workspace 由后端在授权 workspace root 下创建 `tasks/<task_id>`；显式 workspace 保留；请求重放返回同一 Task/workspace；创建失败如实拒绝，不持久化不可用默认路径。
+- 默认交付 Task 写入 `checks: [evidence-present, artifacts-in-workspace]` 与 `machine_check_policy: default_delivery_v1`（§6.1）。策略只声明 required，不授予执行缺失检查的权限。
+- Run 加性 `machine_checks` 报告（§6.2）：`results`（`check_id/status/detail`）、`authorized`、`registered`、`satisfied`、`required`、`checked_at`、`binding`。`binding` 固定 `run_id/requirements_revision/plan_hash/artifact_refs/diff_ref/workspace_ref/artifact_digests`；不包含打开验收会递增的 `deliverable_revision`。
+- 机器检查在真实执行后、任一独立复核前持久化；failed/error/unconfigured/skipped/缺失 required 结果阻止复核与打开验收。复核后的成功报告只有在当前候选/需求/授权/文件摘要全部匹配时复用，stale 报告不得被静默重跑成 `passed`。
+- `GET /tasks/{task_id}/acceptance` 与 `POST /tasks/{task_id}/actions` 的响应加性 `checks` 对象：保留真实 `results`/`required`/`authorized`/`registered`/`satisfied`/`binding`/`checked_at`，并新增 `status ∈ {not_configured, not_run, stale, passed, failed}`。单条结果仍用既有 `passed/failed/skipped/unconfigured/error`；`status` 描述 required 集合整体，`satisfied` 仅在当前记录 required 全部通过时为 true。
+- Accept 同时校验当前持久 required 事实与当前真实检查；缺失/stale/failed/error/unknown 结果返回既有 `not_ready`，版本不匹配可更早返回既有 `acceptance_stale`。不新增 UI-only 门。
+- 旧 Task 无策略且授权为空时保留原推进/直接验收兼容性，只读视图明确 `not_configured`/`satisfied=false`；显式授权检查但旧策略未通过的 Task 必须真实通过。不批量重写/迁移旧文件。
+- 检查只证明证据存在、路径包含与摘要新鲜度，不证明内容正确；独立复核与人工验收仍分别记录。
+
+### 24.3 Run 执行来源投影（LG-243）
+
+两个加性只读入口，共用同一 allowlist 投影：
+
+1. `GET /api/v1/tasks/{task_id}` 顶层 `execution`；
+2. `GET /api/v1/tasks/{task_id}/execution`，可选 `?run_id=`。无 `run_id` 时沿用 `active_run` → `last_run`；带 `run_id` 时只接受归属于该 Task 的 Run，foreign/missing 返回既有 `not_found`。
+
+```json
+{
+  "task_id": "task_01J...",
+  "schema": "lightgravity.execution-evidence/v1",
+  "run": {"id": "run_01J...", "state": "awaiting_acceptance", "candidate_ref": "run_01J...", "requirements_revision": 1, "plan_hash": "..."},
+  "worker": {
+    "role": "worker", "connection_id": "deepseek-flash", "name": "DeepSeek Flash",
+    "provider": "openai-compat", "model": "deepseek-v4-flash",
+    "status": "recorded", "source": "run_default_pin", "stage": "planned",
+    "evidence_kind": "frozen_run_connection", "captured_at": "2026-10-18T12:00:00.000Z", "reason": null
+  },
+  "reviewer": {
+    "role": "reviewer", "connection_id": "deepseek-reviewer", "name": "DeepSeek Reviewer",
+    "provider": "openai-compat", "model": "deepseek-v4-flash",
+    "status": "recorded", "source": "resolved_reviewer_support", "stage": "review_execution",
+    "evidence_kind": "resolved_reviewer_support", "captured_at": "2026-10-18T12:00:09.000Z", "reason": null
+  },
+  "review": {
+    "outcome": "passed", "reviewer_kind": "model", "candidate_ref": "run_01J...",
+    "candidate_binding": {"run_id": "run_01J...", "candidate_ref": "run_01J...", "requirements_revision": 1, "plan_hash": "..."},
+    "findings": [], "unsubstantiated": [], "model_calls": 1,
+    "usage": {"prompt_tokens": 120, "completion_tokens": 30},
+    "reviewed_at": "2026-10-18T12:00:09.000Z", "reason": ""
+  },
+  "connections_distinct": true,
+  "missing": []
+}
+```
+
+- `worker`/`reviewer` 恒为对象；id/name/provider/model 为 `string|null`；`status ∈ {recorded, unavailable, unknown}` 表示历史是否存在，不代表模型调用成功。
+- `worker.stage` 恒为 `planned`、`evidence_kind=frozen_run_connection`：这是本 Run 冻结的**计划连接**，不是 worker 真实调用证明，UI 必须表述为“Worker connection (frozen for this Run)”而不能写“worker called/used model”。`reviewer.stage=review_execution` 才代表实际解析并执行的 reviewer 配置；`review` 只来自真实持久化并通过既有 `validate_findings` 门的结果，`unavailable` 保持 unavailable，绝不伪 `passed`。
+- 无 Run/review 时 `run`/`review` 为 `null`；旧 Run 无 reviewer 历史时 `reviewer.status=unknown`、`source=missing`、`review=null`，`missing` 列出 `run/worker_history/reviewer_history/review` 中真实缺失项；旧 worker 只回退到冻结的 `Run.connection_pin`，**不读取当前 Settings 默认值**。
+- `review.candidate_binding` 是实际复核候选的 `run_id/candidate_ref/requirements_revision/plan_hash`，复核时写入且不从后续候选/默认值重算。`connections_distinct` 仅表示两个已知 connection id 是否不同，不代表模型不同或复核独立；复核类型看 `review.reviewer_kind`。
+- 投影强制 allowlist：不含 `credential_ref`、`credential_value`、`base_url`、`credential_version`、`config_hash`、headers、prompts 或秘密值；读到被篡改的多余字段会被剥离。**既有 `GET /tasks/{task_id}` 的公开 `run.connection_pin` 字段保持不变**（含 `base_url`/`credential_ref`/不透明 `credential_version`/`config_hash`），它们是指用/元数据而非秘密值。
+- 两个入口使用与 `GET /tasks/{task_id}` 相同的 Task 业务访问依赖，不新增 Settings/admin 权限。
+
+### 24.4 PDF 文字层优先（LG-224）
+
+- PDF 处理先逐页读取内嵌文字层；一页少于 **16** 个可见（非空白）字符视为空/极稀疏并回退既有 OCR。电子文字页不栅格化、不 OCR；混合 PDF 只 OCR 稀疏页，既有页数上限、取消检查、失败/部分成功、派生写入与 source 状态不变。
+- 加性 `ProcessingOutcome.extractor`、PDF receipt 可选 `text.extractor`、page-map/页 markdown 的 per-page `extractor`，取值 `pdfium-text-layer`/`lg035-ocr`/`pdfium-text-layer+ocr`/`native-utf8-text`/`null`；派生 `record_type` 加性为 `machine_pdf_text_layer`/`machine_pdf_text_layer_ocr`。旧/非 PDF 回执不补写可选 `extractor`。
+- 本节取代 §20.7/§20.8 旧“PDF 总是先光栅化再逐页 OCR”的实现说明；仍不声称 OCR 质量、版式重建、真实扫描件质量或真实模型/OCR 验证。稀疏阈值是页级固定默认值，标题页等仍可能被 OCR。
+
+### 24.5 Team Task mention 路由与健康字段（LG-249）
+
+- Team 模式的普通 Task 对话消息先持久化，然后只记为 `recorded`：不调用分类器/responder/模型，不创建 Task/Run，不写 assistant 回复；HTTP 返回 `kind:"recorded"`、`reply:null`、目标 `task_id` 与 `data:{"intent":"recorded","creates_task":false}`。相同 `message_id` 重放返回同一结果且不重复追加消息。
+- 仅当消息开头（允许前导空白）为配置的 mention 且后接空白、标点或结束时进入机器人路由；配置值来自真实 `Settings.team_bot_mention`（环境 `LIGHTGRAVITY_TEAM_BOT_MENTION`，默认 `@bot`），`@bottom` 不算 mention，自定义值（如 `!lg`）同样适用。只从路由副本剥离前缀，持久用户消息保留原文；查询/控制/重试/澄清行为不变。
+- 单用户模式不加 mention 门、不剥离前缀，Task 路由保持原行为。`resource_proposal` 仍走既有受控写入权限，不受普通文本 mention 门影响。
+- `GET /api/v1/health` 加性顶层 `team_bot_mention: string|null`：Team 模式返回真实 resolved 配置，单用户模式为 `null`；该字段与 enforcing 路由同版本发布，旧后端不伪造该能力。前端只读取真实非空值显示 Team Global/Task 提示，`null`/缺省/空白不显示，也不以 `@bot` 兜底；Personal/单用户输入框不变。
+
+### 24.6 兼容、测试与证据边界
+
+- 本批只新增可选只读端点/响应字段、可选实体字段与健康字段，并收紧默认交付 Task 的 required 检查事实；不新增/删除 `state`/`phase`/`acceptance`/`source.status` 枚举、迁移方向、错误码或权限。旧客户端忽略新字段即可；旧 Task 缺省行为保持。
+- LG-208 的 parsed read cache 是进程内可丢弃派生缓存，Markdown 仍为唯一事实源，未改变公开契约；LG-253 的 SQLite 连接生命周期修复随基线与缓存子集验证，不新增接口。
+- 本候选只做开发者局部集成检查（明确列出的后端测试/类型检查与前端测试/typecheck/build）；没有真实产品模型/OCR/ASR 调用，没有浏览器录制或独立 QA。失败/跳过/限制在 LG-251 交付记录中如实保留，不把局部通过写成完整套件或版本验收通过。
 
 ## 参考
 

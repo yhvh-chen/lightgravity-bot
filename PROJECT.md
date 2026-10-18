@@ -7,6 +7,8 @@ updated: "2026-10-18"
 
 # LightGravity Bot 项目手册
 
+> **Demo录制修复候选已本地集成（2026-10-18，LG-251；未部署）**：隔离分支 `work/lg248-candidate-20261018` 基于 native Files/hint `cd755da`，按内容去重后串行合入 LG-208 parse cache、LG-244/LG-243/LG-249 后端链、LG-224 PDF 文字层，并把契约提升为加性 **1.23.0**（§24）。候选包含只读 canonical `TASK.md`、机器检查 required/绑定/验收状态、每 Run 的计划 worker 与真实 reviewer 执行证据、PDF 文字层优先，以及 Team Task 配置 mention 路由和真实 `health.team_bot_mention`。已运行受影响后端/前端测试、typecheck、build；这是开发者集成证据，**不是独立 QA**，公开 8123/5173 仍为 1.20.0，未推送/合根/部署，LG-252 浏览器录制验收待执行。详细登记见 docs/08 §24。
+
 > **品牌已上线、ASR远端待接通（2026-10-18）**：LG211品牌子集112项独立浏览器检查+29前端测试通过；LG212已将Logo/默认账号说明上线8123，root main8a3f04d7，实际生产44项通过，后端仍原1.20/PID536200、ASR关闭rev1，三个服务未重启、账户/资料保持。5173品牌源码同步，不把其他开发改动算入本包验收。[部署记录](probes/remote-reader-20261018/lg212/DELIVERY.md)。LG213一次现有默认SSH密钥认证被192.168.8.12拒绝，远端帧服务实际部署/转写联调需要可用入口；原质量FAILED与里程碑169待完成保持。Reader容器已构建、加载约640～874MiB，尚未测实际推理峰值。
 
 > **已选实施方案（2026-10-18）**：用户选择“192.168.8.12运行EmbeddingGemma 2编码，本地容器只运行Reader”。音频逐帧特征经远端接口送到本地Reader，转写复用原摄取/frontmatter/索引/回执/UI，不在本机加载编码器、不把池化向量冒充帧特征。2核/2GB为Reader容器起测配置，实际资源待独立测量。先核实llama.cpp与Reader特征接缝（LG175），并行准备Reader容器（LG176），匹配后接入应用（LG177），统一LG172版本QA与LG173部署。远端所需的增量特征接口可在现有服务旁隔离部署，保留原向量/TTS服务；远端部署入口已询问，未收到前不猜凭证。若现有量化模型特征不匹配，保留失败证据并报告，不擅自替换模型或恢复本地编码。
@@ -94,6 +96,15 @@ LG174调查已完成：[报告](probes/demo-brand-asr-20261018/lg174/REPORT.md)�
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-18：Demo录制修复批次冻结 1.23.0 本地隔离候选（LG-251，未部署）
+
+- 以 `cd755da`（native Files 任务定义/预览/英文/导航修复、LG216/LG243 UI/LG240 route、LG220 `03cacb4`、LG253 native `e63d039`、LG249 hint）为唯一基线；按内容去重只挑 LG-208 cache `1aaf2d1`、native backend `be3214e→89b4ec4→dff18e2`、LG-243 `2a27aee`、LG-249 `9b5ec83`、LG-224 `60589cb`，不重复导入等价补丁或整条分支。
+- 契约按加性 MINOR 升至 **1.23.0**（docs/08 §24），登记新只读端点、Run/Task 加性字段、PDF `extractor`/record types 与 health `team_bot_mention`；既有公开 `run.connection_pin`、状态/阶段/验收枚举、迁移方向和错误码不变，旧 Task 缺省行为保留。
+- LG-244 的默认交付工作区与 required 检查是真实行为：failed/error/unconfigured/skipped/缺失 required 阻止复核与 Accept，stale 报告不静默重跑；旧无策略 Task 只读为 `not_configured`/`satisfied=false`，不伪 passed。LG-243 worker 快照只是计划/冻结连接，不是调用证明；reviewer 仅在真实复核后记录，缺失保持 unknown。
+- LG-224 以文字层优先取代旧“PDF 总是光栅化 OCR”说明，稀疏阈值 16 可见字符；没有真实 OCR/模型质量验证。LG-249 Team Task 普通消息只记录、不调分类器/responder/model，前导配置 mention 才路由；health 只发布真实 Team 配置，前端无 `@bot` 兜底。
+- 验证为开发者局部检查：53 项新增/聚焦后端测试、既有 123 项 Tasks/Google ASR 回归、受影响 cache/store/lexical/verify/api/coordinator/sources 子集、mypy、前端测试/typecheck/build。默认 `pytest tests` 的重复 basename 收集问题仍已知且未改布局；不宣称单命令全绿或独立 QA。
+- 候选冻结供 LG-252；不推送、不合根 main、不部署、不重启 8123/5173/18123。LG-254 采集 harness 仍是外部门，未获 root 清洁门批准前不进行 252 业务/模型录制。
 
 ### 2026-10-18：Google 原生音频转写候选通过独立 QA 并串行合入本地 main（LG-235→236/237→238，契约 1.22.0；LG-239 PASS_WITH_LIMITATIONS，未部署）
 
