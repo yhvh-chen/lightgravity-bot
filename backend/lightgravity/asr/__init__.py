@@ -22,10 +22,18 @@ def build_english_asr_service(
     *,
     env: Mapping[str, str] | None = None,
     runtime_factory: Callable[[Any], Any] | None = None,
+    secret_store: Any | None = None,
+    google_transport: Any | None = None,
 ) -> Any:
     from .service import build_english_asr_service as _build
 
-    return _build(settings_repository, env=env, runtime_factory=runtime_factory)
+    return _build(
+        settings_repository,
+        env=env,
+        runtime_factory=runtime_factory,
+        secret_store=secret_store,
+        google_transport=google_transport,
+    )
 
 
 def build_english_asr_router(

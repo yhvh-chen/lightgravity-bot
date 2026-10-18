@@ -17,20 +17,31 @@ from .service import EnglishAsrService
 
 
 class EnglishAsrUpdateRequest(BaseModel):
-    """Write-only settings payload; paths are never returned by the view."""
+    """Write-only settings payload; secrets/paths are never returned by the view.
+
+    Bounds are the union of the legacy and Google contracts; the service applies
+    the provider-specific limits (for example legacy timeout <= 180 while a
+    Google timeout may be up to 600).
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     expected_revision: int
     enabled: bool
+    provider: str | None = None
     runtime: str = "inprocess"
     model_dir: str | None = None
     reader_dir: str | None = None
     device: str = "cpu"
     threads: int = Field(default=4, ge=1, le=8)
-    timeout_seconds: int = Field(default=180, ge=30, le=180)
-    max_audio_seconds: int = Field(default=30, ge=1, le=30)
-    max_audio_bytes: int = Field(default=10_000_000, ge=1, le=10_000_000)
+    timeout_seconds: int = Field(default=180, ge=30, le=600)
+    max_audio_seconds: int | None = Field(default=30, ge=1, le=30)
+    max_audio_bytes: int = Field(default=10_000_000, ge=1, le=14_000_000)
+    # Google-native additive fields; both are write-only.
+    model: str | None = None
+    base_url: str | None = None
+    credential_ref: str | None = None
+    credential_value: str | None = None
 
 
 def english_asr_safe_origin(request: Request) -> None:
