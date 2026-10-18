@@ -24,8 +24,8 @@ from ...contracts import AppError, ErrorCode
 PDF_MAGIC = b"%PDF-"
 #: Default render scale: ~150 DPI from the 72-DPI PDF unit.
 DEFAULT_SCALE = 2.0
-#: Hard cap on pages processed by one job (bounded work, honest partial result).
-DEFAULT_MAX_PAGES = 100
+#: Optional cap on pages processed by one job.  LG-230: ``None`` = every page.
+DEFAULT_MAX_PAGES: int | None = None
 
 
 class PdfRenderError(AppError):
@@ -54,7 +54,7 @@ class PdfRasterizer(Protocol):
 
     def page_count(self, data: bytes) -> int: ...
 
-    def render(self, data: bytes, *, scale: float = DEFAULT_SCALE, max_pages: int = DEFAULT_MAX_PAGES) -> list[RenderedPage]: ...
+    def render(self, data: bytes, *, scale: float = DEFAULT_SCALE, max_pages: int | None = DEFAULT_MAX_PAGES) -> list[RenderedPage]: ...
 
 
 def is_pdf_bytes(data: bytes) -> bool:
@@ -91,7 +91,7 @@ class PdfiumRasterizer:
         data: bytes,
         *,
         scale: float = DEFAULT_SCALE,
-        max_pages: int = DEFAULT_MAX_PAGES,
+        max_pages: int | None = DEFAULT_MAX_PAGES,
     ) -> list[RenderedPage]:
         if scale <= 0:
             raise PdfRenderError("scale must be positive")
@@ -99,7 +99,7 @@ class PdfiumRasterizer:
         pages: list[RenderedPage] = []
         try:
             total = len(document)  # type: ignore[arg-type]
-            limit = min(total, max(int(max_pages), 1))
+            limit = total if max_pages is None else min(total, max(int(max_pages), 1))
             for index in range(limit):
                 page = None
                 bitmap = None

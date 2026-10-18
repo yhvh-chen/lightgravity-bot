@@ -102,7 +102,7 @@ class ProcessingConfig:
     value is rejected with an explicit diagnostic (never silently clamped).
     """
 
-    max_pages: int = 100
+    max_pages: int | None = None
     max_tokens_per_page: int = 2000
     scale: float = 2.0
     #: Optional, **default OFF** table-aware OCR mode.  When False (the

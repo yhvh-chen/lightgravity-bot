@@ -46,9 +46,6 @@ if TYPE_CHECKING:  # pragma: no cover - typing only (avoids import cycle)
 #: Hosts the proxy may bind.  Loopback only - never 0.0.0.0.
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
 
-#: Upstream hosts the product may forward credentials to (fixed allowlist).
-#: LG-229: Google's OpenAI-compatible endpoint serves the online demo.
-AUTHORIZED_UPSTREAM_HOSTS = frozenset({"api.deepseek.com", "generativelanguage.googleapis.com"})
 
 #: The single authorized first-version upstream (DeepSeek chat completions).
 DEEPSEEK_UPSTREAM_URL = "https://api.deepseek.com/v1/chat/completions"
@@ -264,7 +261,7 @@ class _ProxyState:
         credential: Secret,
         upstream_url: str,
         session_token: str,
-        max_calls: int,
+        max_calls: int | None,
         timeout: float,
         generator_budget: "GenerationCounter | None" = None,
     ) -> None:
@@ -287,7 +284,7 @@ class _ProxyState:
 
     def begin_call(self) -> int | None:
         with self.lock:
-            if not self.active or self.calls >= self.max_calls:
+            if not self.active or (self.max_calls is not None and self.calls >= self.max_calls):
                 return None
             # Reserve a global generation slot *before* forwarding.  A denied
             # global slot is a hard stop and consumes no local call either.
@@ -482,7 +479,7 @@ class LocalAuthProxy:
         session_token: str | None = None,
         host: str = "127.0.0.1",
         port: int = 0,
-        max_calls: int = 64,
+        max_calls: int | None = None,
         timeout: float = 120.0,
         allow_loopback_upstream: bool = False,
         generation_budget: GenerationCounter | None = None,
@@ -498,17 +495,12 @@ class LocalAuthProxy:
                 "local auth proxy requires an absolute upstream URL",
                 capability="local_auth_proxy",
             )
-        allowed = set(AUTHORIZED_UPSTREAM_HOSTS)
-        if allow_loopback_upstream:
-            allowed |= {"127.0.0.1", "localhost", "::1"}
-        if parsed.hostname not in allowed:
+        # LG-230: no upstream host allowlist; the admin-configured endpoint is
+        # used as given.  ``allow_loopback_upstream`` is kept for callers.
+        del allow_loopback_upstream
+        if max_calls is not None and max_calls <= 0:
             raise CapabilityUnavailable(
-                f"upstream host {parsed.hostname!r} is not authorized",
-                capability="local_auth_proxy",
-            )
-        if max_calls <= 0:
-            raise CapabilityUnavailable(
-                "local auth proxy requires max_calls > 0",
+                "local auth proxy max_calls must be > 0 when set",
                 capability="local_auth_proxy",
             )
         self._host = host
@@ -653,7 +645,6 @@ class LocalAuthProxy:
 
 __all__ = [
     "LOOPBACK_HOSTS",
-    "AUTHORIZED_UPSTREAM_HOSTS",
     "DEEPSEEK_UPSTREAM_URL",
     "MAX_REQUEST_BYTES",
     "GenerationCounter",

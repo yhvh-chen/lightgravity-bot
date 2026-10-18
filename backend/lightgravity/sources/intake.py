@@ -53,17 +53,18 @@ _PAYLOAD_SCHEMA = "lg034.payload.v1"
 #: Stage after which the job has fully persisted the original and its records.
 _RECEIVED_STAGE = "received"
 
-#: Deferred-intake budget frozen by docs/08 §20.5.  Sync jobs keep the old
+#: Deferred-intake budget frozen by docs/08 §20.5; LG-230 sets the model-call,
+#: OCR-page and embedding-call keys to ``None`` (no limit).  Sync jobs keep the old
 #: three-key budget so their on-disk shape and behaviour are unchanged.
 DEFERRED_BUDGET: dict[str, Any] = {
-    "max_model_calls": 102,
+    "max_model_calls": None,
     "timeout_seconds": 900,
     "max_retries": 1,
     "max_original_bytes": 10_000_000,
     "max_native_text_bytes": 2_000_000,
-    "max_ocr_pages": 100,
+    "max_ocr_pages": None,
     "max_tokens_per_page": 2000,
-    "max_embedding_calls": 2,
+    "max_embedding_calls": None,
     "max_media_embedding_bytes": 10_000_000,
 }
 

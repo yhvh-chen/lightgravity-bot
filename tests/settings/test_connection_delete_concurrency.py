@@ -148,9 +148,11 @@ def test_new_reference_wins_before_delete_checks(
     'https://api.deepseek.com.evil.example/v1',
     'https://api.deepseek.com@evil.example/v1',
 ])
-def test_unpatched_host_policy_rejects_defaults_and_proxy_forwarding(
+def test_any_host_can_be_default_and_proxied(
     tmp_path: Path, endpoint: str,
 ) -> None:
+    # LG-230: the product no longer restricts hosts; any configured endpoint
+    # may be the default and receive its own credential through the proxy.
     from lightgravity.adapter.credentials import Secret
     from lightgravity.adapter.proxy import LocalAuthProxy
 
@@ -159,13 +161,9 @@ def test_unpatched_host_policy_rejects_defaults_and_proxy_forwarding(
     service = ConnectionService(store, secret_store=FileSecretStore(tmp_path / 'secrets'))
     view = service.create_connection('custom', base_url=endpoint,
                                      actor='test', request_id='custom')
-    assert view['capabilities']['executable'] is False
-    with pytest.raises(AppError) as error:
-        service.update_settings(expected_revision=None, actor='test',
-                                default_worker_connection_ref='custom')
-    assert error.value.code == 'reference_invalid'
-    assert service.repository.read_settings().default_worker_connection_ref is None
-    # Constructor rejects the host before binding or any provider request.
-    with pytest.raises(AppError):
-        LocalAuthProxy(credential=Secret('dummy-local-only'),
-                       upstream_url=endpoint + '/chat/completions')
+    assert view['capabilities']['executable'] is True
+    service.update_settings(expected_revision=None, actor='test',
+                            default_worker_connection_ref='custom')
+    assert service.repository.read_settings().default_worker_connection_ref == 'custom'
+    LocalAuthProxy(credential=Secret('dummy-local-only'),
+                   upstream_url=endpoint + '/chat/completions')

@@ -64,12 +64,6 @@ def _subtasks(state: RuntimeState) -> list[str]:
 async def test_settings_only_path_reaches_a_pinned_execution_entry(
     tmp_path: Path, monkeypatch: Any
 ) -> None:
-    # This integration test deliberately uses an unreachable loopback upstream
-    # as the local constructor seam; real product capabilities remain DeepSeek-only.
-    monkeypatch.setattr(
-        "lightgravity.adapter.provider_matrix.EXECUTABLE_OPENAI_COMPAT_HOSTS",
-        frozenset({"api.deepseek.com", "127.0.0.1"}),
-    )
     settings: Settings = make_settings(tmp_path)
     (settings.workspace_root / "ws").mkdir(parents=True, exist_ok=True)
     state = build_runtime(

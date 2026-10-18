@@ -145,7 +145,7 @@ async def test_deferred_returns_before_ocr_and_worker_runs_text(api, app, settin
     assert body["source"]["status"] == "received"
     assert body["job"]["status"] == "queued"
     assert body["job"]["intake_mode"] == "deferred"
-    assert body["job"]["budget"]["max_model_calls"] == 102
+    assert body["job"]["budget"]["max_model_calls"] is None  # LG-230: no limit
     assert ocr.calls == []
     assert embedding.calls == []
 

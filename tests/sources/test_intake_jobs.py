@@ -240,14 +240,14 @@ async def test_deferred_job_fields_and_sync_shape_stay_distinct(settings) -> Non
     assert entity["deadline_at"] is None
     assert entity["waiting_reason"] is None
     assert entity["budget"] == {
-        "max_model_calls": 102,
+        "max_model_calls": None,  # LG-230: no limit
         "timeout_seconds": 900,
         "max_retries": 1,
         "max_original_bytes": 10_000_000,
         "max_native_text_bytes": 2_000_000,
-        "max_ocr_pages": 100,
+        "max_ocr_pages": None,
         "max_tokens_per_page": 2000,
-        "max_embedding_calls": 2,
+        "max_embedding_calls": None,
         "max_media_embedding_bytes": 10_000_000,
     }
 

@@ -36,8 +36,8 @@ from typing import Any
 #: Hard bound on one answer.  A single short turn, no tool loop.
 DEFAULT_TIMEOUT_SECONDS = 60.0
 
-#: The direct-answer path may use exactly one upstream model call.
-DEFAULT_MAX_MODEL_CALLS = 1
+#: Optional cap on upstream calls for one answer.  LG-230: ``None`` = no limit.
+DEFAULT_MAX_MODEL_CALLS: int | None = None
 
 _SYSTEM_INSTRUCTIONS = (
     "You are the LightGravity Bot resident assistant. Answer the user's question "
@@ -82,7 +82,7 @@ class ModelDialogue:
         credential_resolver: Callable[[str], Any],
         *,
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
-        max_model_calls: int = DEFAULT_MAX_MODEL_CALLS,
+        max_model_calls: int | None = DEFAULT_MAX_MODEL_CALLS,
     ) -> None:
         self._support = support
         self._resolve = credential_resolver

@@ -13,7 +13,6 @@ from fastapi.testclient import TestClient
 
 from lightgravity.contracts import AppError, ErrorCode, error_envelope
 from lightgravity.settings import (
-    ConnectionReferenceInvalid,
     ConnectionService,
     ConnectionTestLog,
     ConnectionTester,
@@ -243,18 +242,19 @@ def test_capabilities_bind_execution_to_the_actual_deepseek_host(
         actor="test",
         request_id="req-custom",
     )
+    # LG-230: any host executes and may be the default; only DeepSeek is
+    # shown as vendor-verified.
     assert custom["capabilities"] == {
         "configurable": True,
         "testable": True,
-        "executable": False,
+        "executable": True,
         "vendor_verified": False,
     }
-    with pytest.raises(ConnectionReferenceInvalid):
-        service.update_settings(
-            expected_revision=service.get_settings()["revision"],
-            actor="test",
-            default_worker_connection_ref="custom",
-        )
+    service.update_settings(
+        expected_revision=service.get_settings()["revision"],
+        actor="test",
+        default_worker_connection_ref="custom",
+    )
 
     loopback = service.create_connection(
         "loopback",
@@ -266,12 +266,11 @@ def test_capabilities_bind_execution_to_the_actual_deepseek_host(
         actor="test",
         request_id="req-loop",
     )
-    # The loopback constructor seam is not a saved-host execution policy.
-    assert loopback["capabilities"]["executable"] is False
+    assert loopback["capabilities"]["executable"] is True
     assert loopback["capabilities"]["vendor_verified"] is False
 
 
-def test_legacy_custom_record_is_preserved_but_honestly_unavailable(
+def test_legacy_custom_record_is_preserved_and_executable(
     tmp_path: Path,
 ) -> None:
     store = FileStore(tmp_path / "data", tmp_path / "data" / "workspaces")
@@ -299,7 +298,7 @@ def test_legacy_custom_record_is_preserved_but_honestly_unavailable(
     assert view["capabilities"] == {
         "configurable": True,
         "testable": True,
-        "executable": False,
+        "executable": True,
         "vendor_verified": False,
     }
     # Reading never migrates/rewrites the old record.

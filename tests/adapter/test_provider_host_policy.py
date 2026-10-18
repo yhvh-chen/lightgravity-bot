@@ -1,4 +1,4 @@
-"""LG-111 host policy: openai-compat enum alone is not execution eligibility."""
+"""Host policy: LG-230 lets any openai-compat host execute; only DeepSeek is vendor-verified."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from lightgravity.store import FileStore
 from helpers import build_agent, build_basic_environment
 
 
-def test_custom_openai_host_compiles_but_is_not_executable(
+def test_custom_openai_host_is_executable_but_not_vendor_verified(
     store: FileStore, compiler: ResourceCompiler
 ) -> None:
     build_basic_environment(
@@ -18,10 +18,10 @@ def test_custom_openai_host_compiles_but_is_not_executable(
     )
     build_agent(store)
     compiled = compiler.compile_agent("developer")
-    assert compiled.executable is False
-    assert "endpoint_not_authorized" in compiled.executable_reasons
+    assert compiled.executable is True
+    assert compiled.executable_reasons == ()
     assert compiled.connection is not None
-    assert compiled.connection.executable is False
+    assert compiled.connection.executable is True
     assert compiled.connection.vendor_verified is False
     assert compiled.connection.verified is False
 
