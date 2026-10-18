@@ -447,7 +447,7 @@ class RuleBasedPlanner:
             subtasks.append(
                 RawSubtask(
                     key="verify",
-                    objective=f"独立验证：{context.objective}",
+                    objective=f"Independent verification: {context.objective}",
                     capability=self._verification,
                     acceptance=declared,
                     depends_on=("deliver",),

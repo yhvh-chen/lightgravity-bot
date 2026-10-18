@@ -192,11 +192,11 @@ def _coerce_action(value: str) -> ActionName:
 def _render_task_body(
     objective: str, scope: str | None, acceptance: tuple[str, ...]
 ) -> str:
-    lines = ["# Task", "", "## 目标", "", objective.strip(), ""]
+    lines = ["# Task", "", "## Objective", "", objective.strip(), ""]
     if scope and scope.strip():
-        lines += ["## 范围", "", scope.strip(), ""]
+        lines += ["## Scope", "", scope.strip(), ""]
     if acceptance:
-        lines += ["## 验收条件", ""]
+        lines += ["## Acceptance criteria", ""]
         lines += [f"- {item}" for item in acceptance]
         lines += [""]
     return "\n".join(lines)
@@ -211,11 +211,11 @@ def _parse_task_body(body: str) -> dict[str, Any]:
         if line.startswith("## "):
             current = line[3:].strip()
             continue
-        if current == "目标":
+        if current in {"Objective", "目标"}:
             objective_lines.append(line)
-        elif current == "范围":
+        elif current in {"Scope", "范围"}:
             scope_lines.append(line)
-        elif current == "验收条件":
+        elif current in {"Acceptance criteria", "验收条件"}:
             stripped = line.strip()
             if stripped.startswith("- "):
                 acceptance.append(stripped[2:].strip())

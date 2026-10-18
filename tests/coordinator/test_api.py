@@ -68,3 +68,26 @@ async def test_invalid_message_is_rejected(api) -> None:
         json={"content": "no message id"},
     )
     assert response.status_code == 422
+
+
+async def test_new_task_provisions_workspace_and_authorized_machine_gate(api, store) -> None:
+    client, _ = api
+    payload = {"request_id": "default-workspace", "title": "New", "objective": "Deliver a page"}
+    first = await client.post("/api/v1/tasks", json=payload)
+    task_id = first.json()["task_id"]
+    task = store.read("task", task_id)
+    assert task.entity["workspace_ref"] == f"tasks/{task_id}"
+    assert store.resolve_path(task.entity["workspace_ref"]).is_dir()
+    assert task.entity["checks"] == ["evidence-present", "artifacts-in-workspace"]
+    again = await client.post("/api/v1/tasks", json=payload)
+    assert again.json()["task_id"] == task_id
+    assert len(list(store.resolve_path("tasks").iterdir())) == 1
+
+
+async def test_new_task_retains_explicit_workspace(api, store) -> None:
+    client, _ = api
+    response = await client.post("/api/v1/tasks", json={
+        "request_id": "explicit-workspace", "title": "New", "objective": "Deliver",
+        "workspace_ref": "existing",
+    })
+    assert store.read("task", response.json()["task_id"]).entity["workspace_ref"] == "existing"

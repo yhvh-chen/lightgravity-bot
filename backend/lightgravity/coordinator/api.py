@@ -95,6 +95,7 @@ def build_router(coordinator: Coordinator) -> APIRouter:
             scope=payload.scope,
             acceptance_criteria=tuple(payload.acceptance_criteria),
             workspace_ref=payload.workspace_ref,
+            default_delivery=True,
         )
         return result.to_dict()
 

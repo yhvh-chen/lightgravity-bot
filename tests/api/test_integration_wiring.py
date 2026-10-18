@@ -128,12 +128,13 @@ async def test_verification_is_injected_and_wired(app: FastAPI) -> None:
     assert app.state.context.verification is app.state.verification
 
 
-async def test_injected_coordinator_auto_verifies(settings: Settings) -> None:
+async def test_injected_coordinator_auto_checks_summary_only_candidate(settings: Settings) -> None:
     """An explicitly injected coordinator shares the app verification service.
 
     Regression for the LG-010 blocker: the normal ``POST /tasks`` delivery must
-    reach ``awaiting_acceptance`` automatically, including the create_app branch
-    that receives a caller-built coordinator/dispatcher/executor.
+    run machine checks automatically, including the create_app branch that
+    receives a caller-built coordinator/dispatcher/executor. A summary-only fake
+    must remain verifying because it provides no real candidate evidence.
     """
 
     from lightgravity.api.access import LocalAccessPolicy
@@ -168,12 +169,14 @@ async def test_injected_coordinator_auto_verifies(settings: Settings) -> None:
             transport=transport, base_url="http://testserver"
         ) as client:
             task_id = await create_task(client)
-            detail = await wait_for_phase(client, task_id, {"awaiting_acceptance"})
-            assert detail["phase"] == "awaiting_acceptance"
-            assert detail["acceptance"]["status"] == "awaiting"
+            detail = await wait_for_phase(client, task_id, {"verifying"})
+            assert detail["phase"] == "verifying"
+            assert detail["acceptance"]["status"] == "pending"
             snapshot = await client.get(f"/api/v1/tasks/{task_id}/acceptance")
             assert snapshot.status_code == 200
             assert snapshot.json()["candidate"]["run_id"] == detail["run"]["id"]
+            assert not snapshot.json()["checks"]["satisfied"]
+            assert snapshot.json()["checks"]["results"][0]["status"] == "failed"
 
 
 class _RefusingStopper:

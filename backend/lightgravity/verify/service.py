@@ -19,6 +19,7 @@ and leaves new-Run creation to the coordinator's real state.
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -42,7 +43,11 @@ from .checks import (
     CheckRegistry,
     CheckReport,
     CheckContext,
+    CheckResult,
+    classify_artifact_ref,
+    WORKSPACE_REF,
     authorized_checks,
+    required_checks,
     default_check_registry,
     run_checks,
 )
@@ -191,12 +196,6 @@ class VerificationService:
         acceptance = task.entity.get("acceptance")
         acceptance_map = acceptance if isinstance(acceptance, dict) else {}
         candidate = self.candidate(task_id)
-        checks: CheckReport | None = None
-        if candidate is not None:
-            try:
-                checks = self._run_checks(task.entity, candidate)
-            except AppError:
-                checks = None
         return AcceptanceView(
             task_id=task_id,
             phase=str(task.entity.get("phase", "")),
@@ -206,7 +205,7 @@ class VerificationService:
             deliverable_revision=_int_field(task.entity, "deliverable_revision"),
             acceptance=dict(acceptance_map),
             candidate=candidate.to_dict() if candidate else None,
-            checks=checks.to_dict() if checks else None,
+            checks=self._recorded_checks(task.entity, candidate) if candidate else None,
         )
 
     def _run_checks(self, task_entity: dict[str, Any], candidate: Candidate) -> CheckReport:
@@ -219,6 +218,99 @@ class VerificationService:
             workspace_path=candidate.workspace_path,
         )
         return run_checks(self._registry, authorized, context)
+
+    @staticmethod
+    def _check_binding(candidate: Candidate) -> dict[str, Any]:
+        digests: dict[str, str | None] = {}
+        if candidate.workspace_path:
+            base = Path(candidate.workspace_path).resolve()
+            for ref in candidate.artifact_refs:
+                kind, payload = classify_artifact_ref(ref)
+                if kind != WORKSPACE_REF or payload is None:
+                    continue
+                try:
+                    target = (base / payload).resolve()
+                    if target.is_relative_to(base) and target.is_file():
+                        digest = hashlib.sha256()
+                        with target.open("rb") as handle:
+                            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                                digest.update(chunk)
+                        digests[ref] = digest.hexdigest()
+                    else:
+                        digests[ref] = None
+                except OSError:
+                    digests[ref] = None
+        return {
+            "artifact_digests": digests,
+            "run_id": candidate.run_id,
+            "requirements_revision": candidate.requirements_revision,
+            "plan_hash": candidate.plan_hash,
+            "artifact_refs": list(candidate.artifact_refs),
+            "diff_ref": candidate.diff_ref,
+            "workspace_ref": candidate.workspace_ref,
+        }
+
+    def _recorded_checks(self, task: dict[str, Any], candidate: Candidate) -> dict[str, Any]:
+        authorized = authorized_checks(task)
+        required = required_checks(task)
+        recorded = self._store.read("run", candidate.run_id).entity.get("machine_checks")
+        report = dict(recorded) if isinstance(recorded, dict) else {}
+        status = "not_configured" if not required else "not_run"
+        if report and required:
+            status = "stale" if (
+                report.get("binding") != self._check_binding(candidate)
+                or report.get("authorized") != list(authorized)
+            ) else "failed"
+            results = report.get("results")
+            if status != "stale" and isinstance(results, list) and all(
+                any(isinstance(item, dict) and item.get("check_id") == check_id
+                    and item.get("status") == "passed" for item in results)
+                for check_id in required
+            ) and all(check_id in authorized for check_id in required):
+                status = "passed"
+        raw_results = report.get("results")
+        results = raw_results if isinstance(raw_results, list) else []
+        return {
+            **report,
+            "authorized": list(authorized),
+            "required": list(required),
+            "registered": list(self._registry.check_ids()),
+            "results": results,
+            "status": status,
+            "satisfied": status == "passed",
+        }
+
+    def _checks_from_record(self, report: dict[str, Any]) -> CheckReport:
+        return CheckReport(
+            results=tuple(CheckResult(item["check_id"], item["status"], item.get("detail", ""))
+                          for item in report["results"]
+                          if isinstance(item, dict) and isinstance(item.get("check_id"), str)
+                          and isinstance(item.get("status"), str)),
+            authorized=tuple(report["authorized"]),
+            registered=self._registry.check_ids(),
+        )
+
+    def check_before_review(self, task_id: str) -> bool:
+        """Execute authorized machine checks and persist candidate-bound facts.
+
+        Legacy tasks without check authorization retain their progression;
+        their read-only report explicitly says not_configured, never passed.
+        """
+        task = self._store.read("task", task_id)
+        candidate = load_candidate(self._store, task_id)
+        binding = self._check_binding(candidate)
+        checks = self._run_checks(task.entity, candidate)
+        stable = binding == self._check_binding(load_candidate(self._store, task_id))
+        required = required_checks(task.entity)
+        passed = bool(required) and stable and all(
+            check_id in checks.authorized and any(
+                item.check_id == check_id and item.status == "passed" for item in checks.results
+            ) for check_id in required
+        )
+        report = {**checks.to_dict(), "binding": binding, "required": list(required),
+                  "satisfied": passed, "checked_at": _now_iso()}
+        self._writer.write_run(candidate.run_id, {"machine_checks": report})
+        return not required or passed
 
     # ------------------------------------------------------------- verification
     def verify_and_prepare(
@@ -263,8 +355,11 @@ class VerificationService:
             )
         else:
             candidate = load_candidate(self._store, task_id)
-            checks = self._run_checks(task.entity, candidate)
-            if not checks.satisfied:
+            if self._recorded_checks(task.entity, candidate)["status"] in {"not_run", "not_configured"}:
+                self.check_before_review(task_id)
+            recorded = self._recorded_checks(task.entity, candidate)
+            checks = self._checks_from_record(recorded)
+            if recorded["required"] and not recorded["satisfied"]:
                 result = ActionResult(
                     action="verify",
                     state="unconfirmed",
@@ -275,10 +370,10 @@ class VerificationService:
                     request_id=request_id,
                     candidate_ref=candidate.candidate_ref,
                     messages=(
-                        "machine checks failed: " + ", ".join(checks.failed_ids),
+                        "machine checks " + recorded["status"] + ": " + ", ".join(checks.failed_ids),
                     ),
                     candidate=candidate.to_dict(),
-                    checks=checks.to_dict(),
+                    checks=recorded,
                 )
             else:
                 stop = self._stopper.stop(task_id, candidate.run_id)
@@ -334,7 +429,8 @@ class VerificationService:
             TaskPhase.AWAITING_ACCEPTANCE,
             extra={"deliverable_revision": new_deliverable, "acceptance": acceptance},
             run_ref=candidate.run_id,
-            reason="machine checks passed and resources confirmed stopped",
+            reason=("machine checks passed and resources confirmed stopped" if checks.authorized
+                    else "no machine checks configured; resources confirmed stopped"),
         )
         self._writer.transition_run(
             candidate.run_id,
@@ -447,6 +543,15 @@ class VerificationService:
         if note:
             decision["note"] = note
         if action == "accept":
+            if required_checks(task.entity):
+                current_candidate = load_candidate(self._store, task_id)
+                report = self._recorded_checks(task.entity, current_candidate)
+                # Real files can change without a frontmatter revision bump.
+                current_checks = self._run_checks(task.entity, current_candidate)
+                if not report["satisfied"] or not current_checks.satisfied:
+                    raise AppError(ErrorCode.NOT_READY,
+                                   "current candidate machine checks have not passed",
+                                   details={"task_id": task_id, "checks": report})
             decision["status"] = AcceptanceStatus.ACCEPTED.value
             self._writer.transition_task(
                 task_id,

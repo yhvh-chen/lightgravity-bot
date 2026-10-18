@@ -151,6 +151,8 @@ class CandidateVerifier(Protocol):
     successful Run reaches ``verifying`` (docs/08 §6.1/§9).
     """
 
+    def check_before_review(self, task_id: str) -> bool: ...
+
     def verify_and_prepare(
         self,
         task_id: str,
@@ -309,18 +311,18 @@ def _reject_private_attachment_refs(
 def _default_responder(content: str, classification: Classification) -> str:
     if classification.intent == MessageIntent.BOUNDED_READ:
         return (
-            "已识别为有界只读请求：将在只读工具上限内处理，不创建 Task/Run，"
-            "也不会获得写入或命令权限。"
+            "This is a bounded read-only request. No Task or Run will be created, "
+            "and write or command access is not granted."
         )
-    return "我是 LightGravity Bot 常驻助手。请描述要交付的目标，或指定 Task 查询状态。"
+    return "I am LightGravity Bot. Describe your delivery goal, or provide a Task ID to check its status."
 
 
 def _task_body(objective: str, scope: str | None, acceptance: tuple[str, ...]) -> str:
-    lines = ["# Task", "", "## 目标", "", objective.strip(), ""]
+    lines = ["# Task", "", "## Objective", "", objective.strip(), ""]
     if scope and scope.strip():
-        lines += ["## 范围", "", scope.strip(), ""]
+        lines += ["## Scope", "", scope.strip(), ""]
     if acceptance:
-        lines += ["## 验收条件", ""]
+        lines += ["## Acceptance criteria", ""]
         lines += [f"- {item}" for item in acceptance]
         lines += [""]
     return "\n".join(lines)
@@ -738,6 +740,7 @@ class Coordinator:
         workspace_ref: str | None = None,
         agent_ref: str | None = None,
         enqueue: bool = True,
+        default_delivery: bool = False,
     ) -> CoordinatorResult:
         """Create (and optionally queue) a Task.  Idempotent on ``request_id``."""
 
@@ -752,6 +755,7 @@ class Coordinator:
                 workspace_ref=workspace_ref,
                 agent_ref=agent_ref,
                 enqueue=enqueue,
+                default_delivery=default_delivery,
             )
 
         return self._result_from(self._idempotency.execute(f"request:{request_id}", producer))
@@ -789,6 +793,10 @@ class Coordinator:
             workspace_ref=resolved_workspace_ref,
             agent_ref=agent_ref or "coordinator",
         )
+        if default_delivery:
+            # Explicit program policy authorizes only registered, read-only checks.
+            content["checks"] = ["evidence-present", "artifacts-in-workspace"]
+            content["machine_check_policy"] = "default_delivery_v1"
         cast(_BodyStore, self._store).create(
             "task",
             task_id,
@@ -814,7 +822,7 @@ class Coordinator:
             queue_state = self._queue.enqueue(task_id)
         return {
             "kind": "task",
-            "reply": f"已创建 Task {task_id}（{queue_state}）。",
+            "reply": f"Created Task {task_id} ({queue_state}).",
             "task_id": task_id,
             "queue_state": queue_state,
         }
@@ -1040,7 +1048,7 @@ class Coordinator:
         if target is None:
             return CoordinatorResult(
                 kind="clarify",
-                reply="全局对话没有唯一目标，请指定 Task；未执行控制操作。",
+                reply="Specify a Task for this control request. No action was taken.",
                 conversation_id=conversation_id,
                 candidates=tuple(candidates),
                 data={"intent": classification.intent.value, "ambiguous": True},
@@ -1056,14 +1064,14 @@ class Coordinator:
             state = self._queue.enqueue(target)
             return CoordinatorResult(
                 kind="retry",
-                reply=f"Task {target} 已请求继续（{state}）。",
+                reply=f"Resume requested for Task {target} ({state}).",
                 task_id=target,
                 conversation_id=conversation_id,
                 queue_state=state,
             )
         return CoordinatorResult(
             kind=classification.next_action,
-            reply="已记录到全局对话；对交付任务的操作请在该 Task 对话中进行。",
+            reply="Saved to the global conversation. Use the Task conversation for delivery actions.",
             conversation_id=conversation_id,
             data={"intent": classification.intent.value, "record_seq": record_seq},
         )
@@ -1325,7 +1333,7 @@ class Coordinator:
             state = self._queue.enqueue(task_id)
             result = CoordinatorResult(
                 kind="retry",
-                reply=f"Task {task_id} 已请求继续（{state}）。",
+                reply=f"Resume requested for Task {task_id} ({state}).",
                 task_id=task_id,
                 queue_state=state,
             )
@@ -1357,7 +1365,7 @@ class Coordinator:
         else:
             result = CoordinatorResult(
                 kind=classification.next_action,
-                reply="已保存到 Task 对话，未新建 Run。",
+                reply="Saved to the Task conversation. No new Run was created.",
                 task_id=task_id,
                 data={"intent": classification.intent.value},
             )
@@ -1415,7 +1423,7 @@ class Coordinator:
                 task_id,
                 submitted_id,
                 status="invalid_proposal",
-                reply=f"资源修改提议不合法：{exc.message}",
+                reply=f"Invalid resource change proposal: {exc.message}",
                 data={"error_code": exc.code.value, "details": exc.details},
             )
 
@@ -1447,12 +1455,12 @@ class Coordinator:
             if exc.code == ErrorCode.REVISION_CONFLICT:
                 detail_payload.update(exc.details)
                 reply = (
-                    f"{proposal.ref} 修改冲突：期望 revision "
-                    f"{proposal.expected_revision}，实际 "
-                    f"{exc.details.get('actual_revision')}。未写入；请重读后再提交。"
+                    f"{proposal.ref} conflict: expected revision "
+                    f"{proposal.expected_revision}, actual "
+                    f"{exc.details.get('actual_revision')}. No changes saved; reload and retry."
                 )
             else:
-                reply = f"{proposal.ref} 修改被拒绝（{exc.code.value}）：{exc.message}"
+                reply = f"{proposal.ref} change rejected ({exc.code.value}): {exc.message}"
             return self._record_resource_result(
                 task_id,
                 submitted_id,
@@ -1466,9 +1474,9 @@ class Coordinator:
             submitted_id,
             status="applied",
             reply=(
-                f"已按程序校验写入 {proposal.kind}:{proposal.resource_id}，"
-                f"revision -> {detail['revision']}。模板修改只影响后续招募；"
-                f"正在运行的成员保持其固定配置（Task {task_title} 上下文保留）。"
+                f"Saved validated {proposal.kind}:{proposal.resource_id}, "
+                f"revision -> {detail['revision']}. Template changes apply to future recruits; "
+                f"active members retain their pinned configuration (Task {task_title} context preserved)."
             ),
             data={
                 "kind": proposal.kind,
@@ -1631,11 +1639,11 @@ class Coordinator:
         reason = getattr(outcome, "reason", None)
         if state == "confirmed":
             if action in {"pause", "cancel"}:
-                return f"Task {task_id} 的 {action} 已确认停止。"
-            return f"Task {task_id} 已接受 {action}，重新进入队列。"
+                return f"Task {task_id}: {action} stop confirmed."
+            return f"Task {task_id}: {action} accepted and queued."
         if state == "unconfirmed":
-            return f"Task {task_id} 的 {action} 尚未确认停止，保持取消/暂停中间态。"
-        return f"Task {task_id} 的 {action} 未生效：{reason or '当前阶段不允许'}。"
+            return f"Task {task_id}: stop for {action} is unconfirmed; cancellation or pause remains pending."
+        return f"Task {task_id}: {action} was not applied: {reason or 'not allowed in the current phase'}."
 
     # ------------------------------------------------- global status query
     def _route_global_status_query(
@@ -1674,10 +1682,10 @@ class Coordinator:
                 conversation_id=conversation_id,
                 in_reply_to=in_reply_to,
                 reply=(
-                    "查询中的 "
-                    + "、".join(invalid)
-                    + " 不是合法的 Task ID（应为 task_ 加 26 位 Crockford Base32）。"
-                    "请核对后重试；未创建或启动任何任务。"
+                    "Invalid Task ID: "
+                    + ", ".join(invalid)
+                    + " (expected task_ followed by 26 Crockford Base32 characters). "
+                    "Check the ID and retry. No task was created or started."
                 ),
                 data={"intent": intent, "invalid_task_ids": list(invalid)},
             )
@@ -1686,10 +1694,10 @@ class Coordinator:
                 conversation_id=conversation_id,
                 in_reply_to=in_reply_to,
                 reply=(
-                    "查询中出现多个不同的 Task ID（"
-                    + "、".join(legal)
-                    + "），无法确定唯一目标。请只发送要查询的那一个 Task ID；"
-                    "未创建或启动任何任务。"
+                    "Multiple Task IDs found ("
+                    + ", ".join(legal)
+                    + "). Send one Task ID to select a target. "
+                    "No task was created or started."
                 ),
                 data={"intent": intent, "ambiguous": True, "task_ids": list(legal)},
             )
@@ -1698,8 +1706,8 @@ class Coordinator:
                 conversation_id=conversation_id,
                 in_reply_to=in_reply_to,
                 reply=(
-                    "全局查询需要明确的 Task ID（task_…）。请粘贴要查询的那个 Task ID；"
-                    "未创建或启动任何任务。"
+                    "Provide a Task ID (task_…) for this query. "
+                    "No task was created or started."
                 ),
                 data={"intent": intent, "missing_task_id": True},
             )
@@ -1712,8 +1720,8 @@ class Coordinator:
                 conversation_id=conversation_id,
                 in_reply_to=in_reply_to,
                 reply=(
-                    f"未找到共享 Task {task_id}。请确认该 ID 属于当前共享工作区；"
-                    "未创建或启动任何任务。"
+                    f"Shared Task {task_id} was not found. Check that it belongs to this workspace. "
+                    "No task was created or started."
                 ),
                 data={"intent": intent, "unknown_task_id": task_id},
             )
@@ -1800,7 +1808,7 @@ class Coordinator:
         refs = snapshot.get("artifact_refs")
         if isinstance(refs, list) and refs:
             parts.append(f"artifacts={len(refs)}")
-        parts.append("只读查询，未创建或启动 Task/Run。")
+        parts.append("Read-only query. No Task or Run was created or started.")
         return " ".join(parts)
 
     # ---------------------------------------------------------------- status
@@ -2760,7 +2768,7 @@ class Coordinator:
     def _ensure_default_workspace(self, task_id: str) -> str:
         """Provision and return the default authorized workspace ref for a Task.
 
-        Used only for an ordinary Chat delivery request that named no workspace.
+        Used for default delivery tasks, including New task, with no workspace.
         The ref is a Task-scoped directory *inside* the configured authorized
         workspace root (``Store.resolve_path`` enforces containment), so it is a
         real boundary the worker may write within; it never escapes the root and
@@ -2772,8 +2780,12 @@ class Coordinator:
         try:
             resolved = self._store.resolve_path(ref, write=True)
             resolved.mkdir(parents=True, exist_ok=True)
-        except Exception:  # noqa: BLE001 - leave the ref for the resolver to report
-            return ref
+        except Exception as exc:  # noqa: BLE001 - fail honestly without persisting a false workspace
+            raise AppError(
+                ErrorCode.CAPABILITY_UNAVAILABLE,
+                "Default task workspace could not be created",
+                details={"task_id": task_id},
+            ) from exc
         return ref
 
     def _native_session_dir(self, task_id: str) -> str:
@@ -2894,10 +2906,10 @@ class Coordinator:
             self._pending_auto_verify.append((task_id, run_id))
 
     def _auto_verify(self, task_id: str, run_id: str) -> None:
-        """Run independent review, then machine verification, after delivery.
+        """Run machine checks, independent review, then the stop gate after delivery.
 
-        Order (LG-017): the independent reviewer inspects the candidate's *real
-        evidence* first.  Only a passing review proceeds to
+        The machine gate records real outcomes before the independent reviewer
+        inspects the candidate. Only passing checks and review proceed to
         :meth:`VerificationService.verify_and_prepare`, which moves the candidate
         ``verifying -> awaiting_acceptance`` through the real stop/release gate.
 
@@ -2916,6 +2928,8 @@ class Coordinator:
 
         verifier = self._verification
         rework = self._resolved_rework()
+        if verifier is not None and not verifier.check_before_review(task_id):
+            return
         if rework is not None:
             try:
                 outcome = rework.process(task_id, request_id=f"auto-review:{run_id}")
@@ -2974,6 +2988,8 @@ class Coordinator:
         verifier = self._verification
         rework = self._resolved_rework()
         lifecycle = self.review_lifecycle
+        if verifier is not None and not verifier.check_before_review(task_id):
+            return
         if rework is not None:
             loop = asyncio.get_running_loop()
 

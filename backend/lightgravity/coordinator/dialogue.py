@@ -233,12 +233,12 @@ def unavailable_reply(classification_intent: str) -> str:
 
     if classification_intent == "bounded_read":
         return (
-            "这是一个有界只读请求，但当前没有可用的协调器模型连接，无法给出真实回答。"
-            "请在 Settings 配置默认连接与凭证后重试；不会伪造读取结果或授予写权限。"
+            "Read-only request unavailable: no coordinator model connection is configured. "
+            "Configure a default connection and credentials in Settings, then retry."
         )
     return (
-        "暂时不可用：当前没有可用的默认协调器模型连接或凭证，无法给出真实回答。"
-        "请在 Settings 配置默认连接并保存凭证后重试。"
+        "Unavailable: no default coordinator model connection or credentials. "
+        "Configure a default connection and save credentials in Settings, then retry."
     )
 
 

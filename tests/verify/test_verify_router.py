@@ -82,3 +82,26 @@ async def test_action_stale_decision_returns_409(api) -> None:
     )
     assert response.status_code == 409
     assert response.json()["error"]["code"] == "acceptance_stale"
+
+
+@pytest.mark.parametrize("mutation", ["missing", "failed", "error", "unknown", "candidate"])
+async def test_direct_accept_api_cannot_bypass_machine_gate(api, mutation) -> None:
+    from lightgravity.coordinator.state import StateWriter
+    client, store = api
+    task_id, run_id, _, _ = make_verifying_task(store)
+    VerificationService(store).verify_and_prepare(task_id, request_id="prepare-gate")
+    writer = StateWriter(store, actor="regression")
+    report = store.read("run", run_id).entity["machine_checks"]
+    if mutation == "missing":
+        writer.write_run(run_id, {"machine_checks": None})
+    elif mutation == "candidate":
+        writer.write_run(run_id, {"plan_hash": "b" * 64})
+    else:
+        report["results"][0]["status"] = mutation
+        writer.write_run(run_id, {"machine_checks": report})
+    response = await client.post(f"/api/v1/tasks/{task_id}/actions", json={
+        "action": "accept", "request_id": "bypass-gate",
+    })
+    assert response.status_code != 200
+    assert response.json()["error"]["code"] == "not_ready"
+    assert store.read("task", task_id).entity["phase"] == "awaiting_acceptance"

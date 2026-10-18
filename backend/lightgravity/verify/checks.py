@@ -110,11 +110,18 @@ class CheckReport:
 
     @property
     def satisfied(self) -> bool:
-        return not any(result.status in BLOCKING_STATUSES for result in self.results)
+        return bool(self.authorized) and all(
+            any(result.check_id == check_id and result.status == CHECK_PASSED
+                for result in self.results)
+            for check_id in self.authorized
+        )
 
     @property
     def failed_ids(self) -> tuple[str, ...]:
-        return tuple(result.check_id for result in self.results if result.status in BLOCKING_STATUSES)
+        return tuple(check_id for check_id in self.authorized if not any(
+            result.check_id == check_id and result.status == CHECK_PASSED
+            for result in self.results
+        ))
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -367,6 +374,13 @@ def authorized_checks(task_entity: dict[str, Any]) -> tuple[str, ...]:
     return tuple(result)
 
 
+def required_checks(task_entity: dict[str, Any]) -> tuple[str, ...]:
+    """Required policy never grants execution authority to missing checks."""
+    if task_entity.get("machine_check_policy") == "default_delivery_v1":
+        return tuple(dict.fromkeys(("evidence-present", "artifacts-in-workspace", *authorized_checks(task_entity))))
+    return authorized_checks(task_entity)
+
+
 __all__ = [
     "BLOCKING_STATUSES",
     "CHECK_ERROR",
@@ -391,4 +405,5 @@ __all__ = [
     "classify_artifact_ref",
     "default_check_registry",
     "run_checks",
+    "required_checks",
 ]

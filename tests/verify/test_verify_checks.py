@@ -37,7 +37,7 @@ def test_unregistered_authorized_check_is_unconfigured_and_not_run(store: FileSt
     registry = CheckRegistry()
     report = run_checks(registry, ["missing-check"], make_context(store, make_candidate()))
     assert [result.status for result in report.results] == ["unconfigured"]
-    assert report.satisfied  # unconfigured does not block, but is never "passed"
+    assert not report.satisfied  # authorized unknown checks cannot satisfy the gate
 
 
 def test_unauthorized_registered_check_does_not_run(store: FileStore) -> None:

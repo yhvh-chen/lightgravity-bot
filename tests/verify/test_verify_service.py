@@ -117,7 +117,7 @@ def test_unregistered_authorized_check_is_reported_honestly(store: FileStore) ->
     )
     result = VerificationService(store).verify_and_prepare(task_id, request_id="unknown")
 
-    assert result.confirmed is True
+    assert result.confirmed is False
     assert result.checks is not None
     assert result.checks["results"][0]["status"] == "unconfigured"
 

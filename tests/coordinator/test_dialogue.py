@@ -64,14 +64,14 @@ def test_sync_responder_reports_unavailable_not_fabricated() -> None:
     reply = responder("你能做什么？", classification)
 
     assert reply == unavailable_reply(MessageIntent.ANSWER.value)
-    assert "不可用" in reply
+    assert "Unavailable" in reply
 
 
 def test_bounded_read_unavailable_message_mentions_no_write_grant() -> None:
     classification = classify_message("read the file")
     assert classification.intent == MessageIntent.BOUNDED_READ
     reply = unavailable_reply(classification.intent.value)
-    assert "写权限" in reply or "只读" in reply
+    assert "Read-only" in reply
 
 
 def test_resolver_exception_is_treated_as_unavailable() -> None:
