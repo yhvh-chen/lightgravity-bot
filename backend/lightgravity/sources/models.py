@@ -106,6 +106,11 @@ def normalize_text_branch(value: Any) -> dict[str, Any]:
         branch["machine"] = dict(data["machine"]) if isinstance(data.get("machine"), dict) else None
     if "timestamps" in data:
         branch["timestamps"] = data.get("timestamps") if isinstance(data.get("timestamps"), list) else None
+    # LG-224 additive PDF extraction provenance: a client can tell a native
+    # text-layer read from an OCR fallback.  Only present when persisted, so
+    # legacy/non-PDF branches keep the frozen three-field shape.
+    if "extractor" in data:
+        branch["extractor"] = data.get("extractor") if isinstance(data.get("extractor"), str) else None
     return branch
 
 

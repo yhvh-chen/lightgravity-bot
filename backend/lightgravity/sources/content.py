@@ -42,6 +42,11 @@ DERIVATIVE_EVIDENCE = "ocr_evidence"
 #: Filename of the human formal version inside ``formal/``.
 FORMAL_FILENAME = "FORMAL.md"
 
+#: Extractor provenance for PDF pages read from an embedded native text layer.
+PDF_TEXT_LAYER_EXTRACTOR = "pdfium-text-layer"
+#: Extractor provenance when a PDF mixes a native text layer with OCR fallback.
+PDF_TEXT_LAYER_OCR_EXTRACTOR = "pdfium-text-layer+ocr"
+
 
 @dataclass(frozen=True, slots=True)
 class PageText:
@@ -53,9 +58,12 @@ class PageText:
     model: str
     status: str = "succeeded"
     error: str | None = None
+    #: Additive per-page provenance (LG-224): ``pdfium-text-layer`` vs
+    #: ``lg035-ocr``.  Absent on legacy drafts, which keeps old files readable.
+    extractor: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "page": self.page,
             "text": self.text,
             "input_sha256": self.input_sha256,
@@ -63,6 +71,9 @@ class PageText:
             "status": self.status,
             "error": self.error,
         }
+        if self.extractor is not None:
+            data["extractor"] = self.extractor
+        return data
 
     @classmethod
     def from_dict(cls, value: Any) -> "PageText":
@@ -75,6 +86,9 @@ class PageText:
             model=str(data.get("model", "")),
             status=str(data.get("status", "succeeded")),
             error=data.get("error") if isinstance(data.get("error"), str) else None,
+            extractor=(
+                data.get("extractor") if isinstance(data.get("extractor"), str) else None
+            ),
         )
 
 
@@ -348,7 +362,13 @@ def render_machine_markdown(draft: MachineDraft) -> str:
         if page.status == "succeeded":
             lines.append(f"## Page {locator}")
             lines.append("")
-            lines.append(f"<!-- original: {draft.filename} page={locator} "f"input_sha256={page.input_sha256} -->")
+            provenance = (
+                f" extractor={page.extractor}" if page.extractor is not None else ""
+            )
+            lines.append(
+                f"<!-- original: {draft.filename} page={locator} "
+                f"input_sha256={page.input_sha256}{provenance} -->"
+            )
             lines.append("")
             lines.append(page.text.rstrip("\n"))
             lines.append("")
@@ -376,6 +396,10 @@ def _record_type_for(extractor: str) -> str:
 
     if extractor == "native-utf8-text":
         return "machine_native_text"
+    if extractor == PDF_TEXT_LAYER_EXTRACTOR:
+        return "machine_pdf_text_layer"
+    if extractor == PDF_TEXT_LAYER_OCR_EXTRACTOR:
+        return "machine_pdf_text_layer_ocr"
     if extractor == "eg2-reader-v2":
         return "machine_transcript"
     return "machine_ocr"
@@ -386,6 +410,10 @@ def _heading_for(extractor: str) -> str:
 
     if extractor == "native-utf8-text":
         return "Machine native text"
+    if extractor == PDF_TEXT_LAYER_EXTRACTOR:
+        return "Machine PDF text layer"
+    if extractor == PDF_TEXT_LAYER_OCR_EXTRACTOR:
+        return "Machine PDF text layer + OCR"
     if extractor == "eg2-reader-v2":
         return "Machine transcript"
     return "Machine OCR"
@@ -402,6 +430,8 @@ __all__ = [
     "DERIVATIVE_MACHINE",
     "DERIVATIVE_PAGES",
     "FORMAL_FILENAME",
+    "PDF_TEXT_LAYER_EXTRACTOR",
+    "PDF_TEXT_LAYER_OCR_EXTRACTOR",
     "ContentStore",
     "MachineDraft",
     "PageText",

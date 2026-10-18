@@ -40,6 +40,8 @@ from .content import (
     PageText,
     DERIVATIVE_MACHINE,
     DERIVATIVE_PAGES,
+    PDF_TEXT_LAYER_EXTRACTOR,
+    PDF_TEXT_LAYER_OCR_EXTRACTOR,
 )
 from .intake import IntakeService
 from .models import SourceRecord
@@ -58,6 +60,14 @@ from .ocr import (
     is_pdf_bytes,
     parse_scale_env,
     parse_table_mode_env,
+)
+from .ocr.text import (
+    MIN_TEXT_LAYER_CHARS,
+    PDF_TEXT_LAYER_EXTRACTOR as TEXT_LAYER_EXTRACTOR,
+    PDF_TEXT_LAYER_MODEL,
+    PdfTextLayerExtractor,
+    PdfiumTextLayerExtractor,
+    is_sparse_text_layer,
 )
 from .store import SourceStore
 
@@ -105,6 +115,9 @@ class ProcessingConfig:
     max_pages: int | None = None
     max_tokens_per_page: int = 2000
     scale: float = 2.0
+    #: PDF pages with fewer visible characters than this use OCR fallback.
+    #: Electronic pages with a real text layer never call OCR (LG-224).
+    min_text_layer_chars: int = MIN_TEXT_LAYER_CHARS
     #: Optional, **default OFF** table-aware OCR mode.  When False (the
     #: default) every page uses the unchanged default prompt, so ordinary pages
     #: and existing behaviour are byte-for-byte unchanged.  When True, a page is
@@ -145,6 +158,9 @@ class ProcessingOutcome:
     model: str
     derivative_path: str | None
     reason: str | None = None
+    #: Honest extraction provenance: ``pdfium-text-layer``, ``lg035-ocr``,
+    #: ``pdfium-text-layer+ocr``, ``native-utf8-text`` or ``None``.
+    extractor: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -155,6 +171,7 @@ class ProcessingOutcome:
             "succeeded_pages": self.succeeded_pages,
             "failed_pages": self.failed_pages,
             "model": self.model,
+            "extractor": self.extractor,
             "derivative_path": self.derivative_path,
             "reason": self.reason,
         }
@@ -169,6 +186,7 @@ class ProcessingEngine:
         *,
         backend: OcrBackend | None = None,
         rasterizer: PdfRasterizer | None = None,
+        text_extractor: PdfTextLayerExtractor | None = None,
         config: ProcessingConfig | None = None,
         clock: Clock = utcnow,
         events: Any | None = None,
@@ -177,6 +195,7 @@ class ProcessingEngine:
         self._store = store
         self._backend = backend or UnavailableOcrBackend()
         self._rasterizer = rasterizer or PdfiumRasterizer()
+        self._text_extractor = text_extractor or PdfiumTextLayerExtractor()
         self._config = config or ProcessingConfig()
         self._clock = clock
         self._events = events
@@ -232,6 +251,40 @@ class ProcessingEngine:
                 source, job_id, original_name, original_bytes, media_type, content
             )
 
+        if is_pdf_bytes(original_bytes):
+            return self._process_pdf(
+                source,
+                job_id,
+                original_name,
+                original_bytes,
+                media_type,
+                content,
+                cancel_check=cancel_check,
+            )
+
+        return self._process_raster_pages(
+            source,
+            job_id,
+            original_name,
+            original_bytes,
+            media_type,
+            content,
+            cancel_check=cancel_check,
+        )
+
+    def _process_raster_pages(
+        self,
+        source: SourceRecord,
+        job_id: str | None,
+        original_name: str,
+        original_bytes: bytes,
+        media_type: str | None,
+        content: ContentStore,
+        *,
+        cancel_check: Any | None,
+    ) -> ProcessingOutcome:
+        """Rasterise and OCR every page (images and sparse/scanned PDFs)."""
+
         pages = self._rasterize(original_bytes, media_type)
         if not pages:
             return self._fail(source, job_id, "no pages could be rendered")
@@ -262,6 +315,126 @@ class ProcessingEngine:
             total_pages=total_pages,
             cancelled=cancelled,
         )
+        return self._commit(source, job_id, draft, content, cancelled=cancelled)
+
+    def _process_pdf(
+        self,
+        source: SourceRecord,
+        job_id: str | None,
+        original_name: str,
+        original_bytes: bytes,
+        media_type: str | None,
+        content: ContentStore,
+        *,
+        cancel_check: Any | None,
+    ) -> ProcessingOutcome:
+        """Extract a PDF text-layer-first; OCR only empty/very sparse pages.
+
+        A page with a real embedded text layer is used directly (no rasterise,
+        no OCR call).  Empty/scanned pages fall back to the unchanged OCR path.
+        If the text-layer reader cannot open the PDF we retain the historical
+        behaviour and let the rasteriser/OCR path report the real failure.
+        """
+
+        import hashlib
+
+        try:
+            text_pages = self._text_extractor.extract(
+                original_bytes, max_pages=self._config.max_pages
+            )
+        except AppError:
+            text_pages = []
+        if not text_pages:
+            return self._process_raster_pages(
+                source,
+                job_id,
+                original_name,
+                original_bytes,
+                media_type,
+                content,
+                cancel_check=cancel_check,
+            )
+
+        min_chars = self._config.min_text_layer_chars
+        sparse = [
+            page for page in text_pages if is_sparse_text_layer(page.text, min_chars=min_chars)
+        ]
+        rendered: dict[int, bytes] = {}
+        if sparse:
+            rendered_pages = self._rasterize(original_bytes, media_type)
+            rendered = {
+                page_number: page_bytes
+                for page_number, page_bytes in rendered_pages
+                if page_number is not None
+            }
+
+        total_pages = len(text_pages)
+        input_hash = hashlib.sha256(original_bytes).hexdigest()
+        results: list[PageText] = []
+        cancelled = False
+        for text_page in text_pages:
+            if cancel_check is not None and cancel_check():
+                cancelled = True
+                break
+            if job_id is not None:
+                self._intake.set_stage(job_id, stage="extracting")
+            if not is_sparse_text_layer(text_page.text, min_chars=min_chars):
+                results.append(
+                    PageText(
+                        page=text_page.page,
+                        text=text_page.text,
+                        input_sha256=input_hash,
+                        model=PDF_TEXT_LAYER_MODEL,
+                        status="succeeded",
+                        extractor=TEXT_LAYER_EXTRACTOR,
+                    )
+                )
+                continue
+            fallback_bytes = rendered.get(text_page.page)
+            if fallback_bytes is None:
+                results.append(
+                    PageText(
+                        page=text_page.page,
+                        text="",
+                        input_sha256=input_hash,
+                        model=self._backend.model_id,
+                        status="failed",
+                        error="sparse text layer and page could not be rendered for OCR fallback",
+                        extractor="lg035-ocr",
+                    )
+                )
+                continue
+            results.append(
+                self._ocr_page(
+                    content=content,
+                    source=source,
+                    original_name=original_name,
+                    page_number=text_page.page,
+                    page_bytes=fallback_bytes,
+                    media_type=media_type,
+                )
+            )
+
+        draft = self._finalize(
+            source=source,
+            original_name=original_name,
+            results=results,
+            total_pages=total_pages,
+            cancelled=cancelled,
+        )
+        return self._commit(source, job_id, draft, content, cancelled=cancelled)
+
+    def _commit(
+        self,
+        source: SourceRecord,
+        job_id: str | None,
+        draft: MachineDraft,
+        content: ContentStore,
+        *,
+        cancelled: bool,
+    ) -> ProcessingOutcome:
+        """Persist one finished draft and return the honest outcome."""
+
         written = content.write_machine(draft)
         status = draft.status
         if status in ("succeeded", "partial"):
@@ -273,12 +446,13 @@ class ProcessingEngine:
             source_id=source.source_id,
             source_version=draft.source_version,
             status=status,
-            total_pages=total_pages,
+            total_pages=draft.total_pages or 0,
             succeeded_pages=len(draft.succeeded_pages),
             failed_pages=len(draft.failed_pages),
             model=draft.model,
             derivative_path=written["markdown_path"],
             reason=draft.fail_reason,
+            extractor=draft.extractor,
         )
 
     def _process_native_text(
@@ -330,6 +504,7 @@ class ProcessingEngine:
                     input_sha256=hashlib.sha256(original_bytes).hexdigest(),
                     model=NATIVE_TEXT_MODEL,
                     status="succeeded",
+                    extractor=NATIVE_TEXT_EXTRACTOR,
                 )
             ],
             extractor=NATIVE_TEXT_EXTRACTOR,
@@ -349,6 +524,7 @@ class ProcessingEngine:
             model=draft.model,
             derivative_path=written["markdown_path"],
             reason=None,
+            extractor=draft.extractor,
         )
 
     def _finish_text_failure(
@@ -375,6 +551,7 @@ class ProcessingEngine:
             model=NATIVE_TEXT_MODEL,
             derivative_path=None,
             reason=reason,
+            extractor=NATIVE_TEXT_EXTRACTOR,
         )
 
     # -------------------------------------------------------------- internals
@@ -461,6 +638,7 @@ class ProcessingEngine:
                 model=self._backend.model_id,
                 status="timeout",
                 error="timeout (outcome unknown; not replayed)",
+                extractor="lg035-ocr",
             )
         except OcrUnavailable as exc:
             self._evidence(
@@ -473,6 +651,7 @@ class ProcessingEngine:
                 model=self._backend.model_id,
                 status="failed",
                 error=f"OCR backend unavailable: {exc.detail}",
+                extractor="lg035-ocr",
             )
         except AppError as exc:
             self._evidence(
@@ -485,6 +664,7 @@ class ProcessingEngine:
                 model=self._backend.model_id,
                 status="failed",
                 error=f"{exc.code.value}: {exc.message}",
+                extractor="lg035-ocr",
             )
         detail: dict[str, Any] = {
             "model": result.model,
@@ -514,6 +694,7 @@ class ProcessingEngine:
             input_sha256=result.input_sha256,
             model=result.model,
             status="succeeded",
+            extractor="lg035-ocr",
         )
 
     def _evidence(
@@ -570,12 +751,22 @@ class ProcessingEngine:
             reason = f"{len(results) - len(succeeded)} of {total_pages} pages failed" + (
                 "; cancelled" if cancelled else ""
             )
+        used_extractors = {page.extractor for page in results if page.extractor}
+        if used_extractors == {TEXT_LAYER_EXTRACTOR}:
+            extractor = PDF_TEXT_LAYER_EXTRACTOR
+            model = PDF_TEXT_LAYER_MODEL
+        elif TEXT_LAYER_EXTRACTOR in used_extractors:
+            extractor = PDF_TEXT_LAYER_OCR_EXTRACTOR
+            model = self._backend.model_id
+        else:
+            extractor = "lg035-ocr"
+            model = self._backend.model_id
         return MachineDraft(
             source_version=source.source_version,
             filename=original_name,
-            model=self._backend.model_id,
+            model=model,
             pages=results,
-            extractor="lg035-ocr",
+            extractor=extractor,
             status=status,
             fail_reason=reason,
             total_pages=total_pages,
@@ -695,6 +886,7 @@ class ProcessingEngine:
             model=self._backend.model_id,
             derivative_path=None,
             reason=f"{reason}: {media_type}",
+            extractor=None,
         )
 
     def _fail(self, source: SourceRecord, job_id: str | None, reason: str) -> ProcessingOutcome:
@@ -717,6 +909,7 @@ class ProcessingEngine:
             model=self._backend.model_id,
             derivative_path=None,
             reason=reason,
+            extractor=None,
         )
 
     def _event(self, source: SourceRecord, status: str, draft: MachineDraft | None) -> None:
@@ -731,7 +924,13 @@ class ProcessingEngine:
                     "type": EventType.SOURCE_ATTRIBUTED.value
                     if status in ("succeeded", "partial")
                     else EventType.INTAKE_FAILED.value,
-                    "actor": "source-ocr",
+                    "actor": (
+                        "source-pdf-text-layer"
+                        if draft is not None
+                        and draft.extractor
+                        in (PDF_TEXT_LAYER_EXTRACTOR, PDF_TEXT_LAYER_OCR_EXTRACTOR)
+                        else "source-ocr"
+                    ),
                     "payload": {
                         "source_version": source.source_version,
                         "status": status,

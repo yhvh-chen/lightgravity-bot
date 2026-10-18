@@ -42,6 +42,16 @@ from .pdf import (
     PdfiumRasterizer,
     is_pdf_bytes,
 )
+from .text import (
+    MIN_TEXT_LAYER_CHARS,
+    PDF_TEXT_LAYER_EXTRACTOR,
+    PDF_TEXT_LAYER_MODEL,
+    PdfTextLayerExtractor,
+    PdfiumTextLayerExtractor,
+    TextLayerPage,
+    is_sparse_text_layer,
+    visible_char_count,
+)
 from .layout import (
     DEFAULT_INK_THRESHOLD,
     MAX_PAGE_PIXELS,
@@ -81,6 +91,14 @@ __all__ = [
     "OCR_TABLE_PROMPT",
     "parse_scale_env",
     "parse_table_mode_env",
+    "MIN_TEXT_LAYER_CHARS",
+    "PDF_TEXT_LAYER_EXTRACTOR",
+    "PDF_TEXT_LAYER_MODEL",
+    "PdfTextLayerExtractor",
+    "PdfiumTextLayerExtractor",
+    "TextLayerPage",
+    "is_sparse_text_layer",
+    "visible_char_count",
     "PdfRenderError",
     "PdfRasterizer",
     "PdfiumRasterizer",

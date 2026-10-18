@@ -415,13 +415,23 @@ class IntakeWorker:
                 "error_code": "internal_error",
             }
         status = str(getattr(outcome, "status", "failed"))
+        # LG-224: PDF receipts expose which extractor actually produced the
+        # body (embedded text layer vs OCR fallback).  Non-PDF branches keep
+        # their existing frozen shape and only add the key when applicable.
+        extractor = getattr(outcome, "extractor", None)
+        provenance = (
+            {"extractor": extractor}
+            if media_type == "application/pdf" and isinstance(extractor, str) and extractor
+            else {}
+        )
         if status == "succeeded":
-            return {"status": "ready", "reason": None, "error_code": None}
+            return {"status": "ready", "reason": None, "error_code": None, **provenance}
         if status == "partial":
             return {
                 "status": "ready",
                 "reason": "partial_pages",
                 "error_code": None,
+                **provenance,
             }
         if status == "cancelled":
             if getattr(outcome, "succeeded_pages", 0) > 0:
@@ -429,12 +439,14 @@ class IntakeWorker:
                     "status": "ready",
                     "reason": "partial_pages",
                     "error_code": None,
+                    **provenance,
                 }
             return pending_text_branch()
         return {
             "status": "failed",
             "reason": getattr(outcome, "reason", None) or "extraction_failed",
             "error_code": "capability_unavailable",
+            **provenance,
         }
 
     def _run_audio_asr_branch(
