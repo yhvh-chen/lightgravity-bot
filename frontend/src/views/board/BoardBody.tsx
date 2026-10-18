@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { TaskApi } from '../../api/tasks'
 import type { TaskDetail, TaskSummary } from '../../api/types'
@@ -8,11 +8,19 @@ import { ErrorState } from '../../components/ErrorState'
 import { StatusBadge } from '../../components/StatusBadge'
 import { TaskCard } from '../../components/TaskCard'
 import { phaseBadge, isActivePhase, isPendingPhase } from './phase'
-import { useControlAction, useTaskDetail, useTaskList } from './useBoard'
+import {
+  BOARD_AUTO_REFRESH_MS,
+  useBoardAutoRefresh,
+  useControlAction,
+  useTaskDetail,
+  useTaskList,
+} from './useBoard'
 
 export interface BoardBodyProps {
   /** Injectable for tests; defaults to the real `/tasks` endpoints. */
   api?: TaskApi
+  /** Bounded automatic refresh interval; tests use a short value. */
+  autoRefreshMs?: number
 }
 
 interface BoardGroups {
@@ -39,7 +47,7 @@ function groupTasks(tasks: TaskSummary[]): BoardGroups {
  * state and only paint a confirmed result after the backend confirms; a
  * cancelled/failed Task is never shown as running.
  */
-export function BoardBody({ api }: BoardBodyProps) {
+export function BoardBody({ api, autoRefreshMs = BOARD_AUTO_REFRESH_MS }: BoardBodyProps) {
   const { state, dispatch } = useShell()
   const list = useTaskList(api)
   const detail = useTaskDetail(state.taskRef, api)
@@ -47,6 +55,19 @@ export function BoardBody({ api }: BoardBodyProps) {
   const [note, setNote] = useState<string | null>(null)
 
   const groups = useMemo(() => groupTasks(list.tasks), [list.tasks])
+
+  // LG-220: keep the real board phase and the selected Task detail current
+  // without a manual Refresh. Silent re-reads leave the mounted controls,
+  // selection, chat scope and keyboard focus in place.
+  const refreshBoard = useCallback(() => {
+    list.refreshTasksSilently()
+    if (state.taskRef) detail.refreshSilently()
+  }, [detail, list, state.taskRef])
+  useBoardAutoRefresh({
+    enabled: !list.tasksLoading && !detail.loading,
+    intervalMs: autoRefreshMs,
+    onRefresh: refreshBoard,
+  })
 
   useEffect(() => {
     if (control.outcome) {
@@ -81,8 +102,9 @@ export function BoardBody({ api }: BoardBodyProps) {
         <div>
           <h2 className="lg-board__title">Board</h2>
           <span className="lg-chat__subtitle">
-            Real phase and Run state from the backend. Active {groups.active.length} ·
-            pending {groups.pending.length} · closed {groups.closed.length}
+            Real phase and Run state from the backend, updated automatically. Active{' '}
+            {groups.active.length} · pending {groups.pending.length} · closed{' '}
+            {groups.closed.length}
           </span>
         </div>
         <button type="button" className="lg-button" onClick={list.refreshTasks}>

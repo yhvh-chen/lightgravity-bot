@@ -84,6 +84,13 @@ export function connectionIdFromRef(ref: string | null | undefined): string | nu
 export type ShellAction =
   | { type: 'setView'; view: ViewId }
   | { type: 'openTaskConversation'; taskRef: string; channel?: ChatChannel }
+  | {
+      type: 'openTaskDestination'
+      view: ViewId
+      taskRef: string
+      runRef: string | null
+      itemRef: string | null
+    }
   | { type: 'selectTask'; taskRef: string | null; channel?: ChatChannel }
   | { type: 'selectRun'; runRef: string | null }
   | { type: 'selectItem'; itemRef: string | null }
@@ -123,6 +130,16 @@ export function shellReducer(state: ShellState, action: ShellAction): ShellState
       // LG-202: there is no Chat main view; opening a Task conversation now
       // means the Tasks workspace with the right Bot Chat bound to that Task.
       return { ...state, view: 'tasks', taskRef: action.taskRef, runRef: null, selectedItemRef: null, chatOpen: true, openDrawer: 'chat', chatChannel: action.channel ?? state.chatChannel }
+    case 'openTaskDestination':
+      // LG-220: one explicit destination keeps the selected Task/Run together
+      // while leaving the already-open chat, its channel and drafts untouched.
+      return {
+        ...state,
+        view: action.view,
+        taskRef: action.taskRef,
+        runRef: action.runRef,
+        selectedItemRef: action.itemRef,
+      }
     case 'selectTask':
       return {
         ...state,

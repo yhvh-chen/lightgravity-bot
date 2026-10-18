@@ -63,9 +63,10 @@ Tasks 通过受控任务 API 获取真实 id/title，形成任务目录（磁盘
 - data_dir 下的 TASK.md 元数据目录与 workspace_root 文件树是不同边界，不直接把整个 data_dir 暴露给 Files。
 - 不能根据普通文件夹名、任意 TASK.md 内容或模拟 ID 获得任务身份。
 - Task 不存在、失效链接或无权限时提供可恢复说明，保留草稿，不持续向不存在的任务发消息。
-- 打开 Task 同时更新 view、task、run/item 导航；沿用选 Task 时清理旧 run/item 的一致行为。
+- 打开 Task 同时更新 view、task、run/item 导航；沿用选 Task 时清理旧 run/item 的一致行为。已有 Task 的显式目的跳转（通知、创建 Task 后的落点）统一走可复用的 Task destination helper，一次原子写入 view/task/run/item，不重建右侧对话、不丢草稿和通道。
 - 跨 Board、Files、Team 和资源入口保持有效 task_ref 与当前对话，不取消后台任务、不意外创建新 Run。
 - 刷新、后退和旧链接按真实实体恢复；UI 偏好只保存导航、滚动、栏宽和草稿，不写业务状态。
+- Board 每 4 秒有界轮询既有 Task 列表与当前 Task 详情（页面隐藏时暂停），后台读取不切换到加载占位、不重置选中/展开/焦点，手动 Refresh 仍保留；取得的是后端真实 phase/Run，不按 SSE 断开或请求失败编造状态。
 - 退出任务返回全局后，不自动将旧任务资料当作全局上下文。
 - 删除模拟 Scope/Run 业务选择；演示数据不可成为真实 API 请求的任务身份。
 
