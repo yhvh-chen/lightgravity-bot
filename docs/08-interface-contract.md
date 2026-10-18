@@ -1905,7 +1905,7 @@ LG-235 真实原型（仅既有测试音频，各一次请求，无 TTS、无 Fi
 ### 23.12 版本与完成判定
 
 - 本节冻结的是 **1.22.0 候选**；LG-235 完成标准是：接口/错误/归属/原型证据可审阅，分支提交干净，**不是**生产/用户验收。
-- LG-238 已在公共 runtime 实际实现后完成串行装配（236 后端 + 237 前端），源码 `CONTRACT_VERSION` 与 `/health.contract_version` 升为 `1.22.0`，并已通过后端聚焦/契约/类型检查与前端全量测试/typecheck/build 的局部检查；本节节目录与 README/PROJECT 状态同步为“已实现候选、待 LG-239 独立 QA”，不把原型或局部检查写成已部署/已验证。
+- LG-238 已在公共 runtime 实际实现后完成串行装配（236 后端 + 237 前端），源码 `CONTRACT_VERSION` 与 `/health.contract_version` 升为 `1.22.0`，并已通过后端聚焦/契约/类型检查与前端全量测试/typecheck/build 的局部检查。LG-239 独立版本/浏览器与一次真实 Google 调用 QA 为 **PASS_WITH_LIMITATIONS**；候选已合入本地 main，但未部署/推送。不把单次真实调用或局部检查写成生产可用或质量通过。
 - 旧 Reader 质量 FAILED、§21 的全部失败/限制、LG-235 的 H2 字面 `thought`/WER/实体差异均保留；Google 新路径单独报告，不改写历史。
 
 ## 参考
