@@ -271,15 +271,15 @@ async def test_task_artifacts_classifies_workspace_files(
     assert body["candidate_ref"] == "run_candidate"
     assert body["evidence_refs"] == ["artifacts/report.md"]
     assert body["check_records"] == [{"check_id": "unit", "status": "passed"}]
-    assert [item["path"] for item in body["categories"]["inputs"]] == ["inputs/spec.md"]
+    assert [item["path"] for item in body["categories"]["inputs"]] == ["taskws/inputs/spec.md"]
     assert [item["path"] for item in body["categories"]["candidates"]] == [
-        "artifacts/candidate.txt"
+        "taskws/artifacts/candidate.txt"
     ]
     assert [item["path"] for item in body["categories"]["deliverables"]] == [
-        "deliverables/final.txt"
+        "taskws/deliverables/final.txt"
     ]
     assert [item["path"] for item in body["categories"]["evidence"]] == [
-        "runs/run_1/events.jsonl"
+        "taskws/runs/run_1/events.jsonl"
     ]
     assert body["note"] is None
 

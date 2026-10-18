@@ -16,6 +16,8 @@ import { ApiError, apiRequest } from './client'
 import { API_PREFIX } from './types'
 
 export interface FileEntry {
+  /** Canonical evidence must use the Task artifact resolver, never /files. */
+  evidence_ref?: string
   name: string
   path: string
   type: 'file' | 'directory'
@@ -34,6 +36,8 @@ export interface FileListing {
 }
 
 export interface FileContent {
+  evidence_ref?: string
+  read_only?: boolean
   path: string
   name: string
   size: number
@@ -101,6 +105,9 @@ export interface FilesApi {
     expectedRevision: string | null,
     signal?: AbortSignal,
   ): Promise<UploadResult>
+  readTaskDefinition?(taskRef: string, signal?: AbortSignal): Promise<FileContent>
+  readArtifact?(taskRef: string, evidenceRef: string, signal?: AbortSignal): Promise<FileContent>
+  downloadArtifact?(taskRef: string, evidenceRef: string, revision?: string | null, signal?: AbortSignal): Promise<DownloadResult>
   taskArtifacts(taskRef: string, signal?: AbortSignal): Promise<TaskArtifacts>
 }
 
@@ -172,6 +179,32 @@ async function toApiError(response: Response): Promise<ApiError> {
   })
 }
 
+async function downloadResponse(endpoint: string, path: string, runtime: FilesRuntimeConfig, signal?: AbortSignal): Promise<DownloadResult> {
+  const response = await fetch(
+    `${API_PREFIX}${endpoint}`,
+    {
+      // Same-origin session cookie for team mode (LG-050 §7).
+      credentials: 'include',
+      headers: { Accept: '*/*', ...authHeaders(runtime) },
+      signal,
+    },
+  ).catch((cause: unknown) => {
+    throw new ApiError({
+      message: cause instanceof Error ? cause.message : 'Network request failed',
+      code: 'network_error',
+      httpStatus: null,
+      retryable: true,
+    })
+  })
+  if (!response.ok) throw await toApiError(response)
+  return {
+    blob: await response.blob(),
+    filename: parseFilename(response.headers.get('content-disposition'), path),
+    mediaType: response.headers.get('content-type') ?? 'application/octet-stream',
+    revision: response.headers.get('x-lg-revision') || null,
+  }
+}
+
 export function createFilesApi(runtime: FilesRuntimeConfig = {}): FilesApi {
   return {
     listFiles(path, signal) {
@@ -181,29 +214,7 @@ export function createFilesApi(runtime: FilesRuntimeConfig = {}): FilesApi {
       return apiRequest<FileContent>(`/files/content${query({ path })}`, { signal })
     },
     async downloadFile(path, revision, signal) {
-      const response = await fetch(
-        `${API_PREFIX}/files/download${query({ path, revision })}`,
-        {
-          // Same-origin session cookie for team mode (LG-050 §7).
-          credentials: 'include',
-          headers: { Accept: '*/*', ...authHeaders(runtime) },
-          signal,
-        },
-      ).catch((cause: unknown) => {
-        throw new ApiError({
-          message: cause instanceof Error ? cause.message : 'Network request failed',
-          code: 'network_error',
-          httpStatus: null,
-          retryable: true,
-        })
-      })
-      if (!response.ok) throw await toApiError(response)
-      return {
-        blob: await response.blob(),
-        filename: parseFilename(response.headers.get('content-disposition'), path),
-        mediaType: response.headers.get('content-type') ?? 'application/octet-stream',
-        revision: response.headers.get('x-lg-revision') || null,
-      }
+      return downloadResponse(`/files/download${query({ path, revision })}`, path, runtime, signal)
     },
     uploadFile(path, data, expectedRevision, signal) {
       return apiRequest<UploadResult>(
@@ -217,6 +228,22 @@ export function createFilesApi(runtime: FilesRuntimeConfig = {}): FilesApi {
           body: data,
           signal,
         },
+      )
+    },
+    readTaskDefinition(taskRef, signal) {
+      return apiRequest<FileContent>(`/tasks/${encodeURIComponent(taskRef)}/definition/content`, { signal })
+    },
+    async readArtifact(taskRef, evidenceRef, signal) {
+      const content = await apiRequest<Omit<FileContent, 'path'>>(
+        `/tasks/${encodeURIComponent(taskRef)}/artifacts/content${query({ evidence_ref: evidenceRef })}`,
+        { signal },
+      )
+      return { ...content, path: evidenceRef }
+    },
+    downloadArtifact(taskRef, evidenceRef, revision, signal) {
+      return downloadResponse(
+        `/tasks/${encodeURIComponent(taskRef)}/artifacts/download${query({ evidence_ref: evidenceRef, revision })}`,
+        evidenceRef, runtime, signal,
       )
     },
     taskArtifacts(taskRef, signal) {

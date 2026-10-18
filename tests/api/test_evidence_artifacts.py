@@ -158,3 +158,60 @@ async def test_evidence_resolver_rejects_raw_path_other_task_and_digest(
         f"/api/v1/tasks/{owner}/artifacts/content", params={"evidence_ref": bad_digest}
     )
     assert tampered.status_code == 404
+
+
+async def test_task_definition_is_canonical_read_only(
+    app: FastAPI, api: httpx.AsyncClient
+) -> None:
+    task_id = _create_task(app, workspace_ref="tasks/worktree")
+    path = app.state.context.data_dir / "tasks" / task_id / "TASK.md"
+    original = path.read_bytes()
+    response = await api.get(f"/api/v1/tasks/{task_id}/definition/content")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["content"] == original.decode()
+    assert body["read_only"] is True
+    assert body["path"] == "TASK.md"
+    assert body["media_type"] == "text/markdown"
+    assert "requirements_revision: 1" in body["content"]
+    assert path.read_bytes() == original
+    missing = await api.get(f"/api/v1/tasks/{new_id('task')}/definition/content")
+    assert missing.status_code == 404
+    # No write route is introduced for this authoritative control document.
+    write = await api.post(f"/api/v1/tasks/{task_id}/definition/content", content="overwrite")
+    assert write.status_code == 405
+    path.unlink()
+    other = _create_task(app, workspace_ref=None)
+    path.symlink_to(app.state.context.data_dir / "tasks" / other / "TASK.md")
+    denied = await api.get(f"/api/v1/tasks/{task_id}/definition/content")
+    assert denied.status_code == 403
+
+
+async def test_workspace_artifacts_are_openable_and_git_internals_are_excluded(
+    app: FastAPI, api: httpx.AsyncClient
+) -> None:
+    workspace = app.state.settings.workspace_root / "tasks" / "worktree"
+    (workspace / "artifacts").mkdir(parents=True)
+    (workspace / "artifacts" / "launch-brief.md").write_text("# Launch brief\n", encoding="utf-8")
+    (workspace / ".git").mkdir()
+    (workspace / ".git" / "HEAD").write_text("internal", encoding="utf-8")
+    (workspace / "git-alias").symlink_to(workspace / ".git", target_is_directory=True)
+    task_id = _create_task(app, workspace_ref="tasks/worktree")
+    listing = (await api.get("/api/v1/files", params={"path": "tasks/worktree"})).json()
+    assert [item["name"] for item in listing["items"]] == ["artifacts"]
+    artifacts = (await api.get(f"/api/v1/tasks/{task_id}/artifacts")).json()
+    assert artifacts["categories"]["other"] == []
+    entry = artifacts["categories"]["candidates"][0]
+    assert entry["path"] == "tasks/worktree/artifacts/launch-brief.md"
+    opened = await api.get("/api/v1/files/content", params={"path": entry["path"]})
+    assert opened.status_code == 200
+    assert opened.json()["content"] == "# Launch brief\n"
+    for path in ("tasks/worktree/.git/HEAD", "tasks/worktree/git-alias/HEAD"):
+        denied = await api.get("/api/v1/files/content", params={"path": path})
+        assert denied.status_code == 403
+    (workspace / "git-alias").unlink()
+    (workspace / ".git" / "HEAD").unlink()
+    (workspace / ".git").rmdir()
+    (workspace / ".git").write_text("gitdir: /private/internal", encoding="utf-8")
+    listing = (await api.get("/api/v1/files", params={"path": "tasks/worktree"})).json()
+    assert [item["name"] for item in listing["items"]] == ["artifacts"]

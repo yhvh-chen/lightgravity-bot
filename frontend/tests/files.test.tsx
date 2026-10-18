@@ -273,3 +273,81 @@ describe('files client token injection', () => {
     expect((init?.headers as Record<string, string>)['X-LG-Token']).toBe('tok')
   })
 })
+
+
+describe('Task definition and canonical Markdown artifacts (LG242/245)', () => {
+  const ref = 'evidence:run_1/launch-brief.md@sha256:abc'
+  const artifacts: TaskArtifacts = {
+    task_id: 'task_1', task_revision: 1, requirements_revision: 1,
+    deliverable_revision: 0, candidate_ref: null, evidence_refs: [ref],
+    check_records: [], workspace_ref: 'tasks/task_1', note: null,
+    categories: { inputs: [], candidates: [], deliverables: [], other: [],
+      evidence: [{ ...entry('run_1/launch-brief.md'), evidence_ref: ref }] },
+  }
+
+  it('opens canonical evidence via its Task resolver and renders Markdown', async () => {
+    const api = makeApi({
+      taskArtifacts: vi.fn(async () => artifacts),
+      readArtifact: vi.fn(async () => content({ path: ref, evidence_ref: ref,
+        name: 'launch-brief.md', content: '# Launch brief\n<script>unsafe()</script>' })),
+      downloadArtifact: vi.fn(async () => ({ blob: new Blob(['brief']), filename: 'launch-brief.md',
+        mediaType: 'text/markdown', revision: '12-1' })),
+    })
+    renderPanel(api, 'task_1')
+    fireEvent.click(await screen.findByRole('button', { name: 'launch-brief.md' }))
+    expect(await screen.findByRole('heading', { name: 'Launch brief' })).toBeInTheDocument()
+    expect(api.readArtifact).toHaveBeenCalledWith('task_1', ref)
+    expect(api.readContent).not.toHaveBeenCalled()
+    expect(document.querySelector('script')).toBeNull()
+  })
+
+  it('shows raw canonical TASK.md frontmatter read-only, outside the worktree', async () => {
+    const api = makeApi({
+      taskArtifacts: vi.fn(async () => artifacts),
+      readTaskDefinition: vi.fn(async () => content({ path: 'TASK.md', name: 'TASK.md',
+        read_only: true, content: '---\nrequirements_revision: 3\nacceptance:\n  status: accepted\n---\n# Task' })),
+    })
+    renderPanel(api, 'task_1')
+    fireEvent.click(screen.getByRole('button', { name: 'TASK.md · Read-only' }))
+    expect(await screen.findByText(/requirements_revision: 3/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Download' })).not.toBeInTheDocument()
+    expect(api.readTaskDefinition).toHaveBeenCalledWith('task_1')
+    expect(api.readContent).not.toHaveBeenCalled()
+  })
+
+  it('does not let a late artifact response replace another Task preview', async () => {
+    let resolve!: (value: FileContent) => void
+    const api = makeApi({ taskArtifacts: vi.fn(async () => artifacts),
+      readArtifact: vi.fn(() => new Promise<FileContent>((done) => { resolve = done })),
+    })
+    const view = renderPanel(api, 'task_1')
+    fireEvent.click(await screen.findByRole('button', { name: 'launch-brief.md' }))
+    view.rerender(<FilesPanel taskRef="task_2" runRef={null} api={api} />)
+    resolve(content({ content: '# Stale artifact' }))
+    await waitFor(() => expect(screen.getByText('No file selected')).toBeInTheDocument())
+    expect(screen.queryByRole('heading', { name: 'Stale artifact' })).not.toBeInTheDocument()
+  })
+})
+
+
+it('requests canonical content and download endpoints without treating their envelope as a file', async () => {
+  const ref = 'evidence:run_1/launch-brief.md@sha256:abc'
+  const fetchMock = vi.fn()
+    .mockResolvedValueOnce(new Response(JSON.stringify({ ...content(), evidence_ref: ref }), { status: 200, headers: { 'Content-Type': 'application/json' } }))
+    .mockResolvedValueOnce(new Response('# Launch brief', { status: 200,
+      headers: { 'Content-Disposition': 'attachment; filename="launch-brief.md"', 'X-LG-Revision': '12-1' } }))
+  vi.stubGlobal('fetch', fetchMock)
+  const api = createFilesApi()
+  const opened = await api.readArtifact!('task_1', ref)
+  expect(opened.path).toBe(ref)
+  expect(opened.content).toBe('body')
+  const downloaded = await api.downloadArtifact!('task_1', ref, opened.revision)
+  expect(downloaded.filename).toBe('launch-brief.md')
+  const first = new URL(String(fetchMock.mock.calls[0][0]), 'http://localhost')
+  const second = new URL(String(fetchMock.mock.calls[1][0]), 'http://localhost')
+  expect(first.pathname).toBe('/api/v1/tasks/task_1/artifacts/content')
+  expect(first.searchParams.get('evidence_ref')).toBe(ref)
+  expect(second.pathname).toBe('/api/v1/tasks/task_1/artifacts/download')
+  expect(second.searchParams.get('revision')).toBe('12-1')
+  vi.unstubAllGlobals()
+})

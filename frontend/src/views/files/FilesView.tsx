@@ -18,7 +18,7 @@
  * component the integration owner can mount with explicit props or a factory.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { getRuntimeToken } from '../../api/auth'
 import { fetchHealth } from '../../api/client'
@@ -183,6 +183,7 @@ export function FilesPanel({
   mediaDirectEmbedding = false,
   onSelectTaskRef,
 }: FilesPanelProps) {
+  const previewRequest = useRef(0)
   const [surface, setSurface] = useState<'workspace' | 'materials'>('workspace')
   const [cwd, setCwd] = useState('')
   const [listing, setListing] = useState<FileListing | null>(null)
@@ -199,6 +200,8 @@ export function FilesPanel({
 
   // Task scope: load artifact association and start from its workspace.
   useEffect(() => {
+    previewRequest.current += 1
+    setPreviewLoading(false)
     setSelected(null)
     setPreviewError(null)
     setImageUrl(null)
@@ -215,6 +218,7 @@ export function FilesPanel({
     api
       .taskArtifacts(taskRef, controller.signal)
       .then((data) => {
+        if (controller.signal.aborted) return
         setArtifacts(data)
         setCwd(data.workspace_ref ?? '')
       })
@@ -224,7 +228,7 @@ export function FilesPanel({
         setCwd('')
       })
     return () => controller.abort()
-  }, [api, taskRef])
+  }, [api, taskRef, refreshToken])
 
   // Directory listing for the current path.
   useEffect(() => {
@@ -253,34 +257,51 @@ export function FilesPanel({
   }, [imageUrl])
 
   const openFile = useCallback(
-    async (path: string) => {
+    async (path: string, evidenceRef?: string, definition = false) => {
+      const request = ++previewRequest.current
       setPreviewLoading(true)
       setPreviewError(null)
       setStatus(null)
       try {
-        const content = await api.readContent(path)
+        let content: FileContent
+        if (definition && taskRef && api.readTaskDefinition) {
+          content = await api.readTaskDefinition(taskRef)
+        } else if (evidenceRef && taskRef && api.readArtifact) {
+          content = await api.readArtifact(taskRef, evidenceRef)
+        } else if (definition || evidenceRef) {
+          throw new Error('This runtime cannot open this task file.')
+        } else {
+          content = await api.readContent(path)
+        }
+        if (request !== previewRequest.current) return
         setSelected(content)
         if (SAFE_IMAGE_TYPES.has(content.media_type.toLowerCase())) {
-          const download = await api.downloadFile(content.path, content.revision)
+          const download = evidenceRef && taskRef && api.downloadArtifact
+            ? await api.downloadArtifact(taskRef, evidenceRef, content.revision)
+            : await api.downloadFile(content.path, content.revision)
+          if (request !== previewRequest.current) return
           setImageUrl(URL.createObjectURL(download.blob))
         } else {
           setImageUrl(null)
         }
       } catch (error) {
+        if (request !== previewRequest.current) return
         setSelected(null)
         setImageUrl(null)
         setPreviewError(asApiError(error))
       } finally {
-        setPreviewLoading(false)
+        if (request === previewRequest.current) setPreviewLoading(false)
       }
     },
-    [api],
+    [api, taskRef],
   )
 
   const download = useCallback(
-    async (path: string, revision: string | null) => {
+    async (content: FileContent) => {
       try {
-        const result = await api.downloadFile(path, revision)
+        const result = content.evidence_ref && taskRef && api.downloadArtifact
+          ? await api.downloadArtifact(taskRef, content.evidence_ref, content.revision)
+          : await api.downloadFile(content.path, content.revision)
         const url = URL.createObjectURL(result.blob)
         const anchor = document.createElement('a')
         anchor.href = url
@@ -297,7 +318,7 @@ export function FilesPanel({
         setStatus({ kind: 'error', text: describeError(asApiError(error), 'Download failed') })
       }
     },
-    [api],
+    [api, taskRef],
   )
 
   const copyPath = useCallback(async (value: string) => {
@@ -315,6 +336,10 @@ export function FilesPanel({
 
   const selectArtifact = useCallback(
     (entry: FileEntry) => {
+      if (entry.evidence_ref) {
+        void openFile(entry.path, entry.evidence_ref)
+        return
+      }
       const parent = entry.path.includes('/')
         ? entry.path.slice(0, entry.path.lastIndexOf('/'))
         : ''
@@ -415,6 +440,11 @@ export function FilesPanel({
       {taskRef ? (
         <section className="lg-files__artifacts" aria-label="Task artifacts">
           <h2 className="lg-files__section-title">Task artifacts</h2>
+          {api.readTaskDefinition ? (
+            <button type="button" className="lg-files__artifact-link" onClick={() => void openFile('TASK.md', undefined, true)}>
+              TASK.md · Read-only
+            </button>
+          ) : null}
           {artifactError ? (
             <ErrorState
               title="Artifacts unavailable"
@@ -545,7 +575,7 @@ export function FilesPanel({
               message={previewError.message}
               code={previewError.code}
               retryable={previewError.retryable}
-              onRetry={selected ? () => void openFile(selected.path) : undefined}
+              onRetry={selected ? () => void openFile(selected.path, selected.evidence_ref, selected.read_only) : undefined}
             />
           ) : !selected ? (
             <EmptyState title="No file selected" compact>
@@ -561,13 +591,11 @@ export function FilesPanel({
                 <StatusBadge kind="neutral" title="File revision">
                   rev {selected.revision ?? 'n/a'}
                 </StatusBadge>
-                <button
-                  type="button"
-                  className="lg-button lg-button--primary"
-                  onClick={() => void download(selected.path, selected.revision)}
-                >
-                  Download
-                </button>
+                {selected.read_only ? <StatusBadge kind="neutral">Read-only</StatusBadge> : (
+                  <button type="button" className="lg-button lg-button--primary" onClick={() => void download(selected)}>
+                    Download
+                  </button>
+                )}
               </div>
               {selected.truncated ? (
                 <p className="lg-files__note">
@@ -575,7 +603,9 @@ export function FilesPanel({
                 </p>
               ) : null}
               <div className="lg-files__preview-body">
-                {previewKind === 'markdown' ? (
+                {selected.read_only ? (
+                  <pre className="lg-files__code">{selected.content}</pre>
+                ) : previewKind === 'markdown' ? (
                   <MarkdownViewer content={selected.content} />
                 ) : previewKind === 'text' ? (
                   <pre className="lg-files__code">{selected.content}</pre>

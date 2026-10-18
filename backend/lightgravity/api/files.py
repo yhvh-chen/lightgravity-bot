@@ -154,6 +154,13 @@ def _describe(child: str, root_real: str) -> dict[str, Any] | None:
 def _is_protected(ctx: ApiContext, target: Path) -> bool:
     """Keep control-store files out of Files, independent of user role."""
 
+    if any(
+        part.lower() == ".git"
+        for path in (target.absolute(), target.resolve())
+        for part in path.parts
+    ):
+        return True
+
     protected = [
         ctx.secret_store.directory,
         ctx.data_dir / "conversations",
@@ -615,6 +622,36 @@ def build_files_router() -> APIRouter:
             "created": created,
         }
 
+    @router.get("/tasks/{task_id}/definition/content")
+    def task_definition_content(
+        ctx: Annotated[ApiContext, Depends(get_context)],
+        task_id: str,
+    ) -> dict[str, Any]:
+        # An exact, read-only control document, never a generic data-root path.
+        target = ctx.data_dir / "tasks" / task_id / "TASK.md"
+        expected = ctx.data_dir.resolve() / "tasks" / task_id / "TASK.md"
+        if target.resolve() != expected:
+            raise AppError(ErrorCode.PATH_OUTSIDE_WORKSPACE, "task definition path is not canonical")
+        _reject_secret(ctx, target, str(target))
+        try:
+            ctx.store.read("task", task_id)
+        except EntityNotFound:
+            raise AppError(ErrorCode.NOT_FOUND, "task not found", details={"task_id": task_id}) from None
+        size = target.stat().st_size
+        with target.open("rb") as handle:
+            data = handle.read(MAX_CONTENT_BYTES)
+        return {
+            "path": "TASK.md",
+            "name": "TASK.md",
+            "size": size,
+            "truncated": size > MAX_CONTENT_BYTES,
+            "media_type": "text/markdown",
+            "encoding": "utf-8",
+            "revision": _revision(target),
+            "content": data.decode("utf-8", "replace"),
+            "read_only": True,
+        }
+
     @router.get("/tasks/{task_id}/artifacts")
     def task_artifacts(
         ctx: Annotated[ApiContext, Depends(get_context)],
@@ -677,6 +714,11 @@ def build_files_router() -> APIRouter:
             return result
         root_real = os.path.realpath(str(root))
         result["categories"] = _scan_artifacts(ctx, root, root_real)
+        # Files endpoints resolve paths against the authorized workspace root,
+        # whereas classification above is relative to this Task's workspace.
+        for entries in result["categories"].values():
+            for entry in entries:
+                entry["path"] = _relative(root / entry["path"], ctx.workspace_root)
         # Keep both: workspace-classified evidence files plus canonical evidence-root refs.
         result["categories"]["evidence"] = [
             *result["categories"]["evidence"],
