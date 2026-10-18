@@ -26,7 +26,7 @@ export interface ChatSourcesProps {
 
 export function ChatSources({ data, onOpen }: ChatSourcesProps) {
   const bindings = data?.resolved_source_bindings ?? []
-  if (bindings.length === 0) return null
+  if (data?.unavailable === true || bindings.length === 0) return null
   const truncated = data?.context_truncated === true || bindings.some((b) => b.truncated)
   const note =
     data?.provided_context_note ??

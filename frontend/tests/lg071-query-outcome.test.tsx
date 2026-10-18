@@ -38,7 +38,7 @@ function makeApi(outcome: ChatSubmitResult) {
     sendMessage: vi.fn(async (_scope, body) => {
       // Simulate a response which is persisted in the originating conversation;
       // the hook must reload history rather than inventing a local reply bubble.
-      persisted = [{ message_id: `assistant:${body.message_id}`, role: 'assistant', content: outcome.reply ?? '', attachments: [] }]
+      persisted = [{ message_id: `assistant:${body.message_id}`, role: 'assistant', content: outcome.reply ?? '', attachments: [], data: outcome.data }]
       return outcome
     }),
     createTask: vi.fn(async () => ({ kind: 'create_task' })),
@@ -133,5 +133,23 @@ describe('LG071 response target versus newly created Task', () => {
     expect(screen.getByRole('tab', { name: 'Personal' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.queryByText(/Created Task/)).toBeNull()
     expect(dispatched).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'selectTask' }))
+  })
+})
+
+
+describe('LG217 unavailable assistant', () => {
+  it.each([['member', team], ['administrator', single]] as const)('shows honest retry guidance for %s and suppresses provided-context claims', async (_role, probe) => {
+    const api = makeApi({ kind: 'unavailable', reply: 'Assistant unavailable. Configure one in Settings.', data: {
+      unavailable: true, creates_task: false, creates_run: false,
+      resolved_source_bindings: [{ source_id: 'source_unused', source_version: 1, content_hash: 'unused', layer: 'machine', locator: 'unused', char_count: 10, truncated: false }],
+    } })
+    renderChat(api, probe)
+    await submit('Message for Global', '@bot summarize')
+    await waitFor(() => expect(api.readMessages).toHaveBeenCalledTimes(2))
+    expect(screen.getAllByText(probe === team ? /Ask an administrator/ : /restart the server and retry/).length).toBeGreaterThan(0)
+    expect(screen.queryByText('Sources')).toBeNull()
+    expect(screen.queryByText('provided context')).toBeNull()
+    expect(screen.queryByText('Configure one in Settings.')).toBeNull()
+    expect(dispatched).not.toHaveBeenCalledWith(expect.objectContaining({ type: 'openTaskDestination' }))
   })
 })

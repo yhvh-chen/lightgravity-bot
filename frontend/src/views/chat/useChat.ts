@@ -61,7 +61,7 @@ export function resolvedSourcesFromResult(
   result: ChatSubmitResult,
 ): ResolvedSourceBindingsData | null {
   const data = result.data as ResolvedSourceBindingsData | undefined
-  if (!data) return null
+  if (result.kind === 'unavailable' || data?.unavailable === true || !data) return null
   const bindings = Array.isArray(data.resolved_source_bindings)
     ? data.resolved_source_bindings
     : undefined

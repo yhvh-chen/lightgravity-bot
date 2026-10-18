@@ -104,7 +104,10 @@ export function ChatBody({
   attachmentsApi,
 }: ChatBodyProps) {
   const { state, dispatch } = useShell()
-  const { isTeam, requireLogin, personalChatAvailable } = useAuth()
+  const { isTeam, isAdmin, requireLogin, personalChatAvailable } = useAuth()
+  const assistantUnavailableNotice = isAdmin
+    ? 'Assistant unavailable. Configure a default coordinator connection and credentials in Settings, then restart the server and retry.'
+    : 'Assistant unavailable. Ask an administrator to configure a default coordinator connection and credentials, restart the server, and retry.'
   const taskRef = state.taskRef
   // LG-054: single-user mode has no team, so the only channel is the legacy
   // personal/global one.  In team mode the user picks; the default is Team.
@@ -539,7 +542,7 @@ export function ChatBody({
       } else if (outcome.kind === 'switch_to_team') {
         setNotice('Personal is private and chat-only. Switch to Team to create a task or run delivery — nothing was created.')
       } else if (outcome.kind === 'unavailable') {
-        setNotice('Personal chat needs a configured model. Configure one in Settings, or use Team.')
+        setNotice(assistantUnavailableNotice)
       } else if (outcome.createdTaskRef) {
         setNotice(`Created Task ${outcome.createdTaskRef}. Opening its workspace.`)
         // Preserve the effective channel explicitly when the initial route used
@@ -692,7 +695,7 @@ export function ChatBody({
               ) : null}
             </div>
             <div className="lg-message__bubble">
-              <MarkdownViewer content={message.content} />
+              <MarkdownViewer content={message.role === 'assistant' && message.data?.unavailable === true ? assistantUnavailableNotice : message.content} />
             </div>
             {message.attachments.length > 0 ? (
               <ul className="lg-chat__attachments" aria-label="Attachments">

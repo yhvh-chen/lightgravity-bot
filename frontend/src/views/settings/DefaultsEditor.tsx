@@ -36,8 +36,8 @@ function describeDefault(
 /**
  * Global default coordinator/worker/reviewer connection refs (docs/07 §3; docs/08 §6.5).
  *
- * Defaults only affect new sessions/recruitment; active members keep the
- * connection revision pinned when they were recruited. The page states this so
+ * Coordinator/reviewer defaults are wired at server startup; new Runs freeze
+ * the worker default. Active members retain their pinned revisions, so
  * a default change is never presented as a live hot-swap. The reviewer default
  * (LG-017) is a separate role so independent review does not reuse the
  * implementer's connection; leaving it None is an honest "no reviewer" state.
@@ -82,7 +82,7 @@ export function DefaultsEditor({
       })
       setRevision(updated.revision)
       onSaved(updated)
-      setNotice(`Defaults saved at revision ${updated.revision}.`)
+      setNotice(`Defaults saved at revision ${updated.revision}. Restart the server to apply coordinator or reviewer changes.`)
     } catch (cause) {
       const err = toApiError(cause)
       if (err.code === 'revision_conflict') {
@@ -105,9 +105,9 @@ export function DefaultsEditor({
     <section className="lg-section-card" aria-label="Default models">
       <h3 className="lg-section-card__title">Default models</h3>
       <p className="lg-field__hint">
-        Defaults apply to new sessions and recruitment only. Members already
-        recruited keep the connection revision they were pinned to; changing a
-        default does not hot-swap them.
+        Coordinator and reviewer default changes require a server restart. Worker
+        defaults apply when a new Run freezes its connection. Existing Runs and
+        recruited members keep their pinned connection revisions.
       </p>
       <p className="lg-field__static">
         <StatusBadge kind="accent">resolution</StatusBadge>{' '}

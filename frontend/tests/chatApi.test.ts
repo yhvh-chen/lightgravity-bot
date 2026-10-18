@@ -95,3 +95,10 @@ describe('LG-013 chatApi', () => {
     expect(second.slice(4, 14) >= first.slice(4, 14)).toBe(true)
   })
 })
+
+
+it('preserves the persisted unavailable flag when normalizing nested assistant history', async () => {
+  vi.stubGlobal('fetch', vi.fn(async () => jsonResponse({ items: [{ message_id: 'assistant:unavailable', seq: 1, message: { role: 'assistant', content: 'Assistant unavailable.', attachments: [], data: { unavailable: true } } }], next_cursor: null })))
+  const page = await createChatApi().readMessages({ taskRef: null })
+  expect(page.items[0].data).toEqual({ unavailable: true })
+})

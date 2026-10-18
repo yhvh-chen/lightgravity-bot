@@ -51,6 +51,7 @@ export interface ResolvedSourceBinding {
 
 /** Additive result `data` fields for a reply (docs/10 §4/§9). */
 export interface ResolvedSourceBindingsData {
+  unavailable?: boolean
   resolved_source_bindings?: ResolvedSourceBinding[]
   context_truncated?: boolean
   provided_context_note?: string
@@ -157,8 +158,10 @@ function normalizeBindingsData(
       : typeof wire.provided_context_note === 'string'
         ? wire.provided_context_note
         : undefined
-  if (!bindings && contextTruncated === undefined && note === undefined) return null
+  const unavailable = nestedData?.unavailable === true
+  if (!bindings && contextTruncated === undefined && note === undefined && !unavailable) return null
   return {
+    ...(unavailable ? { unavailable: true } : {}),
     ...(bindings ? { resolved_source_bindings: bindings } : {}),
     ...(contextTruncated !== undefined ? { context_truncated: contextTruncated } : {}),
     ...(note !== undefined ? { provided_context_note: note } : {}),

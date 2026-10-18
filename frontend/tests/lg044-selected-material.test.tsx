@@ -345,6 +345,11 @@ describe('ChatSources (LG-044 §4)', () => {
     expect(screen.getByText(/max total 12000/)).toBeTruthy()
   })
 
+  it('does not claim provided context for an unavailable reply even with stale bindings', () => {
+    const { container } = render(<ChatSources data={{ unavailable: true, resolved_source_bindings: [binding] }} onOpen={vi.fn()} />)
+    expect(container.firstChild).toBeNull()
+  })
+
   it('renders nothing for legacy replies without source fields', () => {
     const { container } = render(<ChatSources data={null} onOpen={vi.fn()} />)
     expect(container.firstChild).toBeNull()

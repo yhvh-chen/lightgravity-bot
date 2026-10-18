@@ -300,6 +300,7 @@ describe('LG-026 Settings: list and defaults', () => {
     expect(state.updateSettingsCalls[0].default_reviewer_connection_ref).toBe(
       'deepseek-reviewer',
     )
+    expect(await screen.findByText(/Defaults saved.*Restart the server/)).toBeVisible()
   })
 })
 
