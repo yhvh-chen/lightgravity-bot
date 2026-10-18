@@ -1,0 +1,9 @@
+date: 2026-10-18T22:16:52+11:00
+=== listeners 8123/5173/18123 (read-only) ===
+LISTEN 0      511          0.0.0.0:5173       0.0.0.0:*    users:(("node",pid=2332542,fd=22))
+LISTEN 0      2048         0.0.0.0:8123       0.0.0.0:*    users:(("lightgravity",pid=536200,fd=8))
+LISTEN 0      2048         0.0.0.0:18123      0.0.0.0:*    users:(("lightgravity",pid=1597462,fd=8))
+=== no restart/deploy commands were run by this integration ===
+root HEAD: 93e682c0ce5e9b5549b86052513085949641b839
+root status --short:
+?? content/

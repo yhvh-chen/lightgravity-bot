@@ -1,0 +1,6 @@
+LG-239 cleanup
+- App PID 976183 stopped with SIGTERM; port 18239 free.
+- Playwright browser was closed by the harness after each run; no lg239 browser process remains.
+- Isolated data preserved: /home/yhvh/tmp/lg239-google-data (0700)
+- Controlled secret store preserved: /home/yhvh/tmp/lg239-google-secrets (0700; files 0600)
+- No root service, production account or deployed 8123/5173 service was stopped or changed.

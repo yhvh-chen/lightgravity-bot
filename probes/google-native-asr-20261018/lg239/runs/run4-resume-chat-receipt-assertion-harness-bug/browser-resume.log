@@ -1,0 +1,17 @@
+PASS continuation starts with exactly one real Google attempt already made
+PASS the single Google call used the native interactions host/path and no model imports
+PASS deferred intake job reached a real terminal success with one attempt and one ASR budget
+PASS source text branch is ready in English
+PASS receipt has ready English Google-native machine provenance
+PASS receipt timestamps are null and no fake encoder/Reader provenance exists
+PASS machine content is a nonempty real transcript
+PASS native usage/latency are recorded
+PASS machine provenance hashes/bytes match the frozen audio input
+PASS persisted source file matches input SHA-256 and byte count
+PASS source original path is relative, never an absolute local path
+PASS machine transcript is not the human formal version before/without a separate formal write
+PASS human formal edit succeeds and leaves machine text byte-identical
+FAIL Chat receipt shows truthful Google transcript provenance and content
+Error: CHECK FAILED: Chat receipt shows truthful Google transcript provenance and content "LightGravity Bot\nqa-lg239-member\nmember\nSign out\nWide layout\nBoard\nTasks\nTeam\nSession Profiles\nHooks\nMCP\nTools\nTriggers\nSkills\nSettings\nTASKS\nNew task\n\nGeneral is the global conversation. Choose a task directory to open its workspace; workspace folders remain files.\n\n▸\nGeneral\nTASK DIRECTORIES\n\nNo tasks yet\n\nCreate a task by describing a goal in Chat.\nTASK SCOPE\nGlobal workspace\nPATH\n/\nCopy path\nWorkspace files\nMaterials\nworkspace\n\nThis directory is empty\n\nSelect another directory, or add materials in Chat.\n\nNo file selected\n\nSelect a file from the tree to preview it. Markdown, text and safe images render here; HTML and other types are download-only.\nPersonal\nTeam\nqa-lg239-member\n2026-10-18T11:00:07.495Z\n\nAttached materials.\n\nMaterials\nReceipts only — not model context. Select materials explicitly to include context.\nqa-h1-harbor.piper-ljspeech-high.16k.wav\nStored\nv1\nTEXT\nEnglish transcript ready\nmachine Google transcript · Google native · google-native · gemini-3.8-flash · google-native:gemini-3.8-flash · google-native · machine · word timestamps not available\nKEYWORD\nSearchable\nSEMANTIC\nDisabled\nvector_backend_unavailable\nView material\nRefresh\nMessage for Global"
+    at check (/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/scripts/qa_browser_resume.cjs:71:11)
+    at main (/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/scripts/qa_browser_resume.cjs:290:5)

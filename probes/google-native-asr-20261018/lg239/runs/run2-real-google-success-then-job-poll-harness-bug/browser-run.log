@@ -1,0 +1,36 @@
+PASS audio input SHA-256 matches the frozen H1 holdout
+PASS no Google transport call happened before browser/trace started
+PASS no Torch/numpy/transformers/Reader is loaded at app start
+PASS admin Settings 1440px has no horizontal overflow
+PASS admin Google config 1440px names the native provider and model
+PASS admin Google config 1440px has no Reader directories or 30-second cap
+PASS admin Google config 1440px shows configured/capability-not-verified truth
+PASS admin Google config 1440px key field is blank/password/write-only
+PASS admin Google modal 1440px has no horizontal overflow
+PASS admin Settings 1024px has no horizontal overflow
+PASS admin Google config 1024px names the native provider and model
+PASS admin Google config 1024px has no Reader directories or 30-second cap
+PASS admin Google config 1024px shows configured/capability-not-verified truth
+PASS admin Google config 1024px key field is blank/password/write-only
+PASS admin Google modal 1024px has no horizontal overflow
+PASS admin Settings 390px has no horizontal overflow
+PASS admin Google config 390px names the native provider and model
+PASS admin Google config 390px has no Reader directories or 30-second cap
+PASS admin Google config 390px shows configured/capability-not-verified truth
+PASS admin Google config 390px key field is blank/password/write-only
+PASS admin Google modal 390px has no horizontal overflow
+PASS UI fake-key save clears the write-only field
+PASS UI fake-key save states saving does not transcribe/verify
+PASS fake key never appears in the browser document
+PASS fake-key UI save made no Google transport call
+PASS real key restored out-of-trace and still no Google call
+PASS restored real key is reported configured without echoing it
+PASS UI blank secret save retains credential_configured
+PASS ordinary member cannot read admin Google config over the API
+PASS no Task exists and no source exists before the single real upload
+PASS ordinary Team message can attach audio without @bot and without chat text
+PASS UI POST /sources returned a real source/job envelope
+FAIL deferred intake job completed exactly one attempt with one ASR budget
+Error: CHECK FAILED: deferred intake job completed exactly one attempt with one ASR budget {"status":"running","attempt":1,"budget":{"max_model_calls":null,"timeout_seconds":900,"max_retries":1,"max_original_bytes":10000000,"max_native_text_bytes":2000000,"max_ocr_pages":null,"max_tokens_per_page":2000,"max_embedding_calls":null,"max_media_embedding_bytes":10000000,"max_asr_calls":1},"fail_reason":null}
+    at check (/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/scripts/qa_browser.cjs:84:11)
+    at main (/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/scripts/qa_browser.cjs:389:5)

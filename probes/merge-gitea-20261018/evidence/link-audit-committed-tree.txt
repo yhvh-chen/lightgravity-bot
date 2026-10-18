@@ -1,0 +1,35 @@
+date: 2026-10-18T22:17:12+11:00
+changed markdown files: 17
+missing relative targets in committed tree: 320
+unique missing targets: 222
+    6  docs/13-chat-and-task-teams.md
+    5  docs/15-english-asr-and-ui.md
+    5  probes/video-20261017/README.md
+    5  docs/12-team-game-demo-runsheet.md
+    5  probes/accounts-20261017/README.md
+    5  14-material-intake-and-auto-index.md
+    4  docs/14-material-intake-and-auto-index.md
+    4  probes/settings-connections-20261017/DELIVERY.md
+    4  probes/nav-icons-20261017/DELIVERY.md
+    4  probes/centered-search-20261017/DELIVERY.md
+missing outside known root-only/ignored docs+probes/backlog set: 54
+   ('BACKLOG.md', 'docs/12-team-game-demo-runsheet.md')
+   ('PROGRESS.md', 'docs/12-team-game-demo-runsheet.md')
+   ('PROJECT.md', 'docs/12-team-game-demo-runsheet.md')
+   ('README.md', 'docs/12-team-game-demo-runsheet.md')
+   ('README.md', 'docs/12-team-game-demo-runsheet.md')
+   ('agent.md', '../olav-os/')
+   ('agent.md', '../olav-tasks/')
+   ('agent.md', '../Olav/')
+   ('agent.md', '../olav-os/experiments/t-37-human-ai-swarm-skeleton/lib/run-plan-executor.ts')
+   ('agent.md', '../olav-os/experiments/t-37-human-ai-swarm-skeleton/lib/scheduler.ts')
+   ('agent.md', '../olav-os/experiments/t-37-human-ai-swarm-skeleton/lib/run-store.ts')
+   ('agent.md', '../olav-os/experiments/t-37-human-ai-swarm-skeleton/navigation-defaults/renderers/left-sidebar/')
+   ('agent.md', '../olav-tasks/AGENTS.md')
+   ('design.md', '../olav-os/experiments/t-37-human-ai-swarm-skeleton/navigation-defaults/renderers/left-sidebar/renderer.css')
+   ('design.md', '../olav-tasks/')
+   ('docs/01-design.md', '../../olav-os/experiments/t-37-human-ai-swarm-skeleton/lib/run-plan-executor.ts')
+   ('docs/01-design.md', '../../olav-os/experiments/t-37-human-ai-swarm-skeleton/lib/scheduler.ts')
+   ('docs/01-design.md', '../../olav-os/experiments/t-37-human-ai-swarm-skeleton/lib/run-store.ts')
+   ('docs/01-design.md', '../../olav-tasks/AGENTS.md')
+   ('docs/05-navigation-and-team.md', '../backlog/tasks/LG-051.md')

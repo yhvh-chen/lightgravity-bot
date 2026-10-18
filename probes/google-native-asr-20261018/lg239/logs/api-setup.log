@@ -1,0 +1,19 @@
+PASS local fixture admin session is team/admin
+PASS admin can read settings
+PASS created isolated member fixture
+PASS ordinary member cannot read admin settings/config
+PASS invalid model id: 422 with no fake-secret echo
+PASS non-native base URL: 422 with no fake-secret echo
+PASS legacy max_audio_seconds rejected in Google mode: 422 with no fake-secret echo
+PASS fake-key Google save succeeds and is network-free (save only validates)
+PASS save response contains neither key nor credential ref/value
+PASS GET is write-only: no key/ref/value/path is returned
+PASS blank credential retains stored secret (no empty/delete write)
+PASS stale expected_revision is 409 and cannot leak/overwrite secret
+PASS real key restored via out-of-trace protected API; view still write-only
+PASS health reports contract 1.22.0 and attemptable English ASR
+PASS product app process env has no provider/Google credential
+{
+  "checks": 15,
+  "failures": []
+}

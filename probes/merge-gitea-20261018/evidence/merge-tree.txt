@@ -1,0 +1,15 @@
+date: 2026-10-18T22:15:10+11:00
+code HEAD: 93e682c0ce5e9b5549b86052513085949641b839
+frozen candidate: ecda49f692097b07d6f574652f9ed72b6387919a tree d96f22b6d5acbb509cb9cbf6c232d557215af19b
+=== product diff ecda49f..HEAD (expected empty) ===
+=== subtree hashes ===
+backend candidate=6cc2a72d74cd274b5d68a6e47ef423b7395f376b
+backend HEAD     =6cc2a72d74cd274b5d68a6e47ef423b7395f376b
+frontend candidate=2526bbf54770a5302462630bb2f7d17d6d12ddbd
+frontend HEAD     =2526bbf54770a5302462630bb2f7d17d6d12ddbd
+tests candidate=e9ebfaf72946ae8af50f6f5772c401f0e3cf129a
+tests HEAD     =e9ebfaf72946ae8af50f6f5772c401f0e3cf129a
+e2e candidate=90497e1ed403699a8fa51541277eaf5efa9db5d7
+e2e HEAD     =90497e1ed403699a8fa51541277eaf5efa9db5d7
+=== contract constant ===
+210:CONTRACT_VERSION = "1.22.0"

@@ -1,0 +1,562 @@
+{
+  "run_id": "lg239-real-google-20261018",
+  "base": "http://127.0.0.1:18239",
+  "candidate": {
+    "commit": "ecda49f692097b07d6f574652f9ed72b6387919a",
+    "tree": "d96f22b6d5acbb509cb9cbf6c232d557215af19b"
+  },
+  "audio": {
+    "path": "/home/yhvh/code/lightgravity-bot/probes/english-asr-20261018/lg163/artifacts/tts/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+    "expected_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+    "actual_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+    "bytes": 333332
+  },
+  "checks": [
+    {
+      "name": "audio input SHA-256 matches the frozen H1 holdout",
+      "pass": true,
+      "detail": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740"
+    },
+    {
+      "name": "no Google transport call happened before browser/trace started",
+      "pass": true,
+      "detail": 0
+    },
+    {
+      "name": "no Torch/numpy/transformers/Reader is loaded at app start",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "admin Settings 1440px has no horizontal overflow",
+      "pass": true,
+      "detail": {
+        "scrollWidth": 1440,
+        "innerWidth": 1440
+      }
+    },
+    {
+      "name": "admin Google config 1440px names the native provider and model",
+      "pass": false,
+      "detail": "English transcription\n\nShared English audio only. Machine transcripts are provenance-labelled and never replace the human formal version. Choose Google native or the legacy EG2 + Reader provider. No TTS, download, install, training or test inference is performed here.\n\n×\nenabled\nconfigured\navailable\nGoogle native\nAPI key configured\nEnglish\nword timestamps not available\n\nRevision 2 · runtime google-native · provider Google native · configured yes · available yes · reason: none\n\nNative Google transcription is configured and can be attempted, but the key, model and network are not verified. Per-file success comes only from the source receipt; saving settings does not run transcription.\n\nProvider\nGoogle native audio\nEG2 + Reader (legacy)\n\nGoogle native calls the Gemini audio API directly. The legacy provider requires local model assets and keeps its original limits.\n\nEnable English transcription\n\nYou can save these settings while English transcription is disabled or unavailable. Saving does not start transcription.\n\nModel\n\nDefault gemini-3.8-flash. The form never probes or switches models automatically.\n\nBase URL\n\nUse the native Google Generative Language API endpoint, not an OpenAI-co"
+    }
+  ],
+  "failures": [
+    "admin Google config 1440px names the native provider and model",
+    "Error: CHECK FAILED: admin Google config 1440px names the native provider and model \"English transcription\\n\\nShared English audio only. Machine transcripts are provenance-labelled and never replace the human formal version. Choose Google native or the legacy EG2 + Reader provider. No TTS, download, install, training or test inference is performed here.\\n\\n×\\nenabled\\nconfigured\\navailable\\nGoogle native\\nAPI key configured\\nEnglish\\nword timestamps not available\\n\\nRevision 2 · runtime google-native · provider Google native · configured yes · available yes · reason: none\\n\\nNative Google transcription is configured and can be attempted, but the key, model and network are not verified. Per-file success comes only from the source receipt; saving settings does not run transcription.\\n\\nProvider\\nGoogle native audio\\nEG2 + Reader (legacy)\\n\\nGoogle native calls the Gemini audio API directly. The legacy provider requires local model assets and keeps its original limits.\\n\\nEnable English transcription\\n\\nYou can save these settings while English transcription is disabled or unavailable. Saving does not start transcription.\\n\\nModel\\n\\nDefault gemini-3.8-flash. The form never probes or switches models automatically.\\n\\nBase URL\\n\\nUse the native Google Generative Language API endpoint, not an OpenAI-co\"\n    at check (/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/scripts/qa_browser.cjs:84:11)\n    at main (/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/scripts/qa_browser.cjs:232:7)"
+  ],
+  "console_errors": [],
+  "page_errors": [],
+  "screenshots": [],
+  "network": {
+    "requests": [
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "resource_type": "document",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "resource_type": "script",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "resource_type": "stylesheet",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "POST",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/login",
+        "resource_type": "fetch",
+        "post_data_chars": 42
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/files",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "resource_type": "eventsource",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "resource_type": "document",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "resource_type": "script",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "resource_type": "stylesheet",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/settings/connections",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/settings",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "resource_type": "eventsource",
+        "post_data_chars": 0
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "content-type",
+          "date",
+          "pragma",
+          "server",
+          "x-content-type-options"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/login",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "POST"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "header_names": [
+          "transfer-encoding",
+          "cache-control",
+          "x-accel-buffering",
+          "date",
+          "content-type",
+          "connection",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "content-type",
+          "date",
+          "pragma",
+          "server",
+          "x-content-type-options"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "header_names": [
+          "transfer-encoding",
+          "cache-control",
+          "x-accel-buffering",
+          "date",
+          "content-type",
+          "connection",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/settings/connections",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/settings",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      }
+    ],
+    "cross_origin": [],
+    "google_host_requests": [],
+    "vendor_header_responses": []
+  },
+  "timings": {},
+  "source": null,
+  "receipt": null,
+  "machine": null,
+  "content": null,
+  "formal": null,
+  "google_attempts": {
+    "before": 0,
+    "after_upload": null,
+    "final": null,
+    "calls": []
+  },
+  "admin": {},
+  "member": {},
+  "privacy": {},
+  "cross_task": {},
+  "disabled": {},
+  "limitations": []
+}

@@ -1,0 +1,8 @@
+date: 2026-10-18T22:17:00+11:00
+external concurrent change observed: content/demo/script.md at 22:15:21 (after initial backup 22:11)
+original and final snapshots preserved; current worktree content kept untouched
+=== original vs final differing files ===
+Files /home/yhvh/tmp/lgmerge-20261018/content-check/content/demo/script.md and content/demo/script.md differ
+=== current content hash count ===
+26 /home/yhvh/tmp/lgmerge-20261018/dirty-backup/content-final-sha256.txt
+=== current hash check ===

@@ -1,0 +1,27 @@
+PASS continuation starts with exactly one real Google attempt already made
+PASS the single Google call used the native interactions host/path and no model imports
+PASS deferred intake job reached a real terminal success with one attempt and one ASR budget
+PASS source text branch is ready in English
+PASS receipt has ready English Google-native machine provenance
+PASS receipt timestamps are null and no fake encoder/Reader provenance exists
+PASS machine content is a nonempty real transcript
+PASS native usage/latency are recorded
+PASS machine provenance hashes/bytes match the frozen audio input
+PASS persisted source file matches input SHA-256 and byte count
+PASS source original path is relative, never an absolute local path
+PASS machine transcript is not the human formal version before/without a separate formal write
+PASS human formal edit succeeds and leaves machine text byte-identical
+PASS Chat receipt shows truthful Google transcript provenance and a material backlink
+PASS machine transcript is selectable text in Tasks detail
+PASS Keyword search finds the real transcript phrase and source id
+PASS search result backlink opens the same source in Tasks
+PASS material detail 1024px has no horizontal overflow and keeps the transcript
+PASS material detail 390px has no horizontal overflow and keeps the transcript
+PASS Personal private audio adds no shared source and no Google attempt
+PASS Personal private audio does not claim a shared machine transcript
+PASS Task B list does not expose a Task-A-scoped source
+PASS backend rejects a Task-A source ref in a Task-B message
+FAIL disabled Google config is honest: disabled/unavailable with no fake success
+Error: CHECK FAILED: disabled Google config is honest: disabled/unavailable with no fake success {"status":200,"english_asr":{"revision":6,"content_hash":"882bfd14785e2354f1f3f677a6cdeb2c19066d0176fbdd12bc6b636b437491ae","provider":"google-native","runtime":"google-native","enabled":false,"configured":true,"available":false,"reason":"disabled","language":"en","timestamps_supported":false,"model":"gemini-3.8-flash","base_url":"https://generativelanguage.googleapis.com/v1beta","credential_configured":true,"models":{},"limits":{"max_audio_seconds":null,"max_audio_bytes":10000000,"max_request_bytes":20000000,"timeout_seconds":180,"max_concurrency":1}},"dialog_preview":"English transcription\n\nShared English audio only. Machine transcripts are provenance-labelled and never replace the human formal version. Choose Google native or the legacy EG2 + Reader provider. No TTS, download, install, training or test inference is performed here.\n\n×\n\nGoogle native settings saved at revision 6. Saving does not run transcription or prove that the provider, key or model is reachable.\n\ndisabled\nconfigured\nunavailable\nGoogle native\nAPI key configured\nEnglish\nword timestamps not available\n\nRevision 6 · runtime google-native · provider Google native · configured yes · available no · reason: Disabled by configuration\n\nDisabled. Shared audio is still stored and its original/direct-media branches remain independent; no transcript is generated.\n\nProvider\nGoogle native audio\nEG2 + Reader (legacy)\n\nGoogle native calls the Gemini audio API directly. The legacy provider requires local model assets and keeps its original limits.\n\nEnable English transcription\n\nYou can save these settings while English transcription is disabled or unavailable. Saving does not start transcription.\n\nModel\n\nDefault gemini-3.8-flash. The form never probes or switches models automatically.\n\nBase URL\n\nUse the native Google Generative Language API endpoint, not an OpenAI-compatible path.\n\nGoogle API key (write-only)\n\nAn API key is stored. It is never shown again; leave blank to keep it.\n\nLimits and runtime\nModel and endpoint\n\nCurrent limits: 9.5 MB audio · 19.1 MB request · 180 s timeout · concurrency 1\n\nCancel\nSave English transcription settings"}
+    at check (/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/scripts/qa_browser_resume.cjs:71:11)
+    at main (/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/scripts/qa_browser_resume.cjs:440:5)

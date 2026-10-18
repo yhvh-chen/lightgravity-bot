@@ -1,0 +1,12 @@
+date: 2026-10-18T22:17:08+11:00
+changed markdown files: 17
+missing relative targets: 2
+unique missing targets: 2
+
+Top target groups:
+    1  ../../probes/demo-tasks-20261018/lg206/DELIVERY.md
+    1  ../../probes/lg036/DEPENDENCY-AUDIT.md
+
+Missing targets outside the known root-only ignored set: 2
+   ('docs/05-navigation-and-team.md', '../../probes/demo-tasks-20261018/lg206/DELIVERY.md')
+   ('docs/06-roadmap.md', '../../probes/lg036/DEPENDENCY-AUDIT.md')

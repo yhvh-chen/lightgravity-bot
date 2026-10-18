@@ -1,0 +1,34 @@
+PASS continuation starts with exactly one real Google attempt already made
+PASS the single Google call used the native interactions host/path and no model imports
+PASS deferred intake job reached a real terminal success with one attempt and one ASR budget
+PASS source text branch is ready in English
+PASS receipt has ready English Google-native machine provenance
+PASS receipt timestamps are null and no fake encoder/Reader provenance exists
+PASS machine content is a nonempty real transcript
+PASS native usage/latency are recorded
+PASS machine provenance hashes/bytes match the frozen audio input
+PASS persisted source file matches input SHA-256 and byte count
+PASS source original path is relative, never an absolute local path
+PASS machine transcript is not the human formal version before/without a separate formal write
+PASS human formal edit succeeds and leaves machine text byte-identical
+PASS Chat receipt shows truthful Google transcript provenance and a material backlink
+PASS machine transcript is selectable text in Tasks detail
+PASS Keyword search finds the real transcript phrase and source id
+PASS search result backlink opens the same source in Tasks
+PASS material detail 1024px has no horizontal overflow and keeps the transcript
+PASS material detail 390px has no horizontal overflow and keeps the transcript
+PASS Personal private audio adds no shared source and no Google attempt
+PASS Personal private audio does not claim a shared machine transcript
+PASS Task B list does not expose a Task-A-scoped source
+PASS backend rejects a Task-A source ref in a Task-B message
+PASS disabled Google config is honest: disabled/unavailable with no fake success
+PASS historical machine transcript survives page reload and ASR disable
+PASS reload/disable/history checks caused no second Google call
+PASS continuation made no cross-origin/direct Google browser request and saw no vendor header
+PASS final Google attempt count remains exactly one
+{
+  "checks": 28,
+  "failures": [],
+  "google_attempts": 1,
+  "transcript_preview": "On April 9th 2027 the North Harbor Market opens at 6:45, and the ferry to Cedar Island carries 38 passengers."
+}

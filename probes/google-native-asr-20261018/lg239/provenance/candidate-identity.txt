@@ -1,0 +1,11 @@
+# LG-239 candidate identity at QA time
+2026-10-18T11:02:37Z
+HEAD ecda49f692097b07d6f574652f9ed72b6387919a
+TREE d96f22b6d5acbb509cb9cbf6c232d557215af19b
+BRANCH qa/google-native-asr-20261018
+BACKEND_TREE 6cc2a72d74cd274b5d68a6e47ef423b7395f376b
+FRONTEND_TREE 2526bbf54770a5302462630bb2f7d17d6d12ddbd
+TESTS_TREE e9ebfaf72946ae8af50f6f5772c401f0e3cf129a
+DOCS_TREE 37fbb25eb4fe3cf53a7962a6abf510723264adae
+--- git status --short (product source must be clean) ---
+--- changed pyproject/uv.lock vs HEAD (must be empty) ---

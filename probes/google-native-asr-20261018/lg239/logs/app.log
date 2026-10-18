@@ -1,0 +1,29 @@
+[startup] seeded built-in worker agent 'lg-default-worker' (no agent template existed)
+[startup] agency role seed: templates=282 created=282 updated=0 unchanged=0 custom_preserved=0 update_available=0 errors=0
+[startup] real executor disabled by option; execution will be unavailable
+[startup] dialogue responder not wired: no default coordinator connection (plain questions will report unavailable instead of a real answer)
+[startup] capacity: active_tasks=2 global_sessions=3 reviewer_sessions=1 nodes_per_task=2
+[startup] frontend build found at /home/yhvh/code/lightgravity-bot-worktrees/google-native-asr-integrated-20261018/frontend/dist
+[startup] reviewer not wired: no default reviewer connection configured; candidates will report an honest 'review unavailable' instead of a fake independent pass
+[startup] enabled agent templates: 283 (full agency role library included)
+[startup] runtime token resolved from lg239-fixture (value never logged)
+{
+  "pid": 976183,
+  "url": "http://127.0.0.1:18239",
+  "data_dir": "/home/yhvh/tmp/lg239-google-data",
+  "secret_store": "/home/yhvh/tmp/lg239-google-secrets",
+  "frontend_dist": "/home/yhvh/code/lightgravity-bot-worktrees/google-native-asr-integrated-20261018/frontend/dist",
+  "frontend_served": true,
+  "executor_wired": false,
+  "team_mode": true,
+  "modules_at_start": {
+    "torch": false,
+    "numpy": false,
+    "transformers": false,
+    "lightgravity.asr.runtime": false,
+    "lightgravity.asr.reader_model": false,
+    "eg2_reader": false
+  },
+  "rss_kib_at_start": 58748,
+  "audit_log": "/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/logs/google-transport-audit.jsonl"
+}

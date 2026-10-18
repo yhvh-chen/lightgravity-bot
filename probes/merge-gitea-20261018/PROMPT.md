@@ -1,0 +1,11 @@
+用户明确授权：查看本地分支，合并并push到gitea。你负责本次串行Git集成与必要验证，按agent.md职责。先读取agent.md、PROJECT.md/README相关当前状态，不改产品需求、不部署/重启服务、不创建云资源。根worktree有其他团队的dirty PM文档和content/，必须完整保留，不笼统git add -A，不把秘密/运行数据推送。
+工作根 /home/yhvh/code/lightgravity-bot。当前main cd0e8c8，Gitea origin http://192.168.8.50:3000/admin/lightgravity-bot.git。HTTP默认无凭证fetch失败，根.env有gitea_token，使用安全临时askpass按需从根.env读取（不得输出token，不在URL/命令行/提示/报告/日志写值），GIT_TERMINAL_PROMPT=0；不能向GitHub推送。先fetch并检查远端分叉。
+任务：
+1. 将全部本地分支清单及按当前main的merged/unmerged、当前worktree、分类和建议写probes/merge-gitea-20261018/BRANCHES.md（不用输出几百行给主代理）。识别可交付最新候选和已有cherry-pick等价内容，不把旧branch tips全部无脑合并。
+2. 本次已完成待集成主要是 integration/google-native-asr-20261018 （tip9592185，冻结受QA产品ecda49f692097b07d6f574652f9ed72b6387919a），包含已完成Chat/Tasks integration/demo-tasks-20261018 8d869fff与Google229/230等价cherry-picks。独立QA probes/google-native-asr-20261018/lg239/QA.md PASS_WITH_LIMITATIONS；原测试123后端/35资料/353前端/mypy172。读取lg238 DELIVERY、lg239 QA及refs图确认。禁止合入已冻结 integration/lg214-remote-reader... /dev reader/frame服务，及旧实验/失败QA分支。其他最新已完成分支若main尚无且不属于上面候选，判断证据并列出；未完成/质量失败保留。
+3. 先在新独立integration worktree串行merge origin/main/currentmain+上述已验收候选，不覆盖root未提交修改。解决docs/版本冲突保持1.22且保留最新项目职责/无用量限制。产品冲突若需要修改实现，暂停报告具体冲突给主代理，不能擅自改业务。保留已验收源代码tree可比较证据。无需重新调用Google；不使用含Torch的根.venv，必要测试使用 /home/yhvh/code/lightgravity-bot-worktrees/google-native-asr-backend-20261018/.venv，前端低并发。没有产品变化只检查merge tree一致、相关现有QA身份和必要构建，不重复全套测试。
+4. 根dirty文件：先做私有备份（0600/目录0700、git diff binary及untracked清单到/home/yhvh/tmp专用目录），记录hash保护。可以提交明确属于用户已授权项目的tracked PM文档（README/PROJECT/PROGRESS/agent/design/docs/BACKLOG/.gitignore/backlogLG041等）作为独立management checkpoint，提交前检查无秘密、引用不损坏。content/先调查，只提交明确项目内容且无秘密/生成垃圾；不明确保留未提交。绝不使用git clean/reset --hard，绝不临时丢失用户工作。避免改变其他任务状态；LG246 priority格式错误是别团队已有，记录不要擅改。
+5. 将root main更新为实际合并结果，保留dirty内容。如PM checkpoint与候选docs冲突，按真实当前记录合并且不丢历史。root工作区最终包含新代码，但不要部署/重启8123/5173/18123。
+6. 仅推送合并后的main到origin main（不force、不删除分支、不push全部refs）。如远端main已前进，安全fetch合并。用户也可能原意保留其他工作分支远端，报告本次只push main及候选集成分支（可额外push integration/google-native-asr-20261018 以保留候选）；不要把未知历史或秘密实验全推。确认ls-remote与本地hash一致。
+7. 写 DELIVERY.md：分支总数/纳入分支/历史保留、前后HEAD/远端hash、测试与限制、工作区原dirty如何保护、未提交剩余、不部署、Gitea可访问链接；秘密检查结果与证据。主代理将根据交付做任务收尾。执行中每个重要动作flush简短进度到stdout；任何阻塞报告而不是长时间猜。
+不得把真实凭据打印或写入git对象。所有脚本/report放probes/merge-gitea-20261018，临时askpass放/tmp权限0700并结束清理。

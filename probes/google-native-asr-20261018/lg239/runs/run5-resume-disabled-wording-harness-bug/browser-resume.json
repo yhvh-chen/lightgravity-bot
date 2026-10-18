@@ -1,0 +1,3234 @@
+{
+  "run_id": "lg239-real-google-continuation-20261018",
+  "resumed_from": "run2-real-google-success-then-job-poll-harness-bug",
+  "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+  "job_id": "intake_01M57APF57HXQWCBCX4EBFCEPG",
+  "checks": [
+    {
+      "name": "continuation starts with exactly one real Google attempt already made",
+      "pass": true,
+      "detail": [
+        {
+          "at": "2026-10-18T11:00:13Z",
+          "attempt": 1,
+          "endpoint_host": "generativelanguage.googleapis.com",
+          "endpoint_path": "/v1beta/interactions",
+          "error_class": null,
+          "header_names": [
+            "content-type",
+            "x-goog-api-key"
+          ],
+          "key_header_present": true,
+          "kind": "google_transport_call",
+          "latency_ms": 6082,
+          "modules": {
+            "eg2_reader": false,
+            "lightgravity.asr.reader_model": false,
+            "lightgravity.asr.runtime": false,
+            "numpy": false,
+            "torch": false,
+            "transformers": false
+          },
+          "request_bytes": 444689,
+          "response_bytes": 850,
+          "rss_kib_after": 71324,
+          "rss_kib_before": 65544,
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "the single Google call used the native interactions host/path and no model imports",
+      "pass": true,
+      "detail": {
+        "at": "2026-10-18T11:00:13Z",
+        "attempt": 1,
+        "endpoint_host": "generativelanguage.googleapis.com",
+        "endpoint_path": "/v1beta/interactions",
+        "error_class": null,
+        "header_names": [
+          "content-type",
+          "x-goog-api-key"
+        ],
+        "key_header_present": true,
+        "kind": "google_transport_call",
+        "latency_ms": 6082,
+        "modules": {
+          "eg2_reader": false,
+          "lightgravity.asr.reader_model": false,
+          "lightgravity.asr.runtime": false,
+          "numpy": false,
+          "torch": false,
+          "transformers": false
+        },
+        "request_bytes": 444689,
+        "response_bytes": 850,
+        "rss_kib_after": 71324,
+        "rss_kib_before": 65544,
+        "status": 200
+      }
+    },
+    {
+      "name": "deferred intake job reached a real terminal success with one attempt and one ASR budget",
+      "pass": true,
+      "detail": {
+        "status": "succeeded",
+        "stage": "done",
+        "attempt": 1,
+        "budget": {
+          "max_model_calls": null,
+          "timeout_seconds": 900,
+          "max_retries": 1,
+          "max_original_bytes": 10000000,
+          "max_native_text_bytes": 2000000,
+          "max_ocr_pages": null,
+          "max_tokens_per_page": 2000,
+          "max_embedding_calls": null,
+          "max_media_embedding_bytes": 10000000,
+          "max_asr_calls": 1
+        },
+        "finished_at": "2026-10-18T11:00:13.923Z"
+      }
+    },
+    {
+      "name": "source text branch is ready in English",
+      "pass": true,
+      "detail": {
+        "text_status": "ready",
+        "language": "en",
+        "status": "extracted"
+      }
+    },
+    {
+      "name": "receipt has ready English Google-native machine provenance",
+      "pass": true,
+      "detail": {
+        "status": 200,
+        "branch": {
+          "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+          "job_id": "intake_01M57APF57HXQWCBCX4EBFCEPG",
+          "filename": "qa-h1-harbor.piper-ljspeech-high.16k.wav",
+          "status": "extracted",
+          "stage": "done",
+          "detail": "semantic: disabled (vector_backend_unavailable)",
+          "searchable": true,
+          "original_path": "original/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+          "formal_path": "derivative/machine.v1.md",
+          "content_hash": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+          "source_version": 1,
+          "at": "2026-10-18T11:00:13.922Z",
+          "error_code": null,
+          "text": {
+            "status": "ready",
+            "reason": null,
+            "error_code": null,
+            "language": "en",
+            "machine": {
+              "engine": "google-native",
+              "provider": "google",
+              "model": "gemini-3.8-flash",
+              "runtime": "google-native",
+              "endpoint_host": "generativelanguage.googleapis.com",
+              "endpoint_path": "/v1beta/interactions",
+              "prompt_version": "google-native-transcribe-v1",
+              "model_version": "google-native:gemini-3.8-flash",
+              "content_variant": "machine",
+              "generated_at": "2026-10-18T11:00:13.699Z",
+              "audio_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+              "mime_type": "audio/wav",
+              "audio_bytes": 333332,
+              "request_bytes": 444689,
+              "latency_ms": 6084,
+              "usage": {
+                "total_tokens": 321,
+                "total_input_tokens": 287,
+                "input_tokens_by_modality": [
+                  {
+                    "modality": "text",
+                    "tokens": 26
+                  },
+                  {
+                    "modality": "audio",
+                    "tokens": 261
+                  }
+                ],
+                "total_output_tokens": 34,
+                "total_thought_tokens": 0,
+                "total_cached_tokens": 0,
+                "total_tool_use_tokens": 0
+              }
+            },
+            "timestamps": null
+          },
+          "keyword": {
+            "status": "searchable",
+            "reason": null,
+            "error_code": null
+          },
+          "semantic": {
+            "status": "disabled",
+            "reason": "vector_backend_unavailable",
+            "error_code": null,
+            "model": null,
+            "kinds": [],
+            "failed_kinds": []
+          }
+        }
+      }
+    },
+    {
+      "name": "receipt timestamps are null and no fake encoder/Reader provenance exists",
+      "pass": true,
+      "detail": {
+        "timestamps": null,
+        "machine_keys": [
+          "engine",
+          "provider",
+          "model",
+          "runtime",
+          "endpoint_host",
+          "endpoint_path",
+          "prompt_version",
+          "model_version",
+          "content_variant",
+          "generated_at",
+          "audio_sha256",
+          "mime_type",
+          "audio_bytes",
+          "request_bytes",
+          "latency_ms",
+          "usage"
+        ]
+      }
+    },
+    {
+      "name": "machine content is a nonempty real transcript",
+      "pass": true,
+      "detail": {
+        "status": 200,
+        "preview": "On April 9th 2027 the North Harbor Market opens at 6:45, and the ferry to Cedar Island carries 38 passengers."
+      }
+    },
+    {
+      "name": "native usage/latency are recorded",
+      "pass": true,
+      "detail": {
+        "usage": {
+          "total_tokens": 321,
+          "total_input_tokens": 287,
+          "input_tokens_by_modality": [
+            {
+              "modality": "text",
+              "tokens": 26
+            },
+            {
+              "modality": "audio",
+              "tokens": 261
+            }
+          ],
+          "total_output_tokens": 34,
+          "total_thought_tokens": 0,
+          "total_cached_tokens": 0,
+          "total_tool_use_tokens": 0
+        },
+        "latency_ms": 6084
+      }
+    },
+    {
+      "name": "machine provenance hashes/bytes match the frozen audio input",
+      "pass": true,
+      "detail": {
+        "audio_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+        "audio_bytes": 333332,
+        "request_bytes": 444689
+      }
+    },
+    {
+      "name": "persisted source file matches input SHA-256 and byte count",
+      "pass": true,
+      "detail": {
+        "content_hash": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+        "original": {
+          "path": "original/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+          "media_type": "audio/wav",
+          "bytes": 333332,
+          "archived_at": null
+        },
+        "on_disk": {
+          "relative_path": "sources/source_01M57APF4Q67D8XT97WE6JKRHA/original/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+          "bytes": 333332,
+          "sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740"
+        }
+      }
+    },
+    {
+      "name": "source original path is relative, never an absolute local path",
+      "pass": true,
+      "detail": "original/qa-h1-harbor.piper-ljspeech-high.16k.wav"
+    },
+    {
+      "name": "machine transcript is not the human formal version before/without a separate formal write",
+      "pass": true,
+      "detail": {
+        "status": 200,
+        "body": {
+          "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+          "kind": "formal",
+          "path": "formal/FORMAL.md",
+          "media_type": "text/markdown; charset=utf-8",
+          "content": "<!-- formal version: human-edited. Reprocessing never overwrites this file. -->\n<!-- edited_by: qa-lg239-member -->\n\nOn April 9th 2027 the North Harbor Market opens at 6:45, and the ferry to Cedar Island carries 38 passengers.",
+          "formal_present": true
+        }
+      }
+    },
+    {
+      "name": "human formal edit succeeds and leaves machine text byte-identical",
+      "pass": true,
+      "detail": {
+        "write": 200,
+        "formal": 200,
+        "machine": 200
+      }
+    },
+    {
+      "name": "Chat receipt shows truthful Google transcript provenance and a material backlink",
+      "pass": true,
+      "detail": "LightGravity Bot\nqa-lg239-member\nmember\nSign out\nWide layout\nBoard\nTasks\nTeam\nSession Profiles\nHooks\nMCP\nTools\nTriggers\nSkills\nSettings\nTASKS\nNew task\n\nGeneral is the global conversation. Choose a task directory to open its workspace; workspace folders remain files.\n\n▸\nGeneral\nTASK DIRECTORIES\n\nNo tasks yet\n\nCreate a task by describing a goal in Chat.\nTASK SCOPE\nGlobal workspace\nPATH\n/\nCopy path\nWorkspace files\nMaterials\nworkspace\n\nThis directory is empty\n\nSelect another directory, or add materials in Chat.\n\nNo file selected\n\nSelect a file from the tree to preview it. Markdown, text and safe images render here; HTML and other types are download-only.\nPersonal\nTeam\nqa-lg239-member\n2026-10-18T11:00:07.495Z\n\nAttached materials.\n\nMaterials\nReceipts only — not model context. Select materials explicitly to include context.\nqa-h1-harbor.piper-ljspeech-high.16k.wav\nStored\nv1\nTEXT\nEnglish transcript ready\nmachine Google transcript · Google native · google-native · gemini-3.8-flash · google-native:gemini-3.8-flash · google-native · machine · word timestamps not available\nKEYWORD\nSearchable\nSEMANTIC\nDisabled\nvector_backend_unavailable\nView material\nRefresh\nMessage for Global"
+    },
+    {
+      "name": "machine transcript is selectable text in Tasks detail",
+      "pass": true,
+      "detail": "On April 9th 2027 the North Harbor Market opens at 6:45, and the ferry to Cedar Island carries 38 passengers."
+    },
+    {
+      "name": "Keyword search finds the real transcript phrase and source id",
+      "pass": true,
+      "detail": "Shared materials · Text search\n\nKeyword\nSemantic\nLexical matches · separate from semantic results\nqa-h1-harbor.piper-ljspeech-high.16k.wav\nverified\nv1\n\n…edited_by: qa-lg239-member --> On April 9th 2027 the North Harbor Market opens at 6:45, and the ferry to Cedar Island carries 38 passengers.\n\nsource_01M57APF4Q67D8XT97WE6JKRHA\n#e186594f70db\nbasis: formal\nOpen in Tasks\nClose search"
+    },
+    {
+      "name": "search result backlink opens the same source in Tasks",
+      "pass": true,
+      "detail": null
+    },
+    {
+      "name": "material detail 1024px has no horizontal overflow and keeps the transcript",
+      "pass": true,
+      "detail": {
+        "overflow": {
+          "scrollWidth": 1024,
+          "innerWidth": 1024
+        },
+        "transcript": true
+      }
+    },
+    {
+      "name": "material detail 390px has no horizontal overflow and keeps the transcript",
+      "pass": true,
+      "detail": {
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390
+        },
+        "transcript": true
+      }
+    },
+    {
+      "name": "Personal private audio adds no shared source and no Google attempt",
+      "pass": true,
+      "detail": {
+        "shared_source_count_before": 1,
+        "shared_source_count_after": 1,
+        "google_attempts_before": 1,
+        "google_attempts_after": 1
+      }
+    },
+    {
+      "name": "Personal private audio does not claim a shared machine transcript",
+      "pass": true,
+      "detail": "LightGravity Bot\nqa-lg239-member\nmember\nSign out\nWide layout\nBoard\nTasks\nTeam\nSession Profiles\nHooks\nMCP\nTools\nTriggers\nSkills\nSettings\nTASKS\nNew task\n\nGeneral is the global conversation. Choose a task directory to open its workspace; workspace folders remain files.\n\n▸\nGeneral\nTASK DIRECTORIES\n\nNo tasks yet\n\nCreate a task by describing a goal in Chat.\nTASK SCOPE\nGlobal workspace\nPATH\n/\nCopy path\nWorkspace files\nMaterials\nworkspace\n\nThis directory is empty\n\nSelect another directory, or add materials in Chat.\n\nNo file selected\n\nSelect a file from the tree to preview it. Markdown, text and safe images render here; HTML and other types are download-only.\nPersonal\nTeam\nMessage for Personal\nqa-h1-harbor.piper-ljspeech-high.16k.wav\nuploaded"
+    },
+    {
+      "name": "Task B list does not expose a Task-A-scoped source",
+      "pass": true,
+      "detail": {
+        "task_a": "task_01M57ASQ31H989NZ792SVR4FAE",
+        "task_b": "task_01M57ASQAGQYEAKA5VJWGR9WWD",
+        "scoped_source": "source_01M57ASQJ8QQWEAHJQ37NXFSSR",
+        "task_b_list_contains_scoped_source": false,
+        "out_of_scope_message_status": 422
+      }
+    },
+    {
+      "name": "backend rejects a Task-A source ref in a Task-B message",
+      "pass": true,
+      "detail": {
+        "task_a": "task_01M57ASQ31H989NZ792SVR4FAE",
+        "task_b": "task_01M57ASQAGQYEAKA5VJWGR9WWD",
+        "scoped_source": "source_01M57ASQJ8QQWEAHJQ37NXFSSR",
+        "task_b_list_contains_scoped_source": false,
+        "out_of_scope_message_status": 422
+      }
+    },
+    {
+      "name": "disabled Google config is honest: disabled/unavailable with no fake success",
+      "pass": false,
+      "detail": {
+        "status": 200,
+        "english_asr": {
+          "revision": 6,
+          "content_hash": "882bfd14785e2354f1f3f677a6cdeb2c19066d0176fbdd12bc6b636b437491ae",
+          "provider": "google-native",
+          "runtime": "google-native",
+          "enabled": false,
+          "configured": true,
+          "available": false,
+          "reason": "disabled",
+          "language": "en",
+          "timestamps_supported": false,
+          "model": "gemini-3.8-flash",
+          "base_url": "https://generativelanguage.googleapis.com/v1beta",
+          "credential_configured": true,
+          "models": {},
+          "limits": {
+            "max_audio_seconds": null,
+            "max_audio_bytes": 10000000,
+            "max_request_bytes": 20000000,
+            "timeout_seconds": 180,
+            "max_concurrency": 1
+          }
+        },
+        "dialog_preview": "English transcription\n\nShared English audio only. Machine transcripts are provenance-labelled and never replace the human formal version. Choose Google native or the legacy EG2 + Reader provider. No TTS, download, install, training or test inference is performed here.\n\n×\n\nGoogle native settings saved at revision 6. Saving does not run transcription or prove that the provider, key or model is reachable.\n\ndisabled\nconfigured\nunavailable\nGoogle native\nAPI key configured\nEnglish\nword timestamps not available\n\nRevision 6 · runtime google-native · provider Google native · configured yes · available no · reason: Disabled by configuration\n\nDisabled. Shared audio is still stored and its original/direct-media branches remain independent; no transcript is generated.\n\nProvider\nGoogle native audio\nEG2 + Reader (legacy)\n\nGoogle native calls the Gemini audio API directly. The legacy provider requires local model assets and keeps its original limits.\n\nEnable English transcription\n\nYou can save these settings while English transcription is disabled or unavailable. Saving does not start transcription.\n\nModel\n\nDefault gemini-3.8-flash. The form never probes or switches models automatically.\n\nBase URL\n\nUse the native Google Generative Language API endpoint, not an OpenAI-compatible path.\n\nGoogle API key (write-only)\n\nAn API key is stored. It is never shown again; leave blank to keep it.\n\nLimits and runtime\nModel and endpoint\n\nCurrent limits: 9.5 MB audio · 19.1 MB request · 180 s timeout · concurrency 1\n\nCancel\nSave English transcription settings"
+      }
+    }
+  ],
+  "failures": [
+    "disabled Google config is honest: disabled/unavailable with no fake success",
+    "Error: CHECK FAILED: disabled Google config is honest: disabled/unavailable with no fake success {\"status\":200,\"english_asr\":{\"revision\":6,\"content_hash\":\"882bfd14785e2354f1f3f677a6cdeb2c19066d0176fbdd12bc6b636b437491ae\",\"provider\":\"google-native\",\"runtime\":\"google-native\",\"enabled\":false,\"configured\":true,\"available\":false,\"reason\":\"disabled\",\"language\":\"en\",\"timestamps_supported\":false,\"model\":\"gemini-3.8-flash\",\"base_url\":\"https://generativelanguage.googleapis.com/v1beta\",\"credential_configured\":true,\"models\":{},\"limits\":{\"max_audio_seconds\":null,\"max_audio_bytes\":10000000,\"max_request_bytes\":20000000,\"timeout_seconds\":180,\"max_concurrency\":1}},\"dialog_preview\":\"English transcription\\n\\nShared English audio only. Machine transcripts are provenance-labelled and never replace the human formal version. Choose Google native or the legacy EG2 + Reader provider. No TTS, download, install, training or test inference is performed here.\\n\\n×\\n\\nGoogle native settings saved at revision 6. Saving does not run transcription or prove that the provider, key or model is reachable.\\n\\ndisabled\\nconfigured\\nunavailable\\nGoogle native\\nAPI key configured\\nEnglish\\nword timestamps not available\\n\\nRevision 6 · runtime google-native · provider Google native · configured yes · available no · reason: Disabled by configuration\\n\\nDisabled. Shared audio is still stored and its original/direct-media branches remain independent; no transcript is generated.\\n\\nProvider\\nGoogle native audio\\nEG2 + Reader (legacy)\\n\\nGoogle native calls the Gemini audio API directly. The legacy provider requires local model assets and keeps its original limits.\\n\\nEnable English transcription\\n\\nYou can save these settings while English transcription is disabled or unavailable. Saving does not start transcription.\\n\\nModel\\n\\nDefault gemini-3.8-flash. The form never probes or switches models automatically.\\n\\nBase URL\\n\\nUse the native Google Generative Language API endpoint, not an OpenAI-compatible path.\\n\\nGoogle API key (write-only)\\n\\nAn API key is stored. It is never shown again; leave blank to keep it.\\n\\nLimits and runtime\\nModel and endpoint\\n\\nCurrent limits: 9.5 MB audio · 19.1 MB request · 180 s timeout · concurrency 1\\n\\nCancel\\nSave English transcription settings\"}\n    at check (/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/scripts/qa_browser_resume.cjs:71:11)\n    at main (/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/scripts/qa_browser_resume.cjs:440:5)"
+  ],
+  "screenshots": [
+    "/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/screenshots/member-h1-receipt-1440.png",
+    "/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/screenshots/member-h1-detail-1440.png",
+    "/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/screenshots/member-keyword-search-1440.png",
+    "/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/screenshots/member-history-1024.png",
+    "/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/screenshots/member-history-390.png",
+    "/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/screenshots/member-personal-private-audio-1440.png"
+  ],
+  "network": {
+    "requests": [
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "resource_type": "document",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "resource_type": "script",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "resource_type": "stylesheet",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "POST",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/login",
+        "resource_type": "fetch",
+        "post_data_chars": 68
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/files",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "resource_type": "eventsource",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/intake/jobs/intake_01M57APF57HXQWCBCX4EBFCEPG",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/content",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/content",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/content",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/content",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "resource_type": "document",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "resource_type": "script",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "resource_type": "stylesheet",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/files",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "resource_type": "eventsource",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/content",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/download",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/content",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/intake/jobs/intake_01M57APF57HXQWCBCX4EBFCEPG",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/search",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "resource_type": "document",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "resource_type": "script",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "resource_type": "stylesheet",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/files",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "resource_type": "eventsource",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/personal/messages",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "POST",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/attachments/private",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/personal/messages",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "POST",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "resource_type": "fetch",
+        "post_data_chars": 92
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "POST",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "resource_type": "fetch",
+        "post_data_chars": 92
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "POST",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources",
+        "resource_type": "fetch",
+        "post_data_chars": 258
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "POST",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks/task_01M57ASQAGQYEAKA5VJWGR9WWD/messages",
+        "resource_type": "fetch",
+        "post_data_chars": 152
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "resource_type": "document",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "resource_type": "script",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "resource_type": "stylesheet",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/personal/messages",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "POST",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/login",
+        "resource_type": "fetch",
+        "post_data_chars": 42
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/files",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "resource_type": "eventsource",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "resource_type": "document",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "resource_type": "script",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "resource_type": "stylesheet",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/settings/connections",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/settings",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "resource_type": "eventsource",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      },
+      {
+        "method": "PUT",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/settings/english_asr",
+        "resource_type": "fetch",
+        "post_data_chars": 230
+      },
+      {
+        "method": "GET",
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/settings",
+        "resource_type": "fetch",
+        "post_data_chars": 0
+      }
+    ],
+    "responses": [
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "content-type",
+          "date",
+          "pragma",
+          "server",
+          "x-content-type-options"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/login",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "POST"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "header_names": [
+          "transfer-encoding",
+          "cache-control",
+          "x-accel-buffering",
+          "date",
+          "content-type",
+          "connection",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/files",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/intake/jobs/intake_01M57APF57HXQWCBCX4EBFCEPG",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/content",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/content",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/content",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/content",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "content-type",
+          "date",
+          "pragma",
+          "server",
+          "x-content-type-options"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "header_names": [
+          "transfer-encoding",
+          "cache-control",
+          "x-accel-buffering",
+          "date",
+          "content-type",
+          "connection",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/files",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/content",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/download",
+        "header_names": [
+          "x-lg-stat-revision",
+          "etag",
+          "x-lg-kind",
+          "content-length",
+          "date",
+          "content-disposition",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/content",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 206,
+        "host": "",
+        "path": "http://127.0.0.1:18239/80fe47fd-07cd-4ef6-8d6c-349757dfcd12",
+        "header_names": [
+          "content-type",
+          "content-range",
+          "content-length"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/intake/jobs/intake_01M57APF57HXQWCBCX4EBFCEPG",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/search",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "content-type",
+          "date",
+          "pragma",
+          "server",
+          "x-content-type-options"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "header_names": [
+          "transfer-encoding",
+          "cache-control",
+          "x-accel-buffering",
+          "date",
+          "content-type",
+          "connection",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/files",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/personal/messages",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 201,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/attachments/private",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "POST"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/personal/messages",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "POST"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "POST"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 201,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources",
+        "header_names": [
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "server"
+        ],
+        "method": "POST"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 422,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks/task_01M57ASQAGQYEAKA5VJWGR9WWD/messages",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "POST"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "content-type",
+          "date",
+          "pragma",
+          "server",
+          "x-content-type-options"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/personal/messages",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/login",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "POST"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "header_names": [
+          "transfer-encoding",
+          "cache-control",
+          "x-accel-buffering",
+          "date",
+          "content-type",
+          "connection",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/tasks",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/files",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "content-type",
+          "date",
+          "pragma",
+          "server",
+          "x-content-type-options"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-DDU0pU3S.js",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/assets/index-BMHMEIYi.css",
+        "header_names": [
+          "accept-ranges",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "last-modified",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/auth/me",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/health",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/settings/connections",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/notifications",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/events/stream",
+        "header_names": [
+          "transfer-encoding",
+          "cache-control",
+          "x-accel-buffering",
+          "date",
+          "content-type",
+          "connection",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/settings",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/conversations/global/messages",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/sources/source_01M57APF4Q67D8XT97WE6JKRHA/receipt",
+        "header_names": [
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/settings/english_asr",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "date",
+          "etag",
+          "content-type",
+          "server"
+        ],
+        "method": "PUT"
+      },
+      {
+        "status": 200,
+        "host": "127.0.0.1:18239",
+        "path": "/api/v1/settings",
+        "header_names": [
+          "cache-control",
+          "content-length",
+          "date",
+          "content-type",
+          "server"
+        ],
+        "method": "GET"
+      }
+    ],
+    "cross_origin": [],
+    "google_host_requests": [],
+    "vendor_header_responses": []
+  },
+  "google_attempts": {
+    "before": 1,
+    "after_upload": null,
+    "final": null,
+    "calls": []
+  },
+  "job": {
+    "id": "intake_01M57APF57HXQWCBCX4EBFCEPG",
+    "job_id": "intake_01M57APF57HXQWCBCX4EBFCEPG",
+    "source_ref": "source_01M57APF4Q67D8XT97WE6JKRHA",
+    "status": "succeeded",
+    "revision": 4,
+    "etag": "\"4\"",
+    "request_id": "req_01M57APF0NPF3EMZMWFVBZDMFW",
+    "payload_hash": "03e8ce8598b9ba428440debf0034f657f5e33e01999262c01817df95b77ee487",
+    "stage": "done",
+    "attempt": 1,
+    "budget": {
+      "max_model_calls": null,
+      "timeout_seconds": 900,
+      "max_retries": 1,
+      "max_original_bytes": 10000000,
+      "max_native_text_bytes": 2000000,
+      "max_ocr_pages": null,
+      "max_tokens_per_page": 2000,
+      "max_embedding_calls": null,
+      "max_media_embedding_bytes": 10000000,
+      "max_asr_calls": 1
+    },
+    "cancel": {
+      "requested": false,
+      "confirmed": false
+    },
+    "fail_reason": null,
+    "created_at": "2026-10-18T11:00:07.462Z",
+    "updated_at": "2026-10-18T11:00:13.938Z",
+    "intake_mode": "deferred",
+    "queued_at": "2026-10-18T11:00:07.462Z",
+    "started_at": "2026-10-18T11:00:07.534Z",
+    "finished_at": "2026-10-18T11:00:13.923Z",
+    "deadline_at": "2026-10-18T11:15:07.534Z",
+    "waiting_reason": null
+  },
+  "source": {
+    "id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+    "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+    "title": "qa-h1-harbor.piper-ljspeech-high.16k.wav",
+    "title_origin": "user",
+    "status": "extracted",
+    "archived": false,
+    "revision": 6,
+    "etag": "\"6\"",
+    "scope": {
+      "task_ref": null,
+      "project_ref": null,
+      "inbox_ref": null
+    },
+    "origin": {
+      "kind": "upload",
+      "external_ref": null,
+      "fetched": false
+    },
+    "content_hash": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+    "stat_revision": null,
+    "source_version": 1,
+    "language": "en",
+    "text_status": "ready",
+    "context_selectable": true,
+    "context_unavailable_reason": null,
+    "original": {
+      "path": "original/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+      "media_type": "audio/wav",
+      "bytes": 333332,
+      "archived_at": null
+    },
+    "derivatives": [
+      {
+        "kind": "transcript",
+        "path": "derivative/machine.v1.md",
+        "source_version": 1,
+        "content_hash": "b36b3406b77ae2198dac2f5cdd81898f065dd5cc0078688db2206c0afbe735c0",
+        "model_version": "google-native:gemini-3.8-flash"
+      }
+    ],
+    "formal": {
+      "path": "formal/FORMAL.md",
+      "revision": 1,
+      "edited_by": "qa-lg239-member"
+    },
+    "index": {
+      "lexical": "indexed",
+      "lexical_hash": "ab1c81ffa2eb76881a99c1960d790f8367d6983b8bad3d5db6d11d7963040e7b",
+      "vector": "disabled",
+      "vector_model": null
+    },
+    "receipt_ref": "receipt.jsonl",
+    "created_at": "2026-10-18T11:00:07.450Z",
+    "updated_at": "2026-10-18T11:01:31.374Z",
+    "path": "sources/source_01M57APF4Q67D8XT97WE6JKRHA/SOURCE.md"
+  },
+  "receipt": {
+    "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+    "revision": 6,
+    "status": "extracted",
+    "source_version": 1,
+    "receipt_version": 2,
+    "partial": false,
+    "items": [
+      {
+        "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+        "job_id": "intake_01M57APF57HXQWCBCX4EBFCEPG",
+        "filename": "qa-h1-harbor.piper-ljspeech-high.16k.wav",
+        "status": "received",
+        "stage": "received",
+        "detail": "original persisted; extraction not started (LG-035)",
+        "searchable": true,
+        "original_path": "original/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+        "formal_path": null,
+        "content_hash": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+        "source_version": 1,
+        "at": "2026-10-18T11:00:07.477Z",
+        "error_code": null,
+        "text": {
+          "status": "ready",
+          "reason": null,
+          "error_code": null,
+          "language": "en",
+          "timestamps": null
+        },
+        "keyword": {
+          "status": "searchable",
+          "reason": null,
+          "error_code": null
+        },
+        "semantic": {
+          "status": "disabled",
+          "reason": "vector_backend_unavailable",
+          "error_code": null,
+          "model": null,
+          "kinds": [],
+          "failed_kinds": []
+        }
+      },
+      {
+        "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+        "job_id": "intake_01M57APF57HXQWCBCX4EBFCEPG",
+        "filename": "qa-h1-harbor.piper-ljspeech-high.16k.wav",
+        "status": "received",
+        "stage": "extracting",
+        "detail": null,
+        "searchable": true,
+        "original_path": "original/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+        "formal_path": "derivative/machine.v1.md",
+        "content_hash": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+        "source_version": 1,
+        "at": "2026-10-18T11:00:13.758Z",
+        "error_code": null,
+        "text": {
+          "status": "ready",
+          "reason": null,
+          "error_code": null,
+          "language": "en",
+          "machine": {
+            "engine": "google-native",
+            "provider": "google",
+            "model": "gemini-3.8-flash",
+            "runtime": "google-native",
+            "endpoint_host": "generativelanguage.googleapis.com",
+            "endpoint_path": "/v1beta/interactions",
+            "prompt_version": "google-native-transcribe-v1",
+            "model_version": "google-native:gemini-3.8-flash",
+            "content_variant": "machine",
+            "generated_at": "2026-10-18T11:00:13.699Z",
+            "audio_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+            "mime_type": "audio/wav",
+            "audio_bytes": 333332,
+            "request_bytes": 444689,
+            "latency_ms": 6084,
+            "usage": {
+              "total_tokens": 321,
+              "total_input_tokens": 287,
+              "input_tokens_by_modality": [
+                {
+                  "modality": "text",
+                  "tokens": 26
+                },
+                {
+                  "modality": "audio",
+                  "tokens": 261
+                }
+              ],
+              "total_output_tokens": 34,
+              "total_thought_tokens": 0,
+              "total_cached_tokens": 0,
+              "total_tool_use_tokens": 0
+            }
+          },
+          "timestamps": null
+        },
+        "keyword": {
+          "status": "searchable",
+          "reason": null,
+          "error_code": null
+        },
+        "semantic": {
+          "status": "disabled",
+          "reason": "vector_backend_unavailable",
+          "error_code": null,
+          "model": null,
+          "kinds": [],
+          "failed_kinds": []
+        }
+      },
+      {
+        "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+        "job_id": "intake_01M57APF57HXQWCBCX4EBFCEPG",
+        "filename": "qa-h1-harbor.piper-ljspeech-high.16k.wav",
+        "status": "received",
+        "stage": "indexing",
+        "detail": null,
+        "searchable": true,
+        "original_path": "original/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+        "formal_path": "derivative/machine.v1.md",
+        "content_hash": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+        "source_version": 1,
+        "at": "2026-10-18T11:00:13.839Z",
+        "error_code": null,
+        "text": {
+          "status": "ready",
+          "reason": null,
+          "error_code": null,
+          "language": "en",
+          "machine": {
+            "engine": "google-native",
+            "provider": "google",
+            "model": "gemini-3.8-flash",
+            "runtime": "google-native",
+            "endpoint_host": "generativelanguage.googleapis.com",
+            "endpoint_path": "/v1beta/interactions",
+            "prompt_version": "google-native-transcribe-v1",
+            "model_version": "google-native:gemini-3.8-flash",
+            "content_variant": "machine",
+            "generated_at": "2026-10-18T11:00:13.699Z",
+            "audio_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+            "mime_type": "audio/wav",
+            "audio_bytes": 333332,
+            "request_bytes": 444689,
+            "latency_ms": 6084,
+            "usage": {
+              "total_tokens": 321,
+              "total_input_tokens": 287,
+              "input_tokens_by_modality": [
+                {
+                  "modality": "text",
+                  "tokens": 26
+                },
+                {
+                  "modality": "audio",
+                  "tokens": 261
+                }
+              ],
+              "total_output_tokens": 34,
+              "total_thought_tokens": 0,
+              "total_cached_tokens": 0,
+              "total_tool_use_tokens": 0
+            }
+          },
+          "timestamps": null
+        },
+        "keyword": {
+          "status": "searchable",
+          "reason": null,
+          "error_code": null
+        },
+        "semantic": {
+          "status": "disabled",
+          "reason": "vector_backend_unavailable",
+          "error_code": null,
+          "model": null,
+          "kinds": [],
+          "failed_kinds": []
+        }
+      },
+      {
+        "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+        "job_id": "intake_01M57APF57HXQWCBCX4EBFCEPG",
+        "filename": "qa-h1-harbor.piper-ljspeech-high.16k.wav",
+        "status": "received",
+        "stage": "indexing",
+        "detail": "semantic: disabled (vector_backend_unavailable)",
+        "searchable": true,
+        "original_path": "original/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+        "formal_path": "derivative/machine.v1.md",
+        "content_hash": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+        "source_version": 1,
+        "at": "2026-10-18T11:00:13.871Z",
+        "error_code": null,
+        "text": {
+          "status": "ready",
+          "reason": null,
+          "error_code": null,
+          "language": "en",
+          "machine": {
+            "engine": "google-native",
+            "provider": "google",
+            "model": "gemini-3.8-flash",
+            "runtime": "google-native",
+            "endpoint_host": "generativelanguage.googleapis.com",
+            "endpoint_path": "/v1beta/interactions",
+            "prompt_version": "google-native-transcribe-v1",
+            "model_version": "google-native:gemini-3.8-flash",
+            "content_variant": "machine",
+            "generated_at": "2026-10-18T11:00:13.699Z",
+            "audio_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+            "mime_type": "audio/wav",
+            "audio_bytes": 333332,
+            "request_bytes": 444689,
+            "latency_ms": 6084,
+            "usage": {
+              "total_tokens": 321,
+              "total_input_tokens": 287,
+              "input_tokens_by_modality": [
+                {
+                  "modality": "text",
+                  "tokens": 26
+                },
+                {
+                  "modality": "audio",
+                  "tokens": 261
+                }
+              ],
+              "total_output_tokens": 34,
+              "total_thought_tokens": 0,
+              "total_cached_tokens": 0,
+              "total_tool_use_tokens": 0
+            }
+          },
+          "timestamps": null
+        },
+        "keyword": {
+          "status": "searchable",
+          "reason": null,
+          "error_code": null
+        },
+        "semantic": {
+          "status": "disabled",
+          "reason": "vector_backend_unavailable",
+          "error_code": null,
+          "model": null,
+          "kinds": [],
+          "failed_kinds": []
+        }
+      },
+      {
+        "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+        "job_id": "intake_01M57APF57HXQWCBCX4EBFCEPG",
+        "filename": "qa-h1-harbor.piper-ljspeech-high.16k.wav",
+        "status": "extracted",
+        "stage": "done",
+        "detail": "semantic: disabled (vector_backend_unavailable)",
+        "searchable": true,
+        "original_path": "original/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+        "formal_path": "derivative/machine.v1.md",
+        "content_hash": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+        "source_version": 1,
+        "at": "2026-10-18T11:00:13.922Z",
+        "error_code": null,
+        "text": {
+          "status": "ready",
+          "reason": null,
+          "error_code": null,
+          "language": "en",
+          "machine": {
+            "engine": "google-native",
+            "provider": "google",
+            "model": "gemini-3.8-flash",
+            "runtime": "google-native",
+            "endpoint_host": "generativelanguage.googleapis.com",
+            "endpoint_path": "/v1beta/interactions",
+            "prompt_version": "google-native-transcribe-v1",
+            "model_version": "google-native:gemini-3.8-flash",
+            "content_variant": "machine",
+            "generated_at": "2026-10-18T11:00:13.699Z",
+            "audio_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+            "mime_type": "audio/wav",
+            "audio_bytes": 333332,
+            "request_bytes": 444689,
+            "latency_ms": 6084,
+            "usage": {
+              "total_tokens": 321,
+              "total_input_tokens": 287,
+              "input_tokens_by_modality": [
+                {
+                  "modality": "text",
+                  "tokens": 26
+                },
+                {
+                  "modality": "audio",
+                  "tokens": 261
+                }
+              ],
+              "total_output_tokens": 34,
+              "total_thought_tokens": 0,
+              "total_cached_tokens": 0,
+              "total_tool_use_tokens": 0
+            }
+          },
+          "timestamps": null
+        },
+        "keyword": {
+          "status": "searchable",
+          "reason": null,
+          "error_code": null
+        },
+        "semantic": {
+          "status": "disabled",
+          "reason": "vector_backend_unavailable",
+          "error_code": null,
+          "model": null,
+          "kinds": [],
+          "failed_kinds": []
+        }
+      }
+    ],
+    "latest": {
+      "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+      "job_id": "intake_01M57APF57HXQWCBCX4EBFCEPG",
+      "filename": "qa-h1-harbor.piper-ljspeech-high.16k.wav",
+      "status": "extracted",
+      "stage": "done",
+      "detail": "semantic: disabled (vector_backend_unavailable)",
+      "searchable": true,
+      "original_path": "original/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+      "formal_path": "derivative/machine.v1.md",
+      "content_hash": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+      "source_version": 1,
+      "at": "2026-10-18T11:00:13.922Z",
+      "error_code": null,
+      "text": {
+        "status": "ready",
+        "reason": null,
+        "error_code": null,
+        "language": "en",
+        "machine": {
+          "engine": "google-native",
+          "provider": "google",
+          "model": "gemini-3.8-flash",
+          "runtime": "google-native",
+          "endpoint_host": "generativelanguage.googleapis.com",
+          "endpoint_path": "/v1beta/interactions",
+          "prompt_version": "google-native-transcribe-v1",
+          "model_version": "google-native:gemini-3.8-flash",
+          "content_variant": "machine",
+          "generated_at": "2026-10-18T11:00:13.699Z",
+          "audio_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+          "mime_type": "audio/wav",
+          "audio_bytes": 333332,
+          "request_bytes": 444689,
+          "latency_ms": 6084,
+          "usage": {
+            "total_tokens": 321,
+            "total_input_tokens": 287,
+            "input_tokens_by_modality": [
+              {
+                "modality": "text",
+                "tokens": 26
+              },
+              {
+                "modality": "audio",
+                "tokens": 261
+              }
+            ],
+            "total_output_tokens": 34,
+            "total_thought_tokens": 0,
+            "total_cached_tokens": 0,
+            "total_tool_use_tokens": 0
+          }
+        },
+        "timestamps": null
+      },
+      "keyword": {
+        "status": "searchable",
+        "reason": null,
+        "error_code": null
+      },
+      "semantic": {
+        "status": "disabled",
+        "reason": "vector_backend_unavailable",
+        "error_code": null,
+        "model": null,
+        "kinds": [],
+        "failed_kinds": []
+      }
+    }
+  },
+  "machine": {
+    "engine": "google-native",
+    "provider": "google",
+    "model": "gemini-3.8-flash",
+    "runtime": "google-native",
+    "endpoint_host": "generativelanguage.googleapis.com",
+    "endpoint_path": "/v1beta/interactions",
+    "prompt_version": "google-native-transcribe-v1",
+    "model_version": "google-native:gemini-3.8-flash",
+    "content_variant": "machine",
+    "generated_at": "2026-10-18T11:00:13.699Z",
+    "audio_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+    "mime_type": "audio/wav",
+    "audio_bytes": 333332,
+    "request_bytes": 444689,
+    "latency_ms": 6084,
+    "usage": {
+      "total_tokens": 321,
+      "total_input_tokens": 287,
+      "input_tokens_by_modality": [
+        {
+          "modality": "text",
+          "tokens": 26
+        },
+        {
+          "modality": "audio",
+          "tokens": 261
+        }
+      ],
+      "total_output_tokens": 34,
+      "total_thought_tokens": 0,
+      "total_cached_tokens": 0,
+      "total_tool_use_tokens": 0
+    }
+  },
+  "content": {
+    "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+    "kind": "machine",
+    "path": "derivative/machine.v1.md",
+    "media_type": "text/markdown; charset=utf-8",
+    "content": "On April 9th 2027 the North Harbor Market opens at 6:45, and the ferry to Cedar Island carries 38 passengers.",
+    "formal_present": true
+  },
+  "formal": {
+    "was_absent": false,
+    "write": {
+      "status": 200,
+      "body": {
+        "reused_existing_formal": true
+      }
+    },
+    "read": {
+      "status": 200,
+      "body": {
+        "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+        "kind": "formal",
+        "path": "formal/FORMAL.md",
+        "media_type": "text/markdown; charset=utf-8",
+        "content": "<!-- formal version: human-edited. Reprocessing never overwrites this file. -->\n<!-- edited_by: qa-lg239-member -->\n\nOn April 9th 2027 the North Harbor Market opens at 6:45, and the ferry to Cedar Island carries 38 passengers.",
+        "formal_present": true
+      }
+    },
+    "machine_after": {
+      "status": 200,
+      "body": {
+        "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+        "kind": "machine",
+        "path": "derivative/machine.v1.md",
+        "media_type": "text/markdown; charset=utf-8",
+        "content": "On April 9th 2027 the North Harbor Market opens at 6:45, and the ferry to Cedar Island carries 38 passengers.",
+        "formal_present": true
+      }
+    }
+  },
+  "timings": {
+    "job_terminal_ms": 62
+  },
+  "privacy": {
+    "shared_source_count_before": 1,
+    "shared_source_count_after": 1,
+    "google_attempts_before": 1,
+    "google_attempts_after": 1
+  },
+  "cross_task": {
+    "task_a": "task_01M57ASQ31H989NZ792SVR4FAE",
+    "task_b": "task_01M57ASQAGQYEAKA5VJWGR9WWD",
+    "scoped_source": "source_01M57ASQJ8QQWEAHJQ37NXFSSR",
+    "task_b_list_contains_scoped_source": false,
+    "out_of_scope_message_status": 422
+  },
+  "disabled": {
+    "status": 200,
+    "english_asr": {
+      "revision": 6,
+      "content_hash": "882bfd14785e2354f1f3f677a6cdeb2c19066d0176fbdd12bc6b636b437491ae",
+      "provider": "google-native",
+      "runtime": "google-native",
+      "enabled": false,
+      "configured": true,
+      "available": false,
+      "reason": "disabled",
+      "language": "en",
+      "timestamps_supported": false,
+      "model": "gemini-3.8-flash",
+      "base_url": "https://generativelanguage.googleapis.com/v1beta",
+      "credential_configured": true,
+      "models": {},
+      "limits": {
+        "max_audio_seconds": null,
+        "max_audio_bytes": 10000000,
+        "max_request_bytes": 20000000,
+        "timeout_seconds": 180,
+        "max_concurrency": 1
+      }
+    },
+    "dialog_preview": "English transcription\n\nShared English audio only. Machine transcripts are provenance-labelled and never replace the human formal version. Choose Google native or the legacy EG2 + Reader provider. No TTS, download, install, training or test inference is performed here.\n\n×\n\nGoogle native settings saved at revision 6. Saving does not run transcription or prove that the provider, key or model is reachable.\n\ndisabled\nconfigured\nunavailable\nGoogle native\nAPI key configured\nEnglish\nword timestamps not available\n\nRevision 6 · runtime google-native · provider Google native · configured yes · available no · reason: Disabled by configuration\n\nDisabled. Shared audio is still stored and its original/direct-media branches remain independent; no transcript is generated.\n\nProvider\nGoogle native audio\nEG2 + Reader (legacy)\n\nGoogle native calls the Gemini audio API directly. The legacy provider requires local model assets and keeps its original limits.\n\nEnable English transcription\n\nYou can save these settings while English transcription is disabled or unavailable. Saving does not start transcription.\n\nModel\n\nDefault gemini-3.8-flash. The form never probes or switches models automatically.\n\nBase URL\n\nUse the native Google Generative Language API endpoint, not an OpenAI-compatible path.\n\nGoogle API key (write-only)\n\nAn API key is stored. It is never shown again; leave blank to keep it.\n\nLimits and runtime\nModel and endpoint\n\nCurrent limits: 9.5 MB audio · 19.1 MB request · 180 s timeout · concurrency 1\n\nCancel\nSave English transcription settings"
+  },
+  "receipt_branch": {
+    "source_id": "source_01M57APF4Q67D8XT97WE6JKRHA",
+    "job_id": "intake_01M57APF57HXQWCBCX4EBFCEPG",
+    "filename": "qa-h1-harbor.piper-ljspeech-high.16k.wav",
+    "status": "extracted",
+    "stage": "done",
+    "detail": "semantic: disabled (vector_backend_unavailable)",
+    "searchable": true,
+    "original_path": "original/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+    "formal_path": "derivative/machine.v1.md",
+    "content_hash": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+    "source_version": 1,
+    "at": "2026-10-18T11:00:13.922Z",
+    "error_code": null,
+    "text": {
+      "status": "ready",
+      "reason": null,
+      "error_code": null,
+      "language": "en",
+      "machine": {
+        "engine": "google-native",
+        "provider": "google",
+        "model": "gemini-3.8-flash",
+        "runtime": "google-native",
+        "endpoint_host": "generativelanguage.googleapis.com",
+        "endpoint_path": "/v1beta/interactions",
+        "prompt_version": "google-native-transcribe-v1",
+        "model_version": "google-native:gemini-3.8-flash",
+        "content_variant": "machine",
+        "generated_at": "2026-10-18T11:00:13.699Z",
+        "audio_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+        "mime_type": "audio/wav",
+        "audio_bytes": 333332,
+        "request_bytes": 444689,
+        "latency_ms": 6084,
+        "usage": {
+          "total_tokens": 321,
+          "total_input_tokens": 287,
+          "input_tokens_by_modality": [
+            {
+              "modality": "text",
+              "tokens": 26
+            },
+            {
+              "modality": "audio",
+              "tokens": 261
+            }
+          ],
+          "total_output_tokens": 34,
+          "total_thought_tokens": 0,
+          "total_cached_tokens": 0,
+          "total_tool_use_tokens": 0
+        }
+      },
+      "timestamps": null
+    },
+    "keyword": {
+      "status": "searchable",
+      "reason": null,
+      "error_code": null
+    },
+    "semantic": {
+      "status": "disabled",
+      "reason": "vector_backend_unavailable",
+      "error_code": null,
+      "model": null,
+      "kinds": [],
+      "failed_kinds": []
+    }
+  },
+  "transcript": "On April 9th 2027 the North Harbor Market opens at 6:45, and the ferry to Cedar Island carries 38 passengers.",
+  "transcript_sha256": "b36b3406b77ae2198dac2f5cdd81898f065dd5cc0078688db2206c0afbe735c0",
+  "source_original_on_disk": {
+    "relative_path": "sources/source_01M57APF4Q67D8XT97WE6JKRHA/original/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+    "bytes": 333332,
+    "sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740"
+  }
+}

@@ -1,0 +1,8 @@
+# Frontend dist reused from LG-238 integration worktree
+assets/index-BMHMEIYi.css 68298
+assets/index-DDU0pU3S.js 453854
+index.html 401
+d6afc650b47959f9c7bbd5baa6e56ad4fe166c49cfd53ff1cffa242fe98c0f0f  /home/yhvh/code/lightgravity-bot-worktrees/google-native-asr-integrated-20261018/frontend/dist/index.html
+86f5c93029055b2e65e7436a347be2d20cb38d44de1f02ad21b90c4037f2d40d  /home/yhvh/code/lightgravity-bot-worktrees/google-native-asr-integrated-20261018/frontend/dist/assets/index-BMHMEIYi.css
+eb94e4fcd02a54a34d7e8daf4e953d87e0e6cace1f6b0b4b759c109774e92ee4  /home/yhvh/code/lightgravity-bot-worktrees/google-native-asr-integrated-20261018/frontend/dist/assets/index-DDU0pU3S.js
+expected LG-238: index-DDU0pU3S.js 453.46 kB; index-BMHMEIYi.css 68.30 kB

@@ -1,0 +1,8 @@
+PASS continuation starts with exactly one real Google attempt already made
+PASS the single Google call used the native interactions host/path and no model imports
+PASS deferred intake job reached a real terminal success with one attempt and one ASR budget
+PASS source text branch is ready in English
+FAIL receipt has ready English Google-native machine provenance
+Error: CHECK FAILED: receipt has ready English Google-native machine provenance {"status":200}
+    at check (/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/scripts/qa_browser_resume.cjs:71:11)
+    at main (/home/yhvh/code/lightgravity-bot/probes/google-native-asr-20261018/lg239/scripts/qa_browser_resume.cjs:213:5)

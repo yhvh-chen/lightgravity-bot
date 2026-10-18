@@ -1,0 +1,21 @@
+date: 2026-10-18T22:15:17+11:00
+code HEAD: 93e682c0ce5e9b5549b86052513085949641b839
+=== typecheck ===
+
+> lightgravity-frontend@0.1.0 typecheck
+> tsc --noEmit
+
+=== build ===
+
+> lightgravity-frontend@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 128 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.40 kB │ gzip:   0.27 kB
+dist/assets/index-BMHMEIYi.css   68.30 kB │ gzip:   9.71 kB
+dist/assets/index-DDU0pU3S.js   453.46 kB │ gzip: 128.42 kB
+✓ built in 1.42s
