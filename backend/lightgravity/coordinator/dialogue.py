@@ -231,14 +231,10 @@ class AgentConfigForDialogue:
 def unavailable_reply(classification_intent: str) -> str:
     """Honest reply when no real model turn is possible (never faked)."""
 
-    if classification_intent == "bounded_read":
-        return (
-            "Read-only request unavailable: no coordinator model connection is configured. "
-            "Configure a default connection and credentials in Settings, then retry."
-        )
-    return (
-        "Unavailable: no default coordinator model connection or credentials. "
-        "Configure a default connection and save credentials in Settings, then retry."
+    prefix = "Read-only assistant unavailable. " if classification_intent == "bounded_read" else "Assistant unavailable. "
+    return prefix + (
+        "Configure a default coordinator connection and "
+        "credentials in Settings, then restart the server and retry."
     )
 
 

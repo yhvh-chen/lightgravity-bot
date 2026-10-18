@@ -64,7 +64,7 @@ def test_sync_responder_reports_unavailable_not_fabricated() -> None:
     reply = responder("你能做什么？", classification)
 
     assert reply == unavailable_reply(MessageIntent.ANSWER.value)
-    assert "Unavailable" in reply
+    assert "unavailable" in reply.lower()
 
 
 def test_bounded_read_unavailable_message_mentions_no_write_grant() -> None:

@@ -309,12 +309,9 @@ def _reject_private_attachment_refs(
 
 
 def _default_responder(content: str, classification: Classification) -> str:
-    if classification.intent == MessageIntent.BOUNDED_READ:
-        return (
-            "This is a bounded read-only request. No Task or Run will be created, "
-            "and write or command access is not granted."
-        )
-    return "I am LightGravity Bot. Describe your delivery goal, or provide a Task ID to check its status."
+    from .dialogue import unavailable_reply
+
+    return unavailable_reply(classification.intent.value)
 
 
 
@@ -477,10 +474,9 @@ class Coordinator:
             _responder_accepts_attachment_context(self._responder)
         )
         #: LG-054: whether a real direct-answer responder was injected.  When
-        #: ``False`` the private Personal channel honestly reports
+        #: ``False`` every direct-answer channel honestly reports
         #: ``unavailable`` instead of dressing the deterministic fallback up as
-        #: a model answer.  The legacy global/Task flows keep the existing
-        #: fallback behaviour unchanged.
+        #: a model answer.
         self._responder_configured = responder is not None
         self._verification = verification
         self._rework = rework
@@ -943,6 +939,28 @@ class Coordinator:
         self._idempotency.record(key, result.to_dict())
         return result
 
+    def _unavailable_answer(
+        self, *, conversation_id: str | None, task_id: str | None,
+        in_reply_to: str, classification: Classification, private: bool = False,
+    ) -> CoordinatorResult:
+        reply = _default_responder("", classification)
+        data: dict[str, Any] = {
+            "intent": classification.intent.value,
+            "unavailable": True,
+            "creates_task": False,
+            "creates_run": False,
+        }
+        if private:
+            data["private"] = True
+        self._persist_assistant_reply(
+            conversation_id=conversation_id, task_id=task_id,
+            in_reply_to=in_reply_to, reply=reply, selected=None, extra=data,
+        )
+        return CoordinatorResult(
+            kind="unavailable", reply=reply, conversation_id=conversation_id,
+            task_id=task_id, data=data,
+        )
+
     async def _route_global(
         self,
         *,
@@ -959,6 +977,12 @@ class Coordinator:
     ) -> CoordinatorResult:
         content = str(message.get("content", ""))
         if classification.next_action in {"direct", "bounded_read"}:
+            if not self._responder_configured:
+                return self._unavailable_answer(
+                    conversation_id=conversation_id, task_id=None,
+                    in_reply_to=str(message.get("message_id") or request_id),
+                    classification=classification, private=personal_private,
+                )
             reply = self._invoke_responder(
                 compose_prompt(content, selected),
                 classification,
@@ -1210,29 +1234,9 @@ class Coordinator:
         in_reply_to = str(message.get("message_id") or request_id)
         if classification.next_action in {"direct", "bounded_read"}:
             if not self._responder_configured:
-                reply = (
-                    "Personal chat is unavailable because no model is configured. "
-                    "Configure a model in Settings, or use Team for shared task "
-                    "delivery. Nothing was created."
-                )
-                self._persist_assistant_reply(
-                    conversation_id=conversation_id,
-                    task_id=None,
-                    in_reply_to=in_reply_to,
-                    reply=reply,
-                    selected=None,
-                    extra={"intent": "unavailable", "private": True},
-                )
-                return CoordinatorResult(
-                    kind="unavailable",
-                    reply=reply,
-                    conversation_id=conversation_id,
-                    data={
-                        "intent": classification.intent.value,
-                        "creates_task": False,
-                        "private": True,
-                        "unavailable": True,
-                    },
+                return self._unavailable_answer(
+                    conversation_id=conversation_id, task_id=None,
+                    in_reply_to=in_reply_to, classification=classification, private=True,
                 )
             reply = self._invoke_responder(
                 content,
@@ -1394,6 +1398,13 @@ class Coordinator:
                 queue_state=state,
             )
         elif classification.next_action in {"direct", "bounded_read"}:
+            if not self._responder_configured:
+                result = self._unavailable_answer(
+                    conversation_id=None, task_id=task_id,
+                    in_reply_to=message_id, classification=classification,
+                )
+                self._idempotency.record(key, result.to_dict())
+                return result
             data: dict[str, Any] = {
                 "intent": classification.intent.value,
                 "creates_run": False,
