@@ -82,6 +82,17 @@ def test_audio_input_element_uses_verified_content_shape():
     assert "data:audio/wav;base64," in part["input_audio"]["data"]
 
 
+def test_endpoint_keeps_a_base_that_already_carries_its_api_path():
+    # LG-229: bare hosts keep /v1; Google's OpenAI-compatible base is used as given.
+    assert OpenAICompatEmbeddingBackend(base_url="http://x:1/", model="m").endpoint == (
+        "http://x:1/v1/embeddings"
+    )
+    google = OpenAICompatEmbeddingBackend(
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai", model="m"
+    )
+    assert google.endpoint == "https://generativelanguage.googleapis.com/v1beta/openai/embeddings"
+
+
 def test_embed_parses_vector(monkeypatch):
     backend = OpenAICompatEmbeddingBackend(base_url="http://x:1", model="m")
     seen: dict = {}

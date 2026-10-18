@@ -47,7 +47,8 @@ if TYPE_CHECKING:  # pragma: no cover - typing only (avoids import cycle)
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
 
 #: Upstream hosts the product may forward credentials to (fixed allowlist).
-AUTHORIZED_UPSTREAM_HOSTS = frozenset({"api.deepseek.com"})
+#: LG-229: Google's OpenAI-compatible endpoint serves the online demo.
+AUTHORIZED_UPSTREAM_HOSTS = frozenset({"api.deepseek.com", "generativelanguage.googleapis.com"})
 
 #: The single authorized first-version upstream (DeepSeek chat completions).
 DEEPSEEK_UPSTREAM_URL = "https://api.deepseek.com/v1/chat/completions"
