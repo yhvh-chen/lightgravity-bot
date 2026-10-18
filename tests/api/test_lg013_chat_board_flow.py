@@ -89,6 +89,18 @@ async def test_delivery_request_through_global_creates_real_task(
     task_id = body.get("task_id")
     assert isinstance(task_id, str) and task_id.startswith("task_"), body
     assert body.get("queue_state") in {"queued", "not_queued"}
+    assert body["kind"] == "task"
+    assert body["data"]["creates_task"] is True
+    replay = await api.post("/api/v1/conversations/global/messages", json={
+        "message_id": "msg_lg013_delivery", "content": "实现一个小的日志导出功能",
+    })
+    assert replay.json() == body
+    history = (await api.get("/api/v1/conversations/global/messages")).json()["items"]
+    replies = [item["message"] for item in history
+               if item["message_id"] == "assistant:msg_lg013_delivery"]
+    assert len(replies) == 1
+    assert replies[0]["content"] == body["reply"]
+    assert replies[0]["data"]["task_id"] == task_id
 
     detail = await api.get(f"/api/v1/tasks/{task_id}")
     assert detail.status_code == 200, detail.text

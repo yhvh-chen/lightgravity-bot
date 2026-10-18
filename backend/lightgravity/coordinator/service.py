@@ -1020,7 +1020,7 @@ class Coordinator:
                     # acceptance criteria nor a workspace.  The program supplies
                     # both (a real authorized workspace under the configured
                     # root + a derived acceptance criterion) so the default rule
-                    # plan validates.  Explicit /tasks callers are unchanged.
+                    # plan validates. New task uses the same default policy.
                     default_delivery=True,
                     selected_trigger=self._trigger_binding(
                         str(message.get("message_id") or request_id), selected
@@ -1031,6 +1031,18 @@ class Coordinator:
             created = dict(created)
             created["conversation_id"] = conversation_id
             created["data"] = {"intent": classification.intent.value, "creates_task": True}
+            # Keep the creation receipt in the originating conversation, just
+            # like direct replies. The Task reservation precedes this append;
+            # a retry after interruption reuses the Task and deterministic row.
+            self._persist_assistant_reply(
+                conversation_id=conversation_id,
+                task_id=None,
+                in_reply_to=str(message.get("message_id") or request_id),
+                reply=str(created["reply"]),
+                selected=selected,
+                extra={**created["data"], "task_id": created["task_id"],
+                       "queue_state": created["queue_state"]},
+            )
             return self._result_from(created)
         if classification.next_action == "query":
             # LG-066: a global/Team status query is resolved *only* from an
@@ -1499,7 +1511,7 @@ class Coordinator:
     ) -> None:
         """Persist one assistant reply into the existing conversation SoT.
 
-        The direct / bounded-read reply is written with the *same* store the
+        The assistant reply is written with the *same* store the
         triggering user message used (global conversation log or the Task
         message log), so reopening the history shows the answer.  The additive
         selected-source bindings are stored under the message's ``data`` field

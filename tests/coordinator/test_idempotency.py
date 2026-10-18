@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
+import pytest
+
 from lightgravity.coordinator import Coordinator
 
 from coordinator_helpers import CONV, FakeExecutor, make_coordinator, message
@@ -30,6 +32,46 @@ async def test_global_delivery_message_creates_one_task(store) -> None:
     second = await coordinator.submit_global_message(CONV, msg)
     assert first.task_id == second.task_id
     assert len(coordinator.list_tasks()) == 1
+    records = coordinator.read_global_messages(CONV)
+    assert [r["message_id"] for r in records] == ["msg_delivery", "assistant:msg_delivery"]
+    reply = records[1]["message"]
+    assert reply["content"] == first.reply
+    assert reply["data"]["task_id"] == first.task_id
+    assert reply["data"]["creates_task"] is True
+    # Reopening from a fresh coordinator retains the receipt and the replay.
+    reopened = make_coordinator(store)
+    again = await reopened.submit_global_message(CONV, msg)
+    assert again.to_dict() == first.to_dict()
+    assert reopened.read_global_messages(CONV) == records
+
+
+@pytest.mark.parametrize("team_mode", [False, True])
+async def test_delivery_retry_after_reply_append_failure_is_durable_and_unique(store, monkeypatch, team_mode) -> None:
+    coordinator = make_coordinator(store, team_mode=team_mode)
+    msg = message("@bot Implement a login page", message_id="delivery-receipt-retry")
+    original = coordinator._persist_assistant_reply
+
+    def append_then_fail(**kwargs):
+        original(**kwargs)
+        raise RuntimeError("fixture: response interrupted after durable append")
+
+    monkeypatch.setattr(coordinator, "_persist_assistant_reply", append_then_fail)
+    with pytest.raises(RuntimeError, match="response interrupted"):
+        await coordinator.submit_global_message(CONV, msg)
+    assert len(coordinator.list_tasks()) == 1
+    reopened = make_coordinator(store, team_mode=team_mode)
+    result = await reopened.submit_global_message(CONV, msg)
+    replay = await reopened.submit_global_message(CONV, msg)
+    assert replay.to_dict() == result.to_dict()
+    assert len(reopened.list_tasks()) == 1
+    records = reopened.read_global_messages(CONV)
+    assert [r["message_id"] for r in records] == [
+        "delivery-receipt-retry", "assistant:delivery-receipt-retry",
+    ]
+    assert records[1]["message"]["content"] == result.reply
+    assert records[1]["message"]["data"]["task_id"] == result.task_id
+    if team_mode:
+        assert records[1]["message"]["author"]["kind"] == "bot"
 
 
 async def test_task_message_id_is_idempotent(store) -> None:
