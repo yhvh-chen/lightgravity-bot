@@ -15,6 +15,16 @@ updated: "2026-10-18"
 - 已存在或已被引用的编号不复用、不改号；发现冲突时后建方改号。
 - 当前归属：LG-201～210、LG-215～228 为 Tasks 工作区/性能/英文UX修复；LG-180、187、188、211～214 为资料摄取/ASR 团队。
 
+## Demo录制前修复批次（2026-10-18，已排期未派工）
+
+依据 [LG-233 摸底报告](probes/demo-readiness-20261018/REPORT.md)；脚本 [content/demo/script.md](content/demo/script.md)；排期 [docs/06 §11](docs/06-roadmap.md)。
+
+- [LG-248 Demo录制前修复批次](backlog/tasks/LG-248.md)（聚合门）
+- 后端：[LG-240](backlog/tasks/LG-240.md) · [LG-241](backlog/tasks/LG-241.md) · [LG-244](backlog/tasks/LG-244.md) · [LG-246](backlog/tasks/LG-246.md) · [LG-224](backlog/tasks/LG-224.md) · [LG-249 Task对话仅@bot](backlog/tasks/LG-249.md) · [LG-250 英文文案](backlog/tasks/LG-250.md)
+- 前端：LG-240前端 · [LG-242](backlog/tasks/LG-242.md) · [LG-243](backlog/tasks/LG-243.md)＋[LG-216](backlog/tasks/LG-216.md) · [LG-245](backlog/tasks/LG-245.md) · LG-250前端
+- 性能：[LG-208](backlog/tasks/LG-208.md)
+- [LG-251 串行集成](backlog/tasks/LG-251.md) → [LG-252 重跑摸底/录制前验收](backlog/tasks/LG-252.md)
+
 ## 英文UX闭环修复（2026-10-18，仅建任务）
 
 只读审计：配置齐备后仍有代码缺口卡住用户。只修英文，不处理中文。排期见 [docs/06 §10](docs/06-roadmap.md)。未派工。
