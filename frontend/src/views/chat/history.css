@@ -1,0 +1,107 @@
+/*
+ * LG-205 Team conversation history popover.  Additive to the shared Chat
+ * header and uses only design.md tokens.
+ */
+
+.lg-chat-history {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Right-side header actions: history icon immediately after the Team tab. */
+.lg-chat-history-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lg-space-1);
+  margin-left: auto;
+}
+
+.lg-chat-history__popover {
+  position: absolute;
+  top: calc(100% + var(--lg-space-1));
+  right: 0;
+  z-index: 20;
+  width: min(320px, calc(100vw - var(--lg-space-6)));
+  max-height: min(420px, 60vh);
+  overflow: auto;
+  padding: var(--lg-space-2);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+  background: var(--lg-color-panel);
+  box-shadow: var(--lg-shadow-overlay);
+}
+
+.lg-chat-history__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--lg-space-2);
+  padding: var(--lg-space-1) var(--lg-space-2) var(--lg-space-2);
+}
+
+.lg-chat-history__title {
+  margin: 0;
+  font-size: var(--lg-font-size-sm);
+  font-weight: 600;
+}
+
+.lg-chat-history__hint,
+.lg-chat-history__status {
+  margin: 0;
+  color: var(--lg-color-text-muted);
+  font-size: var(--lg-font-size-xs);
+}
+
+.lg-chat-history__status {
+  padding: var(--lg-space-1) var(--lg-space-2) var(--lg-space-2);
+}
+
+.lg-chat-history__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lg-chat-history__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--lg-space-2);
+  width: 100%;
+  min-height: 36px;
+  padding: var(--lg-space-1) var(--lg-space-2);
+  border: 0;
+  border-radius: var(--lg-radius-control);
+  background: transparent;
+  color: var(--lg-color-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.lg-chat-history__item:hover,
+.lg-chat-history__item:focus-visible {
+  background: var(--lg-color-surface-2);
+}
+
+.lg-chat-history__item[aria-current='page'] {
+  background: var(--lg-color-accent-soft);
+  color: var(--lg-color-accent-strong);
+}
+
+.lg-chat-history__item-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--lg-font-size-sm);
+}
+
+.lg-chat-history__time {
+  flex: none;
+  color: var(--lg-color-text-muted);
+  font-size: var(--lg-font-size-xs);
+}

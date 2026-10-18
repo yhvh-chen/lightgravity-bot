@@ -82,6 +82,7 @@ from .eventbus import BroadcastingStore, EventBroker
 from .events import build_events_router
 from .files import build_files_router
 from .health import router as health_router
+from .history import build_history_router
 from .notifications import build_notifications_router
 from .resources import build_resource_router
 from .search import build_search_router
@@ -391,6 +392,10 @@ def create_app(
     app.include_router(build_events_router(), prefix=API_PREFIX)
     app.include_router(build_notifications_router(), prefix=API_PREFIX)
     app.include_router(build_conversations_router(), prefix=API_PREFIX)
+    # LG-205: one read-only Team history projection over the same persisted
+    # global/Task message logs; no message body or Personal conversation is
+    # exposed.  Contract registration is reserved for final integration.
+    app.include_router(build_history_router(), prefix=API_PREFIX)
     # LG-126 integration: the read-only Team groups projection is mounted in
     # the real factory (not only in tests), so health may advertise
     # ``team_groups`` truthfully.  It derives from persisted facts and writes
