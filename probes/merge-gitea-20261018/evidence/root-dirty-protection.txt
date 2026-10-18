@@ -1,4 +1,4 @@
-date: 2026-10-18T22:18:55+11:00
+date: 2026-10-18T22:19:25+11:00
 backup dir: /home/yhvh/tmp/lgmerge-20261018/dirty-backup (0700; files 0600)
 === original tracked hashes (before integration) ===
 6c3edc93e482ad8d95b496d6f6371c29f27b42e9afdf75570db4679563ffa3ae  .gitignore
@@ -28,124 +28,14 @@ content-final-sha256.txt: OK
 all 26 current content files match final snapshot
 === original vs final content difference ===
 Files /home/yhvh/tmp/lgmerge-20261018/content-check/content/demo/script.md and content/demo/script.md differ
-=== root status at evidence time ===
-A  probes/google-native-asr-20261018/lg236/DELIVERY.md
-A  probes/google-native-asr-20261018/lg237/DELIVERY.md
-A  probes/google-native-asr-20261018/lg239/QA.md
-A  probes/google-native-asr-20261018/lg239/logs/api-setup.log
-A  probes/google-native-asr-20261018/lg239/logs/app.log
-A  probes/google-native-asr-20261018/lg239/logs/browser-resume.log
-A  probes/google-native-asr-20261018/lg239/logs/browser-run.log
-A  probes/google-native-asr-20261018/lg239/logs/cleanup.txt
-A  probes/google-native-asr-20261018/lg239/logs/google-transport-audit.jsonl
-A  probes/google-native-asr-20261018/lg239/logs/offline-boundary-pytest.log
-A  probes/google-native-asr-20261018/lg239/logs/request-counts-continuation.json
-A  probes/google-native-asr-20261018/lg239/logs/request-counts.json
-A  probes/google-native-asr-20261018/lg239/provenance/candidate-identity.txt
-A  probes/google-native-asr-20261018/lg239/provenance/frontend-dist.txt
-A  probes/google-native-asr-20261018/lg239/provenance/google-attempts-before-after.json
-A  probes/google-native-asr-20261018/lg239/provenance/import-guard.txt
-A  probes/google-native-asr-20261018/lg239/results.json
-A  probes/google-native-asr-20261018/lg239/runs/run1-preupload-harness-assertion/README.txt
-A  probes/google-native-asr-20261018/lg239/runs/run1-preupload-harness-assertion/browser-run.json
-A  probes/google-native-asr-20261018/lg239/runs/run1-preupload-harness-assertion/browser-run.log
-A  probes/google-native-asr-20261018/lg239/runs/run2-real-google-success-then-job-poll-harness-bug/README.txt
-A  probes/google-native-asr-20261018/lg239/runs/run2-real-google-success-then-job-poll-harness-bug/browser-run.json
-A  probes/google-native-asr-20261018/lg239/runs/run2-real-google-success-then-job-poll-harness-bug/browser-run.log
-A  probes/google-native-asr-20261018/lg239/runs/run2-real-google-success-then-job-poll-harness-bug/google-transport-call.jsonl
-A  probes/google-native-asr-20261018/lg239/runs/run2-real-google-success-then-job-poll-harness-bug/screenshots/admin-google-config-1024.png
-A  probes/google-native-asr-20261018/lg239/runs/run2-real-google-success-then-job-poll-harness-bug/screenshots/admin-google-config-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run2-real-google-success-then-job-poll-harness-bug/screenshots/admin-google-config-390.png
-A  probes/google-native-asr-20261018/lg239/runs/run2-real-google-success-then-job-poll-harness-bug/screenshots/admin-google-config-fake-key-saved-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run2-real-google-success-then-job-poll-harness-bug/screenshots/member-h1-draft-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run3-resume-receipt-shape-harness-bug/README.txt
-A  probes/google-native-asr-20261018/lg239/runs/run3-resume-receipt-shape-harness-bug/browser-resume.json
-A  probes/google-native-asr-20261018/lg239/runs/run3-resume-receipt-shape-harness-bug/browser-resume.log
-A  probes/google-native-asr-20261018/lg239/runs/run3-resume-receipt-shape-harness-bug/screenshots/admin-google-config-1024.png
-A  probes/google-native-asr-20261018/lg239/runs/run3-resume-receipt-shape-harness-bug/screenshots/admin-google-config-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run3-resume-receipt-shape-harness-bug/screenshots/admin-google-config-390.png
-A  probes/google-native-asr-20261018/lg239/runs/run3-resume-receipt-shape-harness-bug/screenshots/admin-google-config-fake-key-saved-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run3-resume-receipt-shape-harness-bug/screenshots/member-h1-draft-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run4-resume-chat-receipt-assertion-harness-bug/README.txt
-A  probes/google-native-asr-20261018/lg239/runs/run4-resume-chat-receipt-assertion-harness-bug/browser-resume.json
-A  probes/google-native-asr-20261018/lg239/runs/run4-resume-chat-receipt-assertion-harness-bug/browser-resume.log
-A  probes/google-native-asr-20261018/lg239/runs/run4-resume-chat-receipt-assertion-harness-bug/screenshots/admin-google-config-1024.png
-A  probes/google-native-asr-20261018/lg239/runs/run4-resume-chat-receipt-assertion-harness-bug/screenshots/admin-google-config-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run4-resume-chat-receipt-assertion-harness-bug/screenshots/admin-google-config-390.png
-A  probes/google-native-asr-20261018/lg239/runs/run4-resume-chat-receipt-assertion-harness-bug/screenshots/admin-google-config-fake-key-saved-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run4-resume-chat-receipt-assertion-harness-bug/screenshots/member-h1-draft-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/README.txt
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/browser-resume.json
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/browser-resume.log
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/screenshots/admin-google-config-1024.png
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/screenshots/admin-google-config-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/screenshots/admin-google-config-390.png
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/screenshots/admin-google-config-fake-key-saved-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/screenshots/member-h1-detail-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/screenshots/member-h1-draft-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/screenshots/member-h1-receipt-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/screenshots/member-history-1024.png
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/screenshots/member-history-390.png
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/screenshots/member-keyword-search-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run5-resume-disabled-wording-harness-bug/screenshots/member-personal-private-audio-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/README.txt
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/browser-resume-final.json
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/browser-resume.log
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/browser-run-preupload-and-real-upload.json
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/browser-run.log
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/offline-boundary-pytest.log
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/admin-google-config-1024.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/admin-google-config-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/admin-google-config-390.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/admin-google-config-fake-key-saved-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/admin-google-disabled-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/member-h1-detail-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/member-h1-draft-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/member-h1-receipt-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/member-history-1024.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/member-history-390.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/member-history-after-disable-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/member-keyword-search-1440.png
-A  probes/google-native-asr-20261018/lg239/runs/run6-final-success/screenshots/member-personal-private-audio-1440.png
-A  probes/google-native-asr-20261018/lg239/screenshots/admin-google-config-1024.png
-A  probes/google-native-asr-20261018/lg239/screenshots/admin-google-config-1440.png
-A  probes/google-native-asr-20261018/lg239/screenshots/admin-google-config-390.png
-A  probes/google-native-asr-20261018/lg239/screenshots/admin-google-config-fake-key-saved-1440.png
-A  probes/google-native-asr-20261018/lg239/screenshots/admin-google-disabled-1440.png
-A  probes/google-native-asr-20261018/lg239/screenshots/member-h1-detail-1440.png
-A  probes/google-native-asr-20261018/lg239/screenshots/member-h1-draft-1440.png
-A  probes/google-native-asr-20261018/lg239/screenshots/member-h1-receipt-1440.png
-A  probes/google-native-asr-20261018/lg239/screenshots/member-history-1024.png
-A  probes/google-native-asr-20261018/lg239/screenshots/member-history-390.png
-A  probes/google-native-asr-20261018/lg239/screenshots/member-history-after-disable-1440.png
-A  probes/google-native-asr-20261018/lg239/screenshots/member-keyword-search-1440.png
-A  probes/google-native-asr-20261018/lg239/screenshots/member-personal-private-audio-1440.png
-A  probes/google-native-asr-20261018/lg239/scripts/qa_browser.cjs
-A  probes/google-native-asr-20261018/lg239/scripts/qa_browser_resume.cjs
-A  probes/google-native-asr-20261018/lg239/scripts/restore_real_key.py
-A  probes/google-native-asr-20261018/lg239/scripts/setup_and_api_checks.py
-A  probes/google-native-asr-20261018/lg239/scripts/start_app.py
-A  probes/google-native-asr-20261018/lg239/traces/api-setup-and-secret-boundaries.json
-A  probes/google-native-asr-20261018/lg239/traces/browser-network-continuation-sanitized.json
-A  probes/google-native-asr-20261018/lg239/traces/browser-network-sanitized.json
-A  probes/google-native-asr-20261018/lg239/traces/browser-resume.json
-A  probes/google-native-asr-20261018/lg239/traces/browser-run.json
-A  probes/merge-gitea-20261018/BRANCHES.md
-A  probes/merge-gitea-20261018/DELIVERY.md
-A  probes/merge-gitea-20261018/PROMPT.md
-A  probes/merge-gitea-20261018/branches.tsv
-A  probes/merge-gitea-20261018/collect-branches.py
-A  probes/merge-gitea-20261018/evidence/backend-focused.txt
-A  probes/merge-gitea-20261018/evidence/content-concurrent-change.txt
-A  probes/merge-gitea-20261018/evidence/frontend-build.txt
-A  probes/merge-gitea-20261018/evidence/link-audit-committed-tree.txt
-A  probes/merge-gitea-20261018/evidence/link-audit.txt
-A  probes/merge-gitea-20261018/evidence/merge-tree.txt
-AM probes/merge-gitea-20261018/evidence/root-dirty-protection.txt
-A  probes/merge-gitea-20261018/evidence/secret-scan.txt
-A  probes/merge-gitea-20261018/evidence/services-and-root.txt
+=== root status after report commit ===
+ M probes/merge-gitea-20261018/BRANCHES.md
+ M probes/merge-gitea-20261018/DELIVERY.md
+ M probes/merge-gitea-20261018/branches.tsv
+ M probes/merge-gitea-20261018/evidence/root-dirty-protection.txt
 ?? content/
 === PM checkpoint commits ===
+2aab445 docs(probes): record Gitea merge delivery, branch inventory, QA evidence and verification
 8e4f9d8 docs(pm): checkpoint demo recording fix batch (concurrent PM update)
 595f5fa merge: record root PM checkpoint 5a5876f (reconciled in this branch)
 c770bce docs(pm): reconcile management checkpoint with accepted 1.22 candidate (Tasks/Google ASR, no usage limits)

@@ -1,5 +1,5 @@
 branch	tip	date	subject	merged	cherry_plus	cherry_minus	code_files	worktree	category
-main	8e4f9d8	2026-10-18 22:18:14 +1100	docs(pm): checkpoint demo recording fix batch (concurrent PM update)	True	0	0	0	/home/yhvh/code/lightgravity-bot	current main (this integration result)
+main	2aab445	2026-10-18 22:18:57 +1100	docs(probes): record Gitea merge delivery, branch inventory, QA evidence and verification	True	0	0	0	/home/yhvh/code/lightgravity-bot	current main (this integration result)
 integration/merge-gitea-20261018	93e682c	2026-10-18 22:14:45 +1100	docs(lg239): record independent QA result and local merge status	True	0	0	0	/home/yhvh/code/lightgravity-bot-worktrees/merge-gitea-20261018	this task's integration branch (ancestor of main)
 integration/google-native-asr-20261018	9592185	2026-10-18 21:52:45 +1100	docs(lg238): add integration delivery report	True	0	0	0	/home/yhvh/code/lightgravity-bot-worktrees/google-native-asr-integrated-20261018	merged into main (historical; retained)
 qa/google-native-asr-20261018	ecda49f	2026-10-18 21:52:01 +1100	feat(lg238): assemble Google native ASR candidate 1.22.0	True	0	0	0	/home/yhvh/code/lightgravity-bot-worktrees/google-native-asr-qa-20261018	merged into main (historical; retained)

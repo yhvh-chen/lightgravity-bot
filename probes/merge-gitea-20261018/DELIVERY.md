@@ -104,3 +104,9 @@ Repository: <http://192.168.8.50:3000/admin/lightgravity-bot>
 ## 9. Handoff
 
 The main agent can close the integration task using this report. The repository `main` is the actual merge result; the public service is intentionally unchanged at 1.20.0. Deployment, restart, release, or further product action still require separate explicit authorization.
+
+## 10. Post-push verification
+
+- Non-force push result: `refs/heads/main` `164990f..2aab445`; new branch `integration/google-native-asr-20261018` at `9592185`. See [gitea-push.txt](evidence/gitea-push.txt).
+- `git ls-remote origin`: `main` = `2aab4459f134241c85c0b9efdbe4f113d3b8e651`; candidate = `95921857a845bcaaf03c13496ab90b2a71665016`; both matched local at that moment. See [gitea-verify.txt](evidence/gitea-verify.txt).
+- Any subsequent commit containing this report/evidence is **docs-only**; it does not change the product tree (`ecda49f` identity remains). The final remote HEAD is the latest docs-only report commit, a descendant of `2aab445`.

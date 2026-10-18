@@ -1,0 +1,10 @@
+remote:
+remote: Create a new pull request for 'integration/google-native-asr-20261018':
+remote:   http://192.168.8.50:3000/admin/lightgravity-bot/pulls/new/integration/google-native-asr-20261018
+remote:
+remote: .. Processing 2 references
+remote: Processed 2 references in total
+To http://192.168.8.50:3000/admin/lightgravity-bot.git
+  refs/heads/main:refs/heads/main  164990f..2aab445
+*  refs/heads/integration/google-native-asr-20261018:refs/heads/integration/google-native-asr-20261018  [new branch]
+Done
