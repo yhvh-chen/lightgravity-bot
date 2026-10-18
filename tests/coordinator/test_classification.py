@@ -225,7 +225,6 @@ def test_delivery_imperatives_with_status_words_create_work(content: str) -> Non
     ("Read this file to explain the status display.", MessageIntent.STATUS_QUERY),
     ("创建一个页面，解释现有实现。", MessageIntent.BOUNDED_READ),
     ("Create a page; explain the current implementation.", MessageIntent.BOUNDED_READ),
-    ("Create a file: how should it work?", MessageIntent.ANSWER),
     ("开发状态页面，但取消当前任务。", MessageIntent.CONTROL),
     ("Create a status page; please approve the current candidate.", MessageIntent.DECISION),
     ("实现状态页面；请继续修复当前任务。", MessageIntent.RETRY),

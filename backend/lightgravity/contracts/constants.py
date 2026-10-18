@@ -3,6 +3,26 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
+#: docs/08 §27: 1.26.0 (2026-10-19) is the final native-defect integration
+#: candidate.  Additive: ``PATCH /settings`` may return optional
+#: ``runtime_applied``/``runtime_message`` when coordinator/reviewer defaults
+#: are supplied (200 still means saved; true only means runtime assembly
+#: completed, not that credentials/network/model execution were proven), the
+#: recruiter panel presentation is frontend-only, and failed-extraction
+#: artifacts are excluded from selectable context (LG-267).  Intentional
+#: changes: coordinator/reviewer defaults now take effect for subsequent
+#: dialogue/new Runs without a restart (existing Runs keep their frozen
+#: reviewer), a new legal Task transition ``waiting_user -> recovery_required``
+#: parks interrupted runs conservatively, recovery write failures emit the
+#: existing ``error.recorded`` event with payload code
+#: ``recovery_transition_failed``, and idle/recovery controls only treat a stop
+#: as confirmed with persisted cleanup or authoritative adapter confirmation
+#: (an empty graph or missing refs is not stop proof).  LG-267 also closes the
+#: 1.25 ``context_selectable`` false positive, keeping failed artifacts
+#: previewable but not selectable.  No new endpoint, request field, cookie,
+#: error code, entity enum value or evidence-replay path is added.  Isolated
+#: local candidate: not deployed, and independent QA is not performed.
+#:
 #: docs/08 §26: 1.25.0 (2026-10-19) is the material follow-up integration
 #: candidate.  It additively registers the read-time ``source.reprocess``
 #: routing/availability projection, ``source.formal.origin``, and
@@ -255,7 +275,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.25.0"
+CONTRACT_VERSION = "1.26.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

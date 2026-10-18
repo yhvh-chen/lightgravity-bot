@@ -160,7 +160,9 @@ _DELIVERY_SCOPE_PREFIX = re.compile(
     r"(?:在(?:(?:本次|当前|这个|该|已获准|获准|已授权|授权|指定|允许|批准|的|本|任务|项目|共享|团队)\s*)*"
     r"(?:工作区|工作目录|仓库|目录|范围)(?:内|中)?\s*|"
     r"(?:in|within)\s+(?:(?:the|this|current|authorized|approved|designated|task|project|shared|team)\s+)*"
-    r"(?:workspace|working\s+directory|repository|directory|scope)\s*)$"
+    r"(?:workspace|working\s+directory|repository|directory|scope)\s*|"
+    r"(?:using|from|based\s+on)\s+(?:the\s+)?"
+    r"(?:selected|provided|attached)\s+(?:sources|materials|files|context)\s*,?\s*)$"
 )
 _ACTION_TARGET = re.compile(
     r"(?:(?:这个|那个|当前|本次|该|此|正在运行的|运行中的|修改|修复|开发|交付)\s*)*"
@@ -256,6 +258,9 @@ _DELIVERY = (
     "implement",
     "modify",
     "create",
+    "write",
+    "draft",
+    "produce",
     "add ",
     "fix ",
     "build ",
@@ -291,10 +296,12 @@ def _starts_delivery_request(text: str) -> bool:
 
     Reuse command prefixes and keyword boundaries, allowing a bounded work
     scope modifier before the verb. A status query mentioning "do not create"
-    must remain a query. Questions and bounded reads are checked separately
-    before deferring status routing.
+    must remain a query. A trailing request for the meaning of the command
+    itself is also a question, rather than an instruction to execute it.
     """
 
+    if re.search(r"(?:是什么意思|是什么含义)", text):
+        return False
     for keyword in _DELIVERY:
         matcher = _matcher(keyword) or re.compile(re.escape(keyword))
         for match in matcher.finditer(text):
@@ -318,7 +325,6 @@ def classify_message(content: str) -> Classification:
     delivery_request = (
         _starts_delivery_request(delivery_text)
         and not _hit(text, _BOUNDED_READ)
-        and not _hit(text, _QUESTION)
     )
     for intent, keywords in (
         (MessageIntent.CONTROL, _CONTROL),
@@ -342,7 +348,7 @@ def classify_message(content: str) -> Classification:
             )
 
     conflicting_delivery = no_new_task and _hit(delivery_text, _DELIVERY) and (
-        any(_starts_delivery_request(clause.strip()) and not _hit(clause, _QUESTION)
+        any(_starts_delivery_request(clause.strip())
             for clause in _CLAUSE_BOUNDARY.split(delivery_text))
         or not (_hit(text, _QUESTION) or _hit(text, _BOUNDED_READ))
     )
@@ -366,7 +372,15 @@ def classify_message(content: str) -> Classification:
             note="read-only ceiling; no write/command tools",
         )
 
-    # A question is answered directly even if it contains a delivery verb.
+    # An initial delivery imperative wins over question words in its content.
+    # A question merely mentioning a delivery verb still takes the direct path.
+    if delivery_request:
+        return Classification(
+            intent=MessageIntent.DELIVERY,
+            next_action="create_task",
+            matched=_hit(delivery_text, _DELIVERY),
+        )
+
     if _hit(text, _QUESTION):
         return Classification(
             intent=MessageIntent.ANSWER,

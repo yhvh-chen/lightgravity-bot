@@ -1092,7 +1092,7 @@ class SourceService:
         body = formal
         if body is None:
             layer = "machine"
-            body = content.read_machine_markdown(source_version)
+            body = content.read_usable_machine_markdown(source_version)
         return (layer, body, source_version, content_hash)
 
     def selection_scope_ok(self, record: SourceRecord, task_ref: str | None) -> bool:

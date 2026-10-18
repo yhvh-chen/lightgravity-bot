@@ -29,12 +29,15 @@ agency_source:
   sha256: 80f83d40f631134ab458247433b616e8fbdfdc0c7bdc568e356d4e6902385359
   license: MIT
   copyright: Copyright (c) 2025 AgentLand Contributors
+  packaged_sha256: f46f82a37811d83566d0afe664bb74402f32d6a33468db85b2377132afc63c3b
+  packaged_blob_sha: 2252f106331de36f7efb2a7d8f799e50715f971a
+  local_adaptation: Private-key header examples replaced with non-key placeholders (LG270); original sha256/blob_sha retained.
 seed:
   library: agency-agents
   role_id: security-senior-secops
   version: 1
   source_commit: 652b2692f8d8ec2b1f1a38e559073e287dfdc469
-  content_hash: 52e69a7a4ed19d59779d3f9fd021885540c96a2597fafc7e69b6e4ade55d55f9
+  content_hash: 584dca74d17cbdfbc4134536029a6f587b33a01f7cb022d5cd90a4c63357ff0b
   update_available: false
   available_content_hash:
 upstream:
@@ -89,9 +92,9 @@ mysql://user:password@host
 redis://:password@host
 
 # Private key material
------BEGIN RSA PRIVATE KEY-----
------BEGIN EC PRIVATE KEY-----
------BEGIN PGP PRIVATE KEY-----
+<ILLUSTRATIVE_HEADER: RSA PRIVATE KEY>
+<ILLUSTRATIVE_HEADER: EC PRIVATE KEY>
+<ILLUSTRATIVE_HEADER: PGP PRIVATE KEY>
 
 # Cloud provider credentials
 AKIA[0-9A-Z]{16}          # AWS Access Key ID pattern
