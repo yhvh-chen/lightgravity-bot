@@ -79,8 +79,15 @@ def test_frozen_constants() -> None:
     # additive source.reprocess/formal.origin/preserved_existing_body, audio as
     # one bounded deferred ASR job, 503/409 pre-write guards, preserved
     # body/index on failure; LG-223 first human formal body; no new endpoint,
-    # request field, error code or enum).
-    assert CONTRACT_VERSION == "1.25.0"
+    # request field, error code or enum) -> 1.26.0 (final native-defect
+    # integration: LG-265 optional runtime_applied/runtime_message on settings
+    # saves with immediate coordinator/reviewer default wiring, LG-263 legal
+    # waiting_user -> recovery_required parking plus recovery_transition_failed
+    # diagnostics and stricter stop confirmation, LG-264 frontend Recruited
+    # details, LG-267 structured-extraction body usability that keeps failed
+    # artifacts previewable but not selectable; no new endpoint/error code/entity
+    # enum value).
+    assert CONTRACT_VERSION == "1.26.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 
