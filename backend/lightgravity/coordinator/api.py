@@ -20,6 +20,7 @@ from typing import Any
 from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
 
+from ..contracts import AppError, ErrorCode
 from .service import Coordinator
 
 
@@ -61,6 +62,23 @@ class AppendMessageRequest(BaseModel):
     #: Additive optional selected-material refs (docs/08 §6.6.1 / docs/10).
     #: Opaque ``{source_id, source_version?, content_hash?}``; ≤3 entries.
     selected_sources: list[dict[str, Any]] | None = None
+    #: Additive LG-144 receipt-only message refs (docs/08 §20.3).  Only
+    #: ``source_id`` is read; the server replaces it with a normalized snapshot.
+    source_refs: list[dict[str, Any]] | None = None
+
+
+def _source_refs_service(request: Request) -> Any:
+    """Resolve the app source service used for message ``source_refs``.
+
+    The provider is installed by ``create_app`` and shares the store the
+    sources router/worker read.  Without it the additive field is unavailable
+    rather than silently dropped.
+    """
+
+    provider = getattr(request.app.state, "source_service_provider", None)
+    if provider is not None:
+        return provider()
+    return getattr(request.app.state, "source_service", None)
 
 
 def build_router(coordinator: Coordinator) -> APIRouter:
@@ -114,6 +132,22 @@ def build_router(coordinator: Coordinator) -> APIRouter:
             message["resource_proposal"] = payload.resource_proposal
         if payload.selected_sources is not None:
             message["selected_sources"] = payload.selected_sources
+        if payload.source_refs is not None:
+            service = _source_refs_service(request)
+            if service is None:
+                raise AppError(
+                    ErrorCode.CAPABILITY_UNAVAILABLE,
+                    "message source_refs are not available on this server",
+                    details={"field": "source_refs", "capability": "material_intake_v2"},
+                )
+            # Validate against the authoritative file SoT and persist only the
+            # server-normalized snapshot.  The client's version/hash/scope are
+            # never trusted, and ``source_refs`` is never model context.
+            normalized = service.resolve_message_source_refs(
+                task_ref=task_id, refs=payload.source_refs
+            )
+            if normalized:
+                message["source_refs"] = normalized
         result = await coordinator.submit_task_message(task_id, message)
         return result.to_dict()
 

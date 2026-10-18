@@ -19,25 +19,50 @@
  *   refused by the backend and surfaced, not hidden.
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { ApiError } from '../../api/client'
-import type { SourceContentView, SourceView, SourcesApi } from '../../api/sources'
+import type { EnglishAsrModelRef } from '../../api/englishAsr'
+import {
+  isSourceReceiptV2,
+  type JobView,
+  type SourceContentView,
+  type SourceReceipt,
+  type SourceReceiptEntry,
+  type SourceTextBranch,
+  type SourceTextMachineProvenance,
+  type SourceView,
+  type SourcesApi,
+} from '../../api/sources'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
 import { MarkdownViewer } from '../../components/MarkdownViewer'
 import { StatusBadge } from '../../components/StatusBadge'
+import {
+  MaterialBranchList,
+  receiptIsTerminal,
+} from '../chat/ChatMaterialIntake'
 
 export interface FilesMaterialsPanelProps {
   api: SourcesApi
   taskRef: string | null
   /** A source id to open immediately (deep link from Chat hits/attachments). */
   openSourceId?: string | null
+  /** docs/08 §20.2 gate; false keeps legacy 1.18 behavior only. */
+  materialIntakeV2?: boolean
+  /** Media badge path; actual kinds still come from the source receipt. */
+  mediaDirectEmbedding?: boolean
 }
 
 type ItemStatus = 'loading' | 'ready' | 'error'
 
-export function FilesMaterialsPanel({ api, taskRef, openSourceId }: FilesMaterialsPanelProps) {
+export function FilesMaterialsPanel({
+  api,
+  taskRef,
+  openSourceId,
+  materialIntakeV2 = false,
+  mediaDirectEmbedding = false,
+}: FilesMaterialsPanelProps) {
   const [sources, setSources] = useState<SourceView[]>([])
   const [listStatus, setListStatus] = useState<ItemStatus>('loading')
   const [listError, setListError] = useState<ApiError | null>(null)
@@ -51,6 +76,29 @@ export function FilesMaterialsPanel({ api, taskRef, openSourceId }: FilesMateria
     null,
   )
   const [refreshToken, setRefreshToken] = useState(0)
+  const [receipt, setReceipt] = useState<SourceReceipt | null>(null)
+  const [receiptError, setReceiptError] = useState<ApiError | null>(null)
+  const [job, setJob] = useState<JobView | null>(null)
+  const [controlPending, setControlPending] = useState(false)
+  const [originalUrl, setOriginalUrl] = useState<string | null>(null)
+  const [originalError, setOriginalError] = useState<string | null>(null)
+  const originalUrlRef = useRef<string | null>(null)
+  const [machineContent, setMachineContent] = useState<SourceContentView | null>(null)
+  const [machineStatus, setMachineStatus] = useState<
+    'idle' | 'loading' | 'ready' | 'unavailable' | 'error'
+  >('idle')
+  const [machineError, setMachineError] = useState<ApiError | null>(null)
+
+  const receiptItem = receipt?.latest ?? receipt?.items[0] ?? null
+  const receiptText: SourceTextBranch | null = receiptItem?.text ?? null
+  const transcriptDerivative = selected ? findTranscriptDerivative(selected) : null
+  const machineEvidence = Boolean(
+    selected &&
+      ((selected.language === 'en' && selected.text_status === 'ready') ||
+        (receiptText?.status === 'ready' &&
+          receiptText?.language === 'en' &&
+          Boolean(receiptText?.machine))),
+  )
 
   // Load the authorized source list for the current scope.
   useEffect(() => {
@@ -105,6 +153,147 @@ export function FilesMaterialsPanel({ api, taskRef, openSourceId }: FilesMateria
     if (openSourceId) void openSource(openSourceId)
   }, [openSourceId, openSource])
 
+  // Authoritative receipt projection. Poll with bounded exponential backoff
+  // while any branch is still progressing; always stop on terminal and clean
+  // the timer/abort on unmount, scope change or selection change.
+  useEffect(() => {
+    if (!selected || !materialIntakeV2) {
+      setReceipt(null)
+      setReceiptError(null)
+      setJob(null)
+      return
+    }
+    const controller = new AbortController()
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | null = null
+    let attempts = 0
+    const sourceId = selected.source_id
+
+    const read = async () => {
+      if (cancelled) return
+      try {
+        const next = await api.getReceipt(sourceId, controller.signal)
+        if (cancelled || controller.signal.aborted) return
+        setReceipt(next)
+        setReceiptError(null)
+        const jobId = intakeJobId(next)
+        let observedJob: JobView | null = null
+        if (jobId && api.getIntakeJob) {
+          observedJob = await api.getIntakeJob(jobId, controller.signal).catch(() => null)
+          if (!cancelled && !controller.signal.aborted) setJob(observedJob)
+        } else {
+          setJob(null)
+        }
+        const jobRunning = jobId ? jobViewIsRunning(observedJob) : false
+        if (receiptIsTerminal(next) && !jobRunning) return
+        attempts += 1
+        if (attempts >= 12) return
+        const delay = Math.min(1000 * 2 ** Math.min(attempts - 1, 4), 15000)
+        timer = setTimeout(() => void read(), delay)
+      } catch (cause) {
+        if (cancelled || controller.signal.aborted) return
+        setReceiptError(asApiError(cause))
+      }
+    }
+
+    void read()
+    return () => {
+      cancelled = true
+      controller.abort()
+      if (timer) clearTimeout(timer)
+    }
+  }, [api, selected, materialIntakeV2, refreshToken])
+
+  // Machine English transcript read path: the existing authorized content JSON
+  // endpoint with `kind=machine`. It is fetched only when the source/receipt
+  // proves a ready English machine transcript and the preview currently shows
+  // the formal (formal-first) body. Failure never hides the original/formal.
+  useEffect(() => {
+    const controller = new AbortController()
+    let cancelled = false
+    setMachineContent(null)
+    setMachineError(null)
+    const sourceId = selected?.source_id
+    if (!sourceId || !machineEvidence) {
+      setMachineStatus('idle')
+      return () => controller.abort()
+    }
+    if (content && content.kind === 'machine') {
+      setMachineContent(content)
+      setMachineStatus('ready')
+      return () => controller.abort()
+    }
+    if (contentStatus !== 'ready' || content?.kind !== 'formal') {
+      setMachineStatus('idle')
+      return () => controller.abort()
+    }
+    setMachineStatus('loading')
+    api
+      .getContent(sourceId, 'machine', controller.signal)
+      .then((view) => {
+        if (cancelled || controller.signal.aborted) return
+        setMachineContent(view)
+        setMachineStatus('ready')
+      })
+      .catch((cause: unknown) => {
+        if (cancelled || controller.signal.aborted) return
+        const error = asApiError(cause)
+        setMachineError(error)
+        setMachineStatus(error.code === 'not_found' ? 'unavailable' : 'error')
+      })
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
+  }, [
+    api,
+    selected?.source_id,
+    selected?.source_version,
+    machineEvidence,
+    content,
+    contentStatus,
+  ])
+
+  // Authorized original preview for image/audio (or an honest download-only
+  // state). Data comes from the protected download endpoint, never a local path.
+  useEffect(() => {
+    if (originalUrlRef.current) {
+      URL.revokeObjectURL(originalUrlRef.current)
+      originalUrlRef.current = null
+    }
+    setOriginalUrl(null)
+    setOriginalError(null)
+    if (!selected) return
+    const media = originalMediaType(selected)
+    if (!media.startsWith('image/') && !media.startsWith('audio/')) return
+    const controller = new AbortController()
+    let cancelled = false
+    const sourceId = selected.source_id
+    api
+      .downloadSource(sourceId, 'original', controller.signal)
+      .then((result) => {
+        if (cancelled) return
+        const url = URL.createObjectURL(result.blob)
+        originalUrlRef.current = url
+        setOriginalUrl(url)
+      })
+      .catch((cause: unknown) => {
+        if (cancelled || controller.signal.aborted) return
+        setOriginalError(asApiError(cause).message)
+      })
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
+  }, [api, selected])
+
+  useEffect(() => {
+    return () => {
+      if (originalUrlRef.current) URL.revokeObjectURL(originalUrlRef.current)
+      originalUrlRef.current = null
+    }
+  }, [])
+
   const saveFormal = useCallback(async () => {
     if (!selected || !content) return
     setStatus(null)
@@ -138,10 +327,25 @@ export function FilesMaterialsPanel({ api, taskRef, openSourceId }: FilesMateria
     if (!selected) return
     setStatus(null)
     try {
-      await api.sourceAction(selected.source_id, { action: 'reprocess' })
+      const result = await api.sourceAction(selected.source_id, {
+        action: 'reprocess',
+        expected_revision: selected.revision,
+      })
+      // A successful HTTP request may contain a failed/partial extraction.
+      // Only the extraction's terminal success earns a success notice.
+      const outcome = typeof result.status === 'string' ? result.status : 'unknown'
+      const reason = typeof result.reason === 'string' && result.reason ? ` ${result.reason}` : ''
       setStatus({
-        kind: 'success',
-        text: 'Reprocess started into a new machine derivative (formal version preserved).',
+        kind: outcome === 'succeeded' ? 'success' : outcome === 'failed' ? 'error' : 'neutral',
+        text:
+          (outcome === 'succeeded'
+            ? 'Reprocess completed;'
+            : outcome === 'failed'
+              ? `Reprocess failed:${reason || ' extraction failed'};`
+              : outcome === 'partial'
+                ? `Reprocess partially completed;${reason}`
+                : `Reprocess status: ${outcome};${reason}`) +
+          ' original and formal version preserved.',
       })
       setRefreshToken((value) => value + 1)
       await openSource(selected.source_id)
@@ -185,6 +389,69 @@ export function FilesMaterialsPanel({ api, taskRef, openSourceId }: FilesMateria
       })
     }
   }, [api, openSource, selected])
+
+  const refreshControlState = useCallback(async () => {
+    setRefreshToken((value) => value + 1)
+    if (selected) await openSource(selected.source_id)
+  }, [openSource, selected])
+
+  const cancelIntake = useCallback(async () => {
+    if (!selected || !api.intakeJobAction) return
+    const jobId = receipt ? intakeJobId(receipt) : null
+    if (!jobId) {
+      setStatus({ kind: 'error', text: 'No intake job id is available to cancel.' })
+      return
+    }
+    setControlPending(true)
+    setStatus(null)
+    try {
+      const result = await api.intakeJobAction(jobId, { action: 'cancel', confirmed: false })
+      if (result.status === 'cancelled' && result.confirmed) {
+        setStatus({ kind: 'success', text: 'Intake cancelled after confirmed stop.' })
+      } else {
+        setStatus({
+          kind: 'neutral',
+          text: 'Cancellation requested; the job has NOT stopped yet. Status stays unchanged until stop is confirmed.',
+        })
+      }
+      await refreshControlState()
+    } catch (cause) {
+      const error = asApiError(cause)
+      setStatus({
+        kind: error.code === 'cancellation_unconfirmed' ? 'neutral' : 'error',
+        text:
+          error.code === 'cancellation_unconfirmed'
+            ? 'Cancellation requested; the job is still running. Stop is not confirmed yet.'
+            : `Cancel failed: ${error.message}`,
+      })
+    } finally {
+      setControlPending(false)
+    }
+  }, [api, receipt, refreshControlState, selected])
+
+  const retryIntake = useCallback(async () => {
+    if (!selected || !api.intakeJobAction) return
+    const jobId = receipt ? intakeJobId(receipt) : null
+    if (!jobId) {
+      setStatus({ kind: 'error', text: 'No intake job id is available to retry.' })
+      return
+    }
+    setControlPending(true)
+    setStatus(null)
+    try {
+      const result = await api.intakeJobAction(jobId, { action: 'retry' })
+      setStatus({
+        kind: 'success',
+        text: `Retry accepted; job status is ${result.status}. Formal version is untouched.`,
+      })
+      await refreshControlState()
+    } catch (cause) {
+      const error = asApiError(cause)
+      setStatus({ kind: 'error', text: `Retry failed: ${error.message}` })
+    } finally {
+      setControlPending(false)
+    }
+  }, [api, receipt, refreshControlState, selected])
 
   const download = useCallback(
     async (kind: 'original' | 'formal' | 'machine') => {
@@ -322,7 +589,93 @@ export function FilesMaterialsPanel({ api, taskRef, openSourceId }: FilesMateria
                   <dt>Scope</dt>
                   <dd>{selected.scope.task_ref ?? selected.scope.inbox_ref ?? 'global'}</dd>
                 </div>
+                <div>
+                  <dt>Intake</dt>
+                  <dd>
+                    {selected.intake_mode ?? 'sync'}
+                    {mediaDirectEmbedding && receipt && isSourceReceiptV2(receipt)
+                      ? mediaKindLabel(receipt)
+                      : ''}
+                  </dd>
+                </div>
               </dl>
+
+              {materialIntakeV2 ? (
+                <section className="lg-files-materials__receipt" aria-label="Intake receipt">
+                  <div className="lg-files-materials__receipt-head">
+                    <span className="lg-files__section-title">Processing receipt</span>
+                    {receipt && isSourceReceiptV2(receipt) && receipt.partial ? (
+                      <StatusBadge kind="warning">Partial</StatusBadge>
+                    ) : null}
+                    {job ? (
+                      <>
+                        <StatusBadge kind={jobTone(job.status)}>
+                          job: {job.status}
+                        </StatusBadge>
+                        <span className="lg-files__note">
+                          stage {job.stage} · attempt {job.attempt ?? 'unknown'}
+                          {job.waiting_reason ? ` · waiting: ${job.waiting_reason}` : ''}
+                        </span>
+                      </>
+                    ) : null}
+                  </div>
+                  {receipt && isSourceReceiptV2(receipt) ? (
+                    <MaterialBranchList item={receipt.latest ?? receipt.items[0] ?? null} />
+                  ) : receiptError ? (
+                    <p className="lg-files__status lg-files__status--error" role="alert">
+                      Receipt unavailable: {receiptError.message}
+                    </p>
+                  ) : (
+                    <p className="lg-files__note">
+                      Reading receipt v2… no branch success is inferred while it is unavailable.
+                    </p>
+                  )}
+                  {receipt && isSourceReceiptV2(receipt) && receipt.partial ? (
+                    <p className="lg-files__note">
+                      Some processing steps did not succeed; successful branches remain usable.
+                    </p>
+                  ) : null}
+                  {job?.fail_reason ? (
+                    <p className="lg-files__note">Job failure: {job.fail_reason}</p>
+                  ) : null}
+                </section>
+              ) : (
+                <p className="lg-files__note">
+                  This backend does not advertise material_intake_v2; branch receipts stay hidden
+                  instead of being inferred from a legacy status. Reprocess and download remain
+                  available.
+                </p>
+              )}
+
+              {originalPreviewAllowed(selected) ? (
+                <div className="lg-files-materials__original" aria-label="Original preview">
+                  <span className="lg-files__note">Original (authorized)</span>
+                  {originalError ? (
+                    <p className="lg-files__note">
+                      Original preview unavailable ({originalError}); download it instead.
+                    </p>
+                  ) : originalMediaType(selected).startsWith('audio/') ? (
+                    originalUrl ? (
+                      <audio className="lg-files-materials__audio" controls src={originalUrl}>
+                        Your browser does not support audio playback.
+                      </audio>
+                    ) : (
+                      <span className="lg-files__note">Loading original audio…</span>
+                    )
+                  ) : originalUrl ? (
+                    <img
+                      className="lg-files__image"
+                      src={originalUrl}
+                      alt={selected.title ?? 'Original material'}
+                    />
+                  ) : (
+                    <span className="lg-files__note">Loading original image…</span>
+                  )}
+                  <span className="lg-files__note">
+                    Original preview is not OCR text and never implies a transcript.
+                  </span>
+                </div>
+              ) : null}
 
               {contentStatus === 'error' && contentError ? (
                 <ErrorState
@@ -354,6 +707,13 @@ export function FilesMaterialsPanel({ api, taskRef, openSourceId }: FilesMateria
                       ? ' Editing below creates/updates the human formal version without touching the machine derivative.'
                       : ''}
                   </p>
+                  {content.kind === 'machine' && machineEvidence ? (
+                    <MachineTranscriptMeta
+                      source={selected}
+                      branch={receiptText}
+                      derivative={transcriptDerivative}
+                    />
+                  ) : null}
                   <div className="lg-files__preview-body">
                     <MarkdownViewer content={content.content} />
                   </div>
@@ -367,6 +727,61 @@ export function FilesMaterialsPanel({ api, taskRef, openSourceId }: FilesMateria
                     />
                   </label>
                 </>
+              ) : null}
+
+              {content?.kind === 'formal' && machineEvidence ? (
+                <section
+                  className="lg-files-materials__transcript"
+                  aria-label="Machine English transcript"
+                >
+                  <div className="lg-files__preview-header">
+                    <span className="lg-files__section-title">Machine English transcript</span>
+                    <StatusBadge kind="accent">English</StatusBadge>
+                    <StatusBadge kind="neutral">machine · not formal</StatusBadge>
+                    <StatusBadge kind="neutral">
+                      {receiptText?.timestamps == null
+                        ? 'word timestamps not available'
+                        : 'timestamp data reported · no seek controls'}
+                    </StatusBadge>
+                  </div>
+                  <p className="lg-files__note">
+                    This is machine output read from the existing machine content endpoint. The
+                    human formal version above remains authoritative and is never overwritten by
+                    this transcript.
+                  </p>
+                  {machineStatus === 'loading' || machineStatus === 'idle' ? (
+                    <p className="lg-files__note" role="status">
+                      Reading the machine English transcript…
+                    </p>
+                  ) : null}
+                  {machineStatus === 'ready' && machineContent ? (
+                    <div className="lg-files__preview-body">
+                      <MarkdownViewer content={machineContent.content} />
+                    </div>
+                  ) : null}
+                  {machineStatus === 'unavailable' ? (
+                    <p className="lg-files__note" role="note">
+                      The machine transcript is not readable right now
+                      {machineError?.details?.reason
+                        ? ` (${String(machineError.details.reason)})`
+                        : ''}
+                      . The formal version and original audio are unaffected.
+                    </p>
+                  ) : null}
+                  {machineStatus === 'error' && machineError ? (
+                    <ErrorState
+                      title="Machine transcript unavailable"
+                      message={machineError.message}
+                      code={machineError.code}
+                      retryable={machineError.retryable}
+                    />
+                  ) : null}
+                  <MachineTranscriptMeta
+                    source={selected}
+                    branch={receiptText}
+                    derivative={transcriptDerivative}
+                  />
+                </section>
               ) : null}
 
               <div className="lg-files-materials__actions">
@@ -388,6 +803,32 @@ export function FilesMaterialsPanel({ api, taskRef, openSourceId }: FilesMateria
                 <button type="button" className="lg-button" onClick={() => void reprocess()}>
                   Reprocess (OCR)
                 </button>
+                {materialIntakeV2 && receipt && intakeJobId(receipt) ? (
+                  <>
+                    {job && jobViewIsRunning(job) ? (
+                      <button
+                        type="button"
+                        className="lg-button"
+                        onClick={() => void cancelIntake()}
+                        disabled={controlPending || Boolean(job.cancel?.requested)}
+                      >
+                        {controlPending || job.cancel?.requested
+                          ? 'Cancellation requested…'
+                          : 'Cancel intake'}
+                      </button>
+                    ) : null}
+                    {job && (job.status === 'failed' || job.status === 'partial') ? (
+                      <button
+                        type="button"
+                        className="lg-button"
+                        onClick={() => void retryIntake()}
+                        disabled={controlPending}
+                      >
+                        Retry intake
+                      </button>
+                    ) : null}
+                  </>
+                ) : null}
                 <button
                   type="button"
                   className="lg-button"
@@ -409,6 +850,178 @@ export function FilesMaterialsPanel({ api, taskRef, openSourceId }: FilesMateria
         </div>
       </div>
     </section>
+  )
+}
+
+function intakeJobId(receipt: SourceReceipt): string | null {
+  const candidates: Array<SourceReceiptEntry | null> = [
+    receipt.latest,
+    ...receipt.items,
+  ]
+  for (const candidate of candidates) {
+    if (!candidate) continue
+    for (const key of ['job_id', 'job_ref']) {
+      const value = candidate[key]
+      if (typeof value === 'string' && value) return value
+    }
+  }
+  const direct = (receipt as unknown as Record<string, unknown>).job_id
+  return typeof direct === 'string' && direct ? direct : null
+}
+
+const RUNNING_JOB_STATES = new Set(['queued', 'running', 'cancelling', 'pending'])
+
+function jobViewIsRunning(job: JobView | null): boolean {
+  return Boolean(job && RUNNING_JOB_STATES.has(job.status))
+}
+
+function jobTone(status: string): 'neutral' | 'success' | 'warning' | 'error' {
+  if (status === 'succeeded' || status === 'completed') return 'success'
+  if (status === 'partial' || status === 'queued' || status === 'running') return 'warning'
+  if (status === 'failed') return 'error'
+  return 'neutral'
+}
+
+function originalMediaType(source: SourceView): string {
+  const declared = source.original?.media_type
+  const original = typeof declared === 'string' ? declared.toLowerCase() : ''
+  if (original.startsWith('image/') || original.startsWith('audio/')) return original
+  const name = (source.original?.path ?? source.title ?? source.source_id).toLowerCase()
+  const extension = name.includes('.') ? name.slice(name.lastIndexOf('.') + 1) : ''
+  if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'].includes(extension)) {
+    return extension === 'jpg' ? 'image/jpeg' : `image/${extension}`
+  }
+  if (['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac', 'webm'].includes(extension)) {
+    return 'audio/unknown'
+  }
+  return original
+}
+
+function originalPreviewAllowed(source: SourceView): boolean {
+  const media = originalMediaType(source)
+  return media.startsWith('image/') || media.startsWith('audio/')
+}
+
+function mediaKindLabel(receipt: SourceReceipt): string {
+  if (!isSourceReceiptV2(receipt)) return ''
+  const item = receipt.latest ?? receipt.items[0] ?? null
+  const kinds = item?.semantic.kinds.filter((kind) => kind === 'image' || kind === 'audio') ?? []
+  return kinds.length > 0 ? ` · media vector: ${kinds.join(', ')}` : ''
+}
+
+function findTranscriptDerivative(source: SourceView): Record<string, unknown> | null {
+  for (const entry of source.derivatives) {
+    if (entry && typeof entry === 'object' && (entry as { kind?: unknown }).kind === 'transcript') {
+      return entry as Record<string, unknown>
+    }
+  }
+  return null
+}
+
+function stringField(record: Record<string, unknown> | null, key: string): string | null {
+  const value = record?.[key]
+  return typeof value === 'string' && value ? value : null
+}
+
+function transcriptTimestampStatus(branch: SourceTextBranch | null): string {
+  if (!branch?.machine) return 'not reported'
+  if (branch.timestamps == null) {
+    return 'not available; no seek markers are fabricated'
+  }
+  if (branch.timestamps.length === 0) {
+    return 'no timestamps reported; no seek markers'
+  }
+  return 'timestamp data reported; this version provides no seek controls'
+}
+
+function ModelPin({
+  label,
+  model,
+}: {
+  label: string
+  model: EnglishAsrModelRef | null | undefined
+}) {
+  if (!model) return null
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd className="lg-card__path">
+        {model.id} @ {model.revision}
+        {model.sha256 ? ` · sha256 ${model.sha256}` : ''}
+        {model.license ? ` · ${model.license}` : ''}
+      </dd>
+    </div>
+  )
+}
+
+function MachineTranscriptMeta({
+  source,
+  branch,
+  derivative,
+}: {
+  source: SourceView
+  branch: SourceTextBranch | null
+  derivative: Record<string, unknown> | null
+}) {
+  const machine: SourceTextMachineProvenance | null = branch?.machine ?? null
+  const modelVersion = machine?.model_version ?? stringField(derivative, 'model_version')
+  const transcriptHash = stringField(derivative, 'content_hash')
+  const timestamp = transcriptTimestampStatus(branch)
+  return (
+    <>
+      <p className="lg-files__note">
+        Machine English transcript · engine {machine?.engine ?? 'not reported'} · model{' '}
+        {modelVersion ?? 'not reported'} · runtime {machine?.runtime ?? 'not reported'} ·{' '}
+        {timestamp}.
+      </p>
+      <details className="lg-disclosure" aria-label="Machine transcript provenance">
+        <summary className="lg-disclosure__summary">
+          Transcript provenance, hashes and word timing
+        </summary>
+        <div className="lg-disclosure__body">
+          <dl className="lg-files-materials__facts">
+            <div>
+              <dt>Language</dt>
+              <dd>{branch?.language ?? source.language ?? 'en'}</dd>
+            </div>
+            <div>
+              <dt>Source version</dt>
+              <dd>v{source.source_version}</dd>
+            </div>
+            <div>
+              <dt>Source hash</dt>
+              <dd className="lg-card__path">{source.content_hash ?? 'not reported'}</dd>
+            </div>
+            <div>
+              <dt>Transcript hash</dt>
+              <dd className="lg-card__path">{transcriptHash ?? 'not reported'}</dd>
+            </div>
+            <div>
+              <dt>Model version</dt>
+              <dd>{modelVersion ?? 'not reported'}</dd>
+            </div>
+            <div>
+              <dt>Content variant</dt>
+              <dd>{machine?.content_variant ?? 'machine'}</dd>
+            </div>
+            <div>
+              <dt>Generated</dt>
+              <dd>{machine?.generated_at ?? 'not reported'}</dd>
+            </div>
+            <div>
+              <dt>Word timing</dt>
+              <dd>{timestamp}</dd>
+            </div>
+            <ModelPin label="Encoder" model={machine?.encoder} />
+            <ModelPin label="Reader" model={machine?.reader} />
+          </dl>
+          <p className="lg-field__hint">
+            The transcript is machine-derived and is not a human formal version. Only verified
+            decoder output can provide timestamps; this view never fabricates seek markers.
+          </p>
+        </div>
+      </details>
+    </>
   )
 }
 

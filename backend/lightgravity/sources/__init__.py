@@ -50,12 +50,14 @@ from .ocr import (
 from .processing import ProcessingConfig, ProcessingEngine, ProcessingOutcome
 from .service import SourceService, build_source_service
 from .store import SourceStore
+from .worker import IntakeWorker
 
 __all__ = [
     "ContentStore",
     "IndexedDocument",
     "IntakeService",
     "IntakeJobRecord",
+    "IntakeWorker",
     "LexicalIndex",
     "LexicalSearchService",
     "MachineDraft",

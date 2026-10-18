@@ -169,3 +169,23 @@ async def test_files_cannot_read_team_accounts_even_inside_workspace(
             )
             assert response.status_code == 403
             assert error_code(response) == "path_outside_workspace"
+
+
+async def test_vector_rebuild_is_admin_only(
+    team_client: httpx.AsyncClient,
+) -> None:
+    """LG-144: a full rebuild is the one protected global vector operation."""
+
+    assert (await login_member(team_client)).status_code == 200
+    denied = await team_client.post("/api/v1/vector/rebuild", json={})
+    assert denied.status_code == 403, denied.text
+    assert error_code(denied) == "forbidden"
+
+    # A fresh client keeps the member cookie from leaking into the admin login.
+    await team_client.post("/api/v1/auth/logout")
+    assert (await login_admin(team_client)).status_code == 200
+    allowed = await team_client.post("/api/v1/vector/rebuild", json={})
+    assert allowed.status_code == 200, allowed.text
+    # The test app has no configured embedding backend, so the rebuild is an
+    # honest no-op; the authorization boundary is what this test proves.
+    assert isinstance(allowed.json()["rebuilt"], bool)

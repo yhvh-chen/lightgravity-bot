@@ -1,0 +1,164 @@
+/*
+ * LG-142 send-time material intake styles.
+ *
+ * Dedicated file (not shared chat.css): local draft chips, per-message receipt
+ * cards and independent branch rows. Reuses the existing workspace tokens; no
+ * new palette or decorative cards.
+ */
+
+.lg-intake-drafts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-intake-draft {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lg-space-1);
+  min-width: 0;
+  max-width: 100%;
+  padding: 3px var(--lg-space-2);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-pill);
+  background: var(--lg-color-surface-2);
+  font-size: var(--lg-font-size-xs);
+}
+
+.lg-intake-draft__name,
+.lg-intake-receipt__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--lg-font-size-sm);
+  font-weight: 600;
+  color: var(--lg-color-text);
+}
+
+.lg-intake-draft__meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--lg-color-text-muted);
+  font-size: var(--lg-font-size-xs);
+}
+
+.lg-intake-draft__state {
+  white-space: nowrap;
+  color: var(--lg-color-text-muted);
+}
+
+.lg-intake-draft__state--intaking {
+  color: var(--lg-color-warning, var(--lg-color-text-muted));
+}
+
+.lg-intake-draft__state--accepted {
+  color: var(--lg-color-success);
+}
+
+.lg-intake-draft__state--failed {
+  color: var(--lg-color-error);
+}
+
+.lg-intake-receipts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  margin-top: var(--lg-space-2);
+}
+
+.lg-intake-receipts__header,
+.lg-intake-receipt__head,
+.lg-intake-receipt__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-2);
+}
+
+.lg-intake-receipts__title {
+  font-size: var(--lg-font-size-sm);
+  font-weight: 600;
+  color: var(--lg-color-text);
+}
+
+.lg-intake-receipts__hint,
+.lg-intake-receipt__note,
+.lg-intake-branch__detail {
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-muted);
+}
+
+.lg-intake-receipts__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-intake-receipt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  min-width: 0;
+  padding: var(--lg-space-2);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-panel);
+}
+
+.lg-intake-branches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-2) var(--lg-space-3);
+  margin: 0;
+}
+
+.lg-intake-branch {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 130px;
+}
+
+.lg-intake-branch dt {
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lg-intake-branch dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-1);
+  margin: 0;
+}
+
+.lg-intake-receipt__error {
+  margin: 0;
+  font-size: var(--lg-font-size-xs);
+  color: var(--lg-color-error);
+}
+
+.lg-intake-receipt__actions .lg-link-button {
+  margin-left: 0;
+}
+
+@media (max-width: 700px) {
+  .lg-intake-draft,
+  .lg-intake-receipt {
+    max-width: 100%;
+  }
+
+  .lg-intake-branch {
+    min-width: 100%;
+  }
+}

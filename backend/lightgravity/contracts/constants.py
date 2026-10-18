@@ -3,13 +3,29 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
-#: docs/08 §13: 1.18.0 (2026-10-18) is the LG-122 additive MINOR implemented in
-#: the isolated complete candidate: read-only Team grouping projection, Personal
-#: private attachments with bounded model context, independent Embedding settings,
+#: docs/08 §21: 1.20.0 (2026-10-18) is the LG-162 additive MINOR assembled in this
+#: isolated candidate: optional, default-off, shared-English-audio machine
+#: transcription (EG2 Reader), a protected ``english_asr`` settings view/PUT,
+#: health ``capabilities.english_asr`` as processing availability, additive
+#: source/receipt/content provenance, and the bounded intake text branch.  The
+#: candidate still requires independent LG-163 QA and has not replaced the public
+#: 8123 service (1.18.0).  The raw LG-159 cohort gate remains FAIL (mean WER
+#: 3.858% but ``scanned`` -> ``scan``); this version does not claim a quality pass.
+#: No Task/Run/member/``source.status`` enum, migration direction or HTTP error
+#: code is added.  Historical summary follows.
+#:
+#: docs/08 §20: 1.19.0 (2026-10-18) was the LG-139 additive MINOR integrated in
+#: the isolated LG-144 candidate: guarded deferred intake worker, receipt v2
+#: branches, message ``source_refs`` snapshots, automatic configured media
+#: embedding and protected full rebuild.  The candidate still required
+#: independent LG-145 QA and the LG-147 cancellation-boundary repair; it has not
+#: replaced the public 8123 service.  No Task/Run phase/state/acceptance enum or
+#: migration direction was introduced.
+#:
+#: 1.18.0 (2026-10-18) was the LG-122 additive MINOR implemented in the isolated
+#: complete candidate: read-only Team grouping projection, Personal private
+#: attachments with bounded model context, independent Embedding settings,
 #: goal-fit team provenance and bounded multi-Task capacity/waiting reasons.
-#: This candidate still requires independent LG-123 QA and has not replaced the
-#: public 8123 service; no new Task/Run phase/state/acceptance enum or migration
-#: direction is introduced.  Historical summary follows.
 #:
 #: 1.17.0 (2026-10-17) is the LG-104/LG-109 additive MINOR for the
 #: compact provider New/Edit modal backend: optional non-secret Connection
@@ -166,7 +182,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.18.0"
+CONTRACT_VERSION = "1.20.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

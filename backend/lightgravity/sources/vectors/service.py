@@ -8,8 +8,10 @@ This is the LG-037 facade over the rebuildable :class:`VectorIndex`.  It owns:
 * writing the ``source.index.vector`` / ``vector_model`` state through the
   existing ``SourceStore.update_source`` so the file SoT keeps authority and the
   vector cache stays a rebuildable派生;
-* a **model-change guard**: when the configured model differs from the cache's
-  recorded model, the cache is rebuilt rather than mixing incompatible vectors;
+* a **model-change guard**: per-source indexing fails closed when the configured
+  model/cache version/dimension differs from the existing cache and leaves the
+  old corpus for an explicit protected rebuild; it never silently mixes or
+  clears other sources;
 * an authorized-candidate → 回源核对 search that re-reads ``SOURCE.md`` for
   every hit and reports ``index_unavailable``/``not_indexed``/``source_stale``
   honestly, degrading to lexical search and original viewing when the vector
@@ -25,8 +27,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-from lightgravity.contracts import AppError, ErrorCode
-from lightgravity.store.errors import EntityNotFound
+from lightgravity.contracts import AppError
+from lightgravity.store.errors import EntityNotFound, RevisionConflict
 
 from ..content import ContentStore
 from ..models import SourceRecord
@@ -45,6 +47,7 @@ from .index import (
     VectorCacheCorruptError,
     VectorEntry,
     VectorIndex,
+    VectorModelMismatchError,
     fragment_hash,
 )
 
@@ -84,6 +87,7 @@ class VectorSearchService:
         task_store: Any | None = None,
         events: Any | None = None,
         max_media_bytes: int = 10 * 1024 * 1024,
+        backend_fingerprint: str | None = None,
     ) -> None:
         self._store = store
         self._backend: EmbeddingBackend = backend or UnavailableEmbeddingBackend()
@@ -92,7 +96,8 @@ class VectorSearchService:
             if cache_dir is not None
             else Path(store.sources_dir().parent) / "sources-index"
         )
-        self._index = VectorIndex(self._cache_dir / "vectors")
+        self._backend_fingerprint = backend_fingerprint
+        self._index = VectorIndex(self._cache_dir / "vectors", backend_fingerprint=backend_fingerprint)
         self._tasks = task_store
         self._events = events
         self._max_media_bytes = int(max_media_bytes)
@@ -184,95 +189,235 @@ class VectorSearchService:
             inputs.append((embed_input, "original", kind, (locator,)))
         return inputs
 
-    def index_source(self, source_id: str) -> dict[str, Any]:
-        """Embed and cache one source; write ``index.vector``/``vector_model``."""
+    def index_source(
+        self, source_id: str, *, cancel_check: Callable[[], bool] | None = None
+    ) -> dict[str, Any]:
+        """Embed and cache one source without touching any other source.
+
+        The frozen LG-141 seam is returned in every outcome::
+
+            {source_id, indexed, vector, reason, model, kinds, failed_kinds}
+
+        Inputs (trusted text, original image/audio) are embedded independently:
+        one failed kind is reported in ``failed_kinds`` without discarding a
+        successful kind.  A missing cache is initialized with the current
+        source only; a model/cache mismatch or corrupt cache fails closed and
+        preserves the old corpus for an explicit protected rebuild.
+        ``cancel_check`` optionally stops before each input, retaining completed
+        entries and reporting skipped kinds without starting another call.
+        This method never performs an implicit full rebuild and never raises
+        for an expected embedding/cache failure (the worker records the returned state).
+        """
 
         record = self._store.read_source(source_id)
         if not self.enabled:
             self._mark_disabled(record)
-            return {
-                "source_id": source_id,
-                "indexed": False,
-                "reason": "vector_backend_unavailable",
-                "vector": "disabled",
-            }
+            return self._index_result(
+                source_id, indexed=False, vector="disabled", reason="vector_backend_unavailable"
+            )
         inputs = self._vector_inputs(record)
         if not inputs:
             self._write_index_state(record, vector="not_indexed", vector_model=None)
-            return {
-                "source_id": source_id,
-                "indexed": False,
-                "reason": "no_embeddable_body",
-                "vector": "not_indexed",
-            }
+            return self._index_result(
+                source_id, indexed=False, vector="not_indexed", reason="no_embeddable_body"
+            )
+
         model = self._backend.model_id
-        new_entries: list[VectorEntry] = []
-        try:
-            for embed_input, basis, kind, locators in inputs:
-                result = self._backend.embed(embed_input)
-                digest_source = _embed_digest_source(embed_input, kind)
-                new_entries.append(
-                    VectorEntry(
-                        source_id=record.source_id,
-                        source_version=record.source_version,
-                        content_hash=record.content_digest,
-                        basis=basis,
-                        kind=kind,
-                        model=result.model,
-                        dim=result.dim,
-                        cache_version=VECTOR_CACHE_VERSION,
-                        fragment_hash=fragment_hash(digest_source),
-                        vector=result.vector,
-                        title=record.title,
-                        locators=locators,
-                        text=embed_input.text or "",
-                    )
-                )
-        except (EmbeddingUnavailable, EmbeddingTimeout, EmbeddingServiceError) as exc:
+        guard_reason = self._cache_guard_reason(model)
+        if guard_reason is not None:
+            # Preserve the old corpus exactly; only POST /vector/rebuild may
+            # replace it.  Report this source's semantic branch as failed.
             self._mark_failed(record)
-            raise AppError(
-                ErrorCode.CAPABILITY_UNAVAILABLE,
-                "vector backend failed while indexing; lexical search and originals remain available",
-                details={"source_id": source_id, "reason": getattr(exc, "detail", None) or type(exc).__name__},
-            ) from None
-        self._upsert_entries(model, new_entries)
-        self._write_index_state(record, vector="indexed", vector_model=model)
-        self._emit("source.indexed", source_id, {"vector_model": model, "kind": "vector"})
-        return {
-            "source_id": source_id,
-            "indexed": True,
-            "vector": "indexed",
-            "vector_model": model,
-            "dim": new_entries[0].dim if new_entries else None,
-            "kinds": [e.kind for e in new_entries],
-        }
+            return self._index_result(
+                source_id,
+                indexed=False,
+                vector="failed",
+                reason=guard_reason,
+                failed_kinds=[kind for _, _, kind, _ in inputs],
+            )
 
-    def _upsert_entries(self, model: str, entries: list[VectorEntry]) -> None:
-        """Append/replace entries, rebuilding the cache header if the model changed."""
+        new_entries: list[VectorEntry] = []
+        failed_kinds: list[str] = []
+        stop_reason: str | None = None
+        for position, (embed_input, basis, kind, locators) in enumerate(inputs):
+            # Inspect requests between calls, retaining returned inputs before
+            # the worker confirms stop. An in-flight call is never interrupted.
+            if cancel_check is not None and cancel_check():
+                stop_reason = "interrupted"
+                failed_kinds.extend(item[2] for item in inputs[position:])
+                break
+            try:
+                result = self._backend.embed(embed_input)
+            except EmbeddingTimeout:
+                # Unknown in-flight outcome: stop here, without replaying or
+                # starting the remaining input. Keep earlier confirmed results.
+                stop_reason = "embedding_timeout"
+                failed_kinds.extend(item[2] for item in inputs[position:])
+                break
+            except (EmbeddingUnavailable, EmbeddingServiceError):
+                failed_kinds.append(kind)
+                continue
+            digest_source = _embed_digest_source(embed_input, kind)
+            new_entries.append(
+                VectorEntry(
+                    source_id=record.source_id,
+                    source_version=record.source_version,
+                    content_hash=record.content_digest,
+                    basis=basis,
+                    kind=kind,
+                    model=result.model,
+                    dim=result.dim,
+                    cache_version=VECTOR_CACHE_VERSION,
+                    fragment_hash=fragment_hash(digest_source),
+                    vector=result.vector,
+                    title=record.title,
+                    locators=locators,
+                    text=embed_input.text or "",
+                )
+            )
 
+        models = {entry.model for entry in new_entries}
+        dims = {entry.dim for entry in new_entries}
+        if len(models) > 1 or len(dims) > 1:
+            # Never write a cache whose header would misrepresent an entry.
+            self._mark_failed(record)
+            return self._index_result(
+                source_id,
+                indexed=False,
+                vector="failed",
+                reason="inconsistent_embedding_metadata",
+                model=model,
+                failed_kinds=[kind for _, _, kind, _ in inputs],
+            )
+        if not new_entries:
+            self._mark_failed(record)
+            return self._index_result(
+                source_id,
+                indexed=False,
+                vector="failed",
+                reason=stop_reason or "embedding_failed",
+                model=model,
+                failed_kinds=failed_kinds,
+            )
+
+        used_model = new_entries[0].model
+        if self._index.exists():
+            try:
+                header_dim = self._index.header().get("dim")
+            except VectorCacheCorruptError:
+                header_dim = None
+            if header_dim != new_entries[0].dim:
+                # The model id may be unchanged while its dimension changed.
+                # Never mix dimensions; leave the old cache for an explicit
+                # rebuild.
+                self._mark_failed(record)
+                return self._index_result(
+                    source_id,
+                    indexed=False,
+                    vector="failed",
+                    reason="model_mismatch_rebuild_required",
+                    model=used_model,
+                    failed_kinds=[kind for _, _, kind, _ in inputs],
+                )
         try:
-            existing = self._index.all_entries()
-            header = self._index.header()
+            self._index.upsert_entries(new_entries, model=used_model, dim=new_entries[0].dim)
+        except VectorModelMismatchError:
+            self._mark_failed(record)
+            return self._index_result(
+                source_id,
+                indexed=False,
+                vector="failed",
+                reason="model_mismatch_rebuild_required",
+                model=used_model,
+                failed_kinds=[kind for _, _, kind, _ in inputs],
+            )
         except VectorCacheCorruptError:
-            existing = []
-            header = {}
-        model_changed = header.get("model") not in (None, model)
-        if model_changed or header.get("cache_version") != VECTOR_CACHE_VERSION:
-            # Model switch ⇒ never mix vectors: drop the old cache and rebuild
-            # the header/model with only the new-model entries.
-            existing = []
-        dim = entries[0].dim if entries else int(header.get("dim") or 0)
-        keep = [e for e in existing if e.source_id not in {n.source_id for n in entries}]
-        keep.extend(entries)
-        self._index.replace_all(keep, model=model, dim=dim)
+            self._mark_failed(record)
+            return self._index_result(
+                source_id,
+                indexed=False,
+                vector="failed",
+                reason="cache_corrupt_rebuild_required",
+                model=used_model,
+                failed_kinds=[kind for _, _, kind, _ in inputs],
+            )
+
+        self._write_index_state(record, vector="indexed", vector_model=used_model)
+        kinds = [entry.kind for entry in new_entries]
+        self._emit(
+            "source.indexed",
+            source_id,
+            {"vector_model": used_model, "kind": "vector", "kinds": kinds},
+        )
+        return self._index_result(
+            source_id,
+            indexed=True,
+            vector="indexed",
+            reason=stop_reason or ("partial_index" if failed_kinds else None),
+            model=used_model,
+            kinds=kinds,
+            failed_kinds=failed_kinds,
+            extra={"vector_model": used_model, "dim": new_entries[0].dim},
+        )
+
+    def cache_compatibility_reason(self) -> str | None:
+        """Expose cache guards for status/worker checks without embedding calls."""
+
+        return self._cache_guard_reason(self._backend.model_id)
+
+    def _cache_guard_reason(self, model: str) -> str | None:
+        """Return a fail-closed reason before per-source cache writes."""
+
+        if not self._index.exists():
+            return None
+        if not self._index.readable():
+            return "cache_corrupt_rebuild_required"
+        header = self._index.header()
+        if header.get("cache_version") != VECTOR_CACHE_VERSION:
+            return "cache_version_mismatch_rebuild_required"
+        if header.get("model") != model:
+            return "model_mismatch_rebuild_required"
+        if self._backend_fingerprint is not None and header.get("backend_fingerprint") != self._backend_fingerprint:
+            return "model_mismatch_rebuild_required"
+        return None
+
+    @staticmethod
+    def _index_result(
+        source_id: str,
+        *,
+        indexed: bool,
+        vector: str,
+        reason: str | None,
+        model: str | None = None,
+        kinds: list[str] | None = None,
+        failed_kinds: list[str] | None = None,
+        extra: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Build the frozen per-source indexing result (plus legacy extras)."""
+
+        result: dict[str, Any] = {
+            "source_id": source_id,
+            "indexed": indexed,
+            "vector": vector,
+            "reason": reason,
+            "model": model,
+            "kinds": list(kinds or []),
+            "failed_kinds": list(failed_kinds or []),
+        }
+        if extra:
+            result.update(extra)
+        return result
 
     def rebuild(self, *, source_ids: list[str] | None = None) -> dict[str, Any]:
-        """Delete and rebuild the vector cache from files; report outcomes."""
+        """Rebuild requested sources, or explicitly replace the whole cache.
 
-        records = self._store.list_sources()
+        A scoped request uses the guarded per-source path. Only an unscoped
+        rebuild may clear the corpus or replace an incompatible model/cache.
+        """
+
         if source_ids is not None:
-            wanted = set(source_ids)
-            records = [r for r in records if r.source_id in wanted]
+            return self._rebuild_sources(source_ids)
+        records = self._store.list_sources()
         self._index.delete()
         if not self.enabled:
             disabled_states: list[dict[str, Any]] = []
@@ -342,6 +487,32 @@ class VectorSearchService:
             "documents": len(all_entries),
             "model": model,
             "dim": dim or None,
+            "states": states,
+        }
+
+    def _rebuild_sources(self, source_ids: list[str]) -> dict[str, Any]:
+        """Preserve unrelated cache entries and authoritative source records."""
+
+        states: list[dict[str, Any]] = []
+        for source_id in dict.fromkeys(source_ids):
+            try:
+                state = self.index_source(source_id)
+            except EntityNotFound:
+                state = self._index_result(
+                    source_id, indexed=False, vector="not_indexed", reason="source_not_found"
+                )
+            states.append(state)
+        indexed = [state["source_id"] for state in states if state["indexed"]]
+        not_indexed = [state["source_id"] for state in states if not state["indexed"]]
+        return {
+            "rebuilt": bool(states) and all(
+                state["indexed"] and not state["failed_kinds"] for state in states
+            ),
+            "indexed": indexed,
+            "not_indexed": not_indexed,
+            "documents": sum(len(state["kinds"]) for state in states),
+            "model": self._backend.model_id,
+            "dim": next((state["dim"] for state in states if state.get("dim")), None),
             "states": states,
         }
 
@@ -485,25 +656,42 @@ class VectorSearchService:
 
     # ------------------------------------------------------------------ state
     def _write_index_state(self, record: SourceRecord, *, vector: str, vector_model: str | None) -> None:
-        current = record.entity.get("index")
-        current = current if isinstance(current, dict) else {}
-        lexical = current.get("lexical") if current.get("lexical") in _LEXICAL_STATES else "not_indexed"
-        lexical_hash = current.get("lexical_hash")
-        try:
-            self._store.update_source(
-                record.source_id,
-                {
-                    "index": {
-                        "lexical": lexical,
-                        "lexical_hash": lexical_hash,
-                        "vector": vector,
-                        "vector_model": vector_model,
-                    }
-                },
-                expected_revision=record.revision,
-            )
-        except EntityNotFound:
-            return
+        """Merge the vector fields into the current source revision.
+
+        Lexical indexing and vector indexing may finish concurrently.  Re-read
+        and retry on a revision conflict instead of overwriting the other
+        branch's authoritative ``index`` fields; the store still performs the
+        locked atomic write.
+        """
+
+        source_id = record.source_id
+        for _ in range(3):
+            try:
+                current_record = self._store.read_source(source_id)
+            except EntityNotFound:
+                return
+            current = current_record.entity.get("index")
+            current = current if isinstance(current, dict) else {}
+            lexical = current.get("lexical") if current.get("lexical") in _LEXICAL_STATES else "not_indexed"
+            lexical_hash = current.get("lexical_hash")
+            try:
+                self._store.update_source(
+                    source_id,
+                    {
+                        "index": {
+                            "lexical": lexical,
+                            "lexical_hash": lexical_hash,
+                            "vector": vector,
+                            "vector_model": vector_model,
+                        }
+                    },
+                    expected_revision=current_record.revision,
+                )
+                return
+            except RevisionConflict:
+                continue
+            except EntityNotFound:
+                return
 
     def _mark_disabled(self, record: SourceRecord) -> None:
         self._write_index_state(record, vector="disabled", vector_model=None)
@@ -542,6 +730,7 @@ def build_vector_service(
     events: Any | None = None,
     backend: EmbeddingBackend | None = None,
     env: Any = None,
+    backend_fingerprint: str | None = None,
 ) -> VectorSearchService:
     """Construct a vector service from the store and (optionally) env config."""
 
@@ -552,7 +741,9 @@ def build_vector_service(
 
         backend = backend_from_env(env)
     store = SourceStore(data_dir)
-    return VectorSearchService(store, backend=backend, task_store=task_store, events=events)
+    return VectorSearchService(
+        store, backend=backend, task_store=task_store, events=events, backend_fingerprint=backend_fingerprint
+    )
 
 
 __all__ = [

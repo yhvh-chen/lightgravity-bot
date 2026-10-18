@@ -36,6 +36,7 @@ from lightgravity.sources import SourceStore
 from lightgravity.sources.vectors import (
     EmbedInput,
     EmbedResult,
+    EmbeddingServiceError,
     VectorSearchService,
     fragment_hash,
 )
@@ -59,6 +60,7 @@ class FakeEmbeddingBackend:
         self._configured = configured
         self.calls = 0
         self.fail_with: Exception | None = None
+        self.fail_part_types: set[str] = set()
 
     @property
     def model_id(self) -> str:
@@ -72,6 +74,8 @@ class FakeEmbeddingBackend:
         self.calls += 1
         if self.fail_with is not None:
             raise self.fail_with
+        if item.part_type in self.fail_part_types:
+            raise EmbeddingServiceError(status=500, message=f"scripted {item.part_type} failure")
         if item.part_type == "text":
             payload = (item.text or "").encode("utf-8")
         else:

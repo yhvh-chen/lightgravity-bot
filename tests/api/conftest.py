@@ -28,6 +28,9 @@ def app(settings: Settings) -> FastAPI:
     return create_app(
         settings,
         access_policy=LocalAccessPolicy(allow_sensitive_without_token=True),
+        # Keep legacy sync-only suites deterministic; the real bootstrap and the
+        # dedicated lifespan integration test exercise the deferred worker.
+        enable_intake_worker=False,
     )
 
 

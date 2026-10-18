@@ -172,9 +172,11 @@ class VerifiedHit:
     verified: bool = True
     stale: bool = False
     reason: str | None = None
+    #: Semantic cache hit kind (``text``/``image``/``audio``); lexical hits omit it.
+    kind: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        data = {
             "source_id": self.source_id,
             "source_version": self.source_version,
             "content_hash": self.content_hash,
@@ -187,6 +189,9 @@ class VerifiedHit:
             "stale": self.stale,
             "reason": self.reason,
         }
+        if self.kind is not None:
+            data["kind"] = self.kind
+        return data
 
 
 @dataclass(slots=True)
@@ -254,6 +259,24 @@ def authorize_and_verify(
             )
             continue
 
+        cached_hash = candidate.get("content_hash")
+        if (
+            isinstance(cached_hash, str)
+            and cached_hash
+            and isinstance(current_hash, str)
+            and current_hash
+            and cached_hash != current_hash
+        ):
+            outcome.stale.append(
+                {
+                    "source_id": source_id,
+                    "cached_version": cached_version,
+                    "current_version": current_version,
+                    "reason": "source_stale",
+                }
+            )
+            continue
+
         ok, reason = verify_source(record)
         if not ok:
             outcome.stale.append(
@@ -268,6 +291,7 @@ def authorize_and_verify(
 
         body = str(candidate.get("body") or "")
         title = str(candidate.get("title") or getattr(record, "title", "") or "")
+        kind = candidate.get("kind")
         outcome.hits.append(
             VerifiedHit(
                 source_id=source_id,
@@ -279,6 +303,7 @@ def authorize_and_verify(
                 title=title,
                 locators=list(candidate.get("locators") or []),
                 snippet=build_snippet(title, body, tokens),
+                kind=str(kind) if isinstance(kind, str) and kind else None,
             )
         )
     return outcome

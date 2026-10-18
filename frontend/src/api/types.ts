@@ -6,6 +6,8 @@
  * the endpoints they own; do not fork a second copy of contract types.
  */
 
+import type { EnglishAsrModelRef } from './englishAsr'
+
 export const API_PREFIX = '/api/v1'
 export const SCHEMA_NAMESPACE = 'lightgravity.bot/v1'
 
@@ -53,6 +55,233 @@ export interface VersionResponse {
   package_version: string
   python_version: string
   platform: string
+}
+
+/* --------------------------------------- Material intake v2 (docs/08 §20, 1.19.0)
+ *
+ * Contract-only shapes: docs/08 §20 freezes these as additive 1.19.0 fields,
+ * but the running product is still 1.18.0. Consumers must not use them unless
+ * the matching health capability is true (see backendCompatibility.ts), and
+ * old responses/backends omit every one of them.
+ */
+
+/** One source scope. `null` refs mean the global/shared scope. */
+export interface SourceScope {
+  task_ref: string | null
+  project_ref: string | null
+  inbox_ref: string | null
+}
+
+/** `POST /sources` intake mode; omitted/`sync` keeps the 1.18 behavior. */
+export type SourceIntakeMode = 'sync' | 'deferred'
+
+/** One `source_refs` request item: only the stable source id is accepted. */
+export interface SourceRefInput {
+  source_id: string
+}
+
+/**
+ * Server-normalized, persisted message `source_refs` snapshot (docs/08 §20.3).
+ * Receipt/traceability only: it never becomes model context and never
+ * replaces the explicit `selected_sources` selector.
+ */
+export interface SourceRef {
+  source_id: string
+  source_version: number
+  content_hash: string
+  scope: SourceScope
+}
+
+/** Maximum unique refs in one message submission (docs/08 §20.3). */
+export const MESSAGE_SOURCE_REFS_MAX = 10
+
+/** Receipt v2 discriminator (docs/08 §20.6). */
+export const SOURCE_RECEIPT_VERSION_V2 = 2
+
+/* Frozen intake bounds (docs/08 §20.5/§20.8); values are contract facts. */
+export const INTAKE_MAX_ORIGINAL_BYTES = 10_000_000
+export const INTAKE_MAX_NATIVE_TEXT_BYTES = 2_000_000
+export const INTAKE_MAX_OCR_PAGES = 100
+export const INTAKE_MAX_TOKENS_PER_PAGE = 2000
+export const INTAKE_MAX_EMBEDDING_CALLS = 2
+export const INTAKE_MAX_RETRIES = 1
+export const INTAKE_TIMEOUT_SECONDS = 900
+export const INTAKE_MAX_CONCURRENT_JOBS = 2
+
+/** `intake_job.budget`, additive in 1.19.0; old jobs omit the new keys. */
+export interface IntakeJobBudget {
+  max_model_calls?: number | null
+  timeout_seconds?: number | null
+  max_retries?: number | null
+  max_original_bytes?: number | null
+  max_native_text_bytes?: number | null
+  max_ocr_pages?: number | null
+  max_tokens_per_page?: number | null
+  max_embedding_calls?: number | null
+  max_media_embedding_bytes?: number | null
+  [key: string]: unknown
+}
+
+/** Why a deferred job is waiting; absent/null means not waiting. */
+export type IntakeWaitingReason = 'worker_limit' | 'cancelling'
+
+/** Independent text branch states (docs/08 §20.6). */
+export type SourceTextBranchState =
+  | 'pending'
+  | 'extracting'
+  | 'ready'
+  | 'unavailable'
+  | 'failed'
+
+/** Independent lexical/keyword branch states (docs/08 §20.6). */
+export type SourceKeywordBranchState =
+  | 'pending'
+  | 'indexing'
+  | 'searchable'
+  | 'no_text'
+  | 'failed'
+
+/** Independent semantic/vector branch states (docs/08 §20.6). */
+export type SourceSemanticBranchState =
+  | 'pending'
+  | 'indexing'
+  | 'searchable'
+  | 'disabled'
+  | 'unsupported'
+  | 'failed'
+
+/** Any receipt branch state; branch-specific meaning stays in the object. */
+export type SourceBranchState =
+  | SourceTextBranchState
+  | SourceKeywordBranchState
+  | SourceSemanticBranchState
+
+/** `unsupported` is never used for a vendor rejection/timeout. */
+export type SourceSemanticKind = 'text' | 'image' | 'audio'
+
+/** One verified machine timestamp (future decoder output; never fabricated). */
+export interface SourceTranscriptTimestamp {
+  start_seconds: number
+  end_seconds: number
+  text: string
+}
+
+/**
+ * Additive 1.20.0 machine ASR provenance on a ready text branch. It is
+ * provenance only: the transcript body is read from the existing machine
+ * content endpoint. `timestamps` is `null` when the decoder has no alignment.
+ */
+export interface SourceTextMachineProvenance {
+  engine?: string | null
+  encoder?: EnglishAsrModelRef | null
+  reader?: EnglishAsrModelRef | null
+  runtime?: string | null
+  model_version?: string | null
+  content_variant?: string | null
+  generated_at?: string | null
+  [key: string]: unknown
+}
+
+export interface SourceTextBranch {
+  status: SourceTextBranchState
+  reason: string | null
+  error_code: string | null
+  /** Additive 1.20.0: `"en"` only while a machine English transcript is ready. */
+  language?: string | null
+  /** Additive 1.20.0 provenance for a machine English transcript. */
+  machine?: SourceTextMachineProvenance | null
+  /** Additive 1.20.0; `null` means no verified alignment, so no seek markers. */
+  timestamps?: SourceTranscriptTimestamp[] | null
+}
+
+export interface SourceKeywordBranch {
+  status: SourceKeywordBranchState
+  reason: string | null
+  error_code: string | null
+}
+
+export interface SourceSemanticBranch {
+  status: SourceSemanticBranchState
+  reason: string | null
+  error_code: string | null
+  model: string | null
+  /** Only kinds actually written to the vector cache. */
+  kinds: SourceSemanticKind[]
+  /** Kinds that were attempted and failed; may be non-empty while searchable. */
+  failed_kinds: SourceSemanticKind[]
+}
+
+/**
+ * Legacy receipt entry (1.18 fields). The branch objects are additive and may
+ * be absent on old backends or non-v2 receipts.
+ */
+export interface SourceReceiptEntry {
+  status?: string
+  stage?: string
+  message?: string
+  text?: SourceTextBranch
+  keyword?: SourceKeywordBranch
+  semantic?: SourceSemanticBranch
+  [key: string]: unknown
+}
+
+/** Legacy receipt projection; `receipt_version`/`partial` are additive. */
+export interface SourceReceipt {
+  source_id: string
+  revision: number
+  status: string
+  source_version: number
+  receipt_version?: number
+  partial?: boolean
+  items: SourceReceiptEntry[]
+  latest: SourceReceiptEntry | null
+}
+
+/** One v2 receipt item: all three branch objects are present. */
+export interface SourceReceiptV2Item extends SourceReceiptEntry {
+  text: SourceTextBranch
+  keyword: SourceKeywordBranch
+  semantic: SourceSemanticBranch
+}
+
+/** `GET /sources/{id}/receipt` receipt_version=2 projection. */
+export interface SourceReceiptV2 extends SourceReceipt {
+  receipt_version: typeof SOURCE_RECEIPT_VERSION_V2
+  partial: boolean
+  items: SourceReceiptV2Item[]
+  latest: SourceReceiptV2Item | null
+}
+
+/* ------------------------------------------- Shared search hit shapes (LG-143) */
+
+export interface SourceSearchLocator {
+  kind?: string
+  page?: number | null
+  offset?: number | null
+  [key: string]: unknown
+}
+
+/** Common verified hit fields; lexical and semantic hits share them. */
+export interface SourceSearchHit {
+  source_id: string
+  source_version: number
+  content_hash: string | null
+  basis: string
+  scope: SourceScope
+  title: string | null
+  locators: SourceSearchLocator[]
+  snippet: string
+  verified: boolean
+  stale: boolean
+  reason: string | null
+}
+
+/** `GET /vector/search` additive hit kind (docs/08 §20.10). */
+export type SourceHitKind = 'text' | 'image' | 'audio'
+
+/** Semantic hit: `kind` says which vector basis matched, not that a transcript exists. */
+export interface SemanticSearchHit extends SourceSearchHit {
+  kind: SourceHitKind
 }
 
 /* ------------------------------------------------------- Task wire shapes (docs/08 §6) */

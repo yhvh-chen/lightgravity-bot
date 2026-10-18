@@ -14,6 +14,7 @@ from fastapi import APIRouter, Request
 
 from .. import __version__
 from ..adapter.proxy import global_generation_counter
+from ..asr import english_asr_capability
 from ..contracts import (
     CONTRACT_VERSION,
     SCHEMA_NAMESPACE,
@@ -45,6 +46,38 @@ async def health(request: Request) -> HealthResponse:
 
     context = getattr(request.app.state, "context", None)
     wired = context is not None
+    # LG-144: these three are advertised only from the real assembled app.  The
+    # deferred worker is created in the FastAPI lifespan, so ``material_intake_v2``
+    # turns true only once the resident process really started it (a bare factory
+    # built without a lifespan reports false).  Semantic/media wiring is mounted
+    # by ``create_app`` itself; the flags record that real assembly, not merely a
+    # version number.
+    material_wired = bool(
+        wired
+        and getattr(request.app.state, "material_intake_wired", False)
+        and getattr(request.app.state, "intake_worker", None) is not None
+    )
+    semantic_wired = bool(
+        wired and getattr(request.app.state, "semantic_search_wired", False)
+    )
+    media_wired = bool(
+        wired and getattr(request.app.state, "media_direct_embedding_wired", False)
+    )
+    # 1.20: this is *processing availability* from the real wired service, not
+    # permission to configure.  The admin GET /settings view stays present when
+    # this is false (default off/model missing/runtime unavailable), so the UI
+    # gates the form on view presence rather than this capability.  A broken
+    # optional config must never crash liveness.
+    english_asr_available = False
+    if wired:
+        connections = getattr(context, "connections", None)
+        if connections is not None:
+            try:
+                english_asr_available = bool(
+                    english_asr_capability(connections.english_asr).get("available")
+                )
+            except Exception:  # noqa: BLE001 - health must stay a read-only liveness fact
+                english_asr_available = False
     capabilities = {
         "health": True,
         "version": True,
@@ -80,6 +113,17 @@ async def health(request: Request) -> HealthResponse:
         ),
         # The real SDK adapter is only advertised once LG-006/LG-010 inject it.
         "sdk_adapter": bool(getattr(context, "real_executor", False)),
+        # LG-144 / docs/08 §20.2 additive gates.  They describe real assembly:
+        # deferred intake worker + receipt v2 + message source_refs, mounted
+        # semantic search/rebuild/config routes, and the direct image/audio
+        # embedding path.  They do not mean embedding is configured.
+        "material_intake_v2": material_wired,
+        "semantic_search": semantic_wired,
+        "media_direct_embedding": media_wired,
+        # 1.20 additive: true only when the saved config is enabled, the pinned
+        # local files/hashes validate and the optional in-process runtime is
+        # importable.  It does not promise every clip will transcribe.
+        "english_asr": english_asr_available,
     }
     return HealthResponse(
         status="ok",

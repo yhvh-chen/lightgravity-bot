@@ -1,19 +1,64 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import { createSourcesApi } from '../api/sources'
+import {
+  supportsMediaDirectEmbedding,
+  supportsSemanticSearch,
+} from '../api/backendCompatibility'
+import type { SearchApi } from '../api/search'
+import { createSearchApi } from '../api/search'
+import { createSourcesApi, type SourcesApi } from '../api/sources'
+import type { HealthResponse } from '../api/types'
 import { useShell } from '../app/ShellProvider'
 import { ChatSourceSearch } from '../views/chat/ChatSourceSearch'
 import { useMaterialSearch } from './useMaterialSearch'
 
 /**
+ * Integration seam for LG-144: pass the live `/health` capabilities and the
+ * authenticated role/protected-write decision from the shell.  With no `health`
+ * the panel stays Keyword-only; this component never assumes a capability or
+ * an admin identity.
+ */
+export interface MaterialSearchProps {
+  health?: HealthResponse | null
+  role?: string | null
+  /** Set by the integration owner from the real protected-write decision. */
+  canRebuild?: boolean
+  /** Optional injected clients for tests and integration. */
+  sourcesApi?: SourcesApi
+  searchApi?: SearchApi
+}
+
+/**
  * One always-visible material search input in the top bar. The input owns the
  * query; the panel reuses the real `/search` result view with the current Task
  * plus shared-material scope and the existing stale/empty/error states.
+ *
+ * Keyword is the default. The Semantic toggle appears only when the runtime
+ * advertises `semantic_search`; it remains a separate list. Typing alone never
+ * searches or polls — Enter (or the explicit fallback button) is required.
  */
-export function MaterialSearch() {
+export function MaterialSearch({
+  health = null,
+  role = null,
+  canRebuild = false,
+  sourcesApi: injectedSourcesApi,
+  searchApi: injectedSearchApi,
+}: MaterialSearchProps = {}) {
   const { state, dispatch } = useShell()
-  const api = useMemo(() => createSourcesApi(), [])
-  const search = useMaterialSearch(api, state.taskRef)
+  const api = useMemo(
+    () => injectedSourcesApi ?? createSourcesApi(),
+    [injectedSourcesApi],
+  )
+  const vectorApi = useMemo(
+    () => injectedSearchApi ?? createSearchApi(),
+    [injectedSearchApi],
+  )
+  const semanticEnabled = health ? supportsSemanticSearch(health) : false
+  const mediaDirectEmbedding = health ? supportsMediaDirectEmbedding(health) : false
+  const search = useMaterialSearch(api, state.taskRef, {
+    searchApi: vectorApi,
+    semanticEnabled,
+  })
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -77,12 +122,19 @@ export function MaterialSearch() {
       />
       {open ? (
         <section id="lg-material-search" className="lg-top-search__panel" aria-label="Search materials panel">
-          <p className="lg-field__hint">{state.taskRef ? 'Current task and shared materials' : 'Shared materials'} · Text search</p>
+          <p className="lg-field__hint">
+            {state.taskRef ? 'Current task and shared materials' : 'Shared materials'} · Text search
+          </p>
           <ChatSourceSearch
             api={api}
             taskRef={state.taskRef}
             controller={search}
             showInput={false}
+            semanticEnabled={semanticEnabled}
+            mediaDirectEmbedding={mediaDirectEmbedding}
+            canRebuild={canRebuild}
+            role={role}
+            searchApi={vectorApi}
             onOpen={(sourceId) => {
               dispatch({ type: 'selectItem', itemRef: `source:${sourceId}` })
               dispatch({ type: 'setView', view: 'files' })

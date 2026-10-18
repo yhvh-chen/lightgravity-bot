@@ -29,14 +29,15 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 
 from lightgravity.contracts import AppError, ErrorCode
 from lightgravity.contracts.enums import EventType
-from lightgravity.store.clock import Clock, to_iso, utcnow
-from lightgravity.store.errors import ConfigInvalid, EntityNotFound
+from lightgravity.store.clock import Clock, plus_seconds, to_iso, utcnow
+from lightgravity.store.errors import ConfigInvalid, EntityNotFound, RevisionConflict
 
 from .models import (
+    INTAKE_MODES,
     IntakeJobRecord,
     Origin,
     ReceiptEntry,
@@ -51,6 +52,20 @@ _PAYLOAD_SCHEMA = "lg034.payload.v1"
 
 #: Stage after which the job has fully persisted the original and its records.
 _RECEIVED_STAGE = "received"
+
+#: Deferred-intake budget frozen by docs/08 §20.5.  Sync jobs keep the old
+#: three-key budget so their on-disk shape and behaviour are unchanged.
+DEFERRED_BUDGET: dict[str, Any] = {
+    "max_model_calls": 102,
+    "timeout_seconds": 900,
+    "max_retries": 1,
+    "max_original_bytes": 10_000_000,
+    "max_native_text_bytes": 2_000_000,
+    "max_ocr_pages": 100,
+    "max_tokens_per_page": 2000,
+    "max_embedding_calls": 2,
+    "max_media_embedding_bytes": 10_000_000,
+}
 
 
 class EventSink(Protocol):
@@ -94,6 +109,9 @@ class ReceiveRequest:
     fetched: bool = False
     #: Hash the client *claims*; when present it must match the computed hash.
     claimed_payload_hash: str | None = None
+    #: ``sync`` (old behaviour, the frozen default) or ``deferred`` (docs/08
+    #: §20.4).  Only the latter is picked up by the intake worker.
+    intake_mode: str = "sync"
 
 
 def compute_content_hash(data: bytes) -> str:
@@ -107,25 +125,30 @@ def compute_payload_hash(request: ReceiveRequest) -> str:
     different Task is a distinct request, never a cross-scope merge.
     """
 
-    canonical = json.dumps(
-        {
-            "schema": _PAYLOAD_SCHEMA,
-            "content_hash": compute_content_hash(request.data),
-            "filename": request.filename,
-            "media_type": request.media_type,
-            "title": request.title,
-            "title_origin": request.title_origin,
-            "scope": {
-                "task_ref": request.scope_task_ref,
-                "project_ref": request.project_ref,
-                "inbox_ref": request.inbox_ref,
-            },
-            "origin": {
-                "kind": request.origin_kind,
-                "external_ref": request.external_ref,
-                "fetched": request.fetched,
-            },
+    intent: dict[str, Any] = {
+        "schema": _PAYLOAD_SCHEMA,
+        "content_hash": compute_content_hash(request.data),
+        "filename": request.filename,
+        "media_type": request.media_type,
+        "title": request.title,
+        "title_origin": request.title_origin,
+        "scope": {
+            "task_ref": request.scope_task_ref,
+            "project_ref": request.project_ref,
+            "inbox_ref": request.inbox_ref,
         },
+        "origin": {
+            "kind": request.origin_kind,
+            "external_ref": request.external_ref,
+            "fetched": request.fetched,
+        },
+    }
+    # Keep the historical hash for ``sync`` requests while making a deferred
+    # request under the same request_id a detectable payload conflict.
+    if request.intake_mode == "deferred":
+        intent["intake_mode"] = "deferred"
+    canonical = json.dumps(
+        intent,
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False,
@@ -142,10 +165,14 @@ class IntakeService:
         *,
         clock: Clock = utcnow,
         events: EventSink | None = None,
+        asr_enabled: Callable[[], bool] | None = None,
     ) -> None:
         self._store = store
         self._clock = clock
         self._events = events
+        # 1.20 additive: only decides the new job's ``max_asr_calls`` budget.
+        # It never runs inference and is absent for direct/old intake users.
+        self._asr_enabled = asr_enabled
 
     @property
     def store(self) -> SourceStore:
@@ -165,6 +192,12 @@ class IntakeService:
                 ErrorCode.VALIDATION_FAILED,
                 "request_id must be a short filesystem-safe token",
                 details={"field": "request_id"},
+            )
+        if request.intake_mode not in INTAKE_MODES:
+            raise AppError(
+                ErrorCode.VALIDATION_FAILED,
+                "intake_mode must be sync or deferred",
+                details={"field": "intake_mode", "value": request.intake_mode},
             )
         filename = sanitize_filename(request.filename)
         content_hash = compute_content_hash(request.data)
@@ -209,6 +242,7 @@ class IntakeService:
                     request_id=request.request_id,
                     payload_hash=payload_hash,
                     content_hash=content_hash,
+                    intake_mode=request.intake_mode,
                 )
                 self._store.record_request(request.request_id, job.job_id)
                 receipt = self._emit_received(deduped, job, filename, content_hash, deduplicated=True)
@@ -234,6 +268,7 @@ class IntakeService:
             request_id=request.request_id,
             payload_hash=payload_hash,
             content_hash=content_hash,
+            intake_mode=request.intake_mode,
         )
         self._store.record_request(request.request_id, job.job_id)
         self._store.record_dedup(request.scope_task_ref, content_hash, source_id)
@@ -307,6 +342,9 @@ class IntakeService:
         stage: str | None = None,
         attempt: int | None = None,
         fail_reason: str | None = None,
+        extra: dict[str, Any] | None = None,
+        branch: str | None = None,
+        branch_status: str | None = None,
     ) -> IntakeJobRecord:
         job = self._store.read_job(job_id)
         updates: dict[str, Any] = {"updated_at": to_iso(self._clock())}
@@ -318,20 +356,79 @@ class IntakeService:
             updates["attempt"] = attempt
         if fail_reason is not None:
             updates["fail_reason"] = fail_reason
+        if extra:
+            updates.update(extra)
         updated = self._store.update_job(job_id, updates, expected_revision=job.revision)
         if status is not None or stage is not None:
+            payload: dict[str, Any] = {
+                "job_ref": job_id,
+                "status": updated.status,
+                "stage": updated.stage,
+            }
+            if branch is not None:
+                payload["branch"] = branch
+            if branch_status is not None:
+                payload["branch_status"] = branch_status
             self._event(
                 EventType.INTAKE_STAGE_CHANGED,
                 updated.source_ref or job_id,
-                {
-                    "job_ref": job_id,
-                    "status": updated.status,
-                    "stage": updated.stage,
-                },
+                payload,
             )
         if status == "failed":
-            self._event(EventType.INTAKE_FAILED, updated.source_ref or job_id, {"job_ref": job_id, "reason": fail_reason})
+            payload = {"job_ref": job_id, "reason": fail_reason}
+            if branch is not None:
+                payload["branch"] = branch
+            self._event(EventType.INTAKE_FAILED, updated.source_ref or job_id, payload)
         return updated
+
+    def start_job(self, job_id: str) -> IntakeJobRecord | None:
+        """Atomically claim a queued deferred job for this worker.
+
+        ``None`` means another worker/state already claimed it or the job is not
+        a deferred job.  The optimistic revision check is the lease: only one
+        updater can move ``queued`` to ``running``.
+        """
+
+        job = self._store.read_job(job_id)
+        if job.status != "queued" or job.intake_mode != "deferred":
+            return None
+        now = self._clock()
+        timeout = _budget_timeout(job)
+        extra: dict[str, Any] = {
+            "started_at": to_iso(now),
+            "waiting_reason": None,
+            "deadline_at": (
+                to_iso(plus_seconds(now, int(timeout))) if timeout is not None else None
+            ),
+        }
+        try:
+            updated = self.set_stage(
+                job_id,
+                status="running",
+                stage="extracting",
+                extra=extra,
+            )
+        except RevisionConflict:
+            return None
+        return updated
+
+    def mark_waiting(self, job_id: str, *, reason: str = "worker_limit") -> IntakeJobRecord | None:
+        """Record why a queued job has not started yet (worker capacity)."""
+
+        try:
+            job = self._store.read_job(job_id)
+        except (EntityNotFound, ConfigInvalid):
+            return None
+        if job.status != "queued" or job.entity.get("waiting_reason") == reason:
+            return None
+        try:
+            return self._store.update_job(
+                job_id,
+                {"waiting_reason": reason, "updated_at": to_iso(self._clock())},
+                expected_revision=job.revision,
+            )
+        except RevisionConflict:
+            return None
 
     def cancel(self, job_id: str, *, confirmed: bool = False, reason: str | None = None) -> IntakeJobRecord:
         """Request (and optionally confirm) cancellation of one job.
@@ -339,6 +436,8 @@ class IntakeService:
         Only a confirmed stop writes ``cancelled``.  An unconfirmed request
         records ``cancel.requested`` and returns ``cancellation_unconfirmed`` so
         the caller retries instead of believing the job stopped (docs/08 §9).
+        For deferred jobs a running job is *never* force-written as cancelled on
+        the client's confirmation; the worker confirms after it really stops.
         """
 
         job = self._store.read_job(job_id)
@@ -346,10 +445,17 @@ class IntakeService:
             return job  # terminal: idempotent no-op, no resurrect
         cancel = dict(job.cancel)
         cancel["requested"] = True
-        if not confirmed:
+        deferred_running = job.intake_mode == "deferred" and job.status in (
+            "running",
+            "recovery_required",
+        )
+        if not confirmed or deferred_running:
+            extra: dict[str, Any] = {"cancel": cancel}
+            if deferred_running:
+                extra["waiting_reason"] = "cancelling"
             updated = self._store.update_job(
                 job_id,
-                {"cancel": cancel, "updated_at": to_iso(self._clock())},
+                {**extra, "updated_at": to_iso(self._clock())},
                 expected_revision=job.revision,
             )
             raise AppError(
@@ -362,20 +468,41 @@ class IntakeService:
                 },
             )
         cancel["confirmed"] = True
+        extra = {
+            "cancel": cancel,
+            "status": "cancelled",
+            "fail_reason": reason,
+            "waiting_reason": None,
+            "finished_at": to_iso(self._clock()),
+        }
+        updated = self._store.update_job(
+            job_id,
+            {**extra, "updated_at": to_iso(self._clock())},
+            expected_revision=job.revision,
+        )
+        self._event(EventType.INTAKE_CANCELLED, updated.source_ref or job_id, {"job_ref": job_id})
+        return updated
+
+    def confirm_cancel(self, job_id: str, *, reason: str | None = None) -> IntakeJobRecord:
+        """Worker-only: confirm a stop that has actually happened."""
+
+        job = self._store.read_job(job_id)
+        if job.status in ("succeeded", "partial", "failed", "cancelled"):
+            return job
+        cancel = dict(job.cancel)
+        cancel["requested"] = True
+        cancel["confirmed"] = True
         updated = self._store.update_job(
             job_id,
             {
                 "cancel": cancel,
                 "status": "cancelled",
                 "fail_reason": reason,
+                "waiting_reason": None,
+                "finished_at": to_iso(self._clock()),
                 "updated_at": to_iso(self._clock()),
             },
             expected_revision=job.revision,
-        )
-        updated = self._store.update_job(
-            job_id,
-            {"stage": job.stage},
-            expected_revision=updated.revision,
         )
         self._event(EventType.INTAKE_CANCELLED, updated.source_ref or job_id, {"job_ref": job_id})
         return updated
@@ -386,7 +513,8 @@ class IntakeService:
         A job that was interrupted while running (status ``running`` or
         ``recovery_required``) may have produced unknown side effects, so retry
         refuses it and marks ``recovery_required`` instead of silently
-        re-executing (docs/08 §9, docs/09 §8).
+        re-executing (docs/08 §9, docs/09 §8).  Deferred jobs enforce the frozen
+        attempt budget (initial attempt 1 + ``max_retries``).
         """
 
         job = self._store.read_job(job_id)
@@ -396,6 +524,7 @@ class IntakeService:
                     job_id,
                     status="recovery_required",
                     fail_reason="interrupted with unknown side effects; not auto-replayed",
+                    extra={"finished_at": to_iso(self._clock())},
                 )
             raise AppError(
                 ErrorCode.ILLEGAL_TRANSITION,
@@ -407,6 +536,34 @@ class IntakeService:
                 ErrorCode.ILLEGAL_TRANSITION,
                 f"job status {job.status!r} cannot be retried",
                 details={"job_ref": job_id, "status": job.status},
+            )
+        if job.intake_mode == "deferred":
+            max_retries = _budget_int(job, "max_retries", 1)
+            next_attempt = job.attempt + 1
+            if next_attempt > 1 + max_retries:
+                raise AppError(
+                    ErrorCode.BUDGET_EXHAUSTED,
+                    "intake job retry budget is exhausted",
+                    details={
+                        "job_ref": job_id,
+                        "attempt": job.attempt,
+                        "max_attempts": 1 + max_retries,
+                    },
+                )
+            return self.set_stage(
+                job_id,
+                status="queued",
+                stage=_RECEIVED_STAGE,
+                attempt=next_attempt,
+                fail_reason=None,
+                extra={
+                    "queued_at": to_iso(self._clock()),
+                    "started_at": None,
+                    "finished_at": None,
+                    "deadline_at": None,
+                    "waiting_reason": None,
+                    "cancel": {"requested": False, "confirmed": False},
+                },
             )
         return self.set_stage(
             job_id,
@@ -429,10 +586,19 @@ class IntakeService:
             if job.status != "running":
                 continue
             try:
+                extra = (
+                    {
+                        "finished_at": to_iso(self._clock()),
+                        "waiting_reason": None,
+                    }
+                    if job.intake_mode == "deferred"
+                    else None
+                )
                 self.set_stage(
                     job.job_id,
                     status="recovery_required",
                     fail_reason="process restart during running job; not auto-replayed",
+                    extra=extra,
                 )
             except AppError:
                 continue
@@ -499,26 +665,49 @@ class IntakeService:
         request_id: str,
         payload_hash: str,
         content_hash: str,
+        intake_mode: str = "sync",
     ) -> IntakeJobRecord:
         now = to_iso(self._clock())
-        return self._store.create_job(
-            self._store.new_job_id(),
-            {
-                "source_ref": source_id,
-                "status": "queued",
-                "request_id": request_id,
-                "payload_hash": payload_hash,
-                "stage": _RECEIVED_STAGE,
-                "attempt": 1,
-                "budget": {"max_model_calls": 0, "timeout_seconds": None, "max_retries": 1},
-                "cancel": {"requested": False, "confirmed": False},
-                "fail_reason": None,
-                "created_at": now,
-                "updated_at": now,
-                # Non-authoritative convenience for the receipt projection.
-                "content_hash": content_hash,
-            },
-        )
+        content: dict[str, Any] = {
+            "source_ref": source_id,
+            "status": "queued",
+            "request_id": request_id,
+            "payload_hash": payload_hash,
+            "stage": _RECEIVED_STAGE,
+            "attempt": 1,
+            "cancel": {"requested": False, "confirmed": False},
+            "fail_reason": None,
+            "created_at": now,
+            "updated_at": now,
+            # Non-authoritative convenience for the receipt projection.
+            "content_hash": content_hash,
+        }
+        if intake_mode == "deferred":
+            budget = dict(DEFERRED_BUDGET)
+            if self._asr_enabled is not None:
+                try:
+                    enabled = bool(self._asr_enabled())
+                except Exception:  # noqa: BLE001 - optional config failure means off
+                    enabled = False
+                budget["max_asr_calls"] = 1 if enabled else 0
+            content.update(
+                {
+                    "intake_mode": "deferred",
+                    "queued_at": now,
+                    "started_at": None,
+                    "finished_at": None,
+                    "deadline_at": None,
+                    "waiting_reason": None,
+                    "budget": budget,
+                }
+            )
+        else:
+            content["budget"] = {
+                "max_model_calls": 0,
+                "timeout_seconds": None,
+                "max_retries": 1,
+            }
+        return self._store.create_job(self._store.new_job_id(), content)
 
     def _emit_received(
         self,
@@ -533,6 +722,7 @@ class IntakeService:
         original = original if isinstance(original, dict) else {}
         return ReceiptEntry(
             source_id=source.source_id,
+            job_id=job.job_id,
             filename=filename,
             status="received",
             stage=_RECEIVED_STAGE,
@@ -583,7 +773,20 @@ _SAFE_REQUEST_ID = re.compile(r"^[A-Za-z0-9._:-]{1,200}$")
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
+def _budget_int(job: IntakeJobRecord, key: str, fallback: int) -> int:
+    value = job.budget.get(key)
+    return value if isinstance(value, int) and not isinstance(value, bool) else fallback
+
+
+def _budget_timeout(job: IntakeJobRecord) -> float | None:
+    value = job.budget.get("timeout_seconds")
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value) if value > 0 else None
+
+
 __all__ = [
+    "DEFERRED_BUDGET",
     "IntakeService",
     "ReceiveRequest",
     "PayloadHashMismatch",

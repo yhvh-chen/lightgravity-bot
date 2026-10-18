@@ -12,8 +12,9 @@ This package implements the LG-033/docs-08 §6.6 optional-vector rules as a
 * **Media stays media**: image/audio originals are embedded directly as media
   parts, never fabricated into text.  ASR/OCR are separate paths (LG-035/LG-039).
 * Every cached vector records the **model id / dimension / fragment hash / cache
-  version**; a **model switch rebuilds** the cache instead of mixing
-  incompatible vectors.
+  version**; per-source indexing **fails closed** on a model/cache mismatch and
+  leaves the old corpus for the explicit protected full rebuild instead of
+  mixing or silently clearing it.
 * Authorization and scope come only from ``SOURCE.md``; every hit is re-verified
  回源 before it is returned.
 

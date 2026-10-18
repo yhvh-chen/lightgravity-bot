@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import threading
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
 
@@ -108,6 +109,9 @@ class ConnectionService:
         self._embedding = EmbeddingSettingsService(
             self._repo, secret_store=self._secrets, env=env
         )
+        self._env = dict(env or {})
+        self._english_asr: Any | None = None
+        self._english_asr_lock = threading.RLock()
 
     # --------------------------------------------------------------- exposure
     @property
@@ -129,6 +133,31 @@ class ConnectionService:
         """Independent Embedding purpose; never a chat/worker default."""
 
         return self._embedding
+
+    @property
+    def english_asr(self) -> Any:
+        """The optional English ASR settings/capability service.
+
+        It is built lazily over this exact ``ConnectionRepository`` so GET
+        ``/settings`` can expose the configuration view even while processing is
+        disabled/default-off/missing a runtime (PM clarification).  Building it
+        imports no torch/transformers and performs no inference.
+        """
+
+        with self._english_asr_lock:
+            if self._english_asr is None:
+                from ..asr import build_english_asr_service
+
+                self._english_asr = build_english_asr_service(
+                    self._repo, env=self._env
+                )
+            return self._english_asr
+
+    def configure_english_asr(self, service: Any) -> None:
+        """Inject the one service instance the resident app wires for health/source."""
+
+        with self._english_asr_lock:
+            self._english_asr = service
 
     # ------------------------------------------------------------- connections
     def list_connections(self) -> list[dict[str, Any]]:
@@ -475,6 +504,10 @@ class ConnectionService:
             },
             # LG-117 additive read-only view; secrets are never included.
             "embedding": self._embedding.view(settings),
+            # 1.20 additive configuration view. PM clarification: this view is
+            # present even when processing is disabled/model-missing/runtime-
+            # unavailable, so an admin can configure it without a health probe.
+            "english_asr": self.english_asr.view(settings),
         }
 
     def update_settings(

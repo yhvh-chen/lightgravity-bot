@@ -20,16 +20,30 @@ grants execution semantics to uploaded content (docs/08 §6.6).
 from __future__ import annotations
 
 import base64
+import json
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Protocol
+from urllib.parse import urlsplit, urlunsplit
 
 from lightgravity.contracts import AppError, ErrorCode
 from lightgravity.store.clock import to_iso, utcnow
 from lightgravity.store.errors import ConfigInvalid, EntityNotFound, RevisionConflict
 
 from .intake import IntakeService, ReceiveRequest
-from .models import IntakeJobRecord, ReceiptEntry, ReceiveResult, SourceRecord
+from .models import (
+    IntakeJobRecord,
+    ReceiptEntry,
+    ReceiveResult,
+    SourceRecord,
+    normalize_keyword_branch,
+    normalize_semantic_branch,
+    normalize_text_branch,
+    pending_keyword_branch,
+    pending_semantic_branch,
+    pending_text_branch,
+)
 from .processing import ProcessingEngine
 from .store import SourceStore, new_inbox_id, sanitize_filename
 
@@ -114,15 +128,31 @@ class SourceService:
         intake: IntakeService | None = None,
         processing: ProcessingEngine | None = None,
         lexical: Any | None = None,
+        vector: Any | None = None,
         events: Any | None = None,
+        english_asr: Any | None = None,
     ) -> None:
         self._store = store
         self._tasks = task_store
         self._resolve_path = resolve_path
         self._projects = project_resolver
-        self._intake = intake or IntakeService(store)
+        self._english_asr = english_asr
+        # The intake job budget is decided when the job is created.  This
+        # callback only reads the saved English ASR enabled flag; it never loads
+        # a model or runs inference.
+        self._intake = intake or IntakeService(
+            store, asr_enabled=lambda: self.asr_settings_enabled()
+        )
+        # Even when an IntakeService instance is injected, the source service is
+        # the single owner of the optional ASR configuration callback.
+        if hasattr(self._intake, "_asr_enabled"):
+            self._intake._asr_enabled = lambda: self.asr_settings_enabled()  # noqa: SLF001
         self._processing = processing
         self._lexical = lexical
+        self._vector = vector
+        self._embedding_settings: Any | None = None
+        self._embedding_key: Any = None
+        self._vector_lock = threading.RLock()
         self._events = events
 
     @property
@@ -134,10 +164,106 @@ class SourceService:
         return self._processing
 
     @property
+    def english_asr(self) -> Any | None:
+        """The optional English ASR service wired by the resident application."""
+
+        return self._english_asr
+
+    def configure_english_asr(self, service: Any | None) -> None:
+        """Attach the one English ASR service used by the intake text branch."""
+
+        self._english_asr = service
+
+    def asr_settings_enabled(self) -> bool:
+        service = self._english_asr
+        if service is None:
+            return False
+        try:
+            return bool(service.settings_enabled())
+        except Exception:  # noqa: BLE001 - a broken optional config never enables ASR
+            return False
+
+    @property
     def lexical(self) -> Any | None:
         """The optional LG-036 lexical index/search service (None when unwired)."""
 
         return self._lexical
+
+    @property
+    def vector(self) -> Any | None:
+        """The optional LG-037/LG-143 semantic index service (None when unwired)."""
+
+        if self._embedding_settings is not None:
+            with self._vector_lock:
+                # Resolve one immutable config/credential snapshot. Existing
+                # priority/secret handling stays in EmbeddingSettingsService.
+                resolution = self._embedding_settings.resolve()
+                key = (resolution.config, resolution.credential)
+                if key != self._embedding_key:
+                    from .vectors import VectorSearchService
+
+                    config = resolution.config
+                    parsed = urlsplit(config.base_url or "")
+                    host = parsed.hostname or ""
+                    if ":" in host:
+                        host = f"[{host}]"
+                    port = parsed.port
+                    if port is not None and not (
+                        (parsed.scheme == "http" and port == 80)
+                        or (parsed.scheme == "https" and port == 443)
+                    ):
+                        host += f":{port}"
+                    # Persist endpoint/model provenance only. URL userinfo,
+                    # query/fragment and credential values never enter this identity.
+                    endpoint = urlunsplit((parsed.scheme.lower(), host.lower(), parsed.path.rstrip("/"), "", ""))
+                    identity = json.dumps([endpoint, config.model], separators=(",", ":"))
+                    self._vector = VectorSearchService(
+                        self._store,
+                        backend=self._embedding_settings.backend(resolution),
+                        task_store=self._tasks,
+                        events=self._events,
+                        backend_fingerprint=identity,
+                    )
+                    self._embedding_key = key
+        return self._vector
+
+    @property
+    def embedding_managed(self) -> bool:
+        """Whether this service resolves the live embedding settings."""
+
+        return self._embedding_settings is not None
+
+    def configure_embedding(self, settings: Any) -> None:
+        """Refresh at operation boundaries; never mutate an in-flight backend."""
+
+        with self._vector_lock:
+            self._embedding_settings = settings
+            self._embedding_key = None
+
+    def set_vector(self, vector: Any | None) -> None:
+        """Attach the shared vector service without replacing the source store."""
+
+        self._vector = vector
+
+    def ensure_vector(self, *, backend: Any | None = None) -> Any:
+        """Build the opt-in vector service over this service's exact store.
+
+        The caller resolves the embedding backend with the same precedence as
+        the existing vector router (saved /settings/embedding first, then the
+        environment fallback).  No network call happens here.
+        """
+
+        if self._vector is not None:
+            return self._vector
+        from .vectors import VectorSearchService
+
+        self._vector = VectorSearchService(
+            self._store,
+            backend=backend,
+            task_store=self._tasks,
+            events=self._events,
+        )
+        return self._vector
 
     @property
     def store(self) -> SourceStore:
@@ -185,6 +311,102 @@ class SourceService:
                 details={"field": "task_ref", "task_ref": task_ref},
             ) from exc
 
+    # ------------------------------------------------------ message references
+    def resolve_message_source_refs(
+        self, *, task_ref: str | None, refs: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """Validate and normalize receipt-only message ``source_refs``.
+
+        The request only carries ``{source_id}``.  Versions/hashes/scopes in the
+        returned snapshot are read from the authoritative file SoT; a client
+        can never submit them as authorization.  The list is **not** model
+        context and never replaces ``selected_sources`` (docs/08 §20.3).
+        """
+
+        if not isinstance(refs, list):
+            raise AppError(
+                ErrorCode.VALIDATION_FAILED,
+                "source_refs must be a list",
+                details={"field": "source_refs"},
+            )
+        if len(refs) > 10:
+            raise AppError(
+                ErrorCode.VALIDATION_FAILED,
+                "at most 10 source_refs are allowed",
+                details={"field": "source_refs", "max_items": 10, "actual": len(refs)},
+            )
+        source_ids: list[str] = []
+        for item in refs:
+            if not isinstance(item, dict):
+                raise AppError(
+                    ErrorCode.VALIDATION_FAILED,
+                    "each source_ref must be an object with source_id",
+                    details={"field": "source_refs"},
+                )
+            source_id = item.get("source_id")
+            if not isinstance(source_id, str) or not source_id:
+                raise AppError(
+                    ErrorCode.REFERENCE_INVALID,
+                    "source_ref source_id is missing or invalid",
+                    details={"field": "source_refs.source_id"},
+                )
+            source_ids.append(source_id)
+        if len(set(source_ids)) != len(source_ids):
+            raise AppError(
+                ErrorCode.VALIDATION_FAILED,
+                "source_refs must not contain duplicates",
+                details={"field": "source_refs"},
+            )
+
+        normalized: list[dict[str, Any]] = []
+        for source_id in source_ids:
+            try:
+                record = self._store.read_source(source_id)
+            except (EntityNotFound, ConfigInvalid) as exc:
+                raise AppError(
+                    ErrorCode.REFERENCE_INVALID,
+                    f"source_ref {source_id!r} does not resolve to a known source",
+                    details={"field": "source_refs", "source_id": source_id},
+                ) from exc
+            if record.status == REVOKED_STATUS:
+                raise AppError(
+                    ErrorCode.NOT_FOUND,
+                    f"source {source_id!r} is revoked and unavailable",
+                    details={
+                        "source_id": source_id,
+                        "status": record.status,
+                        "revoked": True,
+                    },
+                )
+            scope = record.scope
+            if task_ref is None:
+                in_scope = scope.is_global and scope.inbox_ref is None
+            else:
+                in_scope = (
+                    scope.task_ref in (None, task_ref)
+                    and scope.project_ref is None
+                    and scope.inbox_ref is None
+                )
+            if not in_scope:
+                raise AppError(
+                    ErrorCode.REFERENCE_INVALID,
+                    f"source {source_id!r} is outside the message scope",
+                    details={
+                        "source_id": source_id,
+                        "scope": scope.to_dict(),
+                        "task_ref": task_ref,
+                    },
+                )
+            normalized.append(
+                {
+                    "source_id": source_id,
+                    "source_version": record.source_version,
+                    "content_hash": record.content_digest or "",
+                    "scope": scope.to_dict(),
+                }
+            )
+        return normalized
+
     def _require_inbox(self, inbox_ref: str) -> None:
         # An inbox is implicitly created by the first message; a ref that does
         # not exist yet is refused so callers cannot invent arbitrary refs.
@@ -211,6 +433,7 @@ class SourceService:
         request_id: str,
         path: str,
         filename: str | None = None,
+        intake_mode: str = "sync",
         task_ref: str | None = None,
         project_ref: str | None = None,
         inbox_ref: str | None = None,
@@ -245,25 +468,29 @@ class SourceService:
                 "source file exceeds the intake size limit",
                 details={"path": path, "max_bytes": MAX_INLINE_BYTES},
             )
-        return self._auto_extract_native_text(
-            self._intake.receive(
-                ReceiveRequest(
-                    request_id=request_id,
-                    filename=filename or target.name,
-                    data=data,
-                    media_type=media_type,
-                    title=title,
-                    title_origin=title_origin,
-                    scope_task_ref=task_ref,
-                    project_ref=project_ref,
-                    inbox_ref=inbox_ref,
-                    origin_kind=origin_kind,
-                    external_ref=external_ref,
-                    fetched=fetched,
-                    claimed_payload_hash=payload_hash,
-                )
+        result = self._intake.receive(
+            ReceiveRequest(
+                request_id=request_id,
+                filename=filename or target.name,
+                data=data,
+                media_type=media_type,
+                title=title,
+                title_origin=title_origin,
+                scope_task_ref=task_ref,
+                project_ref=project_ref,
+                inbox_ref=inbox_ref,
+                origin_kind=origin_kind,
+                external_ref=external_ref,
+                fetched=fetched,
+                claimed_payload_hash=payload_hash,
+                intake_mode=intake_mode,
             )
         )
+        if intake_mode == "deferred":
+            # Deferred mode returns after original/source/job persistence only;
+            # the background worker owns all extraction/index work.
+            return result
+        return self._auto_extract_native_text(result)
 
     def receive_inline(
         self,
@@ -271,6 +498,7 @@ class SourceService:
         request_id: str,
         filename: str,
         content_base64: str,
+        intake_mode: str = "sync",
         task_ref: str | None = None,
         project_ref: str | None = None,
         inbox_ref: str | None = None,
@@ -299,25 +527,27 @@ class SourceService:
                 "inline source exceeds the intake size limit",
                 details={"max_bytes": MAX_INLINE_BYTES},
             )
-        return self._auto_extract_native_text(
-            self._intake.receive(
-                ReceiveRequest(
-                    request_id=request_id,
-                    filename=filename,
-                    data=data,
-                    media_type=media_type,
-                    title=title,
-                    title_origin=title_origin,
-                    scope_task_ref=task_ref,
-                    project_ref=project_ref,
-                    inbox_ref=inbox_ref,
-                    origin_kind=origin_kind,
-                    external_ref=external_ref,
-                    fetched=fetched,
-                    claimed_payload_hash=payload_hash,
-                )
+        result = self._intake.receive(
+            ReceiveRequest(
+                request_id=request_id,
+                filename=filename,
+                data=data,
+                media_type=media_type,
+                title=title,
+                title_origin=title_origin,
+                scope_task_ref=task_ref,
+                project_ref=project_ref,
+                inbox_ref=inbox_ref,
+                origin_kind=origin_kind,
+                external_ref=external_ref,
+                fetched=fetched,
+                claimed_payload_hash=payload_hash,
+                intake_mode=intake_mode,
             )
         )
+        if intake_mode == "deferred":
+            return result
+        return self._auto_extract_native_text(result)
 
     # ------------------------------------------------------------- extraction
     def _auto_extract_native_text(self, result: ReceiveResult) -> ReceiveResult:
@@ -379,6 +609,7 @@ class SourceService:
         reason = getattr(outcome, "reason", None)
         receipt = ReceiptEntry(
             source_id=source.source_id,
+            job_id=result.job.job_id,
             filename=str(filename),
             status="extracted" if extracted else "failed",
             stage="done" if extracted else "extracting",
@@ -396,6 +627,28 @@ class SourceService:
             source_version=source.source_version,
             at=to_iso(utcnow()),
             error_code=None if extracted else "capability_unavailable",
+            text=(
+                {"status": "ready", "reason": None, "error_code": None}
+                if extracted
+                else {
+                    "status": "failed",
+                    "reason": reason or "native UTF-8 text extraction failed",
+                    "error_code": "capability_unavailable",
+                }
+            ),
+            keyword=(
+                {"status": "searchable", "reason": None, "error_code": None}
+                if extracted
+                else {"status": "no_text", "reason": "no_trusted_body", "error_code": None}
+            ),
+            semantic={
+                "status": "disabled",
+                "reason": "vector_backend_unavailable",
+                "error_code": None,
+                "model": None,
+                "kinds": [],
+                "failed_kinds": [],
+            },
         )
         self._store.append_receipt(source.source_id, receipt)
 
@@ -511,15 +764,156 @@ class SourceService:
     def receipt(self, source_id: str) -> dict[str, Any]:
         record = self._store.read_source(source_id)
         entries: list[ReceiptEntry] = self._store.read_receipts(source_id)
-        latest = entries[-1] if entries else None
+        items: list[dict[str, Any]] = []
+        inferred = self._infer_branches(record)
+        current_inference = inferred
+        pending_inference = {
+            "text": pending_text_branch(),
+            "keyword": pending_keyword_branch(),
+            "semantic": pending_semantic_branch(),
+        }
+        for entry in entries:
+            item = entry.to_dict()
+            if entry.job_id is not None:
+                try:
+                    job = self._store.read_job(entry.job_id)
+                except (EntityNotFound, ConfigInvalid, ValueError):
+                    item["job_id"] = None
+                else:
+                    if job.source_ref != source_id or job.entity.get("content_hash") != entry.content_hash:
+                        item["job_id"] = None
+            matches_current = entry.source_version == record.source_version and entry.content_hash in (
+                None,
+                record.content_digest,
+            )
+            branches = self._merge_branches(
+                {
+                    "text": entry.text,
+                    "keyword": entry.keyword,
+                    "semantic": entry.semantic,
+                },
+                current_inference if matches_current else pending_inference,
+            )
+            item.update(branches)
+            item["searchable"] = branches["keyword"]["status"] == "searchable"
+            item["error_code"] = _first_branch_error(branches)
+            items.append(item)
+        latest = items[-1] if items else None
         return {
             "source_id": source_id,
             "revision": record.revision,
             "status": record.status,
             "source_version": record.source_version,
-            "items": [entry.to_dict() for entry in entries],
-            "latest": latest.to_dict() if latest else None,
+            "receipt_version": 2,
+            "partial": _receipt_partial(latest),
+            "items": items,
+            "latest": latest,
         }
+
+    def _merge_branches(
+        self,
+        explicit: dict[str, Any],
+        inferred: dict[str, Any],
+    ) -> dict[str, Any]:
+        merged: dict[str, Any] = {}
+        for name, normalizer, pending in (
+            ("text", normalize_text_branch, pending_text_branch),
+            ("keyword", normalize_keyword_branch, pending_keyword_branch),
+            ("semantic", normalize_semantic_branch, pending_semantic_branch),
+        ):
+            branch = normalizer(explicit.get(name))
+            if branch["status"] == "pending" and inferred[name]["status"] != "pending":
+                branch = inferred[name]
+            merged[name] = branch
+        return merged
+
+    def _infer_branches(self, record: SourceRecord) -> dict[str, Any]:
+        """Best-effort current projection for old receipt lines.
+
+        New deferred receipts always carry explicit branch objects; this keeps
+        pre-1.19 receipt lines honest after an upgrade without guessing a body.
+        """
+
+        text = pending_text_branch()
+        keyword = pending_keyword_branch()
+        semantic = pending_semantic_branch()
+        content = self._content_store(record.source_id)
+        formal = content.read_formal()
+        pages = content.read_pages(record.source_version)
+        pages_status = str(pages.get("status") or "") if isinstance(pages, dict) else ""
+        machine = content.read_machine_markdown(record.source_version)
+        if (formal is not None and formal.strip()) or (
+            pages_status in ("succeeded", "partial")
+            and machine is not None
+            and machine.strip()
+        ):
+            text = {
+                "status": "ready",
+                "reason": "partial_pages" if pages_status == "partial" else None,
+                "error_code": None,
+            }
+            transcript = _transcript_derivative(record)
+            if transcript is not None:
+                text["language"] = "en"
+                text["timestamps"] = None
+        elif record.status == "failed":
+            text = {
+                "status": "failed",
+                "reason": "extraction_failed",
+                "error_code": "capability_unavailable",
+            }
+
+        index = record.entity.get("index")
+        index = index if isinstance(index, dict) else {}
+        lexical_state = index.get("lexical")
+        if text["status"] == "ready":
+            if lexical_state == "indexed":
+                keyword = {"status": "searchable", "reason": None, "error_code": None}
+            elif lexical_state == "failed":
+                keyword = {
+                    "status": "failed",
+                    "reason": "lexical_index_failed",
+                    "error_code": "index_unavailable",
+                }
+        elif text["status"] in ("unavailable", "failed"):
+            keyword = {"status": "no_text", "reason": "no_trusted_body", "error_code": None}
+
+        processed = (
+            record.status not in ("received", "processing")
+            or text["status"] != "pending"
+            or lexical_state == "indexed"
+        )
+        vector_state = index.get("vector")
+        if not processed:
+            return {"text": text, "keyword": keyword, "semantic": semantic}
+        if vector_state == "indexed":
+            semantic = {
+                "status": "searchable",
+                "reason": None,
+                "error_code": None,
+                "model": index.get("vector_model"),
+                "kinds": [],
+                "failed_kinds": [],
+            }
+        elif vector_state == "failed":
+            semantic = {
+                "status": "failed",
+                "reason": "vector_index_failed",
+                "error_code": "index_unavailable",
+                "model": index.get("vector_model"),
+                "kinds": [],
+                "failed_kinds": [],
+            }
+        elif vector_state == "disabled":
+            semantic = {
+                "status": "disabled",
+                "reason": "vector_backend_unavailable",
+                "error_code": None,
+                "model": None,
+                "kinds": [],
+                "failed_kinds": [],
+            }
+        return {"text": text, "keyword": keyword, "semantic": semantic}
 
     def get_job(self, job_id: str) -> dict[str, Any]:
         job = self._store.read_job(job_id)
@@ -640,10 +1034,15 @@ class SourceService:
                 details={"kind": kind},
             )
         if body is None:
+            details: dict[str, Any] = {"source_id": source_id, "kind": wanted}
+            if wanted == "machine":
+                reason = self._latest_text_reason(source_id)
+                if reason is not None:
+                    details["reason"] = reason
             raise AppError(
                 ErrorCode.NOT_FOUND,
                 f"no {wanted} content exists for source {source_id!r}",
-                details={"source_id": source_id, "kind": wanted},
+                details=details,
             )
         return {
             "source_id": source_id,
@@ -653,6 +1052,18 @@ class SourceService:
             "content": body,
             "formal_present": formal is not None,
         }
+
+    def _latest_text_reason(self, source_id: str) -> str | None:
+        try:
+            entries = self._store.read_receipts(source_id)
+        except (EntityNotFound, ConfigInvalid):
+            return None
+        for entry in reversed(entries):
+            branch = normalize_text_branch(entry.text)
+            reason = branch.get("reason")
+            if isinstance(reason, str) and reason:
+                return reason
+        return None
 
     def download_view(self, source_id: str, *, kind: str = "original") -> dict[str, Any]:
         """Return the original bytes plus a **stat**-type revision (not a hash)."""
@@ -919,6 +1330,10 @@ class SourceService:
             "content_hash": entity.get("content_hash"),
             "stat_revision": entity.get("stat_revision"),
             "source_version": record.source_version,
+            # 1.20 additive projections of the real text branch; absent on old
+            # non-audio sources and never a second state store.
+            "language": entity.get("language"),
+            "text_status": entity.get("text_status", "pending"),
             "original": entity.get("original"),
             "derivatives": entity.get("derivatives") or [],
             "formal": entity.get("formal"),
@@ -948,7 +1363,54 @@ class SourceService:
             "fail_reason": entity.get("fail_reason"),
             "created_at": entity.get("created_at"),
             "updated_at": entity.get("updated_at"),
+            # Additive LG-141 deferred-job fields; old/sync jobs keep the frozen
+            # shape (missing keys read as sync/null).
+            "intake_mode": job.intake_mode,
+            "queued_at": entity.get("queued_at"),
+            "started_at": entity.get("started_at"),
+            "finished_at": entity.get("finished_at"),
+            "deadline_at": entity.get("deadline_at"),
+            "waiting_reason": entity.get("waiting_reason"),
         }
+
+
+def _transcript_derivative(record: SourceRecord) -> dict[str, Any] | None:
+    derivatives = record.entity.get("derivatives")
+    if not isinstance(derivatives, list):
+        return None
+    for entry in derivatives:
+        if (
+            isinstance(entry, dict)
+            and entry.get("kind") == "transcript"
+            and entry.get("source_version") in (None, record.source_version)
+        ):
+            return entry
+    return None
+
+
+def _receipt_partial(item: dict[str, Any] | None) -> bool:
+    if not item:
+        return False
+    text = str((item.get("text") or {}).get("status") or "pending")
+    keyword = str((item.get("keyword") or {}).get("status") or "pending")
+    semantic = str((item.get("semantic") or {}).get("status") or "pending")
+    succeeded = text == "ready" or keyword == "searchable" or semantic == "searchable"
+    unsuccessful = (
+        text in ("unavailable", "failed")
+        or (item.get("text") or {}).get("reason") == "partial_pages"
+        or keyword == "failed"
+        or semantic in ("unsupported", "failed")
+        or bool((item.get("semantic") or {}).get("failed_kinds"))
+    )
+    return bool(succeeded and unsuccessful)
+
+
+def _first_branch_error(branches: dict[str, Any]) -> str | None:
+    for name in ("text", "keyword", "semantic"):
+        value = (branches.get(name) or {}).get("error_code")
+        if isinstance(value, str) and value:
+            return value
+    return None
 
 
 class ScopedSelectionResolver:
@@ -1000,6 +1462,10 @@ def build_source_service(
     clock: Any | None = None,
     events: Any | None = None,
     ocr_backend: Any | None = None,
+    vector: Any | None = None,
+    connections: Any | None = None,
+    embedding_backend: Any | None = None,
+    english_asr: Any | None = None,
 ) -> SourceService:
     """Construct a service bound to one data root (single-app wiring helper)."""
 
@@ -1043,16 +1509,26 @@ def build_source_service(
         config=ProcessingConfig.from_env(),
         **processing_kwargs,
     )
-    return SourceService(
+    service = SourceService(
         store,
         task_store=task_store,
         resolve_path=resolve_path,
         project_resolver=project_resolver,
+        english_asr=english_asr,
         intake=intake,
         processing=processing,
         lexical=lexical,
+        vector=vector,
         events=events,
     )
+    if vector is None and embedding_backend is None and connections is not None:
+        service.configure_embedding(connections.embedding)
+        # Resolve now for consistent startup diagnostics; later operations
+        # resolve again only when effective settings/credential status change.
+        service.vector
+    elif service.vector is None and embedding_backend is not None:
+        service.ensure_vector(backend=embedding_backend)
+    return service
 
 
 __all__ = [
@@ -1062,4 +1538,6 @@ __all__ = [
     "ScopedSelectionResolver",
     "build_source_service",
     "MAX_INLINE_BYTES",
+    "_receipt_partial",
+    "_first_branch_error",
 ]

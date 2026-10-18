@@ -11,6 +11,7 @@ import pytest
 from lightgravity.api.access import (
     TOKEN_HEADER,
     LocalAccessPolicy,
+    is_admin_only_request,
     is_sensitive_request,
 )
 from lightgravity.api.app import create_app
@@ -94,6 +95,18 @@ def test_sensitive_classification_and_escape_hatch() -> None:
     assert (
         is_sensitive_request(
             _FakeRequest("127.0.0.1", method="GET", path="/api/v1/settings/connections")
+        )
+        is False
+    )
+    # LG-144: the full vector rebuild is a protected/admin write.
+    rebuild = _FakeRequest(
+        "127.0.0.1", method="POST", path="/api/v1/vector/rebuild"
+    )
+    assert is_sensitive_request(rebuild) is True
+    assert is_admin_only_request(rebuild) is True
+    assert (
+        is_sensitive_request(
+            _FakeRequest("127.0.0.1", method="GET", path="/api/v1/vector/rebuild")
         )
         is False
     )

@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useAuth } from '../../app/AuthProvider'
+import type { SearchApi } from '../../api/search'
+import {
+  createEnglishAsrApi,
+  englishAsrReasonLabel,
+  type EnglishAsrApi,
+  type EnglishAsrModelRef,
+  type EnglishAsrSettingsView,
+  type EnglishAsrUpdateResult,
+} from '../../api/englishAsr'
 import {
   createSettingsApi,
   type ConnectionView,
@@ -20,6 +29,7 @@ import { AccountsPanel } from './AccountsPanel'
 import { ConnectionEditor } from './ConnectionEditor'
 import { DefaultsEditor } from './DefaultsEditor'
 import { EmbeddingPanel } from './EmbeddingPanel'
+import { EnglishAsrPanel, EnglishAsrStatusBadges, EnglishAsrStatusNote } from './EnglishAsrPanel'
 import { MyAccountPanel } from './MyAccountPanel'
 
 export interface SettingsViewProps {
@@ -27,6 +37,13 @@ export interface SettingsViewProps {
   token?: string | null
   /** Full API override for embedding/tests; defaults to the real endpoints. */
   api?: SettingsApi
+  /**
+   * Optional English ASR writer override for tests/integration. The read path
+   * stays the existing `GET /settings`; this client only performs the PUT.
+   */
+  englishAsrApi?: EnglishAsrApi
+  /** Optional vector client override for the explicit protected rebuild action. */
+  searchApi?: SearchApi
   /**
    * Connection record to open for editing on load (e.g. from Resources/Team
    * "Edit in Settings"). Purely a UI locator; it does not change the entity.
@@ -51,6 +68,115 @@ interface DeleteState {
   id: string
   busy: boolean
   error: RowError | null
+}
+
+function modelRefLabel(model: EnglishAsrModelRef | null | undefined): string {
+  if (!model?.id) return 'not reported'
+  return model.revision ? `${model.id} @ ${model.revision}` : model.id
+}
+
+function modelRefFact(model: EnglishAsrModelRef | null | undefined): string | null {
+  if (!model) return null
+  const parts = [modelLabelLicense(model), model.sha256 ? `sha256 ${model.sha256}` : null].filter(
+    (value): value is string => Boolean(value),
+  )
+  return parts.length > 0 ? parts.join(' · ') : null
+}
+
+function modelLabelLicense(model: EnglishAsrModelRef): string | null {
+  return model.license ? `license ${model.license}` : null
+}
+
+function englishAsrLimitBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function EnglishAsrSummary({ view }: { view: EnglishAsrSettingsView }) {
+  const limits = view.limits
+  const encoder = view.models.encoder ?? null
+  const reader = view.models.reader ?? null
+  return (
+    <>
+      <EnglishAsrStatusBadges view={view} />
+      <EnglishAsrStatusNote view={view} />
+      <dl className="lg-connection-row__facts">
+        <div>
+          <dt>Language</dt>
+          <dd>{view.language ?? 'en'}</dd>
+        </div>
+        <div>
+          <dt>Revision</dt>
+          <dd>{view.revision}</dd>
+        </div>
+        <div>
+          <dt>Runtime</dt>
+          <dd>{view.runtime}</dd>
+        </div>
+        <div>
+          <dt>Configured</dt>
+          <dd>{view.configured ? 'yes' : 'no'}</dd>
+        </div>
+        <div>
+          <dt>Available</dt>
+          <dd>
+            {view.available ? 'yes' : `no · ${englishAsrReasonLabel(view.reason)}`}
+          </dd>
+        </div>
+        <div>
+          <dt>Encoder</dt>
+          <dd className="lg-card__path">{modelRefLabel(encoder)}</dd>
+        </div>
+        <div>
+          <dt>Reader</dt>
+          <dd className="lg-card__path">{modelRefLabel(reader)}</dd>
+        </div>
+        <div>
+          <dt>Limits</dt>
+          <dd>
+            audio ≤ {limits.max_audio_seconds ?? '—'} s · bytes ≤{' '}
+            {typeof limits.max_audio_bytes === 'number'
+              ? englishAsrLimitBytes(limits.max_audio_bytes)
+              : '—'}{' '}
+            · timeout {limits.timeout_seconds ?? '—'} s · concurrency{' '}
+            {limits.max_concurrency ?? '—'}
+          </dd>
+        </div>
+      </dl>
+      <details className="lg-disclosure" aria-label="English transcription model pins">
+        <summary className="lg-disclosure__summary">Pinned models, hashes and licenses</summary>
+        <div className="lg-disclosure__body">
+          <dl className="lg-connection-row__facts">
+            <div>
+              <dt>Encoder</dt>
+              <dd className="lg-card__path">{modelRefLabel(encoder)}</dd>
+            </div>
+            {modelRefFact(encoder) ? (
+              <div>
+                <dt>Encoder pin</dt>
+                <dd className="lg-card__path">{modelRefFact(encoder)}</dd>
+              </div>
+            ) : null}
+            <div>
+              <dt>Reader</dt>
+              <dd className="lg-card__path">{modelRefLabel(reader)}</dd>
+            </div>
+            {modelRefFact(reader) ? (
+              <div>
+                <dt>Reader pin</dt>
+                <dd className="lg-card__path">{modelRefFact(reader)}</dd>
+              </div>
+            ) : null}
+          </dl>
+          <p className="lg-field__hint">
+            Model files are administrator-provisioned local assets. This surface never downloads,
+            installs, trains or runs a model.
+          </p>
+        </div>
+      </details>
+    </>
+  )
 }
 
 function embeddingCacheLabel(embedding: EmbeddingSettingsView): {
@@ -116,13 +242,21 @@ function persistedTestStatus(connection: ConnectionView): {
  * `last_test` summary — a draft result is never promoted to saved verification.
  */
 function ModelsPanel(props: SettingsViewProps = {}) {
-  const { token, api: injectedApi, connectionId } = props
+  const { token, api: injectedApi, englishAsrApi: injectedEnglishAsrApi, connectionId } = props
+  const { isTeam, isAdmin } = useAuth()
+  const canRebuildVector = !isTeam || isAdmin
   const defaultApi = useMemo(() => {
     if (token === undefined) return createSettingsApi()
     const fixed = token
     return createSettingsApi(() => fixed ?? null)
   }, [token])
+  const defaultEnglishAsrApi = useMemo(() => {
+    if (token === undefined) return createEnglishAsrApi()
+    const fixed = token
+    return createEnglishAsrApi(() => fixed ?? null)
+  }, [token])
   const api = injectedApi ?? defaultApi
+  const englishAsrApi = injectedEnglishAsrApi ?? defaultEnglishAsrApi
 
   const [connections, setConnections] = useState<ConnectionView[] | null>(null)
   const [settings, setSettings] = useState<GlobalSettingsView | null>(null)
@@ -136,6 +270,7 @@ function ModelsPanel(props: SettingsViewProps = {}) {
   const [listNotice, setListNotice] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [embeddingOpen, setEmbeddingOpen] = useState(false)
+  const [englishAsrOpen, setEnglishAsrOpen] = useState(false)
 
   // LG-103/LG-110 target + late-response guards. A deeplink target opens Edit
   // exactly once; closing the modal never changes the target and reopens it.
@@ -317,6 +452,40 @@ function ModelsPanel(props: SettingsViewProps = {}) {
       `Embedding settings saved at settings revision ${settingsRevision}.`,
     )
   }, [])
+
+  const handleEnglishAsrSaved = useCallback((result: EnglishAsrUpdateResult) => {
+    setSettings((previous) =>
+      previous
+        ? {
+            ...previous,
+            // `english_asr` may live in its own canonical document, so the
+            // global settings revision is not changed here. The next PUT uses
+            // the nested `english_asr.revision`.
+            english_asr: previous.english_asr
+              ? {
+                  ...previous.english_asr,
+                  ...result.english_asr,
+                  models: { ...previous.english_asr.models, ...result.english_asr.models },
+                  limits: { ...previous.english_asr.limits, ...result.english_asr.limits },
+                }
+              : result.english_asr,
+          }
+        : previous,
+    )
+    setListNotice(
+      `English transcription settings saved at revision ${result.english_asr.revision}. Saving does not run transcription or prove processing availability.`,
+    )
+  }, [])
+
+  const reloadEnglishAsr = useCallback(async (): Promise<EnglishAsrSettingsView | null> => {
+    try {
+      const loaded = await api.getSettings()
+      setSettings(loaded)
+      return loaded.english_asr ?? null
+    } catch {
+      return null
+    }
+  }, [api])
 
   const handleConnectionUpdated = useCallback((updated: ConnectionView) => {
     setConnections((previous) =>
@@ -665,6 +834,41 @@ function ModelsPanel(props: SettingsViewProps = {}) {
       ) : null}
 
       {settings ? (
+        <section
+          className="lg-section-card lg-english-asr-summary"
+          aria-label="English transcription settings"
+        >
+          <div className="lg-english-asr-summary__head">
+            <div>
+              <h3 className="lg-section-card__title">English transcription</h3>
+              <p className="lg-field__hint">
+                Shared English audio only. The machine transcript is a provenance-labelled
+                derivative; the human formal version stays authoritative. Asset paths are
+                administrator configuration and are never returned as read fields.
+              </p>
+            </div>
+            {settings.english_asr ? (
+              <button
+                type="button"
+                className="lg-button"
+                onClick={() => setEnglishAsrOpen(true)}
+              >
+                Configure English transcription
+              </button>
+            ) : null}
+          </div>
+          {settings.english_asr ? (
+            <EnglishAsrSummary view={settings.english_asr} />
+          ) : (
+            <p className="lg-notice" role="note">
+              This backend does not expose English transcription settings. No configuration form is
+              shown and no new endpoint is probed; shared audio receipts remain authoritative.
+            </p>
+          )}
+        </section>
+      ) : null}
+
+      {settings ? (
         <details className="lg-disclosure" aria-label="Default models">
           <summary className="lg-disclosure__summary">Default models</summary>
           <div className="lg-disclosure__body">
@@ -698,8 +902,20 @@ function ModelsPanel(props: SettingsViewProps = {}) {
           api={api}
           embedding={settings.embedding}
           revision={settings.revision}
+          canRebuild={canRebuildVector}
+          searchApi={props.searchApi}
           onSaved={handleEmbeddingSaved}
           onClose={() => setEmbeddingOpen(false)}
+        />
+      ) : null}
+
+      {englishAsrOpen && settings?.english_asr ? (
+        <EnglishAsrPanel
+          api={englishAsrApi}
+          view={settings.english_asr}
+          onSaved={handleEnglishAsrSaved}
+          onReload={reloadEnglishAsr}
+          onClose={() => setEnglishAsrOpen(false)}
         />
       ) : null}
     </div>

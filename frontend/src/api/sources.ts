@@ -32,7 +32,49 @@
 
 import { newRuntimeId } from './chat'
 import { ApiError, apiRequest } from './client'
-import { API_PREFIX } from './types'
+import {
+  API_PREFIX,
+  type IntakeJobBudget,
+  type IntakeWaitingReason,
+  type SourceHitKind,
+  type SourceIntakeMode,
+  type SourceReceipt,
+  type SourceReceiptEntry,
+  type SourceReceiptV2,
+  type SourceScope,
+  type SourceSearchHit,
+  type SourceSearchLocator,
+  type SourceTextBranchState,
+} from './types'
+
+/* docs/08 §20 shared types stay in `types.ts` (LG-146 adapter seam). Re-export
+ * them here so existing `from './sources'` imports keep working unchanged. */
+export type {
+  IntakeJobBudget,
+  IntakeWaitingReason,
+  SemanticSearchHit,
+  SourceBranchState,
+  SourceHitKind,
+  SourceIntakeMode,
+  SourceKeywordBranch,
+  SourceKeywordBranchState,
+  SourceReceipt,
+  SourceReceiptEntry,
+  SourceReceiptV2,
+  SourceReceiptV2Item,
+  SourceRef,
+  SourceRefInput,
+  SourceScope,
+  SourceSemanticBranch,
+  SourceSemanticBranchState,
+  SourceSemanticKind,
+  SourceSearchHit,
+  SourceSearchLocator,
+  SourceTextBranch,
+  SourceTextBranchState,
+  SourceTextMachineProvenance,
+  SourceTranscriptTimestamp,
+} from './types'
 
 /* ------------------------------------------------------------- wire shapes */
 
@@ -48,12 +90,6 @@ export type SourceStatus =
 
 export type LexicalState = 'not_indexed' | 'indexed' | 'stale' | 'failed'
 export type VectorState = 'disabled' | 'not_indexed' | 'indexed' | 'stale' | 'failed'
-
-export interface SourceScope {
-  task_ref: string | null
-  project_ref: string | null
-  inbox_ref: string | null
-}
 
 export interface SourceOrigin {
   kind: string
@@ -73,6 +109,16 @@ export interface SourceView {
    * and openable; only revoke/delete make it unavailable.
    */
   archived?: boolean
+  /** Additive 1.19.0 intake mode; absent on older sources (treat as `sync`). */
+  intake_mode?: SourceIntakeMode
+  /**
+   * Additive 1.20.0 projection of the text branch: `"en"` only when a machine
+   * English transcript is ready, otherwise `null`. It is not a second state
+   * store and must not be inferred from a media vector hit.
+   */
+  language?: string | null
+  /** Additive 1.20.0 text branch state (same enum as receipt `text.status`). */
+  text_status?: SourceTextBranchState | string | null
   revision: number
   etag: string
   scope: SourceScope
@@ -107,24 +153,16 @@ export interface JobView {
   attempt?: number | null
   cancel?: { requested?: boolean; confirmed?: boolean } | null
   fail_reason?: string | null
+  /** Additive 1.19.0 deferred-job fields (docs/08 §20.5); absent on sync jobs. */
+  intake_mode?: SourceIntakeMode
+  queued_at?: string | null
+  started_at?: string | null
+  finished_at?: string | null
+  deadline_at?: string | null
+  waiting_reason?: IntakeWaitingReason | null
+  budget?: IntakeJobBudget | null
   created_at: string | null
   updated_at: string | null
-}
-
-export interface SourceReceiptEntry {
-  status?: string
-  stage?: string
-  message?: string
-  [key: string]: unknown
-}
-
-export interface SourceReceipt {
-  source_id: string
-  revision: number
-  status: string
-  source_version: number
-  items: SourceReceiptEntry[]
-  latest: SourceReceiptEntry | null
 }
 
 export interface SourceListPage {
@@ -151,25 +189,11 @@ export interface SourceDownload {
   contentHash: string | null
 }
 
-export interface SearchLocator {
-  kind?: string
-  page?: number | null
-  offset?: number | null
-  [key: string]: unknown
-}
+export type SearchLocator = SourceSearchLocator
 
-export interface SearchHit {
-  source_id: string
-  source_version: number
-  content_hash: string | null
-  basis: string
-  scope: SourceScope
-  title: string | null
-  locators: SearchLocator[]
-  snippet: string
-  verified: boolean
-  stale: boolean
-  reason: string | null
+export interface SearchHit extends SourceSearchHit {
+  /** Semantic hits only; legacy lexical hits omit it. */
+  kind?: SourceHitKind | string
 }
 
 export interface SearchStaleEntry {
@@ -206,6 +230,12 @@ export interface SourceCreateInput {
   scope?: Partial<SourceScope>
   origin?: { kind?: string; external_ref?: string | null; fetched?: boolean }
   payload_hash?: string | null
+  /**
+   * Additive 1.19.0 field (docs/08 §20.4). Omit/`sync` for the 1.18 path;
+   * `deferred` requires the `material_intake_v2` gate. It is sent as part of
+   * the normal POST /sources body, so no separate runtime call is needed.
+   */
+  intake_mode?: SourceIntakeMode
 }
 
 export interface SourceCreateResult {
@@ -214,6 +244,8 @@ export interface SourceCreateResult {
   deduplicated: boolean
   created: boolean
   receipts: SourceReceiptEntry[]
+  /** Echoed by 1.19.0 deferred responses; absent on the 1.18 sync path. */
+  intake_mode?: SourceIntakeMode
 }
 
 export interface SourceSearchQuery {
@@ -231,6 +263,14 @@ export interface InboxMessageResult {
   message: Record<string, unknown>
   task_created: false
   run_created: false
+}
+
+export interface IntakeJobActionResult {
+  job_id: string
+  action: string
+  status: string
+  confirmed: boolean
+  [key: string]: unknown
 }
 
 export interface SourcesRuntimeConfig {
@@ -253,7 +293,19 @@ export interface SourcesApi {
     signal?: AbortSignal,
   ): Promise<SourceListPage>
   getSource(sourceId: string, signal?: AbortSignal): Promise<SourceView>
+  /**
+   * Existing 1.18 read endpoint; 1.19.0 responses may additionally satisfy
+   * `SourceReceiptV2` (check with `isSourceReceiptV2`).
+   */
   getReceipt(sourceId: string, signal?: AbortSignal): Promise<SourceReceipt>
+  /** `GET /intake/jobs/{id}`; job fields are additive in 1.19.0. */
+  getIntakeJob?(jobId: string, signal?: AbortSignal): Promise<JobView>
+  /** `POST /intake/jobs/{id}/actions` (`cancel`/`retry`, docs/08 §20.9). */
+  intakeJobAction?(
+    jobId: string,
+    body: { action: 'cancel' | 'retry'; confirmed?: boolean; note?: string | null },
+    signal?: AbortSignal,
+  ): Promise<IntakeJobActionResult>
   getContent(
     sourceId: string,
     kind: 'auto' | 'formal' | 'machine',
@@ -405,6 +457,26 @@ export function createSourcesApi(runtime: SourcesRuntimeConfig = {}): SourcesApi
       )
     },
 
+    getIntakeJob(jobId, signal) {
+      return apiRequest<JobView>(`/intake/jobs/${encodeURIComponent(jobId)}`, { signal })
+    },
+
+    intakeJobAction(jobId, body, signal) {
+      return apiRequest<IntakeJobActionResult>(
+        `/intake/jobs/${encodeURIComponent(jobId)}/actions`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...authHeaders(runtime) },
+          body: JSON.stringify({
+            action: body.action,
+            confirmed: body.confirmed ?? false,
+            note: body.note ?? null,
+          }),
+          signal,
+        },
+      )
+    },
+
     getContent(sourceId, kind, signal) {
       return apiRequest<SourceContentView>(
         `/sources/${encodeURIComponent(sourceId)}/content${query({ kind })}`,
@@ -502,6 +574,23 @@ export function createSourcesApi(runtime: SourcesRuntimeConfig = {}): SourcesApi
 
 /** Default (token-less) client: reads work; protected writes fail honestly. */
 export const sourcesApi = createSourcesApi()
+
+/**
+ * Narrow a receipt read to the 1.19.0 v2 shape. Only call consumers behind the
+ * `material_intake_v2` capability gate; a legacy 1.18 receipt returns false.
+ */
+export function isSourceReceiptV2(
+  receipt: SourceReceipt | null | undefined,
+): receipt is SourceReceiptV2 {
+  return Boolean(
+    receipt &&
+      receipt.receipt_version === 2 &&
+      typeof receipt.partial === 'boolean' &&
+      receipt.items.every(
+        (item) => Boolean(item.text && item.keyword && item.semantic),
+      ),
+  )
+}
 
 /** A stable, well-formed intake request id (`req_<ULID>`). */
 export function newIntakeRequestId(): string {

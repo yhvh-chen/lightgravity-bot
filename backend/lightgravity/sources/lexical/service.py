@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from lightgravity.contracts import AppError, ErrorCode
-from lightgravity.store.errors import EntityNotFound
+from lightgravity.store.errors import EntityNotFound, RevisionConflict
 
 from ..content import ContentStore
 from ..models import SourceRecord
@@ -362,25 +362,36 @@ class LexicalSearchService:
     def _write_index_state(
         self, record: SourceRecord, *, lexical: str, lexical_hash: str | None
     ) -> None:
-        current = record.entity.get("index")
-        current = current if isinstance(current, dict) else {}
-        vector = current.get("vector") if current.get("vector") in _VECTOR_STATES else "disabled"
-        vector_model = current.get("vector_model")
-        try:
-            self._store.update_source(
-                record.source_id,
-                {
-                    "index": {
-                        "lexical": lexical,
-                        "lexical_hash": lexical_hash,
-                        "vector": vector,
-                        "vector_model": vector_model,
-                    }
-                },
-                expected_revision=record.revision,
-            )
-        except EntityNotFound:
-            return
+        """Merge lexical fields at the current revision (vector may write too)."""
+
+        source_id = record.source_id
+        for _ in range(3):
+            try:
+                current_record = self._store.read_source(source_id)
+            except EntityNotFound:
+                return
+            current = current_record.entity.get("index")
+            current = current if isinstance(current, dict) else {}
+            vector = current.get("vector") if current.get("vector") in _VECTOR_STATES else "disabled"
+            vector_model = current.get("vector_model")
+            try:
+                self._store.update_source(
+                    source_id,
+                    {
+                        "index": {
+                            "lexical": lexical,
+                            "lexical_hash": lexical_hash,
+                            "vector": vector,
+                            "vector_model": vector_model,
+                        }
+                    },
+                    expected_revision=current_record.revision,
+                )
+                return
+            except RevisionConflict:
+                continue
+            except EntityNotFound:
+                return
 
     def _mark_not_indexed(self, record: SourceRecord, reason: str) -> None:
         current = record.entity.get("index")

@@ -393,3 +393,59 @@
 .lg-task-directory { border-bottom: 1px solid var(--lg-color-border); padding: 8px; }
 .lg-task-directory__list { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; max-height: 200px; overflow-y: auto; }
 .lg-task-directory__list button { max-width: 100%; overflow-wrap: anywhere; }
+
+/* ------------------------------------------- intake receipt v2 (LG-142) */
+/* Branch/status primitives live in chat/intake.css; these are Files-only
+ * layout rules for the detail panel. */
+
+.lg-files-materials__receipt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  min-width: 0;
+  padding: var(--lg-space-2);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-surface-2);
+}
+
+.lg-files-materials__receipt-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-2);
+}
+
+.lg-files-materials__original {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  min-width: 0;
+}
+
+.lg-files-materials__audio {
+  width: 100%;
+  max-width: 560px;
+}
+
+.lg-files-materials__receipt .lg-intake-branches {
+  margin: 0;
+}
+
+/* ------------------------------------------------ LG-161 machine transcript */
+
+.lg-files-materials__transcript {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-2);
+  padding: var(--lg-space-3);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-panel);
+  background: var(--lg-color-surface-2);
+  min-width: 0;
+}
+
+.lg-files-materials__transcript .lg-connection-row__facts,
+.lg-files-materials__transcript .lg-files-materials__facts {
+  overflow-wrap: anywhere;
+}

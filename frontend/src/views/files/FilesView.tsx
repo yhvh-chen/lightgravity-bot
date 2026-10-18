@@ -21,6 +21,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { getRuntimeToken } from '../../api/auth'
+import { fetchHealth } from '../../api/client'
+import {
+  supportsMaterialIntakeV2,
+  supportsMediaDirectEmbedding,
+} from '../../api/backendCompatibility'
 import { ApiError } from '../../api/client'
 import {
   createSourcesApi,
@@ -95,6 +100,8 @@ export interface FilesPanelProps {
   sourcesApi?: SourcesApi
   /** Selected item ref; `source:<id>` opens that material (LG-038 deep link). */
   selectedItemRef?: string | null
+  materialIntakeV2?: boolean
+  mediaDirectEmbedding?: boolean
   onSelectTaskRef?: (taskRef: string | null) => void
 }
 
@@ -119,6 +126,23 @@ export function FilesView(props: FilesViewProps = {}) {
       createSourcesApi(props.sourcesRuntime ?? { getApiToken: getRuntimeToken }),
     [props.sourcesApi, props.sourcesRuntime],
   )
+  const [materialIntakeV2, setMaterialIntakeV2] = useState(false)
+  const [mediaDirectEmbedding, setMediaDirectEmbedding] = useState(false)
+  useEffect(() => {
+    let active = true
+    fetchHealth()
+      .then((health) => {
+        if (!active) return
+        setMaterialIntakeV2(supportsMaterialIntakeV2(health))
+        setMediaDirectEmbedding(supportsMediaDirectEmbedding(health))
+      })
+      .catch(() => {
+        if (!active) return
+        setMaterialIntakeV2(false)
+        setMediaDirectEmbedding(false)
+      })
+    return () => { active = false }
+  }, [])
   return (
     <div className="lg-files-workspace">
     <TaskDirectory onOpen={(ref) => {
@@ -131,6 +155,8 @@ export function FilesView(props: FilesViewProps = {}) {
       api={api}
       sourcesApi={sourcesApi}
       selectedItemRef={state.selectedItemRef}
+      materialIntakeV2={materialIntakeV2}
+      mediaDirectEmbedding={mediaDirectEmbedding}
       onSelectTaskRef={props.onSelectTaskRef ?? ((ref) => dispatch({ type: 'selectTask', taskRef: ref }))}
     />
     </div>
@@ -143,6 +169,8 @@ export function FilesPanel({
   api,
   sourcesApi,
   selectedItemRef,
+  materialIntakeV2 = false,
+  mediaDirectEmbedding = false,
   onSelectTaskRef,
 }: FilesPanelProps) {
   const [surface, setSurface] = useState<'workspace' | 'materials'>('workspace')
@@ -389,6 +417,8 @@ export function FilesPanel({
             api={sourcesApi}
             taskRef={taskRef}
             openSourceId={deepLinkedSource}
+            materialIntakeV2={materialIntakeV2}
+            mediaDirectEmbedding={mediaDirectEmbedding}
           />
         ) : (
           <EmptyState title="Materials unavailable" compact>

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import base64
+import time
 from pathlib import Path
 
 import httpx
@@ -121,3 +123,37 @@ async def test_reprocessing_native_version_refreshes_existing_index(
     assert new.status_code == 200, new.text
     assert [h["source_id"] for h in new.json()["hits"]] == [source_id]
     assert new.json()["hits"][0]["source_version"] == 2
+
+
+async def test_deferred_worker_makes_native_text_searchable(
+    api: httpx.AsyncClient, app, settings,
+) -> None:
+    from lightgravity.sources.worker import IntakeWorker
+
+    received = await api.post("/api/v1/sources", json={
+        "request_id": "req-deferred-search",
+        "filename": "deferred.txt",
+        "media_type": "text/plain",
+        "content_base64": base64.b64encode(b"deferredsearchtoken").decode(),
+        "intake_mode": "deferred",
+    })
+    assert received.status_code == 201, received.text
+    payload = received.json()
+    assert payload["job"]["status"] == "queued"
+    assert (await api.get("/api/v1/search", params={"q": "deferredsearchtoken"})).json()["hits"] == []
+
+    service = app.state.source_service
+    worker = IntakeWorker(service, poll_interval=0.01)
+    worker.start()
+    try:
+        deadline = time.monotonic() + 8
+        while time.monotonic() < deadline:
+            if service.store.read_job(payload["job"]["job_id"]).status not in ("queued", "running"):
+                break
+            await asyncio.sleep(0.01)
+        assert service.store.read_job(payload["job"]["job_id"]).status == "succeeded"
+    finally:
+        await worker.stop()
+    found = await api.get("/api/v1/search", params={"q": "deferredsearchtoken"})
+    assert found.status_code == 200, found.text
+    assert [hit["source_id"] for hit in found.json()["hits"]] == [payload["source"]["source_id"]]

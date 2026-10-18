@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 
 import {
   createAttachmentsApi,
@@ -7,14 +7,24 @@ import {
   type AttachmentsApi,
 } from '../../api/attachments'
 import { getRuntimeToken } from '../../api/auth'
-import { type ChatApi, type ResolvedSourceBindingsData } from '../../api/chat'
+import { chatApi, type ChatApi, type ResolvedSourceBindingsData } from '../../api/chat'
 import { fetchHealth } from '../../api/client'
+import {
+  supportsMaterialIntakeV2,
+  supportsMediaDirectEmbedding,
+} from '../../api/backendCompatibility'
 import {
   createSourcesApi,
   type SourcesApi,
   type SourcesRuntimeConfig,
 } from '../../api/sources'
-import { isPrivateAttachment, type Attachment } from '../../api/types'
+import {
+  isPrivateAttachment,
+  MESSAGE_SOURCE_REFS_MAX,
+  type Attachment,
+  type HealthResponse,
+  type SourceRefInput,
+} from '../../api/types'
 import { useShell } from '../../app/ShellProvider'
 import { useAuth } from '../../app/AuthProvider'
 import { draftKey, type ChatChannel } from '../../app/uiState'
@@ -24,11 +34,15 @@ import { ErrorState } from '../../components/ErrorState'
 import { Icon } from '../../components/icons'
 import { MarkdownViewer } from '../../components/MarkdownViewer'
 import { StatusBadge } from '../../components/StatusBadge'
-import { ChatMaterialIntake } from './ChatMaterialIntake'
+import {
+  ChatDraftChips,
+  ChatMaterialIntake,
+  ChatMaterialReceipts,
+} from './ChatMaterialIntake'
 import { ChatSourcePicker } from './ChatSourcePicker'
 import { ChatSources } from './ChatSources'
 import { useChat } from './useChat'
-import { useChatMaterials } from './useChatMaterials'
+import { useChatDrafts, useChatMaterials } from './useChatMaterials'
 import { useChatSelection } from './useChatSelection'
 
 export interface ChatBodyProps {
@@ -88,9 +102,27 @@ export function ChatBody({
   // shared Team conversations.
   const effectiveTaskRef = privatePersonal ? null : taskRef
   const scope = { taskRef: effectiveTaskRef, personal: privatePersonal }
+  // LG-142 seam adapter: useChat is a shared hook and stays read-only for this
+  // package. The wrapper appends the send-time receipt refs to the exact same
+  // wire request without changing useChat's idempotency or retry behavior.
+  const sendSourceRefs = useRef<SourceRefInput[] | null>(null)
+  const submitPending = useRef(false)
   const chat = useChat(
     scope,
-    api,
+    useMemo(() => {
+      const base = api ?? chatApi
+      return {
+        ...base,
+        sendMessage: (sendScope, body, signal) => {
+          const refs = sendSourceRefs.current
+          const nextBody = refs && refs.length > 0 ? { ...body, source_refs: refs } : body
+          // Keep the injected-client call shape byte-identical for legacy rows.
+          return signal
+            ? base.sendMessage(sendScope, nextBody, signal)
+            : base.sendMessage(sendScope, nextBody)
+        },
+      }
+    }, [api]),
     // Team mode polls the active global/private conversation; single-user mode
     // passes no interval so the existing behavior is byte-for-byte unchanged.
     isTeam ? { pollIntervalMs: 3000, onUnauthorized: requireLogin } : {},
@@ -100,6 +132,7 @@ export function ChatBody({
     [sourcesApi, sourcesRuntime],
   )
   const materials = useChatMaterials(resolvedSourcesApi)
+  const drafts = useChatDrafts(resolvedSourcesApi, { intakeMode: 'deferred' })
   const resolvedAttachmentsApi = useMemo(
     () =>
       attachmentsApi ??
@@ -109,6 +142,13 @@ export function ChatBody({
   const selection = useChatSelection(effectiveTaskRef)
   const [extrasOpen, setExtrasOpen] = useState(false)
   const [materialNotice, setMaterialNotice] = useState<string | null>(null)
+  // Capability gate: default false so a 1.18 backend (or a failed health read)
+  // never activates deferred intake/receipt v2. The real health response is
+  // cached and re-checked before a file pick, closing the startup race.
+  const [sharedIntakeV2, setSharedIntakeV2] = useState(false)
+  const [mediaDirectEmbedding, setMediaDirectEmbedding] = useState(false)
+  const [intakeCapabilityChecked, setIntakeCapabilityChecked] = useState(false)
+  const healthRequest = useRef<Promise<HealthResponse> | null>(null)
   // Resolved source bindings for the most recent send in this scope, so the
   // freshly returned reply can show its Sources before/without a reload.
   const [lastSendSources, setLastSendSources] = useState<ResolvedSourceBindingsData | null>(null)
@@ -120,6 +160,16 @@ export function ChatBody({
     activeConversation.current = key
     conversationGeneration.current += 1
   }
+  const loadHealth = useCallback(() => {
+    if (!healthRequest.current) {
+      healthRequest.current = fetchHealth().catch((cause: unknown) => {
+        healthRequest.current = null
+        throw cause
+      })
+    }
+    return healthRequest.current
+  }, [])
+
   const mounted = useRef(true)
   useEffect(() => {
     mounted.current = true
@@ -129,6 +179,24 @@ export function ChatBody({
       privateUploads.current.clear()
     }
   }, [])
+
+  useEffect(() => {
+    let active = true
+    loadHealth()
+      .then((health) => {
+        if (!active) return
+        setSharedIntakeV2(supportsMaterialIntakeV2(health))
+        setMediaDirectEmbedding(supportsMediaDirectEmbedding(health))
+        setIntakeCapabilityChecked(true)
+      })
+      .catch(() => {
+        if (!active) return
+        setSharedIntakeV2(false)
+        setMediaDirectEmbedding(false)
+        setIntakeCapabilityChecked(true)
+      })
+    return () => { active = false }
+  }, [loadHealth])
   const [notice, setNotice] = useState<string | null>(null)
   const [attachments, setAttachments] = useState<PendingAttachment[]>([])
   const [privateAttachments, setPrivateAttachments] = useState<PrivatePendingAttachment[]>([])
@@ -153,6 +221,7 @@ export function ChatBody({
     setPrivateAttachments([])
     setAttachmentError(null)
     materials.reset()
+    drafts.reset()
     setExtrasOpen(false)
     // A scope switch starts at the latest message, not a stale "new messages"
     // badge held over from the previous conversation.
@@ -323,30 +392,57 @@ export function ChatBody({
       })
   }
 
-  const handleFilesPicked = (files: File[]) => {
+  const handleFilesPicked = async (files: File[]) => {
     if (files.length === 0) return
     setAttachmentError(null)
-    if (!privatePersonal) {
-      // Team reuses the existing shared source/material intake; no private id
-      // ever enters a Team message.
-      void materials.uploadFiles(files, { taskRef: effectiveTaskRef })
+    if (privatePersonal) {
+      if (privateAttachmentsAvailable !== true) {
+        setAttachmentError(
+          'Private attachments are unavailable on this backend (private_attachments capability missing).',
+        )
+        return
+      }
+      const remaining = 3 - privateAttachments.length
+      if (remaining <= 0) {
+        setAttachmentError('At most 3 private attachments are allowed per message.')
+        return
+      }
+      if (files.length > remaining) {
+        setAttachmentError(`Only ${remaining} more private attachment(s) can be added.`)
+      }
+      files.slice(0, remaining).forEach((file) => uploadPrivateFile(file))
       return
     }
-    if (privateAttachmentsAvailable !== true) {
-      setAttachmentError(
-        'Private attachments are unavailable on this backend (private_attachments capability missing).',
-      )
+
+    // Shared Team/single-user intake: check the real capability before choosing
+    // the path. A 1.18 backend keeps its existing pre-send upload behavior and
+    // never sees `intake_mode`/`source_refs`; a 1.19 backend gets local drafts.
+    const requestGeneration = conversationGeneration.current
+    let intakeV2 = sharedIntakeV2
+    try {
+      const health = await loadHealth()
+      intakeV2 = supportsMaterialIntakeV2(health)
+      if (mounted.current) {
+        setSharedIntakeV2(intakeV2)
+        setMediaDirectEmbedding(supportsMediaDirectEmbedding(health))
+        setIntakeCapabilityChecked(true)
+      }
+    } catch {
+      intakeV2 = false
+      if (mounted.current) setIntakeCapabilityChecked(true)
+    }
+    if (!mounted.current || requestGeneration !== conversationGeneration.current) return
+    if (intakeV2) {
+      const result = drafts.addFiles(files)
+      if (result.rejected > 0) {
+        setAttachmentError(
+          `At most ${MESSAGE_SOURCE_REFS_MAX} files can be attached to one message.`,
+        )
+      }
       return
     }
-    const remaining = 3 - privateAttachments.length
-    if (remaining <= 0) {
-      setAttachmentError('At most 3 private attachments are allowed per message.')
-      return
-    }
-    if (files.length > remaining) {
-      setAttachmentError(`Only ${remaining} more private attachment(s) can be added.`)
-    }
-    files.slice(0, remaining).forEach((file) => uploadPrivateFile(file))
+    // Legacy 1.18 path (unchanged): no source_refs are sent.
+    void materials.uploadFiles(files, { taskRef: effectiveTaskRef })
   }
 
   const removePrivateAttachment = (attachment: PrivatePendingAttachment) => {
@@ -365,14 +461,42 @@ export function ChatBody({
     uploadPrivateFile(attachment.file, attachment)
   }
 
-  const handleSubmit = async () => {
-    if (!draft.trim()) return
+  const submitDraft = async () => {
+    const attachmentOnly =
+      !draft.trim() && !privatePersonal && sharedIntakeV2 && drafts.drafts.length > 0
+    if (!draft.trim() && !attachmentOnly) return
+    // The existing message API/hook require content. This fixed receipt caption
+    // contains no file names, delivery instructions, or implicit selected context.
+    const content = attachmentOnly ? 'Attached materials.' : draft
     if (privatePersonal && privateAttachments.some((item) => item.status === 'uploading')) {
       setNotice('Wait for the attachment upload to finish before sending.')
       return
     }
     const requestGeneration = conversationGeneration.current
-    const payload: Attachment[] = privatePersonal
+    const frozenTaskRef = effectiveTaskRef
+    const frozenPersonal = privatePersonal
+    const frozenDraftKey = key
+    const frozenSelection = privatePersonal ? undefined : selection.requestRefs
+
+    // Freeze intake to the scope that was active when Send was pressed. Each
+    // not-yet-accepted draft is submitted once with deferred mode; accepted
+    // sources already obtained by a failed message send are reused below.
+    let sourceRefs: SourceRefInput[] | undefined
+    if (!frozenPersonal && sharedIntakeV2 && drafts.drafts.length > 0) {
+      try {
+        sourceRefs = await drafts.intakeAll({ taskRef: frozenTaskRef })
+      } catch (cause) {
+        if (!mounted.current || requestGeneration !== conversationGeneration.current) return
+        setNotice(
+          `Not sent — ${cause instanceof Error ? cause.message : 'material intake failed'}. ` +
+            'The draft and any accepted materials are kept; remove a failed file to continue.',
+        )
+        return
+      }
+      if (!mounted.current || requestGeneration !== conversationGeneration.current) return
+    }
+
+    const payload: Attachment[] = frozenPersonal
       ? privateAttachments
           .filter((item) => item.status === 'ready')
           .map((item) => ({ attachment_id: item.attachmentId }))
@@ -380,15 +504,17 @@ export function ChatBody({
           path: item.path,
           media_type: item.media_type,
         }))
-    const selectedRefs = privatePersonal ? undefined : selection.requestRefs
+    const selectedRefs = frozenSelection
     setNotice(null)
+    sendSourceRefs.current = sourceRefs ?? null
     try {
-      const outcome = await chat.send(draft, payload, selectedRefs)
+      const outcome = await chat.send(content, payload, selectedRefs)
       if (!mounted.current) return
-      dispatch({ type: 'setDraft', key, value: '' })
+      dispatch({ type: 'setDraft', key: frozenDraftKey, value: '' })
       if (requestGeneration !== conversationGeneration.current) return
       setAttachments([])
       setPrivateAttachments([])
+      if (!frozenPersonal && sharedIntakeV2) drafts.clear()
       // Implementation choice (docs/10 §8): clear the selection once the rule
       // backend accepts the send, because the refs are now bound to that
       // message; a failed send keeps them so an explicit retry reuses them.
@@ -411,6 +537,19 @@ export function ChatBody({
       // A response for a departed channel must not change the active composer.
       if (!mounted.current || requestGeneration !== conversationGeneration.current) return
       setNotice('Not sent — see the error below. Your draft and attachments are kept.')
+    } finally {
+      sendSourceRefs.current = null
+    }
+  }
+
+  const handleSubmit = async () => {
+    // Enter/click can arrive twice before React paints the pending state.
+    if (submitPending.current) return
+    submitPending.current = true
+    try {
+      await submitDraft()
+    } finally {
+      submitPending.current = false
     }
   }
 
@@ -556,6 +695,16 @@ export function ChatBody({
             ) : null}
             {/* Persisted reply bindings (legacy rows have no `data` ⇒ nothing). */}
             <ChatSources data={message.data} onOpen={openSourceInFiles} />
+            {/* Receipt-only refs stay separate from selected context. */}
+            {sharedIntakeV2 && message.source_refs && message.source_refs.length > 0 ? (
+              <ChatMaterialReceipts
+                refs={message.source_refs}
+                api={resolvedSourcesApi}
+                onOpen={openSourceInFiles}
+                materialIntakeV2={sharedIntakeV2}
+                mediaDirectEmbedding={mediaDirectEmbedding}
+              />
+            ) : null}
           </article>
         ))}
       </div>
@@ -600,29 +749,42 @@ export function ChatBody({
           <div className="lg-chat__tools">
             <button type="button" className="lg-button" aria-label="Add attachments and materials" aria-expanded={extrasOpen} aria-controls="lg-chat-extras" onClick={() => setExtrasOpen(!extrasOpen)}>+</button>
             {selection.selection.length > 0 && !extrasOpen ? <span>{selection.selection.length} selected material(s) <button type="button" className="lg-link-button" onClick={() => setExtrasOpen(true)}>Review</button></span> : null}
-            {!extrasOpen && materials.materials.length > 0 ? <span aria-live="polite">{materials.busy ? 'Uploading…' : `${materials.materials.length} upload receipt(s)`} <button type="button" className="lg-link-button" onClick={() => setExtrasOpen(true)}>View uploads</button></span> : null}
+            {!extrasOpen && drafts.drafts.length > 0 ? <span aria-live="polite">{drafts.busy ? 'Storing materials…' : `${drafts.drafts.length} draft file(s)`} <button type="button" className="lg-link-button" onClick={() => setExtrasOpen(true)}>Review</button></span> : null}
+            {!extrasOpen && intakeCapabilityChecked && !sharedIntakeV2 && materials.materials.length > 0 ? <span aria-live="polite">{materials.busy ? 'Uploading…' : `${materials.materials.length} upload receipt(s)`} <button type="button" className="lg-link-button" onClick={() => setExtrasOpen(true)}>View uploads</button></span> : null}
           </div>
         ) : null}
         {!privatePersonal ? <div id="lg-chat-extras" hidden={!extrasOpen}>
-        <ChatMaterialIntake
-          materials={materials.materials}
-          busy={materials.busy}
-          scopeLabel={scopeLabel}
-          canWrite
-          notice={materialNotice}
-          onUploadFiles={(files) => {
-            setMaterialNotice(null)
-            void materials.uploadFiles(files, { taskRef: effectiveTaskRef })
-          }}
-          onRecordLink={(url) => {
-            setMaterialNotice(null)
-            materials.recordLink(url, { taskRef: effectiveTaskRef }).catch((cause: unknown) => {
-              setMaterialNotice(cause instanceof Error ? cause.message : 'Invalid link')
-            })
-          }}
-          onRefresh={(requestId) => void materials.refresh(requestId)}
-          onDismiss={materials.dismiss}
-        />
+        {sharedIntakeV2 ? (
+          <p className="lg-notice" role="status">
+            Files chosen with the paperclip stay local until Send. Intake then runs in the
+            background and its receipt appears under the message. Materials below are still
+            explicit context, not automated selection.
+          </p>
+        ) : !intakeCapabilityChecked ? (
+          <p className="lg-notice" role="status">
+            Checking material intake support before enabling uploads…
+          </p>
+        ) : (
+          <ChatMaterialIntake
+            materials={materials.materials}
+            busy={materials.busy}
+            scopeLabel={scopeLabel}
+            canWrite
+            notice={materialNotice}
+            onUploadFiles={(files) => {
+              setMaterialNotice(null)
+              void materials.uploadFiles(files, { taskRef: effectiveTaskRef })
+            }}
+            onRecordLink={(url) => {
+              setMaterialNotice(null)
+              materials.recordLink(url, { taskRef: effectiveTaskRef }).catch((cause: unknown) => {
+                setMaterialNotice(cause instanceof Error ? cause.message : 'Invalid link')
+              })
+            }}
+            onRefresh={(requestId) => void materials.refresh(requestId)}
+            onDismiss={materials.dismiss}
+          />
+        )}
         <ChatSourcePicker
           api={resolvedSourcesApi}
           taskRef={effectiveTaskRef}
@@ -656,7 +818,7 @@ export function ChatBody({
           attachDisabled={
             privatePersonal
               ? privateAttachmentsAvailable !== true
-              : false
+              : sharedIntakeV2 && drafts.busy
           }
           attachDisabledReason={
             privateAttachmentsAvailable === null
@@ -665,10 +827,15 @@ export function ChatBody({
           }
           disabled={
             chat.sending ||
+            (!privatePersonal && sharedIntakeV2 && drafts.busy) ||
             (privatePersonal &&
               privateAttachments.some((item) => item.status === 'uploading'))
           }
-          disabledReason="Wait for the attachment upload to finish before sending."
+          disabledReason={
+            !privatePersonal && sharedIntakeV2 && drafts.busy
+              ? 'Wait for material intake to finish before sending.'
+              : 'Wait for the attachment upload to finish before sending.'
+          }
           attachments={
             privatePersonal ? (
               privateAttachments.length > 0 ? (
@@ -707,6 +874,33 @@ export function ChatBody({
                   ))}
                 </ul>
               ) : null
+            ) : sharedIntakeV2 ? (
+              <>
+                <ChatDraftChips
+                  drafts={drafts.drafts}
+                  onRemove={drafts.remove}
+                  disabled={chat.sending || drafts.busy}
+                />
+                {attachments.length > 0 ? (
+                  <ul className="lg-chat__chip-row" aria-label="Pending attachments">
+                    {attachments.map((attachment, index) => (
+                      <li key={`${attachment.path}-${index}`} className="lg-chip">
+                        <span className="lg-card__path">{attachment.path}</span>
+                        <button
+                          type="button"
+                          className="lg-icon-button"
+                          aria-label={`Remove attachment ${attachment.path}`}
+                          onClick={() =>
+                            setAttachments((current) => current.filter((_, i) => i !== index))
+                          }
+                        >
+                          <Icon name="close" size={12} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </>
             ) : attachments.length > 0 ? (
               <ul className="lg-chat__chip-row" aria-label="Pending attachments">
                 {attachments.map((attachment, index) => (

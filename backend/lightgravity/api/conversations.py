@@ -75,6 +75,9 @@ class GlobalMessageRequest(BaseModel):
     agent_ref: str | None = None
     #: Additive optional selected-material refs (docs/08 §6.6.1 / docs/10).
     selected_sources: list[dict[str, Any]] | None = None
+    #: Additive LG-144 receipt-only message refs (docs/08 §20.3).  Only
+    #: ``source_id`` is read; the server replaces it with a normalized snapshot.
+    source_refs: list[dict[str, Any]] | None = None
 
 
 class PersonalMessageRequest(BaseModel):
@@ -97,6 +100,9 @@ class PersonalMessageRequest(BaseModel):
     selected_sources: list[dict[str, Any]] | None = None
     workspace_ref: str | None = None
     agent_ref: str | None = None
+    #: Accepted only so Personal can return the explicit Team guidance instead
+    #: of silently dropping a shared-intake field (docs/08 §20.12).
+    source_refs: list[dict[str, Any]] | None = None
 
 
 def _session_cookie(request: Request) -> str | None:
@@ -154,6 +160,30 @@ def _personal_owner(ctx: ApiContext, request: Request) -> tuple[str, str]:
     return identity.username, personal_conversation_id(identity.username)
 
 
+def _source_refs_service(request: Request) -> Any:
+    """Resolve the app source service used for message ``source_refs``."""
+
+    provider = getattr(request.app.state, "source_service_provider", None)
+    if provider is not None:
+        return provider()
+    return getattr(request.app.state, "source_service", None)
+
+
+def _normalize_source_refs(
+    request: Request, refs: list[dict[str, Any]], *, task_ref: str | None
+) -> list[dict[str, Any]]:
+    """Validate and normalize receipt-only refs; never model context."""
+
+    service = _source_refs_service(request)
+    if service is None:
+        raise AppError(
+            ErrorCode.CAPABILITY_UNAVAILABLE,
+            "message source_refs are not available on this server",
+            details={"field": "source_refs", "capability": "material_intake_v2"},
+        )
+    return service.resolve_message_source_refs(task_ref=task_ref, refs=refs)
+
+
 def _reject_shared_inputs(payload: PersonalMessageRequest) -> None:
     """Personal is chat-only: shared materials/sources are a Team concern."""
 
@@ -167,6 +197,13 @@ def _reject_shared_inputs(payload: PersonalMessageRequest) -> None:
             "Personal chat does not accept selected sources; "
             "shared materials and task delivery are available in Team.",
             details={"field": "selected_sources", **hint},
+        )
+    if payload.source_refs is not None:
+        raise AppError(
+            ErrorCode.CAPABILITY_UNAVAILABLE,
+            "Personal chat does not accept shared source references; "
+            "switch to Team to attach material receipts.",
+            details={"field": "source_refs", **hint},
         )
     if payload.workspace_ref or payload.agent_ref:
         raise AppError(
@@ -278,6 +315,12 @@ def build_conversations_router() -> APIRouter:
             message["correlation_id"] = payload.correlation_id
         if payload.selected_sources is not None:
             message["selected_sources"] = payload.selected_sources
+        if payload.source_refs is not None:
+            # Global/Team messages accept only global sources; a Task-scoped
+            # source is rejected rather than widened to the shared scope.
+            normalized = _normalize_source_refs(request, payload.source_refs, task_ref=None)
+            if normalized:
+                message["source_refs"] = normalized
         # LG-050: the author is server-injected from the resolved session, never
         # from the request.  ``GlobalMessageRequest`` forbids an ``author`` field
         # (extra="forbid"), so a client-supplied author is a 422 before this runs.

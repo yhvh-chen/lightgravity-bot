@@ -18,6 +18,7 @@
 
 import { getRuntimeToken } from './auth'
 import { apiRequest } from './client'
+import type { EnglishAsrSettingsView } from './englishAsr'
 
 export const PREFERRED_MODEL = 'deepseek-v4-flash'
 export const DEFAULT_BASE_URL = 'https://api.deepseek.com/v1'
@@ -223,6 +224,12 @@ export interface GlobalSettingsView {
    * is shown as unavailable rather than guessed from a 404.
    */
   embedding?: EmbeddingSettingsView | null
+  /**
+   * LG-161 additive 1.20.0 view. Its presence is the configuration seam: an
+   * old backend omits it and the UI hides the English ASR form without calling
+   * a new endpoint. Its presence does **not** mean processing is available.
+   */
+  english_asr?: EnglishAsrSettingsView | null
 }
 
 export interface TestLayer {

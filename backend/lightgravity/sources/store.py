@@ -37,6 +37,7 @@ from lightgravity.store.locking import LockManager
 from lightgravity.store.paths import resolve_workspace_path
 
 from .models import (
+    INTAKE_MODES,
     JOB_STAGES,
     JOB_STATUSES,
     LEXICAL_STATES,
@@ -47,6 +48,9 @@ from .models import (
     IntakeJobRecord,
     ReceiptEntry,
     SourceRecord,
+    normalize_keyword_branch,
+    normalize_semantic_branch,
+    normalize_text_branch,
 )
 
 from ruamel.yaml.comments import CommentedMap
@@ -359,7 +363,11 @@ class SourceStore:
                         content_hash=_opt_str(record.get("content_hash")),
                         source_version=int(record.get("source_version", 1) or 1),
                         at=str(record.get("at", "")),
+                        job_id=_opt_str(record.get("job_id")),
                         error_code=_opt_str(record.get("error_code")),
+                        text=normalize_text_branch(record.get("text")),
+                        keyword=normalize_keyword_branch(record.get("keyword")),
+                        semantic=normalize_semantic_branch(record.get("semantic")),
                     )
                 )
             except (TypeError, ValueError):
@@ -597,6 +605,31 @@ def validate_job(data: dict[str, Any], *, source: str) -> list[Any]:
     if not (isinstance(request_id, str) and _SAFE_REQUEST_ID.match(request_id)):
         diagnostics.append(_diag("request_id_invalid", "request_id is required", f"{source}.request_id"))
     _check_optional_digest(data, "payload_hash", source, diagnostics)
+
+    _check_enum(data, "intake_mode", INTAKE_MODES, source, diagnostics)
+    attempt = data.get("attempt")
+    if attempt is not None and (
+        isinstance(attempt, bool) or not isinstance(attempt, int) or attempt < 1
+    ):
+        diagnostics.append(_diag("attempt_invalid", "attempt must be an int >= 1", f"{source}.attempt"))
+    budget = data.get("budget")
+    if budget is not None and not isinstance(budget, dict):
+        diagnostics.append(_diag("budget_invalid", "budget must be a mapping", f"{source}.budget"))
+    for field_name in ("queued_at", "started_at", "finished_at", "deadline_at"):
+        value = data.get(field_name)
+        if value is not None and not isinstance(value, str):
+            diagnostics.append(
+                _diag(f"{field_name}_invalid", f"{field_name} must be an ISO timestamp", f"{source}.{field_name}")
+            )
+    waiting_reason = data.get("waiting_reason")
+    if waiting_reason not in (None, "worker_limit", "cancelling"):
+        diagnostics.append(
+            _diag(
+                "waiting_reason_invalid",
+                "waiting_reason must be null, worker_limit or cancelling",
+                f"{source}.waiting_reason",
+            )
+        )
 
     cancel = data.get("cancel")
     if not isinstance(cancel, dict):

@@ -23,7 +23,14 @@
 import { useCallback, useRef, useState } from 'react'
 
 import { ApiError } from '../../api/client'
-import { newIntakeRequestId, type SourceView, type SourcesApi } from '../../api/sources'
+import {
+  newIntakeRequestId,
+  type SourceIntakeMode,
+  type SourceRefInput,
+  type SourceView,
+  type SourcesApi,
+} from '../../api/sources'
+import { MESSAGE_SOURCE_REFS_MAX } from '../../api/types'
 
 /** Display status for one file (docs/09 §6; NOT a Task phase). */
 export type MaterialState =
@@ -369,4 +376,209 @@ function asError(cause: unknown): { code: string; message: string } {
     code: 'internal_error',
     message: cause instanceof Error ? cause.message : 'Unexpected error',
   }
+}
+
+/* ------------------------------------------------ Chat send-time drafts (LG-142)
+ *
+ * docs/08 §20.3: file picks are **local drafts only**.  No `/sources`, OCR,
+ * lexical or embedding call happens until the user presses Send.  At send time
+ * every draft is frozen to the current Task/global scope, submitted once with a
+ * stable `request_id` and `intake_mode=deferred`, and only then does the Chat
+ * message carry the accepted `source_refs`.
+ *
+ * A failed intake keeps the draft and blocks that send.  A failed message send
+ * keeps the accepted source ids, so an explicit retry reuses them and never
+ * creates a duplicate source.  Scope changes reset the local list and make any
+ * late response inert.
+ */
+
+export type ChatDraftStatus = 'draft' | 'intaking' | 'accepted' | 'failed'
+
+export interface ChatDraft {
+  /** Same stable id as the intake `request_id`. */
+  id: string
+  requestId: string
+  filename: string
+  mediaType: string | null
+  size: number
+  status: ChatDraftStatus
+  sourceId: string | null
+  sourceVersion: number | null
+  error: { code: string; message: string } | null
+  /** Kept in memory so a message retry never re-reads/changes the payload. */
+  file: File
+  contentBase64: string | null
+}
+
+export interface ChatDraftAddResult {
+  added: number
+  rejected: number
+}
+
+export interface UseChatDraftsResult {
+  drafts: ChatDraft[]
+  busy: boolean
+  addFiles: (files: File[]) => ChatDraftAddResult
+  remove: (draftId: string) => void
+  reset: () => void
+  clear: () => void
+  /**
+   * Submit every not-yet-accepted draft once with `intake_mode=deferred`.
+   * Returns the accepted `{source_id}` refs in draft order. Throws if any
+   * draft fails; accepted refs already obtained remain reusable.
+   */
+  intakeAll: (options: { taskRef: string | null }) => Promise<SourceRefInput[]>
+}
+
+export function useChatDrafts(
+  api: SourcesApi,
+  options: { intakeMode?: SourceIntakeMode } = {},
+): UseChatDraftsResult {
+  const intakeMode = options.intakeMode ?? 'deferred'
+  const [drafts, setDrafts] = useState<ChatDraft[]>([])
+  const [busy, setBusy] = useState(false)
+  const draftsRef = useRef<ChatDraft[]>([])
+  const generation = useRef(0)
+
+  const commit = useCallback((next: ChatDraft[]) => {
+    draftsRef.current = next
+    setDrafts(next)
+  }, [])
+
+  const patch = useCallback(
+    (draftId: string, updater: (draft: ChatDraft) => ChatDraft, requestGeneration: number) => {
+      if (requestGeneration !== generation.current) return
+      commit(draftsRef.current.map((item) => (item.id === draftId ? updater(item) : item)))
+    },
+    [commit],
+  )
+
+  const addFiles = useCallback((files: File[]): ChatDraftAddResult => {
+    if (files.length === 0) return { added: 0, rejected: 0 }
+    const current = draftsRef.current
+    const remaining = Math.max(0, MESSAGE_SOURCE_REFS_MAX - current.length)
+    const acceptedFiles = files.slice(0, remaining)
+    if (acceptedFiles.length === 0) return { added: 0, rejected: files.length }
+    const additions = acceptedFiles.map((file) => {
+      const requestId = newIntakeRequestId()
+      return {
+        id: requestId,
+        requestId,
+        filename: file.name,
+        mediaType: file.type || guessMediaType(file.name),
+        size: file.size,
+        status: 'draft' as const,
+        sourceId: null,
+        sourceVersion: null,
+        error: null,
+        file,
+        contentBase64: null,
+      }
+    })
+    commit([...current, ...additions])
+    return { added: additions.length, rejected: files.length - additions.length }
+  }, [commit])
+
+  const remove = useCallback((draftId: string) => {
+    commit(draftsRef.current.filter((item) => item.id !== draftId))
+  }, [commit])
+
+  const reset = useCallback(() => {
+    generation.current += 1
+    commit([])
+    setBusy(false)
+  }, [commit])
+
+  const clear = useCallback(() => {
+    generation.current += 1
+    commit([])
+    setBusy(false)
+  }, [commit])
+
+  const intakeAll = useCallback(
+    async (options: { taskRef: string | null }): Promise<SourceRefInput[]> => {
+      const requestGeneration = generation.current
+      const snapshot = draftsRef.current
+      if (snapshot.length === 0) return []
+      const refs: SourceRefInput[] = []
+      const failures: ChatDraft[] = []
+      setBusy(true)
+      try {
+        for (const draft of snapshot) {
+          if (requestGeneration !== generation.current) {
+            throw new Error('Conversation changed before send; the draft was kept.')
+          }
+          if (draft.status === 'accepted' && draft.sourceId) {
+            refs.push({ source_id: draft.sourceId })
+            continue
+          }
+          patch(draft.id, (item) => ({ ...item, status: 'intaking', error: null }), requestGeneration)
+          try {
+            let contentBase64 = draft.contentBase64
+            if (contentBase64 === null) {
+              contentBase64 = await fileToBase64(draft.file)
+              if (requestGeneration !== generation.current) {
+                throw new Error('Conversation changed before send; the draft was kept.')
+              }
+              patch(
+                draft.id,
+                (item) => ({ ...item, contentBase64 }),
+                requestGeneration,
+              )
+            }
+            const result = await api.createSource({
+              request_id: draft.requestId,
+              filename: draft.filename,
+              content_base64: contentBase64,
+              media_type: draft.mediaType,
+              title: draft.filename,
+              title_origin: 'user',
+              scope: options.taskRef ? { task_ref: options.taskRef } : {},
+              origin: { kind: 'upload', fetched: false },
+              intake_mode: intakeMode,
+            })
+            if (requestGeneration !== generation.current) {
+              throw new Error('Conversation changed before send; the draft was kept.')
+            }
+            const sourceId = result.source.source_id
+            patch(
+              draft.id,
+              (item) => ({
+                ...item,
+                status: 'accepted',
+                sourceId,
+                sourceVersion: result.source.source_version,
+                error: null,
+              }),
+              requestGeneration,
+            )
+            refs.push({ source_id: sourceId })
+          } catch (cause) {
+            const error = asError(cause)
+            if (requestGeneration === generation.current) {
+              patch(draft.id, (item) => ({ ...item, status: 'failed', error }), requestGeneration)
+              failures.push({ ...draft, status: 'failed', error })
+            }
+          }
+        }
+      } finally {
+        if (requestGeneration === generation.current) setBusy(false)
+      }
+      if (requestGeneration !== generation.current) {
+        throw new Error('Conversation changed before send; the draft was kept.')
+      }
+      if (failures.length > 0) {
+        const first = failures[0]
+        throw new Error(
+          first.error?.message
+            ? `${first.filename}: ${first.error.message}`
+            : `${first.filename}: intake failed`,
+        )
+      }
+      return refs
+    },
+    [api, intakeMode, patch],
+  )
+
+  return { drafts, busy, addFiles, remove, reset, clear, intakeAll }
 }

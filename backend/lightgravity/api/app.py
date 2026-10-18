@@ -34,6 +34,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from ..adapter import ExecutorAdapter
+from ..asr import build_english_asr_router, english_asr_safe_origin
 from ..attachments import build_attachments_router
 from ..config import Settings
 from ..contracts import (
@@ -136,6 +137,10 @@ def create_app(
     #: ``lightgravity status --deep``) pass ``False`` so diagnostics never
     #: touch the fact source.
     initialize_team_accounts: bool = True,
+    #: LG-144: the real resident app starts the bounded deferred-intake worker.
+    #: Sync-only test apps may opt out explicitly; production/bootstrap keeps the
+    #: default.  Health advertises ``material_intake_v2`` only when it started.
+    enable_intake_worker: bool = True,
 ) -> FastAPI:
     """Build the application; every heavy dependency is injectable for tests."""
 
@@ -247,9 +252,27 @@ def create_app(
         # directory. Prepare it before accepting Files requests or queued work.
         context.workspace_root.mkdir(parents=True, exist_ok=True)
         resolved_coordinator.start()
+        intake_worker = None
         try:
+            if enable_intake_worker:
+                # LG-144: one process-local worker over the same source service the
+                # routers and coordinator use.  It is built with the live
+                # ``ConnectionService`` so configured embedding settings keep their
+                # saved-first/environment-fallback precedence even for recovered
+                # queued jobs that run before the first Sources request.
+                from ..sources.worker import IntakeWorker
+
+                source_service = _source_service_provider()
+                intake_worker = IntakeWorker(source_service, max_concurrency=2)
+                application.state.intake_worker = intake_worker
+                intake_worker.start()
             yield
         finally:
+            if intake_worker is not None:
+                # Never fake success for in-flight work: the worker parks unknown
+                # outcomes as ``recovery_required`` when it cannot confirm a stop.
+                await intake_worker.stop()
+                application.state.intake_worker = None
             await resolved_coordinator.stop()
 
     app = FastAPI(
@@ -271,7 +294,9 @@ def create_app(
 
     # LG-043: share the single per-app source service with the coordinator so a
     # message's ``selected_sources`` resolve against the same authoritative
-    # store the sources router reads.  Built lazily and cached on app.state.
+    # store the sources router reads.  LG-144 also uses this provider for the
+    # intake worker; an injected service (tests/embedding fixtures) wins so the
+    # real lifespan can be exercised with a labelled fake upstream.
     def _source_service_provider() -> Any:
         cached = getattr(app.state, "source_service", None)
         if cached is not None:
@@ -285,11 +310,25 @@ def create_app(
                 relative, write=write
             ),
             events=broadcasting,
+            # Same configured embedding precedence as the vector router: saved
+            # /settings/embedding first, then the environment fallback.
+            connections=connections,
+            # 1.20: the one optional English ASR service also owns the intake
+            # text branch.  It is the same object exposed by GET /settings and
+            # health, so a saved configuration applies to the next job without
+            # a primer or a second settings store.
+            english_asr=connections.english_asr,
         )
         app.state.source_service = service
         return service
 
     resolved_coordinator.set_source_service_provider(_source_service_provider)
+    app.state.source_service_provider = _source_service_provider
+    # These record real assembly by this factory, not merely a version claim.
+    # The material gate additionally needs the lifespan worker to have started.
+    app.state.material_intake_wired = enable_intake_worker
+    app.state.semantic_search_wired = True
+    app.state.media_direct_embedding_wired = True
 
     @app.exception_handler(AppError)
     async def _app_error_handler(request: Request, exc: AppError) -> JSONResponse:
@@ -362,6 +401,17 @@ def create_app(
     app.include_router(build_attachments_router(), prefix=API_PREFIX)
     app.include_router(build_acceptance_router(verification_service), prefix=API_PREFIX)
     app.include_router(build_settings_router(connections, tester=tester), prefix=API_PREFIX)
+    # 1.20 integration: the protected English ASR settings write.  The global
+    # access dependency already classifies every /settings mutation as
+    # sensitive + admin; the route reuses the settings Host/Origin guard.
+    app.include_router(
+        build_english_asr_router(
+            connections.english_asr,
+            require_admin=None,
+            safe_origin=english_asr_safe_origin,
+        ),
+        prefix=API_PREFIX,
+    )
     return app
 
 

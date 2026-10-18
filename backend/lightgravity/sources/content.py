@@ -165,6 +165,58 @@ class ContentStore:
             "status": draft.status,
         }
 
+    def write_transcript(
+        self,
+        source_version: int,
+        text: str,
+        *,
+        filename: str,
+        input_sha256: str,
+        model: str,
+        extractor: str = "eg2-reader-v2",
+    ) -> dict[str, Any]:
+        """Write the ASR machine transcript as the existing machine body.
+
+        Unlike OCR Markdown, the content endpoint for an audio transcript returns
+        exactly the machine English text (no synthetic page wrapper).  Provenance
+        lives in the source ``derivatives`` entry and the receipt.  The companion
+        pages document keeps the same status shape old receipt inference reads.
+        """
+
+        pages_doc = {
+            "schema": "lightgravity.bot/v1",
+            "kind": "source_derivative",
+            "derivative": DERIVATIVE_PAGES,
+            "source_version": source_version,
+            "filename": filename,
+            "model": model,
+            "extractor": extractor,
+            "status": "succeeded",
+            "total_pages": 1,
+            "pages": [
+                PageText(
+                    page=1,
+                    text=text,
+                    input_sha256=input_sha256,
+                    model=model,
+                    status="succeeded",
+                ).to_dict()
+            ],
+        }
+        with self._lock_manager().acquire(f"derivative:{self.source_root.name}"):
+            self.derivative_dir().mkdir(parents=True, exist_ok=True)
+            atomic_write_text(self.machine_markdown_path(source_version), text)
+            atomic_write_text(
+                self.pages_path(source_version),
+                json.dumps(pages_doc, ensure_ascii=False, indent=2),
+            )
+        return {
+            "markdown_path": f"derivative/{self.machine_markdown_path(source_version).name}",
+            "pages_path": f"derivative/{self.pages_path(source_version).name}",
+            "markdown_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+            "status": "succeeded",
+        }
+
     def append_evidence(self, record: dict[str, Any]) -> None:
         """Append one redacted OCR request/response record (never a secret)."""
 
@@ -324,6 +376,8 @@ def _record_type_for(extractor: str) -> str:
 
     if extractor == "native-utf8-text":
         return "machine_native_text"
+    if extractor == "eg2-reader-v2":
+        return "machine_transcript"
     return "machine_ocr"
 
 
@@ -332,6 +386,8 @@ def _heading_for(extractor: str) -> str:
 
     if extractor == "native-utf8-text":
         return "Machine native text"
+    if extractor == "eg2-reader-v2":
+        return "Machine transcript"
     return "Machine OCR"
 
 

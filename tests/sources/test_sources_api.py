@@ -16,6 +16,7 @@ import base64
 import hashlib
 
 import httpx
+import pytest
 
 
 def _b64(data: bytes) -> str:
@@ -313,3 +314,169 @@ async def test_job_stage_change_emits_frozen_event(api: httpx.AsyncClient, app) 
     types = [event.type for event in events]
     assert "source.received" in types
     assert "intake.stage_changed" in types
+
+
+# ---------------------------------------------------------------- LG-141 API
+from lightgravity.contracts import AppError, ErrorCode  # noqa: E402
+from lightgravity.sources.worker import IntakeWorker  # noqa: E402
+
+from test_intake_worker import FakeEmbedding, FakeOcr, make_service, wait_for  # noqa: E402
+
+
+async def test_deferred_create_returns_before_processing(api: httpx.AsyncClient, app, settings) -> None:
+    ocr = FakeOcr(text="deferred-api-token")
+    embedding = FakeEmbedding()
+    service = make_service(settings.data_dir, ocr=ocr, embedding=embedding)
+    app.state.source_service = service
+
+    created = await api.post(
+        "/api/v1/sources",
+        json={
+            "request_id": "req-deferred-api",
+            "filename": "photo.png",
+            "content_base64": _b64(b"\x89PNG deferred photo"),
+            "media_type": "image/png",
+            "intake_mode": "deferred",
+        },
+    )
+    assert created.status_code == 201, created.text
+    payload = created.json()
+    assert payload["intake_mode"] == "deferred"
+    assert payload["job"]["status"] == "queued"
+    assert payload["job"]["intake_mode"] == "deferred"
+    assert payload["source"]["status"] == "received"
+    assert ocr.calls == []
+    assert embedding.calls == []
+
+    worker = IntakeWorker(service, poll_interval=0.01)
+    worker.start()
+    try:
+        job_id = payload["job"]["job_id"]
+        await wait_for(lambda: service.store.read_job(job_id).status not in ("queued", "running"))
+        assert service.store.read_job(job_id).status == "succeeded"
+        receipt = await api.get(f"/api/v1/sources/{payload['source']['source_id']}/receipt")
+        assert receipt.json()["receipt_version"] == 2
+        assert receipt.json()["latest"]["text"]["status"] == "ready"
+    finally:
+        await worker.stop()
+    assert (await api.get("/api/v1/tasks")).json()["items"] == []
+
+
+async def test_message_source_refs_are_normalized_and_scope_checked(api: httpx.AsyncClient, app) -> None:
+    task = await api.post(
+        "/api/v1/tasks",
+        json={
+            "request_id": "req-refs-task",
+            "title": "refs task",
+            "objective": "source refs",
+            "acceptance_criteria": ["n/a"],
+        },
+    )
+    assert task.status_code == 200, task.text
+    task_id = task.json()["task_id"]
+
+    global_source = await api.post(
+        "/api/v1/sources",
+        json={
+            "request_id": "req-refs-global",
+            "filename": "global.txt",
+            "content_base64": _b64(b"global source"),
+            "media_type": "text/plain",
+        },
+    )
+    task_source = await api.post(
+        "/api/v1/sources",
+        json={
+            "request_id": "req-refs-task-source",
+            "filename": "task.txt",
+            "content_base64": _b64(b"task source"),
+            "media_type": "text/plain",
+            "scope": {"task_ref": task_id},
+        },
+    )
+    global_id = global_source.json()["source"]["source_id"]
+    task_source_id = task_source.json()["source"]["source_id"]
+    service = app.state.source_service
+
+    normalized = service.resolve_message_source_refs(
+        task_ref=None, refs=[{"source_id": global_id}]
+    )
+    assert normalized == [
+        {
+            "source_id": global_id,
+            "source_version": 1,
+            "content_hash": global_source.json()["source"]["content_hash"],
+            "scope": {"task_ref": None, "project_ref": None, "inbox_ref": None},
+        }
+    ]
+    # Task messages accept same-Task and global sources.
+    assert len(
+        service.resolve_message_source_refs(
+            task_ref=task_id,
+            refs=[{"source_id": global_id}, {"source_id": task_source_id}],
+        )
+    ) == 2
+    # Global messages may not attach a Task-scoped source.
+    with pytest.raises(AppError) as cross_scope:
+        service.resolve_message_source_refs(
+            task_ref=None, refs=[{"source_id": task_source_id}]
+        )
+    assert cross_scope.value.code is ErrorCode.REFERENCE_INVALID
+
+    with pytest.raises(AppError) as duplicate:
+        service.resolve_message_source_refs(
+            task_ref=None, refs=[{"source_id": global_id}, {"source_id": global_id}]
+        )
+    assert duplicate.value.code is ErrorCode.VALIDATION_FAILED
+
+    with pytest.raises(AppError) as too_many:
+        service.resolve_message_source_refs(
+            task_ref=None,
+            refs=[{"source_id": f"source_{index:026d}"} for index in range(11)],
+        )
+    assert too_many.value.code is ErrorCode.VALIDATION_FAILED
+
+    with pytest.raises(AppError) as unknown:
+        service.resolve_message_source_refs(
+            task_ref=None, refs=[{"source_id": "source_01MISSINGMISSINGMISSING"}]
+        )
+    assert unknown.value.code is ErrorCode.REFERENCE_INVALID
+
+    revoked = await api.post(
+        f"/api/v1/sources/{global_id}/actions", json={"action": "revoke"}
+    )
+    assert revoked.status_code == 200, revoked.text
+    with pytest.raises(AppError) as revoked_ref:
+        service.resolve_message_source_refs(
+            task_ref=None, refs=[{"source_id": global_id}]
+        )
+    assert revoked_ref.value.code is ErrorCode.NOT_FOUND
+    assert revoked_ref.value.details["revoked"] is True
+
+
+async def test_deferred_retry_budget_is_enforced_via_api(api: httpx.AsyncClient, app) -> None:
+    created = await api.post(
+        "/api/v1/sources",
+        json={
+            "request_id": "req-deferred-retry-api",
+            "filename": "retry.txt",
+            "content_base64": _b64(b"retry budget"),
+            "media_type": "text/plain",
+            "intake_mode": "deferred",
+        },
+    )
+    assert created.status_code == 201, created.text
+    job_id = created.json()["job"]["job_id"]
+    service = app.state.source_service
+    service.intake.set_stage(job_id, status="failed", fail_reason="scripted failure")
+
+    first = await api.post(f"/api/v1/intake/jobs/{job_id}/actions", json={"action": "retry"})
+    assert first.status_code == 200, first.text
+    assert first.json()["status"] == "queued"
+    job = (await api.get(f"/api/v1/intake/jobs/{job_id}")).json()
+    assert job["attempt"] == 2
+
+    service.intake.set_stage(job_id, status="failed", fail_reason="scripted failure again")
+    exhausted = await api.post(f"/api/v1/intake/jobs/{job_id}/actions", json={"action": "retry"})
+    assert exhausted.status_code == 429, exhausted.text
+    assert exhausted.json()["error"]["code"] == "budget_exhausted"

@@ -16,7 +16,7 @@
  */
 
 import { apiRequest } from './client'
-import type { Attachment } from './types'
+import type { Attachment, SourceRef, SourceRefInput } from './types'
 
 /* ------------------------------------------- selected-material (LG-044) contract
  *
@@ -87,6 +87,12 @@ export interface ChatMessage {
    * which case the view renders exactly as before.
    */
   data?: ResolvedSourceBindingsData | null
+  /**
+   * Additive 1.19.0 receipt/traceability refs (docs/08 §20.3). They are a
+   * persisted snapshot, never model context and never an authorization grant.
+   * Absent on legacy rows and on 1.18 backends.
+   */
+  source_refs?: SourceRef[]
 }
 
 export interface ChatMessagePage {
@@ -122,6 +128,8 @@ export interface ChatMessageWire {
   context_truncated?: boolean | null
   provided_context_note?: string | null
   data?: ResolvedSourceBindingsData | null
+  /** Additive 1.19.0 persisted source refs (docs/08 §20.3). */
+  source_refs?: SourceRef[] | null
 }
 
 /** Extract the additive selected-material fields from either envelope shape. */
@@ -157,11 +165,38 @@ function normalizeBindingsData(
   }
 }
 
+function normalizeSourceRefs(value: unknown): SourceRef[] {
+  if (!Array.isArray(value)) return []
+  return value.flatMap((item) => {
+    if (!item || typeof item !== 'object') return []
+    const candidate = item as Record<string, unknown>
+    const sourceId = candidate.source_id
+    const sourceVersion = candidate.source_version
+    const contentHash = candidate.content_hash
+    if (typeof sourceId !== 'string' || !sourceId) return []
+    if (typeof sourceVersion !== 'number' || !Number.isFinite(sourceVersion)) return []
+    if (typeof contentHash !== 'string' || !contentHash) return []
+    const rawScope = candidate.scope
+    const scope = rawScope && typeof rawScope === 'object' ? rawScope as Record<string, unknown> : {}
+    return [{
+      source_id: sourceId,
+      source_version: sourceVersion,
+      content_hash: contentHash,
+      scope: {
+        task_ref: typeof scope.task_ref === 'string' ? scope.task_ref : null,
+        project_ref: typeof scope.project_ref === 'string' ? scope.project_ref : null,
+        inbox_ref: typeof scope.inbox_ref === 'string' ? scope.inbox_ref : null,
+      },
+    }]
+  })
+}
+
 function normalizeMessage(wire: ChatMessageWire): ChatMessage {
   const inner = wire.message ?? {}
   const role = inner.role ?? wire.role ?? 'assistant'
   const content = inner.content ?? wire.content ?? ''
   const attachments = inner.attachments ?? wire.attachments ?? []
+  const sourceRefs = normalizeSourceRefs(inner.source_refs ?? wire.source_refs)
   return {
     message_id: wire.message_id,
     role,
@@ -176,6 +211,7 @@ function normalizeMessage(wire: ChatMessageWire): ChatMessage {
     seq: wire.seq,
     resource_result: inner.resource_result ?? wire.resource_result ?? null,
     data: normalizeBindingsData(wire, inner),
+    ...(sourceRefs.length > 0 ? { source_refs: sourceRefs } : {}),
   }
 }
 
@@ -213,6 +249,11 @@ export interface ChatApi {
       request_id?: string
       /** Additive, optional selected-material refs (docs/10 §2). */
       selected_sources?: SelectedSourceRef[]
+      /**
+       * Additive 1.19.0 receipt-only refs (docs/08 §20.3). Callers must only
+       * send this behind the material_intake_v2 capability gate.
+       */
+      source_refs?: SourceRefInput[]
     },
     signal?: AbortSignal,
   ): Promise<ChatSubmitResult>
@@ -295,6 +336,11 @@ export function createChatApi(): ChatApi {
       // the legacy request byte-identical (docs/10 §2, §8).
       if (body.selected_sources && body.selected_sources.length > 0) {
         payload.selected_sources = body.selected_sources
+      }
+      // Receipt refs are additive and omitted entirely when empty, keeping the
+      // legacy request unchanged (docs/08 §20.3).
+      if (body.source_refs && body.source_refs.length > 0) {
+        payload.source_refs = body.source_refs
       }
       return apiRequest<ChatSubmitResult>(path, {
         method: 'POST',

@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+import { getRuntimeToken } from '../../api/auth'
 import { ApiError } from '../../api/client'
+import { createSearchApi, type SearchApi } from '../../api/search'
 import type {
   EmbeddingDraftTestInput,
   EmbeddingDraftTestResult,
@@ -22,6 +24,10 @@ export interface EmbeddingPanelProps {
   revision: number
   onSaved: (result: EmbeddingUpdateResult) => void
   onClose: () => void
+  /** True only for the real protected writer (single-user operator/team admin). */
+  canRebuild?: boolean
+  /** Injectable vector client for tests/integration; real settings use the token. */
+  searchApi?: SearchApi
 }
 
 function validationError(message: string): ApiError {
@@ -96,7 +102,13 @@ export function EmbeddingPanel({
   revision,
   onSaved,
   onClose,
+  canRebuild = false,
+  searchApi: injectedSearchApi,
 }: EmbeddingPanelProps) {
+  const vectorApi = useMemo(
+    () => injectedSearchApi ?? createSearchApi({ getApiToken: getRuntimeToken }),
+    [injectedSearchApi],
+  )
   const [enabled, setEnabled] = useState(embedding.enabled)
   const [baseUrl, setBaseUrl] = useState(embedding.base_url ?? '')
   const [model, setModel] = useState(embedding.model ?? '')
@@ -113,6 +125,11 @@ export function EmbeddingPanel({
   const [testResult, setTestResult] = useState<EmbeddingDraftTestResult | null>(null)
   const [testDiscarded, setTestDiscarded] = useState(false)
   const [discardOpen, setDiscardOpen] = useState(false)
+  const [rebuildPending, setRebuildPending] = useState(false)
+  const [rebuildStatus, setRebuildStatus] = useState<{
+    tone: 'success' | 'neutral' | 'error'
+    text: string
+  } | null>(null)
 
   const dialogRef = useRef<HTMLDivElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
@@ -209,6 +226,26 @@ export function EmbeddingPanel({
       return
     }
     finishClose()
+  }
+
+  async function handleRebuild(): Promise<void> {
+    if (!canRebuild || rebuildPending) return
+    setRebuildPending(true)
+    setRebuildStatus(null)
+    try {
+      const result = await vectorApi.rebuildVector()
+      const count = result.documents
+      setRebuildStatus({
+        tone: result.rebuilt ? 'success' : 'neutral',
+        text: result.rebuilt
+          ? `Vector index rebuilt from stored originals: ${count} document${count === 1 ? '' : 's'}.`
+          : 'Vector rebuild finished without changing the index.',
+      })
+    } catch (cause: unknown) {
+      setRebuildStatus({ tone: 'error', text: toApiError(cause).message })
+    } finally {
+      setRebuildPending(false)
+    }
   }
 
   function timeoutValues(): { timeout: number; cold: number } | ApiError {
@@ -441,6 +478,34 @@ export function EmbeddingPanel({
             </StatusBadge>
             <StatusBadge kind={cacheKind(embedding)}>{cacheLabel(embedding)}</StatusBadge>
           </div>
+
+          {canRebuild ? (
+            <section className="lg-embedding-rebuild" aria-label="Vector index maintenance">
+              <div className="lg-embedding-rebuild__actions">
+                <button
+                  type="button"
+                  className="lg-button"
+                  onClick={() => void handleRebuild()}
+                  disabled={busy || rebuildPending}
+                >
+                  {rebuildPending ? 'Rebuilding…' : 'Rebuild vector index'}
+                </button>
+                <p className="lg-field__hint">
+                  Rebuilds from stored originals. Search and saving settings never rebuild.
+                </p>
+              </div>
+              {rebuildStatus ? (
+                <p
+                  className={`lg-notice${
+                    rebuildStatus.tone === 'error' ? ' lg-notice--error' : ''
+                  }`}
+                  role="status"
+                >
+                  {rebuildStatus.text}
+                </p>
+              ) : null}
+            </section>
+          ) : null}
 
           <label className="lg-field lg-field--inline">
             <input

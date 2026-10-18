@@ -49,9 +49,15 @@ def test_frozen_constants() -> None:
     # -> 1.18.0 (LG-122 additive MINOR implemented in the isolated complete
     # candidate: read-only Team groups projection, Personal private attachments
     # with bounded model context, independent Embedding settings, goal-fit team
-    # provenance and bounded multi-Task capacity/waiting reasons; independent
-    # LG-123 QA is still pending).  Additive MINOR only.
-    assert CONTRACT_VERSION == "1.18.0"
+    # provenance and bounded multi-Task capacity/waiting reasons) -> 1.19.0
+    # (LG-144 integrated LG-139 material intake v2 candidate: deferred worker,
+    # receipt v2 branches, message source_refs, automatic configured media
+    # embedding and protected full rebuild) -> 1.20.0 (LG-162 isolated assembly
+    # of optional default-off shared-English-audio EG2 Reader transcription:
+    # protected english_asr settings view/PUT, processing-availability health
+    # capability, additive source/receipt/content provenance and bounded intake
+    # branch; raw LG-159 quality gate remains FAIL).  Additive MINOR.
+    assert CONTRACT_VERSION == "1.20.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 

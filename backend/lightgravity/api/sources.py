@@ -24,7 +24,7 @@ execution permissions, and every path/ref is program-checked.
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Query, Request, Response
 from pydantic import BaseModel, ConfigDict, Field
@@ -69,6 +69,9 @@ class SourceCreateRequest(BaseModel):
     scope: SourceScopeRequest = Field(default_factory=SourceScopeRequest)
     origin: SourceOriginRequest = Field(default_factory=SourceOriginRequest)
     payload_hash: str | None = None
+    #: LG-141 additive mode.  ``sync`` is the unchanged 1.18 path; ``deferred``
+    #: only persists the original/source/job and lets the background worker run.
+    intake_mode: Literal["sync", "deferred"] = "sync"
 
 
 class JobActionRequest(BaseModel):
@@ -119,6 +122,7 @@ def _service(request: Request, ctx: ApiContext) -> Any:
 
     cached = getattr(request.app.state, "source_service", None)
     if cached is not None:
+        _attach_vector(request, ctx, cached)
         return cached
 
     from ..sources import build_source_service
@@ -133,7 +137,35 @@ def _service(request: Request, ctx: ApiContext) -> Any:
         events=ctx.store,
     )
     request.app.state.source_service = service
+    _attach_vector(request, ctx, service)
     return service
+
+
+def _attach_vector(request: Request, ctx: ApiContext, service: Any) -> Any:
+    """Attach the configured vector service using the vector router precedence.
+
+    The saved ``SETTINGS.md.embedding`` block wins, then the environment
+    fallback.  The existing vector router/status endpoint already resolves this
+    through ``ctx.connections.embedding.backend()``; reuse that exact backend and
+    the same cache/store so intake never invents a second configuration path.
+    """
+
+    if service.embedding_managed:
+        vector = service.vector
+        request.app.state.vector_search_service = vector
+        return vector
+    existing = getattr(request.app.state, "vector_search_service", None)
+    if existing is not None:
+        service.set_vector(existing)
+        return existing
+    if service.vector is not None:
+        # Preserve explicitly injected backends in sync-only/test compositions.
+        request.app.state.vector_search_service = service.vector
+        return service.vector
+    service.configure_embedding(ctx.connections.embedding)
+    vector = service.vector
+    request.app.state.vector_search_service = vector
+    return vector
 
 
 def _receive(ctx: ApiContext, service: Any, payload: SourceCreateRequest) -> Any:
@@ -162,6 +194,7 @@ def _receive(ctx: ApiContext, service: Any, payload: SourceCreateRequest) -> Any
             request_id=payload.request_id,
             path=payload.path or "",
             filename=payload.filename,
+            intake_mode=payload.intake_mode,
             task_ref=scope.task_ref,
             project_ref=scope.project_ref,
             inbox_ref=scope.inbox_ref,
@@ -177,6 +210,7 @@ def _receive(ctx: ApiContext, service: Any, payload: SourceCreateRequest) -> Any
         request_id=payload.request_id,
         filename=payload.filename,
         content_base64=payload.content_base64 or "",
+        intake_mode=payload.intake_mode,
         task_ref=scope.task_ref,
         project_ref=scope.project_ref,
         inbox_ref=scope.inbox_ref,
@@ -190,16 +224,19 @@ def _receive(ctx: ApiContext, service: Any, payload: SourceCreateRequest) -> Any
     )
 
 
-def _result_view(service: Any, result: Any) -> dict[str, Any]:
+def _result_view(service: Any, result: Any, *, intake_mode: str = "sync") -> dict[str, Any]:
     """Shape a receive result using the same projections the read routes use."""
 
-    return {
+    view: dict[str, Any] = {
         "source": service._source_view(result.source),
         "job": service._job_view(result.job),
         "deduplicated": result.deduplicated,
         "created": result.created,
         "receipts": [entry.to_dict() for entry in result.receipts],
     }
+    if intake_mode == "deferred":
+        view["intake_mode"] = "deferred"
+    return view
 
 
 def build_sources_router() -> APIRouter:
@@ -212,10 +249,11 @@ def build_sources_router() -> APIRouter:
         ctx: Annotated[ApiContext, Depends(get_context)],
         response: Response,
     ) -> dict[str, Any]:
-        result = _receive(ctx, _service(request, ctx), payload)
+        service = _service(request, ctx)
+        result = _receive(ctx, service, payload)
         response.status_code = 201 if result.created else 200
         response.headers["ETag"] = result.source.etag
-        return _result_view(_service(request, ctx), result)
+        return _result_view(service, result, intake_mode=payload.intake_mode)
 
     @router.get("/sources")
     def list_sources(

@@ -218,3 +218,69 @@ async def test_rebuildable_state_matches_files(settings) -> None:
     rebuilt = SourceStore(settings.data_dir).list_sources()
     assert [record.source_id for record in rebuilt] == [result.source.source_id]
     assert rebuilt[0].content_digest == hashlib.sha256(b"\x00\xffdata").hexdigest()
+
+
+async def test_deferred_job_fields_and_sync_shape_stay_distinct(settings) -> None:
+    store = SourceStore(settings.data_dir)
+    service = IntakeService(store)
+
+    deferred = service.receive(
+        ReceiveRequest(
+            request_id="req-deferred-fields",
+            filename="deferred.txt",
+            data=b"deferred fields",
+            intake_mode="deferred",
+        )
+    )
+    entity = deferred.job.entity
+    assert entity["intake_mode"] == "deferred"
+    assert entity["queued_at"]
+    assert entity["started_at"] is None
+    assert entity["finished_at"] is None
+    assert entity["deadline_at"] is None
+    assert entity["waiting_reason"] is None
+    assert entity["budget"] == {
+        "max_model_calls": 102,
+        "timeout_seconds": 900,
+        "max_retries": 1,
+        "max_original_bytes": 10_000_000,
+        "max_native_text_bytes": 2_000_000,
+        "max_ocr_pages": 100,
+        "max_tokens_per_page": 2000,
+        "max_embedding_calls": 2,
+        "max_media_embedding_bytes": 10_000_000,
+    }
+
+    sync = service.receive(
+        ReceiveRequest(request_id="req-sync-fields", filename="sync.txt", data=b"sync fields")
+    )
+    # Sync keeps the pre-1.19 on-disk shape; readers treat missing mode as sync.
+    assert "intake_mode" not in sync.job.entity
+    assert sync.job.intake_mode == "sync"
+    assert sync.job.entity["budget"] == {
+        "max_model_calls": 0,
+        "timeout_seconds": None,
+        "max_retries": 1,
+    }
+
+
+async def test_same_request_id_cannot_switch_mode_silently(settings) -> None:
+    store = SourceStore(settings.data_dir)
+    service = IntakeService(store)
+    service.receive(
+        ReceiveRequest(request_id="req-mode-conflict", filename="a.txt", data=b"mode conflict")
+    )
+    try:
+        service.receive(
+            ReceiveRequest(
+                request_id="req-mode-conflict",
+                filename="a.txt",
+                data=b"mode conflict",
+                intake_mode="deferred",
+            )
+        )
+    except Exception as exc:  # PayloadHashMismatch is the frozen source_conflict
+        assert getattr(exc, "code", None) is not None
+        assert exc.code.value == "source_conflict"  # type: ignore[attr-defined]
+    else:  # pragma: no cover - the contract requires conflict
+        raise AssertionError("changing intake_mode under the same request_id must conflict")

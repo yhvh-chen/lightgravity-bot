@@ -6,8 +6,9 @@ This module implements the LG-033/docs-08 §6.6 vector rules as a **派生 cache
   **content/fragment hash** (over the exact input bytes/text) and the **cache
   version**.  Those tags are the缓存 metadata, never business truth;
 * a **model switch invalidates the whole cache** — cached vectors recorded under
-  a different model id or dimension are never mixed with new ones.  The caller
-  rebuilds from the file source of truth;
+  a different model id or dimension are never mixed with new ones.  Per-source
+  indexing fails closed and leaves the file intact; an explicit full rebuild
+  from the file source of truth replaces it;
 * the cache is **deletable and rebuildable**: deleting the file and rebuilding
   reproduces the same entries;
 * it stores **no permission/attribution/control state**: authorization and scope
@@ -26,6 +27,8 @@ import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable
+
+from ...store.locking import LockManager
 
 #: Cache schema version: bump to invalidate an incompatible on-disk cache.
 VECTOR_CACHE_VERSION = 1
@@ -150,9 +153,14 @@ class VectorIndex:
     silently comparing incompatible vectors.
     """
 
-    def __init__(self, cache_dir: Path | str) -> None:
+    def __init__(self, cache_dir: Path | str, *, backend_fingerprint: str | None = None) -> None:
+        self._backend_fingerprint = backend_fingerprint
         self._cache_dir = Path(cache_dir)
         self._path = self._cache_dir / "vectors.jsonl"
+        # Serialize read-modify-write/rebuild passes across threads and
+        # processes.  Queries stay lock-free and see a complete file because
+        # writes are committed with ``os.replace``.
+        self._write_locks = LockManager(self._cache_dir)
 
     @property
     def path(self) -> Path:
@@ -164,6 +172,10 @@ class VectorIndex:
     def delete(self) -> None:
         """Delete the whole cache; a rebuild from files restores it."""
 
+        with self._write_locks.acquire("vectors-write"):
+            self._delete_unlocked()
+
+    def _delete_unlocked(self) -> None:
         if self._path.exists():
             try:
                 self._path.unlink()
@@ -244,6 +256,8 @@ class VectorIndex:
             return False
         if header.get("model") != model:
             return False
+        if self._backend_fingerprint is not None and header.get("backend_fingerprint") != self._backend_fingerprint:
+            return False
         if header.get("cache_version") != VECTOR_CACHE_VERSION:
             return False
         if dim is not None and header.get("dim") != dim:
@@ -254,6 +268,12 @@ class VectorIndex:
     def replace_all(self, entries: Iterable[VectorEntry], *, model: str, dim: int) -> VectorBuildReport:
         """Rebuild the cache from scratch for one model/dim (model switch safe)."""
 
+        with self._write_locks.acquire("vectors-write"):
+            return self._replace_all_unlocked(entries, model=model, dim=dim)
+
+    def _replace_all_unlocked(
+        self, entries: Iterable[VectorEntry], *, model: str, dim: int
+    ) -> VectorBuildReport:
         report = VectorBuildReport(model=model, dim=dim)
         collected: list[VectorEntry] = []
         for entry in entries:
@@ -271,8 +291,30 @@ class VectorIndex:
             "model": model,
             "dim": dim,
         }
+        if self._backend_fingerprint is not None:
+            header["backend_fingerprint"] = self._backend_fingerprint
         self._write_raw(header, collected)
         return report
+
+    def upsert_entries(
+        self, entries: Iterable[VectorEntry], *, model: str, dim: int
+    ) -> VectorBuildReport:
+        """Replace only the listed sources' entries under one cache lock.
+
+        Per-source indexing must never drop other sources.  This keeps the
+        read-modify-write atomic with respect to concurrent index/rebuild
+        writers while leaving the model/dimension header untouched.
+        """
+
+        new_entries = list(entries)
+        with self._write_locks.acquire("vectors-write"):
+            _, existing = self._read_raw()  # fail closed before touching the file
+            if self.exists() and not self.is_compatible(model=model, dim=dim):
+                raise VectorModelMismatchError("cache provenance/model/dimension requires a full rebuild")
+            replaced = {entry.source_id for entry in new_entries}
+            kept = [entry for entry in existing if entry.source_id not in replaced]
+            kept.extend(new_entries)
+            return self._replace_all_unlocked(kept, model=model, dim=dim)
 
     def delete_and_rebuild_marker(self) -> None:
         """Remove only the cache file so a caller can rebuild from files."""
@@ -288,11 +330,12 @@ class VectorIndex:
         return [e for e in self.all_entries() if e.source_id == source_id]
 
     def remove(self, source_id: str) -> None:
-        header, entries = self._read_raw()
-        if not header and not entries:
-            return
-        kept = [e for e in entries if e.source_id != source_id]
-        self._write_raw(header, kept)
+        with self._write_locks.acquire("vectors-write"):
+            header, entries = self._read_raw()
+            if not header and not entries:
+                return
+            kept = [e for e in entries if e.source_id != source_id]
+            self._write_raw(header, kept)
 
     def search(
         self, query_vector: Iterable[float], *, model: str, limit: int = DEFAULT_LIMIT
@@ -307,6 +350,8 @@ class VectorIndex:
 
         header, entries = self._read_raw()
         if header.get("model") != model or header.get("cache_version") != VECTOR_CACHE_VERSION:
+            return []
+        if self._backend_fingerprint is not None and header.get("backend_fingerprint") != self._backend_fingerprint:
             return []
         query = tuple(float(x) for x in query_vector)
         if not query:

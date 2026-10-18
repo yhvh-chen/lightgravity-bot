@@ -1,7 +1,7 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '../src/App'
-import { backendFetch, setViewport } from './setup'
+import { HEALTH_FIXTURE, backendFetch, setViewport } from './setup'
 
 async function renderShell() {
   const result = render(<App />)
@@ -39,7 +39,7 @@ describe('Single navigation shell', () => {
     const nav = screen.getByRole('navigation', { name: 'Primary navigation' })
     expect(within(nav).queryByRole('button', { name: 'Connections' })).toBeNull()
     expect(within(nav).getByRole('button', { name: 'Settings' })).toHaveAttribute('aria-current', 'page')
-    expect(window.location.search).toContain('view=settings')
+    await waitFor(() => expect(window.location.search).toContain('view=settings'))
     expect(window.location.search).toContain('task=task_real')
     expect(window.location.search).toContain('run=run_real')
     expect(window.location.search).not.toContain('item=connections')
@@ -48,7 +48,7 @@ describe('Single navigation shell', () => {
     window.history.replaceState(null, '', '/?view=resources&item=resources:connection:deepseek&task=task_real')
     await renderShell()
     expect(screen.getByRole('button', { name: 'Settings' })).toHaveAttribute('aria-current', 'page')
-    expect(window.location.search).toContain('view=settings')
+    await waitFor(() => expect(window.location.search).toContain('view=settings'))
     expect(window.location.search).toContain('item=settings%3Aconnection%3Adeepseek')
     expect(window.location.search).toContain('task=task_real')
     // Settings owns the same record; the legacy Resources page is not mounted.
@@ -81,6 +81,39 @@ describe('Single navigation shell', () => {
     expect(input).toHaveFocus()
     expect(input).toHaveValue('findme')
   })
+  it('passes live health capabilities into the top-bar search seam', async () => {
+    const health = {
+      ...HEALTH_FIXTURE,
+      contract_version: '1.19.0',
+      capabilities: {
+        ...HEALTH_FIXTURE.capabilities,
+        material_intake_v2: true,
+        semantic_search: true,
+        media_direct_embedding: true,
+      },
+    }
+    vi.mocked(globalThis.fetch).mockImplementation((input: RequestInfo | URL) => {
+      const url =
+        typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+      if (url.endsWith('/api/v1/health')) {
+        return Promise.resolve(
+          new Response(JSON.stringify(health), {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+          }),
+        )
+      }
+      return backendFetch(input)
+    })
+    await renderShell()
+    const input = within(screen.getByRole('banner')).getByRole('searchbox', {
+      name: 'Search',
+    })
+    fireEvent.change(input, { target: { value: 'findme' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(await screen.findByRole('tab', { name: 'Semantic' })).toBeInTheDocument()
+  })
+
   it('dismisses search on navigation so Files task controls are not covered', async () => {
     await renderShell()
     const input = screen.getByRole('searchbox', { name: 'Search' })

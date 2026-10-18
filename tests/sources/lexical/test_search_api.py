@@ -201,6 +201,37 @@ async def test_revoke_and_delete_invalidate_hits(api: httpx.AsyncClient, app) ->
     assert detail.status_code == 404
 
 
+async def test_search_without_rebuild_does_not_create_cache(api: httpx.AsyncClient, app) -> None:
+    source_id = await _receive(api, request_id="req-no-write", body=b"n")
+    await _write_formal(app, api, source_id, "编号 NOWRITE-1")
+    lexical = app.state.source_service.lexical
+    lexical.index.delete()
+
+    missing = await api.get(
+        f"{_HT}/search", params={"q": '"NOWRITE-1"', "include_global": "true"}
+    )
+    assert missing.json()["index_status"] == "index_unavailable"
+    assert lexical.index.exists() is False
+
+
+async def test_content_hash_change_invalidates_old_hit(api: httpx.AsyncClient, app) -> None:
+    source_id = await _receive(api, request_id="req-hash", body=b"h")
+    await _write_formal(app, api, source_id, "编号 HASH-1")
+    found = await api.get(f"{_HT}/search", params={"q": '"HASH-1"', "include_global": "true"})
+    assert [h["source_id"] for h in found.json()["hits"]] == [source_id]
+
+    store = app.state.source_service.store
+    record = store.read_source(source_id)
+    store.update_source(
+        source_id,
+        {"content_hash": "e" * 64},
+        expected_revision=record.revision,
+    )
+    stale = await api.get(f"{_HT}/search", params={"q": '"HASH-1"', "include_global": "true"})
+    assert stale.json()["hits"] == []
+    assert any(row["reason"] == "source_stale" for row in stale.json()["stale"])
+
+
 async def test_delete_cache_rebuilds_and_reproduces(api: httpx.AsyncClient, app) -> None:
     source_id = await _receive(api, request_id="req-rebuild", body=b"z")
     await _write_formal(app, api, source_id, "编号 REBUILD-9")

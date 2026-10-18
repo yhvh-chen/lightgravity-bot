@@ -7,8 +7,9 @@ Implements the one endpoint frozen for this task:
   returned, and hits whose source was revoked/deleted/moved/edited are reported
   as ``source_stale`` instead of dangling results.
 
-The endpoint is **read-only**: it never writes through GET (it borrows no
-business write authorization), never creates a Task/Run, and never returns
+Ordinary searches are **read-only**. The deprecated explicit
+``rebuild_if_missing=true`` opt-in requires the same protected/admin access as
+a full rebuild. Search never creates a Task/Run, and never returns
 content the caller is not authorized to see.  A corrupt or missing cache is
 reported honestly with ``index_unavailable` (503) rather than returning an empty
 success.
@@ -86,9 +87,13 @@ def build_search_router() -> APIRouter:
     ) -> dict[str, Any]:
         """Search the derived lexical index with authorization re-verification.
 
-        ``rebuild_if_missing`` only *rebuilds a missing cache from the file SoT*;
-        it never widens the returned authorization scope (the scope filter only
-        narrows).  Corrupt caches are reported, never silently ignored.
+        ``rebuild_if_missing`` defaults to false and is **read-only** in that
+        case.  ``true`` remains only as the deprecated 1.18 explicit opt-in for
+        old clients, with protected/admin authorization checked before search;
+        the 1.19 UI never sends it and uses the protected rebuild
+        action instead.  It never widens the returned authorization scope (the
+        scope filter only narrows).  Corrupt caches are reported, never silently
+        ignored.
         """
 
         from ..sources.lexical import SearchRequest

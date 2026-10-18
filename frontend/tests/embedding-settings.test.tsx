@@ -1,5 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type {
   ConnectionView,
@@ -11,6 +11,7 @@ import type {
   GlobalSettingsView,
   SettingsApi,
 } from '../src/api/settings'
+import type { SearchApi, VectorRebuildResult } from '../src/api/search'
 import { SettingsView } from '../src/views/settings/SettingsView'
 
 function makeConnection(overrides: Partial<ConnectionView> = {}): ConnectionView {
@@ -201,6 +202,25 @@ function makeFakeApi(initial?: Partial<FakeState>): {
   return { api, state }
 }
 
+function makeSearchApi(result?: Partial<VectorRebuildResult>) {
+  const rebuildVector = vi.fn(async (): Promise<VectorRebuildResult> => ({
+    rebuilt: true,
+    indexed: ['source_1'],
+    not_indexed: [],
+    documents: 1,
+    model: 'embeddinggemma-2-Q8_0',
+    dim: 768,
+    ...result,
+  }))
+  const api = {
+    searchKeyword: vi.fn(),
+    searchSemantic: vi.fn(),
+    getVectorStatus: vi.fn(),
+    rebuildVector,
+  } as unknown as SearchApi
+  return { api, rebuildVector }
+}
+
 beforeEach(() => {
   window.sessionStorage.clear()
   window.localStorage.clear()
@@ -336,6 +356,37 @@ describe('LG-117 Embedding settings', () => {
     await waitFor(() => expect(state.updateCalls).toHaveLength(1))
     expect(state.updateCalls[0].credential_action).toBe('remove')
     expect(state.updateCalls[0].credential_value).toBeUndefined()
+  })
+
+  it('offers one explicit admin rebuild and never saves settings implicitly', async () => {
+    const { api, state } = makeFakeApi()
+    const search = makeSearchApi()
+    render(<SettingsView api={api} searchApi={search.api} />)
+    await openEmbedding()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Rebuild vector index' }))
+    await waitFor(() => expect(search.rebuildVector).toHaveBeenCalledTimes(1))
+    expect(
+      await screen.findByText(/Vector index rebuilt from stored originals: 1 document/),
+    ).toBeInTheDocument()
+    expect(state.updateCalls).toHaveLength(0)
+    expect(state.testCalls).toHaveLength(0)
+  })
+
+  it('does not offer rebuild when the caller is not a protected writer', async () => {
+    const { EmbeddingPanel } = await import('../src/views/settings/EmbeddingPanel')
+    const { api } = makeFakeApi()
+    render(
+      <EmbeddingPanel
+        api={api}
+        embedding={makeEmbedding()}
+        revision={7}
+        canRebuild={false}
+        onSaved={() => {}}
+        onClose={() => {}}
+      />,
+    )
+    expect(screen.queryByRole('button', { name: 'Rebuild vector index' })).toBeNull()
   })
 
   it('shows an honest unavailable state when the backend omits embedding settings', async () => {

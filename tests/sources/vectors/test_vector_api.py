@@ -20,7 +20,7 @@ async def test_status_reports_configured_backend(api):
     assert body["cache"]["exists"] is False
 
 
-async def test_search_reports_unavailable_when_cache_missing(api):
+async def test_search_reports_unavailable_when_cache_missing(api, app):
     response = await api.get("/api/v1/vector/search", params={"q": "alpha"})
     assert response.status_code == 200
     body = response.json()
@@ -28,6 +28,9 @@ async def test_search_reports_unavailable_when_cache_missing(api):
     assert body["index_unavailable_reason"] == "cache_missing"
     assert body["hits"] == []
     assert body["lexical_fallback"] is True
+    # A read/search must not create or rebuild the missing cache.
+    service = app.state.vector_search_service
+    assert service.index.exists() is False
 
 
 async def test_rebuild_then_search_finds_hit(api, source_store):
@@ -77,3 +80,5 @@ async def test_media_only_source_is_searchable(api, source_store):
     assert body.status_code == 200
     payload = body.json()
     assert payload["index_status"] == "ok"
+    assert payload["hits"]
+    assert payload["hits"][0]["kind"] == "image"

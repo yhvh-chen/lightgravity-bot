@@ -18,9 +18,14 @@ default** and configured only through environment variables):
 * ``GET  /vector/search`` — vector search with回源 re-verification; when the
   backend/cache is unavailable it reports ``index_status=index_unavailable`` and
   ``lexical_fallback=true`` with empty hits (the lexical ``/search`` endpoint and
-  original viewing stay available).  Read-only; never writes through GET.
+  original viewing stay available).  Read-only unless an old client explicitly
+  sends the deprecated ``rebuild_if_missing=true`` with protected/admin
+  authorization; the 1.19 UI never does.
 * ``POST /vector/rebuild`` — delete and rebuild the vector cache **from the file
-  source of truth**.  No separate vector database service is started.
+  source of truth**. This is the standard full-rebuild path and (from 1.19) is a
+  protected admin write; the deprecated GET opt-in has the same authorization.
+  The POST is never called by search,
+  intake or Settings save.
 
 No endpoint widens authorization: search scope only narrows, and every hit is
 re-verified against ``SOURCE.md`` before it is returned.  No ``source.indexed``
@@ -48,6 +53,15 @@ def _service(request: Request, ctx: ApiContext) -> Any:
     every path reads the same file SoT.  The backend comes from environment
     configuration only (no hard-coded host).
     """
+
+    source_service = getattr(request.app.state, "source_service", None)
+    injected = getattr(request.app.state, "vector_test_backend", None)
+    if injected is None and (source_service is None or source_service.embedding_managed):
+        if source_service is None:
+            source_service = request.app.state.source_service_provider()
+        service = source_service.vector
+        request.app.state.vector_search_service = service
+        return service
 
     cached = getattr(request.app.state, "vector_search_service", None)
     if cached is not None:
@@ -95,6 +109,9 @@ def build_vector_router() -> APIRouter:
         embedding_view = ctx.connections.get_settings().get("embedding") or {}
         cache_view = embedding_view.get("cache") or {}
         resolution = ctx.connections.embedding.resolve()
+        guard = service.cache_compatibility_reason() if service.enabled else None
+        if guard is not None and service.index.exists():
+            cache_view = {**cache_view, "compatible": False, "reason": guard}
         return {
             "enabled": service.enabled,
             "backend": {
@@ -133,7 +150,13 @@ def build_vector_router() -> APIRouter:
         limit: Annotated[int, Query(ge=1, le=_MAX_LIMIT)] = _DEFAULT_LIMIT,
         rebuild_if_missing: Annotated[bool, Query()] = False,
     ) -> dict[str, Any]:
-        """Vector search with回源 re-verification and honest fallback."""
+        """Vector search with回源 re-verification and honest fallback.
+
+        ``rebuild_if_missing`` is the deprecated 1.18 legacy opt-in and defaults
+        to false; default search never writes/reindexes. Explicit true requires
+        the same protected/admin access as POST rebuild. New clients use the
+        explicit protected rebuild instead.
+        """
 
         from ..sources.vectors import VectorSearchRequest
 
@@ -162,7 +185,13 @@ def build_vector_router() -> APIRouter:
         ctx: Annotated[ApiContext, Depends(get_context)],
         source_id: Annotated[str | None, Query()] = None,
     ) -> dict[str, Any]:
-        """Delete and rebuild the vector cache from the file source of truth."""
+        """Delete and rebuild the vector cache from the file source of truth.
+
+        This is the standard explicit rebuild action. The deprecated GET
+        opt-in shares its protected admin/single-user access classification
+        in ``api/access.py``;
+        no search/intake/settings-save path invokes it implicitly.
+        """
 
         service = _service(request, ctx)
         try:

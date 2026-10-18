@@ -1,0 +1,20 @@
+EmbeddingGemma-2-Transcribe-Reader — NOTICE
+
+This repository holds reader v2 of EmbeddingGemma 2 Transcribe, licensed under the Apache License, Version 2.0
+(see LICENSE).
+
+- reader.pt: reader weights trained by mlboydaisuke (john-rocky), 2026-10, with CTC on LibriSpeech train-clean-100,
+  train-clean-360 and train-other-500:
+  V. Panayotov, G. Chen, D. Povey, S. Khudanpur, "Librispeech: an ASR corpus based on public domain audio books",
+  ICASSP 2015, https://www.openslr.org/12, licensed under CC BY 4.0
+  (https://creativecommons.org/licenses/by/4.0/). The audio is not redistributed here.
+- word_table.npy: text embeddings of the vocabulary words computed with EmbeddingGemma 2
+  (google/embeddinggemma-2, revision 914f7f89142e33e77833254d9c9b90c3cef7303b, Google DeepMind), licensed under the
+  Apache License, Version 2.0. Deployments of EmbeddingGemma 2 must adhere to the Gemma Prohibited Use Policy
+  (https://ai.google.dev/gemma/prohibited_use_policy).
+- vocab.txt: the words of the LibriSpeech lexicon (https://www.openslr.org/11, public domain), lower case.
+- The reader reads soft tokens produced by the EmbeddingGemma 2 audio encoder, which is not part of this repository.
+
+Code: the reader/train directory of the eg2-transcribe repository (train.py, model.py, make_table.py, eval_wer.py).
+
+Keep this NOTICE together with the LICENSE file when redistributing.

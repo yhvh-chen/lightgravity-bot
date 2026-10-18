@@ -27,7 +27,7 @@ def settings(tmp_path: Path) -> Settings:
 
 @pytest.fixture
 async def client(settings: Settings) -> AsyncIterator[httpx.AsyncClient]:
-    app = create_app(settings)
+    app = create_app(settings, enable_intake_worker=False)
     # httpx.ASGITransport does not run lifespan events; do it explicitly so
     # startup behaviour (data dir creation) is exercised.
     async with app.router.lifespan_context(app):

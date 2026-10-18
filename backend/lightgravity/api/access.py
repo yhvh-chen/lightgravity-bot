@@ -25,6 +25,8 @@ from ..contracts import AppError, ErrorCode
 
 #: Frozen sensitive prefix: settings/connection/credential mutations.
 SENSITIVE_PREFIX = "/api/v1/settings"
+#: LG-144/LG-148 (docs/08 §20.10): full rebuilds require protected access.
+VECTOR_REBUILD_PATH = "/api/v1/vector/rebuild"
 _SENSITIVE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 _LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost", "testclient"})
 
@@ -109,15 +111,35 @@ class LocalAccessPolicy:
             )
 
 
+def _is_legacy_rebuild_request(request: Request) -> bool:
+    """Classify the deprecated explicit opt-in before any search side effects.
+
+    Match FastAPI/Pydantic's accepted true boolean spellings. QueryParams.get
+    uses the last repeated value, as does the route's parsed boolean parameter.
+    Invalid spellings remain normal validation errors and cannot invoke search.
+    """
+
+    return (
+        request.method.upper() == "GET"
+        and request.url.path in {"/api/v1/search", "/api/v1/vector/search"}
+        and getattr(request, "query_params", {}).get("rebuild_if_missing", "").lower()
+        in {"1", "true", "on", "yes", "t", "y"}
+    )
+
+
 def is_sensitive_request(request: Request) -> bool:
     path = request.url.path
-    if request.method.upper() in _SENSITIVE_METHODS and (
+    method = request.method.upper()
+    if (method == "POST" and path == VECTOR_REBUILD_PATH) or _is_legacy_rebuild_request(request):
+        # Protected full rebuild: single-user local token, team session/admin.
+        return True
+    if method in _SENSITIVE_METHODS and (
         path == SENSITIVE_PREFIX or path.startswith(SENSITIVE_PREFIX + "/")
     ):
         return True
     # LG-050 additive: a controlled resource mutation is a protected write too
     # (the route already re-checks; this keeps the global dependency honest).
-    return request.method.upper() in {"PATCH", "PUT", "DELETE"} and (
+    return method in {"PATCH", "PUT", "DELETE"} and (
         path == "/api/v1/resources" or path.startswith("/api/v1/resources/")
     )
 
@@ -130,6 +152,10 @@ def is_admin_only_request(request: Request) -> bool:
     """
 
     path = request.url.path
+    if path == VECTOR_REBUILD_PATH or _is_legacy_rebuild_request(request):
+        # 1.19 tightens this optional global model operation to admin/protected
+        # writers (single-user operator is implicitly the administrator).
+        return True
     if path == SENSITIVE_PREFIX or path.startswith(SENSITIVE_PREFIX + "/"):
         return True
     # LG-062: the admin account-management surface is admin-only for *every*
@@ -168,6 +194,7 @@ __all__ = [
     "LocalAccessPolicy",
     "SENSITIVE_PREFIX",
     "TOKEN_HEADER",
+    "VECTOR_REBUILD_PATH",
     "is_admin_only_request",
     "is_sensitive_request",
     "require_access",

@@ -54,6 +54,93 @@ VECTOR_STATES = ("disabled", "not_indexed", "indexed", "stale", "failed")
 TITLE_ORIGINS = ("user", "derived")
 ORIGIN_KINDS = ("upload", "link", "external")
 
+#: Independent receipt branches frozen by docs/08 §20.6.  They are a
+#: projection of the actual text/index state, never a second status store.
+TEXT_BRANCH_STATES = ("pending", "extracting", "ready", "unavailable", "failed")
+KEYWORD_BRANCH_STATES = ("pending", "indexing", "searchable", "no_text", "failed")
+SEMANTIC_BRANCH_STATES = (
+    "pending",
+    "indexing",
+    "searchable",
+    "disabled",
+    "unsupported",
+    "failed",
+)
+INTAKE_MODES = ("sync", "deferred")
+
+
+def pending_text_branch() -> dict[str, Any]:
+    return {"status": "pending", "reason": None, "error_code": None}
+
+
+def pending_keyword_branch() -> dict[str, Any]:
+    return {"status": "pending", "reason": None, "error_code": None}
+
+
+def pending_semantic_branch() -> dict[str, Any]:
+    return {
+        "status": "pending",
+        "reason": None,
+        "error_code": None,
+        "model": None,
+        "kinds": [],
+        "failed_kinds": [],
+    }
+
+
+def normalize_text_branch(value: Any) -> dict[str, Any]:
+    data = value if isinstance(value, dict) else {}
+    status = data.get("status")
+    branch = pending_text_branch()
+    branch["status"] = status if status in TEXT_BRANCH_STATES else "pending"
+    branch["reason"] = data.get("reason") if isinstance(data.get("reason"), str) else None
+    branch["error_code"] = (
+        data.get("error_code") if isinstance(data.get("error_code"), str) else None
+    )
+    # 1.20 additive ASR provenance. These keys are only present when the
+    # persisted branch actually carried them; old/non-audio branches keep the
+    # frozen 1.19 three-field shape.
+    if "language" in data:
+        branch["language"] = data.get("language") if isinstance(data.get("language"), str) else None
+    if "machine" in data:
+        branch["machine"] = dict(data["machine"]) if isinstance(data.get("machine"), dict) else None
+    if "timestamps" in data:
+        branch["timestamps"] = data.get("timestamps") if isinstance(data.get("timestamps"), list) else None
+    return branch
+
+
+def normalize_keyword_branch(value: Any) -> dict[str, Any]:
+    data = value if isinstance(value, dict) else {}
+    status = data.get("status")
+    branch = pending_keyword_branch()
+    branch["status"] = status if status in KEYWORD_BRANCH_STATES else "pending"
+    branch["reason"] = data.get("reason") if isinstance(data.get("reason"), str) else None
+    branch["error_code"] = (
+        data.get("error_code") if isinstance(data.get("error_code"), str) else None
+    )
+    return branch
+
+
+def normalize_semantic_branch(value: Any) -> dict[str, Any]:
+    data = value if isinstance(value, dict) else {}
+    status = data.get("status")
+    branch = pending_semantic_branch()
+    branch["status"] = status if status in SEMANTIC_BRANCH_STATES else "pending"
+    branch["reason"] = data.get("reason") if isinstance(data.get("reason"), str) else None
+    branch["error_code"] = (
+        data.get("error_code") if isinstance(data.get("error_code"), str) else None
+    )
+    branch["model"] = data.get("model") if isinstance(data.get("model"), str) else None
+    kinds = data.get("kinds")
+    branch["kinds"] = [
+        kind for kind in kinds if kind in ("text", "image", "audio")
+    ] if isinstance(kinds, list) else []
+    failed = data.get("failed_kinds")
+    branch["failed_kinds"] = [
+        kind for kind in failed if kind in ("text", "image", "audio")
+    ] if isinstance(failed, list) else []
+    return branch
+
 
 @dataclass(frozen=True, slots=True)
 class Scope:
@@ -139,10 +226,18 @@ class ReceiptEntry:
     source_version: int
     at: str
     error_code: str | None = None
+    #: Exact producing job; legacy/version-only receipt lines have no association.
+    job_id: str | None = None
+    #: Additive receipt-v2 branches (docs/08 §20.6).  Old receipt lines read as
+    #: ``pending`` so an upgrade never fabricates a branch result.
+    text: dict[str, Any] = field(default_factory=pending_text_branch)
+    keyword: dict[str, Any] = field(default_factory=pending_keyword_branch)
+    semantic: dict[str, Any] = field(default_factory=pending_semantic_branch)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "source_id": self.source_id,
+            "job_id": self.job_id,
             "filename": self.filename,
             "status": self.status,
             "stage": self.stage,
@@ -154,6 +249,9 @@ class ReceiptEntry:
             "source_version": self.source_version,
             "at": self.at,
             "error_code": self.error_code,
+            "text": dict(self.text),
+            "keyword": dict(self.keyword),
+            "semantic": dict(self.semantic),
         }
 
 
@@ -246,6 +344,23 @@ class IntakeJobRecord:
         return value if isinstance(value, str) and value else None
 
     @property
+    def intake_mode(self) -> str:
+        """``sync`` for old jobs (the frozen default) or ``deferred``."""
+
+        value = self.entity.get("intake_mode")
+        return value if value in INTAKE_MODES else "sync"
+
+    @property
+    def attempt(self) -> int:
+        value = self.entity.get("attempt")
+        return value if isinstance(value, int) and not isinstance(value, bool) and value >= 1 else 1
+
+    @property
+    def budget(self) -> dict[str, Any]:
+        value = self.entity.get("budget")
+        return value if isinstance(value, dict) else {}
+
+    @property
     def cancel(self) -> dict[str, Any]:
         value = self.entity.get("cancel")
         return value if isinstance(value, dict) else {"requested": False, "confirmed": False}
@@ -280,6 +395,16 @@ __all__ = [
     "VECTOR_STATES",
     "TITLE_ORIGINS",
     "ORIGIN_KINDS",
+    "TEXT_BRANCH_STATES",
+    "KEYWORD_BRANCH_STATES",
+    "SEMANTIC_BRANCH_STATES",
+    "INTAKE_MODES",
+    "pending_text_branch",
+    "pending_keyword_branch",
+    "pending_semantic_branch",
+    "normalize_text_branch",
+    "normalize_keyword_branch",
+    "normalize_semantic_branch",
     "Scope",
     "Origin",
     "ReceiptEntry",

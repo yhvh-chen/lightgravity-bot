@@ -21,8 +21,17 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Intentionally empty: the Antigravity SDK is a first-class dependency above
-# because LG-005 compiles against its concrete config types.
+# 1.20 optional English ASR runtime (LG-160).  The default application does not
+# install or import these; without this extra the capability is honestly false.
+# torch==2.14.0 is CPU-compatible; on Linux install the CPU wheel from the
+# official PyTorch CPU index in the isolated runtime environment if desired
+# (``pip install torch==2.14.0+cpu --index-url https://download.pytorch.org/whl/cpu``).
+english-asr = [
+    "numpy==2.5.4",
+    "safetensors==0.8.0",
+    "torch==2.14.0",
+    "transformers==5.19.0",
+]
 
 [project.scripts]
 lightgravity = "lightgravity.cli:main"
@@ -72,4 +81,20 @@ ignore_missing_imports = true
 # rasteriser only (LG-035).  Keep its symbols opaque rather than failing.
 [[tool.mypy.overrides]]
 module = ["pypdfium2", "pypdfium2.*"]
+ignore_missing_imports = true
+
+# The optional English ASR runtime imports these only lazily, and the default
+# development environment may not install the `english-asr` extra.  Keep their
+# symbols opaque instead of failing the whole package on missing stubs.
+[[tool.mypy.overrides]]
+module = [
+    "numpy",
+    "numpy.*",
+    "safetensors",
+    "safetensors.*",
+    "torch",
+    "torch.*",
+    "transformers",
+    "transformers.*",
+]
 ignore_missing_imports = true

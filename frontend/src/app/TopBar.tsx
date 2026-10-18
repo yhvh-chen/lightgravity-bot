@@ -5,6 +5,7 @@ import { Icon } from '../components/icons'
 import { MaterialSearch } from '../components/MaterialSearch'
 import { useAuth } from './AuthProvider'
 import { useShell } from './ShellProvider'
+import { useBackendStatus } from '../api/useBackendStatus'
 import { useNotifications } from './useNotifications'
 import { NOTIFICATION_REFRESH_TYPES, useEventStream } from './useEventStream'
 
@@ -29,7 +30,12 @@ export function TopBar({
   onToggleChat,
 }: TopBarProps) {
   const { state, dispatch } = useShell()
-  const { isTeam, identity, logout } = useAuth()
+  const { isTeam, identity, isAdmin, logout } = useAuth()
+  // Live runtime capabilities/identity for the shared search seam.  The hook
+  // never assumes a capability when health is unavailable; the panel then stays
+  // Keyword-only.  Rebuild guidance follows the real protected-write role.
+  const { health } = useBackendStatus()
+  const canRebuild = !isTeam || isAdmin
   const [notifOpen, setNotifOpen] = useState(false)
   const notifButtonRef = useRef<HTMLButtonElement>(null)
   const popoverRef = useRef<HTMLDivElement>(null)
@@ -104,7 +110,11 @@ export function TopBar({
         </div>
       </div>
 
-      <MaterialSearch />
+      <MaterialSearch
+        health={health}
+        role={identity.role}
+        canRebuild={canRebuild}
+      />
 
       <div className="lg-topbar__actions">
         {isTeam ? (

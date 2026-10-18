@@ -39,6 +39,8 @@ def build_app(settings: Settings) -> FastAPI:
     app = create_app(
         settings,
         access_policy=LocalAccessPolicy(allow_sensitive_without_token=True),
+        # Legacy sync/source suites run their own explicit worker where needed.
+        enable_intake_worker=False,
     )
     # One-line wiring the integration owner applies to api/app.py.
     app.include_router(build_sources_router(), prefix=API_PREFIX)
