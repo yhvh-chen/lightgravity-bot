@@ -7,7 +7,7 @@ updated: "2026-10-18"
 
 # LightGravity Bot 项目手册
 
-> **Demo录制修复候选已本地集成（2026-10-18，LG-251；未部署）**：隔离分支 `work/lg248-candidate-20261018` 基于 native Files/hint `cd755da`，按内容去重后串行合入 LG-208 parse cache、LG-244/LG-243/LG-249 后端链、LG-224 PDF 文字层，并把契约升至 **1.23.0**（§24）。新端点/DTO/投影字段为加性，但**不是纯加性批次**：LG-249 有意把 Team Task 普通消息改为默认只记录、仅前导配置 mention 才路由；单用户路由不变。候选包含只读 canonical `TASK.md`、机器检查 required/绑定/验收状态、每 Run 的计划 worker 与真实 reviewer 执行证据、PDF 文字层优先，以及真实 `health.team_bot_mention`。已运行受影响后端/前端测试、typecheck、build；前端完整套件为 **400 通过/1 失败**，`lg120` 分页失败保持 **OPEN/未分类**待 native Files 处置，隔离复跑 5/5 只作线索，不据此判为 flake。候选状态 **PROVISIONAL，LG-251 未完成**；这是开发者集成证据，**不是独立 QA**，本轮未重核线上 8123/5173 版本，未推送/合根/部署，LG-252 浏览器录制验收待新采集门批准。详细登记见 docs/08 §24。
+> **Demo录制修复候选已本地集成（2026-10-18，LG-251；未部署）**：隔离分支 `work/lg248-candidate-20261018` 基于 native Files/hint `cd755da`，按内容去重后串行合入 LG-208 parse cache、LG-244/LG-243/LG-249 后端链、LG-224 PDF 文字层，并把契约升至 **1.23.0**（§24）。新端点/DTO/投影字段为加性，但**不是纯加性批次**：LG-249 有意把 Team Task 普通消息改为默认只记录、仅前导配置 mention 才路由；单用户路由不变。候选包含只读 canonical `TASK.md`、机器检查 required/绑定/验收状态、每 Run 的计划 worker 与真实 reviewer 执行证据、PDF 文字层优先，以及真实 `health.team_bot_mention`。已运行受影响后端/前端测试、typecheck、build；原前端完整套件 **400 通过/1 失败**与隔离复跑 5/5 作为前缀历史保留，失败已由 root/native **LG259** `4fa884e` 证实为启动 filter-reset race 并修复，不是 flake；候选 targeted **28 通过**，且候选 `frontend` 树与 native 修复树一致，复用其 full **406 通过**。候选状态仍 **PROVISIONAL，LG-251 in-progress 待 root 核验**；这是开发者集成证据，**不是独立 QA**，本轮未重核线上 8123/5173 版本，未推送/合根/部署，LG-252 浏览器录制验收待 root claim 与采集门批准。详细登记见 docs/08 §24。
 
 > **品牌已上线、ASR远端待接通（2026-10-18）**：LG211品牌子集112项独立浏览器检查+29前端测试通过；LG212已将Logo/默认账号说明上线8123，root main8a3f04d7，实际生产44项通过，后端仍原1.20/PID536200、ASR关闭rev1，三个服务未重启、账户/资料保持。5173品牌源码同步，不把其他开发改动算入本包验收。[部署记录](probes/remote-reader-20261018/lg212/DELIVERY.md)。LG213一次现有默认SSH密钥认证被192.168.8.12拒绝，远端帧服务实际部署/转写联调需要可用入口；原质量FAILED与里程碑169待完成保持。Reader容器已构建、加载约640～874MiB，尚未测实际推理峰值。
 
@@ -103,8 +103,8 @@ LG174调查已完成：[报告](probes/demo-brand-asr-20261018/lg174/REPORT.md)�
 - 契约按 MINOR 升至 **1.23.0**（docs/08 §24）：新只读端点、Run/Task 字段、PDF `extractor`/record types 与 health `team_bot_mention` 属加性扩展；**LG-249 则有意改变既有 Team Task 普通消息路由**（默认 recorded-only，前导配置 mention 才路由），因此不把整批写成纯加性。单用户路由不变；既有公开 `run.connection_pin`、状态/阶段/验收枚举、迁移方向和错误码不变，旧 Task 缺省检查/验收行为保留。
 - LG-244 的默认交付工作区与 required 检查是真实行为：failed/error/unconfigured/skipped/缺失 required 阻止复核与 Accept，stale 报告不静默重跑；旧无策略 Task 只读为 `not_configured`/`satisfied=false`，不伪 passed。LG-243 worker 快照只是计划/冻结连接，不是调用证明；reviewer 仅在真实复核后记录，缺失保持 unknown。
 - LG-224 以文字层优先取代旧“PDF 总是光栅化 OCR”说明，稀疏阈值 16 可见字符；没有真实 OCR/模型质量验证。LG-249 Team Task 普通消息只记录、不调分类器/responder/model，前导配置 mention 才路由；health 只发布真实 Team 配置，前端无 `@bot` 兜底。
-- 验证为开发者局部检查：53 项新增/聚焦后端测试、既有 123 项 Tasks/Google ASR 回归、受影响 cache/store/lexical/verify/api/coordinator/sources 子集、mypy、前端测试/typecheck/build。前端完整套件实际为 **400 通过/1 失败**，失败为 `lg120-roles` 分页，保持 **OPEN/未分类**待 native Files owner 分诊；隔离复跑 5/5 只是线索，不是分类、豁免或通过证明。默认 `pytest tests` 的重复 basename 收集问题仍已知且未改布局；不宣称单命令全绿或独立 QA。
-- **LG-251 状态为 PROVISIONAL/未完成，候选仅作临时身份，不是最终验证冻结。** 不推送、不合根 main、不部署、不重启 8123/5173/18123。原 LG-254 采集门两轮失败后已由 root 重划 LG-257/LG-258；在 root 批准新门禁前不进行 LG-252 业务/模型/浏览器录制，也不导入 capture。
+- 验证为开发者局部检查：53 项新增/聚焦后端测试、既有 123 项 Tasks/Google ASR 回归、受影响 cache/store/lexical/verify/api/coordinator/sources 子集、mypy、前端测试/typecheck/build。前端原完整套件 **400 通过/1 失败**与隔离 5/5 保留为前缀历史；native LG259 已用确定性原源码 red/fixed green 证明并修复启动 race，候选 targeted 28 通过，复用同树 native full 406。默认 `pytest tests` 的重复 basename 收集问题仍已知且未改布局；不宣称单命令全绿或独立 QA。
+- **LG259 是 root/native 直接依赖**：pi 只 cherry-pick `4fa884e`，未自行修改产品/测试代码。LG-251 仍 **PROVISIONAL/in-progress**，候选仅作临时身份，不是最终验证冻结。不推送、不合根 main、不部署、不重启 8123/5173/18123。LG258 cursor 标准 PASS 且保留原 clock FAIL；LG257 timing 与 whole-fixture LG254 仍 pending；在 root claim/批准新门禁前不进行 LG-252 业务/模型/浏览器录制，也不导入 capture。
 
 ### 2026-10-18：Google 原生音频转写候选通过独立 QA 并串行合入本地 main（LG-235→236/237→238，契约 1.22.0；LG-239 PASS_WITH_LIMITATIONS，未部署）
 
