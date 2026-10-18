@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LightGravity — Pitch Deck (Google Cloud AI Builder Cup 2026)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <style>
+    :root {
+      --bg-paper: #F4EFE6;
+      --bg-obsidian: #111116;
+      --bg-card-dark: #181920;
+      --bg-card-light: #FFFFFF;
+      --ink-primary: #111111;
+      --ink-inverse: #F8FAFC;
+      --ink-muted-dark: #8E8E98;
+      --ink-muted-light: #64748B;
+      --accent-orange: #FF4D00;
+      --accent-blue: #2563EB;
+      --accent-lime: #D4FF28;
+      --accent-purple: #E2B7E8;
+      --font-display: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #09090C; font-family: var(--font-display);
+      color: var(--ink-primary); -webkit-font-smoothing: antialiased;
+    }
+
+    /* Scaling Viewport Container */
+    #deck-stage {
+      width: 100vw; height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; background: #060709;
+    }
+    #deck-viewport {
+      width: 1920px; height: 1080px;
+      position: relative; transform-origin: center center;
+      flex-shrink: 0; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+      background: var(--bg-paper); overflow: hidden;
+    }
+
+    /* Slide base styling */
+    .slide {
+      position: absolute; inset: 0;
+      width: 1920px; height: 1080px;
+      padding: 64px 88px; display: flex; flex-direction: column;
+      justify-content: space-between; opacity: 0; visibility: hidden;
+      pointer-events: none; user-select: none;
+    }
+    .slide.is-active {
+      opacity: 1; visibility: visible; pointer-events: auto; z-index: 10;
+    }
+
+    /* Background ground classes */
+    .slide-paper { background-color: var(--bg-paper); color: var(--ink-primary); }
+    .slide-obsidian { background-color: var(--bg-obsidian); color: var(--ink-inverse); }
+    .slide-orange { background-color: var(--accent-orange); color: #FFFFFF; }
+
+    /* Top Section Bar */
+    .slide-eyebrow {
+      display: flex; align-items: center; gap: 16px;
+      font-family: var(--font-mono); font-size: 19px;
+      font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+    }
+    .eyebrow-pip { width: 34px; height: 6px; border-radius: 2px; }
+    .slide-paper .eyebrow-pip { background: var(--accent-orange); }
+    .slide-obsidian .eyebrow-pip { background: var(--accent-lime); }
+    .slide-orange .eyebrow-pip { background: #FFFFFF; }
+    .slide-paper .eyebrow-text { color: #555A64; }
+    .slide-obsidian .eyebrow-text { color: #9A9DA8; }
+    .slide-orange .eyebrow-text { color: rgba(255, 255, 255, 0.85); }
+
+    /* Headline Hierarchy */
+    .headline-wrap { margin-top: 18px; max-width: 1620px; }
+    .headline {
+      font-size: 72px; font-weight: 800; line-height: 1.08;
+      letter-spacing: -0.035em;
+    }
+    .headline em {
+      font-family: var(--font-serif); font-style: italic;
+      font-weight: 400; letter-spacing: normal; padding-right: 6px;
+    }
+    .slide-paper .headline em { color: #D43800; }
+    .slide-obsidian .headline em { color: var(--accent-lime); }
+    .slide-orange .headline em { color: #FFE814; }
+
+    .subheadline {
+      margin-top: 14px; font-size: 28px; line-height: 1.42;
+      max-width: 1480px; font-weight: 500;
+    }
+    .slide-paper .subheadline { color: var(--ink-muted-light); }
+    .slide-obsidian .subheadline { color: var(--ink-muted-dark); }
+    .slide-orange .subheadline { color: rgba(255, 255, 255, 0.92); }
+
+    /* Card & Container Primitives */
+    .neo-card {
+      border: 2px solid var(--border-ink);
+      border-radius: 4px; padding: 28px; position: relative;
+    }
+    .neo-card-shadow { box-shadow: 6px 6px 0px #111111; }
+    .neo-card-shadow-dark { box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.9); }
+
+    /* Badges & Pills */
+    .tech-pill {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 10px 22px; border: 2px solid var(--border-ink);
+      border-radius: 9999px; font-family: var(--font-mono);
+      font-size: 17px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* Standard Slide Footer */
+    .slide-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 20px; border-top: 1.5px solid rgba(0, 0, 0, 0.1);
+      font-family: var(--font-mono); font-size: 16px; letter-spacing: 0.15em; font-weight: 600;
+    }
+    .slide-obsidian .slide-footer { border-color: rgba(255, 255, 255, 0.12); color: #7E8290; }
+    .slide-paper .slide-footer { border-color: rgba(0, 0, 0, 0.12); color: #475569; }
+    .slide-orange .slide-footer { border-color: rgba(255, 255, 255, 0.25); color: rgba(255, 255, 255, 0.8); }
+
+    .footer-dots { display: flex; align-items: center; gap: 8px; }
+    .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      border: 1.5px solid currentColor; opacity: 0.4; cursor: pointer;
+    }
+    .dot.active {
+      opacity: 1; transform: scale(1.3);
+      background: var(--accent-orange); border-color: var(--accent-orange);
+    }
+    .slide-obsidian .dot.active { background: var(--accent-lime); border-color: var(--accent-lime); }
+    .slide-orange .dot.active { background: #FFFFFF; border-color: #FFFFFF; }
+
+    /* Interactive UI Controller overlay */
+    #deck-controls {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 100; display: flex; align-items: center; gap: 12px;
+      padding: 8px 16px; border-radius: 9999px;
+      background: rgba(18, 20, 28, 0.88); backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      font-family: var(--font-mono); font-size: 13px; color: #E2E8F0;
+    }
+    .ctrl-btn {
+      background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #FFF; padding: 6px 14px; border-radius: 9999px; font-family: inherit;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .ctrl-btn:hover { background: rgba(255, 255, 255, 0.2); }
+    .ctrl-btn:active { transform: scale(0.96); }
+
+    /* Presenter Drawer */
+    #presenter-notes {
+      position: fixed; top: 0; right: -480px; width: 480px; height: 100vh;
+      background: #0E1017; border-left: 2px solid rgba(255, 255, 255, 0.12);
+      z-index: 99; padding: 36px 32px; overflow-y: auto; color: #CBD5E1;
+      box-shadow: -15px 0 40px rgba(0, 0, 0, 0.7);
+    }
+    #presenter-notes.open { right: 0; }
+    .notes-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    .notes-title { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-lime); font-weight: 700; }
+    .notes-body { margin-top: 24px; font-size: 17px; line-height: 1.7; font-family: -apple-system, sans-serif; }
+    .notes-body p { margin-bottom: 16px; }
+    .notes-body strong { color: #FFF; font-weight: 600; }
+
+    /* Print styles */
+    @media print {
+      body { overflow: visible !important; background: #FFF !important; }
+      #deck-stage { width: auto !important; height: auto !important; display: block !important; }
+      #deck-viewport { width: 100% !important; height: auto !important; transform: none !important; box-shadow: none !important; }
+      .slide { position: relative !important; opacity: 1 !important; visibility: visible !important; width: 100% !important; height: 100vh !important; page-break-after: always; display: flex !important; }
+      #deck-controls, #presenter-notes { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+       HYPERFRAMES SLIDESHOW CONTRACT MANIFEST
+       ========================================== -->
+  <script type="application/hyperframes-slideshow+json">
+  {
+    "slides": [
+      {
+        "sceneId": "slide-01",
+        "notes": "Slide 1 (Cover): Open with our thesis: We are building the Human-AI Team Workspace for daily deliverable work. Emphasize that we're powered directly by Google Antigravity SDK and EmbeddingGemma 2 on Google Cloud."
+      },
+      {
+        "sceneId": "slide-02",
+        "notes": "Slide 2 (The Problem): AI agents have moved beyond writing code into daily documents and operations. But Git doesn't fit daily work, chat threads lose context, and output has zero accountability."
+      },
+      {
+        "sceneId": "slide-03",
+        "notes": "Slide 3 (The Two Foundations): The breakthrough: File as Single Source of Truth (Markdown/YAML/JSONL) + Task Ontology. Compare against chat assistants and Git—we provide a Git-grade audit trail for everyday deliverables."
+      },
+      {
+        "sceneId": "slide-04",
+        "notes": "Slide 4 (End-to-End Workflow): Walk through the 6-step loop: Sources + Goal -> Task -> Team Assembly -> Scoped Execution -> Independent Review -> Human Acceptance on Board."
+      },
+      {
+        "sceneId": "slide-05",
+        "notes": "Slide 5 (Human Team Layer): Explain the two-layer collaboration model: Teammates share a workspace with Personal (private) and Team (shared) modes. Messages are saved silently until an explicit @bot triggers action."
+      },
+      {
+        "sceneId": "slide-06",
+        "notes": "Slide 6 (AI Task Teams): Dynamic assembly from 275 recruitable roles. Crucial innovation: mandatory separation of Author and Reviewer (Reviewer != Author) and three hard governance gates."
+      },
+      {
+        "sceneId": "slide-07",
+        "notes": "Slide 7 (Google AI Foundation): 40% technical merit core: Antigravity SDK powers the agent loops, skills, and tools; EmbeddingGemma 2 powers multimodal semantic retrieval as a rebuildable cache."
+      },
+      {
+        "sceneId": "slide-08",
+        "notes": "Slide 8 (Google Cloud Architecture): Five-layer deterministic code stack. Deployed as a single container on Cloud Run with a GCS mounted volume for open files and Vertex AI / Secret Manager."
+      },
+      {
+        "sceneId": "slide-09",
+        "notes": "Slide 9 (Validation & Rubric Map): Hard engineering proof: 1,061 backend tests, 181 frontend tests, 73 deployment checks, 2-account verified lifecycle. Maps 100% to Hack2skill's 40/25/25/10 criteria."
+      },
+      {
+        "sceneId": "slide-10",
+        "notes": "Slide 10 (Scale & Vision): Toward Olav-OS. Four pillars: Humans & Agents as First-Class Citizens, GCS + lakeFS zero-copy data lake versioning, lightweight Office support, and fine-grained RBAC."
+      },
+      {
+        "sceneId": "slide-11",
+        "notes": "Slide 11 (Closer): Trust the delivery, not just the output. Give live links for Cloud Run demo, GitHub repo, and the 120s verified demo film."
+      }
+    ],
+    "slideSequences": [
+      {
+        "id": "appendix-ontology",
+        "label": "Appendix A: Task Ontology Schema & lakeFS",
+        "slides": [{ "sceneId": "app-ontology", "notes": "Deep dive into TASK.md YAML schema, requirements_revision binding, and lakeFS branch-merge architecture." }]
+      }
+    ]
+  }
+  </script>
+
+  <div id="deck-stage" data-composition-id="slideshow-root" data-width="1920" data-height="1080" data-start="0" data-duration="72">
+    <div id="deck-viewport">
+
+      <!-- SLIDE 01: COVER -->
+      <section id="slide-01" class="slide slide-paper is-active"
+        data-composition-id="slide-01" data-start="0" data-duration="6" data-label="Cover"
+        data-width="1920" data-height="1080">
+        <div>
+          <div class="slide-eyebrow">
+            <span class="eyebrow-pip"></span>
+            <span class="eyebrow-text">Google Cloud AI Builder Cup 2026 · Future of Work & Enterprise Productivity</span>
+          </div>
+          <div class="headline-wrap" style="margin-top: 32px;">
+            <h1 class="headline" style="font-size: 104px; line-height: 1.0;">LIGHT<em>gravity</em></h1>
+            <p class="subheadline" style="font-size: 32px; margin-top: 20px; max-width: 1080px;">
+              The Human-AI Team Workspace that delivers <em>reviewable, accountable work.</em>
+            </p>
+          </div>
+        </div>
+
+        <!-- Center Display Hero: Orbital Geometry & Positioning -->
+        <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; margin: 40px 0;">
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+            <p style="font-size: 30px; line-height: 1.5; color: #334155; font-weight: 500;">
+              Give your team bot the context and the goal.<br/>
+              Get deliverables your team can <strong style="color: #0F172A; text-decoration: underline decoration-orange-500 decoration-3;">inspect, review, and accept.</strong>
+            </p>
+            <div style="display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px;">
+              <span class="tech-pill" style="background: var(--accent-orange); color: #111116; border-color: #111;">Google Antigravity SDK</span>
+              <span class="tech-pill" style="background: var(--accent-lime); color: #111; border-color: #111;">EmbeddingGemma 2</span>
+              <span class="tech-pill" style="background: #FFF; color: #111; border-color: #111;">Cloud Run & Vertex AI</span>
+              <span class="tech-pill" style="background: #FFF; color: #111; border-color: #111;">File SoT · Task Ontology</span>
+            </div>
+          </div>
+
+          <!-- Orbital Celestial Illustration -->
+          <div style="display: flex; justify-content: center; position: relative;">
+            <svg width="480" height="480" viewBox="0 0 480 480" style="overflow: visible;">
+              <!-- Outer Guide Ring -->
+              <circle cx="240" cy="240" r="220" fill="none" stroke="#D1D5DB" stroke-dasharray="4 6" stroke-width="1.5"/>
+              <circle cx="240" cy="240" r="150" fill="none" stroke="#2563EB" stroke-width="1.5" opacity="0.4"/>
+              <ellipse cx="240" cy="240" rx="230" ry="74" fill="none" stroke="#FF4D00" stroke-width="3" transform="rotate(-25 240 240)"/>
+              <!-- Central Star: TASK -->
+              <circle cx="240" cy="240" r="70" fill="#111116"/>
+              <text x="240" y="235" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="800" fill="#D4FF28" letter-spacing="0.1em">TASK</text>
+              <text x="240" y="258" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="15" font-weight="600" fill="#E2E8F0">One Record</text>
+              <!-- Orbiting Planet 1: Human Team -->
+              <circle cx="105" cy="125" r="32" fill="#2563EB" stroke="#111" stroke-width="2.5"/>
+              <text x="105" y="131" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="14" font-weight="800" fill="#FFF">People</text>
+              <!-- Orbiting Planet 2: AI Workers -->
+              <circle cx="375" cy="185" r="30" fill="#FF4D00" stroke="#111" stroke-width="2.5"/>
+              <text x="375" y="190" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="14" font-weight="800" fill="#111">AI Teams</text>
+              <!-- Orbiting Planet 3: Reviewer -->
+              <circle cx="300" cy="365" r="28" fill="#D4FF28" stroke="#111" stroke-width="2.5"/>
+              <text x="300" y="370" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="13" font-weight="800" fill="#111">Review</text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>TEAM: LIGHTGRAVITY · GOOGLE CLOUD AI BUILDER CUP 2026</span>
+          <div class="footer-dots"><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span>01 / 11</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 02: THE PROBLEM -->
+      <section id="slide-02" class="slide slide-obsidian"
+        data-composition-id="slide-02" data-start="6" data-duration="6" data-label="The Problem"
+        data-width="1920" data-height="1080">
+        <div>
+          <div class="slide-eyebrow">
+            <span class="eyebrow-pip"></span>
+            <span class="eyebrow-text">§ 01 — The Paradigm Shift</span>
+          </div>
+          <div class="headline-wrap">
+            <h2 class="headline">Agents moved beyond code. <em>Chat didn't.</em></h2>
+            <p class="subheadline">When teams delegate real deliverables to AI, traditional workflows break down at the seams.</p>
+          </div>
+        </div>
+
+        <!-- 3 Problem Cards Grid -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin: 32px 0;">
+          <div class="neo-card neo-card-shadow-dark" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.18); padding: 32px 28px;">
+            <div style="font-family: var(--font-mono); font-size: 48px; font-weight: 800; color: var(--accent-orange); margin-bottom: 16px;">01</div>
+            <h3 style="font-size: 30px; font-weight: 800; margin-bottom: 14px; color: #FFF;">Git doesn't fit daily work</h3>
+            <p style="font-size: 21px; line-height: 1.55; color: #CBD5E1;">
+              Software engineers have branch, diff, and PR to govern code. Everyday knowledge work, multimodal sources, and business deliverables cannot be governed through <code style="color: #FFF; background: rgba(255,255,255,0.12); padding: 2px 8px; border-radius: 4px; font-size: 19px;">git merge</code>.
+            </p>
+          </div>
+
+          <div class="neo-card neo-card-shadow-dark" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.18); padding: 32px 28px;">
+            <div style="font-family: var(--font-mono); font-size: 48px; font-weight: 800; color: #38BDF8; margin-bottom: 16px;">02</div>
+            <h3 style="font-size: 30px; font-weight: 800; margin-bottom: 14px; color: #FFF;">Chat is not a work record</h3>
+            <p style="font-size: 21px; line-height: 1.55; color: #CBD5E1;">
+              Sources, requirement changes, and follow-ups scatter across endless scrolling messages. Every revision rebuilds context from scratch instead of building on a single persistent task state.
+            </p>
+          </div>
+
+          <div class="neo-card neo-card-shadow-dark" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.18); padding: 32px 28px;">
+            <div style="font-family: var(--font-mono); font-size: 48px; font-weight: 800; color: var(--accent-lime); margin-bottom: 16px;">03</div>
+            <h3 style="font-size: 30px; font-weight: 800; margin-bottom: 14px; color: #FFF;">Output without accountability</h3>
+            <p style="font-size: 21px; line-height: 1.55; color: #CBD5E1;">
+              Single agents operate with unbounded autonomy. "Done" just means the model stopped generating tokens—not that evidence was audited by an independent reviewer or accepted by a teammate.
+            </p>
+          </div>
+        </div>
+
+        <div class="neo-card" style="background: rgba(255, 77, 0, 0.08); border: 2px dashed rgba(255, 77, 0, 0.4); padding: 20px 30px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="font-size: 20px; color: #E2E8F0;"><strong style="color: var(--accent-orange); font-family: var(--font-mono);">WHO FEELS IT:</strong> Small teams and professionals who delegate real deliverables to AI while remaining legally and operationally accountable for results.</div>
+          <div style="font-family: var(--font-mono); font-size: 16px; color: #CBD5E1; font-weight: 600;">AI Output Review Overhead: 40%+ of project time</div>
+        </div>
+
+        <div class="slide-footer">
+          <span>LIGHTGRAVITY ◦ AI BUILDER CUP 2026</span>
+          <div class="footer-dots"><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span>02 / 11</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 03: THE TWO FOUNDATIONS -->
+      <section id="slide-03" class="slide slide-paper"
+        data-composition-id="slide-03" data-start="12" data-duration="6" data-label="Foundations"
+        data-width="1920" data-height="1080">
+        <div>
+          <div class="slide-eyebrow">
+            <span class="eyebrow-pip"></span>
+            <span class="eyebrow-text">§ 02 — The Two Foundations</span>
+          </div>
+          <div class="headline-wrap">
+            <h2 class="headline">File Truth & Task Ontology: <em>A "Git-grade" record for daily work.</em></h2>
+            <p class="subheadline">We replace volatile chat history and opaque databases with transparent files and explicit state machines.</p>
+          </div>
+        </div>
+
+        <!-- 2 Foundation Cards Top -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 24px;">
+          <div class="neo-card neo-card-shadow" style="background: #FFFFFF; padding: 32px 32px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <h3 style="font-size: 28px; font-weight: 800; color: #0F172A;">File as Single Source of Truth</h3>
+              <span style="font-family: var(--font-mono); font-size: 15px; background: #EEF2F6; padding: 5px 12px; border-radius: 4px; font-weight: 700;">FILE SOT</span>
+            </div>
+            <p style="font-size: 21px; line-height: 1.55; color: #334155;">
+              <strong style="color: #0F172A;">Markdown + YAML</strong> stores task state, goals, and configs. <strong style="color: #0F172A;">JSONL</strong> records messages and runtime events. You own the open files on disk; databases and vector embeddings are strictly <em>disposable, rebuildable caches</em>.
+            </p>
+          </div>
+
+          <div class="neo-card neo-card-shadow" style="background: #FFFFFF; padding: 32px 32px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <h3 style="font-size: 28px; font-weight: 800; color: #0F172A;">Task Ontology (Explicit Model of Work)</h3>
+              <span style="font-family: var(--font-mono); font-size: 15px; background: #EEF2F6; padding: 5px 12px; border-radius: 4px; font-weight: 700;">CODE-GOVERNED</span>
+            </div>
+            <p style="font-size: 21px; line-height: 1.55; color: #334155;">
+              Defines clear entities and relationships: <code style="font-size: 17px; font-family: var(--font-mono); color: #2563EB; font-weight: 700;">Source ➔ Task ➔ Run ➔ Role ➔ Review ➔ Accepted</code>. Every state transition is validated by <strong>application code</strong>, never left to prompt faith.
+            </p>
+          </div>
+        </div>
+
+        <!-- Comparison Matrix Table -->
+        <div class="neo-card neo-card-shadow" style="background: #FFFFFF; padding: 0; overflow: hidden; margin-top: 24px;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 19px;">
+            <thead>
+              <tr style="background: #F1F5F9; border-bottom: 2px solid #111; font-family: var(--font-mono); font-size: 16px; letter-spacing: 0.05em; text-transform: uppercase;">
+                <th style="padding: 16px 20px;">Capability</th>
+                <th style="padding: 16px 20px;">Chat Assistants</th>
+                <th style="padding: 16px 20px;">Traditional Git</th>
+                <th style="padding: 16px 20px;">Single-Agent Tools</th>
+                <th style="padding: 16px 20px; background: var(--accent-lime); color: #111; font-weight: 800;">LightGravity (TeamBot)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid #E2E8F0;">
+                <td style="padding: 14px 20px; font-weight: 700;">Target Work Scope</td>
+                <td style="padding: 14px 20px; color: #64748B;">✕ Ad-hoc Q&A threads</td>
+                <td style="padding: 14px 20px; color: #475569;">◐ Software code only</td>
+                <td style="padding: 14px 20px; color: #64748B;">✕ Isolated one-off runs</td>
+                <td style="padding: 14px 20px; font-weight: 800; background: rgba(212,255,40,0.18);">✓ Daily docs, research & deliverables</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #E2E8F0;">
+                <td style="padding: 14px 20px; font-weight: 700;">Source of Truth</td>
+                <td style="padding: 14px 20px; color: #64748B;">✕ Scrolling chat log</td>
+                <td style="padding: 14px 20px; color: #475569;">◐ Code repository</td>
+                <td style="padding: 14px 20px; color: #64748B;">✕ Vendor lock-in cloud DB</td>
+                <td style="padding: 14px 20px; font-weight: 800; background: rgba(212,255,40,0.18);">✓ Open File SoT (Markdown/YAML/JSONL)</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #E2E8F0;">
+                <td style="padding: 14px 20px; font-weight: 700;">Team & Role Division</td>
+                <td style="padding: 14px 20px; color: #64748B;">✕ Single bot</td>
+                <td style="padding: 14px 20px; color: #475569;">◐ Humans only</td>
+                <td style="padding: 14px 20px; color: #64748B;">✕ Solo agent</td>
+                <td style="padding: 14px 20px; font-weight: 800; background: rgba(212,255,40,0.18);">✓ Human accounts + 275 dynamic AI roles</td>
+              </tr>
+              <tr>
+                <td style="padding: 14px 20px; font-weight: 700;">Review & Acceptance Gate</td>
+                <td style="padding: 14px 20px; color: #64748B;">✕ Manual eyeball check</td>
+                <td style="padding: 14px 20px; color: #475569;">✓ CI + Human Pull Request</td>
+                <td style="padding: 14px 20px; color: #64748B;">◐ Optional / self-graded</td>
+                <td style="padding: 14px 20px; font-weight: 800; background: rgba(212,255,40,0.18);">✓ Machine checks + Reviewer + Human Accept</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="slide-footer">
+          <span>LIGHTGRAVITY ◦ AI BUILDER CUP 2026</span>
+          <div class="footer-dots"><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span>03 / 11</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 04: END-TO-END WORKFLOW -->
+      <section id="slide-04" class="slide slide-obsidian"
+        data-composition-id="slide-04" data-start="18" data-duration="6" data-label="Workflow"
+        data-width="1920" data-height="1080">
+        <div>
+          <div class="slide-eyebrow">
+            <span class="eyebrow-pip"></span>
+            <span class="eyebrow-text">§ 03 — End-to-End Delivery Flow</span>
+          </div>
+          <div class="headline-wrap">
+            <h2 class="headline">Every task <em>orbits</em> acceptance.</h2>
+            <p class="subheadline">From multimodal source intake to verified delivery in six deterministic steps.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; margin: 32px 0;">
+          <!-- 6-Stage Process Cards -->
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.15); padding: 16px 22px; display: flex; align-items: center; gap: 18px;">
+              <span style="font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: #FFF; background: #2563EB; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">1</span>
+              <div>
+                <strong style="font-size: 21px; color: #FFF;">Sources + Goal (Multimodal Intake):</strong>
+                <span style="font-size: 18px; color: #CBD5E1;"> Ingest PDFs, images, docs, audio; bind versioned context.</span>
+              </div>
+            </div>
+
+            <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.15); padding: 16px 22px; display: flex; align-items: center; gap: 18px;">
+              <span style="font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: #FFF; background: #2563EB; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">2</span>
+              <div>
+                <strong style="font-size: 21px; color: #FFF;">Conversation ➔ Task:</strong>
+                <span style="font-size: 18px; color: #CBD5E1;"> Questions answered directly; delivery requests become structured tasks.</span>
+              </div>
+            </div>
+
+            <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.15); padding: 16px 22px; display: flex; align-items: center; gap: 18px;">
+              <span style="font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: #FFF; background: var(--accent-orange); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">3</span>
+              <div>
+                <strong style="font-size: 21px; color: #FFF;">Dynamic Team Assembly:</strong>
+                <span style="font-size: 18px; color: #CBD5E1;"> Plan validated by code; specialist AI roles recruited for the goal.</span>
+              </div>
+            </div>
+
+            <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.15); padding: 16px 22px; display: flex; align-items: center; gap: 18px;">
+              <span style="font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: #FFF; background: var(--accent-orange); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">4</span>
+              <div>
+                <strong style="font-size: 21px; color: #FFF;">Scoped Execution:</strong>
+                <span style="font-size: 18px; color: #CBD5E1;"> Workers run tools inside isolated workspace to produce artifacts and diffs.</span>
+              </div>
+            </div>
+
+            <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.15); padding: 16px 22px; display: flex; align-items: center; gap: 18px;">
+              <span style="font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: #111; background: var(--accent-lime); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">5</span>
+              <div>
+                <strong style="font-size: 21px; color: #FFF;">Checks + Independent Review:</strong>
+                <span style="font-size: 18px; color: #CBD5E1;"> Machine checks run first; independent Reviewer verifies against criteria.</span>
+              </div>
+            </div>
+
+            <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.15); padding: 16px 22px; display: flex; align-items: center; gap: 18px;">
+              <span style="font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: #111; background: var(--accent-lime); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">6</span>
+              <div>
+                <strong style="font-size: 21px; color: #FFF;">Human Acceptance Gate:</strong>
+                <span style="font-size: 18px; color: #CBD5E1;"> Teammate inspects evidence and clicks Accept, or requests changes.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Real Triptych Product Presentation -->
+          <div style="display: grid; grid-template-rows: repeat(3, 1fr); gap: 20px;">
+            <div class="neo-card" style="background: #1C1F2E; border-color: rgba(255,255,255,0.15); padding: 24px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-family: var(--font-mono); font-size: 16px; color: #38BDF8; font-weight: 800;">STAGE 1: TALK</span>
+                <span style="font-family: var(--font-mono); font-size: 15px; color: #94A3B8;">Chat View</span>
+              </div>
+              <div style="font-size: 19px; line-height: 1.5; color: #E2E8F0;">Team chat with automatic context intake. Group messages saved silently; explicit <code style="color: #38BDF8; font-weight: 700;">@bot</code> triggers coordination.</div>
+            </div>
+
+            <div class="neo-card" style="background: #1C1F2E; border-color: rgba(255,255,255,0.15); padding: 24px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-family: var(--font-mono); font-size: 16px; color: var(--accent-orange); font-weight: 800;">STAGE 2: DELIVER</span>
+                <span style="font-family: var(--font-mono); font-size: 15px; color: #94A3B8;">Task View</span>
+              </div>
+              <div style="font-size: 19px; line-height: 1.5; color: #E2E8F0;">Recruited team, subtask progress, produced artifacts, code diffs, and machine check results inspectable in real-time.</div>
+            </div>
+
+            <div class="neo-card" style="background: #1C1F2E; border-color: rgba(255,255,255,0.15); padding: 24px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-family: var(--font-mono); font-size: 16px; color: var(--accent-lime); font-weight: 800;">STAGE 3: ACCEPT</span>
+                <span style="font-family: var(--font-mono); font-size: 15px; color: #94A3B8;">Board View</span>
+              </div>
+              <div style="font-size: 19px; line-height: 1.5; color: #E2E8F0;">Independent Reviewer verdict, check evidence trail, and recorded human acceptance decision. Execution confirmed stopped.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>LIGHTGRAVITY ◦ AI BUILDER CUP 2026</span>
+          <div class="footer-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span>04 / 11</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 05: HUMAN TEAM LAYER -->
+      <section id="slide-05" class="slide slide-paper"
+        data-composition-id="slide-05" data-start="24" data-duration="6" data-label="Human Team"
+        data-width="1920" data-height="1080">
+        <div>
+          <div class="slide-eyebrow">
+            <span class="eyebrow-pip"></span>
+            <span class="eyebrow-text">§ 04 — Layer 1: Human Team Collaboration</span>
+          </div>
+          <div class="headline-wrap">
+            <h2 class="headline">One team bot. <em>Shared across people, accountable by role.</em></h2>
+            <p class="subheadline">Multi-account collaboration designed for real small teams, not a solitary chatbot tab.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 48px; align-items: center; margin: 36px 0;">
+          <!-- 3-Party Venn Diagram Graphic -->
+          <div style="display: flex; justify-content: center; position: relative;">
+            <svg width="480" height="420" viewBox="0 0 480 420">
+              <!-- People Circle -->
+              <circle cx="190" cy="185" r="140" fill="#2563EB" opacity="0.85"/>
+              <text x="135" y="150" font-family="'Plus Jakarta Sans', sans-serif" font-size="24" font-weight="800" fill="#FFF">PEOPLE</text>
+              <text x="135" y="180" font-family="'JetBrains Mono', monospace" font-size="16" font-weight="600" fill="#E2E8F0">accounts · roles</text>
+              <!-- AI Workers Circle -->
+              <circle cx="290" cy="185" r="140" fill="#FF4D00" opacity="0.85"/>
+              <text x="315" y="150" font-family="'Plus Jakarta Sans', sans-serif" font-size="24" font-weight="800" fill="#FFF">AI TEAMS</text>
+              <text x="315" y="180" font-family="'JetBrains Mono', monospace" font-size="16" font-weight="600" fill="#E2E8F0">teams per run</text>
+              <!-- Reviewer Circle -->
+              <circle cx="240" cy="275" r="130" fill="#D4FF28" opacity="0.88"/>
+              <text x="240" y="350" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="22" font-weight="800" fill="#111">REVIEWERS</text>
+              <text x="240" y="375" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="15" font-weight="700" fill="#1E293B">checks · independent</text>
+              <!-- Center Intersection -->
+              <circle cx="240" cy="215" r="48" fill="#111116"/>
+              <text x="240" y="212" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="800" fill="#D4FF28">ACCEPTED</text>
+              <text x="240" y="230" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="800" fill="#D4FF28">DELIVERY</text>
+            </svg>
+          </div>
+
+          <!-- 3 Collaboration Pillars -->
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="neo-card neo-card-shadow" style="background: #FFFFFF; padding: 24px 28px;">
+              <h3 style="font-size: 26px; font-weight: 800; color: #0F172A; margin-bottom: 8px;">1. Personal vs. Team Workspaces</h3>
+              <p style="font-size: 20px; line-height: 1.55; color: #334155;">
+                Individual user accounts with <strong style="color: #0F172A;">admin</strong> and <strong style="color: #0F172A;">member</strong> roles. <em>Personal</em> provides private chat and owner-only attachment analysis; <em>Team</em> provides shared group chat, source intake, and task tracking.
+              </p>
+            </div>
+
+            <div class="neo-card neo-card-shadow" style="background: #FFFFFF; padding: 24px 28px;">
+              <h3 style="font-size: 26px; font-weight: 800; color: #0F172A; margin-bottom: 8px;">2. Silent Group Context + Explicit @bot</h3>
+              <p style="font-size: 20px; line-height: 1.55; color: #334155;">
+                Teammates converse freely in group chat without AI interrupting. Messages are saved silently as shared context; an explicit <strong style="color: #2563EB;">@bot</strong> command invokes the assistant only when requested.
+              </p>
+            </div>
+
+            <div class="neo-card neo-card-shadow" style="background: #FFFFFF; padding: 24px 28px;">
+              <h3 style="font-size: 26px; font-weight: 800; color: #0F172A; margin-bottom: 8px;">3. Verified Cross-Account Delivery Flow</h3>
+              <p style="font-size: 20px; line-height: 1.55; color: #334155;">
+                <strong>Teammate A</strong> creates the task and binds sources ➔ <strong>AI Team</strong> executes and passes independent review ➔ <strong>Teammate B</strong> downloads deliverable, inspects it, and submits feedback ➔ <strong>Teammate A</strong> accepts on Board.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>LIGHTGRAVITY ◦ AI BUILDER CUP 2026</span>
+          <div class="footer-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span>05 / 11</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 06: AI TASK TEAMS -->
+      <section id="slide-06" class="slide slide-obsidian"
+        data-composition-id="slide-06" data-start="30" data-duration="6" data-label="AI Task Teams"
+        data-width="1920" data-height="1080">
+        <div>
+          <div class="slide-eyebrow">
+            <span class="eyebrow-pip"></span>
+            <span class="eyebrow-text">§ 05 — Layer 2: Task-Scoped AI Teams</span>
+          </div>
+          <div class="headline-wrap">
+            <h2 class="headline">275 specialist roles. <em>Governed by code, not prompts.</em></h2>
+            <p class="subheadline">Autonomous teams assembled on-demand, strictly bound by permissions, budgets, and independent review.</p>
+          </div>
+        </div>
+
+        <!-- 3 Arched Pillar Cards -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin: 36px 0;">
+          <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.18); border-top: 6px solid #2563EB; padding: 32px 28px;">
+            <div style="font-family: var(--font-mono); font-size: 32px; font-weight: 800; color: #38BDF8; margin-bottom: 12px;">GATE I</div>
+            <h3 style="font-size: 28px; font-weight: 800; color: #FFF; margin-bottom: 12px;">Goal-Based Recruitment & Scope</h3>
+            <p style="font-size: 21px; line-height: 1.55; color: #CBD5E1;">
+              Packages 282 upstream agency templates; <strong style="color: #FFF;">275 specialist roles</strong> are recruitable with our toolset via deterministic goal-fit ranking. Each task runs with an ephemeral team in an isolated workspace. Role descriptions never expand file/tool permissions.
+            </p>
+          </div>
+
+          <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.18); border-top: 6px solid var(--accent-orange); padding: 32px 28px;">
+            <div style="font-family: var(--font-mono); font-size: 32px; font-weight: 800; color: var(--accent-orange); margin-bottom: 12px;">GATE II</div>
+            <h3 style="font-size: 28px; font-weight: 800; color: #FFF; margin-bottom: 12px;">Author ≠ Reviewer Separation</h3>
+            <p style="font-size: 21px; line-height: 1.55; color: #CBD5E1;">
+              Workers returning success enter verification—they <strong style="color: #FFF;">cannot</strong> self-grade done. Acceptance mandatorily requires an independent Reviewer model connection checking artifacts against criteria and bound sources.
+            </p>
+          </div>
+
+          <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.18); border-top: 6px solid var(--accent-lime); padding: 32px 28px;">
+            <div style="font-family: var(--font-mono); font-size: 32px; font-weight: 800; color: var(--accent-lime); margin-bottom: 12px;">GATE III</div>
+            <h3 style="font-size: 28px; font-weight: 800; color: #FFF; margin-bottom: 12px;">Budgets & Confirmed Stop</h3>
+            <p style="font-size: 21px; line-height: 1.55; color: #CBD5E1;">
+              Budgets span execution, verification, repair loops, and failed attempts. Task pause, cancellation, or completion requires confirmation that runtime execution has actually stopped before terminating states are persisted.
+            </p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 14px; justify-content: center; font-family: var(--font-mono); font-size: 16px; font-weight: 700;">
+          <span style="background: rgba(255,255,255,0.08); padding: 8px 18px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); color: #E2E8F0;">CREDENTIALS BY REFERENCE</span>
+          <span style="background: rgba(255,255,255,0.08); padding: 8px 18px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); color: #E2E8F0;">HOST ALLOW-LISTING</span>
+          <span style="background: rgba(255,255,255,0.08); padding: 8px 18px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); color: #E2E8F0;">BOUNDED CONCURRENT SLOTS</span>
+          <span style="background: rgba(255,255,255,0.08); padding: 8px 18px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); color: #E2E8F0;">AUTOMATIC SLOT RELEASE</span>
+        </div>
+
+        <div class="slide-footer">
+          <span>LIGHTGRAVITY ◦ AI BUILDER CUP 2026</span>
+          <div class="footer-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span>06 / 11</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 07: GOOGLE AI FOUNDATION -->
+      <section id="slide-07" class="slide slide-paper"
+        data-composition-id="slide-07" data-start="36" data-duration="6" data-label="Google AI Foundation"
+        data-width="1920" data-height="1080">
+        <div>
+          <div class="slide-eyebrow">
+            <span class="eyebrow-pip"></span>
+            <span class="eyebrow-text">§ 06 — Google AI Foundation (40% Technical Merit)</span>
+          </div>
+          <div class="headline-wrap">
+            <h2 class="headline">Built on Google's <em>Agent & Gemma</em> ecosystem.</h2>
+            <p class="subheadline">Two foundational Google AI technologies power controlled execution and multimodal retrieval.</p>
+          </div>
+        </div>
+
+        <!-- 2 Large Monolithic Engine Cards -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 36px; margin: 36px 0;">
+          <!-- Engine 1: Antigravity SDK -->
+          <div class="neo-card neo-card-shadow" style="background: #FFFFFF; border-top: 8px solid var(--accent-orange); padding: 32px 32px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+              <div>
+                <span style="font-family: var(--font-mono); font-size: 16px; color: #C2410C; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Execution Engine</span>
+                <h3 style="font-size: 36px; font-weight: 800; color: #0F172A; margin-top: 4px;">Google Antigravity SDK</h3>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: 15px; background: #FFF3EB; color: #C2410C; border: 1.5px solid #FDBA74; padding: 6px 12px; border-radius: 4px; font-weight: 700;">google-antigravity==0.1.22</span>
+            </div>
+            <ul style="display: flex; flex-direction: column; gap: 16px; font-size: 21px; line-height: 1.55; color: #334155; padding-left: 24px;">
+              <li><strong style="color: #0F172A;">Native Agent Primitives:</strong> Powers the core agent loop, standardized skill injection (<code style="font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: #2563EB;">skillRefs</code>), scoped file/command/web tools, and native session persistence across all 275 roles.</li>
+              <li><strong style="color: #0F172A;">Deterministic Orchestration Layer:</strong> SDK internal unbounded delegation is disabled by default; our Python Coordinator/Scheduler wraps it with program-validated planning, concurrent slot limits, and confirmed stop.</li>
+            </ul>
+          </div>
+
+          <!-- Engine 2: EmbeddingGemma 2 -->
+          <div class="neo-card neo-card-shadow" style="background: #FFFFFF; border-top: 8px solid var(--accent-lime); padding: 32px 32px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+              <div>
+                <span style="font-family: var(--font-mono); font-size: 16px; color: #3F6212; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Context & Retrieval Engine</span>
+                <h3 style="font-size: 36px; font-weight: 800; color: #0F172A; margin-top: 4px;">Google EmbeddingGemma 2</h3>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: 15px; background: #F7FEE7; color: #3F6212; border: 1.5px solid #BEF264; padding: 6px 12px; border-radius: 4px; font-weight: 700;">Multimodal Embeddings</span>
+            </div>
+            <ul style="display: flex; flex-direction: column; gap: 16px; font-size: 21px; line-height: 1.55; color: #334155; padding-left: 24px;">
+              <li><strong style="color: #0F172A;">Unified Multimodal Vectorization:</strong> Maps ingested text, OCR'd scanned PDFs/images, and audio transcripts into a unified embedding space for cross-modal task context binding.</li>
+              <li><strong style="color: #0F172A;">Faithful to File SoT:</strong> Vector indexes operate as disposable, rebuildable caches over open files. If unconfigured or offline, the workspace degrades gracefully to deterministic lexical search.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="font-family: var(--font-mono); font-size: 18px; color: #334155; text-align: center; font-weight: 600;">
+          6 Model Responsibilities: Coordinator (Plan) · Workers (Execute) · Reviewer (Audit) · EmbeddingGemma 2 (Retrieve) · OCR (Ingest) · Gemini on Vertex AI (Core)
+        </div>
+
+        <div class="slide-footer">
+          <span>LIGHTGRAVITY ◦ AI BUILDER CUP 2026</span>
+          <div class="footer-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span>07 / 11</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 08: ARCHITECTURE & GOOGLE CLOUD -->
+      <section id="slide-08" class="slide slide-obsidian"
+        data-composition-id="slide-08" data-start="42" data-duration="6" data-label="Architecture"
+        data-width="1920" data-height="1080">
+        <div>
+          <div class="slide-eyebrow">
+            <span class="eyebrow-pip"></span>
+            <span class="eyebrow-text">§ 07 — Architecture & Cloud Deployment</span>
+          </div>
+          <div class="headline-wrap">
+            <h2 class="headline">Control is <em>code.</em> One container on <em>Cloud Run.</em></h2>
+            <p class="subheadline">Stateless compute layer, code-governed control flow, and persistent file-based data.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 40px; margin: 32px 0;">
+          <!-- 5-Layer Stack -->
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="neo-card" style="background: #1E2333; border-color: rgba(255,255,255,0.18); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="font-size: 22px; color: #FFF;">Workspace UI</strong>
+                <p style="font-size: 17px; color: #CBD5E1; margin-top: 4px;">Chat, Board, Files, Team, Settings, live SSE event stream</p>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: 15px; color: #38BDF8; font-weight: 700;">React · Vite · TypeScript</span>
+            </div>
+
+            <div class="neo-card" style="background: #1E2333; border-color: rgba(255,255,255,0.18); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="font-size: 22px; color: #FFF;">API & Team Layer</strong>
+                <p style="font-size: 17px; color: #CBD5E1; margin-top: 4px;">Multi-account auth, cookie sessions, host allow-listing, token guard</p>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: 15px; color: #34D399; font-weight: 700;">FastAPI · Python 3.12</span>
+            </div>
+
+            <div class="neo-card" style="background: #232034; border-color: rgba(255,255,255,0.18); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--accent-orange);">
+              <div>
+                <strong style="font-size: 22px; color: #FFF;">Deterministic Coordination</strong>
+                <p style="font-size: 17px; color: #CBD5E1; margin-top: 4px;">Routing, plan validation, subtask scheduling, budget limits, verifier</p>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: 15px; color: var(--accent-orange); font-weight: 700;">Core Control Plane</span>
+            </div>
+
+            <div class="neo-card" style="background: #182338; border-color: rgba(255,255,255,0.18); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #2563EB;">
+              <div>
+                <strong style="font-size: 22px; color: #FFF;">Agent Execution</strong>
+                <p style="font-size: 17px; color: #CBD5E1; margin-top: 4px;">Role sessions, tool calls, skill execution via model adapters</p>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: 15px; color: #60A5FA; font-weight: 700;">Antigravity SDK 0.1.22</span>
+            </div>
+
+            <div class="neo-card" style="background: #1E2333; border-color: rgba(255,255,255,0.18); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--accent-lime);">
+              <div>
+                <strong style="font-size: 22px; color: #FFF;">File SoT Persistence</strong>
+                <p style="font-size: 17px; color: #CBD5E1; margin-top: 4px;">Markdown · YAML · JSONL · SDK sessions. Zero external DB required.</p>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: 15px; color: var(--accent-lime); font-weight: 700;">Open File System</span>
+            </div>
+          </div>
+
+          <!-- Google Cloud Deployment Specs -->
+          <div class="neo-card" style="background: #0B0D14; border-color: rgba(255,255,255,0.2); padding: 28px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: #34D399;"></span>
+                <span style="font-family: var(--font-mono); font-size: 16px; color: #FFF; font-weight: 800; letter-spacing: 0.05em;">GOOGLE CLOUD PRODUCTION TOPOLOGY</span>
+              </div>
+              <div style="font-family: var(--font-mono); font-size: 15px; line-height: 1.65; color: #CBD5E1; background: #040508; padding: 18px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); overflow-x: auto;">
+                <span style="color: #64748B;"># Deploy single container</span><br/>
+                <span style="color: #38BDF8; font-weight: 700;">gcloud</span> run deploy lightgravity \<br/>
+                &nbsp;&nbsp;--source . --region asia-southeast1 \<br/>
+                &nbsp;&nbsp;--max-instances 1 --cpu 2 --memory 2Gi \<br/>
+                &nbsp;&nbsp;--add-volume name=data,type=cloud-storage,bucket=$BUCKET \<br/>
+                &nbsp;&nbsp;--add-volume-mount volume=data,mount-path=/data \<br/>
+                &nbsp;&nbsp;--set-secrets GEMINI_API_KEY=gemini-key:latest
+              </div>
+            </div>
+
+            <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.12); padding-top: 16px; font-size: 18px; color: #E2E8F0; line-height: 1.55;">
+              <strong style="color: var(--accent-lime);">Cloud Storage Volume Mount:</strong> Direct GCS mount preserves File SoT persistence across container restarts without heavy database overhead.
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>LIGHTGRAVITY ◦ AI BUILDER CUP 2026</span>
+          <div class="footer-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span>08 / 11</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 09: PRODUCTION VALIDATION & RUBRIC MAP -->
+      <section id="slide-09" class="slide slide-paper"
+        data-composition-id="slide-09" data-start="48" data-duration="6" data-label="Validation"
+        data-width="1920" data-height="1080">
+        <div>
+          <div class="slide-eyebrow">
+            <span class="eyebrow-pip"></span>
+            <span class="eyebrow-text">§ 08 — Production Validation & Judging Rubric Map</span>
+          </div>
+          <div class="headline-wrap">
+            <h2 class="headline">Tested like <em>production software.</em> Every criterion <em>answered.</em></h2>
+            <p class="subheadline">Rigorous independent automated QA evidence backing our Hack2skill submission.</p>
+          </div>
+        </div>
+
+        <!-- 4-Column Stat Grid -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin: 28px 0;">
+          <div class="neo-card neo-card-shadow" style="background: #2563EB; color: #FFF; border-color: #111; padding: 26px 22px;">
+            <div style="font-family: var(--font-mono); font-size: 58px; font-weight: 800; line-height: 1.0;">1,061</div>
+            <div style="font-size: 20px; font-weight: 800; margin-top: 10px;">Backend Tests Passed</div>
+            <p style="font-size: 16px; opacity: 0.9; margin-top: 8px; line-height: 1.45;">State machines, atomic writes, concurrency locks, permission boundaries (2 skipped).</p>
+          </div>
+
+          <div class="neo-card neo-card-shadow" style="background: #2563EB; color: #FFF; border-color: #111; padding: 26px 22px;">
+            <div style="font-family: var(--font-mono); font-size: 58px; font-weight: 800; line-height: 1.0;">181</div>
+            <div style="font-size: 20px; font-weight: 800; margin-top: 10px;">Frontend Tests Passed</div>
+            <p style="font-size: 16px; opacity: 0.9; margin-top: 8px; line-height: 1.45;">Component contracts, settings dialogs, navigation state retention, responsive rails.</p>
+          </div>
+
+          <div class="neo-card neo-card-shadow" style="background: #2563EB; color: #FFF; border-color: #111; padding: 26px 22px;">
+            <div style="font-family: var(--font-mono); font-size: 58px; font-weight: 800; line-height: 1.0;">73</div>
+            <div style="font-size: 20px; font-weight: 800; margin-top: 10px;">Deployment Checks</div>
+            <p style="font-size: 16px; opacity: 0.9; margin-top: 8px; line-height: 1.45;">Live Chromium Playwright & real-browser smoke tests across 1440px desktop & 390px mobile.</p>
+          </div>
+
+          <div class="neo-card neo-card-shadow" style="background: var(--accent-lime); color: #111; border-color: #111; padding: 26px 22px;">
+            <div style="font-family: var(--font-mono); font-size: 58px; font-weight: 800; line-height: 1.0;">2-Acc</div>
+            <div style="font-size: 20px; font-weight: 800; margin-top: 10px;">Verified Team Lifecycle</div>
+            <p style="font-size: 16px; color: #1E293B; margin-top: 8px; line-height: 1.45; font-weight: 500;">Concurrent SDK tasks, dynamic role assembly, confirmed stop/release, and cross-account acceptance.</p>
+          </div>
+        </div>
+
+        <!-- 4-Part Rubric Alignment Map -->
+        <div style="display: grid; grid-template-columns: 3.8fr 2.6fr 2.6fr 1.5fr; border: 2.5px solid #111; border-radius: 4px; overflow: hidden; box-shadow: 5px 5px 0px #111;">
+          <div style="background: #2563EB; color: #FFF; padding: 22px 24px; border-right: 2px solid #111;">
+            <div style="font-family: var(--font-mono); font-size: 38px; font-weight: 800;">40%</div>
+            <div style="font-size: 19px; font-weight: 800; margin-top: 4px;">Technical Merit & Gen AI</div>
+            <p style="font-size: 16px; opacity: 0.95; margin-top: 6px; line-height: 1.45;">Antigravity SDK + EmbeddingGemma 2 + Cloud Run + 1,200+ automated tests.</p>
+          </div>
+
+          <div style="background: var(--accent-orange); color: #111116; padding: 22px 24px; border-right: 2px solid #111;">
+            <div style="font-family: var(--font-mono); font-size: 38px; font-weight: 800;">25%</div>
+            <div style="font-size: 19px; font-weight: 800; margin-top: 4px;">Problem & Impact</div>
+            <p style="font-size: 16px; color: #0F172A; margin-top: 6px; line-height: 1.45; font-weight: 600;">Solves context loss and accountability in everyday non-code deliverables.</p>
+          </div>
+
+          <div style="background: var(--accent-lime); color: #111; padding: 22px 24px; border-right: 2px solid #111;">
+            <div style="font-family: var(--font-mono); font-size: 38px; font-weight: 800;">25%</div>
+            <div style="font-size: 19px; font-weight: 800; margin-top: 4px;">Innovation</div>
+            <p style="font-size: 16px; color: #1E293B; margin-top: 6px; line-height: 1.45; font-weight: 600;">File SoT + Task Ontology + 275 roles + mandatory Reviewer separation.</p>
+          </div>
+
+          <div style="background: #FFFFFF; color: #111; padding: 22px 20px;">
+            <div style="font-family: var(--font-mono); font-size: 38px; font-weight: 800;">10%</div>
+            <div style="font-size: 19px; font-weight: 800; margin-top: 4px;">UX & Design</div>
+            <p style="font-size: 15px; color: #475569; margin-top: 6px; line-height: 1.45; font-weight: 500;">Single-rail unified workspace.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>LIGHTGRAVITY ◦ AI BUILDER CUP 2026</span>
+          <div class="footer-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
+          <span>09 / 11</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 10: SCALE & VISION (TOWARD OLAV-OS) -->
+      <section id="slide-10" class="slide slide-obsidian"
+        data-composition-id="slide-10" data-start="54" data-duration="6" data-label="Scale & Vision"
+        data-width="1920" data-height="1080">
+        <div>
+          <div class="slide-eyebrow">
+            <span class="eyebrow-pip"></span>
+            <span class="eyebrow-text">§ 09 — Scale & Vision: Toward Olav-OS</span>
+          </div>
+          <div class="headline-wrap">
+            <h2 class="headline">Beyond the prototype: <em>Humans, Agents & Data at scale.</em></h2>
+            <p class="subheadline">Our architectural roadmap expanding from verified MVP to an enterprise-grade operating system.</p>
+          </div>
+        </div>
+
+        <!-- 4-Quadrant Matrix -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin: 32px 0;">
+          <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.18); border-left: 6px solid #38BDF8; padding: 28px 30px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <h3 style="font-size: 26px; font-weight: 800; color: #FFF;">01. Humans & Agents as First-Class</h3>
+              <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: #38BDF8; background: rgba(56,189,248,0.12); padding: 4px 10px; border-radius: 4px;">OLAV-OS VISION</span>
+            </div>
+            <p style="font-size: 20px; line-height: 1.55; color: #CBD5E1;">
+              <strong style="color: #FFF;">Bridging the Orchestration Gap:</strong> Treat human employees and AI agents as equal nodes in the Task Ontology graph. Schedule human actions (approvals, reviews) alongside AI subtasks, evolving toward a <em>governed self-organizing swarm</em>.
+            </p>
+          </div>
+
+          <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.18); border-left: 6px solid var(--accent-orange); padding: 28px 30px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <h3 style="font-size: 26px; font-weight: 800; color: #FFF;">02. GCS + lakeFS: Data Lake Versioning</h3>
+              <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--accent-orange); background: rgba(255,77,0,0.12); padding: 4px 10px; border-radius: 4px;">ZERO-COPY BRANCHES</span>
+            </div>
+            <p style="font-size: 20px; line-height: 1.55; color: #CBD5E1;">
+              <strong style="color: #FFF;">Git for Multimodal Files:</strong> Layer lakeFS on Google Cloud Storage (GCS). Every Task/Run receives an isolated zero-copy branch for PDFs, audio, and datasets. Enables atomic <code style="color: #FFF; font-weight: 700; font-size: 18px;">branch / commit / diff / merge</code> directly into main on human acceptance.
+            </p>
+          </div>
+
+          <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.18); border-left: 6px solid var(--accent-lime); padding: 28px 30px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <h3 style="font-size: 26px; font-weight: 800; color: #FFF;">03. Lightweight Office Suite Support</h3>
+              <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--accent-lime); background: rgba(212,255,40,0.12); padding: 4px 10px; border-radius: 4px;">.DOCX · .XLSX · .PPTX</span>
+            </div>
+            <p style="font-size: 20px; line-height: 1.55; color: #CBD5E1;">
+              <strong style="color: #FFF;">Completing Daily Work:</strong> Native lightweight structure extraction, browser preview, and diffing for standard Microsoft Office formats—bringing everyday business deliverables under File SoT version governance.
+            </p>
+          </div>
+
+          <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.18); border-left: 6px solid var(--accent-purple); padding: 28px 30px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <h3 style="font-size: 26px; font-weight: 800; color: #FFF;">04. Fine-Grained RBAC & Scoped ACLs</h3>
+              <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--accent-purple); background: rgba(226,183,232,0.15); padding: 4px 10px; border-radius: 4px;">ENTERPRISE GOVERNANCE</span>
+            </div>
+            <p style="font-size: 20px; line-height: 1.55; color: #CBD5E1;">
+              <strong style="color: #FFF;">Multi-Tenant Ready:</strong> Upgrading workspace roles to granular task- and source-level permissions, per-role model spend quotas, and domain-specific acceptance sign-off authority.
+            </p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>LIGHTGRAVITY ◦ AI BUILDER CUP 2026</span>
+          <div class="footer-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span><span class="dot"></span></div>
+          <span>10 / 11</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 11: CLOSER -->
+      <section id="slide-11" class="slide slide-orange"
+        data-composition-id="slide-11" data-start="60" data-duration="6" data-label="Closer"
+        data-width="1920" data-height="1080">
+        <div>
+          <div class="slide-eyebrow">
+            <span class="eyebrow-pip"></span>
+            <span class="eyebrow-text">Thank You · Google Cloud AI Builder Cup 2026</span>
+          </div>
+          <div class="headline-wrap" style="margin-top: 36px;">
+            <h2 class="headline" style="font-size: 96px; line-height: 1.05;">
+              Trust the <em>delivery,</em><br/>not just the output.
+            </h2>
+            <p class="subheadline" style="font-size: 32px; line-height: 1.4; max-width: 1300px; margin-top: 24px;">
+              Governed by <strong>File SoT & Task Ontology</strong>. Powered by <strong>Google Antigravity SDK & EmbeddingGemma 2</strong>. Built for human and AI teams to deliver accountable work.
+            </p>
+          </div>
+        </div>
+
+        <!-- 3 Verification Entry Cards -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin: 40px 0;">
+          <div class="neo-card" style="background: rgba(0,0,0,0.28); border-color: #FFF; padding: 30px;">
+            <span style="font-family: var(--font-mono); font-size: 15px; font-weight: 800; letter-spacing: 0.1em; color: var(--accent-lime);">01 · LIVE WORKSPACE</span>
+            <h3 style="font-size: 28px; font-weight: 800; margin: 10px 0; color: #FFF;">Cloud Run Deployment</h3>
+            <p style="font-size: 19px; line-height: 1.5; color: rgba(255,255,255,0.9);">Single-container live workspace instance with multi-account login and File SoT storage.</p>
+          </div>
+
+          <div class="neo-card" style="background: rgba(0,0,0,0.28); border-color: #FFF; padding: 30px;">
+            <span style="font-family: var(--font-mono); font-size: 15px; font-weight: 800; letter-spacing: 0.1em; color: var(--accent-lime);">02 · CODE & RELEASE</span>
+            <h3 style="font-size: 28px; font-weight: 800; margin: 10px 0; color: #FFF;">GitHub Public Repo</h3>
+            <p style="font-size: 19px; line-height: 1.5; color: rgba(255,255,255,0.9);">Full source export, prebuilt installation archive, and architecture documentation.</p>
+          </div>
+
+          <div class="neo-card" style="background: rgba(0,0,0,0.28); border-color: #FFF; padding: 30px;">
+            <span style="font-family: var(--font-mono); font-size: 15px; font-weight: 800; letter-spacing: 0.1em; color: var(--accent-lime);">03 · DEMO FILM</span>
+            <h3 style="font-size: 28px; font-weight: 800; margin: 10px 0; color: #FFF;">120s Verified Run</h3>
+            <p style="font-size: 19px; line-height: 1.5; color: rgba(255,255,255,0.9);">1080p real screencast showing cross-account task creation, role execution, and Board acceptance.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>LIGHTGRAVITY ◦ FUTURE OF WORK & ENTERPRISE PRODUCTIVITY</span>
+          <div class="footer-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot active"></span></div>
+          <span>11 / 11</span>
+        </div>
+      </section>
+
+      <!-- APPENDIX A: TASK ONTOLOGY SCHEMA & LAKEFS -->
+      <section id="app-ontology" class="slide slide-obsidian"
+        data-composition-id="app-ontology" data-start="66" data-duration="6" data-label="Appendix A"
+        data-width="1920" data-height="1080">
+        <div>
+          <div class="slide-eyebrow">
+            <span class="eyebrow-pip"></span>
+            <span class="eyebrow-text">Appendix A — Task Ontology Schema & lakeFS Integration</span>
+          </div>
+          <div class="headline-wrap">
+            <h2 class="headline">Task Ontology: <em>Explicit schemas & zero-copy lakeFS branches.</em></h2>
+            <p class="subheadline">How TASK.md YAML frontmatter and lakeFS branch-merge architecture scale the File SoT model.</p>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin: 32px 0;">
+          <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.18); padding: 24px;">
+            <div style="font-family: var(--font-mono); font-size: 16px; color: var(--accent-lime); font-weight: 800; margin-bottom: 10px;">TASK.MD AUTHORITATIVE SCHEMA</div>
+            <pre style="font-family: var(--font-mono); font-size: 16px; line-height: 1.55; color: #E2E8F0; background: #080A0E; padding: 18px; border-radius: 4px; overflow-x: auto;">
+---
+title: "Quarterly Analysis & Delivery"
+task_id: "01M5XYZ..."
+revision: 3
+requirements_revision: 2
+sources:
+  - ref: "sources/source_01ABC"
+    hash: "sha256:7f8e..."
+team:
+  coordinator: "deepseek-chat"
+  workers: ["data-analyst", "tech-writer"]
+  reviewer: "gemini-1.5-pro"
+status: "pending_review"
+acceptance_criteria:
+  - "Evidence artifacts pass schema validation"
+  - "Independent Reviewer verdict is PASS"
+---</pre>
+          </div>
+
+          <div class="neo-card" style="background: var(--bg-card-dark); border-color: rgba(255,255,255,0.18); padding: 28px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="font-family: var(--font-mono); font-size: 16px; color: #38BDF8; font-weight: 800; margin-bottom: 12px;">GCS + LAKEFS DATA LAKE TOPOLOGY</div>
+              <p style="font-size: 20px; line-height: 1.6; color: #CBD5E1;">
+                <strong style="color: #FFF;">Zero-Copy Branch per Task:</strong> When Task Run starts, a virtual branch <code style="color: #38BDF8; font-weight: 700; font-size: 18px;">run/01M5XYZ</code> is branched off <code style="color: #FFF; font-weight: 700;">main</code> instantly at metadata cost.
+              </p>
+              <p style="font-size: 20px; line-height: 1.6; color: #CBD5E1; margin-top: 14px;">
+                <strong style="color: #FFF;">Atomic Merge on Acceptance:</strong> Workers commit artifacts to the branch. Once independent Reviewer passes and human clicks Accept on Board, lakeFS executes an atomic merge back into <code style="color: #FFF; font-weight: 700;">main</code>.
+              </p>
+            </div>
+            <div style="border-top: 1px solid rgba(255,255,255,0.12); padding-top: 16px; font-family: var(--font-mono); font-size: 16px; font-weight: 700; color: #A7F3D0;">
+              Zero data duplication · Reversible audit trail · Multi-instance safe
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>LIGHTGRAVITY ◦ APPENDIX A</span>
+          <div class="footer-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          <span>APP / 01</span>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ==========================================
+       INTERACTIVE RUNNER & CONTROLLER BAR
+       ========================================== -->
+  <div id="deck-controls">
+    <button class="ctrl-btn" onclick="prevSlide()" title="Previous slide (Left Arrow)">◀</button>
+    <button class="ctrl-btn" onclick="nextSlide()" title="Next slide (Right Arrow / Space)">▶</button>
+    <span id="slide-indicator" style="font-weight: 700; margin: 0 8px;">01 / 11</span>
+    <button class="ctrl-btn" onclick="toggleNotes()" title="Toggle speaker notes (P)">
+      <span>Notes</span>
+      <span style="background: rgba(255,255,255,0.15); padding: 1px 6px; border-radius: 4px; font-size: 10px;">P</span>
+    </button>
+    <button class="ctrl-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen (F)">⛶</button>
+  </div>
+
+  <!-- Presenter Drawer -->
+  <div id="presenter-notes">
+    <div class="notes-header">
+      <span class="notes-title">SPEAKER NOTES</span>
+      <button onclick="toggleNotes()" style="background: none; border: none; color: #94A3B8; font-size: 20px; cursor: pointer;">✕</button>
+    </div>
+    <div id="notes-content" class="notes-body">
+      <!-- Injected dynamically based on active slide -->
+    </div>
+  </div>
+
+  <!-- ==========================================
+       STANDALONE CONTROLLER & KEYBOARD SCRIPT
+       ========================================== -->
+  <script>
+    // 1. Scene registry matching data-composition-id, data-start, data-duration
+    const scenes = [
+      { id: "slide-01", start: 0, duration: 6 },
+      { id: "slide-02", start: 6, duration: 6 },
+      { id: "slide-03", start: 12, duration: 6 },
+      { id: "slide-04", start: 18, duration: 6 },
+      { id: "slide-05", start: 24, duration: 6 },
+      { id: "slide-06", start: 30, duration: 6 },
+      { id: "slide-07", start: 36, duration: 6 },
+      { id: "slide-08", start: 42, duration: 6 },
+      { id: "slide-09", start: 48, duration: 6 },
+      { id: "slide-10", start: 54, duration: 6 },
+      { id: "slide-11", start: 60, duration: 6 },
+      { id: "app-ontology", start: 66, duration: 6 }
+    ];
+    const TOTAL_DURATION = 72;
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const totalSlides = slides.length;
+    let currentActiveIndex = 0;
+
+    // 2. HyperFrames deterministic timeline registry
+    window.__timelines = window.__timelines || {};
+    let rootTl = null;
+    if (typeof gsap !== 'undefined') {
+      rootTl = gsap.timeline({ paused: true });
+      rootTl.to({}, { duration: TOTAL_DURATION });
+      window.__timelines['slideshow-root'] = rootTl;
+
+      for (let i = 1; i <= 11; i++) {
+        const id = `slide-${String(i).padStart(2, '0')}`;
+        window.__timelines[id] = gsap.timeline({ paused: true });
+      }
+      window.__timelines['app-ontology'] = gsap.timeline({ paused: true });
+    }
+
+    // 3. Parse manifest data for speaker notes
+    let manifestData = { slides: [] };
+    try {
+      const manifestScript = document.querySelector('script[type="application/hyperframes-slideshow+json"]');
+      if (manifestScript) {
+        manifestData = JSON.parse(manifestScript.textContent);
+      }
+    } catch (e) {
+      console.warn("Could not parse slideshow manifest:", e);
+    }
+
+    function updateNotes(slideIdx) {
+      const notesEl = document.getElementById('notes-content');
+      if (!notesEl) return;
+      const noteEntry = manifestData.slides && manifestData.slides[slideIdx];
+      if (noteEntry && noteEntry.notes) {
+        notesEl.innerHTML = `<p>${noteEntry.notes.replace(/\n/g, '</p><p>')}</p>`;
+      } else {
+        notesEl.innerHTML = `<p style="color: #64748B; font-style: italic;">No speaker notes for this slide.</p>`;
+      }
+    }
+
+    // 4. Playhead-driven scene visibility controller
+    function updateSceneVisibility(time) {
+      const t = Math.max(0, Math.min(TOTAL_DURATION - 0.001, Number(time) || 0));
+      let activeIndex = 0;
+      for (let i = 0; i < scenes.length; i++) {
+        const s = scenes[i];
+        if (t >= s.start && t < s.start + s.duration) {
+          activeIndex = i;
+          break;
+        }
+        if (i === scenes.length - 1 && t >= s.start) {
+          activeIndex = i;
+        }
+      }
+
+      currentActiveIndex = activeIndex;
+
+      // Toggle DOM visibility
+      scenes.forEach((s, idx) => {
+        const el = document.getElementById(s.id);
+        if (!el) return;
+        if (idx === activeIndex) {
+          el.classList.add('is-active');
+          el.style.opacity = '1';
+          el.style.visibility = 'visible';
+          el.style.pointerEvents = 'auto';
+          el.style.zIndex = '10';
+        } else {
+          el.classList.remove('is-active');
+          el.style.opacity = '0';
+          el.style.visibility = 'hidden';
+          el.style.pointerEvents = 'none';
+          el.style.zIndex = '1';
+        }
+      });
+
+      // Update Slide Counter in UI
+      const padIndex = String(Math.min(activeIndex + 1, totalSlides)).padStart(2, '0');
+      const padTotal = String(totalSlides).padStart(2, '0');
+      const indicatorEl = document.getElementById('slide-indicator');
+      if (indicatorEl) {
+        indicatorEl.textContent = `${padIndex} / ${padTotal}`;
+      }
+
+      // Update Pagination Dots on active slide
+      const activeSlideEl = document.getElementById(scenes[activeIndex].id);
+      if (activeSlideEl) {
+        const currentDots = activeSlideEl.querySelectorAll('.dot');
+        currentDots.forEach((d, i) => {
+          if (i === activeIndex) d.classList.add('active');
+          else d.classList.remove('active');
+          d.onclick = (evt) => {
+            evt.stopPropagation();
+            goToSlide(i);
+          };
+        });
+      }
+
+      updateNotes(activeIndex);
+    }
+
+    window.__hfSetTime = updateSceneVisibility;
+
+    if (rootTl) {
+      rootTl.eventCallback('onUpdate', () => {
+        updateSceneVisibility(rootTl.time());
+      });
+    }
+
+    // 5. Navigation APIs
+    function goToSlide(index) {
+      if (index < 0 || index >= scenes.length) return;
+      const targetTime = scenes[index].start + 0.1;
+      if (rootTl) {
+        rootTl.seek(targetTime, false);
+      }
+      updateSceneVisibility(targetTime);
+    }
+
+    function nextSlide() {
+      if (currentActiveIndex < scenes.length - 1) goToSlide(currentActiveIndex + 1);
+    }
+
+    function prevSlide() {
+      if (currentActiveIndex > 0) goToSlide(currentActiveIndex - 1);
+    }
+
+    function toggleNotes() {
+      const drawer = document.getElementById('presenter-notes');
+      if (drawer) drawer.classList.toggle('open');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => alert(err.message));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // 6. Bootstrap postMessage to parent hyperframes-player / hyperframes-slideshow
+    function postTimelineToParent() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          source: 'hf-preview',
+          type: 'timeline',
+          durationInFrames: TOTAL_DURATION * 30,
+          durationSeconds: TOTAL_DURATION,
+          compositionWidth: 1920,
+          compositionHeight: 1080,
+          scenes: scenes
+        }, '*');
+      }
+    }
+
+    // Post timeline once ready
+    if (document.readyState === 'complete') {
+      setTimeout(postTimelineToParent, 150);
+    } else {
+      window.addEventListener('load', () => {
+        setTimeout(postTimelineToParent, 150);
+      });
+    }
+
+    // 7. Receive seek/control commands from hyperframes-player iframe bridge
+    window.addEventListener('message', (e) => {
+      if (!e.data) return;
+      if (e.data.source === 'hf-parent' && e.data.type === 'control') {
+        if (e.data.action === 'seek' && typeof e.data.timeSeconds === 'number') {
+          if (rootTl) rootTl.seek(e.data.timeSeconds, false);
+          updateSceneVisibility(e.data.timeSeconds);
+        }
+      }
+    });
+
+    // 8. Dynamic viewport responsive scale calculator (maintains 1920x1080)
+    function resizeViewport() {
+      const viewport = document.getElementById('deck-viewport');
+      if (!viewport) return;
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      const scaleX = windowWidth / 1920;
+      const scaleY = windowHeight / 1080;
+      const scale = Math.min(scaleX, scaleY);
+      viewport.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('resize', resizeViewport);
+    window.addEventListener('DOMContentLoaded', () => {
+      resizeViewport();
+      updateSceneVisibility(0);
+
+      // If running inside hyperframes-slideshow (iframe), hide inner standalone controls
+      if (window.parent && window.parent !== window) {
+        const controls = document.getElementById('deck-controls');
+        if (controls) controls.style.display = 'none';
+      }
+    });
+
+    // 9. Keyboard navigation for direct standalone viewing
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault(); nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') {
+        e.preventDefault(); prevSlide();
+      } else if (e.key === 'Home') {
+        e.preventDefault(); goToSlide(0);
+      } else if (e.key === 'End') {
+        e.preventDefault(); goToSlide(scenes.length - 1);
+      } else if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault(); toggleNotes();
+      } else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault(); toggleFullscreen();
+      }
+    });
+  </script>
+</body>
+</html>

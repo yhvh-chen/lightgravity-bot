@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LightGravity: Governed AI Teams That Deliver Reviewable Work | AI Builder Cup 2026</title>
+<meta name="description" content="LightGravity Bot submission deck for the Google Cloud AI Builder Cup 2026. Theme: Future of Work and Enterprise Productivity.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+@page{size:1920px 1080px;margin:0}
+:root{--cream:#F2EADB;--ink:#14111A;--verm:#FF4A1C;--cobalt:#2F2BFF;--lime:#D4FF3A;--pink:#FFB3C8}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#222}
+body{font-family:'Space Grotesk',sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.slide{width:1920px;height:1080px;position:relative;overflow:hidden;break-after:page;page-break-after:always;padding:96px 120px 110px;background:var(--bg);color:var(--fg);display:flex;flex-direction:column}
+.t-cream{--bg:#F2EADB;--fg:#14111A;--mute:#5b5466;--acc:#FF4A1C;--soft:rgba(20,17,26,.08)}
+.t-ink{--bg:#14111A;--fg:#F2EADB;--mute:#a59fb2;--acc:#D4FF3A;--soft:rgba(242,234,219,.08)}
+.t-verm{--bg:#FF4A1C;--fg:#14111A;--mute:#4a1a0c;--acc:#14111A;--soft:rgba(20,17,26,.1)}
+.t-cobalt{--bg:#2F2BFF;--fg:#F2EADB;--mute:#cfceff;--acc:#D4FF3A;--soft:rgba(242,234,219,.1)}
+.slide>*{position:relative;z-index:1}
+.dots{position:absolute!important;z-index:0!important;right:-40px;top:-40px;width:620px;height:620px;background-image:radial-gradient(var(--fg) 2.4px,transparent 2.6px);background-size:26px 26px;opacity:.13;-webkit-mask-image:radial-gradient(circle at 70% 30%,#000 0,transparent 68%);mask-image:radial-gradient(circle at 70% 30%,#000 0,transparent 68%)}
+.dots.bl{right:auto;left:-80px;top:auto;bottom:-120px}
+.sec{font:700 21px 'JetBrains Mono',monospace;letter-spacing:.16em;text-transform:uppercase;display:flex;align-items:center;gap:16px;margin-bottom:22px}
+.sec::before{content:"";width:46px;height:6px;background:var(--acc);display:block}
+h1,h2{font-weight:700;letter-spacing:-.045em;line-height:.95}
+h2{font-size:96px;margin-bottom:26px}
+.sf{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;letter-spacing:-.02em}
+h2 .sf{font-size:1.12em;color:var(--acc)}
+.t-verm h2 .sf,.t-verm .sf.a{color:var(--cream)}
+.lead{font-size:30px;line-height:1.4;color:var(--mute);max-width:1250px;margin-bottom:34px}
+.mono{font-family:'JetBrains Mono',monospace}
+.box{border:3px solid var(--fg);box-shadow:10px 10px 0 var(--fg);background:var(--bg);padding:30px 34px}
+.box h3{font-size:36px;letter-spacing:-.03em;margin-bottom:10px;line-height:1.05}
+.box p,.box li{font-size:25px;line-height:1.42}
+.box ul{padding-left:26px}.box li{margin:5px 0}
+.foot{position:absolute!important;left:120px;right:120px;bottom:38px;display:flex;align-items:center;justify-content:space-between;font:500 17px 'JetBrains Mono',monospace;letter-spacing:.08em;color:var(--mute);z-index:3}
+.track{display:flex;align-items:center;gap:9px}
+.track i{display:block;width:10px;height:10px;border-radius:50%;border:2px solid var(--mute);opacity:.6}
+.track i.p{background:var(--mute)}
+.track i.c{width:22px;height:22px;background:var(--acc);border-color:var(--fg);opacity:1}
+.slot{border:3px dashed var(--fg);display:flex;align-items:center;justify-content:center;text-align:center;font:500 22px/1.5 'JetBrains Mono',monospace;padding:24px;background:repeating-linear-gradient(135deg,transparent 0 14px,var(--soft) 14px 28px)}
+.tag{display:inline-block;font:700 17px 'JetBrains Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:6px 14px;border:2px solid var(--fg);margin:0 8px 8px 0;background:var(--bg)}
+.tag.f{background:var(--acc);color:var(--ink)}
+table{width:100%;border-collapse:collapse}
+@media screen{body{background:#222}.slide{margin:0 auto 24px;zoom:var(--z,.6)}}
+</style>
+<script>
+addEventListener('DOMContentLoaded',()=>{
+  document.documentElement.style.setProperty('--z',Math.min(1,innerWidth/1940));
+  const S=[...document.querySelectorAll('.slide')];
+  S.forEach((s,i)=>{
+    const f=document.createElement('div');f.className='foot';
+    const n=String(i+1).padStart(2,'0'),t=String(S.length).padStart(2,'0');
+    f.innerHTML='<span>LIGHTGRAVITY ◦ AI BUILDER CUP 2026</span><span class="track">'+S.map((_,j)=>'<i class="'+(j<i?'p':j==i?'c':'')+'"></i>').join('')+'</span><span>'+n+' / '+t+'</span>';
+    s.appendChild(f);
+  });
+});
+</script>
+</head>
+<body>
+
+<!-- 01 TITLE : lensing -->
+<section class="slide t-cream" style="padding:0">
+<svg style="position:absolute;right:-60px;top:-20px;z-index:0" width="1100" height="1100" viewBox="0 0 1100 1100" fill="none">
+  <g stroke="#2F2BFF" stroke-width="3" opacity=".9">
+    <path d="M0 250 Q 520 470 1100 190"/><path d="M0 330 Q 540 500 1100 290"/><path d="M0 410 Q 540 530 1100 390"/>
+    <path d="M0 790 Q 520 640 1100 850"/><path d="M0 870 Q 540 620 1100 930"/><path d="M0 950 Q 540 600 1100 1010"/>
+  </g>
+  <circle cx="550" cy="560" r="420" stroke="#14111A" stroke-width="2" stroke-dasharray="4 14"/>
+  <circle cx="550" cy="560" r="300" stroke="#14111A" stroke-width="2"/>
+  <ellipse cx="550" cy="560" rx="380" ry="96" transform="rotate(-18 550 560)" stroke="#FF4A1C" stroke-width="26"/>
+  <circle cx="550" cy="560" r="170" fill="#14111A"/>
+  <path d="M380 560 A170 170 0 0 1 550 390" stroke="#D4FF3A" stroke-width="8"/>
+  <circle cx="911" cy="437" r="30" fill="#D4FF3A" stroke="#14111A" stroke-width="5"/>
+  <ellipse cx="550" cy="560" rx="380" ry="96" transform="rotate(-18 550 560)" stroke="#FF4A1C" stroke-width="26" stroke-dasharray="0 1200 640 1200" />
+</svg>
+<div style="position:absolute;left:120px;top:96px;z-index:2" class="sec">Google Cloud AI Builder Cup 2026 · Future of Work &amp; Enterprise Productivity</div>
+<div style="position:absolute;left:112px;top:210px;z-index:2">
+  <h1 style="font-size:280px;line-height:.82">LIGHT</h1>
+  <h1 style="font-size:300px;line-height:.82;margin-left:110px;font-size:280px"><span class="sf" style="color:#FF4A1C;font-size:1.0em">gravity</span></h1>
+  <p style="font-size:44px;line-height:1.2;max-width:1100px;margin-top:40px;white-space:nowrap;letter-spacing:-.02em;font-weight:500">Governed AI teams that deliver <span class="sf" style="font-size:1.2em">reviewable</span> work.</p>
+  <div style="margin-top:26px"><span class="tag f">Antigravity SDK</span><span class="tag">Cloud Run</span><span class="tag">EmbeddingGemma 2</span><span class="tag">Human-in-the-loop</span></div>
+</div>
+<div class="mono" style="position:absolute;left:120px;bottom:70px;left:120px;font-size:20px;letter-spacing:.08em;z-index:2">TEAM: [Team name] · [Member names]</div>
+</section>
+
+<!-- 02 PROBLEM -->
+<section class="slide t-ink">
+<div class="dots"></div>
+<div class="sec">§ 01 — The problem</div>
+<h2>AI makes work fast.<br><span class="sf">Trusting it</span> is slow.</h2>
+<div style="display:flex;flex-direction:column;margin-top:10px;border-top:3px solid var(--fg)">
+  <div style="display:grid;grid-template-columns:300px 520px 1fr;align-items:center;border-bottom:3px solid var(--fg);padding:6px 0;gap:30px"><div style="font:700 150px/0.8 'Space Grotesk';-webkit-text-stroke:3px var(--acc);color:transparent;letter-spacing:-.06em">01</div><div style="font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1">No evidence trail</div><div style="font-size:27px;line-height:1.4;color:var(--mute)">Agents hand back a result with no record of checks, sources used or changes made. Reviewers start from zero every time.</div></div>
+  <div style="display:grid;grid-template-columns:300px 520px 1fr;align-items:center;border-bottom:3px solid var(--fg);padding:6px 0;gap:30px"><div style="font:700 150px/0.8 'Space Grotesk';-webkit-text-stroke:3px var(--acc);color:transparent;letter-spacing:-.06em">02</div><div style="font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1">Chat is not a work record</div><div style="font-size:27px;line-height:1.4;color:var(--mute)">Sources, requirements and follow-ups scatter across threads. Revisions rebuild context instead of building on a task.</div></div>
+  <div style="display:grid;grid-template-columns:300px 520px 1fr;align-items:center;border-bottom:3px solid var(--fg);padding:6px 0;gap:30px"><div style="font:700 150px/0.8 'Space Grotesk';-webkit-text-stroke:3px var(--acc);color:transparent;letter-spacing:-.06em">03</div><div style="font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1">Unbounded autonomy</div><div style="font-size:27px;line-height:1.4;color:var(--mute)">Permissions, budgets and failed attempts are rarely scoped. "Done" means the model stopped, not that a person accepted it.</div></div>
+</div>
+<div style="display:flex;gap:30px;align-items:center;margin-top:18px"><div style="font-size:24px;color:var(--mute);flex:1"><b style="color:var(--acc)">WHO FEELS IT</b> &nbsp;Small teams and professionals who delegate real deliverables to AI and remain accountable for the result.</div><div class="slot" style="width:560px;height:70px;font-size:18px;color:var(--acc);border-color:var(--acc)">ADD: cited stat on AI-output review overhead</div></div>
+</section>
+
+<!-- 03 GAP -->
+<section class="slide t-cream">
+<div class="dots bl"></div>
+<div class="sec">§ 02 — The gap</div>
+<h2>Where other tools stop,<br><span class="sf">we start.</span></h2>
+<p class="lead" style="margin-bottom:26px">Most tools optimise for generating output. We optimise for the whole delivery lifecycle.</p>
+<div class="box" style="padding:0;box-shadow:12px 12px 0 var(--fg)">
+<table style="font-size:27px">
+<tr style="font:700 19px 'JetBrains Mono',monospace;letter-spacing:.1em;text-transform:uppercase;background:var(--fg);color:var(--bg)"><td style="padding:16px 26px;width:34%">Capability</td><td>Chat assistants</td><td>Single-agent tools</td><td style="background:var(--lime);color:var(--ink);font-weight:700;padding-left:22px">LightGravity</td></tr>
+<tr style="border-bottom:2px solid var(--fg)"><td style="padding:15px 26px"><b>Task-centred record</b></td><td>✕ Thread only</td><td>◐ Session</td><td style="background:rgba(212,255,58,.55);padding-left:22px"><b>✓ Task Ontology</b></td></tr>
+<tr style="border-bottom:2px solid var(--fg)"><td style="padding:15px 26px"><b>Role-based worker team</b></td><td>✕</td><td>◐ Single agent</td><td style="background:rgba(212,255,58,.55);padding-left:22px"><b>✓ Dynamic assembly</b></td></tr>
+<tr style="border-bottom:2px solid var(--fg)"><td style="padding:15px 26px"><b>Checks + independent reviewer</b></td><td>✕</td><td>◐ Optional</td><td style="background:rgba(212,255,58,.55);padding-left:22px"><b>✓ Gate to acceptance</b></td></tr>
+<tr style="border-bottom:2px solid var(--fg)"><td style="padding:15px 26px"><b>Human acceptance step</b></td><td>✕</td><td>◐ Ad hoc</td><td style="background:rgba(212,255,58,.55);padding-left:22px"><b>✓ Explicit state</b></td></tr>
+<tr style="border-bottom:2px solid var(--fg)"><td style="padding:15px 26px"><b>Budgets &amp; scoped permissions</b></td><td>✕</td><td>◐ Limited</td><td style="background:rgba(212,255,58,.55);padding-left:22px"><b>✓ Run to repair</b></td></tr>
+<tr><td style="padding:15px 26px"><b>You own the files</b></td><td>✕ Vendor store</td><td>◐ Varies</td><td style="background:rgba(212,255,58,.55);padding-left:22px"><b>✓ Markdown · YAML · JSONL</b></td></tr>
+</table></div>
+<p class="mono" style="font-size:16px;margin-top:20px;color:var(--mute)">Category-level qualitative comparison, not a benchmark of specific products.</p>
+</section>
+
+<!-- 04 SOLUTION : orbit -->
+<section class="slide t-ink">
+<div class="sec">§ 03 — The solution</div>
+<h2 style="margin-bottom:0">Every task <span class="sf">orbits</span> acceptance.</h2>
+<svg viewBox="0 0 1680 720" width="1680" height="720" style="margin-top:6px" fill="none">
+  <ellipse cx="840" cy="380" rx="520" ry="270" stroke="#F2EADB" stroke-opacity=".35" stroke-width="2" stroke-dasharray="3 12"/>
+  <circle cx="840" cy="380" r="270" stroke="#D4FF3A" stroke-width="3"/>
+  <circle cx="840" cy="380" r="118" fill="#D4FF3A"/>
+  <text x="840" y="372" text-anchor="middle" font-family="Space Grotesk" font-weight="700" font-size="46" fill="#14111A">TASK</text>
+  <text x="840" y="410" text-anchor="middle" font-family="JetBrains Mono" font-size="19" fill="#14111A">one record</text>
+  <g font-family="Space Grotesk" fill="#F2EADB">
+   <g><circle cx="840" cy="110" r="42" fill="#14111A" stroke="#D4FF3A" stroke-width="4"/><text x="840" y="125" text-anchor="middle" font-size="40" font-weight="700" fill="#D4FF3A">1</text>
+     <text x="926" y="104" font-size="34" font-weight="700">Sources + goal</text><text x="926" y="138" font-size="24" fill="#a59fb2">Ingest material, bind versioned context</text></g>
+   <g><circle cx="1074" cy="245" r="42" fill="#14111A" stroke="#D4FF3A" stroke-width="4"/><text x="1074" y="260" text-anchor="middle" font-size="40" font-weight="700" fill="#D4FF3A">2</text>
+     <text x="1160" y="240" font-size="34" font-weight="700">Conversation → Task</text><text x="1160" y="274" font-size="24" fill="#a59fb2">Delivery requests become tasks</text></g>
+   <g><circle cx="1074" cy="515" r="42" fill="#14111A" stroke="#D4FF3A" stroke-width="4"/><text x="1074" y="530" text-anchor="middle" font-size="40" font-weight="700" fill="#D4FF3A">3</text>
+     <text x="1160" y="510" font-size="34" font-weight="700">Team assembly</text><text x="1160" y="544" font-size="24" fill="#a59fb2">Plan validated, roles selected</text></g>
+   <g><circle cx="840" cy="650" r="42" fill="#14111A" stroke="#D4FF3A" stroke-width="4"/><text x="840" y="665" text-anchor="middle" font-size="40" font-weight="700" fill="#D4FF3A">4</text>
+     <text x="926" y="644" font-size="34" font-weight="700">Execution</text><text x="926" y="678" font-size="24" fill="#a59fb2">Artifacts and diffs in a scoped workspace</text></g>
+   <g><circle cx="606" cy="515" r="42" fill="#14111A" stroke="#FF4A1C" stroke-width="4"/><text x="606" y="530" text-anchor="middle" font-size="40" font-weight="700" fill="#FF4A1C">5</text>
+     <text x="540" y="510" text-anchor="end" font-size="34" font-weight="700">Checks + review</text><text x="540" y="544" text-anchor="end" font-size="24" fill="#a59fb2">Machine checks, independent reviewer</text></g>
+   <g><circle cx="606" cy="245" r="42" fill="#FF4A1C" stroke="#F2EADB" stroke-width="4"/><text x="606" y="260" text-anchor="middle" font-size="40" font-weight="700" fill="#14111A">6</text>
+     <text x="540" y="240" text-anchor="end" font-size="34" font-weight="700">Human acceptance</text><text x="540" y="274" text-anchor="end" font-size="24" fill="#a59fb2">Accept, or request changes → loop</text></g>
+  </g>
+  <path d="M606 203 L 780 128" stroke="#FF4A1C" stroke-width="0"/>
+</svg>
+</section>
+
+<!-- 05 PRODUCT -->
+<section class="slide t-cobalt">
+<div class="dots"></div>
+<div class="sec">§ 04 — Product</div>
+<h2>A workspace you can <span class="sf">actually inspect.</span></h2>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:56px;margin-top:20px;flex:1;padding-bottom:20px">
+  <div style="transform:rotate(-2.5deg)"><div class="box" style="background:var(--cream);color:var(--ink);--fg:var(--ink);padding:18px"><div class="slot" style="height:400px;color:var(--ink)">SCREENSHOT 1<br>Team chat with @bot</div><h3 style="margin-top:18px;font-size:34px">① Talk</h3><p style="font-size:23px">Group messages saved silently; <b>@bot</b> invokes the assistant.</p></div></div>
+  <div style="transform:translateY(34px)"><div class="box" style="background:var(--cream);color:var(--ink);--fg:var(--ink);padding:18px"><div class="slot" style="height:400px;color:var(--ink)">SCREENSHOT 2<br>Task run: plan, roles,<br>evidence panel</div><h3 style="margin-top:18px;font-size:34px">② Deliver</h3><p style="font-size:23px">Assembled team, subtasks, artifacts, diffs and check results.</p></div></div>
+  <div style="transform:rotate(2.5deg)"><div class="box" style="background:var(--cream);color:var(--ink);--fg:var(--ink);padding:18px"><div class="slot" style="height:400px;color:var(--ink)">SCREENSHOT 3<br>Review record +<br>Accept / Request changes</div><h3 style="margin-top:18px;font-size:34px">③ Accept</h3><p style="font-size:23px">Reviewer verdict, then a recorded human decision.</p></div></div>
+</div>
+</section>
+
+<!-- 06 COLLAB : venn -->
+<section class="slide t-cream">
+<div class="sec">§ 05 — Collaboration</div>
+<h2>Three parties,<br><span class="sf">one</span> accepted result.</h2>
+<div style="display:flex;gap:40px;flex:1;margin-top:-30px">
+<svg viewBox="0 0 900 760" width="700" height="590" fill="none" style="flex:none;margin-top:30px">
+  <g style="mix-blend-mode:multiply">
+   <circle cx="320" cy="270" r="250" fill="#2F2BFF" fill-opacity=".88"/>
+   <circle cx="580" cy="270" r="250" fill="#FF4A1C" fill-opacity=".9"/>
+   <circle cx="450" cy="500" r="250" fill="#D4FF3A" fill-opacity=".95"/>
+  </g>
+  <g font-family="Space Grotesk" font-weight="700" text-anchor="middle">
+   <text x="230" y="240" font-size="40" fill="#F2EADB">PEOPLE</text><text x="230" y="276" font-size="22" font-family="JetBrains Mono" font-weight="400" fill="#F2EADB">accounts · roles</text>
+   <text x="670" y="240" font-size="40" fill="#14111A">AI WORKERS</text><text x="670" y="276" font-size="22" font-family="JetBrains Mono" font-weight="400" fill="#14111A">teams per run</text>
+   <text x="450" y="640" font-size="40" fill="#14111A">REVIEWERS</text><text x="450" y="676" font-size="22" font-family="JetBrains Mono" font-weight="400" fill="#14111A">checks · independent</text>
+   <circle cx="450" cy="355" r="82" fill="#14111A"/><text x="450" y="352" font-size="26" fill="#D4FF3A">ACCEPTED</text><text x="450" y="383" font-size="26" fill="#D4FF3A">WORK</text>
+  </g>
+</svg>
+<div style="display:flex;flex-direction:column;gap:18px;flex:1;justify-content:center;padding-right:14px">
+  <div class="box" style="border-left:18px solid var(--cobalt)"><h3>People share the workspace</h3><p>Individual accounts, admin and member roles. Shared chat, tasks and sources. Only an explicit <b>@bot</b> invokes the assistant.</p></div>
+  <div class="box" style="border-left:18px solid var(--verm)"><h3>AI workers form teams</h3><p>Roles and skills picked per task, dependencies scheduled by code. Autonomous claiming and SDK delegation are off by default.</p></div>
+  <div class="box" style="border-left:18px solid var(--lime)"><h3>Review, then accept</h3><p>Machine checks, then an independent model. A person decides. Completion requires confirmation that execution stopped.</p></div>
+</div></div>
+</section>
+
+<!-- 07 ONTOLOGY -->
+<section class="slide t-ink">
+<div class="sec">§ 06 — Core idea</div>
+<h2 style="margin-bottom:6px">Task Ontology: a <span class="sf">shared model of work.</span></h2>
+<p class="lead" style="margin-bottom:0;font-size:27px;max-width:1500px">Objects, relationships, permitted actions and the evidence required for completion. Transitions are validated by program, not by prompt.</p>
+<svg viewBox="0 0 1680 560" width="1680" height="560" fill="none" font-family="Space Grotesk" style="margin-top:6px">
+  <defs><marker id="ar" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0 0 L12 6 L0 12z" fill="#D4FF3A"/></marker></defs>
+  <g stroke="#D4FF3A" stroke-width="3" marker-end="url(#ar)">
+   <path d="M280 255 H 380"/><path d="M160 410 V 305"/><path d="M640 235 C 700 235, 700 120, 760 120"/><path d="M640 275 C 700 275, 700 330, 760 330"/>
+   <path d="M1020 120 C 1060 120 1060 60 1100 60"/><path d="M1020 130 C 1060 130 1060 180 1100 180"/>
+   <path d="M890 380 V 440"/><path d="M1020 480 H 1380" />
+   <path d="M280 455 H 1100" stroke-dasharray="4 10" stroke="#a59fb2" marker-end=""/>
+  </g>
+  <g stroke="#F2EADB" stroke-width="3" fill="#14111A">
+   <rect x="40" y="205" width="240" height="100" rx="0"/><rect x="380" y="205" width="260" height="100"/>
+   <rect x="760" y="70" width="260" height="100"/><rect x="1100" y="10" width="300" height="100"/><rect x="1100" y="130" width="300" height="100"/>
+   <rect x="760" y="290" width="260" height="90"/><rect x="760" y="440" width="260" height="90"/>
+   <rect x="40" y="410" width="240" height="90"/><rect x="1380" y="420" width="260" height="120" fill="#D4FF3A" stroke="#D4FF3A"/>
+  </g>
+  <g fill="#F2EADB" font-weight="700" font-size="36">
+   <text x="64" y="252" fill="#D4FF3A">Task</text><text x="404" y="252">Run</text><text x="784" y="117">Subtask</text><text x="1124" y="57">Role / Member</text><text x="1124" y="177">Artifact</text>
+   <text x="784" y="332">Checks</text><text x="784" y="482">Review</text><text x="64" y="457">Source</text><text x="1404" y="478" fill="#14111A" font-size="40">Accepted</text>
+  </g>
+  <g fill="#a59fb2" font-size="19" font-family="JetBrains Mono">
+   <text x="64" y="285">goal · criteria</text><text x="404" y="285">execution attempt</text><text x="784" y="150">work node</text><text x="1124" y="90">AI participant</text><text x="1124" y="210">versions · provenance</text>
+   <text x="784" y="362">recorded results</text><text x="784" y="512">independent verdict</text><text x="64" y="487">versioned input</text><text x="1404" y="512" fill="#14111A">human decision</text>
+   <text x="300" y="440" font-size="19">binds to artifacts (dashed)</text>
+  </g>
+</svg>
+<p class="mono" style="font-size:17px;color:var(--mute);margin-top:8px">Scope: explicit schemas, stable references, validated transitions. General ontology reasoning and knowledge-graph inference are not claimed.</p>
+</section>
+
+<!-- 08 GEN AI : ledger -->
+<section class="slide t-cream">
+<div class="sec">§ 07 — Gen AI implementation</div>
+<h2 style="margin-bottom:18px">Six jobs for models,<br><span class="sf">not a wrapper.</span></h2>
+<div style="border-top:4px solid var(--fg)">
+ <div style="display:grid;grid-template-columns:120px 400px 1fr 220px;gap:24px;align-items:center;border-bottom:3px solid var(--fg);padding:11px 0"><span class="sf" style="font-size:80px;line-height:.9;color:var(--verm)">01</span><b style="font-size:38px;letter-spacing:-.03em">Coordinator</b><span style="font-size:24px;line-height:1.35">Routes questions vs. delivery tasks. Plans are validated by code before any worker runs.</span><span class="tag f" style="justify-self:end">Plan</span></div>
+ <div style="display:grid;grid-template-columns:120px 400px 1fr 220px;gap:24px;align-items:center;border-bottom:3px solid var(--fg);padding:11px 0"><span class="sf" style="font-size:80px;line-height:.9;color:var(--verm)">02</span><b style="font-size:38px;letter-spacing:-.03em">Workers</b><span style="font-size:24px;line-height:1.35">Role-based agents run tools and native sessions via the Antigravity SDK in an authorized workspace.</span><span class="tag f" style="justify-self:end">Execute</span></div>
+ <div style="display:grid;grid-template-columns:120px 400px 1fr 220px;gap:24px;align-items:center;border-bottom:3px solid var(--fg);padding:11px 0"><span class="sf" style="font-size:80px;line-height:.9;color:var(--verm)">03</span><b style="font-size:38px;letter-spacing:-.03em">Reviewer</b><span style="font-size:24px;line-height:1.35">A separately configured model checks artifacts against criteria and bound sources. Required for acceptance.</span><span class="tag f" style="justify-self:end">Judge</span></div>
+ <div style="display:grid;grid-template-columns:120px 400px 1fr 220px;gap:24px;align-items:center;border-bottom:3px solid var(--fg);padding:11px 0"><span class="sf" style="font-size:80px;line-height:.9;color:var(--verm)">04</span><b style="font-size:38px;letter-spacing:-.03em">EmbeddingGemma 2</b><span style="font-size:24px;line-height:1.35">Optional multimodal semantic retrieval. Lexical search and original files remain the fallback.</span><span class="tag f" style="justify-self:end">Retrieve</span></div>
+ <div style="display:grid;grid-template-columns:120px 400px 1fr 220px;gap:24px;align-items:center;border-bottom:3px solid var(--fg);padding:11px 0"><span class="sf" style="font-size:80px;line-height:.9;color:var(--verm)">05</span><b style="font-size:38px;letter-spacing:-.03em">OCR &amp; PDF intake</b><span style="font-size:24px;line-height:1.35">Configurable OCR endpoint and PDF rendering bring scanned and image material into context.</span><span class="tag f" style="justify-self:end">Ingest</span></div>
+ <div style="display:grid;grid-template-columns:120px 400px 1fr 220px;gap:24px;align-items:center;border-bottom:3px solid var(--fg);padding:11px 0;background:rgba(255,74,28,.12)"><span class="sf" style="font-size:80px;line-height:.9;color:var(--verm)">06</span><b style="font-size:38px;letter-spacing:-.03em">Gemini on Vertex AI</b><span style="font-size:24px;line-height:1.35"><b>[STATUS: fill in]</b> Coordinator and reviewer on Gemini, validated end to end. Update once the run passes.</span><span class="tag" style="justify-self:end;border-style:dashed">Google</span></div>
+</div>
+</section>
+
+<!-- 09 ARCH : strata -->
+<section class="slide t-verm">
+<div class="sec">§ 08 — Architecture</div>
+<h2>Control is <span class="sf">code</span>.<br>Models only execute.</h2>
+<div style="display:flex;gap:30px;flex:1;margin-top:6px">
+ <div class="mono" style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:21px;letter-spacing:.3em;font-weight:700;border-left:4px solid var(--ink);padding-left:12px">SURFACE → CORE</div>
+ <div style="flex:1;display:flex;flex-direction:column;gap:14px">
+  <div class="box" style="background:var(--cream);margin-left:0;padding:24px 28px;display:flex;gap:26px;align-items:center;box-shadow:8px 8px 0 var(--ink)"><b style="font-size:32px;width:330px;letter-spacing:-.03em">Workspace UI</b><span style="font-size:23px">React · Vite · TypeScript. Chat, tasks, sources, team, settings, live event streams.</span></div>
+  <div class="box" style="background:var(--lime);margin-left:60px;padding:24px 28px;display:flex;gap:26px;align-items:center;box-shadow:8px 8px 0 var(--ink)"><b style="font-size:32px;width:330px;letter-spacing:-.03em">API &amp; Team</b><span style="font-size:23px">FastAPI · Pydantic · Python 3.12. Accounts, sessions, host allow-list, tokens.</span></div>
+  <div class="box" style="background:var(--pink);margin-left:120px;padding:24px 28px;display:flex;gap:26px;align-items:center;box-shadow:8px 8px 0 var(--ink)"><b style="font-size:32px;width:330px;letter-spacing:-.03em">Coordination</b><span style="font-size:23px">Routing, plan validation, dependencies, permissions, budgets, state, verification.</span></div>
+  <div class="box" style="background:var(--cobalt);color:var(--cream);margin-left:180px;padding:24px 28px;display:flex;gap:26px;align-items:center;box-shadow:8px 8px 0 var(--ink)"><b style="font-size:32px;width:330px;letter-spacing:-.03em">Agent execution</b><span style="font-size:23px">Antigravity SDK 0.1.22: agents, tool calls, native sessions via a model adapter.</span></div>
+  <div class="box" style="background:var(--ink);color:var(--cream);margin-left:240px;padding:24px 28px;display:flex;gap:26px;align-items:center;box-shadow:8px 8px 0 var(--cream)"><b style="font-size:32px;width:330px;letter-spacing:-.03em">Persistence</b><span style="font-size:23px">Markdown · YAML · JSONL · SDK sessions. No database to run.</span></div>
+ </div>
+</div>
+</section>
+
+<!-- 10 CLOUD -->
+<section class="slide t-ink">
+<div class="dots"></div>
+<div class="sec">§ 09 — Google Cloud</div>
+<h2>One container on <span class="sf">Cloud Run.</span></h2>
+<div style="display:flex;gap:44px;flex:1">
+<svg viewBox="0 0 900 600" width="900" height="600" fill="none" font-family="Space Grotesk" style="flex:none;margin-top:6px">
+ <defs><marker id="a2" markerWidth="12" markerHeight="12" refX="9" refY="6" orient="auto"><path d="M0 0 L12 6 L0 12z" fill="#D4FF3A"/></marker></defs>
+ <g stroke="#D4FF3A" stroke-width="3" marker-end="url(#a2)"><path d="M250 120 H 330"/><path d="M450 230 V 330"/><path d="M450 230 L 160 330"/><path d="M450 230 L 740 330"/></g>
+ <rect x="20" y="70" width="230" height="100" stroke="#F2EADB" stroke-width="3"/><text x="135" y="112" text-anchor="middle" font-size="34" font-weight="700" fill="#F2EADB">Users</text><text x="135" y="146" text-anchor="middle" font-size="20" font-family="JetBrains Mono" fill="#a59fb2">browser · HTTPS</text>
+ <rect x="330" y="30" width="260" height="200" fill="#FF4A1C"/><text x="460" y="108" text-anchor="middle" font-size="42" font-weight="700" fill="#14111A">Cloud Run</text><text x="460" y="146" text-anchor="middle" font-size="20" font-family="JetBrains Mono" fill="#14111A">lightgravity service</text><text x="460" y="174" text-anchor="middle" font-size="20" font-family="JetBrains Mono" fill="#14111A">max 1 instance</text><text x="460" y="202" text-anchor="middle" font-size="20" font-family="JetBrains Mono" fill="#14111A">asia-southeast1</text>
+ <rect x="30" y="330" width="260" height="130" stroke="#F2EADB" stroke-width="3"/><text x="160" y="388" text-anchor="middle" font-size="30" font-weight="700" fill="#F2EADB">Cloud Storage</text><text x="160" y="424" text-anchor="middle" font-size="19" font-family="JetBrains Mono" fill="#a59fb2">mounted volume</text>
+ <rect x="320" y="330" width="260" height="130" stroke="#F2EADB" stroke-width="3"/><text x="450" y="388" text-anchor="middle" font-size="30" font-weight="700" fill="#F2EADB">Secret Manager</text><text x="450" y="424" text-anchor="middle" font-size="19" font-family="JetBrains Mono" fill="#a59fb2">keys · tokens</text>
+ <rect x="610" y="330" width="260" height="130" stroke="#F2EADB" stroke-width="3"/><text x="740" y="388" text-anchor="middle" font-size="30" font-weight="700" fill="#F2EADB">Vertex AI</text><text x="740" y="424" text-anchor="middle" font-size="16" font-family="JetBrains Mono" fill="#a59fb2">Gemini · EmbeddingGemma</text>
+ <text x="20" y="530" font-size="21" font-family="JetBrains Mono" fill="#D4FF3A">Single writer: the file store assumes one instance.</text>
+ <text x="20" y="562" font-size="21" font-family="JetBrains Mono" fill="#a59fb2">Multi-instance scale-out → roadmap (slide 15).</text>
+</svg>
+<div style="flex:1;display:flex;flex-direction:column;gap:22px">
+ <div style="background:#05030a;border:3px solid var(--cream);padding:26px 30px;font:400 21px/1.6 'JetBrains Mono',monospace;color:#d9d2e6;white-space:pre"><span style="color:#a59fb2"># deploy</span>
+gcloud run deploy lightgravity \
+  --source . --region asia-southeast1 \
+  --max-instances 1 --cpu 2 --memory 2Gi \
+  --add-volume name=data,type=cloud-storage,\
+bucket=$BUCKET \
+  --add-volume-mount volume=data,mount-path=/data \
+  --set-secrets GEMINI_API_KEY=gemini-key:latest</div>
+ <div class="slot" style="color:var(--acc);border-color:var(--acc);height:100px;font-size:21px">LIVE URL → [ADD https://lightgravity-xxxx.run.app]</div>
+</div></div>
+</section>
+
+<!-- 11 GOVERNANCE : arches -->
+<section class="slide t-cream">
+<div class="sec">§ 10 — Trust by design</div>
+<h2 style="margin-bottom:10px">Autonomy <span class="sf">inside</span> three gates.</h2>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:50px;flex:1;align-items:end;margin-top:6px">
+ <div style="background:var(--cobalt);color:var(--cream);border:4px solid var(--ink);border-radius:360px 360px 0 0;height:640px;padding:150px 44px 0;text-align:center;box-shadow:10px 10px 0 var(--ink)"><div class="sf" style="font-size:120px;line-height:.8;color:var(--lime)">I</div><h3 style="font-size:40px;letter-spacing:-.03em;margin:16px 0 12px">Scope &amp; permissions</h3><p style="font-size:24px;line-height:1.4">Tasks and authorization define scope. Roles and skills never expand permissions.</p></div>
+ <div style="background:var(--verm);border:4px solid var(--ink);border-radius:360px 360px 0 0;height:640px;padding:150px 44px 0;text-align:center;box-shadow:10px 10px 0 var(--ink)"><div class="sf" style="font-size:120px;line-height:.8;color:var(--cream)">II</div><h3 style="font-size:40px;letter-spacing:-.03em;margin:16px 0 12px">Lifecycle budgets</h3><p style="font-size:24px;line-height:1.4">Limits span execution, verification, revision and failed attempts, so cost is judged across the whole delivery.</p></div>
+ <div style="background:var(--lime);border:4px solid var(--ink);border-radius:360px 360px 0 0;height:640px;padding:150px 44px 0;text-align:center;box-shadow:10px 10px 0 var(--ink)"><div class="sf" style="font-size:120px;line-height:.8;color:var(--verm)">III</div><h3 style="font-size:40px;letter-spacing:-.03em;margin:16px 0 12px">Check · review · accept</h3><p style="font-size:24px;line-height:1.4">Machine checks and independent review precede acceptance. Interruption needs confirmed stop.</p></div>
+</div>
+<div style="margin-top:22px;display:flex;gap:6px;flex-wrap:wrap"><span class="tag">Credentials by reference</span><span class="tag">Same-origin runtime token</span><span class="tag">Host allow-list</span><span class="tag">Session invalidation</span><span class="tag">Last-admin protection</span><span class="tag">Loopback default</span></div>
+</section>
+
+<!-- 12 EVIDENCE -->
+<section class="slide t-cobalt">
+<div class="sec">§ 11 — Validation</div>
+<h2>Tested like <span class="sf">production software.</span></h2>
+<p class="lead" style="margin-bottom:10px">Account-management release candidate: frozen, independently QA'd. Figures from the project README.</p>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:4px solid var(--cream);border-bottom:4px solid var(--cream);flex:1;margin-bottom:24px">
+ <div style="padding:30px 30px 0 0;border-right:3px solid var(--cream)"><div style="font:700 140px/0.85 'Space Grotesk';letter-spacing:-.06em;color:var(--lime)">1,061</div><div style="font-size:28px;line-height:1.3;margin-top:20px">backend tests passed<br><span style="color:var(--mute)">2 skipped</span></div></div>
+ <div style="padding:30px 30px 0 40px;border-right:3px solid var(--cream)"><div style="font:700 140px/0.85 'Space Grotesk';letter-spacing:-.06em;color:var(--lime)">181</div><div style="font-size:28px;line-height:1.3;margin-top:20px">frontend tests passed</div></div>
+ <div style="padding:30px 30px 0 40px;border-right:3px solid var(--cream)"><div style="font:700 140px/0.85 'Space Grotesk';letter-spacing:-.06em;color:var(--lime)">30</div><div style="font-size:28px;line-height:1.3;margin-top:20px">Chromium end-to-end tests</div></div>
+ <div style="padding:30px 0 0 40px"><div style="font:700 140px/0.85 'Space Grotesk';letter-spacing:-.06em;color:var(--lime)">27<span class="sf" style="font-size:.6em">/27</span></div><div style="font-size:28px;line-height:1.3;margin-top:20px">live ordinary-browser checks</div></div>
+</div>
+<div style="display:flex;gap:34px;align-items:stretch">
+ <div style="flex:1;font-size:26px;line-height:1.5">+ 18 independent browser checks<br>+ 3 navigation stability samples<br>+ byte-identical product tree across all runs</div>
+ <div class="slot" style="flex:1;color:var(--lime);border-color:var(--lime);min-height:130px">ADD: Cloud Run smoke test passed on deployed URL<br>+ one latency / cost-per-task figure</div>
+</div>
+</section>
+
+<!-- 13 INNOVATION : poster -->
+<section class="slide t-ink">
+<div class="dots bl"></div>
+<div class="sec">§ 12 — Innovation</div>
+<div style="display:flex;flex-direction:column;flex:1;justify-content:space-between">
+ <div style="display:grid;grid-template-columns:1fr 520px;gap:50px;align-items:end;border-bottom:3px solid var(--fg);padding-bottom:16px"><div style="font-size:84px;font-weight:700;letter-spacing:-.045em;line-height:.95"><span class="sf" style="color:var(--acc)">Delivery,</span> not just generation.</div><div style="font-size:22px;line-height:1.4;color:var(--mute)">The unit of work is an accepted deliverable, modelled end to end by Task Ontology.</div></div>
+ <div style="display:grid;grid-template-columns:1fr 520px;gap:50px;align-items:end;border-bottom:3px solid var(--fg);padding-bottom:16px"><div style="font-size:84px;font-weight:700;letter-spacing:-.045em;line-height:.95">Teams governed <span class="sf" style="color:var(--acc)">by code.</span></div><div style="font-size:22px;line-height:1.4;color:var(--mute)">Application code validates plans and writes control state. Models cannot grant themselves permissions or declare completion.</div></div>
+ <div style="display:grid;grid-template-columns:1fr 520px;gap:50px;align-items:end;border-bottom:3px solid var(--fg);padding-bottom:16px"><div style="font-size:84px;font-weight:700;letter-spacing:-.045em;line-height:.95">A reviewer that <span class="sf" style="color:var(--acc)">isn't the author.</span></div><div style="font-size:22px;line-height:1.4;color:var(--mute)">A separate reviewer connection is mandatory for acceptance.</div></div>
+ <div style="display:grid;grid-template-columns:1fr 520px;gap:50px;align-items:end;border-bottom:3px solid var(--fg);padding-bottom:16px"><div style="font-size:84px;font-weight:700;letter-spacing:-.045em;line-height:.95">Files <span class="sf" style="color:var(--acc)">you own.</span></div><div style="font-size:22px;line-height:1.4;color:var(--mute)">Markdown, YAML, JSONL hold the record. Indexes are disposable caches.</div></div>
+ <div style="background:var(--lime);color:var(--ink);padding:18px 28px;font-size:23px;line-height:1.4"><b class="mono" style="letter-spacing:.1em">RESEARCH DIRECTION</b> &nbsp;A governed, self-organizing swarm. Dynamic team assembly exists today; self-organizing behaviour is exploratory.</div>
+</div>
+</section>
+
+<!-- 14 IMPACT -->
+<section class="slide t-cream">
+<div class="sec">§ 13 — Impact · Future of Work</div>
+<h2>Faster work,<br><span class="sf">accountable</span> results.</h2>
+<div style="display:grid;grid-template-columns:1fr 560px;gap:60px;flex:1;margin-top:4px">
+ <div style="display:flex;flex-direction:column;border-top:4px solid var(--ink)">
+  <div style="padding:22px 0;border-bottom:3px solid var(--ink)"><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:46px;letter-spacing:-.03em">Software delivery</b><span class="tag f">Tested scope</span></div><p style="font-size:25px;line-height:1.4;margin-top:6px">Bounded development tasks in an authorized workspace: code, diffs, checks, review.</p></div>
+  <div style="padding:22px 0;border-bottom:3px solid var(--ink)"><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:46px;letter-spacing:-.03em">Knowledge work</b><span class="tag">Expansion</span></div><p style="font-size:25px;line-height:1.4;margin-top:6px">Source-grounded documents and analysis with versioned bindings and provenance.</p></div>
+  <div style="padding:22px 0;border-bottom:3px solid var(--ink)"><div style="display:flex;justify-content:space-between;align-items:baseline"><b style="font-size:46px;letter-spacing:-.03em">Small-team operations</b><span class="tag">Team mode</span></div><p style="font-size:25px;line-height:1.4;margin-top:6px">Members assign, review and accept AI work in one shared record of decisions.</p></div>
+ </div>
+ <div style="display:flex;flex-direction:column;gap:20px">
+  <div style="background:var(--ink);color:var(--cream);padding:26px 30px;flex:1"><div style="font:700 80px/1 'Space Grotesk';color:var(--lime)">[ADD]</div><div style="font-size:24px;line-height:1.35;margin-top:6px">hours saved per delivery task (measured)</div></div>
+  <div style="background:var(--ink);color:var(--cream);padding:26px 30px;flex:1"><div style="font:700 80px/1 'Space Grotesk';color:var(--lime)">[ADD]</div><div style="font-size:24px;line-height:1.35;margin-top:6px">issues caught by independent review</div></div>
+  <div style="background:var(--ink);color:var(--cream);padding:26px 30px;flex:1"><div style="font:700 80px/1 'Space Grotesk';color:var(--lime)">[ADD]</div><div style="font-size:24px;line-height:1.35;margin-top:6px">pilot users / teams</div></div>
+ </div>
+</div>
+</section>
+
+<!-- 15 ROADMAP : rings -->
+<section class="slide t-ink">
+<svg style="position:absolute;left:-520px;top:0;z-index:0" width="1400" height="1080" viewBox="0 0 1400 1080" fill="none">
+ <circle cx="520" cy="540" r="800" stroke="#a59fb2" stroke-opacity=".4" stroke-width="2" stroke-dasharray="4 12"/>
+ <circle cx="520" cy="540" r="600" stroke="#FF4A1C" stroke-width="4"/>
+ <circle cx="520" cy="540" r="400" stroke="#2F2BFF" stroke-width="6"/>
+ <circle cx="520" cy="540" r="200" fill="#D4FF3A"/>
+ <circle cx="1120" cy="540" r="26" fill="#FF4A1C" stroke="#14111A" stroke-width="5"/>
+ <circle cx="920" cy="540" r="22" fill="#2F2BFF" stroke="#14111A" stroke-width="5"/>
+ <circle cx="720" cy="540" r="18" fill="#D4FF3A" stroke="#14111A" stroke-width="4"/>
+</svg>
+<div style="margin-left:820px;position:relative">
+<div class="sec">§ 14 — Scale</div>
+<h2 style="font-size:84px">Roadmap beyond<br>the <span class="sf">prototype.</span></h2>
+<div style="display:flex;flex-direction:column;gap:20px;margin-top:20px">
+ <div style="border-left:12px solid var(--lime);padding:6px 0 6px 28px"><b class="mono" style="color:var(--lime);letter-spacing:.14em;font-size:20px">NOW · CORE</b><p style="font-size:27px;line-height:1.35;margin-top:4px">Shared workspace, admin/member roles, Cloud Run single instance, Gemini + EmbeddingGemma path.</p></div>
+ <div style="border-left:12px solid var(--cobalt);padding:6px 0 6px 28px"><b class="mono" style="color:#8f8cff;letter-spacing:.14em;font-size:20px">NEXT · TEAM PRODUCT</b><p style="font-size:27px;line-height:1.35;margin-top:4px">Feedback-to-change-list, version compare and inline annotations, task following, reusable workflow templates, scheduled tasks.</p></div>
+ <div style="border-left:12px solid var(--verm);padding:6px 0 6px 28px"><b class="mono" style="color:var(--verm);letter-spacing:.14em;font-size:20px">LATER · PLATFORM</b><p style="font-size:27px;line-height:1.35;margin-top:4px">Multi-tenant isolation, private tasks and sources, managed database for multi-instance scale, curated long-term memory, swarm research.</p></div>
+</div>
+<p class="mono" style="font-size:17px;color:var(--mute);margin-top:22px">NEXT and LATER are proposed extensions, not current capabilities or commitments.</p>
+</div>
+</section>
+
+<!-- 16 SCORECARD : treemap -->
+<section class="slide t-cream">
+<div class="sec">§ 15 — Judging criteria map</div>
+<h2>The score, <span class="sf">answered.</span></h2>
+<div style="display:flex;height:560px;border:4px solid var(--ink);box-shadow:12px 12px 0 var(--ink);margin-top:10px">
+ <div style="flex:40;background:var(--cobalt);color:var(--cream);padding:30px 34px;border-right:4px solid var(--ink);display:flex;flex-direction:column;justify-content:space-between"><div><div style="font:700 150px/0.85 'Space Grotesk';letter-spacing:-.06em;color:var(--lime)">40%</div><h3 style="font-size:44px;letter-spacing:-.03em;margin-top:18px;line-height:1">Technical Merit &amp; Gen AI</h3></div><p style="font-size:24px;line-height:1.4">Slides 8–12. Six Gen AI jobs, layered architecture, Cloud Run, 1,000+ tests, scalability roadmap.</p></div>
+ <div style="flex:25;background:var(--verm);padding:30px 30px;border-right:4px solid var(--ink);display:flex;flex-direction:column;justify-content:space-between"><div><div style="font:700 110px/0.85 'Space Grotesk';letter-spacing:-.06em">25%</div><h3 style="font-size:38px;letter-spacing:-.03em;margin-top:18px;line-height:1">Problem &amp; Impact</h3></div><p style="font-size:23px;line-height:1.4">Slides 2–3, 14. Future of Work: accountable AI delivery.</p></div>
+ <div style="flex:25;background:var(--lime);padding:30px 30px;border-right:4px solid var(--ink);display:flex;flex-direction:column;justify-content:space-between"><div><div style="font:700 110px/0.85 'Space Grotesk';letter-spacing:-.06em">25%</div><h3 style="font-size:38px;letter-spacing:-.03em;margin-top:18px;line-height:1">Innovation</h3></div><p style="font-size:23px;line-height:1.4">Slides 7, 13. Task Ontology, governed teams, independent review.</p></div>
+ <div style="flex:10;background:var(--pink);padding:26px 20px;display:flex;flex-direction:column;justify-content:space-between"><div><div style="font:700 64px/0.85 'Space Grotesk';letter-spacing:-.06em">10%</div><h3 style="font-size:26px;letter-spacing:-.03em;margin-top:14px;line-height:1.05">UX &amp; Design</h3></div><p style="font-size:19px;line-height:1.3">Slides 5–6.</p></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:40px;font-size:24px"><div><b>Meaningful Gen AI.</b> Models plan, execute, review, retrieve.</div><div><b>Scalability.</b> Stateless model layer, rebuildable indexes.</div><div><b>Integration.</b> One UI, one task record, one acceptance flow.</div></div>
+</section>
+
+<!-- 17 CLOSE -->
+<section class="slide t-verm">
+<div class="dots"></div>
+<div class="sec">Thank you</div>
+<div style="font-size:190px;font-weight:700;letter-spacing:-.06em;line-height:.86;margin-top:20px">Trust the<br><span class="sf" style="color:var(--cream);font-size:1.1em">delivery,</span><br>not the output.</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:auto;margin-bottom:20px">
+ <div style="background:var(--ink);color:var(--cream);padding:22px 28px"><b class="mono" style="color:var(--lime);letter-spacing:.12em;font-size:18px">LIVE DEMO</b><p style="font-size:25px;margin-top:8px">[ADD Cloud Run URL]</p></div>
+ <div style="background:var(--ink);color:var(--cream);padding:22px 28px"><b class="mono" style="color:var(--lime);letter-spacing:.12em;font-size:18px">CODE</b><p style="font-size:25px;margin-top:8px">[ADD public GitHub URL]</p></div>
+ <div style="background:var(--ink);color:var(--cream);padding:22px 28px"><b class="mono" style="color:var(--lime);letter-spacing:.12em;font-size:18px">VIDEO &lt; 3 MIN</b><p style="font-size:25px;margin-top:8px">[ADD YouTube / Vimeo URL]</p></div>
+</div>
+<div style="font-size:24px;font-weight:500;margin-bottom:6px">Team: [Name · role] · [Name · role] · [Name · role]</div>
+</section>
+
+<!-- APPENDIX A -->
+<section class="slide t-cream">
+<div class="sec">Appendix A — Honest scope</div>
+<h2>Current <span class="sf">limitations.</span></h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:50px;margin-top:10px">
+ <div class="box"><h3>Product</h3><ul><li>One shared workspace, admin and member roles</li><li>No private tasks or sources, no multi-tenancy</li><li>No account deletion, invitations or email sign-up</li><li>Self-organizing swarm is not implemented</li></ul></div>
+ <div class="box"><h3>Technical</h3><ul><li>Gemini / Vertex path: [update status]</li><li>Cross-modal retrieval has documented quality limits</li><li>Embeddings do not replace OCR or transcription</li><li>File-based persistence assumes a single writer</li></ul></div>
+</div>
+</section>
+
+<!-- APPENDIX B -->
+<section class="slide t-cream">
+<div class="sec">Appendix B — Reserved</div>
+<h2>Room to <span class="sf">grow.</span></h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;flex:1;margin-bottom:20px">
+ <div class="slot">RESERVED<br>Extra demo walkthrough screenshots</div><div class="slot">RESERVED<br>Cost / latency benchmark table</div>
+ <div class="slot">RESERVED<br>Pilot user quotes</div><div class="slot">RESERVED<br>Detailed Cloud Run / IAM diagram</div>
+</div>
+</section>
+
+</body>
+</html>

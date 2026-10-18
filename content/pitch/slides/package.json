@@ -1,0 +1,10 @@
+{
+  "name": "lightgravity-pitch-slides",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "present": "npx --yes hyperframes present",
+    "check": "npx --yes hyperframes check",
+    "snapshot": "npx --yes hyperframes snapshot"
+  }
+}
