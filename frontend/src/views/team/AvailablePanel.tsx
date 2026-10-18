@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import type { AvailableAgent } from '../../api/team'
 import { EmptyState } from '../../components/EmptyState'
@@ -104,6 +104,8 @@ export function AvailablePanel({
   const [category, setCategory] = useState('all')
   const [capability, setCapability] = useState('all')
   const [page, setPage] = useState(1)
+  // Reset with actual filter changes, never in a delayed mount effect that
+  // could overwrite a Next click after the asynchronously loaded catalog paints.
 
   const categories = useMemo(
     () => Array.from(new Set(agents.map((agent) => agent.role_category || 'custom'))).sort(),
@@ -129,9 +131,6 @@ export function AvailablePanel({
   const currentPage = Math.min(page, totalPages)
   const pageItems = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
-  useEffect(() => {
-    setPage(1)
-  }, [query, category, capability])
 
   return (
     <div className="lg-team__available">
@@ -142,12 +141,19 @@ export function AvailablePanel({
             type="search"
             value={search}
             placeholder="Name, capability, or keyword"
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value
+              setSearch(value)
+              if (value.trim().toLowerCase() !== query) setPage(1)
+            }}
           />
         </label>
         <label className="lg-field lg-team__filter">
           <span className="lg-field__label">Category</span>
-          <select value={category} onChange={(event) => setCategory(event.target.value)}>
+          <select value={category} onChange={(event) => {
+            const value = event.target.value
+            if (value !== category) { setCategory(value); setPage(1) }
+          }}>
             <option value="all">All categories</option>
             {categories.map((item) => (
               <option key={item} value={item}>
@@ -158,7 +164,10 @@ export function AvailablePanel({
         </label>
         <label className="lg-field lg-team__filter">
           <span className="lg-field__label">Capability</span>
-          <select value={capability} onChange={(event) => setCapability(event.target.value)}>
+          <select value={capability} onChange={(event) => {
+            const value = event.target.value
+            if (value !== capability) { setCapability(value); setPage(1) }
+          }}>
             <option value="all">All capabilities</option>
             {capabilities.map((item) => (
               <option key={item} value={item}>
