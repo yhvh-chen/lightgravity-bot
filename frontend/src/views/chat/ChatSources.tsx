@@ -10,7 +10,7 @@
  * layer (`formal`/`machine`), and — when the backend truncated the body — the
  * explicit truncation feedback (`truncated`, kept vs original char counts).
  *
- * A binding can be opened back in Files (the authoritative material surface);
+ * A binding can be opened back in Tasks (the authoritative material surface);
  * the backlink is an in-app route with the real `source_id`, not a fabricated
  * local file URL.
  */
@@ -20,7 +20,7 @@ import { StatusBadge } from '../../components/StatusBadge'
 
 export interface ChatSourcesProps {
   data: ResolvedSourceBindingsData | null | undefined
-  /** Open one source back in Files at this id (real in-app route). */
+  /** Open one source back in Tasks at this id (real in-app route). */
   onOpen: (sourceId: string) => void
 }
 
@@ -79,7 +79,7 @@ function SourceBindingRow({
         <span className="lg-materials__flag">locator: {binding.locator}</span>
         <span className="lg-materials__flag">{binding.char_count} chars</span>
         <button type="button" className="lg-link-button" onClick={() => onOpen(binding.source_id)}>
-          Open in Files
+          Open in Tasks
         </button>
       </div>
       {binding.truncated && binding.truncation ? (

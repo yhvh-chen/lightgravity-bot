@@ -3,6 +3,31 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
+#: docs/08 §23: 1.22.0 (2026-10-18) is the LG-238 serial assembly of the
+#: additive Google-native English audio MINOR frozen by LG-235 and implemented
+#: by LG-236 (backend) / LG-237 (UI): the ``google-native`` provider
+#: discriminator, protected ``english_asr`` settings view/PUT with a write-only
+#: managed credential, native inline-audio REST transcription (no SDK, Files
+#: API, torch/numpy/Reader or environment product key), additive receipt
+#: ``machine`` provenance, and the LG-229/230 host/call-cap relaxations recorded
+#: in §23.1.  Legacy blocks without ``provider`` keep the 1.20 §21 behavior.
+#: Independent LG-239 version/browser QA is still pending and the public 8123
+#: service remains 1.20.0, so this is an implemented *candidate*, not a
+#: deployment or a quality pass; the old Reader quality FAILED record and all
+#: §18-§22 history are preserved.  No Task/Run/member/``source.status`` enum,
+#: migration direction or HTTP error code is added.  Historical summary follows.
+#:
+#: docs/08 §22: 1.21.0 (2026-10-18) was the LG-206 integrated Tasks-workspace
+#: candidate MINOR: the read-only Team conversation history projection
+#: ``GET /conversations/history`` plus the additive read-time SourceView fields
+#: ``context_selectable``/``context_unavailable_reason`` derived from actual
+#: readable source text.  No existing endpoint, request field, error code,
+#: entity state/phase/acceptance enum, migration direction or permission changes;
+#: old clients ignore the new optional fields and endpoint.  Candidate only:
+#: independent LG-207 version/browser QA is still pending, and the public 8123
+#: service remains 1.20.0.  The frozen English-ASR 1.21 line is not part of this
+#: candidate.  Historical summary follows.
+#:
 #: docs/08 §21: 1.20.0 (2026-10-18) is the LG-162 additive MINOR assembled in this
 #: isolated candidate: optional, default-off, shared-English-audio machine
 #: transcription (EG2 Reader), a protected ``english_asr`` settings view/PUT,
@@ -182,7 +207,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.20.0"
+CONTRACT_VERSION = "1.22.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

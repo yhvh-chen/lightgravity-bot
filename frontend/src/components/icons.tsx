@@ -30,6 +30,7 @@ export type IconName =
   | 'panel-right'
   | 'menu'
   | 'bell'
+  | 'history'
   | 'close'
   | 'send'
   | 'check'
@@ -79,6 +80,11 @@ const PATHS: Record<IconName, string | readonly string[]> = {
   'panel-right': 'M4 4h16v16H4zM14 4v16',
   menu: 'M4 6h16M4 12h16M4 18h16',
   bell: 'M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6zM10 19a2 2 0 0 0 4 0',
+  history: [
+    'M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8',
+    'M3 3v5h5',
+    'M12 7v5l4 2',
+  ],
   close: 'M6 6l12 12M18 6L6 18',
   send: 'M4 12l16-8-6 16-3-6z',
   check: 'M4 12l5 5L20 6',

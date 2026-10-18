@@ -356,7 +356,7 @@ export function TeamView(props: TeamViewProps = {}) {
         `Request: consider recruiting role "${agent.title}" (${agent.id}) for this Task. ` +
           'This is an intent only; the coordinator still validates and decides the team.',
       )
-      navigate('chat')
+      navigate('tasks')
     },
     [navigate, openChatDraft, taskRef],
   )

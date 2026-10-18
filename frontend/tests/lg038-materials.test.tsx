@@ -264,7 +264,7 @@ describe('ChatSourceSearch', () => {
     fireEvent.click(screen.getByText('Search'))
     await screen.findByText('invoice.pdf')
     expect(screen.getByText('v3')).toBeTruthy()
-    fireEvent.click(screen.getByText('Open in Files'))
+    fireEvent.click(screen.getByText('Open in Tasks'))
     expect(onOpen).toHaveBeenCalledWith('source_01J')
   })
 

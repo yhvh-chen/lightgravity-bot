@@ -1,5 +1,5 @@
 /**
- * Admin English transcription configuration (LG-161; docs/08 §21, design.md §5).
+ * Admin English transcription configuration (LG-161; docs/08 §21, §23; design.md §5).
  *
  * The form is shown only when the existing protected `GET /settings` response
  * contains `english_asr`. It is **not** gated on `capabilities.english_asr` or
@@ -7,11 +7,19 @@
  * permission to configure, so default-off/missing-runtime states must still be
  * configurable. An old backend omits the view and no new endpoint is probed.
  *
+ * Provider-aware (additive 1.22 candidate):
+ * * Legacy blocks (no `provider` or `eg2-reader`) keep the local model/Reader
+ *   paths and existing limits.
+ * * Google native blocks use a model id, base URL, write-only API key and the
+ *   official inline request limits. They never render or require Reader/model
+ *   directories or the Reader 30-second boundary.
+ *
  * Boundaries:
- * * `model_dir`/`reader_dir` are write-only; the read view never returns them.
- *   Blank inputs are omitted (retain stored paths), never sent as `""`/`null`.
+ * * Credentials are write-only: blank means retain; the typed value is cleared
+ *   after save/close/provider switch and is never written to storage or the URL.
  * * No TTS, Reader, transcription, download, install, train or test-inference
- *   action exists here. Saving only persists/validates configuration.
+ *   action exists here. Saving only persists/validates configuration and never
+ *   proves that Google, its key or the model is reachable.
  * * A saved settings response is never presented as transcription success.
  */
 
@@ -20,12 +28,24 @@ import { createPortal } from 'react-dom'
 
 import { ApiError } from '../../api/client'
 import {
+  englishAsrProvider,
   englishAsrReasonLabel,
   type EnglishAsrApi,
+  type EnglishAsrProvider,
   type EnglishAsrSettingsView,
   type EnglishAsrUpdateInput,
   type EnglishAsrUpdateResult,
 } from '../../api/englishAsr'
+import {
+  GOOGLE_ASR_DEFAULT_BASE_URL,
+  GOOGLE_ASR_DEFAULT_MAX_AUDIO_BYTES,
+  GOOGLE_ASR_DEFAULT_MODEL,
+  GOOGLE_ASR_DEFAULT_TIMEOUT_SECONDS,
+  GOOGLE_ASR_MAX_AUDIO_BYTES,
+  GOOGLE_ASR_MAX_REQUEST_BYTES,
+  GOOGLE_ASR_MAX_TIMEOUT_SECONDS,
+  GOOGLE_ASR_MIN_TIMEOUT_SECONDS,
+} from '../../api/googleAsr'
 import { ErrorState } from '../../components/ErrorState'
 import { StatusBadge, type StatusKind } from '../../components/StatusBadge'
 import { toApiError } from './apiError'
@@ -39,6 +59,11 @@ export interface EnglishAsrPanelProps {
   /** Re-read the existing protected `GET /settings` document (no new probe). */
   onReload?: () => Promise<EnglishAsrSettingsView | null>
 }
+
+const LEGACY_PROVIDER: EnglishAsrProvider = 'eg2-reader'
+const GOOGLE_PROVIDER: EnglishAsrProvider = 'google-native'
+const GOOGLE_MODEL_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/
+const GOOGLE_BASE_PATH = '/v1beta'
 
 function validationError(message: string): ApiError {
   return new ApiError({
@@ -78,6 +103,25 @@ function integerField(
   return value
 }
 
+/**
+ * Client pre-check of the frozen Google base URL shape. The backend remains the
+ * authority; this only keeps obvious typos from a pointless save round trip.
+ */
+export function isValidGoogleBaseUrl(raw: string): boolean {
+  let parsed: URL
+  try {
+    parsed = new URL(raw)
+  } catch {
+    return false
+  }
+  if (parsed.protocol !== 'https:') return false
+  if (parsed.username || parsed.password) return false
+  if (parsed.search || parsed.hash) return false
+  if (parsed.hostname !== 'generativelanguage.googleapis.com') return false
+  if (parsed.port && parsed.port !== '443') return false
+  return parsed.pathname === GOOGLE_BASE_PATH || parsed.pathname === `${GOOGLE_BASE_PATH}/`
+}
+
 function mergeView(
   current: EnglishAsrSettingsView,
   next: EnglishAsrSettingsView,
@@ -94,10 +138,22 @@ function limitValue(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback
 }
 
+function nullableLimitValue(value: unknown, fallback: number): number | null {
+  return value === null ? null : limitValue(value, fallback)
+}
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function defaultModel(view: EnglishAsrSettingsView): string {
+  return view.model ?? GOOGLE_ASR_DEFAULT_MODEL
+}
+
+function defaultBaseUrl(view: EnglishAsrSettingsView): string {
+  return view.base_url ?? GOOGLE_ASR_DEFAULT_BASE_URL
 }
 
 export function englishAsrAvailabilityKind(view: EnglishAsrSettingsView): StatusKind {
@@ -106,12 +162,20 @@ export function englishAsrAvailabilityKind(view: EnglishAsrSettingsView): Status
   return 'warning'
 }
 
+export function englishAsrProviderLabel(view: EnglishAsrSettingsView): string {
+  return englishAsrProvider(view) === GOOGLE_PROVIDER
+    ? 'Google native'
+    : 'EG2 + Reader (legacy)'
+}
+
 /**
  * Compact shared status badges for the Settings summary and the editor.
  * `enabled` intentionally is not rendered as a success state: enabling the
- * setting is not proof that the in-process runtime is available.
+ * setting is not proof that processing is available or that credentials work.
  */
 export function EnglishAsrStatusBadges({ view }: { view: EnglishAsrSettingsView }) {
+  const provider = englishAsrProvider(view)
+  const google = provider === GOOGLE_PROVIDER
   return (
     <div className="lg-english-asr-status" aria-label="English transcription status">
       <StatusBadge kind={view.enabled ? 'accent' : 'neutral'}>
@@ -123,6 +187,14 @@ export function EnglishAsrStatusBadges({ view }: { view: EnglishAsrSettingsView 
       <StatusBadge kind={englishAsrAvailabilityKind(view)}>
         {view.available ? 'available' : 'unavailable'}
       </StatusBadge>
+      <StatusBadge kind={google ? 'accent' : 'neutral'}>
+        {google ? 'Google native' : 'EG2 + Reader (legacy)'}
+      </StatusBadge>
+      {google ? (
+        <StatusBadge kind={view.credential_configured ? 'accent' : 'warning'}>
+          {view.credential_configured ? 'API key configured' : 'API key not configured'}
+        </StatusBadge>
+      ) : null}
       <StatusBadge kind="neutral">English</StatusBadge>
       <StatusBadge kind={view.timestamps_supported ? 'accent' : 'neutral'}>
         {view.timestamps_supported ? 'word timestamps supported' : 'word timestamps not available'}
@@ -133,14 +205,16 @@ export function EnglishAsrStatusBadges({ view }: { view: EnglishAsrSettingsView 
 
 /**
  * Real reason / availability sentence. Uses only the view fields; never turns
- * a missing runtime or absent capability into "enabled" or "verified".
+ * a missing runtime, key or capability into "enabled" or "verified".
  */
 export function EnglishAsrStatusNote({ view }: { view: EnglishAsrSettingsView }) {
+  const google = englishAsrProvider(view) === GOOGLE_PROVIDER
   if (view.available) {
     return (
       <p className="lg-field__hint" role="note">
-        Processing availability is reported as available. Per-file success still comes from the
-        source receipt; saving settings does not run transcription.
+        {google
+          ? 'Native Google transcription is configured and can be attempted, but the key, model and network are not verified. Per-file success comes only from the source receipt; saving settings does not run transcription.'
+          : 'Processing availability is reported as available. Per-file success still comes from the source receipt; saving settings does not run transcription.'}
       </p>
     )
   }
@@ -167,10 +241,15 @@ export function EnglishAsrPanel({
   onClose,
   onReload,
 }: EnglishAsrPanelProps) {
+  const initialProvider = englishAsrProvider(view)
   const [currentView, setCurrentView] = useState(view)
+  const [provider, setProvider] = useState<EnglishAsrProvider>(initialProvider)
   const [enabled, setEnabled] = useState(view.enabled)
   const [modelDir, setModelDir] = useState('')
   const [readerDir, setReaderDir] = useState('')
+  const [model, setModel] = useState(defaultModel(view))
+  const [baseUrl, setBaseUrl] = useState(defaultBaseUrl(view))
+  const [apiKey, setApiKey] = useState('')
   const [timeoutSeconds, setTimeoutSeconds] = useState(
     String(limitValue(view.limits.timeout_seconds, 180)),
   )
@@ -178,7 +257,7 @@ export function EnglishAsrPanel({
     String(limitValue(view.limits.max_audio_seconds, 30)),
   )
   const [maxAudioBytes, setMaxAudioBytes] = useState(
-    String(limitValue(view.limits.max_audio_bytes, 10_000_000)),
+    String(limitValue(view.limits.max_audio_bytes, GOOGLE_ASR_DEFAULT_MAX_AUDIO_BYTES)),
   )
   const [pending, setPending] = useState<'save' | 'reload' | null>(null)
   const [saveError, setSaveError] = useState<ApiError | null>(null)
@@ -188,16 +267,50 @@ export function EnglishAsrPanel({
   const dialogRef = useRef<HTMLDivElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
   const mountedRef = useRef(true)
+  /**
+   * Any draft/provider change bumps this token. A late save/reload response
+   * from an older token is ignored, so it can never repopulate a previous
+   * provider's secret or overwrite the current provider fields.
+   */
+  const draftVersionRef = useRef(0)
+
+  const google = provider === GOOGLE_PROVIDER
+  const currentProvider = englishAsrProvider(currentView)
+  const googleSecretConfigured =
+    currentProvider === GOOGLE_PROVIDER && Boolean(currentView.credential_configured)
+  const legacyConfigured =
+    currentProvider === LEGACY_PROVIDER && Boolean(currentView.configured)
 
   const dirty =
+    provider !== currentProvider ||
     enabled !== currentView.enabled ||
-    Boolean(modelDir.trim()) ||
-    Boolean(readerDir.trim()) ||
-    timeoutSeconds !== String(limitValue(currentView.limits.timeout_seconds, 180)) ||
-    maxAudioSeconds !== String(limitValue(currentView.limits.max_audio_seconds, 30)) ||
-    maxAudioBytes !== String(limitValue(currentView.limits.max_audio_bytes, 10_000_000))
+    (google
+      ? model.trim() !== defaultModel(currentView).trim() ||
+        baseUrl.trim() !== defaultBaseUrl(currentView).trim() ||
+        Boolean(apiKey) ||
+        timeoutSeconds !== String(limitValue(currentView.limits.timeout_seconds, 180)) ||
+        maxAudioBytes !==
+          String(limitValue(currentView.limits.max_audio_bytes, GOOGLE_ASR_DEFAULT_MAX_AUDIO_BYTES))
+      : Boolean(modelDir.trim()) ||
+        Boolean(readerDir.trim()) ||
+        timeoutSeconds !== String(limitValue(currentView.limits.timeout_seconds, 180)) ||
+        maxAudioSeconds !==
+          String(limitValue(currentView.limits.max_audio_seconds, 30)) ||
+        maxAudioBytes !==
+          String(limitValue(currentView.limits.max_audio_bytes, 10_000_000)))
 
   const busy = pending !== null
+
+  function touchDraft(): void {
+    draftVersionRef.current += 1
+    setDiscardOpen(false)
+    setSaveError(null)
+    setNotice(null)
+  }
+
+  function clearSecret(): void {
+    setApiKey('')
+  }
 
   useEffect(() => {
     mountedRef.current = true
@@ -238,16 +351,87 @@ export function EnglishAsrPanel({
     }
   }, [])
 
+  function finishClose(): void {
+    clearSecret()
+    onClose()
+  }
+
   function requestClose(): void {
     if (pending === 'save') return
     if (dirty) {
       setDiscardOpen(true)
       return
     }
-    onClose()
+    finishClose()
+  }
+
+  function applyView(nextView: EnglishAsrSettingsView): void {
+    setCurrentView(nextView)
+    setProvider(englishAsrProvider(nextView))
+    setEnabled(nextView.enabled)
+    setTimeoutSeconds(String(limitValue(nextView.limits.timeout_seconds, 180)))
+    setMaxAudioSeconds(String(limitValue(nextView.limits.max_audio_seconds, 30)))
+    setMaxAudioBytes(
+      String(limitValue(nextView.limits.max_audio_bytes, GOOGLE_ASR_DEFAULT_MAX_AUDIO_BYTES)),
+    )
+    setModel(defaultModel(nextView))
+    setBaseUrl(defaultBaseUrl(nextView))
+    setModelDir('')
+    setReaderDir('')
+    setDiscardOpen(false)
   }
 
   function saveInput(): EnglishAsrUpdateInput | ApiError {
+    if (google) {
+      const timeout = integerField(
+        timeoutSeconds,
+        GOOGLE_ASR_MIN_TIMEOUT_SECONDS,
+        GOOGLE_ASR_MAX_TIMEOUT_SECONDS,
+        'Timeout seconds',
+      )
+      if (timeout instanceof ApiError) return timeout
+      const maxBytes = integerField(
+        maxAudioBytes,
+        1,
+        GOOGLE_ASR_MAX_AUDIO_BYTES,
+        'Maximum audio bytes',
+      )
+      if (maxBytes instanceof ApiError) return maxBytes
+
+      const modelValue = model.trim() || GOOGLE_ASR_DEFAULT_MODEL
+      if (!GOOGLE_MODEL_PATTERN.test(modelValue)) {
+        return validationError(
+          'Model must start with a letter or digit and use only letters, digits, dot, underscore or hyphen.',
+        )
+      }
+      const baseValue = baseUrl.trim() || GOOGLE_ASR_DEFAULT_BASE_URL
+      if (!isValidGoogleBaseUrl(baseValue)) {
+        return validationError(
+          'Base URL must be the secure Google Generative Language API endpoint at https://generativelanguage.googleapis.com/v1beta.',
+        )
+      }
+      const newSecret = apiKey.trim()
+      if (enabled && !googleSecretConfigured && !newSecret) {
+        return validationError(
+          'Enter a Google API key before enabling native Google transcription for the first time.',
+        )
+      }
+
+      const input: EnglishAsrUpdateInput = {
+        expected_revision: currentView.revision,
+        enabled,
+        provider: GOOGLE_PROVIDER,
+        runtime: 'google-native',
+        model: modelValue,
+        base_url: baseValue,
+        timeout_seconds: timeout,
+        max_audio_bytes: maxBytes,
+      }
+      // Blank means retain the stored secret; never send ""/null.
+      if (newSecret) input.credential_value = newSecret
+      return input
+    }
+
     const timeout = integerField(timeoutSeconds, 30, 180, 'Timeout seconds')
     if (timeout instanceof ApiError) return timeout
     const maxSeconds = integerField(maxAudioSeconds, 1, 30, 'Maximum audio seconds')
@@ -255,23 +439,24 @@ export function EnglishAsrPanel({
     const maxBytes = integerField(maxAudioBytes, 1, 10_000_000, 'Maximum audio bytes')
     if (maxBytes instanceof ApiError) return maxBytes
 
-    const model = modelDir.trim()
-    const reader = readerDir.trim()
-    if (enabled && !currentView.configured && (!model || !reader)) {
+    const nextModelDir = modelDir.trim()
+    const nextReaderDir = readerDir.trim()
+    if (enabled && !legacyConfigured && (!nextModelDir || !nextReaderDir)) {
       return validationError(
         'The first enable requires both absolute local asset directories: model assets and reader assets.',
       )
     }
-    if (model && !isAbsoluteLocalPath(model)) {
+    if (nextModelDir && !isAbsoluteLocalPath(nextModelDir)) {
       return validationError('The model assets directory must be an absolute local directory.')
     }
-    if (reader && !isAbsoluteLocalPath(reader)) {
+    if (nextReaderDir && !isAbsoluteLocalPath(nextReaderDir)) {
       return validationError('The reader assets directory must be an absolute local directory.')
     }
 
     const input: EnglishAsrUpdateInput = {
       expected_revision: currentView.revision,
       enabled,
+      provider: LEGACY_PROVIDER,
       runtime: 'inprocess',
       device: 'cpu',
       timeout_seconds: timeout,
@@ -279,8 +464,8 @@ export function EnglishAsrPanel({
       max_audio_bytes: maxBytes,
     }
     // Blank paths are omitted so the backend retains the stored directories.
-    if (model) input.model_dir = model
-    if (reader) input.reader_dir = reader
+    if (nextModelDir) input.model_dir = nextModelDir
+    if (nextReaderDir) input.reader_dir = nextReaderDir
     return input
   }
 
@@ -293,25 +478,31 @@ export function EnglishAsrPanel({
       setSaveError(input)
       return
     }
+    const requestVersion = draftVersionRef.current
+    const requestProvider = provider
     setPending('save')
     try {
       const result = await api.update(input)
       if (!mountedRef.current) return
+      clearSecret()
+      if (draftVersionRef.current !== requestVersion || provider !== requestProvider) {
+        // Never apply an old provider's response to the current draft.
+        setNotice(
+          'A late settings response was ignored because the form changed. Reload the current settings before saving again.',
+        )
+        return
+      }
       const nextView = mergeView(currentView, result.english_asr)
-      setCurrentView(nextView)
-      setEnabled(nextView.enabled)
-      setTimeoutSeconds(String(limitValue(nextView.limits.timeout_seconds, 180)))
-      setMaxAudioSeconds(String(limitValue(nextView.limits.max_audio_seconds, 30)))
-      setMaxAudioBytes(String(limitValue(nextView.limits.max_audio_bytes, 10_000_000)))
-      setModelDir('')
-      setReaderDir('')
-      setDiscardOpen(false)
+      applyView(nextView)
       setNotice(
-        `English transcription settings saved at revision ${result.english_asr.revision}. Saving does not run transcription or prove processing availability.`,
+        `${englishAsrProviderLabel(nextView)} settings saved at revision ${
+          result.english_asr.revision
+        }. Saving does not run transcription or prove that the provider, key or model is reachable.`,
       )
       onSaved(result)
     } catch (cause) {
       if (!mountedRef.current) return
+      // Keep the typed credential on failure so the admin can correct and retry.
       setSaveError(toApiError(cause))
     } finally {
       if (mountedRef.current) setPending(null)
@@ -320,11 +511,13 @@ export function EnglishAsrPanel({
 
   async function handleReload(): Promise<void> {
     if (busy || !onReload) return
+    const requestVersion = draftVersionRef.current
     setPending('reload')
     setNotice(null)
     try {
       const latest = await onReload()
       if (!mountedRef.current) return
+      clearSecret()
       if (!latest) {
         setSaveError(
           validationError(
@@ -333,15 +526,14 @@ export function EnglishAsrPanel({
         )
         return
       }
-      setCurrentView(latest)
-      setEnabled(latest.enabled)
-      setTimeoutSeconds(String(limitValue(latest.limits.timeout_seconds, 180)))
-      setMaxAudioSeconds(String(limitValue(latest.limits.max_audio_seconds, 30)))
-      setMaxAudioBytes(String(limitValue(latest.limits.max_audio_bytes, 10_000_000)))
-      setModelDir('')
-      setReaderDir('')
+      if (draftVersionRef.current !== requestVersion) {
+        setNotice(
+          'A late settings reload was ignored because the form changed. The current draft was kept.',
+        )
+        return
+      }
+      applyView(latest)
       setSaveError(null)
-      setDiscardOpen(false)
       setNotice(`Loaded the current English transcription revision ${latest.revision}.`)
     } catch (cause) {
       if (!mountedRef.current) return
@@ -354,6 +546,8 @@ export function EnglishAsrPanel({
   const limits = currentView.limits
   const encoder = currentView.models.encoder ?? null
   const reader = currentView.models.reader ?? null
+  const maxRequestBytes = limitValue(limits.max_request_bytes, GOOGLE_ASR_MAX_REQUEST_BYTES)
+  const safeAudioSeconds = nullableLimitValue(limits.max_audio_seconds, 30)
 
   return createPortal(
     <div
@@ -410,8 +604,8 @@ export function EnglishAsrPanel({
             </h2>
             <p className="lg-field__hint">
               Shared English audio only. Machine transcripts are provenance-labelled and never
-              replace the human formal version. No TTS, download, install, training or test
-              inference is performed here.
+              replace the human formal version. Choose Google native or the legacy EG2 + Reader
+              provider. No TTS, download, install, training or test inference is performed here.
             </p>
           </div>
           <button
@@ -459,12 +653,34 @@ export function EnglishAsrPanel({
 
           <EnglishAsrStatusBadges view={currentView} />
           <p className="lg-field__hint">
-            Revision {currentView.revision} · runtime {currentView.runtime} · configured{' '}
+            Revision {currentView.revision} · runtime {currentView.runtime} · provider{' '}
+            {englishAsrProviderLabel(currentView)} · configured{' '}
             {currentView.configured ? 'yes' : 'no'} · available{' '}
             {currentView.available ? 'yes' : 'no'} · reason:{' '}
             {currentView.available ? 'none' : englishAsrReasonLabel(currentView.reason)}
           </p>
           <EnglishAsrStatusNote view={currentView} />
+
+          <label className="lg-field">
+            <span className="lg-field__label">Provider</span>
+            <select
+              className="lg-field__input"
+              value={provider}
+              onChange={(event) => {
+                const next = event.target.value as EnglishAsrProvider
+                setProvider(next)
+                clearSecret()
+                touchDraft()
+              }}
+            >
+              <option value={GOOGLE_PROVIDER}>Google native audio</option>
+              <option value={LEGACY_PROVIDER}>EG2 + Reader (legacy)</option>
+            </select>
+          </label>
+          <p className="lg-field__hint">
+            Google native calls the Gemini audio API directly. The legacy provider requires local
+            model assets and keeps its original limits.
+          </p>
 
           <label className="lg-field lg-field--inline">
             <input
@@ -472,7 +688,7 @@ export function EnglishAsrPanel({
               checked={enabled}
               onChange={(event) => {
                 setEnabled(event.target.checked)
-                setDiscardOpen(false)
+                touchDraft()
               }}
               disabled={pending === 'save'}
             />
@@ -483,146 +699,322 @@ export function EnglishAsrPanel({
             Saving does not start transcription.
           </p>
 
-          <label className="lg-field">
-            <span className="lg-field__label">Model assets directory (write-only)</span>
-            <input
-              className="lg-field__input"
-              value={modelDir}
-              onChange={(event) => {
-                setModelDir(event.target.value)
-                setDiscardOpen(false)
-              }}
-              placeholder={
-                currentView.configured
-                  ? 'Leave blank to keep the stored path'
-                  : '/absolute/local/path/to/google__embeddinggemma-2'
-              }
-              autoComplete="off"
-              spellCheck={false}
-              disabled={pending === 'save'}
-            />
-          </label>
-          <label className="lg-field">
-            <span className="lg-field__label">Reader assets directory (write-only)</span>
-            <input
-              className="lg-field__input"
-              value={readerDir}
-              onChange={(event) => {
-                setReaderDir(event.target.value)
-                setDiscardOpen(false)
-              }}
-              placeholder={
-                currentView.configured
-                  ? 'Leave blank to keep the stored path'
-                  : '/absolute/local/path/to/eg2-reader-v2'
-              }
-              autoComplete="off"
-              spellCheck={false}
-              disabled={pending === 'save'}
-            />
-          </label>
-          <p className="lg-field__hint">
-            Saved directory paths are hidden. Leave a field blank to keep its saved path.
-            Enter both directories when enabling transcription for the first time.
-          </p>
-
-          <details className="lg-disclosure" aria-label="English transcription limits and runtime">
-            <summary className="lg-disclosure__summary">Limits and runtime</summary>
-            <div className="lg-disclosure__body">
+          {google ? (
+            <>
               <label className="lg-field">
-                <span className="lg-field__label">Request timeout (seconds, 30–180)</span>
+                <span className="lg-field__label">Model</span>
                 <input
                   className="lg-field__input"
-                  type="number"
-                  min="30"
-                  max="180"
-                  step="1"
-                  value={timeoutSeconds}
-                  onChange={(event) => setTimeoutSeconds(event.target.value)}
-                  disabled={pending === 'save'}
-                />
-              </label>
-              <label className="lg-field">
-                <span className="lg-field__label">Maximum audio seconds (1–30)</span>
-                <input
-                  className="lg-field__input"
-                  type="number"
-                  min="1"
-                  max="30"
-                  step="1"
-                  value={maxAudioSeconds}
-                  onChange={(event) => setMaxAudioSeconds(event.target.value)}
-                  disabled={pending === 'save'}
-                />
-              </label>
-              <label className="lg-field">
-                <span className="lg-field__label">Maximum audio bytes (1–10,000,000)</span>
-                <input
-                  className="lg-field__input"
-                  type="number"
-                  min="1"
-                  max="10000000"
-                  step="1"
-                  value={maxAudioBytes}
-                  onChange={(event) => setMaxAudioBytes(event.target.value)}
+                  value={model}
+                  onChange={(event) => {
+                    setModel(event.target.value)
+                    touchDraft()
+                  }}
+                  placeholder={GOOGLE_ASR_DEFAULT_MODEL}
+                  autoComplete="off"
+                  spellCheck={false}
                   disabled={pending === 'save'}
                 />
               </label>
               <p className="lg-field__hint">
-                Runtime is fixed to in-process CPU and concurrency is fixed to{' '}
-                {limitValue(limits.max_concurrency, 1)}. Thread count is not exposed by the read
-                view, so this form omits it rather than overwriting the backend value.
+                Default {GOOGLE_ASR_DEFAULT_MODEL}. The form never probes or switches models
+                automatically.
               </p>
-            </div>
-          </details>
 
-          <details className="lg-disclosure" aria-label="Pinned English transcription models">
-            <summary className="lg-disclosure__summary">Pinned models and hashes</summary>
-            <div className="lg-disclosure__body">
-              <dl className="lg-connection-row__facts">
-                <div>
-                  <dt>Encoder</dt>
-                  <dd className="lg-card__path">
-                    {encoder ? `${encoder.id} @ ${encoder.revision}` : 'not reported'}
-                  </dd>
-                </div>
-                {encoder?.sha256 ? (
-                  <div>
-                    <dt>Encoder SHA-256</dt>
-                    <dd className="lg-card__path">{encoder.sha256}</dd>
-                  </div>
-                ) : null}
-                {encoder?.license ? (
-                  <div>
-                    <dt>Encoder license</dt>
-                    <dd>{encoder.license}</dd>
-                  </div>
-                ) : null}
-                <div>
-                  <dt>Reader</dt>
-                  <dd className="lg-card__path">
-                    {reader ? `${reader.id} @ ${reader.revision}` : 'not reported'}
-                  </dd>
-                </div>
-                {reader?.sha256 ? (
-                  <div>
-                    <dt>Reader SHA-256</dt>
-                    <dd className="lg-card__path">{reader.sha256}</dd>
-                  </div>
-                ) : null}
-                {reader?.license ? (
-                  <div>
-                    <dt>Reader license</dt>
-                    <dd>{reader.license}</dd>
-                  </div>
-                ) : null}
-              </dl>
+              <label className="lg-field">
+                <span className="lg-field__label">Base URL</span>
+                <input
+                  className="lg-field__input"
+                  value={baseUrl}
+                  onChange={(event) => {
+                    setBaseUrl(event.target.value)
+                    touchDraft()
+                  }}
+                  placeholder={GOOGLE_ASR_DEFAULT_BASE_URL}
+                  autoComplete="off"
+                  spellCheck={false}
+                  disabled={pending === 'save'}
+                />
+              </label>
               <p className="lg-field__hint">
-                Assets are admin-provisioned local files. The product never downloads, installs,
-                trains or replaces them from this form.
+                Use the native Google Generative Language API endpoint, not an OpenAI-compatible
+                path.
               </p>
-            </div>
-          </details>
+
+              <label className="lg-field">
+                <span className="lg-field__label">Google API key (write-only)</span>
+                <input
+                  className="lg-field__input"
+                  type="password"
+                  value={apiKey}
+                  onChange={(event) => {
+                    setApiKey(event.target.value)
+                    touchDraft()
+                  }}
+                  placeholder={
+                    googleSecretConfigured
+                      ? 'Leave blank to keep the configured API key'
+                      : 'Enter the Google API key'
+                  }
+                  autoComplete="new-password"
+                  spellCheck={false}
+                  disabled={pending === 'save'}
+                />
+              </label>
+              <p className="lg-field__hint">
+                {googleSecretConfigured
+                  ? 'An API key is stored. It is never shown again; leave blank to keep it.'
+                  : 'The key is sent only for this save and is cleared afterwards. It is not stored in the browser.'}
+              </p>
+
+              <details
+                className="lg-disclosure"
+                aria-label="Google transcription limits and runtime"
+              >
+                <summary className="lg-disclosure__summary">Limits and runtime</summary>
+                <div className="lg-disclosure__body">
+                  <label className="lg-field">
+                    <span className="lg-field__label">
+                      Request timeout (seconds, {GOOGLE_ASR_MIN_TIMEOUT_SECONDS}–
+                      {GOOGLE_ASR_MAX_TIMEOUT_SECONDS})
+                    </span>
+                    <input
+                      className="lg-field__input"
+                      type="number"
+                      min={GOOGLE_ASR_MIN_TIMEOUT_SECONDS}
+                      max={GOOGLE_ASR_MAX_TIMEOUT_SECONDS}
+                      step="1"
+                      value={timeoutSeconds}
+                      onChange={(event) => {
+                        setTimeoutSeconds(event.target.value)
+                        touchDraft()
+                      }}
+                      disabled={pending === 'save'}
+                    />
+                  </label>
+                  <label className="lg-field">
+                    <span className="lg-field__label">
+                      Maximum audio bytes (1–{GOOGLE_ASR_MAX_AUDIO_BYTES.toLocaleString()})
+                    </span>
+                    <input
+                      className="lg-field__input"
+                      type="number"
+                      min="1"
+                      max={GOOGLE_ASR_MAX_AUDIO_BYTES}
+                      step="1"
+                      value={maxAudioBytes}
+                      onChange={(event) => {
+                        setMaxAudioBytes(event.target.value)
+                        touchDraft()
+                      }}
+                      disabled={pending === 'save'}
+                    />
+                  </label>
+                  <p className="lg-field__hint">
+                    Google inline audio is not subject to the legacy short-audio cap. The total
+                    request limit is {formatBytes(maxRequestBytes)} including audio encoding
+                    overhead; it is fixed by the provider and read-only here. Runtime is fixed to
+                    Google native with concurrency {limitValue(limits.max_concurrency, 1)}.
+                  </p>
+                </div>
+              </details>
+
+              <details className="lg-disclosure" aria-label="Google native model summary">
+                <summary className="lg-disclosure__summary">Model and endpoint</summary>
+                <div className="lg-disclosure__body">
+                  <dl className="lg-connection-row__facts">
+                    <div>
+                      <dt>Provider</dt>
+                      <dd>Google native</dd>
+                    </div>
+                    <div>
+                      <dt>Configured model</dt>
+                      <dd>{currentView.model ?? 'not reported'}</dd>
+                    </div>
+                    <div>
+                      <dt>Endpoint host</dt>
+                      <dd className="lg-card__path">
+                        {currentView.base_url ?? GOOGLE_ASR_DEFAULT_BASE_URL}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Credential</dt>
+                      <dd>
+                        {currentView.credential_configured
+                          ? 'API key stored'
+                          : 'no API key stored'}
+                      </dd>
+                    </div>
+                  </dl>
+                  <p className="lg-field__hint">
+                    Managed model metadata and hashes are not reported for this provider. Saving
+                    does not verify the key or model; a source receipt is the only per-file success
+                    evidence.
+                  </p>
+                </div>
+              </details>
+            </>
+          ) : (
+            <>
+              <label className="lg-field">
+                <span className="lg-field__label">Model assets directory (write-only)</span>
+                <input
+                  className="lg-field__input"
+                  value={modelDir}
+                  onChange={(event) => {
+                    setModelDir(event.target.value)
+                    touchDraft()
+                  }}
+                  placeholder={
+                    legacyConfigured
+                      ? 'Leave blank to keep the stored path'
+                      : '/absolute/local/path/to/google__embeddinggemma-2'
+                  }
+                  autoComplete="off"
+                  spellCheck={false}
+                  disabled={pending === 'save'}
+                />
+              </label>
+              <label className="lg-field">
+                <span className="lg-field__label">Reader assets directory (write-only)</span>
+                <input
+                  className="lg-field__input"
+                  value={readerDir}
+                  onChange={(event) => {
+                    setReaderDir(event.target.value)
+                    touchDraft()
+                  }}
+                  placeholder={
+                    legacyConfigured
+                      ? 'Leave blank to keep the stored path'
+                      : '/absolute/local/path/to/eg2-reader-v2'
+                  }
+                  autoComplete="off"
+                  spellCheck={false}
+                  disabled={pending === 'save'}
+                />
+              </label>
+              <p className="lg-field__hint">
+                Saved directory paths are hidden. Leave a field blank to keep its saved path.
+                Enter both directories when enabling transcription for the first time.
+              </p>
+
+              <details
+                className="lg-disclosure"
+                aria-label="English transcription limits and runtime"
+              >
+                <summary className="lg-disclosure__summary">Limits and runtime</summary>
+                <div className="lg-disclosure__body">
+                  <label className="lg-field">
+                    <span className="lg-field__label">Request timeout (seconds, 30–180)</span>
+                    <input
+                      className="lg-field__input"
+                      type="number"
+                      min="30"
+                      max="180"
+                      step="1"
+                      value={timeoutSeconds}
+                      onChange={(event) => {
+                        setTimeoutSeconds(event.target.value)
+                        touchDraft()
+                      }}
+                      disabled={pending === 'save'}
+                    />
+                  </label>
+                  <label className="lg-field">
+                    <span className="lg-field__label">Maximum audio seconds (1–30)</span>
+                    <input
+                      className="lg-field__input"
+                      type="number"
+                      min="1"
+                      max="30"
+                      step="1"
+                      value={maxAudioSeconds}
+                      onChange={(event) => {
+                        setMaxAudioSeconds(event.target.value)
+                        touchDraft()
+                      }}
+                      disabled={pending === 'save'}
+                    />
+                  </label>
+                  <label className="lg-field">
+                    <span className="lg-field__label">
+                      Maximum audio bytes (1–10,000,000)
+                    </span>
+                    <input
+                      className="lg-field__input"
+                      type="number"
+                      min="1"
+                      max="10000000"
+                      step="1"
+                      value={maxAudioBytes}
+                      onChange={(event) => {
+                        setMaxAudioBytes(event.target.value)
+                        touchDraft()
+                      }}
+                      disabled={pending === 'save'}
+                    />
+                  </label>
+                  <p className="lg-field__hint">
+                    Runtime is fixed to in-process CPU and concurrency is fixed to{' '}
+                    {limitValue(limits.max_concurrency, 1)}. Thread count is not exposed by the read
+                    view, so this form omits it rather than overwriting the backend value.
+                  </p>
+                </div>
+              </details>
+
+              <details
+                className="lg-disclosure"
+                aria-label="Pinned English transcription models"
+              >
+                <summary className="lg-disclosure__summary">Pinned models and hashes</summary>
+                <div className="lg-disclosure__body">
+                  <dl className="lg-connection-row__facts">
+                    <div>
+                      <dt>Encoder</dt>
+                      <dd className="lg-card__path">
+                        {encoder ? `${encoder.id} @ ${encoder.revision}` : 'not reported'}
+                      </dd>
+                    </div>
+                    {encoder?.sha256 ? (
+                      <div>
+                        <dt>Encoder SHA-256</dt>
+                        <dd className="lg-card__path">{encoder.sha256}</dd>
+                      </div>
+                    ) : null}
+                    {encoder?.license ? (
+                      <div>
+                        <dt>Encoder license</dt>
+                        <dd>{encoder.license}</dd>
+                      </div>
+                    ) : null}
+                    <div>
+                      <dt>Reader</dt>
+                      <dd className="lg-card__path">
+                        {reader ? `${reader.id} @ ${reader.revision}` : 'not reported'}
+                      </dd>
+                    </div>
+                    {reader?.sha256 ? (
+                      <div>
+                        <dt>Reader SHA-256</dt>
+                        <dd className="lg-card__path">{reader.sha256}</dd>
+                      </div>
+                    ) : null}
+                    {reader?.license ? (
+                      <div>
+                        <dt>Reader license</dt>
+                        <dd>{reader.license}</dd>
+                      </div>
+                    ) : null}
+                  </dl>
+                  <p className="lg-field__hint">
+                    Assets are admin-provisioned local files. The product never downloads, installs,
+                    trains or replaces them from this form.
+                  </p>
+                </div>
+              </details>
+            </>
+          )}
 
           {discardOpen ? (
             <div className="lg-inline-confirm" role="alert">
@@ -638,7 +1030,7 @@ export function EnglishAsrPanel({
                 <button
                   type="button"
                   className="lg-button lg-button--danger"
-                  onClick={onClose}
+                  onClick={finishClose}
                 >
                   Discard changes
                 </button>
@@ -650,10 +1042,21 @@ export function EnglishAsrPanel({
         <footer className="lg-modal__footer">
           <div className="lg-modal__footer-left">
             <p className="lg-field__hint">
-              Current limits: {limitValue(limits.max_audio_seconds, 30)} s audio ·{' '}
-              {formatBytes(limitValue(limits.max_audio_bytes, 10_000_000))} ·{' '}
-              {limitValue(limits.timeout_seconds, 180)} s timeout · concurrency{' '}
-              {limitValue(limits.max_concurrency, 1)}
+              {google ? (
+                <>
+                  Current limits: {formatBytes(limitValue(limits.max_audio_bytes, GOOGLE_ASR_DEFAULT_MAX_AUDIO_BYTES))}{' '}
+                  audio · {formatBytes(maxRequestBytes)} request ·{' '}
+                  {limitValue(limits.timeout_seconds, GOOGLE_ASR_DEFAULT_TIMEOUT_SECONDS)} s timeout
+                  · concurrency {limitValue(limits.max_concurrency, 1)}
+                </>
+              ) : (
+                <>
+                  Current limits: {safeAudioSeconds ?? '—'} s audio ·{' '}
+                  {formatBytes(limitValue(limits.max_audio_bytes, 10_000_000))} ·{' '}
+                  {limitValue(limits.timeout_seconds, 180)} s timeout · concurrency{' '}
+                  {limitValue(limits.max_concurrency, 1)}
+                </>
+              )}
             </p>
           </div>
           <div className="lg-modal__footer-right">

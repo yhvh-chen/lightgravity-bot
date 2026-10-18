@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef } from 'react'
 
 import { ChatPanel } from '../components/ChatPanel'
 import { PanelResizer } from '../components/SplitPane'
+import { ChatSelectionProvider } from '../views/chat/useChatSelection'
 import { VIEW_DEFINITIONS } from '../views/registry'
+import { useAuth } from './AuthProvider'
 import { NavigationRail } from './NavigationRail'
 import { useShell } from './ShellProvider'
 import { TopBar } from './TopBar'
@@ -21,18 +23,26 @@ const DRAWER_LABELS: Record<'nav' | 'chat', string> = {
 /**
  * Unified application shell (LG-011).
  *
- * Regions: top bar, single navigation, main content and optional right Chat.
+ * Regions: top bar, single navigation, main content and the right Bot Chat.
  * On compact screens Chat becomes an overlay drawer; on phones the
  * rail does too. Exactly one ChatPanel is mounted at any time. The shell only
  * routes views — each business view is owned by its own task.
+ *
+ * LG-202: the former Chat main view is gone. Bot Chat is the only conversation
+ * surface and binds the shell's current Task (Global when no Task is selected).
  */
 export function AppShell() {
   const { state, dispatch } = useShell()
+  const { isTeam, personalChatAvailable } = useAuth()
   const compact = useIsCompact()
   const mobile = useIsMobile()
   const definition = VIEW_DEFINITIONS[state.view]
   const Main = definition.Main
   const drawerRef = useRef<HTMLDivElement>(null)
+  // LG-204: Tasks selection and the single right Chat share one store. A
+  // private Personal conversation never inherits the shared Task selection.
+  const selectionTaskRef =
+    isTeam && state.chatChannel === 'personal' && personalChatAvailable ? null : state.taskRef
 
   const closeDrawer = useCallback(
     () => dispatch({ type: 'setOpenDrawer', drawer: null }),
@@ -40,7 +50,7 @@ export function AppShell() {
   )
 
   const chatRailShown =
-    state.view !== 'chat' && (compact ? state.openDrawer === 'chat' : state.chatOpen)
+    compact ? state.openDrawer === 'chat' : state.chatOpen
   const railDrawerOpen = mobile && state.openDrawer === 'nav'
 
   const handleNavigate = useCallback(
@@ -77,9 +87,8 @@ export function AppShell() {
     <ChatPanel variant="rail" onRequestClose={onClose} />
   )
 
-  const openDrawer = state.view === 'chat' && state.openDrawer === 'chat' ? null : state.openDrawer
-
   return (
+    <ChatSelectionProvider taskRef={selectionTaskRef}>
     <div className="lg-app">
       <TopBar
         compact={compact}
@@ -96,7 +105,7 @@ export function AppShell() {
           compact
             ? dispatch({
                 type: 'setOpenDrawer',
-                drawer: openDrawer === 'chat' ? null : 'chat',
+                drawer: state.openDrawer === 'chat' ? null : 'chat',
               })
             : dispatch({ type: 'toggleChat' })
         }
@@ -108,12 +117,12 @@ export function AppShell() {
         ) : null}
 
         <main className="lg-main">
-          <div className={`lg-view${state.view === 'chat' ? ' lg-view--chat' : ''}`}>
+          <div className="lg-view">
             <Main />
           </div>
         </main>
 
-        {!compact && state.view !== 'chat' && state.chatOpen ? (
+        {!compact && state.chatOpen ? (
           <>
             <PanelResizer
               label="Resize chat panel"
@@ -130,25 +139,25 @@ export function AppShell() {
         ) : null}
       </div>
 
-      {compact && openDrawer && (openDrawer !== 'nav' || mobile) ? (
+      {compact && state.openDrawer && (state.openDrawer !== 'nav' || mobile) ? (
         <>
           <button
             type="button"
             className="lg-drawer-backdrop"
-            aria-label={`Close ${DRAWER_LABELS[openDrawer].toLowerCase()}`}
+            aria-label={`Close ${DRAWER_LABELS[state.openDrawer].toLowerCase()}`}
             onClick={closeDrawer}
           />
           <div
             ref={drawerRef}
             className={`lg-drawer lg-drawer--${
-              openDrawer === 'chat' ? 'right' : 'left'
-            } lg-drawer--${openDrawer}`}
+              state.openDrawer === 'chat' ? 'right' : 'left'
+            } lg-drawer--${state.openDrawer}`}
             role="dialog"
             aria-modal="true"
-            aria-label={DRAWER_LABELS[openDrawer]}
+            aria-label={DRAWER_LABELS[state.openDrawer]}
             tabIndex={-1}
           >
-            {openDrawer === 'nav' ? (
+            {state.openDrawer === 'nav' ? (
               <NavigationRail
                 current={state.view}
                 selectedItemRef={state.selectedItemRef}
@@ -156,10 +165,11 @@ export function AppShell() {
                 variant="drawer"
               />
             ) : null}
-            {openDrawer === 'chat' ? renderChatRail(closeDrawer) : null}
+            {state.openDrawer === 'chat' ? renderChatRail(closeDrawer) : null}
           </div>
         </>
       ) : null}
     </div>
+    </ChatSelectionProvider>
   )
 }

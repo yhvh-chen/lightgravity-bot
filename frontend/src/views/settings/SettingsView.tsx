@@ -4,6 +4,7 @@ import { useAuth } from '../../app/AuthProvider'
 import type { SearchApi } from '../../api/search'
 import {
   createEnglishAsrApi,
+  englishAsrProvider,
   englishAsrReasonLabel,
   type EnglishAsrApi,
   type EnglishAsrModelRef,
@@ -29,7 +30,12 @@ import { AccountsPanel } from './AccountsPanel'
 import { ConnectionEditor } from './ConnectionEditor'
 import { DefaultsEditor } from './DefaultsEditor'
 import { EmbeddingPanel } from './EmbeddingPanel'
-import { EnglishAsrPanel, EnglishAsrStatusBadges, EnglishAsrStatusNote } from './EnglishAsrPanel'
+import {
+  EnglishAsrPanel,
+  EnglishAsrStatusBadges,
+  EnglishAsrStatusNote,
+  englishAsrProviderLabel,
+} from './EnglishAsrPanel'
 import { MyAccountPanel } from './MyAccountPanel'
 
 export interface SettingsViewProps {
@@ -95,6 +101,7 @@ function englishAsrLimitBytes(bytes: number): string {
 
 function EnglishAsrSummary({ view }: { view: EnglishAsrSettingsView }) {
   const limits = view.limits
+  const google = englishAsrProvider(view) === 'google-native'
   const encoder = view.models.encoder ?? null
   const reader = view.models.reader ?? null
   return (
@@ -102,6 +109,10 @@ function EnglishAsrSummary({ view }: { view: EnglishAsrSettingsView }) {
       <EnglishAsrStatusBadges view={view} />
       <EnglishAsrStatusNote view={view} />
       <dl className="lg-connection-row__facts">
+        <div>
+          <dt>Provider</dt>
+          <dd>{englishAsrProviderLabel(view)}</dd>
+        </div>
         <div>
           <dt>Language</dt>
           <dd>{view.language ?? 'en'}</dd>
@@ -124,57 +135,103 @@ function EnglishAsrSummary({ view }: { view: EnglishAsrSettingsView }) {
             {view.available ? 'yes' : `no · ${englishAsrReasonLabel(view.reason)}`}
           </dd>
         </div>
-        <div>
-          <dt>Encoder</dt>
-          <dd className="lg-card__path">{modelRefLabel(encoder)}</dd>
-        </div>
-        <div>
-          <dt>Reader</dt>
-          <dd className="lg-card__path">{modelRefLabel(reader)}</dd>
-        </div>
-        <div>
-          <dt>Limits</dt>
-          <dd>
-            audio ≤ {limits.max_audio_seconds ?? '—'} s · bytes ≤{' '}
-            {typeof limits.max_audio_bytes === 'number'
-              ? englishAsrLimitBytes(limits.max_audio_bytes)
-              : '—'}{' '}
-            · timeout {limits.timeout_seconds ?? '—'} s · concurrency{' '}
-            {limits.max_concurrency ?? '—'}
-          </dd>
-        </div>
-      </dl>
-      <details className="lg-disclosure" aria-label="English transcription model pins">
-        <summary className="lg-disclosure__summary">Pinned models, hashes and licenses</summary>
-        <div className="lg-disclosure__body">
-          <dl className="lg-connection-row__facts">
+        {google ? (
+          <>
+            <div>
+              <dt>Model</dt>
+              <dd>{view.model ?? 'not reported'}</dd>
+            </div>
+            <div>
+              <dt>Base URL</dt>
+              <dd className="lg-card__path">{view.base_url ?? 'not reported'}</dd>
+            </div>
+            <div>
+              <dt>Credential</dt>
+              <dd>
+                {view.credential_configured
+                  ? 'API key stored (not verified)'
+                  : 'API key not stored'}
+              </dd>
+            </div>
+            <div>
+              <dt>Limits</dt>
+              <dd>
+                audio ≤{' '}
+                {typeof limits.max_audio_bytes === 'number'
+                  ? englishAsrLimitBytes(limits.max_audio_bytes)
+                  : '—'}{' '}
+                · request ≤{' '}
+                {typeof limits.max_request_bytes === 'number'
+                  ? englishAsrLimitBytes(limits.max_request_bytes)
+                  : '—'}{' '}
+                · timeout {limits.timeout_seconds ?? '—'} s · concurrency{' '}
+                {limits.max_concurrency ?? '—'}
+              </dd>
+            </div>
+          </>
+        ) : (
+          <>
             <div>
               <dt>Encoder</dt>
               <dd className="lg-card__path">{modelRefLabel(encoder)}</dd>
             </div>
-            {modelRefFact(encoder) ? (
-              <div>
-                <dt>Encoder pin</dt>
-                <dd className="lg-card__path">{modelRefFact(encoder)}</dd>
-              </div>
-            ) : null}
             <div>
               <dt>Reader</dt>
               <dd className="lg-card__path">{modelRefLabel(reader)}</dd>
             </div>
-            {modelRefFact(reader) ? (
+            <div>
+              <dt>Limits</dt>
+              <dd>
+                audio ≤ {limits.max_audio_seconds ?? '—'} s · bytes ≤{' '}
+                {typeof limits.max_audio_bytes === 'number'
+                  ? englishAsrLimitBytes(limits.max_audio_bytes)
+                  : '—'}{' '}
+                · timeout {limits.timeout_seconds ?? '—'} s · concurrency{' '}
+                {limits.max_concurrency ?? '—'}
+              </dd>
+            </div>
+          </>
+        )}
+      </dl>
+      {google ? (
+        <p className="lg-field__hint">
+          Native Google transcription is configured through the protected form below. A stored API
+          key is not verification; only a successful source receipt proves that a file was
+          transcribed.
+        </p>
+      ) : (
+        <details className="lg-disclosure" aria-label="English transcription model pins">
+          <summary className="lg-disclosure__summary">Pinned models, hashes and licenses</summary>
+          <div className="lg-disclosure__body">
+            <dl className="lg-connection-row__facts">
               <div>
-                <dt>Reader pin</dt>
-                <dd className="lg-card__path">{modelRefFact(reader)}</dd>
+                <dt>Encoder</dt>
+                <dd className="lg-card__path">{modelRefLabel(encoder)}</dd>
               </div>
-            ) : null}
-          </dl>
-          <p className="lg-field__hint">
-            Model files are administrator-provisioned local assets. This surface never downloads,
-            installs, trains or runs a model.
-          </p>
-        </div>
-      </details>
+              {modelRefFact(encoder) ? (
+                <div>
+                  <dt>Encoder pin</dt>
+                  <dd className="lg-card__path">{modelRefFact(encoder)}</dd>
+                </div>
+              ) : null}
+              <div>
+                <dt>Reader</dt>
+                <dd className="lg-card__path">{modelRefLabel(reader)}</dd>
+              </div>
+              {modelRefFact(reader) ? (
+                <div>
+                  <dt>Reader pin</dt>
+                  <dd className="lg-card__path">{modelRefFact(reader)}</dd>
+                </div>
+              ) : null}
+            </dl>
+            <p className="lg-field__hint">
+              Model files are administrator-provisioned local assets. This surface never downloads,
+              installs, trains or runs a model.
+            </p>
+          </div>
+        </details>
+      )}
     </>
   )
 }
@@ -473,7 +530,9 @@ function ModelsPanel(props: SettingsViewProps = {}) {
         : previous,
     )
     setListNotice(
-      `English transcription settings saved at revision ${result.english_asr.revision}. Saving does not run transcription or prove processing availability.`,
+      `${englishAsrProviderLabel(result.english_asr)} settings saved at revision ${
+        result.english_asr.revision
+      }. Saving does not run transcription or prove that the provider, key or model is reachable.`,
     )
   }, [])
 
@@ -843,8 +902,9 @@ function ModelsPanel(props: SettingsViewProps = {}) {
               <h3 className="lg-section-card__title">English transcription</h3>
               <p className="lg-field__hint">
                 Shared English audio only. The machine transcript is a provenance-labelled
-                derivative; the human formal version stays authoritative. Asset paths are
-                administrator configuration and are never returned as read fields.
+                derivative; the human formal version stays authoritative. Google native uses a
+                stored API key; the legacy path uses administrator-provided local assets. Neither
+                path returns secrets or local paths as read fields.
               </p>
             </div>
             {settings.english_asr ? (

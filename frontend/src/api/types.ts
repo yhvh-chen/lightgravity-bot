@@ -173,12 +173,24 @@ export interface SourceTranscriptTimestamp {
  */
 export interface SourceTextMachineProvenance {
   engine?: string | null
+  /** Additive 1.22: `google` for the native Google path, absent for legacy. */
+  provider?: string | null
+  model?: string | null
+  endpoint_host?: string | null
+  endpoint_path?: string | null
+  prompt_version?: string | null
   encoder?: EnglishAsrModelRef | null
   reader?: EnglishAsrModelRef | null
   runtime?: string | null
   model_version?: string | null
   content_variant?: string | null
   generated_at?: string | null
+  audio_sha256?: string | null
+  mime_type?: string | null
+  audio_bytes?: number | null
+  request_bytes?: number | null
+  latency_ms?: number | null
+  usage?: Record<string, number | null> | null
   [key: string]: unknown
 }
 

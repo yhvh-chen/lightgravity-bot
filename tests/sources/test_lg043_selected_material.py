@@ -1018,3 +1018,69 @@ async def test_api_global_message_selected_global_source(api: Any) -> None:
     data = response.json()["data"]
     assert data["resolved_source_bindings"][0]["source_id"] == source_id
     assert data["context_truncated"] is False
+
+
+@pytest.mark.parametrize("status", ["extracted", "partial"])
+def test_context_selectability_requires_actual_body(tmp_path: Any, status: str) -> None:
+    store = FileStore(tmp_path / "data", tmp_path / "ws")
+    service = _service(store)
+    source_id = _inline_source(service, "usable old text")
+    record = service.store.read_source(source_id)
+    service.store.update_source(source_id, {"status": status}, expected_revision=record.revision)
+    content = ContentStore(source_root=service.store.source_dir(source_id))
+    # No machine/formal body: even a completed media-vector source is unusable.
+    content.machine_markdown_path(record.source_version).unlink(missing_ok=True)
+    view = service.get_source(source_id)
+    assert view["context_selectable"] is False
+    assert view["context_unavailable_reason"] == "no_readable_body"
+    _seed_machine(service, source_id, "real text")
+    view = service.get_source(source_id)
+    assert view["context_selectable"] is True
+    assert view["context_unavailable_reason"] is None
+    content.machine_markdown_path(record.source_version).write_text("  \n", encoding="utf-8")
+    assert service.get_source(source_id)["context_selectable"] is False
+    _seed_formal(service, source_id, "human correction")
+    assert service.get_source(source_id)["context_selectable"] is True
+    service.source_actions(source_id, action="revoke")
+    assert service.get_source(source_id)["context_selectable"] is False
+
+
+@pytest.mark.parametrize("selection", [
+    [{"source_id": "missing"}],
+    [{"source_id": "../bad"}],
+    "bodyless",
+    "stale",
+    "revoked",
+])
+async def test_ordinary_team_message_skips_model_context_validation(
+    tmp_path: Any, selection: Any,
+) -> None:
+    store = FileStore(tmp_path / "data", tmp_path / "ws")
+    service = _service(store)
+    if isinstance(selection, str):
+        scenario = selection
+        source_id = _inline_source(service, "context body")
+        record = service.store.read_source(source_id)
+        if scenario == "bodyless":
+            ContentStore(source_root=service.store.source_dir(source_id)).machine_markdown_path(
+                record.source_version
+            ).unlink(missing_ok=True)
+        elif scenario == "revoked":
+            service.source_actions(source_id, action="revoke")
+        selection = [{"source_id": source_id}]
+        if scenario == "stale":
+            selection[0]["source_version"] = record.source_version + 1
+    def no_model(*args: Any, **kwargs: Any) -> str:
+        pytest.fail("ordinary Team message must not call a model")
+    coordinator = Coordinator(store, source_service=service, team_mode=True, responder=no_model)
+    message = {"message_id": new_id("msg"), "content": "hello team", "selected_sources": selection}
+    conversation_id = new_id("conv")
+    result = await coordinator.submit_global_message(conversation_id, message)
+    assert result.kind == "recorded"
+    assert result.data["creates_task"] is False
+    assert "selected_context" not in coordinator._global.read(conversation_id)[0].message
+    assert await coordinator.submit_global_message(conversation_id, message) == result
+    with pytest.raises(AppError):
+        await coordinator.submit_global_message(conversation_id, {
+            **message, "message_id": new_id("msg"), "content": "@bot what is this?",
+        })

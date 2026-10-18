@@ -120,9 +120,13 @@ async def health(request: Request) -> HealthResponse:
         "material_intake_v2": material_wired,
         "semantic_search": semantic_wired,
         "media_direct_embedding": media_wired,
-        # 1.20 additive: true only when the saved config is enabled, the pinned
-        # local files/hashes validate and the optional in-process runtime is
-        # importable.  It does not promise every clip will transcribe.
+        # 1.20/1.22 additive: true only when the saved config is enabled and
+        # attemptable for its provider -- legacy ``eg2-reader`` needs the pinned
+        # local files/hashes and the optional in-process runtime, while
+        # ``google-native`` needs valid model/base_url plus a resolvable
+        # write-only managed credential and no torch/numpy/Reader at all.  It
+        # never means the key/model/network were verified, and does not promise
+        # every clip will transcribe.
         "english_asr": english_asr_available,
     }
     return HealthResponse(

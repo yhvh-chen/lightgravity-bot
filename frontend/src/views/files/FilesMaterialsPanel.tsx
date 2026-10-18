@@ -38,6 +38,8 @@ import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
 import { MarkdownViewer } from '../../components/MarkdownViewer'
 import { StatusBadge } from '../../components/StatusBadge'
+import { isSourceContextSelectable, sourceContextUnavailableReason } from '../chat/sourceContext'
+import { useSharedChatSelection } from '../chat/useChatSelection'
 import {
   MaterialBranchList,
   receiptIsTerminal,
@@ -89,6 +91,12 @@ export function FilesMaterialsPanel({
   >('idle')
   const [machineError, setMachineError] = useState<ApiError | null>(null)
 
+  // LG-204: the workspace material rows are the context selector. The same
+  // bounded selection (version/hash/limit) appears as chips above the Chat
+  // composer; the provider in AppShell makes both surfaces share one state.
+  const selection = useSharedChatSelection(taskRef)
+  const selectedIds = new Set(selection.selection.map((item) => item.source_id))
+
   const receiptItem = receipt?.latest ?? receipt?.items[0] ?? null
   const receiptText: SourceTextBranch | null = receiptItem?.text ?? null
   const transcriptDerivative = selected ? findTranscriptDerivative(selected) : null
@@ -100,15 +108,37 @@ export function FilesMaterialsPanel({
           Boolean(receiptText?.machine))),
   )
 
-  // Load the authorized source list for the current scope.
+  // Load the authorized source list for the current scope. Only the current
+  // Task and global materials are offered; another Task's materials are never
+  // cross-selected (docs/10 §5).
   useEffect(() => {
     const controller = new AbortController()
     setListStatus('loading')
     setListError(null)
-    api
-      .listSources({ task_ref: taskRef ?? undefined, limit: 200 }, controller.signal)
-      .then((page) => {
-        setSources(page.items)
+    const load = async () => {
+      const taskPage = await api.listSources(
+        { task_ref: taskRef ?? undefined, limit: 200 },
+        controller.signal,
+      )
+      let items = taskPage.items
+      if (taskRef) {
+        const globalPage = await api.listSources({ limit: 200 }, controller.signal)
+        const seen = new Set(items.map((item) => item.source_id))
+        items = [
+          ...items,
+          ...globalPage.items.filter(
+            (item) => item.scope.task_ref == null && !seen.has(item.source_id),
+          ),
+        ]
+      } else {
+        items = items.filter((item) => item.scope.task_ref == null)
+      }
+      return items
+    }
+    load()
+      .then((items) => {
+        if (controller.signal.aborted) return
+        setSources(items)
         setListStatus('ready')
       })
       .catch((cause: unknown) => {
@@ -477,7 +507,7 @@ export function FilesMaterialsPanel({
 
   return (
     <section className="lg-files-materials" aria-label="Materials (sources)">
-      <header className="lg-files-materials__header">
+      <div className="lg-files-materials__header">
         <h2 className="lg-files__section-title">Materials</h2>
         <span className="lg-files__note">
           Same source as Chat. Archive, correct, reprocess and download here.
@@ -490,7 +520,7 @@ export function FilesMaterialsPanel({
             {status.text}
           </p>
         ) : null}
-      </header>
+      </div>
 
       <div className="lg-files-materials__body">
         <div className="lg-files-materials__list-panel">
@@ -510,12 +540,16 @@ export function FilesMaterialsPanel({
             </EmptyState>
           ) : (
             <ul className="lg-files-materials__list">
-              {sources.map((source) => (
+              {sources.map((source) => {
+                const selectable = isSourceContextSelectable(source)
+                const isSelected = selectedIds.has(source.source_id)
+                const rowScope: 'global' | 'task' = source.scope.task_ref ? 'task' : 'global'
+                return (
                 <li key={source.source_id}>
                   <button
                     type="button"
                     className={`lg-files__entry${
-                      selected?.source_id === source.source_id ? ' is-selected' : ''
+                      isSelected ? ' is-selected' : ''
                     }`}
                     title={source.source_id}
                     onClick={() => void openSource(source.source_id)}
@@ -530,8 +564,29 @@ export function FilesMaterialsPanel({
                         : ''}
                     </span>
                   </button>
+                  <div className="lg-files-materials__context">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        disabled={
+                          (!selectable && !isSelected) || (selection.atLimit && !isSelected)
+                        }
+                        aria-label={`Use ${source.title ?? source.source_id} as context`}
+                        onChange={() => selection.toggle(source, rowScope)}
+                      />
+                      Use as context
+                    </label>
+                    <StatusBadge kind="neutral">{rowScope}</StatusBadge>
+                    {!selectable ? (
+                      <span className="lg-files-materials__context-note">
+                        {sourceContextUnavailableReason(source)}
+                      </span>
+                    ) : null}
+                  </div>
                 </li>
-              ))}
+                )
+              })}
             </ul>
           )}
         </div>
@@ -732,11 +787,22 @@ export function FilesMaterialsPanel({
               {content?.kind === 'formal' && machineEvidence ? (
                 <section
                   className="lg-files-materials__transcript"
-                  aria-label="Machine English transcript"
+                  aria-label={
+                    transcriptIsGoogle(receiptText)
+                      ? 'Machine Google transcript'
+                      : 'Machine English transcript'
+                  }
                 >
                   <div className="lg-files__preview-header">
-                    <span className="lg-files__section-title">Machine English transcript</span>
+                    <span className="lg-files__section-title">
+                      {transcriptIsGoogle(receiptText)
+                        ? 'Machine Google transcript'
+                        : 'Machine English transcript'}
+                    </span>
                     <StatusBadge kind="accent">English</StatusBadge>
+                    {transcriptIsGoogle(receiptText) ? (
+                      <StatusBadge kind="accent">Google native</StatusBadge>
+                    ) : null}
                     <StatusBadge kind="neutral">machine · not formal</StatusBadge>
                     <StatusBadge kind="neutral">
                       {receiptText?.timestamps == null
@@ -751,7 +817,7 @@ export function FilesMaterialsPanel({
                   </p>
                   {machineStatus === 'loading' || machineStatus === 'idle' ? (
                     <p className="lg-files__note" role="status">
-                      Reading the machine English transcript…
+                      Reading the machine transcript…
                     </p>
                   ) : null}
                   {machineStatus === 'ready' && machineContent ? (
@@ -934,6 +1000,16 @@ function transcriptTimestampStatus(branch: SourceTextBranch | null): string {
   return 'timestamp data reported; this version provides no seek controls'
 }
 
+function transcriptIsGoogle(branch: SourceTextBranch | null): boolean {
+  const machine = branch?.machine
+  return Boolean(
+    machine &&
+      (machine.provider === 'google' ||
+        machine.engine === 'google-native' ||
+        machine.runtime === 'google-native'),
+  )
+}
+
 function ModelPin({
   label,
   model,
@@ -967,12 +1043,17 @@ function MachineTranscriptMeta({
   const modelVersion = machine?.model_version ?? stringField(derivative, 'model_version')
   const transcriptHash = stringField(derivative, 'content_hash')
   const timestamp = transcriptTimestampStatus(branch)
+  const google = transcriptIsGoogle(branch)
+  const endpoint =
+    machine?.endpoint_host && machine?.endpoint_path
+      ? `${machine.endpoint_host}${machine.endpoint_path}`
+      : null
   return (
     <>
       <p className="lg-files__note">
-        Machine English transcript · engine {machine?.engine ?? 'not reported'} · model{' '}
-        {modelVersion ?? 'not reported'} · runtime {machine?.runtime ?? 'not reported'} ·{' '}
-        {timestamp}.
+        {google ? 'Machine Google transcript' : 'Machine English transcript'} · engine{' '}
+        {machine?.engine ?? 'not reported'} · model {modelVersion ?? 'not reported'} · runtime{' '}
+        {machine?.runtime ?? 'not reported'} · {timestamp}.
       </p>
       <details className="lg-disclosure" aria-label="Machine transcript provenance">
         <summary className="lg-disclosure__summary">
@@ -980,6 +1061,16 @@ function MachineTranscriptMeta({
         </summary>
         <div className="lg-disclosure__body">
           <dl className="lg-files-materials__facts">
+            <div>
+              <dt>Provider</dt>
+              <dd>
+                {google
+                  ? 'Google native'
+                  : machine
+                    ? 'EG2 + Reader (legacy)'
+                    : 'not reported'}
+              </dd>
+            </div>
             <div>
               <dt>Language</dt>
               <dd>{branch?.language ?? source.language ?? 'en'}</dd>
@@ -1000,6 +1091,28 @@ function MachineTranscriptMeta({
               <dt>Model version</dt>
               <dd>{modelVersion ?? 'not reported'}</dd>
             </div>
+            {google ? (
+              <>
+                <div>
+                  <dt>Model</dt>
+                  <dd>{machine?.model ?? 'not reported'}</dd>
+                </div>
+                <div>
+                  <dt>Endpoint</dt>
+                  <dd className="lg-card__path">{endpoint ?? 'not reported'}</dd>
+                </div>
+                <div>
+                  <dt>Prompt version</dt>
+                  <dd>{machine?.prompt_version ?? 'not reported'}</dd>
+                </div>
+                {typeof machine?.latency_ms === 'number' ? (
+                  <div>
+                    <dt>Latency</dt>
+                    <dd>{machine.latency_ms} ms</dd>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
             <div>
               <dt>Content variant</dt>
               <dd>{machine?.content_variant ?? 'machine'}</dd>

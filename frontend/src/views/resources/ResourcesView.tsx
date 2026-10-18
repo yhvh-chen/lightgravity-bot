@@ -288,7 +288,7 @@ export function ResourcesView(props: ResourcesViewProps = {}) {
                 selectItem(settingsConnectionRef(connectionId))
                 navigate('settings')
               }}
-              onOpenChat={() => navigate('chat')}
+              onOpenChat={() => navigate('tasks')}
             />
           ) : (
             <EmptyState title="Select a resource">

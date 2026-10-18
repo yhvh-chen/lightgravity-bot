@@ -1,0 +1,95 @@
+{
+  "H1": {
+    "reference_raw": "On April ninth, twenty twenty seven, the north harbor market opens at six forty five, and the ferry to Cedar Island carries thirty eight passengers.",
+    "hypothesis_raw": "On April 9th 2027 the North Harbor market opens at 6:45 and the ferry to Cedar Island carries 38 passengers.",
+    "reference_normalized": "on april ninth twenty twenty seven the north harbor market opens at six forty five and the ferry to cedar island carries thirty eight passengers",
+    "hypothesis_normalized": "on april 9th twenty twenty seven the north harbor market opens at six forty five and the ferry to cedar island carries thirty eight passengers",
+    "reference_words": 25,
+    "hypothesis_words": 25,
+    "distance": 1,
+    "substitutions": 1,
+    "deletions": 0,
+    "insertions": 0,
+    "wer": 0.04,
+    "key_facts": [
+      {
+        "fact": "April ninth",
+        "normalized": "april ninth",
+        "present": false
+      },
+      {
+        "fact": "twenty twenty seven",
+        "normalized": "twenty twenty seven",
+        "present": true
+      },
+      {
+        "fact": "north harbor market",
+        "normalized": "north harbor market",
+        "present": true
+      },
+      {
+        "fact": "six forty five",
+        "normalized": "six forty five",
+        "present": true
+      },
+      {
+        "fact": "Cedar Island",
+        "normalized": "cedar island",
+        "present": true
+      },
+      {
+        "fact": "thirty eight",
+        "normalized": "thirty eight",
+        "present": true
+      }
+    ],
+    "key_facts_present": 5,
+    "key_facts_total": 6,
+    "nonempty": true,
+    "ascii_english": true
+  },
+  "H2": {
+    "reference_raw": "Doctor Lena Ortiz will visit the Eastside Clinic on November twelfth to review twenty nine patient files and collect seventeen samples before noon.",
+    "hypothesis_raw": "thought\nDr. Lina Ortiz will visit the Eastside clinic on November 12th to review 29 patient files and collect 17 samples before noon.",
+    "reference_normalized": "doctor lena ortiz will visit the eastside clinic on november twelfth to review twenty nine patient files and collect seventeen samples before noon",
+    "hypothesis_normalized": "thought dr lina ortiz will visit the eastside clinic on november 12th to review twenty nine patient files and collect seventeen samples before noon",
+    "reference_words": 23,
+    "hypothesis_words": 24,
+    "distance": 4,
+    "substitutions": 3,
+    "deletions": 0,
+    "insertions": 1,
+    "wer": 0.17391,
+    "key_facts": [
+      {
+        "fact": "Lena Ortiz",
+        "normalized": "lena ortiz",
+        "present": false
+      },
+      {
+        "fact": "Eastside Clinic",
+        "normalized": "eastside clinic",
+        "present": true
+      },
+      {
+        "fact": "November twelfth",
+        "normalized": "november twelfth",
+        "present": false
+      },
+      {
+        "fact": "twenty nine",
+        "normalized": "twenty nine",
+        "present": true
+      },
+      {
+        "fact": "seventeen",
+        "normalized": "seventeen",
+        "present": true
+      }
+    ],
+    "key_facts_present": 3,
+    "key_facts_total": 5,
+    "nonempty": true,
+    "ascii_english": true
+  }
+}

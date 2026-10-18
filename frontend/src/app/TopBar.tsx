@@ -30,7 +30,7 @@ export function TopBar({
   onToggleRail,
   onToggleChat,
 }: TopBarProps) {
-  const { state, dispatch } = useShell()
+  const { dispatch } = useShell()
   const { isTeam, identity, isAdmin, logout } = useAuth()
   // Live runtime capabilities/identity for the shared search seam.  The hook
   // never assumes a capability when health is unavailable; the panel then stays
@@ -135,10 +135,9 @@ export function TopBar({
           id="lg-toggle-chat"
           type="button"
           className="lg-icon-button"
-          aria-pressed={state.view === 'chat' || chatActive}
+          aria-pressed={chatActive}
           aria-label="Toggle chat panel"
-          title={state.view === 'chat' ? 'Chat is already the main view' : 'Chat panel'}
-          disabled={state.view === 'chat'}
+          title={chatActive ? 'Hide chat panel' : 'Show chat panel'}
           onClick={onToggleChat}
         >
           <Icon name="panel-right" />

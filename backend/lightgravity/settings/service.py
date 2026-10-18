@@ -149,7 +149,7 @@ class ConnectionService:
                 from ..asr import build_english_asr_service
 
                 self._english_asr = build_english_asr_service(
-                    self._repo, env=self._env
+                    self._repo, env=self._env, secret_store=self._secrets
                 )
             return self._english_asr
 

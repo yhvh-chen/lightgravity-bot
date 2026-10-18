@@ -1,4 +1,8 @@
 import {
+  emitSessionExpired,
+  isSessionExpiry,
+} from './session'
+import {
   API_PREFIX,
   type ErrorEnvelope,
   type HealthResponse,
@@ -72,23 +76,35 @@ export async function apiRequest<T>(
     : null
 
   if (!response.ok) {
-    if (isErrorEnvelope(payload)) {
-      const body = payload.error
-      throw new ApiError({
-        message: body.message,
-        code: body.code,
-        httpStatus: response.status,
-        retryable: body.retryable,
-        details: body.details,
-        requestId: body.request_id,
+    const error = isErrorEnvelope(payload)
+      ? new ApiError({
+          message: payload.error.message,
+          code: payload.error.code,
+          httpStatus: response.status,
+          retryable: payload.error.retryable,
+          details: payload.error.details,
+          requestId: payload.error.request_id,
+        })
+      : new ApiError({
+          message: `Request failed with status ${response.status}`,
+          code: 'internal_error',
+          httpStatus: response.status,
+          retryable: response.status >= 500,
+        })
+
+    // LG-219: one request boundary decides when the session is gone.  The
+    // auth gate consumes the signal; individual views keep rendering their
+    // real error instead of each inventing its own session-expiry logic.
+    if (isSessionExpiry(path, response.status, error.details)) {
+      emitSessionExpired({
+        httpStatus: 401,
+        code: error.code,
+        path: path.split('?')[0] ?? path,
+        details: error.details,
       })
     }
-    throw new ApiError({
-      message: `Request failed with status ${response.status}`,
-      code: 'internal_error',
-      httpStatus: response.status,
-      retryable: response.status >= 500,
-    })
+
+    throw error
   }
 
   return payload as T

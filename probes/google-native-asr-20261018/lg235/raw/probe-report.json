@@ -1,0 +1,112 @@
+{
+  "probe": "LG-235 google native audio",
+  "official_sources": [
+    "https://ai.google.dev/gemini-api/docs/audio",
+    "https://ai.google.dev/gemini-api/docs/generate-content/audio",
+    "https://ai.google.dev/gemini-api/docs/transcribe"
+  ],
+  "endpoint_host": "generativelanguage.googleapis.com",
+  "endpoint_path": "/v1beta/interactions",
+  "model": "gemini-3.8-flash",
+  "prompt": "Transcribe the speech in this audio verbatim. Return only the plain transcription text, with no commentary, labels, or formatting.",
+  "requests": [
+    {
+      "kind": "transcription",
+      "clip": "H1",
+      "audio_path": "probes/english-asr-20261018/lg163/artifacts/tts/qa-h1-harbor.piper-ljspeech-high.16k.wav",
+      "audio_sha256": "e186594f70db78b4cbd9bb926beb72421bd5dfe3f7d2da4f1bba0a498663c740",
+      "audio_bytes": 333332,
+      "mime_type": "audio/wav",
+      "status": 200,
+      "latency_seconds": 6.078,
+      "usage": {
+        "total_tokens": 320,
+        "total_input_tokens": 287,
+        "input_tokens_by_modality": [
+          {
+            "modality": "audio",
+            "tokens": 261
+          },
+          {
+            "modality": "text",
+            "tokens": 26
+          }
+        ],
+        "total_cached_tokens": 0,
+        "total_output_tokens": 33,
+        "total_tool_use_tokens": 0,
+        "total_thought_tokens": 0
+      },
+      "text": "On April 9th 2027 the North Harbor market opens at 6:45 and the ferry to Cedar Island carries 38 passengers.",
+      "reused_existing_response": "h1-response.json",
+      "top_level_keys": [
+        "created",
+        "id",
+        "model",
+        "object",
+        "service_tier",
+        "status",
+        "steps",
+        "updated",
+        "usage"
+      ]
+    },
+    {
+      "kind": "transcription",
+      "clip": "H2",
+      "audio_path": "probes/english-asr-20261018/lg163/artifacts/tts/qa-h2-clinic.piper-ljspeech-high.16k.wav",
+      "audio_sha256": "b590b0ccb2df0cdf29012d79840ab7077c644190533d70d3cc0eecddde6702e6",
+      "audio_bytes": 312526,
+      "mime_type": "audio/wav",
+      "status": 200,
+      "latency_seconds": 7.221,
+      "usage": {
+        "total_tokens": 392,
+        "total_input_tokens": 271,
+        "input_tokens_by_modality": [
+          {
+            "modality": "audio",
+            "tokens": 245
+          },
+          {
+            "modality": "text",
+            "tokens": 26
+          }
+        ],
+        "total_cached_tokens": 0,
+        "total_output_tokens": 34,
+        "total_tool_use_tokens": 0,
+        "total_thought_tokens": 87
+      },
+      "text": "thought\nDr. Lina Ortiz will visit the Eastside clinic on November 12th to review 29 patient files and collect 17 samples before noon.",
+      "top_level_keys": [
+        "created",
+        "id",
+        "model",
+        "object",
+        "service_tier",
+        "status",
+        "steps",
+        "updated",
+        "usage"
+      ],
+      "sanitized_body": null
+    }
+  ],
+  "stop_reason": null,
+  "model_metadata": {
+    "name": "models/gemini-3.8-flash",
+    "displayName": "Gemini 3.8 Flash",
+    "description": "Gemini 3.8 Flash",
+    "supportedGenerationMethods": [
+      "generateContent",
+      "countTokens",
+      "createCachedContent",
+      "batchGenerateContent"
+    ],
+    "inputTokenLimit": 1048576,
+    "outputTokenLimit": 65536,
+    "version": "3.0"
+  },
+  "metadata_reused_from_prior_run": true
+}

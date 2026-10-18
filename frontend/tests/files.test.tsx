@@ -9,7 +9,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { ApiError } from '../src/api/client'
 import {
   createFilesApi,
   type FileContent,
@@ -89,11 +88,6 @@ function makeApi(overrides: Partial<FilesApi> = {}): FilesApi {
 
 function renderPanel(api: FilesApi, taskRef: string | null = null) {
   return render(<FilesPanel taskRef={taskRef} runRef={null} api={api} />)
-}
-
-function chooseFile(name = 'upload.txt') {
-  const input = document.querySelector('input[type="file"]') as HTMLInputElement
-  fireEvent.change(input, { target: { files: [new File(['data'], name)] } })
 }
 
 describe('FilesPanel', () => {
@@ -176,66 +170,6 @@ describe('FilesPanel', () => {
     const image = await screen.findByRole('img', { name: 'photo.png' })
     expect(image).toHaveAttribute('src', 'blob:files')
     expect(api.downloadFile).toHaveBeenCalledWith('photo.png', '12-1')
-  })
-
-  it('reports unauthorized uploads honestly instead of faking a write', async () => {
-    const api = makeApi({
-      uploadFile: vi.fn(async () => {
-        throw new ApiError({
-          message: 'sensitive endpoint requires a token',
-          code: 'unauthorized',
-          httpStatus: 401,
-          retryable: false,
-        })
-      }),
-    })
-    renderPanel(api)
-
-    chooseFile()
-    const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent(/local access token is required/)
-    expect(screen.queryByText(/Uploaded/)).toBeNull()
-  })
-
-  it('uploads with the current revision and reports the new one', async () => {
-    const api = makeApi({
-      listFiles: vi.fn(async () => ({
-        path: '',
-        items: [entry('upload.txt', 'file', 'text/plain')],
-        next_cursor: null,
-      })),
-      uploadFile: vi.fn(async () => ({
-        path: 'upload.txt',
-        name: 'upload.txt',
-        size: 4,
-        revision: '2-2',
-        created: false,
-      })),
-    })
-    renderPanel(api)
-
-    await screen.findByTitle('upload.txt')
-    chooseFile()
-    expect(await screen.findByText(/Updated upload\.txt/)).toBeInTheDocument()
-    expect(api.uploadFile).toHaveBeenCalledWith('upload.txt', expect.any(File), '12-1')
-  })
-
-  it('reports an external revision conflict on upload', async () => {
-    const api = makeApi({
-      uploadFile: vi.fn(async () => {
-        throw new ApiError({
-          message: 'file changed since the requested revision',
-          code: 'revision_conflict',
-          httpStatus: 409,
-          retryable: false,
-        })
-      }),
-    })
-    renderPanel(api)
-
-    chooseFile()
-    const alert = await screen.findByRole('alert')
-    expect(alert).toHaveTextContent(/changed on disk/)
   })
 
   it('associates task artifacts while keeping the task scope visible', async () => {

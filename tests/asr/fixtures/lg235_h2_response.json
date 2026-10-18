@@ -1,0 +1,42 @@
+{
+  "id": "v1_ChdnWnpVYXVybkhackkxZThQejhUVWlBOBIXZ1p6VWF1cm5IWnJJMWU4UHo4VFVpQTg",
+  "status": "completed",
+  "usage": {
+    "total_tokens": 392,
+    "total_input_tokens": 271,
+    "input_tokens_by_modality": [
+      {
+        "modality": "audio",
+        "tokens": 245
+      },
+      {
+        "modality": "text",
+        "tokens": 26
+      }
+    ],
+    "total_cached_tokens": 0,
+    "total_output_tokens": 34,
+    "total_tool_use_tokens": 0,
+    "total_thought_tokens": 87
+  },
+  "created": "2026-10-18T10:16:36Z",
+  "updated": "2026-10-18T10:16:36Z",
+  "service_tier": "standard",
+  "steps": [
+    {
+      "signature": "EtADCs0DAWkUfRMpx1mnreio8jfW10ri/ke2LyOKeTIXNJs6mDLJjUcb4jD0cq3X96N+xixRG5wL27N67r6exnKyYZMQs0wn9XehdoSj2AMafQcRcqeIWz3UunbHdO4mJFRkuIC1XCBNgfojWC5SID2dNm7X0qZ8o9TDZo2RevkgcGOofDJaxNDZcdIU3xoXviguo8NBwDYlJ7GGmiYZkr2FXP/12BCogd8q5pJ+aArpmkOYDSKSqox57McYK4P8XAyn0CBmdX5Jw+4cwna6Rw2gnO7KX1NGMQ8O/oBHkn3gak80Ew83siaXIFC4UoZH8abJBI8T52m6I/hoDB3uZFwfgGWgXQlncA6Y5WY2NblJanCEvH1ggsp+JPCIMYAuKbALvju2pLxA/jvSoyEa3jKwveSrXRj8JFu3UvyzZ4QMWgl6qrg7uGEKzyPncdnmsxZpcUj1xSPMv5pwsMZ4qLW71FKFLT7aZqFq5bCHbA7zrI/rDcluImVcmQmBvHXVG1/85+NENxkoCU0HN4YrwW9Srnpunp+d0aNeDLSiRIM7nty0y5yJxBnXJjUk+Vw4/gYjoLesbENDf1WFd7de9yTOkmJmLLg0v3AygHY4jOOgh0w=",
+      "type": "thought"
+    },
+    {
+      "content": [
+        {
+          "text": "thought\nDr. Lina Ortiz will visit the Eastside clinic on November 12th to review 29 patient files and collect 17 samples before noon.",
+          "type": "text"
+        }
+      ],
+      "type": "model_output"
+    }
+  ],
+  "object": "interaction",
+  "model": "gemini-3.8-flash"
+}

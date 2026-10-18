@@ -325,7 +325,7 @@ describe('LG-015/LG-125 Team: available templates', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Request for current task' }))
     expect(openChatDraft).toHaveBeenCalledTimes(1)
     expect(String(openChatDraft.mock.calls[0][0])).toContain('consider recruiting role')
-    expect(navigate).toHaveBeenCalledWith('chat')
+    expect(navigate).toHaveBeenCalledWith('tasks')
   })
 
   it('blocks a role request without a Task scope', async () => {

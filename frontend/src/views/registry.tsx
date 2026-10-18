@@ -3,7 +3,6 @@ import type { ViewId } from '../app/navigation'
 import { useShell } from '../app/ShellProvider'
 import { connectionIdFromRef } from '../app/uiState'
 import { BoardView } from './BoardView'
-import { ChatView } from './ChatView'
 import { FilesView } from './files/FilesView'
 import { ResourcesView } from './ResourcesView'
 import { SettingsView } from './settings/SettingsView'
@@ -16,6 +15,6 @@ function SettingsRoute() {
 
 /** Each view owns its content; the shell has one navigation and no context rail. */
 export const VIEW_DEFINITIONS: Record<ViewId, { Main: ComponentType }> = {
-  chat: { Main: ChatView }, board: { Main: BoardView }, files: { Main: FilesView },
+  tasks: { Main: FilesView }, board: { Main: BoardView },
   team: { Main: TeamView }, resources: { Main: ResourcesView }, settings: { Main: SettingsRoute },
 }

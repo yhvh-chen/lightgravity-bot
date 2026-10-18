@@ -437,3 +437,14 @@
 .lg-chat__attachment-status--failed {
   color: var(--lg-color-error);
 }
+
+/* LG-204: legacy upload receipts stay visible without the removed extras panel */
+.lg-chat__legacy-receipts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-1);
+  padding: var(--lg-space-2);
+  border: 1px solid var(--lg-color-border);
+  border-radius: var(--lg-radius-control);
+  background: var(--lg-color-surface-2);
+}
