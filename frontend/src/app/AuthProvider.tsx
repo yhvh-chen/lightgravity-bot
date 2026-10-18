@@ -33,6 +33,7 @@ import {
 
 import { setRuntimeToken } from '../api/auth'
 import { ApiError, fetchHealth } from '../api/client'
+import { onSessionExpired } from '../api/session'
 import {
   backendIncompatible,
   assertBackendCompatible,
@@ -45,6 +46,10 @@ import {
   logout as authLogout,
   type AuthMeResponse,
 } from '../api/teamAuth'
+import { SessionExpiredBanner } from './SessionExpiredBanner'
+
+const SESSION_EXPIRED_NOTICE =
+  'Session expired. Sign in again. Your unsent draft is kept.'
 
 export type AuthStatus = 'checking' | 'ready' | 'error'
 
@@ -94,8 +99,11 @@ export interface AuthContextValue {
   /**
    * Hand control back to the login gate (e.g. after a `401`).  An optional
    * notice explains why (e.g. a successful own-password change logs you out).
+   * Omitting it keeps the current notice, so a centralized session-expiry
+   * signal is not erased by a view's own follow-up `requireLogin()` call;
+   * pass `null` to clear it explicitly.
    */
-  requireLogin: (notice?: string) => void
+  requireLogin: (notice?: string | null) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -150,8 +158,15 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
   const [personalChatAvailable, setPersonalChatAvailable] = useState(false)
   const [accountsAvailable, setAccountsAvailable] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
+  // Single-user mode has no login gate; a stale runtime token is recovered by
+  // refreshing the page, which receives the newly injected token (LG-219).
+  const [refreshRequired, setRefreshRequired] = useState(false)
   const cancelled = useRef(false)
   const refreshGeneration = useRef(0)
+  const statusRef = useRef(status)
+  statusRef.current = status
+  const identityRef = useRef(identity)
+  identityRef.current = identity
 
   const applyIdentity = useCallback((next: TeamIdentity) => {
     setIdentity(next)
@@ -165,6 +180,7 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
     const requestGeneration = ++refreshGeneration.current
     setStatus('checking')
     setError(null)
+    setRefreshRequired(false)
     try {
       const me = await probe()
       // Private chat is optional on supported 1.13 shared backends. Discover it
@@ -220,6 +236,7 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
       })
       setNotice(null)
       setError(null)
+      setRefreshRequired(false)
       setStatus('ready')
     },
     [applyIdentity],
@@ -236,14 +253,31 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
     setStatus('ready')
   }, [applyIdentity])
 
-  const requireLogin = useCallback((message?: string) => {
+  const requireLogin = useCallback((message?: string | null) => {
     refreshGeneration.current += 1
-    setNotice(message ?? null)
+    setNotice((previous) => (message === undefined ? previous : message))
+    setRefreshRequired(false)
     setIdentity((previous) =>
       previous.mode === 'team' ? { ...TEAM_ANONYMOUS } : previous,
     )
     setStatus('ready')
   }, [])
+
+  // LG-219: the single session-expiry signal from `apiRequest` feeds the gate.
+  // Team mode returns to login with an explanation; single-user mode keeps the
+  // workspace (and its drafts) and asks for a page refresh instead.
+  useEffect(
+    () =>
+      onSessionExpired(() => {
+        if (statusRef.current !== 'ready') return
+        if (identityRef.current.mode === 'single') {
+          setRefreshRequired(true)
+          return
+        }
+        requireLogin(SESSION_EXPIRED_NOTICE)
+      }),
+    [requireLogin],
+  )
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -274,7 +308,14 @@ export function AuthProvider({ children, probe = fetchAuthMe }: AuthProviderProp
     ],
   )
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+      {refreshRequired && status === 'ready' && identity.mode === 'single' ? (
+        <SessionExpiredBanner />
+      ) : null}
+    </AuthContext.Provider>
+  )
 }
 
 /** Safe default for components rendered without a provider (unit tests). */

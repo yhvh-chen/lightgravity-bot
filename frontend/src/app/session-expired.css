@@ -1,0 +1,44 @@
+/* LG-219 single-user session-expiry banner. Uses shared design tokens only. */
+
+.lg-session-expired {
+  position: fixed;
+  top: var(--lg-space-3);
+  left: 50%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: var(--lg-space-3);
+  width: max-content;
+  max-width: min(560px, calc(100vw - var(--lg-space-5)));
+  padding: var(--lg-space-3) var(--lg-space-4);
+  transform: translateX(-50%);
+  background: var(--lg-color-warning-soft);
+  border: 1px solid var(--lg-color-warning);
+  border-radius: var(--lg-radius-panel);
+  box-shadow: var(--lg-shadow-overlay);
+}
+
+.lg-session-expired__message {
+  margin: 0;
+  color: var(--lg-color-text);
+  font-size: var(--lg-font-size-sm);
+  line-height: var(--lg-line-height);
+}
+
+.lg-session-expired__message strong {
+  color: var(--lg-color-warning);
+}
+
+.lg-session-expired__action {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 700px) {
+  .lg-session-expired {
+    right: var(--lg-space-3);
+    left: var(--lg-space-3);
+    width: auto;
+    max-width: none;
+    transform: none;
+  }
+}
