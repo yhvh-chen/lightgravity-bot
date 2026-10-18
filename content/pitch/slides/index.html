@@ -88,7 +88,7 @@
       font-family: var(--font-serif); font-style: italic;
       font-weight: 400; letter-spacing: normal; padding-right: 6px;
     }
-    .slide-paper .headline em { color: var(--accent-orange); }
+    .slide-paper .headline em { color: #D43800; }
     .slide-obsidian .headline em { color: var(--accent-lime); }
     .slide-orange .headline em { color: #FFE814; }
 
@@ -124,7 +124,7 @@
       font-family: var(--font-mono); font-size: 14px; letter-spacing: 0.15em;
     }
     .slide-obsidian .slide-footer { border-color: rgba(255, 255, 255, 0.12); color: #7E8290; }
-    .slide-paper .slide-footer { border-color: rgba(0, 0, 0, 0.12); color: #64748B; }
+    .slide-paper .slide-footer { border-color: rgba(0, 0, 0, 0.12); color: #475569; }
     .slide-orange .slide-footer { border-color: rgba(255, 255, 255, 0.25); color: rgba(255, 255, 255, 0.8); }
 
     .footer-dots { display: flex; align-items: center; gap: 8px; }
@@ -272,7 +272,7 @@
               Get deliverables your team can <strong style="color: #0F172A; text-decoration: underline decoration-orange-500 decoration-3;">inspect, review, and accept.</strong>
             </p>
             <div style="display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px;">
-              <span class="tech-pill" style="background: var(--accent-orange); color: #FFF; border-color: #111;">Google Antigravity SDK</span>
+              <span class="tech-pill" style="background: var(--accent-orange); color: #111116; border-color: #111;">Google Antigravity SDK</span>
               <span class="tech-pill" style="background: var(--accent-lime); color: #111; border-color: #111;">EmbeddingGemma 2</span>
               <span class="tech-pill" style="background: #FFF; color: #111; border-color: #111;">Cloud Run & Vertex AI</span>
               <span class="tech-pill" style="background: #FFF; color: #111; border-color: #111;">File SoT · Task Ontology</span>
@@ -289,7 +289,7 @@
               <!-- Central Star: TASK -->
               <circle cx="230" cy="230" r="62" fill="#111116"/>
               <text x="230" y="226" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="14" font-weight="700" fill="#D4FF28" letter-spacing="0.1em">TASK</text>
-              <text x="230" y="246" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#94A3B8">One Record</text>
+              <text x="230" y="246" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#E2E8F0">One Record</text>
               <!-- Orbiting Planet 1: Human Team -->
               <circle cx="100" cy="120" r="26" fill="#2563EB" stroke="#111" stroke-width="2"/>
               <text x="100" y="125" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" font-weight="700" fill="#FFF">People</text>
@@ -1112,21 +1112,42 @@ acceptance_criteria:
        STANDALONE CONTROLLER & KEYBOARD SCRIPT
        ========================================== -->
   <script>
+    // 1. Scene registry matching data-composition-id, data-start, data-duration
+    const scenes = [
+      { id: "slide-01", start: 0, duration: 6 },
+      { id: "slide-02", start: 6, duration: 6 },
+      { id: "slide-03", start: 12, duration: 6 },
+      { id: "slide-04", start: 18, duration: 6 },
+      { id: "slide-05", start: 24, duration: 6 },
+      { id: "slide-06", start: 30, duration: 6 },
+      { id: "slide-07", start: 36, duration: 6 },
+      { id: "slide-08", start: 42, duration: 6 },
+      { id: "slide-09", start: 48, duration: 6 },
+      { id: "slide-10", start: 54, duration: 6 },
+      { id: "slide-11", start: 60, duration: 6 },
+      { id: "app-ontology", start: 66, duration: 6 }
+    ];
+    const TOTAL_DURATION = 72;
     const slides = Array.from(document.querySelectorAll('.slide'));
     const totalSlides = slides.length;
-    let currentSlideIndex = 0;
+    let currentActiveIndex = 0;
 
-    // Parse embedded slideshow notes
-    // HyperFrames deterministic timeline registry
+    // 2. HyperFrames deterministic timeline registry
     window.__timelines = window.__timelines || {};
+    let rootTl = null;
     if (typeof gsap !== 'undefined') {
-      window.__timelines['slideshow-root'] = gsap.timeline({ paused: true });
+      rootTl = gsap.timeline({ paused: true });
+      rootTl.to({}, { duration: TOTAL_DURATION });
+      window.__timelines['slideshow-root'] = rootTl;
+
       for (let i = 1; i <= 11; i++) {
-        window.__timelines[`slide-${String(i).padStart(2, '0')}`] = gsap.timeline({ paused: true });
+        const id = `slide-${String(i).padStart(2, '0')}`;
+        window.__timelines[id] = gsap.timeline({ paused: true });
       }
       window.__timelines['app-ontology'] = gsap.timeline({ paused: true });
     }
 
+    // 3. Parse manifest data for speaker notes
     let manifestData = { slides: [] };
     try {
       const manifestScript = document.querySelector('script[type="application/hyperframes-slideshow+json"]');
@@ -1137,9 +1158,10 @@ acceptance_criteria:
       console.warn("Could not parse slideshow manifest:", e);
     }
 
-    function updateNotes() {
+    function updateNotes(slideIdx) {
       const notesEl = document.getElementById('notes-content');
-      const noteEntry = manifestData.slides && manifestData.slides[currentSlideIndex];
+      if (!notesEl) return;
+      const noteEntry = manifestData.slides && manifestData.slides[slideIdx];
       if (noteEntry && noteEntry.notes) {
         notesEl.innerHTML = `<p>${noteEntry.notes.replace(/\n/g, '</p><p>')}</p>`;
       } else {
@@ -1147,40 +1169,96 @@ acceptance_criteria:
       }
     }
 
-    function goToSlide(index) {
-      if (index < 0 || index >= totalSlides) return;
-      slides[currentSlideIndex].classList.remove('is-active');
+    // 4. Playhead-driven scene visibility controller
+    function updateSceneVisibility(time) {
+      const t = Math.max(0, Math.min(TOTAL_DURATION - 0.001, Number(time) || 0));
+      let activeIndex = 0;
+      for (let i = 0; i < scenes.length; i++) {
+        const s = scenes[i];
+        if (t >= s.start && t < s.start + s.duration) {
+          activeIndex = i;
+          break;
+        }
+        if (i === scenes.length - 1 && t >= s.start) {
+          activeIndex = i;
+        }
+      }
 
-      currentSlideIndex = index;
-      slides[currentSlideIndex].classList.add('is-active');
+      currentActiveIndex = activeIndex;
 
-      // Update Slide Counter
-      const padIndex = String(currentSlideIndex + 1).padStart(2, '0');
-      const padTotal = String(totalSlides).padStart(2, '0');
-      document.getElementById('slide-indicator').textContent = `${padIndex} / ${padTotal}`;
-
-      // Update Pagination Dots on active slide
-      const currentDots = slides[currentSlideIndex].querySelectorAll('.dot');
-      currentDots.forEach((d, i) => {
-        if (i === currentSlideIndex) d.classList.add('active');
-        else d.classList.remove('active');
-        d.onclick = () => goToSlide(i);
+      // Toggle DOM visibility
+      scenes.forEach((s, idx) => {
+        const el = document.getElementById(s.id);
+        if (!el) return;
+        if (idx === activeIndex) {
+          el.classList.add('is-active');
+          el.style.opacity = '1';
+          el.style.visibility = 'visible';
+          el.style.pointerEvents = 'auto';
+          el.style.zIndex = '10';
+        } else {
+          el.classList.remove('is-active');
+          el.style.opacity = '0';
+          el.style.visibility = 'hidden';
+          el.style.pointerEvents = 'none';
+          el.style.zIndex = '1';
+        }
       });
 
-      updateNotes();
+      // Update Slide Counter in UI
+      const padIndex = String(Math.min(activeIndex + 1, totalSlides)).padStart(2, '0');
+      const padTotal = String(totalSlides).padStart(2, '0');
+      const indicatorEl = document.getElementById('slide-indicator');
+      if (indicatorEl) {
+        indicatorEl.textContent = `${padIndex} / ${padTotal}`;
+      }
+
+      // Update Pagination Dots on active slide
+      const activeSlideEl = document.getElementById(scenes[activeIndex].id);
+      if (activeSlideEl) {
+        const currentDots = activeSlideEl.querySelectorAll('.dot');
+        currentDots.forEach((d, i) => {
+          if (i === activeIndex) d.classList.add('active');
+          else d.classList.remove('active');
+          d.onclick = (evt) => {
+            evt.stopPropagation();
+            goToSlide(i);
+          };
+        });
+      }
+
+      updateNotes(activeIndex);
+    }
+
+    window.__hfSetTime = updateSceneVisibility;
+
+    if (rootTl) {
+      rootTl.eventCallback('onUpdate', () => {
+        updateSceneVisibility(rootTl.time());
+      });
+    }
+
+    // 5. Navigation APIs
+    function goToSlide(index) {
+      if (index < 0 || index >= scenes.length) return;
+      const targetTime = scenes[index].start + 0.1;
+      if (rootTl) {
+        rootTl.seek(targetTime, false);
+      }
+      updateSceneVisibility(targetTime);
     }
 
     function nextSlide() {
-      if (currentSlideIndex < totalSlides - 1) goToSlide(currentSlideIndex + 1);
+      if (currentActiveIndex < scenes.length - 1) goToSlide(currentActiveIndex + 1);
     }
 
     function prevSlide() {
-      if (currentSlideIndex > 0) goToSlide(currentSlideIndex - 1);
+      if (currentActiveIndex > 0) goToSlide(currentActiveIndex - 1);
     }
 
     function toggleNotes() {
       const drawer = document.getElementById('presenter-notes');
-      drawer.classList.toggle('open');
+      if (drawer) drawer.classList.toggle('open');
     }
 
     function toggleFullscreen() {
@@ -1191,9 +1269,45 @@ acceptance_criteria:
       }
     }
 
-    // Dynamic viewport responsive scale calculator (maintains 1920x1080)
+    // 6. Bootstrap postMessage to parent hyperframes-player / hyperframes-slideshow
+    function postTimelineToParent() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          source: 'hf-preview',
+          type: 'timeline',
+          durationInFrames: TOTAL_DURATION * 30,
+          durationSeconds: TOTAL_DURATION,
+          compositionWidth: 1920,
+          compositionHeight: 1080,
+          scenes: scenes
+        }, '*');
+      }
+    }
+
+    // Post timeline once ready
+    if (document.readyState === 'complete') {
+      setTimeout(postTimelineToParent, 150);
+    } else {
+      window.addEventListener('load', () => {
+        setTimeout(postTimelineToParent, 150);
+      });
+    }
+
+    // 7. Receive seek/control commands from hyperframes-player iframe bridge
+    window.addEventListener('message', (e) => {
+      if (!e.data) return;
+      if (e.data.source === 'hf-parent' && e.data.type === 'control') {
+        if (e.data.action === 'seek' && typeof e.data.timeSeconds === 'number') {
+          if (rootTl) rootTl.seek(e.data.timeSeconds, false);
+          updateSceneVisibility(e.data.timeSeconds);
+        }
+      }
+    });
+
+    // 8. Dynamic viewport responsive scale calculator (maintains 1920x1080)
     function resizeViewport() {
       const viewport = document.getElementById('deck-viewport');
+      if (!viewport) return;
       const windowWidth = window.innerWidth;
       const windowHeight = window.innerHeight;
       const scaleX = windowWidth / 1920;
@@ -1205,10 +1319,16 @@ acceptance_criteria:
     window.addEventListener('resize', resizeViewport);
     window.addEventListener('DOMContentLoaded', () => {
       resizeViewport();
-      goToSlide(0);
+      updateSceneVisibility(0);
+
+      // If running inside hyperframes-slideshow (iframe), hide inner standalone controls
+      if (window.parent && window.parent !== window) {
+        const controls = document.getElementById('deck-controls');
+        if (controls) controls.style.display = 'none';
+      }
     });
 
-    // Keyboard navigation
+    // 9. Keyboard navigation for direct standalone viewing
     window.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
         e.preventDefault(); nextSlide();
@@ -1217,7 +1337,7 @@ acceptance_criteria:
       } else if (e.key === 'Home') {
         e.preventDefault(); goToSlide(0);
       } else if (e.key === 'End') {
-        e.preventDefault(); goToSlide(totalSlides - 1);
+        e.preventDefault(); goToSlide(scenes.length - 1);
       } else if (e.key === 'p' || e.key === 'P') {
         e.preventDefault(); toggleNotes();
       } else if (e.key === 'f' || e.key === 'F') {
