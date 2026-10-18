@@ -352,7 +352,7 @@ export function describeBranch(
             label: 'Transcription stop unconfirmed',
             tone: 'warning',
             detail:
-              'The in-process model may still be running; no terminal state, retry or cancellation success is claimed.',
+              'The transcript provider may still be running; no terminal state, retry or cancellation success is claimed.',
           }
         }
         return { label: 'Extracting', tone: 'warning', detail }
@@ -382,6 +382,15 @@ export function describeBranch(
             label: 'English transcription disabled',
             tone: 'warning',
             detail: 'English transcription is disabled; no transcript was created.',
+          }
+        }
+        if (reason === 'asr_auth_failed') {
+          return {
+            label: 'Transcription authentication failed',
+            tone: 'warning',
+            detail:
+              errorCode ??
+              'The provider rejected the configured credentials; no transcript was created.',
           }
         }
         if (reason === 'asr_unsupported_language') {
@@ -459,6 +468,54 @@ function textFailure(reason: string | null | undefined, detail: string | null): 
       return { label: 'English transcription timed out', tone: 'error', detail }
     case 'asr_failed':
       return { label: 'English transcription failed', tone: 'error', detail }
+    case 'asr_auth_failed':
+      return {
+        label: 'Transcription authentication failed',
+        tone: 'error',
+        detail: detail ?? 'The provider rejected the configured credentials.',
+      }
+    case 'asr_rate_limited':
+      return {
+        label: 'Transcription rate limited',
+        tone: 'warning',
+        detail: detail ?? 'The provider rate-limited the attempt; no retry was made.',
+      }
+    case 'asr_model_unavailable':
+      return {
+        label: 'Transcription model unavailable',
+        tone: 'error',
+        detail: detail ?? 'The configured model was not available.',
+      }
+    case 'asr_provider_unavailable':
+      return {
+        label: 'Transcription provider unavailable',
+        tone: 'error',
+        detail: detail ?? 'The provider could not be reached; no fallback was attempted.',
+      }
+    case 'asr_invalid_request':
+      return {
+        label: 'Transcription request rejected',
+        tone: 'error',
+        detail: detail ?? 'The provider rejected the audio request.',
+      }
+    case 'asr_refused':
+      return {
+        label: 'Transcription refused',
+        tone: 'warning',
+        detail: detail ?? 'The provider refused to transcribe this audio.',
+      }
+    case 'asr_empty_response':
+      return {
+        label: 'Transcription returned no text',
+        tone: 'error',
+        detail: detail ?? 'The provider returned no usable transcript text.',
+      }
+    case 'asr_response_invalid':
+      return {
+        label: 'Transcription response invalid',
+        tone: 'error',
+        detail: detail ?? 'The provider response was not a completed model output.',
+      }
     case 'audio_too_long':
       return { label: 'Transcription skipped: audio too long', tone: 'warning', detail }
     case 'audio_decode_failed':
@@ -476,8 +533,14 @@ function textFailure(reason: string | null | undefined, detail: string | null): 
 function transcriptDetail(branch: SourceTextBranch): string | null {
   const machine = branch.machine
   if (!machine) return null
-  const parts: string[] = ['machine English transcript']
+  const google =
+    machine.provider === 'google' ||
+    machine.engine === 'google-native' ||
+    machine.runtime === 'google-native'
+  const parts: string[] = [google ? 'machine Google transcript' : 'machine English transcript']
+  if (google) parts.push('Google native')
   if (machine.engine) parts.push(machine.engine)
+  if (machine.model) parts.push(machine.model)
   if (machine.model_version) parts.push(machine.model_version)
   if (machine.runtime) parts.push(machine.runtime)
   if (machine.content_variant) parts.push(machine.content_variant)

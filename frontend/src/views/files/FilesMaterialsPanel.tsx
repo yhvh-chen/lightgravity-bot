@@ -787,11 +787,22 @@ export function FilesMaterialsPanel({
               {content?.kind === 'formal' && machineEvidence ? (
                 <section
                   className="lg-files-materials__transcript"
-                  aria-label="Machine English transcript"
+                  aria-label={
+                    transcriptIsGoogle(receiptText)
+                      ? 'Machine Google transcript'
+                      : 'Machine English transcript'
+                  }
                 >
                   <div className="lg-files__preview-header">
-                    <span className="lg-files__section-title">Machine English transcript</span>
+                    <span className="lg-files__section-title">
+                      {transcriptIsGoogle(receiptText)
+                        ? 'Machine Google transcript'
+                        : 'Machine English transcript'}
+                    </span>
                     <StatusBadge kind="accent">English</StatusBadge>
+                    {transcriptIsGoogle(receiptText) ? (
+                      <StatusBadge kind="accent">Google native</StatusBadge>
+                    ) : null}
                     <StatusBadge kind="neutral">machine · not formal</StatusBadge>
                     <StatusBadge kind="neutral">
                       {receiptText?.timestamps == null
@@ -806,7 +817,7 @@ export function FilesMaterialsPanel({
                   </p>
                   {machineStatus === 'loading' || machineStatus === 'idle' ? (
                     <p className="lg-files__note" role="status">
-                      Reading the machine English transcript…
+                      Reading the machine transcript…
                     </p>
                   ) : null}
                   {machineStatus === 'ready' && machineContent ? (
@@ -989,6 +1000,16 @@ function transcriptTimestampStatus(branch: SourceTextBranch | null): string {
   return 'timestamp data reported; this version provides no seek controls'
 }
 
+function transcriptIsGoogle(branch: SourceTextBranch | null): boolean {
+  const machine = branch?.machine
+  return Boolean(
+    machine &&
+      (machine.provider === 'google' ||
+        machine.engine === 'google-native' ||
+        machine.runtime === 'google-native'),
+  )
+}
+
 function ModelPin({
   label,
   model,
@@ -1022,12 +1043,17 @@ function MachineTranscriptMeta({
   const modelVersion = machine?.model_version ?? stringField(derivative, 'model_version')
   const transcriptHash = stringField(derivative, 'content_hash')
   const timestamp = transcriptTimestampStatus(branch)
+  const google = transcriptIsGoogle(branch)
+  const endpoint =
+    machine?.endpoint_host && machine?.endpoint_path
+      ? `${machine.endpoint_host}${machine.endpoint_path}`
+      : null
   return (
     <>
       <p className="lg-files__note">
-        Machine English transcript · engine {machine?.engine ?? 'not reported'} · model{' '}
-        {modelVersion ?? 'not reported'} · runtime {machine?.runtime ?? 'not reported'} ·{' '}
-        {timestamp}.
+        {google ? 'Machine Google transcript' : 'Machine English transcript'} · engine{' '}
+        {machine?.engine ?? 'not reported'} · model {modelVersion ?? 'not reported'} · runtime{' '}
+        {machine?.runtime ?? 'not reported'} · {timestamp}.
       </p>
       <details className="lg-disclosure" aria-label="Machine transcript provenance">
         <summary className="lg-disclosure__summary">
@@ -1035,6 +1061,16 @@ function MachineTranscriptMeta({
         </summary>
         <div className="lg-disclosure__body">
           <dl className="lg-files-materials__facts">
+            <div>
+              <dt>Provider</dt>
+              <dd>
+                {google
+                  ? 'Google native'
+                  : machine
+                    ? 'EG2 + Reader (legacy)'
+                    : 'not reported'}
+              </dd>
+            </div>
             <div>
               <dt>Language</dt>
               <dd>{branch?.language ?? source.language ?? 'en'}</dd>
@@ -1055,6 +1091,28 @@ function MachineTranscriptMeta({
               <dt>Model version</dt>
               <dd>{modelVersion ?? 'not reported'}</dd>
             </div>
+            {google ? (
+              <>
+                <div>
+                  <dt>Model</dt>
+                  <dd>{machine?.model ?? 'not reported'}</dd>
+                </div>
+                <div>
+                  <dt>Endpoint</dt>
+                  <dd className="lg-card__path">{endpoint ?? 'not reported'}</dd>
+                </div>
+                <div>
+                  <dt>Prompt version</dt>
+                  <dd>{machine?.prompt_version ?? 'not reported'}</dd>
+                </div>
+                {typeof machine?.latency_ms === 'number' ? (
+                  <div>
+                    <dt>Latency</dt>
+                    <dd>{machine.latency_ms} ms</dd>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
             <div>
               <dt>Content variant</dt>
               <dd>{machine?.content_variant ?? 'machine'}</dd>
