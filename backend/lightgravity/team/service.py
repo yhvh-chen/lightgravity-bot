@@ -11,6 +11,7 @@ import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 
 from .accounts import Account, TeamAccounts
 from .sessions import COOKIE_NAME, SessionRegistry
@@ -33,7 +34,7 @@ class TeamIdentity:
 
 
 class TeamAuthService:
-    """Authenticate credentials and own the in-memory session lifecycle."""
+    """Authenticate credentials and own the server-side session lifecycle."""
 
     def __init__(
         self,
@@ -42,9 +43,14 @@ class TeamAuthService:
         session_ttl_seconds: int = 28800,
         cookie_secure: bool = False,
         clock: Callable[[], float] = time.time,
+        session_store_path: Path | str | None = None,
     ) -> None:
         self._accounts = accounts
-        self._sessions = SessionRegistry(session_ttl_seconds, clock=clock)
+        # LG-210: a configured store keeps only token hashes in the controlled
+        # team data root, so a process restart no longer forces a new login.
+        self._sessions = SessionRegistry(
+            session_ttl_seconds, clock=clock, store_path=session_store_path
+        )
         self._clock = clock
         self._cookie_secure = cookie_secure
         self._failures: dict[str, list[float]] = {}

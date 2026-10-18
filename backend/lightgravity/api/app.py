@@ -175,6 +175,10 @@ def create_app(
             team_accounts,
             session_ttl_seconds=resolved.team_session_ttl_seconds,
             cookie_secure=resolved.team_cookie_secure,
+            # LG-210: keep hash-only sessions beside the account fact source
+            # (already protected from Files); a restart resolves the same
+            # cookie while account/session_version revalidation stays live.
+            session_store_path=team_accounts.path.parent / "sessions.json",
         )
         if policy is None:
             policy = TeamAccessPolicy(team_service)
