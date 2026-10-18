@@ -7,7 +7,9 @@ updated: "2026-10-19"
 
 # LightGravity Bot 项目手册
 
-> **后续修复批次已本地串行集成（2026-10-19；未部署）**：隔离分支 `work/followup-candidate-20261019` 基于冻结功能基点 `3444cdd`（1.23.0），按序 cherry-pick LG256 `209f9d4`、LG217 后端 `4be61e3`、前端 `c00c502→f6a6193→d02e537` 与 LG210 `340b53e`，契约按 MINOR 升至 **1.24.0**（docs/08 §25）。登记三项公共行为：Team 登录会话改为受控目录下仅哈希持久、跨重启保留（LG-210，取代“重启即重新登录”）；无 responder 时 all direct/bounded-read 面返回 `kind:unavailable`、不再伪造固定话术与“已提供上下文”来源声明（LG-217，有意行为变更；coordinator/reviewer 默认变更仍需重启，worker 默认在新 Run 冻结）；回执显式分支（`pending`/终态）权威，仅真正缺失字段的历史记录才按当前状态推断（LG-256）。前端 LG-261 可读正文/Advanced 折叠、LG-225 **PARTIAL** 语义与 ASR 可用性如实文案、LG-217 成员/管理员不可用与重启提示同批装配；LG-225 的公开 OCR/ASR 能力字段与持久 Embedding `last_test` 仍待补充，整项不关闭。未新增端点/字段/cookie/错误码/枚举/迁移方向。验证仅为最小相关功能点与必要前端构建，未跑全套/类型/安全/性能/浏览器矩阵或真实模型/OCR/ASR；**非独立 QA**，未推送/合根/部署/重启，冻结的 LG-252 候选 `3444cdd` 不受影响。交付、证据与限制见 [integration](../probes/demo-followup-20261019/integration/DELIVERY.md)，复核交接见 [QA-HANDOFF](../probes/demo-followup-20261019/integration/QA-HANDOFF.md)。
+> **资料后续修复已串行集成（2026-10-19，契约 1.25.0；未部署）**：隔离分支 `work/architect-candidate-20261019` 基于上一候选 `ff44eda`（1.24.0），用 `git cherry-pick -x 74baa6a` 接入已交付的 LG-222/LG-223，候选树与来源树逐字一致（`67488368…`），未重新实现资料功能；契约按 MINOR 升至 **1.25.0**（docs/08 §26）。**加性**：`source.reprocess` 只读路由/可用性投影、`source.formal.origin`、`ProcessingOutcome.preserved_existing_body`。**有意行为变化**：显式 reprocess 按类型路由（音频只走 ASR，创建一个有界延迟 job，绝不当 OCR）；未配置/不支持在任何写入前 `503 capability_unavailable`（旧行为可能 200 `failed` 并写失败派生）；reprocess 执行 `expected_revision`（不匹配 `409 revision_conflict`）；失败尝试不覆盖已有可用正文/索引并报 `partial`；无机器正文时允许首个人工正文。**PDF 保持 LG-224 文字层优先**：能力 `available` 只表示“允许尝试文字层”，无文字层扫描件在无 OCR 时以真实失败结束。未新增端点/请求字段/cookie/错误码/枚举/迁移方向。验证仅为最小相关功能点（真实提取路径 + 最小 PDF fixtures、stub transport 重放已记录音频响应、临时 dataRoot）与一次必要前端构建；**非独立 QA**，未跑全量/类型/安全/性能/跨浏览器矩阵或浏览器、真实 OCR/ASR/模型/供应商调用，未推送/合根/部署/重启。登记的确定性投影缺陷（首次真实提取失败时 `context_selectable` 误报 true）已交 native，本候选未自行修产品代码。证据与限制见 [MATERIAL-BOUNDARY](../probes/architect-fixes-20261019/integration/MATERIAL-BOUNDARY.md) 与 [DELIVERY](../probes/architect-fixes-20261019/integration/DELIVERY.md)。
+
+> **上一后续修复批次（1.24.0；2026-10-19；未部署）**：隔离分支 `work/followup-candidate-20261019` 基于冻结功能基点 `3444cdd`（1.23.0），按序 cherry-pick LG256 `209f9d4`、LG217 后端 `4be61e3`、前端 `c00c502→f6a6193→d02e537` 与 LG210 `340b53e`，契约按 MINOR 升至 **1.24.0**（docs/08 §25）。登记三项公共行为：Team 登录会话改为受控目录下仅哈希持久、跨重启保留（LG-210，取代“重启即重新登录”）；无 responder 时 all direct/bounded-read 面返回 `kind:unavailable`、不再伪造固定话术与“已提供上下文”来源声明（LG-217，有意行为变更；coordinator/reviewer 默认变更仍需重启，worker 默认在新 Run 冻结）；回执显式分支（`pending`/终态）权威，仅真正缺失字段的历史记录才按当前状态推断（LG-256）。前端 LG-261 可读正文/Advanced 折叠、LG-225 **PARTIAL** 语义与 ASR 可用性如实文案、LG-217 成员/管理员不可用与重启提示同批装配；LG-225 的公开 OCR/ASR 能力字段与持久 Embedding `last_test` 仍待补充，整项不关闭。未新增端点/字段/cookie/错误码/枚举/迁移方向。验证仅为最小相关功能点与必要前端构建，未跑全套/类型/安全/性能/浏览器矩阵或真实模型/OCR/ASR；**非独立 QA**，未推送/合根/部署/重启，冻结的 LG-252 候选 `3444cdd` 不受影响。交付、证据与限制见 [integration](../probes/demo-followup-20261019/integration/DELIVERY.md)，复核交接见 [QA-HANDOFF](../probes/demo-followup-20261019/integration/QA-HANDOFF.md)。
 
 > **Demo录制修复候选已本地集成（2026-10-18，LG-251；未部署）**：隔离分支 `work/lg248-candidate-20261018` 基于 native Files/hint `cd755da`，按内容去重后串行合入 LG-208 parse cache、LG-244/LG-243/LG-249 后端链、LG-224 PDF 文字层，并把契约升至 **1.23.0**（§24）。新端点/DTO/投影字段为加性，但**不是纯加性批次**：LG-249 有意把 Team Task 普通消息改为默认只记录、仅前导配置 mention 才路由；单用户路由不变。候选包含只读 canonical `TASK.md`、机器检查 required/绑定/验收状态、每 Run 的计划 worker 与真实 reviewer 执行证据、PDF 文字层优先，以及真实 `health.team_bot_mention`。已运行受影响后端/前端测试、typecheck、build；原前端完整套件 **400 通过/1 失败**与隔离复跑 5/5 作为前缀历史保留，失败已由 root/native **LG259** `4fa884e` 证实为启动 filter-reset race 并修复，不是 flake；候选 targeted **28 通过**，且候选 `frontend` 树与 native 修复树一致，复用其 full **406 通过**。候选状态仍 **PROVISIONAL，LG-251 in-progress 待 root 核验**；这是开发者集成证据，**不是独立 QA**，本轮未重核线上 8123/5173 版本，未推送/合根/部署，LG-252 浏览器录制验收待 root claim 与采集门批准。详细登记见 docs/08 §24。
 
@@ -98,6 +100,16 @@ LG174调查已完成：[报告](probes/demo-brand-asr-20261018/lg174/REPORT.md)�
 - 项目已于 2026-10-14 初始化 Git，默认分支 `main`，并推送设计文档、开发 backlog 与 `.agents/skills/` 技能文件；提交历史自该次初始入库开始。尚无产品代码、构建或运行产物。
 
 ## 决策日志
+
+### 2026-10-19：资料后续修复串行集成，契约 1.25.0 本地隔离候选（未部署）
+
+- 唯一授权补丁：`git cherry-pick -x 74baa6a035814275ac3297278fa41114883fef0c`（LG-222/223 已交付实现），基于 `ff44eda`（1.24.0）。候选树与来源树一致，未整分支导入、未重新实现资料功能、未改产品代码（缺陷交 native）。
+- 契约 MINOR 升至 **1.25.0**（docs/08 §26）：加性字段与**有意行为变化**分开登记；未新增端点/请求字段/cookie/错误码/实体枚举/迁移方向。per-source 与 formal revision 语义不变。
+- 材料边界按 LG224 文字层优先核验：电子 PDF 无 OCR 仍成功（`pdfium-text-layer`/`model:none`）；无文字层扫描 PDF 无 OCR 时真实 `failed`，不伪造正文/索引，能力投影仅表示“允许尝试文字层”；图片无 OCR 在写入前 503。
+- 音频 reprocess 为异步 job（`max_asr_calls:1`，仅 ASR 启用时；活跃 job 返回 409，旧 job 预算不被改写）；旧音频 retry 可在 ASR 启用后 0→1。验证使用 **stub transport** 重放已记录的 LG-235 响应，不宣称真实供应商调用。
+- 首次人工正文：无机器派生时保存成功、`formal.origin="human"`、带 human-authored provenance，`kind=machine` 仍 404，可检索且 revision 冲突受保护。
+- 发现并登记确定性缺陷：首次真实提取失败且写入失败派生时，`context_selectable` 从基点的 false/`extraction_failed` 变为 true/null，失败说明还可能被选材解析当作机器正文接受；属材料边界假阳性，已交 native，本候选不修产品代码。
+- 验证仅限最小相关功能点与一次必要前端构建；未跑全量套件、类型/安全/性能/跨浏览器矩阵、浏览器或真实模型/OCR/ASR，**非独立 QA**；未推送、未合根 main、未部署、未重启服务或改真实数据。
 
 ### 2026-10-19：后续修复批次串行集成，契约 1.24.0 本地隔离候选（未部署）
 

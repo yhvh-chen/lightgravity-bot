@@ -3,6 +3,25 @@
 from __future__ import annotations
 
 SCHEMA_NAMESPACE = "lightgravity.bot/v1"
+#: docs/08 §26: 1.25.0 (2026-10-19) is the material follow-up integration
+#: candidate.  It additively registers the read-time ``source.reprocess``
+#: routing/availability projection, ``source.formal.origin``, and
+#: ``ProcessingOutcome.preserved_existing_body`` (LG-222/223).  It is **not**
+#: purely additive: reprocess is now type-routed (audio is an ASR branch that
+#: creates one bounded deferred job, never OCR), an unconfigured/unsupported
+#: capability is rejected with 503 before any write instead of returning a 200
+#: failed extraction, ``expected_revision`` is enforced for reprocess (409),
+#: a failed attempt that keeps an already usable body reports ``partial``
+#: instead of ``failed`` and does not overwrite that body or its index, and a
+#: legacy audio job's ``max_asr_calls=0`` may be refreshed to 1 when ASR is
+#: enabled explicitly.  The first human formal body is now allowed when no
+#: machine derivative exists.  No new endpoint, request field, cookie, error
+#: code, entity enum or migration direction is added.  PDF keeps text-layer
+#: priority: its capability means "try the embedded text layer", and a scanned
+#: PDF without OCR still ends in an honest failure rather than a fabricated
+#: body.  Isolated local candidate: not deployed, and independent
+#: functional/browser review is still pending.
+#:
 #: docs/08 §25: 1.24.0 (2026-10-19) is the follow-up batch serial integration
 #: candidate.  It registers three public behaviors: (a) LG-210 team login
 #: sessions now persist as hash-only records under the controlled team root and
@@ -236,7 +255,7 @@ SCHEMA_NAMESPACE = "lightgravity.bot/v1"
 #: ``candidate_plan_hash``/``check_records``/``note``), the read-only
 #: ``GET /tasks/{task_id}/acceptance`` endpoint, LG-025's settings detail/default
 #: endpoints, and the singleton global-conversation messages endpoints.
-CONTRACT_VERSION = "1.24.0"
+CONTRACT_VERSION = "1.25.0"
 API_PREFIX = "/api/v1"
 
 __all__ = ["SCHEMA_NAMESPACE", "CONTRACT_VERSION", "API_PREFIX"]

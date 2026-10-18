@@ -74,8 +74,13 @@ def test_frozen_constants() -> None:
     # independent browser/recording QA pending) -> 1.24.0 (follow-up batch
     # serial integration: LG-210 hash-only durable team sessions, LG-217 honest
     # unavailable assistant replies without false provided-context, and LG-256
-    # authoritative explicit receipt branches; no new endpoint/field/enum).
-    assert CONTRACT_VERSION == "1.24.0"
+    # authoritative explicit receipt branches; no new endpoint/field/enum) ->
+    # 1.25.0 (material follow-up integration: LG-222 type-routed reprocess with
+    # additive source.reprocess/formal.origin/preserved_existing_body, audio as
+    # one bounded deferred ASR job, 503/409 pre-write guards, preserved
+    # body/index on failure; LG-223 first human formal body; no new endpoint,
+    # request field, error code or enum).
+    assert CONTRACT_VERSION == "1.25.0"
     assert SCHEMA_NAMESPACE == "lightgravity.bot/v1"
     assert API_PREFIX == "/api/v1"
 

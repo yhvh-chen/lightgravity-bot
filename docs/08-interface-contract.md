@@ -2,13 +2,15 @@
 title: "首版接口与状态契约（v1）"
 doc_type: specification
 category: architecture
-contract_version: "1.24.0"
+contract_version: "1.25.0"
 updated: "2026-10-19"
 ---
 
 # 首版接口与状态契约（v1）
 
-> **当前本地隔离候选契约 1.24.0（2026-10-19，pi 串行集成 followup-candidate；未部署，状态 PROVISIONAL，独立功能复核待执行）**：§25 登记本轮最小诚实范围的三项公共行为——LG-210 Team 登录会话改为受控目录下**仅哈希持久**并跨服务/进程重启保留（取代旧的“重启即需重新登录”语义）；LG-217 无注入 responder 时所有 direct/bounded-read 面返回 `kind: "unavailable"` 且**不再伪造固定话术回复或“已提供上下文”的来源绑定**（有意行为变更），coordinator/reviewer 默认连接变更仍需重启；LG-256 回执中**显式存在**的分支（`pending` 或终态）为权威，仅真正缺失字段的历史记录才按当前资料状态推断。三者都不新增/改变端点、请求/响应字段、cookie、错误码、实体枚举或迁移方向。前端 LG-261/LG-225（部分）/LG-217 UI 属纯展示与文案修正，不改变 API/schema；LG-225 整项仍为 **PARTIAL**。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.24.0**。本候选由开发者 pi 完成串行集成与最小功能点检查，**不是独立 QA**；未推送/部署/重启，未重核线上 8123/5173，冻结的 LG-252 候选 `3444cdd`/1.23.0 不受影响。
+> **当前本地隔离候选契约 1.25.0（2026-10-19，pi 串行集成 architect-candidate；未部署，状态 PROVISIONAL，独立 QA 未执行）**：§26 登记 LG-222/LG-223 已交付实现（来源提交 `74baa6a`，从 `ff44eda`/1.24.0 干净 cherry-pick，来源树与候选树逐字一致）的公共行为。**加性**：只读投影 `source.reprocess`（`kind`/`available`/`reason`/`ocr_configured`，音频另有 `configured`/`enabled`）、`source.formal.origin`、`ProcessingOutcome.preserved_existing_body`。**有意行为变化（不得写成“无行为变化”）**：① 显式 `reprocess` 改为按类型路由，音频只走 ASR 并创建一个有界延迟摄取 job，绝不当 OCR；② 未配置/不支持的处置在**任何写入前**返回 `503 capability_unavailable`（旧行为可能先尝试 OCR 并返回 200 `failed`、写失败派生）；③ `reprocess` 现在执行 `expected_revision` 校验，不匹配返回 `409 revision_conflict`；④ 失败尝试若已有可用正文则不覆盖该正文与索引，如实报 `partial` + `preserved_existing_body=true`；⑤ 无机器派生时允许写入**首个人工正文**并记录 `formal.origin="human"`。**PDF 保持 LG-224 文字层优先**：其 reprocess 能力 `available=true` 只表示“允许尝试内嵌文字层”，不是 OCR 已配置或成功承诺；无文字层的扫描 PDF 在无 OCR 时以真实失败结束，不伪造正文/索引。无新增端点、请求字段、cookie、错误码、实体枚举或迁移方向；旧客户端可忽略新字段，但必须把上述语义收紧/替换当作行为变化。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.25.0**。本候选由开发者 pi 完成串行集成与最小相关功能点检查（含一次必要前端构建），**不是独立 QA**；未推送/部署/重启，未重核线上 8123/5173。§26.7 登记一个已交 native 的确定性投影缺陷（首次真实提取失败时 `context_selectable` 误报 true），本候选不自行修产品代码。
+
+> **上一本地隔离候选契约 1.24.0（2026-10-19，pi 串行集成 followup-candidate；已被本候选 1.25.0 取代，未部署）**：§25 登记 LG-210 Team 登录会话仅哈希持久并跨重启保留（取代旧“重启需重新登录”语义）、LG-217 无 responder 时 `kind:"unavailable"` 且不伪造固定话术与“已提供上下文”来源声明（有意行为变更）、LG-256 回执显式分支权威；前端 LG-261/LG-225（部分）/LG-217 UI 为纯展示。无端点/字段/cookie/错误码/枚举/迁移方向变化；`CONTRACT_VERSION` 在该候选为 1.24.0。
 
 > **上一本地隔离候选契约 1.23.0（2026-10-18，LG-251 串行集成；已被本候选 1.24.0 取代，未部署）**：§24 登记 demo 录制修复批次的真实已实现公共行为：只读 canonical `TASK.md` 定义读取（LG-242）、默认交付工作区与记录型机器检查策略/绑定/验收事实（LG-244）、严格 allowlist 的 Run 执行来源投影及 Task 级历史端点（LG-243）、PDF 文字层优先并保留可选 OCR/`extractor` 来源（LG-224）、以及 Team Task 配置 mention 路由与真实 `health.team_bot_mention`（LG-249）。**新端点/DTO/投影字段是加性扩展，但本批并非纯加性：LG-249 有意把 Team Task 普通消息从既有机器人路由改为默认 `recorded`-only，只有带前导配置 mention 的消息才路由；单用户行为不变。** 既有公开 `run.connection_pin` 字段、Task/Run 状态/阶段/验收枚举、迁移方向和错误码不变。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.23.0**。Native **LG259** `4fa884e` 已修复前端启动 filter-reset 分页 race；原 400/1 失败与隔离 5/5 作为前缀历史保留，候选 targeted 28 通过并复用同树 native full 406。本候选仍为 **PROVISIONAL**，未部署/推送，本轮未重新核对线上 8123/5173 版本，也不代表独立 QA 或用户验收通过。
 
@@ -2025,7 +2027,7 @@ LG-235 真实原型（仅既有测试音频，各一次请求，无 TTS、无 Fi
 - LG-208 的 parsed read cache 是进程内可丢弃派生缓存，Markdown 仍为唯一事实源，未改变公开契约；LG-253 的 SQLite 连接生命周期修复随基线与缓存子集验证，不新增接口。
 - 本候选只做开发者局部集成检查（明确列出的后端测试/类型检查与前端测试/typecheck/build）；没有真实产品模型/OCR/ASR 调用，没有浏览器录制或独立 QA。失败/跳过/限制在 LG-251 交付记录中如实保留，不把局部通过写成完整套件或版本验收通过。
 
-## 25. 后续批量修复集成（`1.24.0` 本地隔离候选；pi 串行集成）
+## 25. 后续批量修复集成（`1.24.0` 本地隔离候选；pi 串行集成；已由 §26 的 1.25.0 候选取代）
 
 > **状态**：本节登记 followup-candidate 串行集成中真实实现并由最小功能点检查覆盖的公共行为。三项行为都**没有**新增/删除端点、请求/响应字段、cookie、错误码、实体 `state`/`phase`/`acceptance`/`source.status` 枚举或迁移方向；但**不是无行为变化**：LG-210 替换“重启需重新登录”的既有语义，LG-217 替换无 responder 时的固定话术回复，二者是有意行为变更。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.24.0**。候选为隔离 worktree `work/followup-candidate-20261019`，基于冻结功能基点 `3444cdd`（1.23.0），**未部署/未推送/未重启任何服务**；冻结的 LG-252 候选 `3444cdd` 不受影响。本轮由开发者 pi 执行串行集成与最小功能点检查，**不是独立 QA**，也没有浏览器/录制验收。
 
@@ -2088,7 +2090,104 @@ LG-235 真实原型（仅既有测试音频，各一次请求，无 TTS、无 Fi
 
 - **兼容性分开表述**：LG-210 与 LG-217 是有意的既有语义替换（会话跨重启保留；无 responder 时返回 `unavailable` 而非固定话术）；LG-256 是投影权威性修复；LG-261/LG-225 前端项无 API 变化。没有新增端点/字段/cookie/错误码/枚举/迁移方向，旧客户端仍可解析既有信封字段，但不得把 LG-210/LG-217 说成“无行为变化”。
 - 本候选只运行最小相关功能点：会话重启/退出/改密/角色/禁用/损坏聚焦检查、LG-256 显式 `pending` 回执回归、LG-217 无 responder 与假来源绑定用例、以及前端 readable/advanced、semantic、成员/管理员不可用、重启提示的具名聚焦用例；另做必要前端构建以产出可审阅 UI 资产。未运行全量 pytest/vitest/mypy/类型矩阵、安全/性能/跨浏览器矩阵，也未做浏览器录制、真实模型/供应商/OCR/ASR 调用或真实数据/服务操作。
-- 证据与限制见 [integration delivery](../probes/demo-followup-20261019/integration/DELIVERY.md) 与 [QA-HANDOFF](../probes/demo-followup-20261019/integration/QA-HANDOFF.md)。独立功能/浏览器复核、LG-225 后端能力补充、LG-222/LG-223 资料功能仍待后续。
+- 证据与限制见 [integration delivery](../probes/demo-followup-20261019/integration/DELIVERY.md) 与 [QA-HANDOFF](../probes/demo-followup-20261019/integration/QA-HANDOFF.md)。独立功能/浏览器复核与 LG-225 后端能力补充仍待后续；LG-222/LG-223 资料功能已由 §26 的 1.25.0 候选接入，其证据见 [architect-fixes integration](../probes/architect-fixes-20261019/integration/DELIVERY.md)。
+
+## 26. 资料后续修复集成（`1.25.0` 本地隔离候选；LG-222/223 交付，pi 串行集成）
+
+> **状态**：本节登记 LG-222（按类型路由的 reprocess 与旧音频补转写）与 LG-223（无机器正文时的首个人工正文）中**已真实实现**的公共行为。候选从干净基点 `ff44eda`（1.24.0）用 `git cherry-pick -x 74baa6a` 接入，候选树与来源提交树逐字一致（`67488368…`），未重新实现资料功能。`CONTRACT_VERSION` 与 `/health.contract_version` 为 **1.25.0**。本轮为**开发者 pi 的串行集成与最小相关功能点检查**，不是独立 QA、不是版本验收，也不是浏览器/部署验证：未推送、未合根 main、未部署、未重启任何服务，未改真实数据/`content/`/外部任务成果。
+
+### 26.1 `source.reprocess`（只读路由/可用性投影）
+
+`GET /sources` 与 `GET /sources/{id}` 的 `source` 视图加性包含 `reprocess`；它是**读取时投影**，不运行提取/模型、不写状态、不改变权限。旧后端无此字段，客户端必须保留既有回退。
+
+```json
+// 图片：OCR 后端未配置
+"reprocess": {"kind": "ocr", "available": false, "reason": "ocr_unconfigured", "ocr_configured": false}
+
+// PDF（文字层优先；available 不表示 OCR 已配置）
+"reprocess": {"kind": "ocr", "available": true, "reason": null, "ocr_configured": false}
+
+// 英文音频（镜像既有 ASR 能力）
+"reprocess": {"kind": "asr", "available": false, "reason": "disabled", "configured": false, "enabled": false}
+
+// 原生文本 / 不支持 / 未抓取链接
+"reprocess": {"kind": "text", "available": true, "reason": null}
+"reprocess": {"kind": "none", "available": false, "reason": "unsupported_media_type"}
+"reprocess": {"kind": "none", "available": false, "reason": "link_not_fetched"}
+```
+
+- `kind ∈ {ocr, asr, text, none}`：图片 → `ocr`；PDF → `ocr`（先文字层，OCR 仅作稀疏页回退，`ocr_configured` 只报告回退是否配置）；英文音频 → `asr`（永远不会被路由到 OCR）；原生 `text/*` → `text`（无模型）；不支持媒体或未抓取链接 → `none`。
+- `available` 表示该显式动作现在能否启动而不产生伪成功：音频由**实时** ASR 能力（`enabled` + 可解析的凭据/模型/运行时）推导；图片在无 OCR 后端时为 false；PDF 见 §26.6。
+- `reason` 为可空稳定原因。本版本会产生的值：`ocr_unconfigured`、`unsupported_media_type`、`link_not_fetched`，以及音频沿用既有 ASR 能力词表（`disabled`、`credential_missing`、`model_missing`、`model_unavailable`、`runtime_unavailable`、`invalid_config`、`asr_unavailable`）。
+- `configured`/`enabled` 仅对音频出现，镜像既有 ASR 能力布尔；`ocr_configured` 仅对图片/PDF 出现。
+
+### 26.2 `POST /sources/{source_id}/actions`（`reprocess`）语义
+
+请求体形状不变（`{"action":"reprocess","expected_revision":…}`），无新端点或请求字段。
+
+- **按类型路由**：图片沿用既有 OCR 路径；PDF 沿用文字层优先 + 既有 OCR 回退；原生文本沿用无模型提取；英文音频只走 ASR 分支；不支持媒体/未抓取链接在调用任何提取器或写入前拒绝。
+- **能力不足时不再写失败态**：未配置/不可用的能力返回 **`503 capability_unavailable`**，`details` 含 `{source_id, kind, reason}`，且**不写失败派生、不改 `source.status`/`revision`、不动索引**。这是对旧行为的**有意收紧**（旧代码会尝试 OCR，可能返回 200 `failed` 并写失败记录）。
+- 不支持的媒体返回同一 `503 capability_unavailable`（写入前）。
+- 已撤销来源保持既有 **`404 not_found` + `details.revoked=true`** fail-closed 行为。
+- 提供 `expected_revision` 时现在对 reprocess 生效：不匹配返回 **`409 revision_conflict`**，`details` 含 `{expected, actual, source_id}`；省略时使用刚读取的 revision（保持旧行为）。
+- 未新增 HTTP 错误码或枚举值。
+
+### 26.3 音频 `reprocess`：一个新建的有界延迟摄取 job
+
+音频 `reprocess` 不再同步调用 OCR，而是创建一个新的 **deferred intake job** 并返回 HTTP 200：
+
+```json
+{
+  "source_id": "source_…",
+  "kind": "asr",
+  "status": "queued",
+  "queued": true,
+  "job_id": "intake_…",
+  "job": { "…既有 job 视图字段…" }
+}
+```
+
+- 新 job 以 `intake_mode:"deferred"`、新 `request_id`（`reprocess-<job_id>`）、`attempt:1`、`budget.max_asr_calls:1`（仅当 ASR 当前已启用）持久化，并带一个**内部非公开** `reprocess:true` 标记；该标记防止 worker 把它当作可复用失败文本分支的重复上传，也不由 `GET /intake/jobs/{id}` 返回。
+- 同一 source 已有 `queued`/`running`/`recovery_required` job 时返回 **`409 illegal_transition`**，`details` 含 `{source_id, job_ref, status}`；未知停止结果因此不会被自动重放。终态 `failed`/`partial`/`succeeded` job 不阻止新的显式尝试。
+- 旧 job 及其持久化的 `max_asr_calls=0` **不被 reprocess 改写**；`max_asr_calls` 仍是**每 job** 的有界尝试额度，不是产品总量上限。
+- worker 既有队列/并发、每 job 超时/截止时间、取消/停止确认、未知停止 → `recovery_required`，以及 ASR 服务自有的并发/超时规则全部保留；本版本**未新增**产品级 ASR 调用上限。
+- 手工 job 重试（`POST /intake/jobs/{job_id}/actions {"action":"retry"}`）响应形状不变；对一个持久化 `budget.max_asr_calls` 为 `0`/缺失的旧音频 deferred job，若重试时英文 ASR 已启用，则原子更新为 `max_asr_calls:1` 并标记为显式 reprocess；ASR 仍关闭时不调用、不伪造。
+
+### 26.4 失败保留与 `partial`（`preserved_existing_body`）
+
+- 一次失败尝试若没有任何成功页，**不得覆盖**同一 source version 上已存在的可信机器派生。此时不写失败派生；旧机器正文、人工正式正文与词法/向量索引状态保持可读、可检索。
+- 动作结果保持既有形状并加性返回 `preserved_existing_body:true`；`derivative_path` 为该次尝试的 `null`。旧客户端可忽略该字段。
+- 当仍有可用的正式/机器正文时，source 展示状态为 **`partial`**（旧成功 + 新失败），而不是笼统 `failed`；本次失败仍通过动作结果（`status:"failed"`、`reason`、`preserved_existing_body:true`）和/或 job/回执可见。
+- `context_selectable` 依据真实可读字节判定；`context_unavailable_reason=extraction_failed` 仅在 `status=failed` 且不存在可用正文时使用。**首次**提取失败且确实无可用正文时仍为 `failed`，保持既有诚实无正文行为。
+- 已知缺陷（交 native，未在本候选修复）：见 §26.7 第 4 条。
+
+### 26.5 LG-223：首个人工正文与 `formal.origin`
+
+- `POST /sources/{id}/formal` 在既无正式文件、也**无机器派生**时也可成功：写入首个人工正式版本（`expected_revision` 为 0/省略时为 `revision:1`），经既有 hook 重索引，返回既有 `{source_id, formal, revision}` 并加性带 `formal.origin:"human"`。
+- 正式文件头可额外包含 `<!-- formal provenance: human-authored; no machine body existed at creation -->`；既有 `formal version: human-edited` 与 `edited_by` 注释保留。**不创建**机器派生，也不把人工输入标成机器/OCR/ASR 输出（`kind=machine` 内容仍为 404）。
+- 既有正式编辑仍从存在的机器派生 seed，保留 `expected_revision` 冲突行为、保留机器派生、保持撤销 fail-closed；拒绝空草稿且保存失败不清空草稿。
+- `formal.origin` 只在人工写入路径出现；**缺省表示旧文件/历史**，不是机器来源证据。未新增端点、请求字段、状态枚举、迁移或权限路径；授权仍为既有 source-formal 授权。
+
+### 26.6 PDF：能力投影与具体提取结果的区别（LG-224 边界保持）
+
+- PDF 的 `reprocess.available=true` **只表示允许尝试内嵌文字层**（该路径无模型），不表示 OCR 已配置、更不表示会成功；`ocr_configured` 单独报告 OCR 回退是否可用。读取时投影**不解析页内容**，因此无法在动作前区分电子 PDF 与扫描 PDF。
+- 有可用内嵌文字层的 PDF 在**无 OCR 配置**时仍应成功：使用 `pdfium-text-layer`、`extractor_model=none`，不栅格化、不调用 OCR。
+- 无文字层（扫描/空页）的 PDF 在**无 OCR** 时以真实失败结束：动作 `status:"failed"`、失败页理由明确为 OCR 后端不可用；派生只记录失败，**不伪造正文**，原件保留，索引不产生可信命中。这与 §24.4 的文字层优先一致，取代任何“PDF 总能提取”的误读。
+- 本节不新增 OCR 质量、版式重建或真实扫描件质量声明。
+
+### 26.7 兼容、验证与证据边界
+
+1. **兼容性分开表述**：`reprocess`、`formal.origin`、`preserved_existing_body` 是加性字段；而 §26.2/26.3/26.4 列出的 503 前置拒绝、音频异步 job、reprocess 的 `expected_revision` 校验、失败保留改报 `partial`、旧音频 retry 的 0→1 刷新，都是**有意行为变化**。没有新增端点、请求字段、cookie、实体/状态/阶段枚举、迁移方向或 HTTP 错误码；per-source `revision` 与 formal `revision` 语义未变。持久化的唯一新增是既有可选 `budget.max_asr_calls` 的取值与内部非公开 `reprocess` 标记。
+2. **本轮实际执行的最小检查**（临时 dataRoot，无真实模型/供应商调用）：
+   - 电子文字层 PDF + 未配置 OCR：真实摄取/`reprocess` 路径得到 `status:"succeeded"`、`extractor:"pdfium-text-layer"`、`model:"none"`，机器正文含页面文字，`context_selectable=true`、词法 `indexed`。
+   - 无文字层 PDF + 未配置 OCR：`status:"failed"`、`reason:"all pages failed"`、`failed_pages:1`，机器派生逐页记录 OCR 后端不可用（“was not transcribed”），无检索命中，原件保留；能力投影仍为 `available:true` + `ocr_configured:false`（即“允许尝试文字层”）。
+   - 图片 + 未配置 OCR：`503 capability_unavailable`（`reason:"ocr_unconfigured"`），revision/status 不变、未写派生。
+   - `reprocess` 传入错误 `expected_revision`：`409 revision_conflict`，无写入。
+   - 音频（**stub transport**：重放已记录的 LG-235 H1 响应，无网络/供应商调用）：ASR 关闭时能力 `available:false`/`reason:"disabled"`、动作 503、0 次调用；启用后动作返回 `kind:"asr"`/`queued` 的新 job（`max_asr_calls:1`），worker 恰好 1 次 stub 调用，机器转写持久化且可检索，旧 job 预算保持 0；原 job 仍 `queued` 或新 job 未终结时再次 reprocess 返回 `409 illegal_transition`。
+   - 首个人工正文：无机器正文时保存成功（`origin:"human"`、带 human-authored provenance 注释、`kind=machine` 仍 404），词法可检索、`context_selectable=true`，过期 `expected_revision` 返回 `409 revision_conflict` 且不覆盖已存正文。
+   - 一次必要前端构建（`tsc --noEmit && vite build`）通过，产物与来源交付一致。原始命令、退出码、JSON 输出与日志见 [MATERIAL-BOUNDARY](../probes/architect-fixes-20261019/integration/MATERIAL-BOUNDARY.md) 与 `logs/`。
+3. **未运行**：独立 QA、浏览器/Playwright、全量 pytest/vitest、mypy/类型矩阵、安全/性能/跨浏览器矩阵、真实 OCR/Google ASR/模型/供应商调用、部署、服务重启、线上 8123/5173 版本重核。不得把本节当作 QA 通过或版本验收。
+4. **已知确定性缺陷（已交 native，本候选未修产品代码）**：在“首次真实提取失败、且因此写入了失败派生文件”的资料上，`_source_view` 的 `context_selectable` 会误报 `true`、`context_unavailable_reason` 为 `null`（基点 `ff44eda` 为 `false`/`extraction_failed`），且既有选材解析会把仅含失败说明的机器正文当作 `layer:"machine"` 上下文接受。该误报会把不可用资料呈现为可选上下文，属材料边界假阳性；复现与对照证据见 MATERIAL-BOUNDARY 第 4 节。此处只登记事实，不代表该行为已被接受。
 
 ## 参考
 
