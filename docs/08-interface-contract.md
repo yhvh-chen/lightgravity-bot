@@ -10,6 +10,8 @@ updated: "2026-10-18"
 
 > **候选契约 1.21.0（2026-10-18，LG-206 串行集成；实现待 LG-207 独立版本/浏览器 QA）**：加性登记 Tasks 工作区候选的两项公开变化：`SourceView` 只读可用性字段 `context_selectable`/`context_unavailable_reason`（由真实可读正文推导，不作为持久状态），以及只读 Team 对话历史投影 `GET /api/v1/conversations/history`。无既有端点、请求字段、错误码、实体状态/阶段/验收枚举、迁移方向或权限变化；旧客户端忽略新可选字段/端点即可。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 在本隔离候选为 `1.21.0`；**公开 8123 服务仍为 1.20.0**，本候选未部署/推送。冻结的英文 ASR 下一版本线不属于本候选。范围与兼容边界见 §22。
 
+> **冻结候选契约 1.22.0（2026-10-18，LG-235；仅接口冻结 + 真实小样本原型，尚未实现）**：§23 加性冻结 Google 原生音频转写 provider 的配置/公共接口/错误与文件归属，并登记已随本候选精确合入的 LG-229/230 行为（取消 OpenAI 兼容主机白名单与模型/API 用量上限，保留计数、超时、取消与并发容量）。源码 `CONTRACT_VERSION` 与 `/health.contract_version` 仍为 **1.21.0**（本分支未改），公开 8123 仍为 1.20.0；LG-236/237 可依 §23 并行实现，LG-238 串行装配并真实实现公共 runtime 后才可改为 `1.22.0`。旧英文 Reader 质量 FAILED、§18～§22 字段与历史失败证据全部保留，不追溯改判。LG-235 仅用既有 H1/H2 各一次真实 Google 原生请求，不部署/不推送、不把原型当生产验收；证据见 [LG-235 CONTRACT](../probes/google-native-asr-20261018/lg235/CONTRACT.md)。
+
 > **契约 1.19.0 冻结（2026-10-18，LG-140；仅契约准备，未实现）**：本节新增资料摄取 v2 的加性请求/响应字段、独立回执分支、能力门、媒体直接 embedding、持久服务端摄取、配额/重试/取消/重启与显式重建边界，见 §20。**源码与运行服务仍为 1.18.0**；在 LG-141～LG-143 实现、LG-144 串行集成并由 LG-145 独立验收前，不得修改 `CONTRACT_VERSION`、`/health` 新能力或宣称自动索引已可用。旧客户端不发送新字段时保持 1.18.0 行为；Team Personal 私有附件隔离与 ASR 不可用边界不变。
 
 > **LG138部署状态（2026-10-18）**：1.18.0候选已通过有界独立QA并部署8123；任务执行保留关闭。下方冻结时的“待QA/8123仍1.17”已由[最新部署](../probes/chat-task-teams-20261017/lg138/deploy-LG138-DELIVERY.md)与最终独立报告补齐。
@@ -1667,6 +1669,241 @@ ready 时 `derivatives` 加性条目：
 
 - 集成分支 `integration/demo-tasks-20261018`；包含 LG-202 最终 `84a20ce` 的收尾增量（General 优先于迟到的 Task 校验）、LG-203/204 `afb898d`、LG-219 `6b89dc8`、LG-221 `95dd524`、LG-205 `c3ad950`。
 - 最终候选提交、全量前端与相关后端命令/退出码/限制记录在 `probes/demo-tasks-20261018/lg206/DELIVERY.md`；任务状态仍由根项目管理维护。
+
+## 23. Google 原生音频转写（1.22.0 冻结候选；LG-235 接口/原型，未实现）
+
+> **状态与门**：本节冻结 **加性 MINOR** 的 provider 判别、配置/秘密字段、能力语义、原生 REST 请求/响应映射、错误分类、来源/回执 provenance、计数/用量与文件归属。**LG-235 只完成接口冻结与一次真实小样本原型，没有实现产品后端或 UI**；源码 `CONTRACT_VERSION` 仍为 `1.21.0`，`GET /health.contract_version` 不因本节改变。LG-236（后端）与 LG-237（UI）可依本节并行，LG-238 串行装配；只有公共 backend runtime 实际实现、装配并通过局部/版本检查后，才由 LG-238 将源码契约升为 `1.22.0`。原型结果不代表生产质量或用户验收。
+>
+> 本路径**替代本轮 demo 的 EG2/Reader 远端帧桥接**，但**不删除、不改判**旧 Reader 实现与质量 FAILED 历史。Google provider 不得 import `torch`/`numpy`/`transformers`/Reader，不得调用本机音频编码器、模型容器或 `192.168.8.12`；Settings 的 Google 模式不得要求 `model_dir`/`reader_dir`。
+
+### 23.1 随 1.22 候选合入的 LG-229/230 行为
+
+本分支已按原提交精确合入 LG-229 `dad742d` 与 LG-230 `cd0e8c8`，保留 Tasks 1.21 核心。其公开行为变化如下（与 Google 转写同属下一 MINOR，但二者可独立验收）：
+
+- **主机**：取消 OpenAI 兼容主机白名单。任意带主机名的 `openai-compat` 连接 `capabilities.executable=true`，可设为默认，代理向其转发该连接自己的凭证；`vendor_verified` 仍只对端到端核实过的 `api.deepseek.com` 为 `true`（事实展示，不是白名单）。
+- **调用次数**：执行器每 session 代理默认上限（原 8）、对话与独立复核的单次调用上限（原 1）、代理默认上限（原 64）均改为不设上限；仅当请求显式给出 `budget.max_model_calls` 或运维显式配置时才生效。协作请求只认显式 `max_collab_requests`。
+- **资料摄取**：§20.5 `intake_job.budget` 的 `max_model_calls`、`max_ocr_pages`、`max_embedding_calls` 新作业为 `null`（不限）；PDF OCR 处理全部页面。旧作业保留原值不迁移。
+- **向量端点**：`base_url` 已带路径（如 `https://generativelanguage.googleapis.com/v1beta/openai`）时请求 `<base_url>/embeddings`，仅主机时保持 `<base_url>/v1/embeddings`。
+- **保留**：计数与用量展示、超时、取消与真实停止确认、并发容量、`max_retries`、连接测试与 **ASR 每作业一次尝试** 的语义、可选运维变量 `LIGHTGRAVITY_MAX_GENERATION_CALLS`（默认不设即只计数）、OCR 单页 `max_tokens_per_page`。
+- Google ASR 的产品调用次数**不设新的全局上限**；§23.9 的“每 job 一次”是既有有界摄取语义，不是产品总用量上限。
+
+### 23.2 官方接口与 LG-235 实测事实
+
+官方来源（访问日期 **2026-10-18**）：
+
+- <https://ai.google.dev/gemini-api/docs/audio>：Gemini 原生音频理解；REST `POST https://generativelanguage.googleapis.com/v1beta/interactions`；inline audio 使用 `input[].data` 的 base64 与 `mime_type`；**整个请求上限 20 MB（含 prompt 与全部文件）**；超过 20 MB 才建议 Files API。
+- <https://ai.google.dev/gemini-api/docs/generate-content/audio>：旧 `generateContent` 原生音频方式（本路径不采用，避免协议二义性）。
+- <https://ai.google.dev/gemini-api/docs/transcribe>：专用 `gemini-3.5-transcribe`（自动语言识别/说话人/词级时间戳/热词）。LG-235 **没有调用或假定该模型已启用**；本路径默认仍用既有 `gemini-3.8-flash`，失败后不得静默切换。
+
+LG-235 真实原型（仅既有测试音频，各一次请求，无 TTS、无 Files API、无 SDK）：
+
+| 项 | 结果 |
+|---|---|
+| 模型元数据 `GET /v1beta/models/gemini-3.8-flash` | HTTP 200；`supportedGenerationMethods` 返回 `generateContent`、`countTokens`、`createCachedContent`、`batchGenerateContent`；未列 `interactions`，但原生 `interactions` 请求实际 200 |
+| 转写端点 | `POST https://generativelanguage.googleapis.com/v1beta/interactions`，`x-goog-api-key` 请求头认证（**不入 URL**） |
+| 输入 | 固定纯转写 prompt + inline `audio/wav` base64；无答案/人名/地点提示 |
+| H1 | HTTP 200，6.078 s；usage 320 total（audio 261 + text 26 input；output 33；thought 0） |
+| H2 | HTTP 200，7.221 s；usage 392 total（audio 245 + text 26 input；output 34；thought 87） |
+| 原始输出 | 保存于 `probes/google-native-asr-20261018/lg235/raw/{h1,h2}-response.json`；H2 的 `model_output` 文本以字面 `thought` 开头，未清洗、未重试 |
+
+结论：既有 `gemini-3.8-flash` + 官方原生 inline audio REST 可用于小文件转写；认证、协议、模型可用性在本样本范围内成立。该结论**不**证明专用 ASR 模型、长音频、真人/噪声/多语质量、配额或生产可用。
+
+### 23.3 provider 判别与旧配置兼容
+
+`settings/ENGLISH_ASR.md` 的 `english_asr` 块加性新增 `provider` 判别：
+
+| 存储块 | 解析结果 |
+|---|---|
+| 无 `provider`（1.20 旧块） | `provider="eg2-reader"`，`runtime="inprocess"`；旧路径/线程/30 秒字段保持原义 |
+| `provider="eg2-reader"` | 同上；`runtime` 仅 `"inprocess"` |
+| `provider="google-native"` | `runtime="google-native"`（可省略，但不得为其他值） |
+| 未知 provider / 不匹配 runtime | `422 validation_failed`，不猜测、不回退 |
+
+- 判别只影响**新请求**；读取旧来源、旧机器转写、旧 receipt 不因配置切换而改变。切换 provider 不自动重处理旧资料。
+- 冻结常量与无行为 helper 位于 `backend/lightgravity/asr/provider_contract.py`（LG-235 提供，LG-236 只可加性扩展，不得改义）；前端类型位于 `frontend/src/api/googleAsr.ts`。
+- 旧 `runtime="inprocess"`、`model_dir`、`reader_dir`、`device`、`threads`、`max_audio_seconds=1..30` 全部保留；Google 模式**不得**要求或写入这些本地模型字段。
+
+### 23.4 设置视图与受保护写入
+
+`GET /settings.english_asr` 保留 §21.3 全部既有字段，并加性新增：
+
+```json
+{
+  "revision": 3,
+  "content_hash": "sha256-hex",
+  "provider": "google-native",
+  "runtime": "google-native",
+  "enabled": true,
+  "configured": true,
+  "available": true,
+  "reason": null,
+  "language": "en",
+  "timestamps_supported": false,
+  "model": "gemini-3.8-flash",
+  "base_url": "https://generativelanguage.googleapis.com/v1beta",
+  "credential_configured": true,
+  "models": {},
+  "limits": {
+    "max_audio_seconds": null,
+    "max_audio_bytes": 10000000,
+    "max_request_bytes": 20000000,
+    "timeout_seconds": 180,
+    "max_concurrency": 1
+  }
+}
+```
+
+- 旧块视图加性补 `provider:"eg2-reader"`、`model:null`、`base_url:null`、`credential_configured:false`；其余字段不变。旧客户端忽略新字段即可。
+- Google 视图**不返回** `credential_ref`、`credential_value`、API key、请求头、正文、音频或本地路径。`models` 为空对象：托管模型不伪造 revision/SHA/license；模型 id 只在顶层 `model` 展示。
+- `language="en"` 是**配置的英文主线**，不是输入语言识别结果；Google 自动识别能力不被产品声明为已验证。`timestamps_supported=false`，本路径不请求/不保存时间戳。
+- `reason` 加性取值：`credential_missing`、`model_unavailable`；旧 `disabled`/`invalid_config`/`runtime_unavailable` 等保持。Google 配置错误不得伪装成 `available=true`。
+
+`PUT /settings/english_asr`（既有管理员/受保护写、Host/Origin、`expected_revision` 语义不变）Google 字段：
+
+```json
+{
+  "expected_revision": 3,
+  "enabled": true,
+  "provider": "google-native",
+  "runtime": "google-native",
+  "model": "gemini-3.8-flash",
+  "base_url": "https://generativelanguage.googleapis.com/v1beta",
+  "credential_ref": "<write-only ref>",
+  "credential_value": "<write-only secret>",
+  "timeout_seconds": 180,
+  "max_audio_bytes": 10000000
+}
+```
+
+- `provider` 省略时按旧块/旧客户端行为处理；首次使用 Google 必须显式 `provider:"google-native"`。`runtime` 可省略（默认 `google-native`）。
+- `model` 默认 `gemini-3.8-flash`；安全 id 模式 `^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$`。允许管理员显式改到其他原生模型，但**不**自动探测/切换；`gemini-3.5-transcribe` 仅在管理员显式设置且真实请求成功后才算可用。
+- `base_url` 默认 `https://generativelanguage.googleapis.com/v1beta`；只接受 `https`、无 userinfo/query/fragment、host 精确为 `generativelanguage.googleapis.com`、port 缺省或 443、path 为 `/v1beta`（可带结尾 `/`）。**拒绝** `/v1beta/openai`、其他 host、`http` 与任意代理 URL，避免把原生 API 误接成 OpenAI 兼容端点。实际端点由 base + `/interactions` 推导。
+- `credential_ref`/`credential_value` 为**只写**字段，写入既有受控 Settings 秘密存储（`FileSecretStore`）；只能通过既有 write-only 语义轮换，**没有** secret 删除/回显接口。省略二者表示保留已存秘密；首次 enable 必须已有可解析秘密或同时提供新值。显式 `null`/空串 -> `422 validation_failed`，绝不静默清空。
+- **产品不得从 `LG_GOOGLE_ASR_API_KEY` 或其他环境变量读取 Google 产品凭证**；该变量仅用于 LG-235 探针进程。开发者 DeepSeek/OpenAI 凭证不得成为产品 Google 凭证。
+- Google 模式下 `model_dir`/`reader_dir`/`device`/`threads` 不得出现；`max_audio_seconds` 必须省略或 `null`（数字 -> `422`，避免把 Reader 30 秒边界错误套到 Google）。`max_audio_bytes` 默认 10,000,000，范围 1..14,000,000；`timeout_seconds` 默认 180，范围 30..600；`max_request_bytes=20,000,000` 为只读官方上限，不可调高。`max_concurrency=1` 为本地摄取并发容量，不是供应商用量上限。
+- 保存只做 schema/host/secret 存在性与上限校验，**不发起网络请求、不验证 key、不加载模型、不推理、不改资料、不自动重处理**。成功保存不等于 Google 可用或 key 有效。
+
+### 23.5 能力/可用性语义
+
+- `provider="google-native"` 时：
+  - `configured=true` 当且仅当 model/base_url 有效且秘密存储中存在可解析的凭证。
+  - `available=true` 当且仅当 `enabled=true` 且 `configured=true` 且无配置错误。它表示**可以尝试**一次原生请求，**不表示** key/model/网络已核实；只有 `source.receipt` 的成功与正文能证明单文件成功。
+  - `credential_configured=true` 只表示秘密存在，不代表有效。界面文案应类似“native Google transcription configured; capability not verified”，不得写“verified/connected”。
+- `capabilities.english_asr` 继续表示处理可用性（attemptable），不新增 Google 专用 health 字段；旧后端缺失该能力按 false。Google 模式不要求 `torch`/`numpy`/Reader 可 import，因此默认环境（无这些依赖）可 `available=true`。
+- legacy `provider="eg2-reader"` 的 `configured`/`available`/`reason` 语义不变；不得因 Google 代码存在而要求本地模型目录或加载 Reader。
+
+### 23.6 原生请求/响应映射
+
+固定请求形状（字段名以官方 REST 为准）：
+
+```json
+{
+  "model": "gemini-3.8-flash",
+  "input": [
+    {"type": "text", "text": "<固定纯转写 prompt>"},
+    {"type": "audio", "data": "<base64>", "mime_type": "audio/wav"}
+  ]
+}
+```
+
+- `POST <base_url>/interactions`；认证只用 `x-goog-api-key` 请求头。**禁止**把 key 放 query、URL、日志、错误体、事件、receipt、提交或前端。
+- 固定 prompt（`prompt_version="google-native-transcribe-v1"`）：`Transcribe the speech in this audio verbatim. Return only the plain transcription text, with no commentary, labels, or formatting.` 不含答案、人名、地名、数字或词表提示；不允许按样本改 prompt。
+- 只支持明确的音频 MIME 列表（WAV/MP3/AIFF/AAC/OGG/FLAC/WebM 等）；未知 MIME 在发送前 `422`/`asr_invalid_request`，不猜测。
+- **大小双重预检**：原始音频 `<= max_audio_bytes`；序列化后整个 JSON body（含 base64、prompt、JSON 开销）`<= 20,000,000` 字节。超限在发送前失败，不产生供应商 usage；提示 base64 约 4/3 膨胀。
+- 不实现 Files API 上传/远端文件生命周期；本路径仅 inline。未来若需大文件，另立契约与删除/配额边界，不在 1.22 隐式扩展。
+- 响应只读取最终 `steps[type="model_output"].content[type="text"].text`：忽略 `thought` step/signature，按内容顺序用换行连接文本项，外层 trim。**不**把 `thought` 内容、SDK 便利字段或模型自述当正文；原始响应与原文保留在测试/日志的非秘密字段中。
+- 200 但 `status != "completed"`、无 `model_output`/text、结构非法 -> 分类失败；**没有第二次请求、没有模型轮换、没有 fallback 到 GenerateContent/OpenAI 兼容/专用 ASR/本地 Reader**。
+- 若模型输出带 commentary/label（如 H2 的字面 `thought`），按原样作为**不可信机器正文**保存并在质量报告中披露；产品不得静默删行、改写或注入标准答案。UI 必须标注 machine/untrusted provenance。
+- `usage` 记录 `total_tokens`、`total_input_tokens`、`input_tokens_by_modality`、`total_output_tokens`、`total_thought_tokens` 等**非秘密**计数；没有返回时为 `null`，不得当 0。`latency_ms` 记录真实请求耗时。
+
+### 23.7 错误分类、超时、取消与未知停止
+
+| 条件 | `text.status` / receipt reason | 停止确认 | 自动重试 |
+|---|---|---|---|
+| 未启用 | `unavailable` / `asr_disabled` | true（未发请求） | 否 |
+| 配置无效/无凭证/秘密不可解析 | `unavailable` / `asr_unavailable`（设置视图 `credential_missing`/`invalid_config`） | true（未发请求） | 否 |
+| 本地预检：MIME/大小/请求体超限 | `failed` / `asr_invalid_request` 或 `audio_too_long` | true（未发请求） | 否 |
+| HTTP 401/403 | `unavailable` / `asr_auth_failed` | true（收到响应） | 否 |
+| HTTP 404/模型不可用/明确 unsupported model | `failed` / `asr_model_unavailable` | true | 否 |
+| HTTP 429 | `failed` / `asr_rate_limited` | true（收到响应） | 否 |
+| HTTP 400/413/422 | `failed` / `asr_invalid_request` | true | 否 |
+| HTTP 5xx | `failed` / `asr_provider_unavailable` | true（收到响应） | 否 |
+| DNS/TLS/连接建立失败（未发送请求体） | `failed` / `asr_provider_unavailable` | true | 否 |
+| 发送后超时/用户取消/连接中断 | `extracting` / `asr_stop_unconfirmed`；整个 job `recovery_required` | **false** | 否 |
+| 200 但显式拒绝/安全阻断状态 | `failed` / `asr_refused` | true | 否 |
+| 200 但空正文 | `failed` / `asr_empty_response` | true | 否 |
+| 200 但结构非法/非 completed | `failed` / `asr_response_invalid` | true | 否 |
+
+- 发送后超时/取消**不能**证明 Google 已停止远端推理；沿用 1.19/1.20 未知副作用停车语义，不写终态、不写部分正文、不自动/手工重放，直到有真实停止确认。迟到响应丢弃。
+- 每个 intake job 仍最多一次 ASR 尝试（`max_asr_calls` 语义保留）；失败也是尝试并计数。手工 `reprocess` 是新的显式 attempt，不是自动重试。
+- 任何 401/429/模型不可用/协议失败必须如实报告，停止该 job，不由程序自动换模型/供应商或重试。Google 原生路径**没有** fallback；旧 Reader 仅作为独立 legacy provider，不得在 Google 失败时自动回退。
+
+### 23.8 来源、回执、索引与正式校订
+
+沿用 §20/§21 的摄取/持久化/索引/权限/校订生命周期，只加性扩展 provider provenance：
+
+- 原件先落盘；`text.status` 使用既有 `pending|extracting|ready|unavailable|failed`；Google 转写是 machine 派生正文，不是 formal，不覆盖人工正式版。
+- ready 时 `source.derivatives` 的 `transcript` 条目、`source.language="en"`、`text_status="ready"` 与 `GET /sources/{id}/receipt` 的 `text` 分支保持；`machine` 对 Google 形状为：
+
+```json
+{
+  "engine": "google-native",
+  "provider": "google",
+  "model": "gemini-3.8-flash",
+  "runtime": "google-native",
+  "endpoint_host": "generativelanguage.googleapis.com",
+  "endpoint_path": "/v1beta/interactions",
+  "prompt_version": "google-native-transcribe-v1",
+  "model_version": "google-native:gemini-3.8-flash",
+  "content_variant": "machine",
+  "generated_at": "2026-10-18T00:00:00Z",
+  "audio_sha256": "sha256-hex",
+  "mime_type": "audio/wav",
+  "audio_bytes": 333332,
+  "request_bytes": 444500,
+  "latency_ms": 6078,
+  "usage": { "total_tokens": 320, "total_input_tokens": 287, "total_output_tokens": 33 }
+}
+```
+
+- Google 的 `machine.encoder`/`reader` 不存在（旧客户端忽略可选字段）；不得伪造 Reader/编码器 provenance。`timestamps` 固定 `null`；`detected_language` 不声明（`null`/缺省），`language="en"` 只表示英文主线配置。
+- `model_version` 用于派生键与 provenance；配置/model/prompt 变化产生新版本，不覆盖旧 machine 正文，不改写 formal。
+- 词法索引、可选文本 embedding、Files 预览/下载/检索、选定资料、Chat 回执、撤销/归档/删除、Team/Personal 隔离全部复用既有实现；Google 失败不产生正文、不阻断原件/词法/直接音频向量分支，但不得用旧 Reader 或问答模型伪造成功。
+- Google 语音调用不隐式扩大 Personal 私有媒体共享；团队共享范围的摄取/授权规则不变。
+
+### 23.9 计数、用量与“无限”边界
+
+- 产品不新增 Google 专用调用次数上限；保留计数、usage、latency、超时、取消和并发容量。`max_asr_calls=1`/job 是既有**每作业一次尝试**的有界摄取语义，不是产品总上限，也不因 LG-230 被删除。
+- 每次真正发送 HTTP 前计数；预检失败不发送、不产生 provider usage。响应 usage 非秘密记录，缺失为 `null`（不得当 0）。
+- 不把 LG-235 的“两次样本请求”写成产品预算、上限或长期承诺；该计划只避免重复测试调用。
+
+### 23.10 安全、兼容与不做什么
+
+- 凭证只经受保护 Settings/秘密存储的 write-only 字段；不回显、不落 Markdown/JSONL/事件/日志/错误/提交/前端状态。请求头、key、query URL、原始 base64 一律不记录。
+- 不新增 Cloud 资源、Files API 生命周期、模型容器、Torch/numpy/Reader 依赖、SDK 安装或模型下载；不调用 `192.168.8.12`。
+- 不新增通用 ASR 平台、实时麦克风、说话人/词级时间戳强制能力；不把 `gemini-3.5-transcribe` 的自动能力写成本路径已验证。不做自动模型轮换或静默 fallback。
+- 不改变既有 `state`/`phase`/`acceptance`/`source.status` 枚举、迁移方向、HTTP 错误码或身份/权限；新增 reason 值仅为加性字符串，旧客户端忽略即可。
+- 1.22 为加性 MINOR：旧块无 `provider` 时完全按 1.20/1.21 行为；旧客户端忽略新视图字段；新客户端对旧后端缺失字段保守降级，不探测未定义端点。
+- 原型中的真实 Google 请求只用于受控测试；源码、设置根目录、提交和文档不保存任何真实 Google 凭证。
+
+### 23.11 实现文件归属（236/237/238 并行）
+
+| owner | 文件/范围 | 边界 |
+|---|---|---|
+| **LG-235（本任务，已冻结）** | `docs/08` §23、`backend/lightgravity/asr/provider_contract.py`、`frontend/src/api/googleAsr.ts`、`probes/google-native-asr-20261018/lg235/**` | 只冻结常量/类型/契约与原型；不实现 service、UI、app 装配 |
+| **LG-236 后端** | `backend/lightgravity/asr/**`（`config.py`/`service.py`/`router.py`/`settings_store.py`、新增 Google 原生 client/runtime；`provider_contract.py` 只可加性扩展）、`backend/lightgravity/sources/worker.py`、`backend/lightgravity/settings/service.py`、`tests/asr/**`、`tests/sources/**` 的相关测试 | 实现 §23.3～§23.8；不得改 `api/app.py`/`api/bootstrap.py`/`api/health.py`/`contracts/constants.py`/docs 版本/README/PROJECT（238 owner）；不得实现 UI |
+| **LG-237 UI** | `frontend/src/**`（Settings `EnglishAsrPanel`/`SettingsView`、`api/englishAsr.ts`、按需 `api/googleAsr.ts` 加性使用、Files/Chat 回执展示与样式、前端测试） | 以冻结 view/input 字段实现 provider-aware 表单、write-only 凭据、上传回执/失败/历史读取；不实现后端、不改 app/bootstrap/docs 版本；不改 `googleAsr.ts` 已冻结导出名/语义，除非 238 同意 |
+| **LG-238 串行集成** | `backend/lightgravity/api/app.py`、`api/bootstrap.py`、`api/health.py`、`contracts/constants.py`、`docs/08` 版本/状态、`README.md`、`PROJECT.md`、`tests/integration/**`、e2e 装配 | 串行装配 236+237，公共 runtime 实现后升 `CONTRACT_VERSION=1.22.0`；不改 236/237 的内部实现语义，不替其写功能 |
+
+- 236/237 必须独立 worktree 并行；共享文件冲突由 238 串行解决。236 不得修改前端，237 不得修改后端实现或 app 装配。
+- 236 必须保持既有公开 seam：`build_english_asr_service`、`build_english_asr_router`、`english_asr_capability`、`EnglishAsrService.transcribe(data, *, filename, cancel_check) -> AsrOutcome`；238 不需要改 236 的 provider 分派即可装配。Google 细节放在 `machine` dict/内部 client，不新增前端直连供应商的 API。
+- 237 的读路径继续只来自既有 `GET /settings` 的 `english_asr` 视图；不新增读取/探测端点。写路径继续 `PUT /settings/english_asr`，`expected_revision` 取 `english_asr.revision`。
+
+### 23.12 版本与完成判定
+
+- 本节冻结的是 **1.22.0 候选**；LG-235 完成标准是：接口/错误/归属/原型证据可审阅，分支提交干净，**不是**生产/用户验收。
+- LG-238 只有在 236 后端与 237 UI 串行装配、公共 runtime 真实实现、相关局部/类型/构建/契约检查完成后，才可把源码 `CONTRACT_VERSION` 与 `/health.contract_version` 升为 `1.22.0`；届时同步更新本节目录/README/PROJECT 的状态，不把原型写成已部署。
+- 旧 Reader 质量 FAILED、§21 的全部失败/限制、LG-235 的 H2 字面 `thought`/WER/实体差异均保留；Google 新路径单独报告，不改写历史。
 
 ## 参考
 
