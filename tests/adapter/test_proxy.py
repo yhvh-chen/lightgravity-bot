@@ -18,6 +18,7 @@ from lightgravity.adapter import (
     Secret,
     upstream_chat_completions,
 )
+from lightgravity.adapter.provider_matrix import execution_eligible
 
 _FAKE_SECRET = "sk-live-proxy-test-secret-999"
 
@@ -156,6 +157,17 @@ def test_proxy_refuses_unauthorized_upstream() -> None:
             credential=Secret(_FAKE_SECRET),
             upstream_url="https://evil.example.com/v1/chat/completions",
         )
+
+
+def test_proxy_accepts_google_openai_compat_upstream() -> None:
+    # LG-229: the online demo forwards to Google's OpenAI-compatible endpoint.
+    url = upstream_chat_completions("https://generativelanguage.googleapis.com/v1beta/openai")
+    assert url == "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+    LocalAuthProxy(credential=Secret(_FAKE_SECRET), upstream_url=url)
+    assert execution_eligible(
+        backend="openai-compat",
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai",
+    )
 
 
 def test_proxy_refuses_non_loopback_bind() -> None:

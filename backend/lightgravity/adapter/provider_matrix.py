@@ -37,10 +37,11 @@ API_KEY_BACKENDS = frozenset({"gemini", "vertex"})
 #: Backends where the credential is injected by the product loopback proxy.
 PROXY_KEY_BACKENDS = frozenset({"openai-compat"})
 
-#: The only OpenAI-compatible upstream host the current product may execute or
+#: The OpenAI-compatible upstream hosts the current product may execute or
 #: select as a default.  The backend enum alone is not enough: an arbitrary
 #: custom host is configurable/testable but not executable in this build.
-EXECUTABLE_OPENAI_COMPAT_HOSTS = frozenset({"api.deepseek.com"})
+#: LG-229 adds Google's OpenAI-compatible endpoint for the online demo.
+EXECUTABLE_OPENAI_COMPAT_HOSTS = frozenset({"api.deepseek.com", "generativelanguage.googleapis.com"})
 #: Loopback is the existing constructor-level test seam, never a saved product
 #: host policy.  Public Settings capabilities keep it non-executable.
 _LOOPBACK_TEST_HOSTS = frozenset({"127.0.0.1", "localhost", "::1"})

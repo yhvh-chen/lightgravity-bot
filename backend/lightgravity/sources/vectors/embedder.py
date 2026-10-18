@@ -29,6 +29,7 @@ import json
 import math
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from typing import Any, Iterable, Protocol
@@ -199,6 +200,10 @@ class OpenAICompatEmbeddingBackend:
 
     @property
     def endpoint(self) -> str:
+        # A bare host gets the conventional ``/v1``; a base that already carries
+        # its API path (e.g. Google's ``.../v1beta/openai``) is used as given.
+        if urllib.parse.urlparse(self._base_url).path:
+            return f"{self._base_url}/embeddings"
         return f"{self._base_url}/v1/embeddings"
 
     def embed(self, item: EmbedInput) -> EmbedResult:
