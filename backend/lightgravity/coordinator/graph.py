@@ -50,6 +50,10 @@ from lightgravity.adapter import (
 )
 from lightgravity.contracts import AppError, EventType, TaskPhase
 from lightgravity.evidence import EvidenceRefError, import_evidence, parse_evidence_ref, resolve_evidence_ref
+from lightgravity.execution_evidence import (
+    merge_execution_evidence,
+    worker_connection_snapshot,
+)
 from lightgravity.store import Store, new_id
 from lightgravity.workspaces import WorkspaceProvider
 
@@ -385,7 +389,25 @@ class GraphDispatcher:
         except AppError as exc:
             return self._plan_failure(controller, "default_connection", exc)
         self._run_pins[context.run_id] = run_pin
-        controller.update_run({"connection_pin": run_pin.to_dict() if run_pin else None})
+        # LG-243: persist a strict-allowlist execution snapshot next to the
+        # frozen worker pin.  The display name is captured now; later title or
+        # default edits must not rewrite this Run's history.
+        worker_name = None
+        name_lookup = getattr(self._default_connections, "connection_name", None)
+        if run_pin is not None and callable(name_lookup):
+            try:
+                worker_name = name_lookup(run_pin.connection_id)
+            except Exception:  # noqa: BLE001 - a missing title is not a fatal fact
+                worker_name = None
+        controller.update_run(
+            {
+                "connection_pin": run_pin.to_dict() if run_pin else None,
+                "execution_evidence": merge_execution_evidence(
+                    None,
+                    worker=worker_connection_snapshot(run_pin, name=worker_name),
+                ),
+            }
+        )
 
         # 3. Recruit the minimal team.
         controller.set_task_phase(TaskPhase.RECRUITING, reason="recruit minimal team")

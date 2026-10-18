@@ -43,6 +43,11 @@ from lightgravity.evidence import (
     EvidenceRefError,
     resolve_evidence_ref,
 )
+from lightgravity.execution_evidence import (
+    STATUS_RECORDED,
+    STATUS_UNAVAILABLE,
+    reviewer_connection_snapshot,
+)
 from lightgravity.store import Store
 
 from .candidate import Candidate
@@ -152,6 +157,10 @@ class ReviewReport:
     #: LG-017 R1 additive: real usage counters; unknown counters are listed,
     #: never zeroed.
     usage: dict[str, Any] = field(default_factory=dict)
+    #: LG-243 additive: strict-allowlist snapshot of the reviewer connection that
+    #: actually ran (id/name/provider/model).  ``None`` for a legacy/unknown
+    #: reviewer that did not expose any connection facts.
+    reviewer_connection: dict[str, Any] | None = None
 
     @property
     def is_pass(self) -> bool:
@@ -180,6 +189,11 @@ class ReviewReport:
             "reviewer_kind": self.reviewer_kind,
             "model_calls": self.model_calls,
             "usage": dict(self.usage),
+            "reviewer_connection": (
+                dict(self.reviewer_connection)
+                if isinstance(self.reviewer_connection, dict)
+                else None
+            ),
         }
 
     @classmethod
@@ -191,6 +205,7 @@ class ReviewReport:
         unsub = data.get("unsubstantiated")
         usage = data.get("usage")
         model_calls = data.get("model_calls")
+        connection = data.get("reviewer_connection")
         return cls(
             outcome=str(data.get("outcome", REVIEW_UNAVAILABLE)),
             candidate_ref=str(data.get("candidate_ref", "")),
@@ -201,6 +216,7 @@ class ReviewReport:
             reviewer_kind=str(data.get("reviewer_kind", "")),
             model_calls=model_calls if isinstance(model_calls, int) and not isinstance(model_calls, bool) else 0,
             usage=dict(usage) if isinstance(usage, dict) else {},
+            reviewer_connection=dict(connection) if isinstance(connection, dict) else None,
         )
 
 
@@ -349,6 +365,11 @@ def validate_findings(
         reviewer_kind=report.reviewer_kind,
         model_calls=report.model_calls,
         usage=dict(report.usage),
+        reviewer_connection=(
+            dict(report.reviewer_connection)
+            if isinstance(report.reviewer_connection, dict)
+            else None
+        ),
     )
 
 
@@ -465,11 +486,16 @@ class UnavailableReviewer:
     kind = "unavailable"
 
     def review(self, context: ReviewContext) -> ReviewReport:
+        reason = "no independent reviewer is configured in this runtime"
         return ReviewReport(
             outcome=REVIEW_UNAVAILABLE,
             candidate_ref=context.candidate.candidate_ref,
             reviewer=self.name,
-            reason="no independent reviewer is configured in this runtime",
+            reviewer_kind=self.kind,
+            reason=reason,
+            reviewer_connection=reviewer_connection_snapshot(
+                None, status=STATUS_UNAVAILABLE, reason=reason
+            ),
         )
 
 
@@ -537,14 +563,29 @@ class ReviewerSupport:
     base_url: str
     credential_ref: str
     backend: str = "openai-compat"
+    #: LG-243 additive, non-secret identity/display snapshot.  ``connection_id``
+    #: is the real Settings Connection id; ``name`` is its title at resolution
+    #: time.  A legacy caller that only has model/base_url leaves them empty and
+    #: the persisted snapshot reports an unknown connection id rather than
+    #: inventing one.
+    connection_id: str = ""
+    name: str = ""
+    role: str = "reviewer"
 
     @property
     def usable(self) -> bool:
         return bool(self.model and self.base_url and self.credential_ref)
 
 
-def resolve_reviewer_support(connection_pin: Any) -> ReviewerSupport | None:
-    """Build :class:`ReviewerSupport` from a pinned reviewer connection."""
+def resolve_reviewer_support(
+    connection_pin: Any, *, name: str | None = None
+) -> ReviewerSupport | None:
+    """Build :class:`ReviewerSupport` from a pinned reviewer connection.
+
+    ``name`` is the connection title captured by the runtime assembler.  It is
+    optional so existing callers keep working; the connection id comes from the
+    pin and is used only for the non-secret execution-history snapshot.
+    """
 
     if connection_pin is None:
         return None
@@ -553,10 +594,18 @@ def resolve_reviewer_support(connection_pin: Any) -> ReviewerSupport | None:
         base_url = str(getattr(connection_pin, "base_url", "") or "")
         credential_ref = str(getattr(connection_pin, "credential_ref", "") or "")
         backend = str(getattr(connection_pin, "backend", "") or "openai-compat")
+        connection_id = str(getattr(connection_pin, "connection_id", "") or "")
+        role = str(getattr(connection_pin, "role", "") or "reviewer")
     except Exception:  # noqa: BLE001 - never raise at startup
         return None
     support = ReviewerSupport(
-        model=model, base_url=base_url, credential_ref=credential_ref, backend=backend
+        model=model,
+        base_url=base_url,
+        credential_ref=credential_ref,
+        backend=backend,
+        connection_id=connection_id,
+        name=str(name or ""),
+        role=role,
     )
     return support if support.usable else None
 
@@ -819,6 +868,11 @@ class ModelReviewer:
             reviewer_kind=self.kind,
             model_calls=self.model_calls,
             usage=dict(self.last_usage),
+            reviewer_connection=reviewer_connection_snapshot(
+                self._support,
+                status=STATUS_RECORDED if self.available() else STATUS_UNAVAILABLE,
+                reason=reason or None,
+            ),
         )
 
     def _run_turn(

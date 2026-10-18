@@ -234,6 +234,15 @@ class _ServiceConnectionPins:
             and (status.version or None) == (pinned.credential_version or None)
         )
 
+    def connection_name(self, connection_id: str) -> str | None:
+        """Non-secret display title captured into Run execution history (LG-243)."""
+
+        try:
+            title = self._service.get_connection(connection_id).get("title")
+        except Exception:  # noqa: BLE001 - a deleted/renamed connection is not fatal
+            return None
+        return title if isinstance(title, str) and title else None
+
 
 def _dialogue_responder(
     connections: ConnectionService, log: LogSink
@@ -286,7 +295,14 @@ def _wire_independent_reviewer(
     except Exception as exc:  # noqa: BLE001 - startup must never crash here
         log(f"reviewer not wired: {type(exc).__name__}: {exc}")
         return {"reviewer": "unavailable", "reason": f"{type(exc).__name__}: {exc}"}
-    support = resolve_reviewer_support(pinned)
+    support = resolve_reviewer_support(
+        pinned,
+        name=(
+            _connection_name(connections, pinned.connection_id)
+            if pinned is not None
+            else None
+        ),
+    )
     if support is None:
         log(
             "reviewer not wired: no default reviewer connection configured; "
@@ -312,9 +328,22 @@ def _wire_independent_reviewer(
     )
     return {
         "reviewer": "model",
-        "connection_id": support.model,
+        "connection_id": support.connection_id or None,
+        "name": support.name or None,
+        "model": support.model or None,
+        "provider": support.backend or None,
         "credential_configured": reviewer.available(),
     }
+
+
+def _connection_name(connections: ConnectionService, connection_id: str) -> str | None:
+    """Read a connection's non-secret display title; missing is ``None``."""
+
+    try:
+        title = connections.get_connection(connection_id).get("title")
+    except Exception:  # noqa: BLE001 - startup must never crash on a missing name
+        return None
+    return title if isinstance(title, str) and title else None
 
 
 def _enabled_agents(store: Store, data_dir: Path) -> tuple[str, ...]:

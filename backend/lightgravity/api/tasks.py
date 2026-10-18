@@ -22,6 +22,7 @@ from fastapi import APIRouter, Depends, Query, Response
 from pydantic import BaseModel, ConfigDict
 
 from ..contracts import ActionName, AppError, ErrorCode, TaskPhase, TaskStatus
+from ..execution_evidence import build_execution_view
 from ..store import EntityNotFound, RevisionConflict, Versioned
 from ..store.models import TaskSummary
 from .context import ApiContext, get_context
@@ -122,6 +123,7 @@ def _task_detail(ctx: ApiContext, task_id: str) -> dict[str, Any]:
     detail["task_id"] = versioned.entity_id
 
     run: dict[str, Any] | None = None
+    execution_run: Versioned | None = None
     members: list[dict[str, Any]] = []
     subtasks: list[dict[str, Any]] = []
     active = versioned.entity.get("active_run")
@@ -130,6 +132,9 @@ def _task_detail(ctx: ApiContext, task_id: str) -> dict[str, Any]:
         if run_versioned is None:
             run = {"id": active, "state": "missing"}
         else:
+            execution_run = run_versioned
+            # Existing public Run fields (including connection_pin) stay
+            # unchanged.  The allowlisted view lives only in ``execution``.
             run = _embedded(run_versioned)
             for ref in _string_list(run_versioned.entity.get("team_refs")):
                 member = _safe_read(ctx, "member", ref)
@@ -139,7 +144,14 @@ def _task_detail(ctx: ApiContext, task_id: str) -> dict[str, Any]:
                 subtask = _safe_read(ctx, "subtask", ref)
                 if subtask is not None:
                     subtasks.append(subtask)
+    if execution_run is None and run is None:
+        last = versioned.entity.get("last_run")
+        if isinstance(last, str) and last:
+            execution_run = _safe_read_versioned(ctx, "run", last)
     detail["run"] = run
+    detail["execution"] = build_execution_view(
+        task_id, execution_run.entity if execution_run is not None else None
+    )
     detail["members"] = members
     detail["subtasks"] = subtasks
     return detail
@@ -383,6 +395,37 @@ def build_task_router() -> APIRouter:
             detail = _task_detail(ctx, task_id)
         response.headers["ETag"] = str(detail["etag"])
         return detail
+
+    @router.get("/tasks/{task_id}/execution")
+    def get_task_execution(
+        task_id: str,
+        ctx: Annotated[ApiContext, Depends(get_context)],
+        run_id: Annotated[str | None, Query()] = None,
+    ) -> dict[str, Any]:
+        """Read-only LG-243 worker/reviewer/review execution history.
+
+        No current Settings default is consulted.  A requested Run must belong to
+        this Task; a missing/foreign Run is a truthful ``not_found``.
+        """
+
+        task = ctx.store.read("task", task_id)
+        selected = run_id
+        if not selected:
+            active = task.entity.get("active_run")
+            last = task.entity.get("last_run")
+            selected = active if isinstance(active, str) and active else None
+            if selected is None and isinstance(last, str) and last:
+                selected = last
+        if not isinstance(selected, str) or not selected:
+            return build_execution_view(task_id, None)
+        run = _safe_read_versioned(ctx, "run", selected)
+        if run is None or run.entity.get("task_ref") != task_id:
+            raise AppError(
+                ErrorCode.NOT_FOUND,
+                f"run {selected!r} is not recorded for task {task_id!r}",
+                details={"task_id": task_id, "run_id": selected},
+            )
+        return build_execution_view(task_id, run.entity)
 
     @router.get("/tasks/{task_id}/events")
     def read_task_events(

@@ -34,6 +34,11 @@ from typing import Any, Protocol, runtime_checkable
 
 from lightgravity.contracts import ErrorCode, EventType, TaskPhase
 from lightgravity.coordinator.state import StateWriter
+from lightgravity.execution_evidence import (
+    merge_execution_evidence,
+    review_snapshot,
+    reviewer_connection_snapshot,
+)
 from lightgravity.store import Store
 
 from .candidate import Candidate, load_candidate
@@ -284,6 +289,11 @@ class ReworkOrchestrator:
                 candidate_ref=candidate.candidate_ref,
                 reviewer=getattr(self._reviewer, "name", "unknown"),
                 reason=f"reviewer raised {type(exc).__name__}: {exc}",
+                reviewer_connection=reviewer_connection_snapshot(
+                    getattr(self._reviewer, "support", None),
+                    status="unavailable",
+                    reason=f"reviewer raised {type(exc).__name__}",
+                ),
             )
         # Stamp which kind of reviewer actually ran and any real model usage, so
         # the ledger/events cannot mislabel a program machine gate as an
@@ -303,15 +313,34 @@ class ReworkOrchestrator:
             reviewer_kind=kind,
             model_calls=model_calls,
             usage=dict(usage) if isinstance(usage, dict) else raw.usage,
+            reviewer_connection=(
+                dict(raw.reviewer_connection)
+                if isinstance(raw.reviewer_connection, dict)
+                else None
+            ),
         )
+        validated = validate_findings(raw, candidate=candidate, resolved_evidence=resolved)
         self._last_review_meta = {
             "reviewer": raw.reviewer,
             "reviewer_kind": raw.reviewer_kind,
             "model_calls": raw.model_calls,
             "model_usage": dict(raw.usage),
             "resource_stop": dict(resource_stop_report),
+            # LG-243: persist the actually-resolved reviewer connection and the
+            # exact candidate-bound verdict on this Run, never a later default.
+            "run_id": candidate.run_id,
+            "reviewer_connection": (
+                dict(raw.reviewer_connection)
+                if isinstance(raw.reviewer_connection, dict)
+                else reviewer_connection_snapshot(
+                    None,
+                    status="unknown",
+                    reason="reviewer did not expose connection facts",
+                )
+            ),
+            "review": review_snapshot(validated, candidate),
         }
-        return validate_findings(raw, candidate=candidate, resolved_evidence=resolved), candidate
+        return validated, candidate
 
     def _record_ledger(
         self,
@@ -353,7 +382,32 @@ class ReworkOrchestrator:
             ),
         )
         self._writer.write_task(task_id, {"rework": updated.to_frontmatter()})
+        self._record_run_execution_evidence(meta)
         return updated
+
+    def _record_run_execution_evidence(self, meta: dict[str, Any]) -> None:
+        """Persist reviewer/review facts on the reviewed Run (LG-243).
+
+        The worker snapshot is written once at Run creation.  This merge keeps it
+        and adds the reviewer connection + validated verdict only when a real
+        reviewer pass produced them.  A missing Run (test double/legacy) is an
+        honest no-op, never a fabricated record.
+        """
+
+        run_id = meta.get("run_id")
+        if not isinstance(run_id, str) or not run_id:
+            return
+        try:
+            run = self._store.read("run", run_id).entity
+        except Exception:  # noqa: BLE001 - evidence write must not mask the review
+            return
+        existing = run.get("execution_evidence")
+        evidence = merge_execution_evidence(
+            existing,
+            reviewer=meta.get("reviewer_connection"),
+            review=meta.get("review"),
+        )
+        self._writer.write_run(run_id, {"execution_evidence": evidence})
 
     @property
     def last_reviewer_stop_fact(self) -> dict[str, Any] | None:
