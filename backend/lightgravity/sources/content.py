@@ -32,6 +32,7 @@ from typing import Any
 
 from lightgravity.contracts import AppError, ErrorCode
 from lightgravity.store.atomic import append_jsonl, atomic_write_text, load_jsonl, recover_jsonl
+from lightgravity.store.frontmatter import parse_document
 from lightgravity.store.locking import LockManager
 
 #: Derivative kinds recorded in ``source.derivatives[].kind``.
@@ -262,6 +263,39 @@ class ContentStore:
             return path.read_text("utf-8")
         except OSError:
             return None
+
+    def read_usable_machine_markdown(self, source_version: int) -> str | None:
+        """Read context bytes only when extraction evidence supports a body.
+
+        Raw reads still expose failure artifacts for inspection. Old plain
+        machine files without extraction metadata retain their legacy behavior;
+        absence of metadata alone does not prove extraction failed.
+        """
+
+        markdown = self.read_machine_markdown(source_version)
+        if markdown is None or not markdown.strip():
+            return None
+        if markdown.startswith("---\n"):
+            try:
+                metadata, _ = parse_document(markdown)
+            except AppError:
+                return None
+            if metadata.get("extraction_status") == "failed":
+                return None
+        pages = self.read_pages(source_version)
+        if pages is not None:
+            if pages.get("status") not in ("succeeded", "partial"):
+                return None
+            entries = pages.get("pages")
+            if not isinstance(entries, list) or not any(
+                isinstance(page, dict)
+                and page.get("status") == "succeeded"
+                and isinstance(page.get("text"), str)
+                and page["text"].strip()
+                for page in entries
+            ):
+                return None
+        return markdown
 
     # ---------------------------------------------------------- formal version
     def has_formal(self) -> bool:
